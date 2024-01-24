@@ -94,6 +94,7 @@ export type RefetchUpdateModes = ValuesOf<typeof RefetchUpdateMode>
 export type InputObject = {
 	fields: Record<string, string>
 	types: Record<string, Record<string, string>>
+	defaults: Record<string, any>
 }
 
 export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {

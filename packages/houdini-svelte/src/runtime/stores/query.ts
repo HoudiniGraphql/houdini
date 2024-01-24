@@ -161,13 +161,20 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// we might not want to actually wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !need_to_block
 
+		// spreading the default variables frist so that if the user provides one of these params themselves,
+		// those params get overwritten with the correct value
+		const usedVariables = {
+			...this.artifact.input?.defaults,
+			...params.variables,
+		}
+
 		// we want to try to load cached data before we potentially fake the await
 		// this makes sure that the UI feels snappy as we click between cached pages
 		// (no loaders)
 		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
 			await this.observer.send({
 				fetch: context.fetch,
-				variables: params.variables,
+				variables: usedVariables,
 				metadata: params.metadata,
 				session: context.session,
 				policy: CachePolicy.CacheOnly,
@@ -181,7 +188,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// since CacheOrNetwork behaves the same as CacheAndNetwork
 		const request = this.observer.send({
 			fetch: context.fetch,
-			variables: params.variables,
+			variables: usedVariables,
 			metadata: params.metadata,
 			session: context.session,
 			policy: policy,

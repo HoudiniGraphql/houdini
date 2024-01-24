@@ -26,7 +26,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
-                friendsByCursorSnapshot(snapshot: String!, first: Int, after: String, last: Int, before: String): UserConnection!
+				friendsByCursorSnapshot(snapshot: String!, first: Int, after: String, last: Int, before: String): UserConnection!
 				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
 				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnectionScalar!
 				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection!

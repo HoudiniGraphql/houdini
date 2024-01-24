@@ -131,7 +131,8 @@ describe('load', () => {
 			            "id": "ID"
 			        },
 
-			        "types": {}
+			        "types": {},
+			        "defaults": {}
 			    },
 
 			    "policy": "CacheOrNetwork",

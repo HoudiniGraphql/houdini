@@ -262,6 +262,7 @@ describe('typescript', function () {
 			            "name": "ID";
 			        };
 			        "types": {};
+			        "defaults": {};
 			    };
 			};
 		`)
@@ -351,6 +352,7 @@ describe('typescript', function () {
 			            "name": "ID";
 			        };
 			        "types": {};
+			        "defaults": {};
 			    };
 			};
 		`)
@@ -862,6 +864,7 @@ describe('typescript', function () {
 			            "enum": "MyEnum";
 			        };
 			        "types": {};
+			        "defaults": {};
 			    };
 			    "policy": "CacheOrNetwork";
 			    "partial": false;
@@ -1124,6 +1127,7 @@ describe('typescript', function () {
 			                "enum": "MyEnum";
 			            };
 			        };
+			        "defaults": {};
 			    };
 			};
 		`)
@@ -1351,6 +1355,7 @@ describe('typescript', function () {
 			                "enum": "MyEnum";
 			            };
 			        };
+			        "defaults": {};
 			    };
 			    "policy": "CacheOrNetwork";
 			    "partial": false;
@@ -2283,6 +2288,7 @@ describe('typescript', function () {
 			            "date": "DateTime";
 			        };
 			        "types": {};
+			        "defaults": {};
 			    };
 			    "policy": "CacheOrNetwork";
 			    "partial": false;
@@ -2686,6 +2692,7 @@ describe('typescript', function () {
 			                "enum": "MyEnum";
 			            };
 			        };
+			        "defaults": {};
 			    };
 			};
 		`)
@@ -2801,7 +2808,8 @@ describe('typescript', function () {
 			            "id": "ID"
 			        },
 
-			        "types": {}
+			        "types": {},
+			        "defaults": {}
 			    },
 
 			    "policy": "CacheOrNetwork",

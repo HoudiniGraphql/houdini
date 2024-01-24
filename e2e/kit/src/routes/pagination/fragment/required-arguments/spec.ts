@@ -1,12 +1,12 @@
-import { routes } from '$lib/utils/routes';
+import { test } from '@playwright/test';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectToContain,
   expect_0_gql,
   expect_1_gql,
   expect_to_be,
   goto
-} from '$lib/utils/testsHelper';
-import test from '@playwright/test';
+} from '../../../../lib/utils/testsHelper.js';
 
 test.describe('forwards cursor paginatedFragment with required arguments', () => {
   test('loadNextPage', async ({ page }) => {

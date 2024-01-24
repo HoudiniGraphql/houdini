@@ -27,6 +27,12 @@ export function inputObject(
 			}
 		}, {}),
 		types: {},
+		defaults: inputs.reduce((fields, input) => {
+			return {
+				...fields,
+				[input.variable.name.value]: parseInputField(input.defaultValue),
+			}
+		}, {}),
 	}
 
 	// walk through every type referenced and add it to the list
@@ -78,4 +84,34 @@ function walkInputs(
 		},
 		{}
 	)
+}
+
+function parseInputField(field: graphql.ValueNode | undefined): any {
+	if (!field) {
+		return undefined
+	}
+
+	if (
+		field.kind === 'BooleanValue' ||
+		field.kind === 'EnumValue' ||
+		field.kind === 'StringValue'
+	) {
+		return field.value
+	} else if (field.kind === 'IntValue') {
+		// ints and floats are stored as `string` in graphql-js, so we need to manually parse them
+		return parseInt(field.value)
+	} else if (field.kind === 'FloatValue') {
+		return parseFloat(field.value)
+	} else if (field.kind === 'ListValue') {
+		return field.values.map((f) => parseInputField(f))
+	} else if (field.kind === 'ObjectValue') {
+		return field.fields.reduce((fields, input) => {
+			return {
+				...fields,
+				[input.name.value]: parseInputField(input.value),
+			}
+		}, {})
+	}
+
+	return undefined
 }

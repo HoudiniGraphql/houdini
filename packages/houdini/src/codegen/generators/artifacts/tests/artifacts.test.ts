@@ -400,7 +400,8 @@ test('variables only used by internal directives are scrubbed', async function (
 		            "parentID": "ID"
 		        },
 
-		        "types": {}
+		        "types": {},
+		        "defaults": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -592,7 +593,8 @@ test('interface to interface inline fragment', async function () {
 		            "id": "ID"
 		        },
 
-		        "types": {}
+		        "types": {},
+		        "defaults": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -842,7 +844,11 @@ test('paginate over unions', async function () {
 		            "before": "String"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "first": 10
+		        }
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -3876,7 +3882,8 @@ describe('mutation artifacts', function () {
 			            "value": "String"
 			        },
 
-			        "types": {}
+			        "types": {},
+			        "defaults": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4329,7 +4336,11 @@ describe('mutation artifacts', function () {
 			            "before": "String"
 			        },
 
-			        "types": {}
+			        "types": {},
+
+			        "defaults": {
+			            "first": 10
+			        }
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4574,7 +4585,11 @@ describe('mutation artifacts', function () {
 			            "before": "String"
 			        },
 
-			        "types": {}
+			        "types": {},
+
+			        "defaults": {
+			            "first": 10
+			        }
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4696,7 +4711,8 @@ describe('mutation artifacts', function () {
 			            "value": "String"
 			        },
 
-			        "types": {}
+			        "types": {},
+			        "defaults": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4819,7 +4835,8 @@ describe('mutation artifacts', function () {
 			            "value": "String"
 			        },
 
-			        "types": {}
+			        "types": {},
+			        "defaults": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -5039,7 +5056,9 @@ test('operation inputs', async function () {
 		                "recursive": "UserFilter",
 		                "enum": "MyEnum"
 		            }
-		        }
+		        },
+
+		        "defaults": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -6023,7 +6042,8 @@ test('client nullability', async function () {
 		            "id": "ID"
 		        },
 
-		        "types": {}
+		        "types": {},
+		        "defaults": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -6671,4 +6691,296 @@ test('nested abstract fragments', async function () {
 
 		"HoudiniHash=72091e952cf94a18193cee6cda1caf256f6439e4e202b319d876e9b3365ac319";
 	`)
+})
+
+describe('default arguments', function () {
+	test('adds default values to the artifact', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		// the documents to test
+		const docs: Document[] = [
+			mockCollectedDoc(`
+				query UserFriends($count: Int = 10, $search: String = "bob") {
+					user {
+						friendsByOffset(offset: $count, filter: $search) {
+							name
+						}
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "UserFriends",
+			    "kind": "HoudiniQuery",
+			    "hash": "50713a85f40c418e37c1eb92eef9dc136b8916e78b4126a902bde2956a642db3",
+
+			    "raw": \`query UserFriends($count: Int = 10, $search: String = "bob") {
+			  user {
+			    friendsByOffset(offset: $count, filter: $search) {
+			      name
+			      id
+			    }
+			    id
+			  }
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "user": {
+			                "type": "User",
+			                "keyRaw": "user",
+
+			                "selection": {
+			                    "fields": {
+			                        "friendsByOffset": {
+			                            "type": "User",
+			                            "keyRaw": "friendsByOffset(filter: $search, offset: $count)",
+
+			                            "selection": {
+			                                "fields": {
+			                                    "name": {
+			                                        "type": "String",
+			                                        "keyRaw": "name",
+			                                        "visible": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "input": {
+			        "fields": {
+			            "count": "Int",
+			            "search": "String"
+			        },
+
+			        "types": {},
+
+			        "defaults": {
+			            "count": 10,
+			            "search": "bob"
+			        }
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=d1f65a0e526e297d58858015a806c475bdca0a1b153f3ee839712ec7ee6190ff";
+		`)
+	})
+
+	test('handles base scalars correctly', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		// the documents to test
+		const docs: Document[] = [
+			mockCollectedDoc(`
+				query ListUsers($bool: Boolean = true, $int: Int = 5, $float: Float = 3.14, $string: String = "hello world") {
+					users(boolValue: $bool, intValue: $int, floatValue: $float, stringValue: $string) {
+						name
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "ListUsers",
+			    "kind": "HoudiniQuery",
+			    "hash": "8e997ca35d0030fcfbb888a740c20240530c85149e04b931e7d34d489d8be553",
+
+			    "raw": \`query ListUsers($bool: Boolean = true, $int: Int = 5, $float: Float = 3.14, $string: String = "hello world") {
+			  users(
+			    boolValue: $bool
+			    intValue: $int
+			    floatValue: $float
+			    stringValue: $string
+			  ) {
+			    name
+			    id
+			  }
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "users": {
+			                "type": "User",
+			                "keyRaw": "users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string)",
+
+			                "selection": {
+			                    "fields": {
+			                        "name": {
+			                            "type": "String",
+			                            "keyRaw": "name",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "input": {
+			        "fields": {
+			            "bool": "Boolean",
+			            "int": "Int",
+			            "float": "Float",
+			            "string": "String"
+			        },
+
+			        "types": {},
+
+			        "defaults": {
+			            "bool": true,
+			            "int": 5,
+			            "float": 3.14,
+			            "string": "hello world"
+			        }
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=f8edbf4199a63a56d214cd5c845d90310052da75c45f3f3f5abf5f5cdb707a3e";
+		`)
+	})
+
+	test('handles complext default arguments', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		// the documents to test
+		const docs: Document[] = [
+			mockCollectedDoc(`
+				query FindUser($filter: UserFilter = { name: "bob" }) {
+					usersByOffset(offset: 5, filter: $filter) {
+						name
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "FindUser",
+			    "kind": "HoudiniQuery",
+			    "hash": "178720d2fc874e6b58c920f655d292a59a6de314ed70ea9eee335b1ad3fb1755",
+
+			    "raw": \`query FindUser($filter: UserFilter = {name: "bob"}) {
+			  usersByOffset(offset: 5, filter: $filter) {
+			    name
+			    id
+			  }
+			}
+			\`,
+
+			    "rootType": "Query",
+
+			    "selection": {
+			        "fields": {
+			            "usersByOffset": {
+			                "type": "User",
+			                "keyRaw": "usersByOffset(filter: $filter, offset: 5)",
+
+			                "selection": {
+			                    "fields": {
+			                        "name": {
+			                            "type": "String",
+			                            "keyRaw": "name",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "input": {
+			        "fields": {
+			            "filter": "UserFilter"
+			        },
+
+			        "types": {
+			            "UserFilter": {
+			                "name": "String"
+			            }
+			        },
+
+			        "defaults": {
+			            "filter": {
+			                "name": "bob"
+			            }
+			        }
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=4b2886d3afb40660837727c266b5667c81698e3bbf240ec47270a262842f61d8";
+		`)
+	})
 })
