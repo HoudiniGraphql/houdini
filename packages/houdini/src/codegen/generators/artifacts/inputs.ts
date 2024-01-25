@@ -1,11 +1,9 @@
 import * as graphql from 'graphql'
-import * as recast from 'recast'
 
 import { unwrapType } from '../../../lib'
 import type { Config } from '../../../lib/config'
+import { variableValue } from '../../../runtime/cache/cache'
 import type { InputObject } from '../../../runtime/lib/types'
-
-const AST = recast.types.builders
 
 export function inputObject(
 	config: Config,
@@ -30,7 +28,9 @@ export function inputObject(
 		defaults: inputs.reduce((fields, input) => {
 			return {
 				...fields,
-				[input.variable.name.value]: parseInputField(input.defaultValue),
+				[input.variable.name.value]: input.defaultValue
+					? variableValue(input.defaultValue, {})
+					: undefined,
 			}
 		}, {}),
 	}
@@ -84,34 +84,4 @@ function walkInputs(
 		},
 		{}
 	)
-}
-
-function parseInputField(field: graphql.ValueNode | undefined): any {
-	if (!field) {
-		return undefined
-	}
-
-	if (
-		field.kind === 'BooleanValue' ||
-		field.kind === 'EnumValue' ||
-		field.kind === 'StringValue'
-	) {
-		return field.value
-	} else if (field.kind === 'IntValue') {
-		// ints and floats are stored as `string` in graphql-js, so we need to manually parse them
-		return parseInt(field.value)
-	} else if (field.kind === 'FloatValue') {
-		return parseFloat(field.value)
-	} else if (field.kind === 'ListValue') {
-		return field.values.map((f) => parseInputField(f))
-	} else if (field.kind === 'ObjectValue') {
-		return field.fields.reduce((fields, input) => {
-			return {
-				...fields,
-				[input.name.value]: parseInputField(input.value),
-			}
-		}, {})
-	}
-
-	return undefined
 }

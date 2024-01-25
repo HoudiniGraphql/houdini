@@ -6895,7 +6895,7 @@ describe('default arguments', function () {
 		`)
 	})
 
-	test('handles complext default arguments', async function () {
+	test('handles complex default arguments', async function () {
 		// the config to use in tests
 		const config = testConfig()
 		// the documents to test
