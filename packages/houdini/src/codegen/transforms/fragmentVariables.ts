@@ -122,7 +122,7 @@ function inlineFragmentArgs({
 	 * ```
 	 *
 	 * It replaced every VariableNode with its explicit value. If there is not argument provided,
-	 * error if the argument is required or delete the node if the argument is optional.
+	 * delete the node if the argument is optional.
 	 *
 	 * @param node any ValueNode
 	 * @returns the node where all variable nodes get replaced with their explicit values. And null if the argument is optional and not set
@@ -168,12 +168,9 @@ function inlineFragmentArgs({
 			return newValue
 		}
 
-		// if the argument is required
+		// if the argument is required, make sure we keep it
 		if (definitionArgs[node.name.value] && definitionArgs[node.name.value].required) {
-			throw new HoudiniError({
-				filepath,
-				message: 'Missing value for required arg: ' + node.name.value,
-			})
+			return node
 		}
 
 		// The argument is optional and not set in parent => delete the node.

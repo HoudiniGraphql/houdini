@@ -1,11 +1,9 @@
 import * as graphql from 'graphql'
-import * as recast from 'recast'
 
 import { unwrapType } from '../../../lib'
 import type { Config } from '../../../lib/config'
+import { variableValue } from '../../../runtime/cache/cache'
 import type { InputObject } from '../../../runtime/lib/types'
-
-const AST = recast.types.builders
 
 export function inputObject(
 	config: Config,
@@ -27,6 +25,14 @@ export function inputObject(
 			}
 		}, {}),
 		types: {},
+		defaults: inputs.reduce((fields, input) => {
+			return {
+				...fields,
+				[input.variable.name.value]: input.defaultValue
+					? variableValue(input.defaultValue, {})
+					: undefined,
+			}
+		}, {}),
 	}
 
 	// walk through every type referenced and add it to the list

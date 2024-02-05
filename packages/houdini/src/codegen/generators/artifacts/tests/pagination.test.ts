@@ -199,7 +199,11 @@ test('pagination arguments stripped from key', async function () {
 		            "before": "String"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "first": 10
+		        }
 		    }
 		};
 
@@ -406,7 +410,11 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		            "before": "String"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "first": 10
+		        }
 		    }
 		};
 
@@ -506,7 +514,11 @@ test('offset based pagination marks appropriate field', async function () {
 		            "offset": "Int"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "limit": 10
+		        }
 		    }
 		};
 
@@ -768,7 +780,11 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		            "before": "Cursor"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "first": 10
+		        }
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -1132,7 +1148,11 @@ test("sibling aliases don't get marked", async function () {
 		            "before": "String"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "first": 10
+		        }
 		    }
 		};
 

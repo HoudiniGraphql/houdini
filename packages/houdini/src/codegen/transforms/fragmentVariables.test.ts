@@ -518,7 +518,8 @@ test('thread query variables to inner fragments', async function () {
 		            "name": "String"
 		        },
 
-		        "types": {}
+		        "types": {},
+		        "defaults": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -1022,7 +1023,12 @@ test('persists fragment variables in artifact', async function () {
 		            "cool": "Boolean"
 		        },
 
-		        "types": {}
+		        "types": {},
+
+		        "defaults": {
+		            "name": "Hello",
+		            "cool": true
+		        }
 		    }
 		};
 
@@ -1196,7 +1202,8 @@ test('variables referenced deeply in objects', async function () {
 		            "name": "String"
 		        },
 
-		        "types": {}
+		        "types": {},
+		        "defaults": {}
 		    }
 		};
 

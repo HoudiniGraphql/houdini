@@ -950,10 +950,7 @@ class CacheInternal {
 							key,
 							{
 								parent,
-								variables: evaluateFragmentVariables(
-									value.arguments,
-									variables ?? {}
-								),
+								variables: evaluateVariables(value.arguments, variables ?? {}),
 							},
 						])
 				),
@@ -1005,7 +1002,7 @@ class CacheInternal {
 			})
 			if (includeDirective) {
 				// if the `if` argument evaluates to false, skip the field
-				if (!evaluateFragmentVariables(includeDirective.arguments, variables ?? {})['if']) {
+				if (!evaluateVariables(includeDirective.arguments, variables ?? {})['if']) {
 					continue
 				}
 			}
@@ -1014,7 +1011,7 @@ class CacheInternal {
 			})
 			if (skipDirective) {
 				// if the `if` argument evaluates to false, skip the field
-				if (evaluateFragmentVariables(skipDirective.arguments, variables ?? {})['if']) {
+				if (evaluateVariables(skipDirective.arguments, variables ?? {})['if']) {
 					continue
 				}
 			}
@@ -1489,9 +1486,9 @@ class CacheInternal {
 	}
 }
 
-export function evaluateFragmentVariables(variables: ValueMap, args: GraphQLObject) {
+export function evaluateVariables(variables: ValueMap, args: GraphQLObject) {
 	return Object.fromEntries(
-		Object.entries(variables).map(([key, value]) => [key, fragmentVariableValue(value, args)])
+		Object.entries(variables).map(([key, value]) => [key, variableValue(value, args)])
 	)
 }
 
@@ -1502,7 +1499,7 @@ function wrapInLists<T>(target: T, count: number = 0): T | NestedList<T> {
 	return wrapInLists([target], count - 1)
 }
 
-function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {
+export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {
 	if (value.kind === 'StringValue') {
 		return value.value
 	}
@@ -1525,14 +1522,14 @@ function fragmentVariableValue(value: ValueNode, args: GraphQLObject): GraphQLVa
 		return args[value.name.value]
 	}
 	if (value.kind === 'ListValue') {
-		return value.values.map((value) => fragmentVariableValue(value, args))
+		return value.values.map((value) => variableValue(value, args))
 	}
 
 	if (value.kind === 'ObjectValue') {
 		return value.fields.reduce(
 			(obj, field) => ({
 				...obj,
-				[field.name.value]: fragmentVariableValue(field.value, args),
+				[field.name.value]: variableValue(field.value, args),
 			}),
 			{}
 		)
@@ -1571,7 +1568,7 @@ export function defaultComponentField({
 		// look up the component in the store
 		const componentFn = cache._internal_unstable.componentCache[component.key]
 
-		const args = evaluateFragmentVariables(component.variables ?? {}, variables ?? {})
+		const args = evaluateVariables(component.variables ?? {}, variables ?? {})
 
 		// return the instantiated component with the appropriate prop
 		return cache._internal_unstable.createComponent(componentFn, {

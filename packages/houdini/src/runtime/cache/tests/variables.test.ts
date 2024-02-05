@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
 import type { GraphQLObject, ValueMap } from '../../lib/types'
-import { evaluateFragmentVariables } from '../cache'
+import { evaluateVariables } from '../cache'
 
 describe('evaluateFragmentVariables', function () {
 	const table: { title: string; input: ValueMap; variables: GraphQLObject; expected: any }[] = [
@@ -122,7 +122,7 @@ describe('evaluateFragmentVariables', function () {
 
 	for (const row of table) {
 		test(row.title, function () {
-			expect(evaluateFragmentVariables(row.input, row.variables)).toEqual(row.expected)
+			expect(evaluateVariables(row.input, row.variables)).toEqual(row.expected)
 		})
 	}
 })
