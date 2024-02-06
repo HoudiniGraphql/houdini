@@ -2,8 +2,6 @@
 
 ## 1.2.37
 
-### Patch Changes
-
 ### ✨ Features
 
 -   [#1253](https://github.com/HoudiniGraphql/houdini/pull/1253) [`21ef04bf`](https://github.com/HoudiniGraphql/houdini/commit/21ef04bffce6e22a49e0294e1618a2a9f879f43d) @SeppahBaws - Add support for required arguments in paginated fragments
