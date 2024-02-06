@@ -1,6 +1,6 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 
-import { GraphQLValue } from '../../lib'
+import type { GraphQLValue } from '../../lib'
 
 export function stripLoc<
 	T extends
