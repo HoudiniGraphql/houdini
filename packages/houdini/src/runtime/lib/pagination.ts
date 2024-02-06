@@ -242,11 +242,23 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 	getVariables: () => _Input
 	getSession: () => Promise<App.Session>
 }) {
+	// Get the Pagination Mode
+	let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+
 	// we need to track the most recent offset for this handler
-	let getOffset = () =>
-		(artifact.refetch?.start as number) ||
-		countPage(artifact.refetch!.path, getState()) ||
-		artifact.refetch!.pageSize
+	let getOffset = () => {
+		let offset =
+			(artifact.refetch?.start as number) ||
+			countPage(artifact.refetch!.path, getState()) ||
+			artifact.refetch!.pageSize
+
+		// if we are loading single pages then we need to add the current offset to the page size
+		if (isSinglePage) {
+			offset += getVariables()?.offset ?? 0
+		}
+
+		return offset
+	}
 
 	let currentOffset = getOffset() ?? 0
 
@@ -276,9 +288,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 			if (!queryVariables.limit && !artifact.refetch!.pageSize) {
 				throw missingPageSizeError('loadNextPage')
 			}
-
-			// Get the Pagination Mode
-			let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 			// send the query
 			const targetFetch = isSinglePage ? parentFetch : parentFetchUpdate
