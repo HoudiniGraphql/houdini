@@ -10,6 +10,7 @@
     "build": "vite build",
     "build:": "cd ../../ && ((pnpm run build && cd -) || (cd - && exit 1))",
     "build:dev": "pnpm build: && pnpm dev",
+    "build:generate": "pnpm build: && npx houdini generate",
     "build:test": "pnpm build: && pnpm test",
     "build:build": "pnpm build: && pnpm build",
     "package": "svelte-kit package",

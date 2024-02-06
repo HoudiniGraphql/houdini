@@ -10,6 +10,7 @@ import {
 } from '../../../runtime/lib/types'
 import { withArguments } from '../../transforms/fragmentVariables'
 import { connectionSelection } from '../../transforms/list'
+import { stripLoc } from '../../utils/stripLoc'
 import fieldKey from './fieldKey'
 import { convertValue } from './utils'
 
@@ -189,9 +190,9 @@ function prepareSelection({
 					arguments: (directive.arguments ?? []).reduce(
 						(acc, arg) => ({
 							...acc,
-							[arg.name.value]: config.serializeValueMap({ field: arg.value })![
-								'field'
-							],
+							[arg.name.value]: config.serializeValueMap({
+								field: stripLoc(arg.value),
+							})!['field'],
 						}),
 						{}
 					),
