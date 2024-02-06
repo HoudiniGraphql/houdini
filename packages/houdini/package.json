@@ -34,7 +34,7 @@
         "vitest": "^0.28.3"
     },
     "dependencies": {
-        "@babel/parser": "^7.20.5",
+        "@babel/parser": "^7.23.9",
         "@clack/prompts": "^0.6.3",
         "@graphql-tools/merge": "^9.0.0",
         "@graphql-tools/schema": "^9.0.4",
