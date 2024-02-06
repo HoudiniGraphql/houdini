@@ -148,7 +148,7 @@ export class QueryStoreOffset<
 		this.#_handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			storeName: this.name,
-			fetch: super.fetch,
+			fetch: super.fetch.bind(this),
 			getState: () => get(this.observer).data,
 			getVariables: () => get(this.observer).variables!,
 			getSession: getSession,
