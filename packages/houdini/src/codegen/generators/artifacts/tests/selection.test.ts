@@ -1227,3 +1227,95 @@ test('componentFields get embedded in the selection', async function () {
 		"HoudiniHash=06be0ac4bd68cba33a2211d36d7235ecf1631722d830c88e0f39ae9896a25f85";
 	`)
 })
+
+test('fragment argument passed to directive', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query UserDetailsWithBirthday {
+				user {
+				  name
+				  ...UserDetailsArguments @with(showBirthday: true)
+				}
+			}`
+		),
+		mockCollectedDoc(
+			`fragment UserDetailsArguments on User @arguments(showBirthday: { type: "Boolean!" }) {
+				id
+				birthday @include(if: $showBirthday)
+			  }`
+		),
+	]
+
+	// execute the generator (there shouldn't be a call-stack bug)
+	await runPipeline(config, docs)
+
+	expect(docs[1]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserDetailsArguments",
+		    "kind": "HoudiniFragment",
+		    "hash": "79a8d7df6a489a0f095761c3159630e50dd05bbff30c2a93bc9aa177cbe40cb5",
+
+		    "raw": \`fragment UserDetailsArguments on User {
+		  id
+		  birthday @include(if: $showBirthday)
+		  __typename
+		}
+		\`,
+
+		    "rootType": "User",
+
+		    "selection": {
+		        "fields": {
+		            "id": {
+		                "type": "ID",
+		                "keyRaw": "id",
+		                "visible": true
+		            },
+
+		            "birthday": {
+		                "type": "DateTime",
+		                "keyRaw": "birthday",
+
+		                "directives": [{
+		                    "name": "include",
+
+		                    "arguments": {
+		                        "if": {
+		                            "kind": "Variable",
+
+		                            "name": {
+		                                "kind": "Name",
+		                                "value": "showBirthday"
+		                            }
+		                        }
+		                    }
+		                }],
+
+		                "visible": true
+		            },
+
+		            "__typename": {
+		                "type": "String",
+		                "keyRaw": "__typename",
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "showBirthday": "Boolean"
+		        },
+
+		        "types": {},
+		        "defaults": {}
+		    }
+		};
+
+		"HoudiniHash=8362b2cdd240eeb06a44c498267a971b7010534b464bba2b36c34a9635eed2ce";
+	`)
+})
