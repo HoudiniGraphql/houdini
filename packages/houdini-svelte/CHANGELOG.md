@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 1.2.37
+
+### Patch Changes
+
+-   [#1262](https://github.com/HoudiniGraphql/houdini/pull/1262) [`ca69bb81`](https://github.com/HoudiniGraphql/houdini/commit/ca69bb81b8d7aaa45a947ebe2054e90eaa856c09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix bug with loading offset lists page by page
+
+-   [#1253](https://github.com/HoudiniGraphql/houdini/pull/1253) [`21ef04bf`](https://github.com/HoudiniGraphql/houdini/commit/21ef04bffce6e22a49e0294e1618a2a9f879f43d) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add support for required arguments in paginated fragments
+
+-   Updated dependencies [[`5cf1c72e`](https://github.com/HoudiniGraphql/houdini/commit/5cf1c72e4f1e5c585d05bcbdc67095d8aa68bd32), [`21ef04bf`](https://github.com/HoudiniGraphql/houdini/commit/21ef04bffce6e22a49e0294e1618a2a9f879f43d), [`d1899949`](https://github.com/HoudiniGraphql/houdini/commit/d18999499ef3b773a4654363e625dcc04db5d291)]:
+    -   houdini@1.2.37
+
 ## 1.2.36
 
 ### Dependency Changes
