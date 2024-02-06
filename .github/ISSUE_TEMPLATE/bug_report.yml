@@ -14,31 +14,6 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: severity
-    attributes:
-      label: Severity
-      options:
-        - annoyance
-        - serious, but I can work around it
-        - blocking an upgrade
-        - blocking all usage of Houdini
-    validations:
-      required: true
-
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to Reproduce the Bug
-      description: Describe the steps we have to take to reproduce the behavior.
-      placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
-    validations:
-      required: true
-
   - type: input
     id: reproduction
     attributes:
