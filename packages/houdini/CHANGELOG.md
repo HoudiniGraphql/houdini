@@ -1,8 +1,18 @@
 # houdini
 
-## 1.2.36
+## 1.2.37
 
 ### ✨ Features
+
+-   [#1253](https://github.com/HoudiniGraphql/houdini/pull/1253) [`21ef04bf`](https://github.com/HoudiniGraphql/houdini/commit/21ef04bffce6e22a49e0294e1618a2a9f879f43d) @SeppahBaws - Add support for required arguments in paginated fragments
+
+### 🐛 Fixes
+
+-   [#1261](https://github.com/HoudiniGraphql/houdini/pull/1261) [`d1899949`](https://github.com/HoudiniGraphql/houdini/commit/d18999499ef3b773a4654363e625dcc04db5d291) @AlecAivazis - Fix parsing error with export type \* from
+
+-   [#1260](https://github.com/HoudiniGraphql/houdini/pull/1260) [`5cf1c72e`](https://github.com/HoudiniGraphql/houdini/commit/5cf1c72e4f1e5c585d05bcbdc67095d8aa68bd32) @AlecAivazis - fix bug when fragment arguments are passed to directives
+
+## 1.2.36
 
 -   [#1249](https://github.com/HoudiniGraphql/houdini/pull/1249) [`ffa2b2a6`](https://github.com/HoudiniGraphql/houdini/commit/ffa2b2a6af6c06281923e14bd3d53bf54ec33792) @llJochemll - Optimize cache subscriptions
 
