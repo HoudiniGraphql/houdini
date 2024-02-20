@@ -171,7 +171,8 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		// we want to try to load cached data before we potentially fake the await
 		// this makes sure that the UI feels snappy as we click between cached pages
 		// (no loaders)
-		if (policy !== CachePolicy.NetworkOnly && fakeAwait) {
+		const refersToCache = policy !== CachePolicy.NetworkOnly && policy !== CachePolicy.NoCache
+		if (refersToCache && fakeAwait) {
 			await this.observer.send({
 				fetch: context.fetch,
 				variables: usedVariables,

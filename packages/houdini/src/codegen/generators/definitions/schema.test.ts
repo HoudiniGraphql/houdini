@@ -83,6 +83,7 @@ test('adds internal documents to schema', async function () {
 			  CacheOnly
 			  CacheOrNetwork
 			  NetworkOnly
+			  NoCache
 			}
 
 			"""The Component scalar is only defined if the user has any component fields"""
@@ -169,6 +170,7 @@ test('list operations are included', async function () {
 			  CacheOnly
 			  CacheOrNetwork
 			  NetworkOnly
+			  NoCache
 			}
 
 			"""The Component scalar is only defined if the user has any component fields"""
@@ -274,6 +276,7 @@ test('list operations are included but delete directive should not be in when we
 			  CacheOnly
 			  CacheOrNetwork
 			  NetworkOnly
+			  NoCache
 			}
 
 			"""The Component scalar is only defined if the user has any component fields"""
@@ -392,6 +395,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 			  CacheOnly
 			  CacheOrNetwork
 			  NetworkOnly
+			  NoCache
 			}
 
 			"""The Component scalar is only defined if the user has any component fields"""

@@ -102,15 +102,15 @@ export async function expect_n_gql(
     // default increment
     const tim_inc = 11;
 
-    // did he waited enough?
+    // did it wait enough?
     let waited_enough = false;
 
     // reset and start from 0 to start the loop.
     time_waiting = 0;
 
     // While
-    // - n !== nbResponse => We don't have the right number of response
-    // - time_waiting < 9999 => We don't reach the global timeout
+    // - n !== nbResponse => We don't have the right number of responses
+    // - time_waiting < 9999 => We haven't reached the global timeout
     // - !waited_enough => We didn't wait enough
     while (n !== nbResponse && time_waiting < 9999 && !waited_enough) {
       // inc
