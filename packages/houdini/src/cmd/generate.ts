@@ -49,5 +49,7 @@ export async function generate(
 				console.error(error.stack.split('\n').slice(1).join('\n'))
 			}
 		})
+
+		process.exit(1)
 	}
 }
