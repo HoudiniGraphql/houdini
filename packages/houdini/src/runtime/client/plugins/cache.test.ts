@@ -364,6 +364,68 @@ test('stale', async function () {
 	})
 })
 
+test('NoCache', async function () {
+	const spy = vi.fn()
+
+	const cache = new Cache({ ...config, disabled: false })
+
+	const store = createStore({
+		pipeline: [
+			cachePolicy({
+				serverSideFallback: false,
+				enabled: true,
+				setFetching: spy,
+				cache,
+			}),
+			fakeFetch({}),
+		],
+	})
+	const returned = await store.send({ policy: CachePolicy.NoCache })
+
+	expect(spy).toHaveBeenCalledTimes(1)
+
+	expect(returned).toEqual({
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: null,
+		source: 'network',
+		partial: false,
+		stale: false,
+	})
+
+	// make sure there isn't anything in the cache
+	expect(Object.keys(cache._internal_unstable.storage.topLayer.fields)).toHaveLength(0)
+
+	// test the cache policy again
+	const second = await store.send({ policy: CachePolicy.NoCache })
+	expect(spy).toHaveBeenCalledTimes(2)
+	expect(second).toEqual({
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
+			},
+		},
+		errors: null,
+		fetching: false,
+		variables: null,
+		source: 'network',
+		partial: false,
+		stale: false,
+	})
+
+	// make sure there isn't anything in the cache
+	expect(Object.keys(cache._internal_unstable.storage.topLayer.fields)).toHaveLength(0)
+})
+
 test('loading states when fetching is true', async function () {
 	// create the store
 	const store = createStore()
