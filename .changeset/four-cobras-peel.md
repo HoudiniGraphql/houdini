@@ -1,5 +1,5 @@
 ---
-'houdini':patch
+'houdini': patch
 ---
 
 Implement cache policy "NoCache"
