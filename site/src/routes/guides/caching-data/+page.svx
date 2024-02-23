@@ -22,6 +22,7 @@ There are a few different policies that can be specified:
 - `CacheAndNetwork` will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server. The cached portion of this might contain partial data if you opt-in.
 - `NetworkOnly` will never check if the data exists in the cache and always send a network request
 - `CacheOnly` will only ever return cache data which can be a partial response
+- `NoCache` is like `NetworkOnly` but also will never write to the cache
 
 The default cache policy as well as other parameters can be changed in your [config file](/api/config).
 

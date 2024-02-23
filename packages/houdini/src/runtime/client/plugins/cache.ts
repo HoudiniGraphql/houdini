@@ -34,8 +34,10 @@ export const cachePolicy =
 					// prefers network data we need to send a request (the onLoad of the component will
 					// resolve the next data)
 
-					// if the cache policy allows for cached data, look at the caches value first
-					if (policy !== CachePolicy.NetworkOnly) {
+					// if the cache policy allows for cached data, look at the cache's value first
+					const policyAllowsCache =
+						policy !== CachePolicy.NetworkOnly && policy !== CachePolicy.NoCache
+					if (policyAllowsCache) {
 						// look up the current value in the cache
 						const value = localCache.read({
 							selection: artifact.selection,
@@ -62,7 +64,7 @@ export const cachePolicy =
 							})
 						}
 
-						// if we have data, use that unless its partial data and we dont allow that
+						// if we have data, use that unless it's partial data and we don't allow that
 						useCache = !!(value.data !== null && allowed)
 
 						if (useCache) {
@@ -99,7 +101,7 @@ export const cachePolicy =
 				}
 
 				// if we got this far, we are resolving something against the network
-				// dont set the fetching state to true if we accepted a cache value
+				// don't set the fetching state to true if we accepted a cache value
 				if (!ctx.stuff?.silenceLoading) {
 					// don't set the fetching state to true if we accepted a cache value
 					let fetchingState: GraphQLObject | null = null
@@ -122,6 +124,7 @@ export const cachePolicy =
 			afterNetwork(ctx, { resolve, value, marshalVariables }) {
 				// if we have data coming in from the cache, we should write it and move on
 				if (
+					ctx.policy !== CachePolicy.NoCache &&
 					value.source !== DataSource.Cache &&
 					enabled &&
 					value.data &&
@@ -154,7 +157,7 @@ export const cachePolicy =
 
 					// we need to embed the fragment context values in our response
 					// and apply masking other value transforms. In order to do that,
-					// we're goin to read back what we just wrote. This only incurs
+					// we're going to read back what we just wrote. This only incurs
 					// extra computation on the server-side since we have to write the values
 					// before we can read them (instead of just transforming the value directly)
 					value = {

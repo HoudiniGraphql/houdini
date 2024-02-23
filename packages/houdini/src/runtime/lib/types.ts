@@ -5,6 +5,7 @@ export const CachePolicy = {
 	CacheOnly: 'CacheOnly',
 	NetworkOnly: 'NetworkOnly',
 	CacheAndNetwork: 'CacheAndNetwork',
+	NoCache: 'NoCache',
 } as const
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>

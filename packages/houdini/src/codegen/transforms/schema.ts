@@ -18,6 +18,7 @@ enum CachePolicy {
 	${CachePolicy.CacheOnly}
 	${CachePolicy.CacheOrNetwork}
 	${CachePolicy.NetworkOnly}
+	${CachePolicy.NoCache}
 }
 
 """

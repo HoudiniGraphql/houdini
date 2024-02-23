@@ -250,7 +250,7 @@ export class DocumentStore<
 				return new Response(JSON.stringify(result.length === 1 ? result[0] : result))
 			}
 
-			// we dont have a proxy so just use the default fetch
+			// we don't have a proxy so just use the default fetch
 			return await globalThis.fetch(input, init)
 		}
 	}
@@ -362,7 +362,7 @@ export class DocumentStore<
 				// invoke the target with the correct handlers
 				const result = target(draft, handlers)
 
-				// if we got _something_ back its a promise so we need to make
+				// if we got _something_ back it's a promise so we need to make
 				// sure something is listening for error
 				result?.catch((err) => {
 					this.#step('error', { ...ctx, index: index - 1 }, err)
@@ -376,7 +376,7 @@ export class DocumentStore<
 		}
 
 		/// if we got this far, we are at one of the bounds
-		/// we're need to move onto the next phase
+		/// we either need to move onto the next phase
 		/// or we are at the end of the pipeline so we need to resolve
 		/// or there is no call to resolve in the enter hooks so we need to catch
 
@@ -417,7 +417,7 @@ export class DocumentStore<
 			if (!ctx.promise.resolved) {
 				ctx.promise.reject(value)
 
-				// make sure we dont do anything else to the promise
+				// make sure we don't do anything else to the promise
 				ctx.promise.resolved = true
 			}
 
@@ -447,7 +447,7 @@ export class DocumentStore<
 		if (!ctx.promise.resolved) {
 			ctx.promise.resolve(value)
 
-			// make sure we dont resolve it again
+			// make sure we don't resolve it again
 			ctx.promise.resolved = true
 		}
 
@@ -675,13 +675,13 @@ export type ClientPluginEnterHandlers = {
 	marshalVariables: typeof marshalVariables
 }
 
-/** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
+/** Exit handlers are the same as enter handlers but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<ClientPluginEnterHandlers, 'resolve'> & {
 	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 	value: QueryResult
 }
 
-/** Exit handlers are the same as enter handles but don't need to resolve with a specific value */
+/** Exit handlers are the same as enter handlers but don't need to resolve with a specific value */
 export type ClientPluginErrorHandlers = ClientPluginEnterHandlers & {
 	error: unknown
 }

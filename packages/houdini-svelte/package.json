@@ -24,6 +24,7 @@
     },
     "devDependencies": {
         "@types/minimatch": "^5.1.2",
+        "prettier-plugin-svelte": "^2.9.0",
         "scripts": "workspace:^",
         "vitest": "^0.28.3"
     },
