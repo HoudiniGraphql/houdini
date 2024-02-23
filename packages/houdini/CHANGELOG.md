@@ -1,5 +1,15 @@
 # houdini
 
+## 1.2.38
+
+### ✨ Features
+
+-   [#1265](https://github.com/HoudiniGraphql/houdini/pull/1265) [`a84b7c5f`](https://github.com/HoudiniGraphql/houdini/commit/a84b7c5f9a2f5cc5ec806afef5cd4e640a9bbfb5) @MattiasMartens - Implement cache policy "NoCache"
+
+### 🐛 Fixes
+
+-   [#1263](https://github.com/HoudiniGraphql/houdini/pull/1263) [`d22a395d`](https://github.com/HoudiniGraphql/houdini/commit/d22a395d2b4295a1db3c0e9ce61c5be8e57197fa) @SeppahBaws - Ensure houdini generate exits with 1 in case of errors
+
 ## 1.2.37
 
 ### ✨ Features
