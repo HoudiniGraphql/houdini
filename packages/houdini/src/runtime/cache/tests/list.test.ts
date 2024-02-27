@@ -3520,6 +3520,135 @@ test('delete operation', function () {
 	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 })
 
+test('delete operation with non-string id', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: {
+											type: 'ID',
+											visible: true,
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											visible: true,
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: 1,
+				friends: [{ id: '2', firstName: 'jane' }],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									visible: true,
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', 1)!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({
+		selection: {
+			fields: {
+				deleteUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'deleteUser',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+								operations: [
+									{
+										action: 'delete',
+										type: 'User',
+									},
+								],
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			deleteUser: {
+				id: 2,
+			},
+		},
+	})
+
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
+
+	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+})
+
 test('delete operation from list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
