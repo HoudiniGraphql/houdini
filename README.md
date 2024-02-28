@@ -31,25 +31,6 @@
 
 ----
 
-```svelte
-<script>
-    // src/routes/items/+page.svelte
-    import { graphql } from '$houdini'
-
-    const AllItems = graphql(`
-        query AllItems @load {
-            items {
-                text
-            }
-        }
-    `)
-</script>
-
-{#each $AllItems.data.items as item}
-    <div>{item.text}</div>
-{/each}
-```
-
 ## ✨&nbsp;&nbsp;Features
 
 -   Composable and colocated data requirements for your components
