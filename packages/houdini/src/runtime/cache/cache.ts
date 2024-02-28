@@ -888,11 +888,7 @@ class CacheInternal {
 					}
 
 					// delete the target
-					else if (operation.action === 'delete' && operation.type) {
-						if (typeof target !== 'string') {
-							throw new Error('Cannot delete a record with a non-string ID')
-						}
-
+					else if (operation.action === 'delete' && operation.type && target) {
 						const targetID = this.id(operation.type, target)
 						if (!targetID) {
 							continue
@@ -1228,7 +1224,7 @@ class CacheInternal {
 	id(type: string, id: string): string | null
 	id(type: string, data: any): string | null {
 		// try to compute the id of the record
-		const id = typeof data === 'string' ? data : this.computeID(type, data)
+		const id = typeof data === 'object' ? this.computeID(type, data) : data
 		if (!id) {
 			return null
 		}
