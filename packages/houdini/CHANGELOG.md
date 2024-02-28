@@ -2,7 +2,7 @@
 
 ## 1.2.39
 
-### Patch Changes
+### ✨ Features
 
 -   [#1267](https://github.com/HoudiniGraphql/houdini/pull/1267) [`45c66b33`](https://github.com/HoudiniGraphql/houdini/commit/45c66b334edc749c889b74103221f726350d8025) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for non-string IDs when using the delete directive
 
