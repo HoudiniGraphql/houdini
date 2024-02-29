@@ -531,7 +531,7 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 
 	// if there is an error in the response we need to throw to the nearest boundary
 	if (errors && errors.length > 0) {
-		throw errors
+		throw new Error(JSON.stringify(errors))
 	}
 
 	return [data, observer]
