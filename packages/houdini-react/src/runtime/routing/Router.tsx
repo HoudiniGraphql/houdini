@@ -274,7 +274,6 @@ function usePageData({
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
 		if (!globalThis.window) {
-			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
 
@@ -525,10 +524,14 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 		_Input
 	>
 	// get the live data from the store
-	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
+	const [{ data, errors }, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
 		observer: store_ref,
 	})
+
+	if (errors && errors.length > 0) {
+		throw new Error(errors.map((e) => e.message).join('\n'))
+	}
 
 	return [data, observer]
 }
