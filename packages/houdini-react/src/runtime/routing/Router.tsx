@@ -267,7 +267,6 @@ function usePageData({
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
 		if (!globalThis.window) {
-			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
 
