@@ -520,18 +520,6 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data | null, DocumentStore<_Data, _Input>] {
-	console.log(
-		'useQueryResult',
-		name,
-		JSON.stringify(
-			Object.fromEntries(
-				[...useRouterContext().data_cache._map.entries()].map(([key, value]) => [
-					key,
-					value.state,
-				])
-			)
-		)
-	)
 	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
 		_Data,
 		_Input
