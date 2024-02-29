@@ -475,7 +475,7 @@ type RouterContext = {
 }
 
 export type PendingCache = SuspenseCache<
-	Promise<void> & { resolve: () => void; reject: () => void }
+	Promise<void> & { resolve: () => void; reject: (message: string) => void }
 >
 
 const Context = React.createContext<RouterContext | null>(null)
