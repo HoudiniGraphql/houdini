@@ -179,7 +179,7 @@ function usePageData({
 		const observer = client.observe({ artifact, cache })
 
 		let resolve: () => void = () => {}
-		let reject: () => void = () => {}
+		let reject: (message: string) => void = () => {}
 		const promise = new Promise<void>((res, rej) => {
 			resolve = res
 			reject = rej
@@ -192,6 +192,12 @@ function usePageData({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
+
+					// if there is an error, we need to reject the promise
+					if (observer.state.errors && observer.state.errors.length > 0) {
+						reject(observer.state.errors.map((e) => e.message).join('\n'))
+						return
+					}
 
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
@@ -267,7 +273,6 @@ function usePageData({
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
 		if (!globalThis.window) {
-			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
 
@@ -432,7 +437,7 @@ export function RouterContextProvider({
 				artifact_cache,
 				component_cache,
 				data_cache,
-				ssr_signals: ssr_signals,
+				ssr_signals,
 				last_variables,
 				session,
 			}}
@@ -468,7 +473,7 @@ type RouterContext = {
 }
 
 export type PendingCache = SuspenseCache<
-	Promise<void> & { resolve: () => void; reject: () => void }
+	Promise<void> & { resolve: () => void; reject: (message: string) => void }
 >
 
 const Context = React.createContext<RouterContext | null>(null)
@@ -518,10 +523,15 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 		_Input
 	>
 	// get the live data from the store
-	const [{ data }, observer] = useDocumentStore<_Data, _Input>({
+	const [{ data, errors }, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
 		observer: store_ref,
 	})
+
+	// if there is an error in the response we need to throw to the nearest boundary
+	if (errors && errors.length > 0) {
+		throw new Error(JSON.stringify(errors))
+	}
 
 	return [data, observer]
 }
