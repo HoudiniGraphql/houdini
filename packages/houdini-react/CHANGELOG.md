@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.40
+
+### Patch Changes
+
+-   [#1269](https://github.com/HoudiniGraphql/houdini/pull/1269) [`fe0ee152`](https://github.com/HoudiniGraphql/houdini/commit/fe0ee1522110609676d98507ca49bd6354c9cded) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Queries now throw errors when they are encountered in an API response
+
+-   Updated dependencies []:
+    -   houdini@1.2.40
+
 ## 1.2.39
 
 ### Dependency Changes
