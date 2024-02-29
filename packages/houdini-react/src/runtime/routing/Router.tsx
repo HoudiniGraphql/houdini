@@ -529,8 +529,9 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 		observer: store_ref,
 	})
 
+	// if there is an error in the response we need to throw to the nearest boundary
 	if (errors && errors.length > 0) {
-		throw new Error(errors.map((e) => e.message).join('\n'))
+		throw errors
 	}
 
 	return [data, observer]
