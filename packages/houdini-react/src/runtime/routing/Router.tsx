@@ -192,7 +192,7 @@ function usePageData({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
-
+					console.log('resolving', observer.state)
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
 					// data that we just got
@@ -267,6 +267,7 @@ function usePageData({
 		// communicate with the client when we're done
 		const resolvable = { ...promise, resolve, reject }
 		if (!globalThis.window) {
+			console.log('setting ssr signal')
 			ssr_signals.set(id, resolvable)
 		}
 
@@ -431,7 +432,7 @@ export function RouterContextProvider({
 				artifact_cache,
 				component_cache,
 				data_cache,
-				ssr_signals: ssr_signals,
+				ssr_signals,
 				last_variables,
 				session,
 			}}
@@ -512,6 +513,7 @@ const VariableContext = React.createContext<GraphQLVariables>(null)
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data | null, DocumentStore<_Data, _Input>] {
+	console.log('useQueryResult', name, useRouterContext().data_cache)
 	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
 		_Data,
 		_Input
