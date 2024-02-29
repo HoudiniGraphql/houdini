@@ -199,7 +199,6 @@ function usePageData({
 						return
 					}
 
-					console.log('resolving', observer.state)
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
 					// data that we just got
