@@ -179,7 +179,7 @@ function usePageData({
 		const observer = client.observe({ artifact, cache })
 
 		let resolve: () => void = () => {}
-		let reject: () => void = () => {}
+		let reject: (message: string) => void = () => {}
 		const promise = new Promise<void>((res, rej) => {
 			resolve = res
 			reject = rej
@@ -192,6 +192,13 @@ function usePageData({
 				})
 				.then(() => {
 					data_cache.set(id, observer)
+
+					// if there is an error, we need to reject the promise
+					if (observer.state.errors && observer.state.errors.length > 0) {
+						reject(observer.state.errors.map((e) => e.message).join('\n'))
+						return
+					}
+
 					console.log('resolving', observer.state)
 					// if we are building up a stream (on the server), we want to add something
 					// to the client that resolves the pending request with the
