@@ -1,0 +1,5 @@
+---
+'houdini-react': patch
+---
+
+next
