@@ -13,12 +13,13 @@ type ServerHandlerArgs = {
 // so we want a single function that can be called to get the server
 export async function handle_request(args: ServerHandlerArgs): Promise<Response | undefined> {
 	const plugin_config = args.config.router ?? {}
+	const { pathname } = new URL(args.url)
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value
 	if (
 		plugin_config.auth &&
 		'redirect' in plugin_config.auth &&
-		args.url.startsWith(plugin_config.auth.redirect)
+		pathname.startsWith(plugin_config.auth.redirect)
 	) {
 		return await redirect_auth(args)
 	}
