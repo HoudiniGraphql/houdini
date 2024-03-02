@@ -13,12 +13,13 @@ type ServerHandlerArgs = {
 // so we want a single function that can be called to get the server
 export async function handle_request(args: ServerHandlerArgs): Promise<Response | undefined> {
 	const plugin_config = args.config.router ?? {}
+	const { pathname } = new URL(args.url)
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value
 	if (
 		plugin_config.auth &&
 		'redirect' in plugin_config.auth &&
-		args.url.startsWith(plugin_config.auth.redirect)
+		pathname.startsWith(plugin_config.auth.redirect)
 	) {
 		return await redirect_auth(args)
 	}
@@ -27,7 +28,7 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 async function redirect_auth(args: ServerHandlerArgs): Promise<Response> {
 	// the session and configuration are passed as query parameters in
 	// the url
-	const { searchParams, host } = new URL(args.url!, `http://${args.headers.get('host')}`)
+	const { searchParams } = new URL(args.url!, `http://${args.headers.get('host')}`)
 	const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
 
 	// encode the session information as a cookie in the response and redirect the user

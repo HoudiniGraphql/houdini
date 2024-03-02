@@ -177,7 +177,7 @@ function _decodePayload(raw: string): JwtHeader | JwtPayload | null {
 			raw += '='
 			break
 		default:
-			throw new Error('Illegal base64url string!')
+			throw new Error('Illegal base64url string!' + raw)
 	}
 
 	try {
