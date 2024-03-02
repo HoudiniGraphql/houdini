@@ -27,6 +27,7 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 async function redirect_auth(args: ServerHandlerArgs): Promise<Response> {
 	// the session and configuration are passed as query parameters in
 	// the url
+	console.log(args.url, args.headers)
 	const { searchParams } = new URL(args.url!, `http://${args.headers.get('host')}`)
 	const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
 
