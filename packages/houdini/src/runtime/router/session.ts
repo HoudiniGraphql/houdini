@@ -21,6 +21,8 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 		args.url.startsWith(plugin_config.auth.redirect)
 	) {
 		return await redirect_auth(args)
+	} else {
+		console.log('skipping redirect')
 	}
 }
 
