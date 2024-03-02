@@ -1,5 +1,5 @@
 ---
-'houdini-adapter-cloudflare': patch
+'houdini-react': patch
 ---
 
-Fixed issues with deployment
+Fixed issue prevent logins when deployed on cloudflare
