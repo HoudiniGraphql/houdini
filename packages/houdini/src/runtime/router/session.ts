@@ -15,15 +15,14 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 	const plugin_config = args.config.router ?? {}
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value
-	if (
-		plugin_config.auth &&
-		'redirect' in plugin_config.auth &&
-		args.url.startsWith(plugin_config.auth.redirect)
-	) {
-		return await redirect_auth(args)
-	} else {
-		console.log('skipping redirect')
-	}
+	// if (
+	// 	false &&
+	// 	plugin_config.auth &&
+	// 	'redirect' in plugin_config.auth &&
+	// 	args.url.startsWith(plugin_config.auth.redirect)
+	// ) {
+	// 	return await redirect_auth(args)
+	// }
 }
 
 async function redirect_auth(args: ServerHandlerArgs): Promise<Response> {
