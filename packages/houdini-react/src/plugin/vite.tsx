@@ -133,8 +133,6 @@ export default {
 			},
 		})
 
-		process.env.HOUDINI_SECONDARY_BUILD = 'false'
-
 		process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
 		const artifacts: string[] = []
