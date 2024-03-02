@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.2.41
+
+### Patch Changes
+
+-   [#1272](https://github.com/HoudiniGraphql/houdini/pull/1272) [`45a35bd5`](https://github.com/HoudiniGraphql/houdini/commit/45a35bd543316dc9209bfea28e9e514c2344612d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed issue prevent logins when deployed on cloudflare
+
+-   Updated dependencies []:
+    -   houdini@1.2.41
+
 ## 1.2.40
 
 ### Patch Changes
