@@ -11,18 +11,17 @@ type ServerHandlerArgs = {
 
 // the actual server implementation changes from runtime to runtime
 // so we want a single function that can be called to get the server
-export async function handle_request(args: ServerHandlerArgs) {
+export async function handle_request(args: ServerHandlerArgs): Promise<Response | undefined> {
 	const plugin_config = args.config.router ?? {}
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value
-	// if (
-	// 	false &&
-	// 	plugin_config.auth &&
-	// 	'redirect' in plugin_config.auth &&
-	// 	args.url.startsWith(plugin_config.auth.redirect)
-	// ) {
-	// 	return await redirect_auth(args)
-	// }
+	if (
+		plugin_config.auth &&
+		'redirect' in plugin_config.auth &&
+		args.url.startsWith(plugin_config.auth.redirect)
+	) {
+		return await redirect_auth(args)
+	}
 }
 
 async function redirect_auth(args: ServerHandlerArgs): Promise<Response> {

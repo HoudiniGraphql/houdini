@@ -74,43 +74,47 @@ export function _serverHandler<ComponentType = unknown>({
 			return yoga(request)
 		}
 
-		// maybe its a session-related request
-		// const authResponse = await handle_request({
-		// 	url,
-		// 	config: config_file,
-		// 	session_keys,
-		// 	headers: request.headers,
-		// })
-		// if (authResponse) {
-		// 	return authResponse
-		// }
-
-		// the request is for a server-side rendered page
-
-		// find the matching url
-		const [match] = find_match(manifest, url)
-
-		// call the framework-specific render hook with the latest session
-		const rendered = await on_render({
-			url,
-			match,
-			session: await get_session(request.headers, session_keys),
-			manifest,
-			componentCache,
-		})
-		if (rendered) {
-			return rendered
-		}
-
-		// if we got this far its not a page we recognize
-		return new Response('404', { status: 404 })
+		return new Response('OK', { status: 200 })
 	}
 }
 
-export const serverAdapterFactory = (
-	args: Parameters<typeof _serverHandler>[0]
-): ReturnType<typeof createAdapter> => {
-	return createAdapter(_serverHandler(args))
-}
+// 	// 	// maybe its a session-related request
+// 	// 	const authResponse = await handle_request({
+// 	// 		url,
+// 	// 		config: config_file,
+// 	// 		session_keys,
+// 	// 		headers: request.headers,
+// 	// 	})
+// 	// 	if (authResponse) {
+// 	// 		return authResponse
+// 	// 	}
 
-export type ServerAdapterFactory = typeof serverAdapterFactory
+// 	// 	// the request is for a server-side rendered page
+
+// 	// 	// find the matching url
+// 	// 	const [match] = find_match(manifest, url)
+
+// 	// 	// call the framework-specific render hook with the latest session
+// 	// 	const rendered = await on_render({
+// 	// 		url,
+// 	// 		match,
+// 	// 		session: await get_session(request.headers, session_keys),
+// 	// 		manifest,
+// 	// 		componentCache,
+// 	// 	})
+// 	// 	if (rendered) {
+// 	// 		return rendered
+// 	// 	}
+
+// 	// 	// if we got this far its not a page we recognize
+// 	// 	return new Response('404', { status: 404 })
+// 	// }
+// }
+
+// export const serverAdapterFactory = (
+// 	args: Parameters<typeof _serverHandler>[0]
+// ): ReturnType<typeof createAdapter> => {
+// 	return createAdapter(_serverHandler(args))
+// }
+
+// export type ServerAdapterFactory = typeof serverAdapterFactory
