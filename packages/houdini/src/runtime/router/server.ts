@@ -75,15 +75,15 @@ export function _serverHandler<ComponentType = unknown>({
 		}
 
 		// maybe its a session-related request
-		const authResponse = await handle_request({
-			url,
-			config: config_file,
-			session_keys,
-			headers: request.headers,
-		})
-		if (authResponse) {
-			return authResponse
-		}
+		// const authResponse = await handle_request({
+		// 	url,
+		// 	config: config_file,
+		// 	session_keys,
+		// 	headers: request.headers,
+		// })
+		// if (authResponse) {
+		// 	return authResponse
+		// }
 
 		// the request is for a server-side rendered page
 
