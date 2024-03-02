@@ -111,10 +111,10 @@ export function _serverHandler<ComponentType = unknown>({
 // 	// }
 // }
 
-// export const serverAdapterFactory = (
-// 	args: Parameters<typeof _serverHandler>[0]
-// ): ReturnType<typeof createAdapter> => {
-// 	return createAdapter(_serverHandler(args))
-// }
+export const serverAdapterFactory = (
+	args: Parameters<typeof _serverHandler>[0]
+): ReturnType<typeof createAdapter> => {
+	return createAdapter(_serverHandler(args))
+}
 
-// export type ServerAdapterFactory = typeof serverAdapterFactory
+export type ServerAdapterFactory = typeof serverAdapterFactory
