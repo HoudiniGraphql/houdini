@@ -54,14 +54,17 @@ export async function copyFile(src: string, dest: string): Promise<void | null> 
 	return null
 }
 
-export async function readFile(filepath: string): Promise<string | null> {
+export async function readFile(
+	filepath: string,
+	encoding?: BufferEncoding
+): Promise<string | null> {
 	if (houdini_mode.is_testing) {
 		try {
 			if (filepath.includes('build/runtime')) {
-				return await fs.readFile(filepath, 'utf-8')
+				return await fs.readFile(filepath, encoding ?? 'utf-8')
 			}
 
-			return memfs.readFileSync(filepath, 'utf-8')!.toString()
+			return memfs.readFileSync(filepath, encoding ?? 'utf-8')!.toString()
 		} catch (e) {
 			return null
 		}
@@ -286,13 +289,16 @@ export async function recursiveCopy(
 				else {
 					const targetPath = path.join(parentDir, child)
 
-					// we might have to transform the value before copying it
-					let original = (await readFile(childPath)) || ''
+					// if we have a transform, read the file and then write it
 					if (transforms?.[childPath]) {
-						original = await transforms[childPath](original, childPath)
+						let original = (await readFile(childPath)) || ''
+						await writeFile(
+							targetPath,
+							await transforms[childPath](original, childPath)
+						)
+					} else {
+						await copyFile(childPath, targetPath)
 					}
-
-					await writeFile(targetPath, original)
 				}
 			})
 		)

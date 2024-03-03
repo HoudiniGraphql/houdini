@@ -1,3 +1,4 @@
+import nodeFS from 'fs/promises'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -139,7 +140,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// if there is a public directory at the root of the project,
 			if (fs.existsSync(path.join(config.projectRoot, 'public'))) {
 				// copy the contents of the directory into the build directory
-				await fs.recursiveCopy(path.join(config.projectRoot, 'public'), outDir)
+				await nodeFS.cp(path.join(config.projectRoot, 'public'), outDir, {
+					recursive: true,
+				})
 			}
 		},
 
