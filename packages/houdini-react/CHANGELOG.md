@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.42
+
+### Patch Changes
+
+-   [#1275](https://github.com/HoudiniGraphql/houdini/pull/1275) [`b8110193`](https://github.com/HoudiniGraphql/houdini/commit/b8110193136eb6a552c534f6b4fdd68f7d57c329) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Always generate route component types even if the file hasn't been saved yet
+
+-   [#1275](https://github.com/HoudiniGraphql/houdini/pull/1275) [`b8110193`](https://github.com/HoudiniGraphql/houdini/commit/b8110193136eb6a552c534f6b4fdd68f7d57c329) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix corruption of image files on deployment
+
+-   Updated dependencies []:
+    -   houdini@1.2.42
+
 ## 1.2.41
 
 ### Patch Changes
