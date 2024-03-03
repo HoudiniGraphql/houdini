@@ -69,35 +69,39 @@ ${
 
 ${
 	/* if there is a page, then we need to define the props object */
+	`
+export type PageProps = {
+${
 	!page
 		? ''
-		: `
-export type PageProps = {
-${page.query_options
-	.map(
-		(query) =>
-			`    ${query}: ${query}$result,
+		: page.query_options
+				.map(
+					(query) =>
+						`    ${query}: ${query}$result,
     ${query}$handle: DocumentHandle<${query}$artifact, ${query}$result, ${query}$input>,`
-	)
-	.join('\n')}
+				)
+				.join('\n')
+}
 }
 `
 }
 
 ${
 	/* if there is a layout, then we need to define the props object */
-	!layout
-		? ''
-		: `
+	`
 export type LayoutProps = {
 	children: React.ReactNode,
-${layout.query_options
-	.map(
-		(query) =>
-			`    ${query}: ${query}$result,
+${
+	!layout
+		? ''
+		: layout.query_options
+				.map(
+					(query) =>
+						`    ${query}: ${query}$result,
     ${query}$handle: DocumentHandle<${query}$artifact, ${query}$result, ${query}$input>,`
-	)
-	.join('\n')}
+				)
+				.join('\n')
+}
 }
 `
 }
