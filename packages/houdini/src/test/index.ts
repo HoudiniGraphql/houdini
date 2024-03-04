@@ -66,6 +66,9 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			}
 
 			type Query {
+				"""
+				Get a user.
+				"""
 				user: User!
 				entity: Entity!
 				version: Int!
