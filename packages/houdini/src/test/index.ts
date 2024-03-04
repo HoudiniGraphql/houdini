@@ -23,7 +23,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				id: ID!
 				name(arg: Int): String!
 				birthday: DateTime!
-				firstName: String!
+				firstName: String! @deprecated(reason: "Use name instead")
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
 				friendsByCursorSnapshot(snapshot: String!, first: Int, after: String, last: Int, before: String): UserConnection!
@@ -53,8 +53,14 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				believers(first: Int, after: String): GhostConnection
 			}
 
+			"""
+			Cat's documentation
+			"""
 			type Cat implements Friend & Node {
 				id: ID!
+				"""
+				The name of the cat
+				"""
 				name: String!
 				owner: User!
 			}
@@ -241,11 +247,17 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 				id: ID!
 			}
 
+			"""
+			Documentation of testenum1
+			"""
 			enum TestEnum1 {
 				Value1
 				Value2
 			}
 
+			"""
+			Documentation of testenum2
+			"""
 			enum TestEnum2 {
 				Value3
 				Value2

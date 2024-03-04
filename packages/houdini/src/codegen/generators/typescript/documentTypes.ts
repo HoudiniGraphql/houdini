@@ -293,6 +293,7 @@ async function generateOperationTypeDefs(
 		missingScalars,
 		includeFragments: true,
 		field: null,
+		description: parentType.description ?? undefined,
 	})
 
 	// if we are looking at a query then we should add the loading state
@@ -408,6 +409,7 @@ async function generateOperationTypeDefs(
 						includeFragments: false,
 						allOptional: true,
 						field: null,
+						description: parentType.description ?? undefined,
 					})
 				)
 			)
@@ -529,6 +531,8 @@ async function generateFragmentTypeDefs(
 							missingScalars,
 							includeFragments: true,
 							field: null,
+							description: type.description ?? undefined,
+							deprecationReason: undefined,
 						}),
 					})
 				)

@@ -25,7 +25,7 @@ export default async function definitionsGenerator(config: Config) {
 			enums.map((defn) => {
 				const name = defn.name.value
 
-				return moduleExport(
+				const declaration = moduleExport(
 					config,
 					name,
 					AST.objectExpression(
@@ -38,6 +38,14 @@ export default async function definitionsGenerator(config: Config) {
 						}) || []
 					)
 				)
+
+				if (defn.description) {
+					declaration.comments = [
+						AST.commentBlock(`* ${defn.description.value} `, true, false)
+					]
+				}
+
+				return declaration
 			})
 		)
 	)
@@ -53,11 +61,16 @@ type ValuesOf<T> = T[keyof T]
 				const name = definition.name.value
 				const values = definition.values
 
-				return `
+				let jsdoc = ""
+				if (definition.description) {
+					jsdoc = `\n/** ${definition.description.value} */`
+				}
+
+				return `${jsdoc}
 export declare const ${name}: {
 ${values?.map((value) => `    readonly ${value.name.value}: "${value.name.value}";`).join('\n')}
 }
-
+${jsdoc}
 export type ${name}$options = ValuesOf<typeof ${name}>
  `
 			})
