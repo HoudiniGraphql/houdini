@@ -7,6 +7,7 @@ import { QueryArtifact } from '$houdini/runtime/lib/types'
 import { find_match } from '$houdini/runtime/router/match'
 import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router/types'
 import React from 'react'
+import { useContext } from 'react'
 
 import { useDocumentStore } from '../hooks/useDocumentStore'
 import { SuspenseCache, suspense_cache } from './cache'
@@ -120,10 +121,15 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<PageComponent url={currentURL} key={page.id} />
+			<LocationContext.Provider value={{ pathname: currentURL }}>
+				<PageComponent url={currentURL} key={page.id} />
+			</LocationContext.Provider>
 		</VariableContext.Provider>
 	)
 }
+
+// export the location information in context
+export const useLocation = () => useContext(LocationContext)
 
 /**
  * usePageData is responsible for kicking off the network requests necessary to render the page.
@@ -514,6 +520,8 @@ export function useCurrentVariables(): GraphQLVariables {
 }
 
 const VariableContext = React.createContext<GraphQLVariables>(null)
+
+const LocationContext = React.createContext<{ pathname: string }>({ pathname: '' })
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
