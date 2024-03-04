@@ -26,10 +26,12 @@ test('generates runtime definitions for each enum', async function () {
 			
 		/** Documentation of testenum1 */
 		export declare const TestEnum1: {
+		    /** Documentation of Value1 */
 		    readonly Value1: "Value1";
+		    /** Documentation of Value2 */
 		    readonly Value2: "Value2";
 		}
-		
+
 		/** Documentation of testenum1 */
 		export type TestEnum1$options = ValuesOf<typeof TestEnum1>
 		 
@@ -54,7 +56,14 @@ test('generates runtime definitions for each enum', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		/** Documentation of testenum1 */
 		export const TestEnum1 = {
+		    /**
+		     * Documentation of Value1
+		    */
 		    "Value1": "Value1",
+
+		    /**
+		     * Documentation of Value2
+		    */
 		    "Value2": "Value2"
 		};
 

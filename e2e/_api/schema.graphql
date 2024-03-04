@@ -8,7 +8,9 @@ scalar File
 Can be Value1 or Value2.
 """
 enum MyEnum {
+	"The first value"
 	Value1
+	"The second value"
 	Value2
 }
 
@@ -18,13 +20,17 @@ enum TypeOfUser {
 }
 
 enum ForceReturn {
+	"Normal"
 	NORMAL
+	"No value"
 	NULL
+	"Some error"
 	ERROR
 }
 
 type Mutation {
 	addUser(
+		"""The users birth date"""
 		birthDate: DateTime!
 		name: String!
 		snapshot: String!

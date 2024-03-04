@@ -254,7 +254,9 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			Documentation of testenum1
 			"""
 			enum TestEnum1 {
+				"Documentation of Value1"
 				Value1
+				"Documentation of Value2"
 				Value2
 			}
 

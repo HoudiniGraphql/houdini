@@ -31,10 +31,15 @@ export default async function definitionsGenerator(config: Config) {
 					AST.objectExpression(
 						defn.values?.map((value) => {
 							const str = value.name.value
-							return AST.objectProperty(
+							const prop = AST.objectProperty(
 								AST.stringLiteral(str),
 								AST.stringLiteral(str)
 							)
+							if (value.description)
+								prop.comments = [
+									AST.commentBlock(`* ${value.description.value} `, true, false),
+								]
+							return prop
 						}) || []
 					)
 				)
@@ -68,7 +73,13 @@ type ValuesOf<T> = T[keyof T]
 
 				return `${jsdoc}
 export declare const ${name}: {
-${values?.map((value) => `    readonly ${value.name.value}: "${value.name.value}";`).join('\n')}
+${values
+	?.map(
+		(value) =>
+			(value.description ? `    /** ${value.description.value} */\n` : '') +
+			`    readonly ${value.name.value}: "${value.name.value}";`
+	)
+	.join('\n')}
 }
 ${jsdoc}
 export type ${name}$options = ValuesOf<typeof ${name}>
