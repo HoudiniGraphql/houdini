@@ -89,7 +89,6 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// find the matching url
 		const [match] = find_match(manifest, url)
-		console.log(url, match)
 
 		// call the framework-specific render hook with the latest session
 		const rendered = await on_render({
