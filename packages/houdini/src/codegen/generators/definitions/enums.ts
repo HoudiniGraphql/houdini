@@ -41,7 +41,7 @@ export default async function definitionsGenerator(config: Config) {
 
 				if (defn.description) {
 					declaration.comments = [
-						AST.commentBlock(`* ${defn.description.value} `, true, false)
+						AST.commentBlock(`* ${defn.description.value} `, true, false),
 					]
 				}
 
@@ -61,7 +61,7 @@ type ValuesOf<T> = T[keyof T]
 				const name = definition.name.value
 				const values = definition.values
 
-				let jsdoc = ""
+				let jsdoc = ''
 				if (definition.description) {
 					jsdoc = `\n/** ${definition.description.value} */`
 				}

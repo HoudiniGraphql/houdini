@@ -1,13 +1,13 @@
 query DescriptionPage {
-    monkey(id: "1") {
-        hasBanana
-        oldHasBanana
-    }
+  monkey(id: "1") {
+    hasBanana
+    oldHasBanana
+  }
 
-    userResult(id: "1", snapshot: "feur", forceMessage: false) {
-        __typename
-        ...on User {
-            enumValue
-        }
+  userResult(id: "1", snapshot: "test", forceMessage: false) {
+    __typename
+    ... on User {
+      enumValue
     }
+  }
 }
