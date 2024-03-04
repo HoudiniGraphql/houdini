@@ -25,8 +25,6 @@ export function inlineType({
 	allOptional,
 	forceNonNull,
 	field,
-	description,
-	deprecationReason,
 }: {
 	config: Config
 	filepath: string
@@ -41,8 +39,6 @@ export function inlineType({
 	field: { parent: string; field: string } | null
 	allOptional?: boolean
 	forceNonNull?: boolean
-	description?: string
-	deprecationReason?: string
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -243,8 +239,6 @@ export function inlineType({
 						field: attributeName,
 						parent: type.name,
 					},
-					description: field.description ?? undefined,
-					deprecationReason: field.deprecationReason ?? undefined,
 				})
 
 				// check if we have an @include or @skip directive
