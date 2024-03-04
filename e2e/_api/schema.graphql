@@ -11,7 +11,7 @@ enum MyEnum {
 	"The first value"
 	Value1
 	"The second value"
-	Value2
+	Value2 @deprecated(reason: "Use Value1 instead")
 }
 
 enum TypeOfUser {

@@ -6,6 +6,7 @@ import type { Config } from '../../../lib'
 import { ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
 import { enumReference } from './typeReference'
 import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
+import { jsdocComment } from '../comments/jsdoc'
 
 const AST = recast.types.builders
 
@@ -578,12 +579,4 @@ export function selectionTypeInfo(
 	}
 
 	return { field, type: selectionType }
-}
-
-export function jsdocComment(text: string, deprecated?: string) {
-	let commentContent = `*\n * ${text}\n`
-	if (deprecated) {
-		commentContent = `${commentContent} * @deprecated ${deprecated}\n`
-	}
-	return AST.commentBlock(commentContent, true)
 }

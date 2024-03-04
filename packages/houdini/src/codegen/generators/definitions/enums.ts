@@ -4,6 +4,7 @@ import * as recast from 'recast'
 import type { Config } from '../../../lib'
 import { fs, path, printJS } from '../../../lib'
 import { moduleExport } from '../../utils'
+import { jsdocComment } from '../comments/jsdoc'
 
 const AST = recast.types.builders
 
@@ -35,9 +36,16 @@ export default async function definitionsGenerator(config: Config) {
 								AST.stringLiteral(str),
 								AST.stringLiteral(str)
 							)
-							if (value.description)
+							const deprecationReason = (
+								value.directives
+									?.find((d) => d.name.value === 'deprecated')
+									?.arguments?.find((a) => a.name.value === 'reason')
+									?.value as graphql.StringValueNode
+							)?.value
+
+							if (value.description || deprecationReason)
 								prop.comments = [
-									AST.commentBlock(`* ${value.description.value} `, true, false),
+									jsdocComment(value.description?.value ?? '', deprecationReason),
 								]
 							return prop
 						}) || []
