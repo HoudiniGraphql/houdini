@@ -357,42 +357,47 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 				request.headers.set(key, value as string)
 			}
 
-			// instantiate the handler and invoke it with a mocked response
-			const result: Response = await createServerAdapter({
-				production: false,
-				manifest: router_manifest,
-				assetPrefix: '/virtual:houdini',
-				pipe: res,
-				documentPremable: `<script type="module" src="/@vite/client" async=""></script>`,
-			})(request)
-			if (result && result.status === 404) {
-				return next()
-			}
-			// TODO: this is so awkward....
-			// if we got here but we didn't pipe a response then we have to send the result to the end
-			// by default result is a Response
-			if (result && typeof result !== 'boolean') {
-				if (res.closed) {
-					return
+			try {
+				// instantiate the handler and invoke it with a mocked response
+				const result: Response = await createServerAdapter({
+					production: false,
+					manifest: router_manifest,
+					assetPrefix: '/virtual:houdini',
+					pipe: res,
+					documentPremable: `<script type="module" src="/@vite/client" async=""></script>`,
+				})(request)
+				if (result && result.status === 404) {
+					return next()
 				}
-				for (const header of Object.entries(result.headers ?? {})) {
-					res.setHeader(header[0], header[1])
+				// TODO: this is so awkward....
+				// if we got here but we didn't pipe a response then we have to send the result to the end
+				// by default result is a Response
+				if (result && typeof result !== 'boolean') {
+					if (res.closed) {
+						return
+					}
+					for (const header of Object.entries(result.headers ?? {})) {
+						res.setHeader(header[0], header[1])
+					}
+					// handle redirects
+					if (result.status >= 300 && result.status < 400) {
+						res.writeHead(result.status, {
+							Location: result.headers.get('Location') ?? '',
+							...[...result.headers.entries()].reduce(
+								(headers, [key, value]) => ({
+									...headers,
+									[key]: value,
+								}),
+								{}
+							),
+						})
+					} else {
+						res.write(await result.text())
+					}
+					res.end()
 				}
-				// handle redirects
-				if (result.status >= 300 && result.status < 400) {
-					res.writeHead(result.status, {
-						Location: result.headers.get('Location') ?? '',
-						...[...result.headers.entries()].reduce(
-							(headers, [key, value]) => ({
-								...headers,
-								[key]: value,
-							}),
-							{}
-						),
-					})
-				} else {
-					res.write(await result.text())
-				}
+			} catch (e) {
+				console.error(e)
 				res.end()
 			}
 		})
