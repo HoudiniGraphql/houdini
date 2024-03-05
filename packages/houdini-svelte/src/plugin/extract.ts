@@ -40,6 +40,15 @@ export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
 	// parsing a file happens in two steps:
 	// - first we use svelte's parser to find the bounds of the script tag
 	// - then we run the contents through babel to parse it
+
+	// remove generics from script tag — otherwise svelte preprocessor will fail to parse
+	// if the generics attribute contains angle brackets
+	// Input:  <script lang="ts" generics="T extends Record<string, unknown>">
+	// Output: <script lang="ts"                                             >
+	str = str.replace(/(<script[^>]*)(\s+)(generics="[^"]+?")/, (_, $1, $2, $3) => {
+		return $1 + $2 + ' '.repeat($3.length)
+	})
+
 	const preprocessed = await svelte.preprocess(str, [
 		{
 			script({ content: input }) {

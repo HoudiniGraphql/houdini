@@ -54,6 +54,57 @@ describe('parser tests', () => {
 		`)
 	})
 
+	test('happy path - typescript with generics', async () => {
+		const doc = `
+			<script lang="ts" generics="T extends Record<string, unknown>">
+				export let x: T
+			</script>
+		`
+		// parse the string
+		const result = await parseSvelte(doc)
+
+		expect(result?.script).toMatchInlineSnapshot('export let x: T;')
+	})
+
+	test('happy path - typescript with generics over several lines', async () => {
+		const doc = `
+				<script lang="ts" context="module">
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					import type { FormPath, SuperForm } from 'sveltekit-superforms';
+					type T = Record<string, unknown>;
+					type U = unknown;
+				</script>
+				
+				<script
+					lang="ts"
+					generics="T extends Record<string, unknown>, U extends FormPath<T>"
+				>
+					import * as FormPrimitive from 'formsnap';
+					import { cn } from '$lib/utils.js';
+				
+					type $$Props = FormPrimitive.FieldsetProps<T, U>;
+				
+					export let form: SuperForm<T>;
+					export let name: U;
+				
+					let className: $$Props['class'] = undefined;
+					export { className as class };
+				</script>
+			`
+		// parse the string
+		const result = await parseSvelte(doc)
+
+		expect(result?.script).toMatchInlineSnapshot(`
+			import * as FormPrimitive from "formsnap";
+			import { cn } from "$lib/utils.js";
+			type $$Props = FormPrimitive.FieldsetProps<T, U>;
+			export let form: SuperForm<T>;
+			export let name: U;
+			let className: $$Props["class"] = undefined;
+			export { className as class };
+		`)
+	})
+
 	test('nested script block', async () => {
 		const doc = `
 			<div>
