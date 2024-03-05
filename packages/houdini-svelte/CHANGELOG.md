@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.2.43
+
+### Patch Changes
+
+-   [#1271](https://github.com/HoudiniGraphql/houdini/pull/1271) [`2971ccf3`](https://github.com/HoudiniGraphql/houdini/commit/2971ccf35c309b374dd18c476be7aa4f61bd705c) Thanks @sastan! - Remove generics from script tag before calling svelte preprocessor.
+
+-   Updated dependencies []:
+    -   houdini@1.2.43
+
 ## 1.2.42
 
 ### Patch Changes
