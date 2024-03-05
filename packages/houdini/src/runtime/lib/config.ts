@@ -219,11 +219,24 @@ export type ConfigFile = {
 	router?: RouterConfig
 
 	/**
-	 * A collection of flags to opt-into experimental features that might break unexpectedly
+	 * A collection of flags to opt-into experimental features are not yet stable and can break on any
+	 * minor version.
 	 */
 	features?: {
-		componentFields?: boolean
+		/** Interact with the cache directly using an imperative API.*/
 		imperativeCache?: boolean
+		/** [React Only] Emebed component references in query responses*/
+		componentFields?: boolean
+		/** [React Only] Compute query variable values using a runtime scalar*/
+		runtimeScalars?: Record<
+			string,
+			{
+				// the equivalent GraphQL type
+				type: string
+				// the function to call that serializes the type for the API
+				resolve: (args: { session: App.Session }) => any
+			}
+		>
 	}
 }
 

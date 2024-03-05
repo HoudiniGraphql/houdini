@@ -82,6 +82,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 
 				transforms.internalSchema,
 
+				transforms.runtimeScalars,
+
 				...wrapHook(beforeValidate),
 				// validators
 				validators.typeCheck,

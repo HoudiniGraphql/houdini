@@ -1,6 +1,7 @@
 import * as graphql from 'graphql'
 import { vol } from 'memfs'
 
+import session from '../../../houdini-svelte/src/plugin/transforms/kit/session'
 import { runPipeline } from '../codegen'
 import type { Document } from '../lib'
 import { Config, fs, path } from '../lib'
@@ -293,8 +294,14 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 		},
 		features: {
 			componentFields: true,
+			imperativeCache: true,
+			runtimeScalars: {
+				ViewerIDFromSession: {
+					type: 'ID',
+					resolve: ({ session }) => session,
+				},
+			},
 		},
-		acceptImperativeInstability: true,
 		...config,
 	}
 }
@@ -330,7 +337,7 @@ export function pipelineTest(
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
 				// console.error(docs)
-				throw 'pipeline failed when it should have passed. ' + e
+				throw new Error('pipeline failed when it should have passed. ' + e)
 			}
 			error = e as Error[]
 		}

@@ -7,7 +7,8 @@ import type { InputObject } from '../../../runtime/lib/types'
 
 export function inputObject(
 	config: Config,
-	inputs: readonly graphql.VariableDefinitionNode[]
+	inputs: readonly graphql.VariableDefinitionNode[],
+	runtimeScalars: Record<string, string>
 ): InputObject {
 	// make sure we don't define the same input type
 	const visitedTypes = new Set<string>()
@@ -33,6 +34,7 @@ export function inputObject(
 					: undefined,
 			}
 		}, {}),
+		runtimeScalars,
 	}
 
 	// walk through every type referenced and add it to the list

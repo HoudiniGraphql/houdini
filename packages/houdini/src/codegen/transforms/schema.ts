@@ -155,7 +155,7 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		internalSchema += plugin.schema({ config })
 	}
 
-	const extensions = Object.entries(config.componentFields)
+	let extensions = Object.entries(config.componentFields)
 		.map(([parent, fields]) => {
 			return `
 		extend type ${parent} {
@@ -187,6 +187,11 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 	`
 		})
 		.join('\n')
+
+	// runtime scalars need their own entries in the graphql schema
+	extensions += `${Object.keys(config.configFile.features?.runtimeScalars ?? {})
+		.map((scalar) => `scalar ${scalar}`)
+		.join('\n')}`
 
 	// newSchema holds the schema elements that we need to remove from queries (eg added by plugins)
 	config.newSchema = graphql.print(mergeTypeDefs([internalSchema, config.newSchema]))

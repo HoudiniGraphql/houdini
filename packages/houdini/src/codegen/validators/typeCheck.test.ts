@@ -1202,6 +1202,19 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: 'runtime scalars',
+		pass: true,
+		documents: [
+			`
+			query A($id: ViewerIDFromSession!) {
+				node(id: $id) {
+					id
+				}
+			}
+			`,
+		],
+	},
 ]
 
 describe('type check', function () {
