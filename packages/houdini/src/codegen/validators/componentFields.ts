@@ -72,6 +72,15 @@ export default async function componentFields(config: Config, docs: Document[]):
 
 				// look up the type of the parent
 				const parentType = config.schema.getType(parent)
+				console.log(
+					parentType,
+					fieldValue,
+					graphql.isObjectType(parentType),
+					parentType &&
+						fieldValue &&
+						((graphql.isObjectType(parentType) && parentType.getFields()[fieldValue]) ||
+							(existingField && existingField.filepath !== filepath))
+				)
 				if (
 					parentType &&
 					fieldValue &&
