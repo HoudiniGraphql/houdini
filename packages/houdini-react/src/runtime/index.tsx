@@ -6,7 +6,7 @@ import manifest from './manifest'
 import { Router as RouterImpl, RouterCache, RouterContextProvider } from './routing'
 
 export * from './hooks'
-export { router_cache, useLocation } from './routing'
+export { router_cache, useSession, useLocation } from './routing'
 
 export function Router({
 	cache,
