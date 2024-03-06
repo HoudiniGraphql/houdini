@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
 import { vol } from 'memfs'
 
-import session from '../../../houdini-svelte/src/plugin/transforms/kit/session'
 import { runPipeline } from '../codegen'
 import type { Document } from '../lib'
 import { Config, fs, path } from '../lib'
@@ -298,7 +297,8 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			runtimeScalars: {
 				ViewerIDFromSession: {
 					type: 'ID',
-					resolve: ({ session }) => session,
+					resolve: ({ session }: { session?: App.Session | null | undefined }) =>
+						(session as unknown as any).token,
 				},
 			},
 		},

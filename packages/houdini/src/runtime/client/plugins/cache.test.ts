@@ -3,7 +3,7 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
-import { CachePolicy, PendingValue } from '../../lib'
+import { CachePolicy, PendingValue, QueryArtifact } from '../../lib'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
@@ -476,7 +476,7 @@ test('loading states when fetching is true', async function () {
  * Utilities for testing the cache plugin
  */
 export function createStore(
-	args: Partial<HoudiniClientConstructorArgs> = {}
+	args: Partial<HoudiniClientConstructorArgs> & { artifact?: QueryArtifact } = {}
 ): DocumentStore<any, any> {
 	// if we dont have anything passed, just use the fake fetch as the plugin
 	if (!args.plugins && !args.pipeline) {
@@ -493,7 +493,7 @@ export function createStore(
 		plugins: args.plugins ? createPluginHooks(client.plugins) : undefined,
 		pipeline: args.pipeline ? createPluginHooks(client.plugins) : undefined,
 		client,
-		artifact: {
+		artifact: args.artifact ?? {
 			kind: ArtifactKind.Query,
 			hash: '7777',
 			raw: 'RAW_TEXT',
@@ -535,7 +535,7 @@ export function createStore(
 	})
 }
 
-function fakeFetch({
+export function fakeFetch({
 	result = {
 		data: {
 			viewer: {
@@ -551,9 +551,11 @@ function fakeFetch({
 		partial: false,
 		stale: false,
 	},
+	spy = vi.fn(),
 } = {}) {
 	return (() => ({
 		network(ctx, { resolve }) {
+			spy(ctx)
 			resolve(ctx, { ...result })
 		},
 	})) as ClientPlugin

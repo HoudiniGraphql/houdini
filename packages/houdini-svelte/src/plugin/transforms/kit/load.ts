@@ -528,12 +528,17 @@ function variable_function_for_query(
 	for (const definition of query.variableDefinitions ?? []) {
 		const unwrapped = unwrapType(page.config, definition.type)
 
+		// if the type is a runtime scalar, its optional
+		const runtime_scalar =
+			page.config.configFile.features?.runtimeScalars?.[unwrapped.type.name]
+
 		// we need to remember the definition if
 		// the argument to the operation is non-null
 		// the url param doesn't exist or does exist but is optional
 		if (
 			unwrapped.wrappers[unwrapped.wrappers.length - 1] === TypeWrapper.NonNull &&
 			!definition.defaultValue &&
+			!runtime_scalar &&
 			(!params[definition.variable.name.value] ||
 				params[definition.variable.name.value].optional)
 		) {
@@ -564,8 +569,8 @@ function variable_function_for_query(
 			AST.variableDeclarator(
 				AST.identifier('result'),
 				AST.objectExpression(
-					Object.entries(has_args).map(([arg, type]) =>
-						AST.objectProperty(
+					Object.entries(has_args).map(([arg, type]) => {
+						return AST.objectProperty(
 							AST.identifier(arg),
 							AST.callExpression(AST.identifier('parseScalar'), [
 								AST.identifier('config'),
@@ -579,7 +584,7 @@ function variable_function_for_query(
 								),
 							])
 						)
-					)
+					})
 				)
 			),
 		]),

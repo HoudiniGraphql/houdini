@@ -1,4 +1,5 @@
 import cache from '../../cache'
+import { type RuntimeScalarPayload } from '../../lib'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
@@ -13,9 +14,29 @@ export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function (
 	// the function to call when a query is sent
 	return {
 		start(ctx, { next }) {
+			const runtimeScalarPayload: RuntimeScalarPayload = {
+				session: ctx.session,
+			}
+
 			// make sure to include the last variables as well as the new ones
 			ctx.variables = {
 				...lastVariables,
+				// we need to evaluate any runtime scalars but allow the user to overwrite them
+				// by explicitly passing variables
+				...Object.fromEntries(
+					Object.entries(ctx.artifact.input?.runtimeScalars ?? {}).map(
+						([field, type]) => {
+							const runtimeScalar = ctx.config.features?.runtimeScalars?.[type]
+							// make typescript happy
+							if (!runtimeScalar) {
+								return [field, type]
+							}
+
+							// resolve the runtime scalar
+							return [field, runtimeScalar.resolve(runtimeScalarPayload)]
+						}
+					)
+				),
 				...ctx.variables,
 			}
 			next(ctx)

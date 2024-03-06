@@ -225,19 +225,22 @@ export type ConfigFile = {
 	features?: {
 		/** Interact with the cache directly using an imperative API.*/
 		imperativeCache?: boolean
-		/** [React Only] Emebed component references in query responses*/
-		componentFields?: boolean
-		/** [React Only] Compute query variable values using a runtime scalar*/
 		runtimeScalars?: Record<
 			string,
 			{
 				// the equivalent GraphQL type
 				type: string
 				// the function to call that serializes the type for the API
-				resolve: (args: { session: App.Session }) => any
+				resolve: (args: RuntimeScalarPayload) => any
 			}
 		>
+		/** [React Only] Emebed component references in query responses*/
+		componentFields?: boolean
 	}
+}
+
+export type RuntimeScalarPayload = {
+	session?: App.Session | null | undefined
 }
 
 type RouterConfig = {
