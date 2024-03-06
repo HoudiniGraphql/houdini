@@ -79,12 +79,13 @@ export default async function componentFields(config: Config, docs: Document[]):
 						(existingField && existingField.filepath !== filepath))
 				) {
 					errors.push({
-						message: `Duplicate component field definition for ${parent}.${fieldValue}`,
+						message:
+							`Duplicate component field definition for ${parent}.${fieldValue}.` +
+							(existingField
+								? 'The conflicting component field was defined in ' +
+								  existingField.filepath
+								: ''),
 						filepath,
-						description: existingField
-							? 'The conflicting component field was defined in ' +
-							  existingField.filepath
-							: '',
 					})
 				}
 
