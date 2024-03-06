@@ -366,7 +366,7 @@ import { GraphQL } from '$houdini'
 
 type Props = {
     user: GraphQL<`
-        ... on User @componentFields(field: "Avatar") {
+        ... on User @componentField(field: "Avatar") {
             avatarURL
         }
     `>
@@ -380,7 +380,7 @@ export default function UserAvatar({ user } : Props) {
 import { graphql } from '$houdini'
 
 graphql(`{
-    ... on User @componentFields(field: "Avatar", prop: "user") {
+    ... on User @componentField(field: "Avatar", prop: "user") {
         avatarURL
     }
 }`)
@@ -434,7 +434,7 @@ import { GraphQL } from '$houdini'
 type Props = {
     user: GraphQL<`
         ... on User
-            @componentFields(field: "Avatar")
+            @componentField(field: "Avatar")
             @arguments(size: { type: "Int" })
         {
             avatarURL(size: $size)
@@ -451,7 +451,7 @@ import { graphql } from '$houdini'
 
 graphql(`{
     ... on User
-            @componentFields(field: "Avatar")
+            @componentField(field: "Avatar")
             @arguments(size: { type: "Int" })
         {
             avatarURL(size: $size)
@@ -481,7 +481,7 @@ import { GraphQL } from '$houdini'
 
 type Props = {
     user: GraphQL<`
-        ... on User @componentFields(field: "Avatar", export: "UserAvatar" ) {
+        ... on User @componentField(field: "Avatar", export: "UserAvatar" ) {
             avatarURL(size: $size)
         }
     `>
@@ -495,7 +495,7 @@ export function UserAvatar({ user } : Props) {
 import { graphql } from '$houdini'
 
 graphql(`{
-    ... on User @componentFields(field: "Avatar", export: "UserAvatar" ) {
+    ... on User @componentField(field: "Avatar", export: "UserAvatar" ) {
         avatarURL(size: $size)
     }
 }`)
