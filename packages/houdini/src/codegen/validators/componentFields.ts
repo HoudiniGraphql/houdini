@@ -80,7 +80,7 @@ export default async function componentFields(config: Config, docs: Document[]):
 						graphql.isObjectType(parentType) && parentType.getFields()[fieldValue]
 					if (
 						fieldDef &&
-						fieldDef.astNode?.directives?.find(
+						!fieldDef.astNode?.directives?.find(
 							(dir) => dir.name.value === config.componentFieldDirective
 						)
 					) {

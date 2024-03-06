@@ -33,7 +33,6 @@ const table: Row[] = [
 	{
 		title: "componentFields can't overlap with type fields",
 		pass: false,
-		nb_of_fail: 1,
 		documents: [
 			`fragment MyFragmentOne on User  @componentField(field: "firstName", prop: "user") {
 				firstName
