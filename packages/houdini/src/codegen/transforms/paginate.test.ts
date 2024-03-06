@@ -746,7 +746,9 @@ test('embeds node pagination query as a separate document', async function () {
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -1021,7 +1023,9 @@ test('embeds custom pagination query as a separate document', async function () 
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -1810,7 +1814,9 @@ test('generated query has same refetch spec', async function () {
 		        "defaults": {
 		            "first": 10,
 		            "after": "1234"
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -2073,7 +2079,9 @@ test('default defaultPaginateMode to SinglePage', async function () {
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    }
 		};
 

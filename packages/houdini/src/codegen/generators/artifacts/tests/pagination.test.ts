@@ -203,7 +203,9 @@ test('pagination arguments stripped from key', async function () {
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    }
 		};
 
@@ -414,7 +416,9 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    }
 		};
 
@@ -518,7 +522,9 @@ test('offset based pagination marks appropriate field', async function () {
 
 		        "defaults": {
 		            "limit": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    }
 		};
 
@@ -784,7 +790,9 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -1152,7 +1160,9 @@ test("sibling aliases don't get marked", async function () {
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    }
 		};
 

@@ -1,4 +1,3 @@
-import { directive } from '@babel/types'
 import * as graphql from 'graphql'
 
 import { unwrapType, wrapType, type Config, type Document } from '../../lib'

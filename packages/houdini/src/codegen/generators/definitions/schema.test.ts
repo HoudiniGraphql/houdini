@@ -91,6 +91,8 @@ test('adds internal documents to schema', async function () {
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 		`)
 })
 
@@ -178,6 +180,8 @@ test('list operations are included', async function () {
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -284,6 +288,8 @@ test('list operations are included but delete directive should not be in when we
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -403,5 +409,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 		`)
 })
