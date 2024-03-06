@@ -149,6 +149,7 @@ export async function writeTsconfig(config: Config) {
 					'../src/**/*.ts',
 					'../src/**/*.jsx',
 					'../src/**/*.tsx',
+					'../src/+app.d.ts',
 				],
 				exclude: ['../node_modules/**', './[!ambient.d.ts]**'],
 			},
