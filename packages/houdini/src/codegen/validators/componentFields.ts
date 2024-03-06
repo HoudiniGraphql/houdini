@@ -72,13 +72,14 @@ export default async function componentFields(config: Config, docs: Document[]):
 				if (
 					parentType &&
 					fieldValue &&
-					((graphql.isObjectType(parentType) && parentType.getFields()[fieldValue]) ||
-						config.componentFields[parent]?.[fieldValue])
+					graphql.isObjectType(parentType) &&
+					parentType.getFields()[fieldValue]
 				) {
 					errors.push({
 						message: `Duplicate component field definition for ${parent}.${fieldValue}`,
 						filepath,
 					})
+					return
 				}
 
 				// if the type is abstract there's a problem
