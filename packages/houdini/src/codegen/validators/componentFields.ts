@@ -72,22 +72,23 @@ export default async function componentFields(config: Config, docs: Document[]):
 
 				// look up the type of the parent
 				const parentType = config.schema.getType(parent)
-				console.log(
-					parentType,
-					fieldValue,
-					graphql.isObjectType(parentType),
-					parentType &&
-						fieldValue &&
-						graphql.isObjectType(parentType) &&
-						parentType.getFields()[fieldValue],
-					existingField && existingField.filepath !== filepath
-				)
-				if (
-					parentType &&
-					fieldValue &&
-					((graphql.isObjectType(parentType) && parentType.getFields()[fieldValue]) ||
-						(existingField && existingField.filepath !== filepath))
-				) {
+				let conflict = false
+				if (existingField && existingField.filepath !== filepath) {
+					conflict = true
+				} else if (parentType && fieldValue) {
+					const fieldDef =
+						graphql.isObjectType(parentType) && parentType.getFields()[fieldValue]
+					if (
+						fieldDef &&
+						fieldDef.astNode?.directives?.find(
+							(dir) => dir.name.value === config.componentFieldDirective
+						)
+					) {
+						conflict = true
+					}
+				}
+
+				if (conflict) {
 					errors.push({
 						message:
 							`Duplicate component field definition for ${parent}.${fieldValue}.` +

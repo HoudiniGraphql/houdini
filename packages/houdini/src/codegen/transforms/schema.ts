@@ -136,7 +136,7 @@ ${
 """
 @${config.componentFieldDirective} marks an inline fragment as the selection for a component field
 """
-directive @${config.componentFieldDirective}(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+directive @${config.componentFieldDirective}(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 `
 		: ''
@@ -180,7 +180,7 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 							')'
 					}
 
-					return `${fieldName}${argString}: ${config.componentScalar}!`
+					return `${fieldName}${argString}: ${config.componentScalar}!  @componentField(field: "${fieldName}")`
 				})
 				.join('\n')}
 		}
