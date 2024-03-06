@@ -365,11 +365,11 @@ With that enabled, your components can define fragments using a slightly differe
 import { GraphQL } from '$houdini'
 
 type Props = {
-    user: GraphQL<`
+    user: GraphQL<`{
         ... on User @componentField(field: "Avatar") {
             avatarURL
         }
-    `>
+    }`>
 }
 
 export default function UserAvatar({ user } : Props) {
@@ -432,14 +432,14 @@ export default function ShowInfoView({ Profile }) {
 import { GraphQL } from '$houdini'
 
 type Props = {
-    user: GraphQL<`
+    user: GraphQL<`{
         ... on User
             @componentField(field: "Avatar")
             @arguments(size: { type: "Int" })
         {
             avatarURL(size: $size)
         }
-    `>
+    }`>
 }
 
 export default function UserAvatar({ user } : Props) {
@@ -480,11 +480,11 @@ tell houdini which export it should use:
 import { GraphQL } from '$houdini'
 
 type Props = {
-    user: GraphQL<`
+    user: GraphQL<`{
         ... on User @componentField(field: "Avatar", export: "UserAvatar" ) {
             avatarURL(size: $size)
         }
-    `>
+    }`>
 }
 
 export function UserAvatar({ user } : Props) {
