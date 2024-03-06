@@ -4,7 +4,7 @@ description: Documentation for Houdini's application framework
 ---
 
 <script>
-    import { Warning, DeepDive } from '~/components'
+    import { Warning, DeepDive, ExperimentalAPI } from '~/components'
 </script>
 
 # React Framework
@@ -190,6 +190,47 @@ query ShowInfo($id: ID!) {
     }
 }
 ```
+
+#### Runtime Scalars
+
+An unforunate reality is that not all query variables can be embeded as route paramters. A common example of this
+is information that's embedded in your application's session. To support this, we are working on an experimental API
+known as Runtime Scalars.
+
+<ExperimentalAPI title="Runtime Scalars">
+
+To enable and configure this feature, you must provide an object to the `runtimeScalars` feature config:
+
+```javascript:title=houdini.config.js
+export default {
+    // ...
+	features: {
+		runtimeScalars: {
+			OrganizationFromSession: {
+				type: 'ID',
+				resolve: ({session}) => session.organization
+			}
+		}
+	}
+}
+```
+
+With that defined, you can now use it as a scalar in a query and Houdini will call the configured
+`resolve` function to generate the variable value:
+
+```graphql:title=+page.gql
+query OrganizationInfo($id: OrganizationFromSession!) {
+	organization(id: $id) {
+		name
+	}
+}
+```
+
+Please keep in mind that this feature is still considered experimental and could change with any
+minor version.
+
+</ExperimentalAPI>
+
 
 ### Imperative Handles
 
