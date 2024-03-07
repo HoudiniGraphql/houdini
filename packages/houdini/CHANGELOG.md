@@ -1,5 +1,15 @@
 # houdini
 
+## 1.2.44
+
+### 🐛 Fixes
+
+-   [#1279](https://github.com/HoudiniGraphql/houdini/pull/1279) [`50a9fa13`](https://github.com/HoudiniGraphql/houdini/commit/50a9fa13958a8dd0becbd66f2b3f3437aae0aa1d) @SeppahBaws - Fix init script to use the correct vitePreprocess import
+
+### ✨ Features
+
+-   [#1280](https://github.com/HoudiniGraphql/houdini/pull/1280) [`4e31fbba`](https://github.com/HoudiniGraphql/houdini/commit/4e31fbba4faea5e98fda8befcedce76d71e6849b) @AlecAivazis - Add experimental support for RuntimeScalars
+
 ## 1.2.43
 
 ## 1.2.42
