@@ -530,10 +530,11 @@ export function useSession(): [App.Session, (newSession: Partial<App.Session>) =
 		ctx.setSession(newSession)
 
 		// figure out the url that we will use to send values to the server
-		let url = configFile.router?.auth?.url
-		if (!url) {
+		const auth = configFile.router?.auth
+		if (!auth) {
 			return
 		}
+		const url = 'redirect' in auth ? auth.redirect : auth.url
 
 		fetch(url, {
 			method: 'POST',
