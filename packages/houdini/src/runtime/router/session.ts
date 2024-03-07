@@ -47,7 +47,7 @@ async function redirect_auth(args: ServerHandlerArgs): Promise<Response | undefi
 	}
 	// if the request is a POST, then we need to overwrite the current session with values in the payload
 	if (args.request.method === 'POST') {
-		const newValues = args.request.json()
+		const newValues = await args.request.json()
 		// parse the existing session
 		const existing = await get_session(args.request.headers, args.session_keys)
 

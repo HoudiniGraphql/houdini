@@ -376,14 +376,14 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 					if (res.closed) {
 						return
 					}
-					for (const header of Object.entries(result.headers ?? {})) {
+					for (const header of result.headers ?? []) {
 						res.setHeader(header[0], header[1])
 					}
 					// handle redirects
 					if (result.status >= 300 && result.status < 400) {
 						res.writeHead(result.status, {
 							Location: result.headers.get('Location') ?? '',
-							...[...result.headers.entries()].reduce(
+							...[...result.headers].reduce(
 								(headers, [key, value]) => ({
 									...headers,
 									[key]: value,
