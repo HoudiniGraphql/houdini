@@ -675,6 +675,10 @@ export class Config {
 		return `loading`
 	}
 
+	get runtimeScalarDirective() {
+		return '__houdini__runtimeScalar'
+	}
+
 	get whenDirective() {
 		return 'when'
 	}
@@ -773,7 +777,9 @@ export class Config {
 
 		return (
 			!defaultDirectives.includes(name) &&
-			(internalDirectives.includes(name) || this.isDeleteDirective(name))
+			(internalDirectives.includes(name) ||
+				this.isDeleteDirective(name) ||
+				name === this.runtimeScalarDirective)
 		)
 	}
 

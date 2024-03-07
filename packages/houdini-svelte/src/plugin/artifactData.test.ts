@@ -132,7 +132,8 @@ describe('load', () => {
 			        },
 
 			        "types": {},
-			        "defaults": {}
+			        "defaults": {},
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",

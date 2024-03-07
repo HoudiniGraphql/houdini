@@ -1312,7 +1312,8 @@ test('fragment argument passed to directive', async function () {
 		        },
 
 		        "types": {},
-		        "defaults": {}
+		        "defaults": {},
+		        "runtimeScalars": {}
 		    }
 		};
 

@@ -3,17 +3,16 @@ import { parse } from './cookies'
 import { decode, encode, verify } from './jwt'
 
 type ServerHandlerArgs = {
-	url: string
+	request: Request
 	config: ConfigFile
 	session_keys: string[]
-	headers: Headers
 }
 
 // the actual server implementation changes from runtime to runtime
 // so we want a single function that can be called to get the server
 export async function handle_request(args: ServerHandlerArgs): Promise<Response | undefined> {
 	const plugin_config = args.config.router ?? {}
-	const { pathname } = new URL(args.url)
+	const { pathname } = new URL(args.request.url)
 	// if the project is configured to authorize users by redirect then
 	// we might need to set the session value
 	if (
@@ -25,22 +24,40 @@ export async function handle_request(args: ServerHandlerArgs): Promise<Response 
 	}
 }
 
-async function redirect_auth(args: ServerHandlerArgs): Promise<Response> {
-	// the session and configuration are passed as query parameters in
-	// the url
-	const { searchParams } = new URL(args.url!, `http://${args.headers.get('host')}`)
-	const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
+async function redirect_auth(args: ServerHandlerArgs): Promise<Response | undefined> {
+	// if the request is a GET, then we just need to set the session and redirect
+	if (args.request.method === 'GET') {
+		// the session and configuration are passed as query parameters in
+		// the url
+		const { searchParams } = new URL(
+			args.request.url!,
+			`http://${args.request.headers.get('host')}`
+		)
+		const { redirectTo, ...session } = Object.fromEntries(searchParams.entries())
 
-	// encode the session information as a cookie in the response and redirect the user
-	const response = new Response('ok', {
-		status: 302,
-		headers: {
-			Location: redirectTo ?? '/',
-		},
-	})
-	await set_session(args, response, session)
+		// encode the session information as a cookie in the response and redirect the user
+		const response = new Response('ok', {
+			status: 302,
+			headers: {
+				Location: redirectTo ?? '/',
+			},
+		})
+		await set_session(args, response, session)
+		return response
+	}
+	// if the request is a POST, then we need to overwrite the current session with values in the payload
+	if (args.request.method === 'POST') {
+		const newValues = await args.request.json()
+		// parse the existing session
+		const existing = await get_session(args.request.headers, args.session_keys)
 
-	return response
+		// encode the new session information as a cookie in the response
+		const response = new Response('ok', {
+			status: 200,
+		})
+		await set_session(args, response, { ...existing, ...newValues })
+		return response
+	}
 }
 
 export type Server = {

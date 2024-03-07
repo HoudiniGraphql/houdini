@@ -34,7 +34,7 @@ export function useDocumentHandle<
 	const [backwardPending, setBackwardPending] = React.useState(false)
 
 	// grab the current session value
-	const session = useSession()
+	const [session] = useSession()
 
 	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
 	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {

@@ -375,7 +375,30 @@ export default function artifactGenerator(stats: {
 					// if the document has inputs describe their types in the artifact so we can
 					// marshal and unmarshal scalars
 					if (inputs && inputs.length > 0) {
-						artifact.input = inputObject(config, inputs)
+						// any runtime scalars will be registered on the argument definition
+						const runtimeScalars = inputs.reduce((prev, input) => {
+							const runtimeScalarDirective = input.directives?.find(
+								(directive) =>
+									directive.name.value === config.runtimeScalarDirective
+							)
+
+							// if there is no runtime scalar directive then we don't need to do anything
+							if (!runtimeScalarDirective) {
+								return prev
+							}
+
+							// there is a runtime scalar definition so keep track of the field
+							return {
+								...prev,
+								[input.variable.name.value]: (
+									runtimeScalarDirective.arguments?.find(
+										(arg) => arg.name.value === 'type'
+									)?.value as graphql.StringValueNode
+								)?.value,
+							}
+						}, {} as Record<string, string>)
+
+						artifact.input = inputObject(config, inputs, runtimeScalars)
 					}
 
 					// add the cache policy to query documents

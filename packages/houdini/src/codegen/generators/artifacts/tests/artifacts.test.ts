@@ -401,7 +401,8 @@ test('variables only used by internal directives are scrubbed', async function (
 		        },
 
 		        "types": {},
-		        "defaults": {}
+		        "defaults": {},
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -594,7 +595,8 @@ test('interface to interface inline fragment', async function () {
 		        },
 
 		        "types": {},
-		        "defaults": {}
+		        "defaults": {},
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -848,7 +850,9 @@ test('paginate over unions', async function () {
 
 		        "defaults": {
 		            "first": 10
-		        }
+		        },
+
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -3883,7 +3887,8 @@ describe('mutation artifacts', function () {
 			        },
 
 			        "types": {},
-			        "defaults": {}
+			        "defaults": {},
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4340,7 +4345,9 @@ describe('mutation artifacts', function () {
 
 			        "defaults": {
 			            "first": 10
-			        }
+			        },
+
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4589,7 +4596,9 @@ describe('mutation artifacts', function () {
 
 			        "defaults": {
 			            "first": 10
-			        }
+			        },
+
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4712,7 +4721,8 @@ describe('mutation artifacts', function () {
 			        },
 
 			        "types": {},
-			        "defaults": {}
+			        "defaults": {},
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -4836,7 +4846,8 @@ describe('mutation artifacts', function () {
 			        },
 
 			        "types": {},
-			        "defaults": {}
+			        "defaults": {},
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -5058,7 +5069,8 @@ test('operation inputs', async function () {
 		            }
 		        },
 
-		        "defaults": {}
+		        "defaults": {},
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -6043,7 +6055,8 @@ test('client nullability', async function () {
 		        },
 
 		        "types": {},
-		        "defaults": {}
+		        "defaults": {},
+		        "runtimeScalars": {}
 		    },
 
 		    "policy": "CacheOrNetwork",
@@ -6693,6 +6706,91 @@ test('nested abstract fragments', async function () {
 	`)
 })
 
+test('runtimeScalars', async function () {
+	// the config to use in tests
+	const config = testConfig()
+
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query AnimalsOverview($id: ViewerIDFromSession!) {
+				node(id: $id) {
+					id
+				}
+			}
+		`),
+	]
+
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "AnimalsOverview",
+		    "kind": "HoudiniQuery",
+		    "hash": "7bdf3fd75d58f53835443b251587e4ccc3c4e5bcb7e9e8b41e8b15fca19cb82e",
+
+		    "raw": \`query AnimalsOverview($id: ID!) {
+		  node(id: $id) {
+		    id
+		    __typename
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+
+		    "selection": {
+		        "fields": {
+		            "node": {
+		                "type": "Node",
+		                "keyRaw": "node(id: $id)",
+		                "nullable": true,
+
+		                "selection": {
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "abstract": true,
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "id": "ID"
+		        },
+
+		        "types": {},
+		        "defaults": {},
+
+		        "runtimeScalars": {
+		            "id": "ViewerIDFromSession"
+		        }
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=df81d1ede64bedbd8a57467683fe68a9366e29a2ed240465ad0c8a9cb4302242";
+	`)
+})
+
 describe('default arguments', function () {
 	test('adds default values to the artifact', async function () {
 		// the config to use in tests
@@ -6790,7 +6888,9 @@ describe('default arguments', function () {
 			        "defaults": {
 			            "count": 10,
 			            "search": "bob"
-			        }
+			        },
+
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -6884,7 +6984,9 @@ describe('default arguments', function () {
 			            "int": 5,
 			            "float": 3.14,
 			            "string": "hello world"
-			        }
+			        },
+
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",
@@ -6973,7 +7075,9 @@ describe('default arguments', function () {
 			            "filter": {
 			                "name": "bob"
 			            }
-			        }
+			        },
+
+			        "runtimeScalars": {}
 			    },
 
 			    "policy": "CacheOrNetwork",

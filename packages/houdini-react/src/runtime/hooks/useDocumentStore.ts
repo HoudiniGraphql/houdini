@@ -25,8 +25,7 @@ export function useDocumentStore<
 	...observeParams
 }: UseDocumentStoreParams<_Artifact, _Data, _Input>): [
 	QueryResult<_Data, _Input>,
-	DocumentStore<_Data, _Input>,
-	(store: DocumentStore<_Data, _Input>) => void
+	DocumentStore<_Data, _Input>
 ] {
 	const client = useClient()
 	const isMountedRef = useIsMountedRef()
@@ -43,6 +42,13 @@ export function useDocumentStore<
 
 	const box = React.useRef(observer.state)
 
+	// if the observer changes, we need to track the new one
+	if (obs && obs !== observer) {
+		box.current = obs.state
+		setObserver(obs)
+	}
+
+	// the function that registers a new subscription for the observer
 	const subscribe: any = React.useCallback(
 		(fn: () => void) => {
 			return observer.subscribe((val) => {
@@ -62,5 +68,5 @@ export function useDocumentStore<
 		() => box.current
 	)
 
-	return [storeValue!, observer, setObserver]
+	return [storeValue!, observer]
 }

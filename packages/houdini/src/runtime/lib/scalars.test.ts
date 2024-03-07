@@ -90,6 +90,8 @@ const artifact: QueryArtifact = {
 				enumValue: 'EnumValue',
 			},
 		},
+		runtimeScalars: {},
+		defaults: {},
 	},
 }
 

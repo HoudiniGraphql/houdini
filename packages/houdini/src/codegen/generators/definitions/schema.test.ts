@@ -76,7 +76,7 @@ test('adds internal documents to schema', async function () {
 			directive @required on FIELD
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
-			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
 			  CacheAndNetwork
@@ -91,6 +91,8 @@ test('adds internal documents to schema', async function () {
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 		`)
 })
 
@@ -163,7 +165,7 @@ test('list operations are included', async function () {
 			directive @required on FIELD
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
-			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
 			  CacheAndNetwork
@@ -178,6 +180,8 @@ test('list operations are included', async function () {
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -269,7 +273,7 @@ test('list operations are included but delete directive should not be in when we
 			directive @required on FIELD
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
-			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
 			  CacheAndNetwork
@@ -284,6 +288,8 @@ test('list operations are included but delete directive should not be in when we
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 
 			directive @User_delete repeatable on FIELD
 		`)
@@ -388,7 +394,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 			directive @required on FIELD
 
 			"""@componentField marks an inline fragment as the selection for a component field"""
-			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
 			  CacheAndNetwork
@@ -403,5 +409,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 			  Infinite
 			  SinglePage
 			}
+
+			scalar ViewerIDFromSession
 		`)
 })

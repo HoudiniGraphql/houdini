@@ -136,7 +136,7 @@ ${
 """
 @${config.componentFieldDirective} marks an inline fragment as the selection for a component field
 """
-directive @${config.componentFieldDirective}(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT
+directive @${config.componentFieldDirective}(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 `
 		: ''
@@ -155,7 +155,7 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		internalSchema += plugin.schema({ config })
 	}
 
-	const extensions = Object.entries(config.componentFields)
+	let extensions = Object.entries(config.componentFields)
 		.map(([parent, fields]) => {
 			return `
 		extend type ${parent} {
@@ -180,13 +180,18 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 							')'
 					}
 
-					return `${fieldName}${argString}: ${config.componentScalar}!`
+					return `${fieldName}${argString}: ${config.componentScalar}!  @componentField(field: "${fieldName}")`
 				})
 				.join('\n')}
 		}
 	`
 		})
 		.join('\n')
+
+	// runtime scalars need their own entries in the graphql schema
+	extensions += `${Object.keys(config.configFile.features?.runtimeScalars ?? {})
+		.map((scalar) => `scalar ${scalar}`)
+		.join('\n')}`
 
 	// newSchema holds the schema elements that we need to remove from queries (eg added by plugins)
 	config.newSchema = graphql.print(mergeTypeDefs([internalSchema, config.newSchema]))

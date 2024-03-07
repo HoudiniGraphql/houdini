@@ -173,18 +173,23 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	// write the contents
 	await fs.writeFile(config.typeIndexPath, indexContent)
 
+	// remove any runtime scalars from the list of scalars missing config
+	const missingScalarNames = [...missingScalars].filter(
+		(scalar) => !config.configFile.features?.runtimeScalars?.[scalar]
+	)
+
 	// if we were missing scalars, we need to warn the user and tell them
-	if (missingScalars.size > 0) {
-		console.warn(`⚠️  Missing definitions for the following scalars: ${[...missingScalars].join(
-			', '
-		)}
+	if (missingScalarNames.length > 0) {
+		console.warn(`⚠️  Missing definitions for the following scalars: ${[
+			...missingScalarNames,
+		].join(', ')}
 Generated types will contain an any type in place of these values. To fix this, provide an equivalent
 type in your config file:
 
 {
   scalars: {
     ${cyan(`/* in your case, something like */`)}
-${[...missingScalars]
+${[...missingScalarNames]
 	.map(
 		(c) =>
 			`    ${c}: {                  ${green(`// <- The GraphQL Scalar`)}

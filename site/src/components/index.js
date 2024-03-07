@@ -10,5 +10,6 @@ export { default as Emoji } from './Emoji.svelte'
 export { default as Zoomable } from './Zoomable.svelte'
 export { default as Logo } from './Logo.svelte'
 export { default as OgCard } from './OgCard.svelte'
+export { default as ExperimentalAPI } from './ExperimentalAPI.svelte'
 
 export * from './search'

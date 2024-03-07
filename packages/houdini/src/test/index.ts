@@ -293,8 +293,15 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 		},
 		features: {
 			componentFields: true,
+			imperativeCache: true,
+			runtimeScalars: {
+				ViewerIDFromSession: {
+					type: 'ID',
+					resolve: ({ session }: { session?: App.Session | null | undefined }) =>
+						(session as unknown as any).token,
+				},
+			},
 		},
-		acceptImperativeInstability: true,
 		...config,
 	}
 }
@@ -330,7 +337,7 @@ export function pipelineTest(
 			// only bubble the error up if we're supposed to pass the test
 			if (shouldPass) {
 				// console.error(docs)
-				throw 'pipeline failed when it should have passed. ' + e
+				throw new Error('pipeline failed when it should have passed. ' + e)
 			}
 			error = e as Error[]
 		}

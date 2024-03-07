@@ -20,18 +20,14 @@ export function useDocumentSubscription<
 	variables: _Input
 	disabled?: boolean
 	send?: Partial<SendParams>
-}): [
-	QueryResult<_Data, _Input> & { parent?: string | null },
-	DocumentStore<_Data, _Input>,
-	(store: DocumentStore<_Data, _Input>) => void
-] {
-	const [storeValue, observer, setObserver] = useDocumentStore<_Data, _Input>({
+}): [QueryResult<_Data, _Input> & { parent?: string | null }, DocumentStore<_Data, _Input>] {
+	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact,
 		...observeParams,
 	})
 
 	// grab the current session value
-	const session = useSession()
+	const [session] = useSession()
 
 	// whenever the variables change, we need to retrigger the query
 	useDeepCompareEffect(() => {
@@ -58,6 +54,5 @@ export function useDocumentSubscription<
 			...storeValue,
 		},
 		observer,
-		setObserver,
 	]
 }

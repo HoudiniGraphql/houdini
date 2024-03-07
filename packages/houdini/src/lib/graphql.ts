@@ -316,7 +316,7 @@ export function unwrapType(
 	// get the named type
 	const namedType = config.schema.getType(type.name.value || type.name)
 	if (!namedType) {
-		throw new Error('Could not unwrap type: ' + JSON.stringify(type))
+		throw new Error('Unknown type: ' + type.name.value || type.name)
 	}
 
 	// don't add any wrappers

@@ -36,6 +36,8 @@ declare global {
 	}
 }
 
+export type RuntimeScalarResolver = (args: { session: App.Session }) => any
+
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }
@@ -96,6 +98,7 @@ export type InputObject = {
 	fields: Record<string, string>
 	types: Record<string, Record<string, string>>
 	defaults: Record<string, any>
+	runtimeScalars: Record<string, string>
 }
 
 export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {

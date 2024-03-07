@@ -86,22 +86,6 @@
 
 	{#if ui_theme === 1}
 		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
-		<!-- light mode -->
 		<style>
 			:root {
 				--hue: #f9fbff;
@@ -131,6 +115,8 @@
 				--graphql-explained-background: var(--discreet);
 				--warning: #f0aa48;
 				--warning-text: white;
+				--experimental-background: #79b04f;
+				--experimental-text: var(--contrast);
 
 				/* Diagram Colors */
 				--diagram-line-color: #292f38;
@@ -142,22 +128,6 @@
 			}
 		</style>
 	{:else}
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
-		<!-- dark mode -->
 		<!-- dark mode -->
 		<style>
 			:root {
@@ -188,6 +158,8 @@
 				--graphql-explained-background: var(--discreet);
 				--warning: #bc791b;
 				--warning-text: white;
+				--experimental-background: hsl(95, 38%, 62%);
+				--experimental-text: var(--discreet);
 
 				/* Diagram Colors */
 				--diagram-line-color: var(--contrast);

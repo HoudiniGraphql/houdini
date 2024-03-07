@@ -32,7 +32,7 @@ export function useMutation<
 	const pending = storeValue.fetching
 
 	// grab the current session value
-	const session = useSession()
+	const [session] = useSession()
 
 	//  sending the mutation just means invoking the observer's send method
 	const mutate: MutationHandler<_Result, _Input, _Optimistic> = ({
