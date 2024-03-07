@@ -31,7 +31,7 @@ export function useDocumentSubscription<
 	})
 
 	// grab the current session value
-	const session = useSession()
+	const [session] = useSession()
 
 	// whenever the variables change, we need to retrigger the query
 	useDeepCompareEffect(() => {

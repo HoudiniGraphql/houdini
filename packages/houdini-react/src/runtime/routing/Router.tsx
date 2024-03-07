@@ -1,5 +1,6 @@
 import type { Cache } from '$houdini/runtime/cache/cache'
 import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
+import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { LRUCache } from '$houdini/runtime/lib/lru'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
@@ -163,7 +164,7 @@ function usePageData({
 	} = useRouterContext()
 
 	// grab the current session value
-	const session = useSession()
+	const [session] = useSession()
 
 	// the function to load a query using the cache references
 	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
@@ -446,6 +447,7 @@ export function RouterContextProvider({
 				ssr_signals,
 				last_variables,
 				session,
+				setSession: (newSession) => setSession((old) => ({ ...old, newSession })),
 			}}
 		>
 			{children}
@@ -476,6 +478,9 @@ type RouterContext = {
 
 	// The current session
 	session: App.Session
+
+	// a function to call that sets the client-side session singletone
+	setSession: (newSession: Partial<App.Session>) => void
 }
 
 export type PendingCache = SuspenseCache<
@@ -511,8 +516,35 @@ export function updateLocalSession(session: App.Session) {
 	)
 }
 
-export function useSession() {
-	return useRouterContext().session
+export function useSession(): [App.Session, (newSession: Partial<App.Session>) => void] {
+	const ctx = useRouterContext()
+
+	// when we update the session we have to do 2 things. (1) we have to update the local state
+	// that we will use on the client (2) we have to send a request to the server so that it
+	// can update the cookie that we use for the session
+	const updateSession = (newSession: Partial<App.Session>) => {
+		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
+		ctx.data_cache.clear()
+
+		// update the local state
+		ctx.setSession(newSession)
+
+		// figure out the url that we will use to send values to the server
+		let url = configFile.router?.auth?.url
+		if (!url) {
+			return
+		}
+
+		fetch(url, {
+			method: 'POST',
+			body: JSON.stringify(newSession),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		})
+	}
+
+	return [ctx.session, updateSession]
 }
 
 export function useCurrentVariables(): GraphQLVariables {
