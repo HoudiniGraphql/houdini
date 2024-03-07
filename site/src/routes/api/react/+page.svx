@@ -543,6 +543,17 @@ const config = {
 export default config
 ```
 
+To access the current session, you can use the `useSession` hook:
+
+```javascript
+import { useSession } from '$houdini'
+
+const [ session, setSession ] = useSession()
+```
+
+Calling `setSession` updates the client-side session as well as perists the new values in the application
+cookie so that its available on the next load.
+
 ## Local APIs
 
 For many applications, the API can live in the same codebase as the UI. When that happens, there
