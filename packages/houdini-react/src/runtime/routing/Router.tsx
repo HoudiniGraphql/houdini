@@ -447,7 +447,7 @@ export function RouterContextProvider({
 				ssr_signals,
 				last_variables,
 				session,
-				setSession: (newSession) => setSession((old) => ({ ...old, newSession })),
+				setSession: (newSession) => setSession((old) => ({ ...old, ...newSession })),
 			}}
 		>
 			{children}

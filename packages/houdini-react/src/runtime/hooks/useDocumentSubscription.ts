@@ -20,12 +20,8 @@ export function useDocumentSubscription<
 	variables: _Input
 	disabled?: boolean
 	send?: Partial<SendParams>
-}): [
-	QueryResult<_Data, _Input> & { parent?: string | null },
-	DocumentStore<_Data, _Input>,
-	(store: DocumentStore<_Data, _Input>) => void
-] {
-	const [storeValue, observer, setObserver] = useDocumentStore<_Data, _Input>({
+}): [QueryResult<_Data, _Input> & { parent?: string | null }, DocumentStore<_Data, _Input>] {
+	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact,
 		...observeParams,
 	})
@@ -58,6 +54,5 @@ export function useDocumentSubscription<
 			...storeValue,
 		},
 		observer,
-		setObserver,
 	]
 }
