@@ -1,5 +1,5 @@
 query features__component_fields__arguments {
-	users(snapshot: "componentFields_arguments") {
+	usersList(snapshot: "componentFields_arguments") {
 		name
 		...CF_A_UserInfo
 	}

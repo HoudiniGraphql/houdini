@@ -225,6 +225,13 @@ export default {
 				})
 				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 
+
+				// hydrate the cache with the information from the initial payload
+				window.__houdini__cache__?.hydrate(
+					window.__houdini__initial__cache__,
+					window.__houdini__hydration__layer__
+				)
+
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
 				for (const [artifactName, artifact] of Object.entries(window.__houdini__pending_artifacts__ ?? {})) {
 					// save the value in the initial artifact cache
@@ -247,7 +254,7 @@ export default {
 						const observer = window.__houdini__client__.observe({
 							artifact,
 							cache: window.__houdini__cache__,
-							initialValue: window.__houdini__pending_data__[artifactName],
+							initialValue: window.__houdini__cache__.read(artifact).data,
 							initialVariables: variables,
 						})
 
@@ -270,12 +277,6 @@ export default {
 						}
 					})
 				}
-
-				// hydrate the cache with the information from the initial payload
-				window.__houdini__cache__?.hydrate(
-					window.__houdini__initial__cache__,
-					window.__houdini__hydration__layer__
-				)
 
 				// get the initial url from the window
 				const url = window.location.pathname

@@ -1186,6 +1186,8 @@ export function createStore(
 					date1: 'Date',
 					date2: 'Date',
 				},
+				defaults: {},
+				runtimeScalars: {},
 			},
 			pluginData: {},
 		},

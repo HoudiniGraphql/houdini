@@ -3,6 +3,7 @@ import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import { LRUCache } from '$houdini/runtime/lib/lru'
+import { marshalSelection, marshalInputs } from '$houdini/runtime/lib/scalars'
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
 import { find_match } from '$houdini/runtime/router/match'
@@ -197,7 +198,7 @@ function usePageData({
 					cacheParams: { disableSubscriptions: true },
 					session,
 				})
-				.then(() => {
+				.then(async () => {
 					data_cache.set(id, observer)
 
 					// if there is an error, we need to reject the promise
@@ -215,7 +216,12 @@ function usePageData({
 								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
 
 								const artifactName = "${artifact.name}"
-								const value = ${JSON.stringify(observer.state.data)}
+								const value = ${JSON.stringify(
+									await marshalSelection({
+										selection: observer.artifact.selection,
+										data: observer.state.data,
+									})
+								)}
 
 								// if the data is pending, we need to resolve it
 								if (window.__houdini__nav_caches__?.data_cache.has(artifactName)) {
@@ -224,7 +230,18 @@ function usePageData({
 									const new_store = window.__houdini__client__.observe({
 										artifact: window.__houdini__nav_caches__.artifact_cache.get(artifactName),
 										cache: window.__houdini__cache__,
-										initialValue: value,
+									})
+
+									// we're pushing this store onto the client, it should be initialized
+									window.__houdini__nav_caches__.data_cache.get(artifactName).send({
+										setup: true,
+										variables: ${JSON.stringify(
+											marshalInputs({
+												artifact: observer.artifact,
+												input: variables,
+												config: configFile,
+											})
+										)}
 									})
 
 									window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
@@ -258,7 +275,13 @@ function usePageData({
 										// we're pushing this store onto the client, it should be initialized
 										window.__houdini__nav_caches__.data_cache.get(artifactName).send({
 											setup: true,
-											variables: ${JSON.stringify(variables)}
+											variables: ${JSON.stringify(
+												marshalInputs({
+													artifact: observer.artifact,
+													input: variables,
+													config: configFile,
+												})
+											)}
 										})
 									}
 
