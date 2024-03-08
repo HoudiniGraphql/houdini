@@ -243,9 +243,8 @@ test('generate document types', async function () {
 		config.artifactTypePath(documents[1].document)
 	)
 
-	expect(
-		recast.parse(fragmentArtifactContents!, { parser: typescriptParser })
-	).toMatchInlineSnapshot(`
+	expect(recast.parse(fragmentArtifactContents!, { parser: typescriptParser }))
+		.toMatchInlineSnapshot(`
 		import { MyEnum } from "$houdini/graphql/enums";
 		import type { ValueOf } from "$houdini/runtime/lib/types";
 		export type otherInfo$input = {};
