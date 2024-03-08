@@ -125,7 +125,7 @@ export default {
 
 		process.env.HOUDINI_SECONDARY_BUILD = 'ssr'
 		// in order to build the server-side of the application, we need to
-		// treat every file as an independent entry point and disable
+		// treat every file as an independent entry point and disable bundling
 		await build({
 			build: {
 				ssr: true,
