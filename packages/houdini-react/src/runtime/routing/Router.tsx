@@ -261,11 +261,11 @@ function usePageData({
 									if (!window.__houdini__pending_artifacts__) {
 										window.__houdini__pending_artifacts__ = {}
 									}
-
-									window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
-									window.__houdini__pending_data__[artifactName] = value
-									window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
 								}
+
+								window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
+								window.__houdini__pending_data__[artifactName] = value
+								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
 
 								// if this payload finishes off an ssr request, we need to resolve the signal
 								if (window.__houdini__nav_caches__?.ssr_signals.has(artifactName)) {
