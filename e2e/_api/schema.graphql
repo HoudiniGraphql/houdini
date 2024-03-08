@@ -4,9 +4,14 @@ Date custom scalar type
 scalar DateTime
 scalar File
 
+"""
+Can be Value1 or Value2.
+"""
 enum MyEnum {
+	"The first value"
 	Value1
-	Value2
+	"The second value"
+	Value2 @deprecated(reason: "Use Value1 instead")
 }
 
 enum TypeOfUser {
@@ -15,13 +20,17 @@ enum TypeOfUser {
 }
 
 enum ForceReturn {
+	"Normal"
 	NORMAL
+	"No value"
 	NULL
+	"Some error"
 	ERROR
 }
 
 type Mutation {
 	addUser(
+		"""The users birth date"""
 		birthDate: DateTime!
 		name: String!
 		snapshot: String!
@@ -53,6 +62,9 @@ type Mutation {
 	createB(b: String!): B!
 }
 
+"""
+A node.
+"""
 interface Node {
 	id: ID!
 }
@@ -93,6 +105,9 @@ type Query {
 	rentedBooks: [RentedBook!]!
 	animals: AnimalConnection!
 	monkeys: MonkeyConnection!
+	"""
+	Get a monkey by its id
+	"""
 	monkey(id: ID!): Monkey
 }
 
@@ -105,7 +120,13 @@ type User implements Node {
 	friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
 	"This is the same list as what's used globally. its here to tests fragments"
 	usersConnection(after: String, before: String, first: Int, last: Int): UserConnection!
-    usersConnectionSnapshot(after: String, before: String, first: Int, last: Int, snapshot: String!): UserConnection!
+	usersConnectionSnapshot(
+		after: String
+		before: String
+		first: Int
+		last: Int
+		snapshot: String!
+	): UserConnection!
 	"This is the same list as what's used globally. its here to tests fragments"
 	userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
 	friendsList(limit: Int, offset: Int): [User!]!
@@ -121,10 +142,20 @@ interface Animal implements Node {
 	name: String!
 }
 
+"""
+A monkey.
+"""
 type Monkey implements Node & Animal {
 	id: ID!
 	name: String!
+	"""
+	Whether the monkey has a banana or not
+	"""
 	hasBanana: Boolean!
+	"""
+	Whether the monkey has a banana or not
+	"""
+	oldHasBanana: Boolean @deprecated(reason: "Use hasBanana")
 }
 
 interface AnimalConnection {

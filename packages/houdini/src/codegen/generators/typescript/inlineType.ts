@@ -4,6 +4,7 @@ import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
 import { ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
+import { jsdocComment } from '../comments/jsdoc'
 import { enumReference } from './typeReference'
 import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
@@ -265,6 +266,12 @@ export function inlineType({
 
 				if (allOptional) {
 					prop.optional = true
+				}
+
+				if (field.description || field.deprecationReason) {
+					prop.comments = [
+						jsdocComment(field.description ?? '', field.deprecationReason ?? undefined),
+					]
 				}
 
 				return prop

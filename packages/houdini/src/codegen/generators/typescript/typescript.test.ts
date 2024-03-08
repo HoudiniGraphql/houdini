@@ -1509,7 +1509,14 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$result = {
+			    /**
+			     * Get a user.
+			    */
 			    readonly user: {
+			        /**
+			         * 
+			         * @deprecated Use name instead
+			        */
 			        readonly firstName: string;
 			        readonly " $fragments": {
 			            Foo: {};

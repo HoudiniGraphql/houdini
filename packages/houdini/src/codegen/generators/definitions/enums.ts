@@ -4,6 +4,7 @@ import * as recast from 'recast'
 import type { Config } from '../../../lib'
 import { fs, path, printJS } from '../../../lib'
 import { moduleExport } from '../../utils'
+import { jsdocComment } from '../comments/jsdoc'
 
 const AST = recast.types.builders
 
@@ -25,19 +26,39 @@ export default async function definitionsGenerator(config: Config) {
 			enums.map((defn) => {
 				const name = defn.name.value
 
-				return moduleExport(
+				const declaration = moduleExport(
 					config,
 					name,
 					AST.objectExpression(
 						defn.values?.map((value) => {
 							const str = value.name.value
-							return AST.objectProperty(
+							const prop = AST.objectProperty(
 								AST.stringLiteral(str),
 								AST.stringLiteral(str)
 							)
+							const deprecationReason = (
+								value.directives
+									?.find((d) => d.name.value === 'deprecated')
+									?.arguments?.find((a) => a.name.value === 'reason')
+									?.value as graphql.StringValueNode
+							)?.value
+
+							if (value.description || deprecationReason)
+								prop.comments = [
+									jsdocComment(value.description?.value ?? '', deprecationReason),
+								]
+							return prop
 						}) || []
 					)
 				)
+
+				if (defn.description) {
+					declaration.comments = [
+						AST.commentBlock(`* ${defn.description.value} `, true, false),
+					]
+				}
+
+				return declaration
 			})
 		)
 	)
@@ -53,11 +74,22 @@ type ValuesOf<T> = T[keyof T]
 				const name = definition.name.value
 				const values = definition.values
 
-				return `
-export declare const ${name}: {
-${values?.map((value) => `    readonly ${value.name.value}: "${value.name.value}";`).join('\n')}
-}
+				let jsdoc = ''
+				if (definition.description) {
+					jsdoc = `\n/** ${definition.description.value} */`
+				}
 
+				return `${jsdoc}
+export declare const ${name}: {
+${values
+	?.map(
+		(value) =>
+			(value.description ? `    /** ${value.description.value} */\n` : '') +
+			`    readonly ${value.name.value}: "${value.name.value}";`
+	)
+	.join('\n')}
+}
+${jsdoc}
 export type ${name}$options = ValuesOf<typeof ${name}>
  `
 			})
