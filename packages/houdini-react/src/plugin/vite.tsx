@@ -258,7 +258,7 @@ export default {
 							initialVariables: variables,
 						})
 
-						console.log('intializing data for', artifactName, window.__houdini__cache__.read(artifact).data)
+						console.log('intializing data for', artifactName, observer.state)
 
 						// save it in the cache
 						initialData[artifactName] = observer
