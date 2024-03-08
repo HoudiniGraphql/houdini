@@ -263,6 +263,8 @@ function usePageData({
 									}
 								}
 
+								console.log('assigning pending data', artifactName, value, ${JSON.stringify(variables)})
+
 								window.__houdini__pending_variables__[artifactName] = ${JSON.stringify(variables)}
 								window.__houdini__pending_data__[artifactName] = value
 								window.__houdini__pending_artifacts__[artifactName] = ${JSON.stringify(artifact)}
