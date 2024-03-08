@@ -259,9 +259,6 @@ export default {
 							initialVariables: variables,
 						})
 
-						console.log('data for', artifactName, observer.state, variables)
-
-
 						// save it in the cache
 						initialData[artifactName] = observer
 						initialVariables[artifactName] = variables
