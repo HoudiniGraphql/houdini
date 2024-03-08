@@ -254,11 +254,9 @@ export default {
 						const observer = window.__houdini__client__.observe({
 							artifact,
 							cache: window.__houdini__cache__,
-							initialValue: window.__houdini__cache__.read(artifact).data,
+							initialValue: window.__houdini__cache__.read({selection: artifact.selection, variables}).data,
 							initialVariables: variables,
 						})
-
-						console.log('intializing data for', artifactName, observer.state)
 
 						// save it in the cache
 						initialData[artifactName] = observer
