@@ -1,4 +1,4 @@
-import { Cache } from '../../cache/cache'
+import type { Cache } from '../../cache/cache'
 import { marshalSelection } from '../../lib/scalars'
 import type { SubscriptionSpec } from '../../lib/types'
 import { ArtifactKind } from '../../lib/types'

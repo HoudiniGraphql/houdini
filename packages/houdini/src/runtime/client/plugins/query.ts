@@ -1,4 +1,4 @@
-import { Cache } from '../../cache/cache'
+import type { Cache } from '../../cache/cache'
 import type { RuntimeScalarPayload } from '../../lib'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
 import { documentPlugin } from '../utils'
