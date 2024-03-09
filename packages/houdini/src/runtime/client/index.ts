@@ -1,4 +1,5 @@
 /// <reference path="../../../../../houdini.d.ts" />
+import cacheRef from '../cache'
 import type { Cache } from '../cache/cache'
 import { getCurrentConfig, localApiEndpoint } from '../lib'
 import { flatten } from '../lib/flatten'
@@ -115,9 +116,9 @@ export class HoudiniClient {
 					(
 						[
 							// make sure that documents always work
-							queryPlugin(this.cache),
-							mutationPlugin(this.cache),
-							fragmentPlugin(this.cache),
+							queryPlugin(this.cache ?? cacheRef),
+							mutationPlugin(this.cache ?? cacheRef),
+							fragmentPlugin(this.cache ?? cacheRef),
 						] as NestedList<ClientPlugin>
 					).concat(
 						// add the specified middlewares
