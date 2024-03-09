@@ -1,3 +1,5 @@
+import cache from '../../cache'
+import type { Cache } from '../../cache/cache'
 import type { ArtifactKinds } from '../../lib/types'
 import type {
 	ClientPlugin,
@@ -6,10 +8,13 @@ import type {
 	ClientHooks,
 } from '../documentStore'
 
-export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): ClientPlugin => {
-	return () => {
+export const documentPlugin = (
+	kind: ArtifactKinds,
+	source: (cache: Cache) => ClientHooks
+): ((cache: Cache | null) => ClientPlugin) => {
+	return (cacheRef: Cache | null) => () => {
 		// pull out the hooks we care about
-		const sourceHandlers = source()
+		const sourceHandlers = source(cacheRef ?? cache)
 
 		const enterWrapper = (
 			handler?: ClientPluginEnterPhase

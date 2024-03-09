@@ -1221,6 +1221,8 @@ export function createFragmentStore(
 					date1: 'Date',
 					date2: 'Date',
 				},
+				defaults: {},
+				runtimeScalars: {},
 			},
 			pluginData: {},
 		},

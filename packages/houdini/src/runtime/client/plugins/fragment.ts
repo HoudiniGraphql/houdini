@@ -1,12 +1,10 @@
-import cache from '../../cache'
 import { deepEquals } from '../../lib/deepEquals'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
 
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates
 // there are no network requests that get sent. send() always returns the initial value
-export const fragment: ClientPlugin = documentPlugin(ArtifactKind.Fragment, function () {
+export const fragment = documentPlugin(ArtifactKind.Fragment, function (cache) {
 	// track the bits of state we need to hold onto
 	let subscriptionSpec: SubscriptionSpec | null = null
 

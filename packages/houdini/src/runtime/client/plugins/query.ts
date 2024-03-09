@@ -1,10 +1,8 @@
-import cache from '../../cache'
 import type { RuntimeScalarPayload } from '../../lib'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPlugin } from '../documentStore'
 import { documentPlugin } from '../utils'
 
-export const query: ClientPlugin = documentPlugin(ArtifactKind.Query, function () {
+export const query = documentPlugin(ArtifactKind.Query, function (cache) {
 	// track the bits of state we need to hold onto
 	let subscriptionSpec: SubscriptionSpec | null = null
 
