@@ -1,5 +1,3 @@
-import cache from '../../cache'
-import type { Cache } from '../../cache/cache'
 import type { ArtifactKinds } from '../../lib/types'
 import type {
 	ClientPlugin,
