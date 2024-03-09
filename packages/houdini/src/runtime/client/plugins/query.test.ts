@@ -1,6 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
+import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
 import { createStore, fakeFetch } from './cache.test'
 import { query } from './query'
@@ -12,6 +13,8 @@ beforeEach(async () => {
 
 test('query plugin evaluates runtime scalars', async function () {
 	const fetchSpy = vi.fn()
+
+	const cache = new Cache()
 
 	const store = createStore({
 		artifact: {
@@ -63,7 +66,7 @@ test('query plugin evaluates runtime scalars', async function () {
 				},
 			},
 		},
-		pipeline: [query, fakeFetch({ spy: fetchSpy })],
+		pipeline: [query(cache), fakeFetch({ spy: fetchSpy })],
 	})
 
 	// run the query with an artifact that contains runtime scalars
