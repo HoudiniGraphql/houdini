@@ -51,6 +51,8 @@ export class HoudiniClient {
 	// expose operations settings
 	readonly throwOnError_operations: ThrowOnErrorOperations[]
 
+	private cache: Cache | null = null
+
 	proxies: Record<
 		string,
 		(operation: {
@@ -63,6 +65,11 @@ export class HoudiniClient {
 
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
+
+	// we need the ability to link the client up with an external cache
+	setCache(cache: Cache) {
+		this.cache = cache
+	}
 
 	constructor({
 		url,
@@ -127,6 +134,7 @@ export class HoudiniClient {
 			plugins: createPluginHooks(this.plugins),
 			fetching,
 			enableCache,
+			cache: this.cache ?? undefined,
 			...rest,
 		})
 	}

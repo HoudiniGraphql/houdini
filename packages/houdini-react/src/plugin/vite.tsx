@@ -225,6 +225,8 @@ export default {
 				})
 				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 
+				// link up the cache we just created with the client
+				window.__houdini__client__.setCache(window.__houdini__cache__)
 
 				// hydrate the cache with the information from the initial payload
 				window.__houdini__cache__?.hydrate(
