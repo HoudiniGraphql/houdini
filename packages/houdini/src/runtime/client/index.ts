@@ -1,4 +1,5 @@
 /// <reference path="../../../../../houdini.d.ts" />
+import cacheRef from '../cache'
 import type { Cache } from '../cache/cache'
 import { getCurrentConfig, localApiEndpoint } from '../lib'
 import { flatten } from '../lib/flatten'
@@ -45,11 +46,14 @@ export class HoudiniClient {
 	// the URL of the api
 	url: string
 
-	// the list of plugins for the client
-	readonly plugins: ClientPlugin[]
-
 	// expose operations settings
 	readonly throwOnError_operations: ThrowOnErrorOperations[]
+
+	private cache: Cache | null = null
+	private throwOnError: ThrowOnErrorParams | undefined
+	private fetchParams: FetchParamFn | undefined
+	private pipeline: NestedList<ClientPlugin> | undefined
+	private extraPlugins: NestedList<ClientPlugin> | undefined
 
 	proxies: Record<
 		string,
@@ -63,6 +67,11 @@ export class HoudiniClient {
 
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
+
+	// we need the ability to link the client up with an external cache
+	setCache(cache: Cache) {
+		this.cache = cache
+	}
 
 	constructor({
 		url,
@@ -80,34 +89,6 @@ export class HoudiniClient {
 
 		this.throwOnError_operations = throwOnError?.operations ?? []
 
-		// a few middlewares _have_ to run to setup the pipeline
-		this.plugins = flatten(
-			([] as NestedList<ClientPlugin>).concat(
-				// if they specified a throw behavior
-				throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
-				fetchParamsPlugin(fetchParams),
-				// if the user wants to specify the entire pipeline, let them do so
-				pipeline ??
-					// the user doesn't have a specific pipeline so we should just add their desired plugins
-					// to the standard set
-					(
-						[
-							// make sure that documents always work
-							queryPlugin,
-							mutationPlugin,
-							fragmentPlugin,
-						] as NestedList<ClientPlugin>
-					).concat(
-						// add the specified middlewares
-						plugins ?? [],
-						// and any middlewares we got from plugins
-						pluginsFromPlugins,
-						// if they provided a fetch function, use it as the body for the fetch middleware
-						fetchPlugin()
-					)
-			)
-		)
-
 		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 
 		// if there is no url provided then assume we are using the internal local api
@@ -115,6 +96,40 @@ export class HoudiniClient {
 			url ??
 			(globalThis.window ? '' : `https://localhost:${serverPort}`) +
 				localApiEndpoint(getCurrentConfig())
+
+		this.throwOnError = throwOnError
+		this.fetchParams = fetchParams
+		this.pipeline = pipeline
+		this.extraPlugins = plugins
+	}
+
+	get plugins(): ClientPlugin[] {
+		return flatten(
+			([] as NestedList<ClientPlugin>).concat(
+				// if they specified a throw behavior
+				this.throwOnError ? [throwOnErrorPlugin(this.throwOnError)] : [],
+				fetchParamsPlugin(this.fetchParams),
+				// if the user wants to specify the entire pipeline, let them do so
+				this.pipeline ??
+					// the user doesn't have a specific pipeline so we should just add their desired plugins
+					// to the standard set
+					(
+						[
+							// make sure that documents always work
+							queryPlugin(this.cache ?? cacheRef),
+							mutationPlugin(this.cache ?? cacheRef),
+							fragmentPlugin(this.cache ?? cacheRef),
+						] as NestedList<ClientPlugin>
+					).concat(
+						// add the specified middlewares
+						this.extraPlugins ?? [],
+						// and any middlewares we got from plugins
+						pluginsFromPlugins,
+						// if they provided a fetch function, use it as the body for the fetch middleware
+						fetchPlugin()
+					)
+			)
+		)
 	}
 
 	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
@@ -127,6 +142,7 @@ export class HoudiniClient {
 			plugins: createPluginHooks(this.plugins),
 			fetching,
 			enableCache,
+			cache: this.cache ?? undefined,
 			...rest,
 		})
 	}

@@ -1,12 +1,13 @@
 import { getCurrentConfig } from './config'
 import type { ConfigFile } from './config'
 import { getFieldsForType } from './selection'
-import type {
-	FragmentArtifact,
-	MutationArtifact,
-	QueryArtifact,
-	SubscriptionArtifact,
-	SubscriptionSelection,
+import {
+	fragmentKey,
+	type FragmentArtifact,
+	type MutationArtifact,
+	type QueryArtifact,
+	type SubscriptionArtifact,
+	type SubscriptionSelection,
 } from './types'
 
 export async function marshalSelection({
@@ -34,6 +35,11 @@ export async function marshalSelection({
 	return Object.fromEntries(
 		await Promise.all(
 			Object.entries(data as {}).map(async ([fieldName, value]) => {
+				// leave the fragment entry alone
+				if (fieldName === fragmentKey) {
+					return [fieldName, value]
+				}
+
 				// look up the type for the field
 				const { type, selection } = targetSelection[fieldName]
 				// if we don't have type information for this field, just use it directly

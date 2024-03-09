@@ -125,7 +125,7 @@ export default {
 
 		process.env.HOUDINI_SECONDARY_BUILD = 'ssr'
 		// in order to build the server-side of the application, we need to
-		// treat every file as an independent entry point and disable
+		// treat every file as an independent entry point and disable bundling
 		await build({
 			build: {
 				ssr: true,
@@ -225,6 +225,15 @@ export default {
 				})
 				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
 
+				// link up the cache we just created with the client
+				window.__houdini__client__.setCache(window.__houdini__cache__)
+
+				// hydrate the cache with the information from the initial payload
+				window.__houdini__cache__?.hydrate(
+					window.__houdini__initial__cache__,
+					window.__houdini__hydration__layer__
+				)
+
 				// the artifacts are the source of the zip (without them, we can't prime either cache)
 				for (const [artifactName, artifact] of Object.entries(window.__houdini__pending_artifacts__ ?? {})) {
 					// save the value in the initial artifact cache
@@ -233,13 +242,14 @@ export default {
 					// if we also have data for the artifact, save it in the initial data cache
 					if (window.__houdini__pending_data__?.[artifactName]) {
 						const variables = window.__houdini__pending_variables__[artifactName]
+
 						if (artifact.hasComponents) {
 							// we need to walk down the artifacts selection and instantiate any component fields
 							injectComponents({
 								cache: window.__houdini__cache__,
 								selection: artifact.selection,
 								data: window.__houdini__pending_data__[artifactName],
-								variables: window.__houdini__pending_variables__[artifactName],
+								variables,
 							})
 						}
 
@@ -247,7 +257,7 @@ export default {
 						const observer = window.__houdini__client__.observe({
 							artifact,
 							cache: window.__houdini__cache__,
-							initialValue: window.__houdini__pending_data__[artifactName],
+							initialValue: window.__houdini__cache__.read({selection: artifact.selection, variables}).data,
 							initialVariables: variables,
 						})
 
@@ -270,12 +280,6 @@ export default {
 						}
 					})
 				}
-
-				// hydrate the cache with the information from the initial payload
-				window.__houdini__cache__?.hydrate(
-					window.__houdini__initial__cache__,
-					window.__houdini__hydration__layer__
-				)
 
 				// get the initial url from the window
 				const url = window.location.pathname

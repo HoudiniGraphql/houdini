@@ -1,6 +1,6 @@
-query features__component_fields__simple {
+query scalar_test {
 	usersList(snapshot: "componentFields_simple") {
 		name
-		...UserInfo
+		birthDate
 	}
 }

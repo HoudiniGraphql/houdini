@@ -135,6 +135,7 @@ type User implements Node {
 	enumValue: MyEnum
 	types: [TypeOfUser!]!
 	testField(someParam: Boolean!): String
+	avatarURL(size: Int): String!
 }
 
 interface Animal implements Node {

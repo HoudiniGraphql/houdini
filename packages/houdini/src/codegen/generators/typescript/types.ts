@@ -53,16 +53,17 @@ export function scalarPropertyValue(
 		let sourcePath = path.join(sourcePathParsed.dir, sourcePathParsed.name)
 
 		// add the import
-		const localImport = ensureImports({
-			config,
-			body,
-			import: '__component__' + component.fragment,
-			sourceModule: path.join(
-				path.relative(path.dirname(filepath), config.projectRoot),
-				'src',
-				sourcePath
-			),
-		})
+		const localImport =
+			ensureImports({
+				config,
+				body,
+				import: '__component__' + component.fragment,
+				sourceModule: path.join(
+					path.relative(path.dirname(filepath), config.projectRoot),
+					'src',
+					sourcePath
+				),
+			}) ?? '__component__' + component.fragment
 
 		// build up the AST for the parameter type
 		const parameters = AST.tsTypeReference(AST.identifier('Parameters'))
