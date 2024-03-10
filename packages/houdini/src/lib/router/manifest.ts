@@ -1,7 +1,15 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import { path, fs, parseJS, type Config } from '..'
+import {
+	path,
+	fs,
+	parseJS,
+	type Config,
+	type TypeWrapper,
+	unwrapType,
+	parse_page_pattern,
+} from '..'
 import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
 import {
 	read_layoutQuery,
@@ -38,6 +46,7 @@ export async function load_manifest(args: {
 		},
 		queries: [],
 		layouts: [],
+		variables: {},
 	})
 
 	// we might need to include the list of aritfacts in the project
@@ -88,10 +97,14 @@ async function walk_routes(args: {
 	project: ProjectManifest
 	queries: string[]
 	layouts: string[]
+	variables?: Record<string, { type: string; wrappers: TypeWrapper[] }>
 }): Promise<ProjectManifest> {
 	const directory_contents = await fs.readdir(args.filepath, {
 		withFileTypes: true,
 	})
+
+	// every step down defines a new variable context
+	const variables = { ...args.variables }
 
 	// before we can go down, we need to look at the files in the directory
 	// to see what queries were added to the context. this means we have to
@@ -129,6 +142,7 @@ async function walk_routes(args: {
 			project: args.project,
 			type: 'layout',
 			contents: layoutQueryContents,
+			variables,
 		})
 		newLayoutQueries = [...args.queries, layoutQuery.name]
 	}
@@ -144,6 +158,7 @@ async function walk_routes(args: {
 			layouts: args.layouts,
 			queries: newLayoutQueries,
 			config: args.config,
+			variables,
 		})
 		newLayouts = [...args.layouts, page_id(layout.url)]
 	}
@@ -157,6 +172,7 @@ async function walk_routes(args: {
 			project: args.project,
 			type: 'page',
 			contents: pageQueryContents,
+			variables,
 		})
 	}
 
@@ -171,6 +187,7 @@ async function walk_routes(args: {
 			layouts: newLayouts,
 			queries: pageQuery ? [...newLayoutQueries, pageQuery.name] : newLayoutQueries,
 			config: args.config,
+			variables,
 		})
 	}
 
@@ -187,6 +204,7 @@ async function walk_routes(args: {
 				url: `${args.url}${dir.name}/`,
 				queries: newLayoutQueries,
 				layouts: newLayouts,
+				variables,
 			})
 		})
 	)
@@ -203,6 +221,7 @@ async function add_view(args: {
 	layouts: string[]
 	queries: string[]
 	config: Config
+	variables: Record<string, { type: string; wrappers: TypeWrapper[] }>
 }) {
 	const target = args.type === 'page' ? args.project.pages : args.project.layouts
 	const queries = await extractQueries(args.contents)
@@ -223,6 +242,12 @@ async function add_view(args: {
 		layouts: args.layouts,
 		path: path.relative(args.config.projectRoot, args.path),
 		query_options: args.queries,
+		params: Object.fromEntries(
+			parse_page_pattern(args.url).params.map((param) => [
+				param.name,
+				args.variables[param.name] ?? null,
+			])
+		),
 	}
 
 	return target[id]
@@ -235,6 +260,7 @@ async function add_query(args: {
 	project: ProjectManifest
 	type: 'page' | 'layout'
 	contents: string
+	variables: Record<string, { type: string; wrappers: TypeWrapper[] }>
 }) {
 	// we need to parse the query to get the name
 	const parsed = graphql.parse(args.contents)
@@ -256,13 +282,25 @@ async function add_query(args: {
 		},
 	})
 
+	// add this queries variables to the bag
+	const queryVariables = Object.fromEntries(
+		query.variableDefinitions?.map((variable) => {
+			const { type, wrappers } = unwrapType(args.config, variable.type)
+			return [
+				variable.variable.name.value,
+				{ wrappers: wrappers as string[], type: type.name },
+			]
+		}) ?? []
+	)
+	Object.assign(args.variables, queryVariables)
+
 	const target = args.type === 'page' ? args.project.page_queries : args.project.layout_queries
 	target[page_id(args.url)] = {
 		path: path.relative(args.config.routesDir, args.path),
 		name: query.name.value,
 		url: args.url,
 		loading,
-		variables: query.variableDefinitions?.map((variable) => variable.variable.name.value) ?? [],
+		variables: queryVariables,
 	}
 
 	return target[page_id(args.url)]
