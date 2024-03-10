@@ -8,6 +8,7 @@ import type {
 	GraphQLObject,
 	GraphQLValue,
 	NestedList,
+	RefetchUpdateModes,
 	SubscriptionSelection,
 	SubscriptionSpec,
 	ValueMap,
@@ -68,7 +69,7 @@ export class Cache {
 		variables?: {}
 		parent?: string
 		layer?: LayerID | null
-		applyUpdates?: string[]
+		applyUpdates?: RefetchUpdateModes[]
 		notifySubscribers?: SubscriptionSpec[]
 		forceNotify?: boolean
 		forceStale?: boolean
@@ -416,7 +417,7 @@ class CacheInternal {
 		root?: string
 		layer: Layer
 		toNotify?: FieldSelection[]
-		applyUpdates?: string[]
+		applyUpdates?: RefetchUpdateModes[]
 		forceNotify?: boolean
 		forceStale?: boolean
 	}): FieldSelection[] {
@@ -1384,7 +1385,7 @@ class CacheInternal {
 		abstract: boolean
 		variables: {}
 		specs: FieldSelection[]
-		applyUpdates?: string[]
+		applyUpdates?: RefetchUpdateModes[]
 		fields: SubscriptionSelection
 		layer: Layer
 		forceNotify?: boolean

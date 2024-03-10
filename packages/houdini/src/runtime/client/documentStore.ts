@@ -14,6 +14,7 @@ import type {
 	SubscriptionSpec,
 	CachePolicies,
 	GraphQLVariables,
+	RefetchUpdateModes,
 } from '../lib/types'
 import { ArtifactKind } from '../lib/types'
 import { cachePolicy } from './plugins'
@@ -642,7 +643,7 @@ export type ClientPluginContext = {
 		disableWrite?: boolean
 		disableRead?: boolean
 		disableSubscriptions?: boolean
-		applyUpdates?: string[]
+		applyUpdates?: RefetchUpdateModes[]
 		serverSideFallback?: boolean
 	}
 	stuff: App.Stuff

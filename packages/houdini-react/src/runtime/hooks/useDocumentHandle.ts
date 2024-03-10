@@ -106,7 +106,7 @@ export function useDocumentHandle<
 				getVariables: () => storeValue.variables!,
 				storeName: artifact.name,
 				fetch: fetchQuery,
-				fetchUpdate: async (args, updates = ['append']) => {
+				fetchUpdate: (args, updates) => {
 					return observer.send({
 						...args,
 						cacheParams: {
