@@ -52,6 +52,11 @@ export function Router({
 	// find the matching page for the current route
 	const [page, variables] = find_match(manifest, currentURL)
 
+	// if we dont have a page, its a 404
+	if (!page) {
+		throw new Error('404')
+	}
+
 	// the only time this component will directly suspend (instead of one of its children)
 	// is if we don't have the component source. Dependencies on query results or artifacts
 	// will be resolved by the component itself
