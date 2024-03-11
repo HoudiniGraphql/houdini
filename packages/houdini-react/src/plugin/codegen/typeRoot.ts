@@ -1,4 +1,14 @@
-import { path, fs, type Config, type PageManifest, type ProjectManifest } from 'houdini'
+import { GraphQLNamedType } from 'graphql'
+import {
+	path,
+	fs,
+	type Config,
+	type PageManifest,
+	type ProjectManifest,
+	type TypeWrapper,
+	unwrappedTsTypeReference,
+} from 'houdini'
+import * as recast from 'recast'
 
 import { dedent } from '../dedent'
 
@@ -50,9 +60,8 @@ export async function generate_type_root({
 
 			// build up the type definitions
 			const definition = `
-import { DocumentHandle } from '${relative}/plugins/houdini-react/runtime'
+import { DocumentHandle, RouteProp } from '${relative}/plugins/houdini-react/runtime'
 import React from 'react'
-
 ${
 	/* every dependent query needs to be imported */
 	all_queries
@@ -69,27 +78,29 @@ ${
 
 ${
 	/* if there is a page, then we need to define the props object */
-	`
-export type PageProps = {
-${
-	!page
-		? ''
-		: page.query_options
-				.map(
-					(query) =>
-						`    ${query}: ${query}$result,
+	`export type PageProps = {
+		Params: ${!page ? '{}' : paramsType(config, page.params)},
+		${
+			!page
+				? ''
+				: `
+` +
+				  page.query_options
+						.map(
+							(query) =>
+								`    ${query}: ${query}$result,
     ${query}$handle: DocumentHandle<${query}$artifact, ${query}$result, ${query}$input>,`
-				)
-				.join('\n')
-}
+						)
+						.join('\n')
+		}
 }
 `
 }
 
 ${
 	/* if there is a layout, then we need to define the props object */
-	`
-export type LayoutProps = {
+	`export type LayoutProps = {
+	Params: ${!page ? '{}' : paramsType(config, page.params)},
 	children: React.ReactNode,
 ${
 	!layout
@@ -101,9 +112,7 @@ ${
     ${query}$handle: DocumentHandle<${query}$artifact, ${query}$result, ${query}$input>,`
 				)
 				.join('\n')
-}
-}
-`
+}}`
 }
 `
 
@@ -157,4 +166,33 @@ export async function writeTsconfig(config: Config) {
 			4
 		)
 	)
+}
+
+function paramsType(config: Config, params?: PageManifest['params']): string {
+	return `{
+		${Object.entries(params ?? {})
+			.map(([param, typeInfo]) => {
+				let valueString = 'string'
+
+				// if we have type information for the field, convert the description to
+				// its typescript equivalent
+				if (typeInfo) {
+					valueString = recast.print(
+						unwrappedTsTypeReference(
+							config,
+							'',
+							new Set(),
+							{
+								type: config.schema.getType(typeInfo.type) as GraphQLNamedType,
+								wrappers: typeInfo.wrappers as TypeWrapper[],
+							},
+							[]
+						)
+					).code
+				}
+
+				return `${param}: ${valueString},`
+			})
+			.join(', ')}
+	}`
 }

@@ -85,7 +85,7 @@ async function generate_query_wrapper(args: PageBundleInput) {
 
 	// build up the file source as a string
 	let source: string[] = [
-		"import { useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing'",
+		"import { useQueryResult, PageContextProvider } from '$houdini/plugins/houdini-react/runtime/routing'",
 		`import ${component_name} from "${relative_path}"`,
 	]
 
@@ -96,15 +96,17 @@ async function generate_query_wrapper(args: PageBundleInput) {
 			.join('\n')}
 
 		return (
-			<${component_name}
-			${page.queries
-				.map((query) =>
-					[`${query}={${query}$data}`, `${query}$handle={${query}$handle}`].join(' ')
-				)
-				.join('\n')}
-			>
-				{children}
-			</${component_name}>
+			<PageContextProvider keys={${JSON.stringify(Object.keys(page.params ?? {}))}}>
+				<${component_name}
+				${page.queries
+					.map((query) =>
+						[`${query}={${query}$data}`, `${query}$handle={${query}$handle}`].join(' ')
+					)
+					.join('\n')}
+				>
+					{children}
+				</${component_name}>
+			</PageContextProvider>
 		)
 	}`)
 

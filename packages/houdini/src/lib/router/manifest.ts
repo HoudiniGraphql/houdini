@@ -387,5 +387,5 @@ export async function extractQueries(source: string): Promise<string[]> {
 		return []
 	}
 
-	return props.filter((p) => p !== 'children')
+	return props.filter((p) => p !== 'children' && p !== 'route')
 }

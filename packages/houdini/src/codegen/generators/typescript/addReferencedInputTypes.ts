@@ -3,8 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
-import { ensureImports, HoudiniError, unwrapType } from '../../../lib'
-import { tsTypeReference } from './typeReference'
+import { ensureImports, HoudiniError, unwrapType, tsTypeReference } from '../../../lib'
 
 const AST = recast.types.builders
 

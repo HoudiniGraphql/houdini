@@ -30,8 +30,8 @@ test('generates type files for pages', async function () {
 	// make sure we generated the right thing
 	expect(fs.snapshot(config.typeRootDir)).toMatchInlineSnapshot(`
 		{
-		    "/src/routes/(subRoute)/$types.d.ts": "\\nimport { DocumentHandle } from '../../../../plugins/houdini-react/runtime'\\nimport React from 'react'\\n\\nimport type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../../artifacts/LayoutQuery'\\nimport type { RootQuery$result, RootQuery$artifact, RootQuery$input } from '../../../../artifacts/RootQuery'\\nimport type { FinalQuery$result, FinalQuery$artifact, FinalQuery$input } from '../../../../artifacts/FinalQuery'\\n\\n\\nexport type PageProps = {\\n    LayoutQuery: LayoutQuery$result,\\n    LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,\\n    RootQuery: RootQuery$result,\\n    RootQuery$handle: DocumentHandle<RootQuery$artifact, RootQuery$result, RootQuery$input>,\\n    FinalQuery: FinalQuery$result,\\n    FinalQuery$handle: DocumentHandle<FinalQuery$artifact, FinalQuery$result, FinalQuery$input>,\\n}\\n\\n\\n\\nexport type LayoutProps = {\\n\\tchildren: React.ReactNode,\\n\\n}\\n\\n",
-		    "/src/routes/$types.d.ts": "\\nimport { DocumentHandle } from '../../../plugins/houdini-react/runtime'\\nimport React from 'react'\\n\\nimport type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../artifacts/LayoutQuery'\\n\\n\\nexport type PageProps = {\\n    LayoutQuery: LayoutQuery$result,\\n    LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,\\n}\\n\\n\\n\\nexport type LayoutProps = {\\n\\tchildren: React.ReactNode,\\n\\n}\\n\\n"
+		    "/src/routes/(subRoute)/$types.d.ts": "\\nimport { DocumentHandle, RouteProp } from '../../../../plugins/houdini-react/runtime'\\nimport React from 'react'\\nimport type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../../artifacts/LayoutQuery'\\nimport type { RootQuery$result, RootQuery$artifact, RootQuery$input } from '../../../../artifacts/RootQuery'\\nimport type { FinalQuery$result, FinalQuery$artifact, FinalQuery$input } from '../../../../artifacts/FinalQuery'\\n\\nexport type PageProps = {\\n\\t\\tParams: {\\n\\t\\t\\n\\t},\\n\\t\\t\\n    LayoutQuery: LayoutQuery$result,\\n    LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,\\n    RootQuery: RootQuery$result,\\n    RootQuery$handle: DocumentHandle<RootQuery$artifact, RootQuery$result, RootQuery$input>,\\n    FinalQuery: FinalQuery$result,\\n    FinalQuery$handle: DocumentHandle<FinalQuery$artifact, FinalQuery$result, FinalQuery$input>,\\n}\\n\\n\\nexport type LayoutProps = {\\n\\tParams: {\\n\\t\\t\\n\\t},\\n\\tchildren: React.ReactNode,\\n}\\n",
+		    "/src/routes/$types.d.ts": "\\nimport { DocumentHandle, RouteProp } from '../../../plugins/houdini-react/runtime'\\nimport React from 'react'\\nimport type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../artifacts/LayoutQuery'\\n\\nexport type PageProps = {\\n\\t\\tParams: {\\n\\t\\t\\n\\t},\\n\\t\\t\\n    LayoutQuery: LayoutQuery$result,\\n    LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,\\n}\\n\\n\\nexport type LayoutProps = {\\n\\tParams: {\\n\\t\\t\\n\\t},\\n\\tchildren: React.ReactNode,\\n}\\n"
 		}
 	`)
 })
@@ -65,27 +65,29 @@ test('generates route prop type', async function () {
 	// make sure we generated the right thing
 	expect(await fs.readFile(path.join(config.typeRootDir, 'src', 'routes', '[id]', '$types.d.ts')))
 		.toMatchInlineSnapshot(`
-		"
-		import { DocumentHandle } from '../../../../plugins/houdini-react/runtime'
-		import React from 'react'
+			"
+			import { DocumentHandle, RouteProp } from '../../../../plugins/houdini-react/runtime'
+			import React from 'react'
+			import type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '../../../../artifacts/MyQuery'
 
-		import type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '../../../../artifacts/MyQuery'
+			export type PageProps = {
+					Params: {
+					id: string,
+				},
+					
+			    MyQuery: MyQuery$result,
+			    MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
+			}
 
 
-		export type PageProps = {
-		    MyQuery: MyQuery$result,
-		    MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
-		}
-
-
-
-		export type LayoutProps = {
-			children: React.ReactNode,
-
-		}
-
-		"
-	`)
+			export type LayoutProps = {
+				Params: {
+					id: string,
+				},
+				children: React.ReactNode,
+			}
+			"
+		`)
 })
 
 function mockView(deps: string[]) {

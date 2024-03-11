@@ -7,7 +7,7 @@ test('Component fields with correct argument value', async ({ page }) => {
 	await goto(page, routes.route_params)
 
 	// be default we see user 1
-	await expect_to_be(page, 'Bruce Willis')
+	await expect_to_be(page, '1:Bruce Willis')
 
 	// click on the link 2
 	await page.click('user-link-2')
@@ -16,5 +16,5 @@ test('Component fields with correct argument value', async ({ page }) => {
 	await sleep(100)
 
 	// make sure we loaded the second user's information
-	await expect_to_be(page, 'Samuel Jackson')
+	await expect_to_be(page, '2:Samuel Jackson')
 })

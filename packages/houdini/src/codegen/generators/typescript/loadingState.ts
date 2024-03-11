@@ -8,8 +8,8 @@ import {
 	type SubscriptionSelection,
 	fragmentKey,
 } from '../../../lib'
+import { readonlyProperty } from '../../../lib/typescript'
 import { getFieldsForType } from '../../../runtime/lib/selection'
-import { readonlyProperty } from './types'
 
 const AST = recast.types.builders
 

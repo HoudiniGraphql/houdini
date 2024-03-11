@@ -4,9 +4,13 @@ import * as recast from 'recast'
 
 import type { Config } from '../../../lib'
 import { ensureImports, HoudiniError, TypeWrapper, unwrapType } from '../../../lib'
+import {
+	nullableField,
+	readonlyProperty,
+	scalarPropertyValue,
+	enumReference,
+} from '../../../lib/typescript'
 import { jsdocComment } from '../comments/jsdoc'
-import { enumReference } from './typeReference'
-import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 
