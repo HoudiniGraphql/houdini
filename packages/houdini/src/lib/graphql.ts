@@ -313,6 +313,13 @@ export function unwrapType(
 		return unwrapType(config, type.ofType, [TypeWrapper.List, ...wrappers])
 	}
 
+	// if we got this far and the type is a runtime scalar, we need to use the underlying type
+	if (config.configFile.features?.runtimeScalars?.[type.name.value]) {
+		type = config.schema.getType(
+			config.configFile.features?.runtimeScalars?.[type.name.value].type
+		)
+	}
+
 	// get the named type
 	const namedType = config.schema.getType(type.name.value || type.name)
 	if (!namedType) {
