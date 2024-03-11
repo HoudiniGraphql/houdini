@@ -2,11 +2,15 @@
 
 ## 1.2.45
 
-### Patch Changes
+### ✨ Features
 
--   [#1282](https://github.com/HoudiniGraphql/houdini/pull/1282) [`250ff786`](https://github.com/HoudiniGraphql/houdini/commit/250ff7868e3fae562ec077ffd740b7d9a901bf53) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug marshaling/unmarshaling scalars over network
+-   [#1284](https://github.com/HoudiniGraphql/houdini/pull/1284) [`d69d1725`](https://github.com/HoudiniGraphql/houdini/commit/d69d172560c05947a44c548741cc29d6a22e0416) @AlecAivazis - Add useRoute prop for typesafe route parameters
 
--   [#1284](https://github.com/HoudiniGraphql/houdini/pull/1284) [`d69d1725`](https://github.com/HoudiniGraphql/houdini/commit/d69d172560c05947a44c548741cc29d6a22e0416) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add useRoute prop for typesafe route parameters
+### 🐛 Fixes
+
+-   [#1282](https://github.com/HoudiniGraphql/houdini/pull/1282) [`250ff786`](https://github.com/HoudiniGraphql/houdini/commit/250ff7868e3fae562ec077ffd740b7d9a901bf53) @AlecAivazis - Fix bug marshaling/unmarshaling scalars over network
+
+### Dependency Changes
 
 -   Updated dependencies [[`7f426d94`](https://github.com/HoudiniGraphql/houdini/commit/7f426d94bc13d061c39e19310f6e5de48ea4e219)]:
     -   houdini@1.2.45
@@ -33,9 +37,9 @@
 
 ### Patch Changes
 
--   [#1275](https://github.com/HoudiniGraphql/houdini/pull/1275) [`b8110193`](https://github.com/HoudiniGraphql/houdini/commit/b8110193136eb6a552c534f6b4fdd68f7d57c329) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Always generate route component types even if the file hasn't been saved yet
+-   [#1275](https://github.com/HoudiniGraphql/houdini/pull/1275) [`b8110193`](https://github.com/HoudiniGraphql/houdini/commit/b8110193136eb6a552c534f6b4fdd68f7d57c329) @AlecAivazis - Always generate route component types even if the file hasn't been saved yet
 
--   [#1275](https://github.com/HoudiniGraphql/houdini/pull/1275) [`b8110193`](https://github.com/HoudiniGraphql/houdini/commit/b8110193136eb6a552c534f6b4fdd68f7d57c329) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix corruption of image files on deployment
+-   [#1275](https://github.com/HoudiniGraphql/houdini/pull/1275) [`b8110193`](https://github.com/HoudiniGraphql/houdini/commit/b8110193136eb6a552c534f6b4fdd68f7d57c329) @AlecAivazis - Fix corruption of image files on deployment
 
 -   Updated dependencies []:
     -   houdini@1.2.42
@@ -44,7 +48,7 @@
 
 ### Patch Changes
 
--   [#1272](https://github.com/HoudiniGraphql/houdini/pull/1272) [`45a35bd5`](https://github.com/HoudiniGraphql/houdini/commit/45a35bd543316dc9209bfea28e9e514c2344612d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed issue prevent logins when deployed on cloudflare
+-   [#1272](https://github.com/HoudiniGraphql/houdini/pull/1272) [`45a35bd5`](https://github.com/HoudiniGraphql/houdini/commit/45a35bd543316dc9209bfea28e9e514c2344612d) @AlecAivazis - Fixed issue prevent logins when deployed on cloudflare
 
 -   Updated dependencies []:
     -   houdini@1.2.41
@@ -53,7 +57,7 @@
 
 ### Patch Changes
 
--   [#1269](https://github.com/HoudiniGraphql/houdini/pull/1269) [`fe0ee152`](https://github.com/HoudiniGraphql/houdini/commit/fe0ee1522110609676d98507ca49bd6354c9cded) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Queries now throw errors when they are encountered in an API response
+-   [#1269](https://github.com/HoudiniGraphql/houdini/pull/1269) [`fe0ee152`](https://github.com/HoudiniGraphql/houdini/commit/fe0ee1522110609676d98507ca49bd6354c9cded) @AlecAivazis - Queries now throw errors when they are encountered in an API response
 
 -   Updated dependencies []:
     -   houdini@1.2.40
@@ -97,7 +101,7 @@
 
 ### 🐛 Fixes
 
--   [#1236](https://github.com/HoudiniGraphql/houdini/pull/1236) [`1ff715bd`](https://github.com/HoudiniGraphql/houdini/commit/1ff715bd8810c6d934a68bc47b581b2317582c9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when dash present in route name
+-   [#1236](https://github.com/HoudiniGraphql/houdini/pull/1236) [`1ff715bd`](https://github.com/HoudiniGraphql/houdini/commit/1ff715bd8810c6d934a68bc47b581b2317582c9f) @AlecAivazis - Fix bug when dash present in route name
 
 ### Dependency Changes
 

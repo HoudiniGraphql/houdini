@@ -2,9 +2,9 @@
 
 ## 1.2.45
 
-### Patch Changes
+### ✨ Features
 
--   [#1277](https://github.com/HoudiniGraphql/houdini/pull/1277) [`7f426d94`](https://github.com/HoudiniGraphql/houdini/commit/7f426d94bc13d061c39e19310f6e5de48ea4e219) Thanks [@ewen-lbh](https://github.com/ewen-lbh)! - GraphQL documentation strings and deprecation reasons are reflected as JSDoc comments on generated type definitions. Hover over any field of a query store, an enum, or an enum's value and your IDE should show you the documentation from the GraphQL API.
+-   [#1277](https://github.com/HoudiniGraphql/houdini/pull/1277) [`7f426d94`](https://github.com/HoudiniGraphql/houdini/commit/7f426d94bc13d061c39e19310f6e5de48ea4e219) @ewen-lbh - GraphQL documentation strings and deprecation reasons are reflected as JSDoc comments on generated type definitions. Hover over any field of a query store, an enum, or an enum's value and your IDE should show you the documentation from the GraphQL API.
 
 ## 1.2.44
 
