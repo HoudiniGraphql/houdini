@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.45
+
+### Patch Changes
+
+-   [#1282](https://github.com/HoudiniGraphql/houdini/pull/1282) [`250ff786`](https://github.com/HoudiniGraphql/houdini/commit/250ff7868e3fae562ec077ffd740b7d9a901bf53) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug marshaling/unmarshaling scalars over network
+
+-   [#1284](https://github.com/HoudiniGraphql/houdini/pull/1284) [`d69d1725`](https://github.com/HoudiniGraphql/houdini/commit/d69d172560c05947a44c548741cc29d6a22e0416) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add useRoute prop for typesafe route parameters
+
+-   Updated dependencies [[`7f426d94`](https://github.com/HoudiniGraphql/houdini/commit/7f426d94bc13d061c39e19310f6e5de48ea4e219)]:
+    -   houdini@1.2.45
+
 ## 1.2.44
 
 ### ✨ Features
