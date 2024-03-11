@@ -9,7 +9,7 @@
   const addA = graphql(`
     mutation CreateA($a: String!) {
       createA(a: $a) {
-        ...All_AorB_insert
+        ...All_AorB_insert @allLists
       }
     }
   `);
@@ -17,7 +17,7 @@
   const addB = graphql(`
     mutation CreateB($b: String!) {
       createB(b: $b) {
-        ...All_AorB_insert
+        ...All_AorB_insert @allLists
       }
     }
   `);
