@@ -285,7 +285,7 @@ async function add_query(args: {
 	// add this queries variables to the bag
 	const queryVariables = Object.fromEntries(
 		query.variableDefinitions?.map((variable) => {
-			const { type, wrappers } = unwrapType(args.config, variable.type)
+			const { type, wrappers } = unwrapType(args.config, variable.type, [], true)
 			return [
 				variable.variable.name.value,
 				{ wrappers: wrappers as string[], type: type.name },

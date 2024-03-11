@@ -290,7 +290,8 @@ export function operation_requires_variables(operation: graphql.OperationDefinit
 export function unwrapType(
 	config: Config,
 	type: any,
-	wrappers: TypeWrapper[] = []
+	wrappers: TypeWrapper[] = [],
+	convertRuntimeScalars?: boolean
 ): { type: graphql.GraphQLNamedType; wrappers: TypeWrapper[] } {
 	// if we are looking at a non null type
 	if (type.kind === 'NonNullType') {
@@ -314,7 +315,7 @@ export function unwrapType(
 	}
 
 	// if we got this far and the type is a runtime scalar, we need to use the underlying type
-	if (config.configFile.features?.runtimeScalars?.[type.name.value]) {
+	if (convertRuntimeScalars && config.configFile.features?.runtimeScalars?.[type.name.value]) {
 		type = config.schema.getType(
 			config.configFile.features?.runtimeScalars?.[type.name.value].type
 		)
