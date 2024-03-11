@@ -1,4 +1,4 @@
-import { GraphQLNamedType } from 'graphql'
+import type { GraphQLNamedType } from 'graphql'
 import {
 	path,
 	fs,
