@@ -68,7 +68,8 @@ test('route groups', async function () {
 		            "query_options": [
 		                "RootQuery",
 		                "FinalQuery"
-		            ]
+		            ],
+		            "params": {}
 		        }
 		    },
 		    "layouts": {
@@ -78,7 +79,8 @@ test('route groups', async function () {
 		            "url": "/",
 		            "layouts": [],
 		            "path": "src/routes/+layout.tsx",
-		            "query_options": []
+		            "query_options": [],
+		            "params": {}
 		        },
 		        "__subRoute_": {
 		            "id": "__subRoute_",
@@ -92,7 +94,8 @@ test('route groups', async function () {
 		            "path": "src/routes/(subRoute)/+layout.tsx",
 		            "query_options": [
 		                "RootQuery"
-		            ]
+		            ],
+		            "params": {}
 		        }
 		    },
 		    "page_queries": {
@@ -101,7 +104,7 @@ test('route groups', async function () {
 		            "name": "FinalQuery",
 		            "url": "/(subRoute)/nested/",
 		            "loading": true,
-		            "variables": []
+		            "variables": {}
 		        }
 		    },
 		    "layout_queries": {
@@ -110,7 +113,7 @@ test('route groups', async function () {
 		            "name": "RootQuery",
 		            "url": "/(subRoute)/",
 		            "loading": false,
-		            "variables": []
+		            "variables": {}
 		        }
 		    },
 		    "artifacts": [],
@@ -167,7 +170,8 @@ test('nested route structure happy path', async function () {
 		            "path": "src/routes/+page.tsx",
 		            "query_options": [
 		                "RootQuery"
-		            ]
+		            ],
+		            "params": {}
 		        },
 		        "_subRoute": {
 		            "id": "_subRoute",
@@ -184,7 +188,8 @@ test('nested route structure happy path', async function () {
 		            "query_options": [
 		                "RootQuery",
 		                "SubQuery"
-		            ]
+		            ],
+		            "params": {}
 		        },
 		        "_another": {
 		            "id": "_another",
@@ -202,7 +207,8 @@ test('nested route structure happy path', async function () {
 		                "RootQuery",
 		                "MyLayoutQuery",
 		                "MyQuery"
-		            ]
+		            ],
+		            "params": {}
 		        },
 		        "_subRoute_nested": {
 		            "id": "_subRoute_nested",
@@ -219,7 +225,8 @@ test('nested route structure happy path', async function () {
 		                "RootQuery",
 		                "SubQuery",
 		                "FinalQuery"
-		            ]
+		            ],
+		            "params": {}
 		        }
 		    },
 		    "layouts": {
@@ -231,7 +238,8 @@ test('nested route structure happy path', async function () {
 		            "path": "src/routes/+layout.tsx",
 		            "query_options": [
 		                "RootQuery"
-		            ]
+		            ],
+		            "params": {}
 		        },
 		        "_another": {
 		            "id": "_another",
@@ -246,7 +254,8 @@ test('nested route structure happy path', async function () {
 		            "query_options": [
 		                "RootQuery",
 		                "MyLayoutQuery"
-		            ]
+		            ],
+		            "params": {}
 		        },
 		        "_subRoute": {
 		            "id": "_subRoute",
@@ -261,7 +270,8 @@ test('nested route structure happy path', async function () {
 		            "query_options": [
 		                "RootQuery",
 		                "SubQuery"
-		            ]
+		            ],
+		            "params": {}
 		        }
 		    },
 		    "page_queries": {
@@ -270,14 +280,14 @@ test('nested route structure happy path', async function () {
 		            "name": "MyQuery",
 		            "url": "/another/",
 		            "loading": false,
-		            "variables": []
+		            "variables": {}
 		        },
 		        "_subRoute_nested": {
 		            "path": "subRoute/nested/+page.gql",
 		            "name": "FinalQuery",
 		            "url": "/subRoute/nested/",
 		            "loading": true,
-		            "variables": []
+		            "variables": {}
 		        }
 		    },
 		    "layout_queries": {
@@ -286,21 +296,21 @@ test('nested route structure happy path', async function () {
 		            "name": "RootQuery",
 		            "url": "/",
 		            "loading": true,
-		            "variables": []
+		            "variables": {}
 		        },
 		        "_another": {
 		            "path": "another/+layout.gql",
 		            "name": "MyLayoutQuery",
 		            "url": "/another/",
 		            "loading": false,
-		            "variables": []
+		            "variables": {}
 		        },
 		        "_subRoute": {
 		            "path": "subRoute/+layout.gql",
 		            "name": "SubQuery",
 		            "url": "/subRoute/",
 		            "loading": false,
-		            "variables": []
+		            "variables": {}
 		        }
 		    },
 		    "artifacts": [],
@@ -370,6 +380,79 @@ test('local yoga', async function () {
 		    "artifacts": [],
 		    "local_schema": false,
 		    "local_yoga": true
+		}
+	`)
+})
+
+test('extract route params', async function () {
+	const config = testConfig()
+
+	// create the mock filesystem
+	await fs.mock({
+		[config.routesDir]: {
+			'[id]': {
+				'+page.tsx': mockView(['MyQuery']),
+				'+layout.gql': `
+					query MyQuery($id: ID!) {
+						node(id: $id) {
+							__typename
+						}
+					}
+				`,
+			},
+		},
+	})
+
+	await expect(
+		load_manifest({
+			config,
+		})
+	).resolves.toMatchInlineSnapshot(`
+		{
+		    "component_fields": {},
+		    "pages": {
+		        "__id_": {
+		            "id": "__id_",
+		            "queries": [
+		                "MyQuery"
+		            ],
+		            "url": "/[id]",
+		            "layouts": [],
+		            "path": "src/routes/[id]/+page.tsx",
+		            "query_options": [
+		                "MyQuery"
+		            ],
+		            "params": {
+		                "id": {
+		                    "wrappers": [
+		                        "NonNull"
+		                    ],
+		                    "type": "ID"
+		                }
+		            }
+		        }
+		    },
+		    "layouts": {},
+		    "page_queries": {},
+		    "layout_queries": {
+		        "__id_": {
+		            "path": "[id]/+layout.gql",
+		            "name": "MyQuery",
+		            "url": "/[id]/",
+		            "loading": false,
+		            "variables": {
+		                "id": {
+		                    "wrappers": [
+		                        "NonNull"
+		                    ],
+		                    "type": "ID"
+		                }
+		            }
+		        }
+		    },
+		    "artifacts": [],
+		    "local_schema": false,
+		    "local_yoga": false
 		}
 	`)
 })
@@ -481,14 +564,15 @@ describe('validate filesystem', async () => {
 	}
 })
 
-const testCases: {
-	name: string
-	source: string
-	expected: string[]
-}[] = [
-	{
-		name: 'Basic functional component',
-		source: `
+describe('extractQueries', async () => {
+	const testCases: {
+		name: string
+		source: string
+		expected: string[]
+	}[] = [
+		{
+			name: 'Basic functional component',
+			source: `
       import React from 'react';
 
       interface Props {
@@ -507,11 +591,11 @@ const testCases: {
 
       export default MyComponent;
     `,
-		expected: ['name', 'age'],
-	},
-	{
-		name: 'Functional component with arrow function',
-		source: `
+			expected: ['name', 'age'],
+		},
+		{
+			name: 'Functional component with arrow function',
+			source: `
       import React from 'react';
 
       interface Props {
@@ -528,11 +612,11 @@ const testCases: {
 
       export default MyComponent;
     `,
-		expected: ['title', 'content'],
-	},
-	{
-		name: 'Functional component with function expression',
-		source: `
+			expected: ['title', 'content'],
+		},
+		{
+			name: 'Functional component with function expression',
+			source: `
       import React from 'react';
 
       interface Props {
@@ -551,11 +635,11 @@ const testCases: {
 
       export default MyComponent;
     `,
-		expected: ['firstName', 'lastName'],
-	},
-	{
-		name: 'Inline functional component with function expression',
-		source: `
+			expected: ['firstName', 'lastName'],
+		},
+		{
+			name: 'Inline functional component with function expression',
+			source: `
       import React from 'react';
 
       interface Props {
@@ -572,16 +656,17 @@ const testCases: {
         );
       };;
     `,
-		expected: ['firstName', 'lastName'],
-	},
-]
+			expected: ['firstName', 'lastName'],
+		},
+	]
 
-for (const testCase of testCases) {
-	test(testCase.name, async () => {
-		const props = await extractQueries(testCase.source)
-		expect(props).toEqual(testCase.expected)
-	})
-}
+	for (const testCase of testCases) {
+		test(testCase.name, async () => {
+			const props = await extractQueries(testCase.source)
+			expect(props).toEqual(testCase.expected)
+		})
+	}
+})
 
 function mockView(deps: string[]) {
 	return `export default ({ ${deps.join(', ')} }) => <div>hello</div>`

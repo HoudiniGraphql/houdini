@@ -53,7 +53,7 @@ test('happy path', async function () {
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -70,12 +70,12 @@ test('happy path', async function () {
 							SubQuery: {
 										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -92,17 +92,17 @@ test('happy path', async function () {
 							MyQuery: {
 										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									},
 							MyLayoutQuery: {
 										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
 										loading: true,
-										variables: []
+										variables: {}
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -119,12 +119,12 @@ test('happy path', async function () {
 							FinalQuery: {
 										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
 										loading: true,
-										variables: [\\"foo\\"]
+										variables: {\\"foo\\":{\\"wrappers\\":[\\"Nullable\\"],\\"type\\":\\"Int\\"}}
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -198,7 +198,7 @@ test('loading state at root', async function () {
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: true,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -215,12 +215,12 @@ test('loading state at root', async function () {
 							SubQuery: {
 										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: true,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -237,17 +237,17 @@ test('loading state at root', async function () {
 							MyQuery: {
 										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									},
 							MyLayoutQuery: {
 										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: true,
-										variables: []
+										variables: {}
 									}
 						},
 
@@ -264,12 +264,12 @@ test('loading state at root', async function () {
 							FinalQuery: {
 										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
 										loading: false,
-										variables: []
+										variables: {}
 									},
 							RootQuery: {
 										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
 										loading: true,
-										variables: []
+										variables: {}
 									}
 						},
 

@@ -11,9 +11,8 @@ import {
 	TypeWrapper,
 	unwrapType,
 } from '../../../lib'
+import { scalarPropertyValue, tsTypeReference } from '../../../lib/typescript'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
-import { tsTypeReference } from './typeReference'
-import { scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 

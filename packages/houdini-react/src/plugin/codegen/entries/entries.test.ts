@@ -71,7 +71,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
-		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing";
+		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
 		import Component__subRoute_nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
@@ -82,9 +82,11 @@ test('composes layouts and pages', async function () {
 		    const [FinalQuery$data, FinalQuery$handle] = useQueryResult("FinalQuery");
 
 		    return (
-		        (<Component__subRoute_nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
-		            {children}
-		        </Component__subRoute_nested>)
+		        (<PageContextProvider keys={[]}>
+		            <Component__subRoute_nested FinalQuery={FinalQuery$data} FinalQuery$handle={FinalQuery$handle}>
+		                {children}
+		            </Component__subRoute_nested>
+		        </PageContextProvider>)
 		    );
 		};
 	`)
@@ -98,7 +100,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
-		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing";
+		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
 		import Component__ from "../../../../../src/routes/+layout";
 
 		export default (
@@ -107,9 +109,11 @@ test('composes layouts and pages', async function () {
 		    }
 		) => {
 		    return (
-		        (<Component__>
-		            {children}
-		        </Component__>)
+		        (<PageContextProvider keys={[]}>
+		            <Component__>
+		                {children}
+		            </Component__>
+		        </PageContextProvider>)
 		    );
 		};
 	`)
@@ -123,7 +127,7 @@ test('composes layouts and pages', async function () {
 		}
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
-		import { useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing";
+		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
 		import Component__subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (
@@ -135,13 +139,15 @@ test('composes layouts and pages', async function () {
 		    const [SubQuery$data, SubQuery$handle] = useQueryResult("SubQuery");
 
 		    return (
-		        (<Component__subRoute
-		            RootQuery={RootQuery$data}
-		            RootQuery$handle={RootQuery$handle}
-		            SubQuery={SubQuery$data}
-		            SubQuery$handle={SubQuery$handle}>
-		            {children}
-		        </Component__subRoute>)
+		        (<PageContextProvider keys={[]}>
+		            <Component__subRoute
+		                RootQuery={RootQuery$data}
+		                RootQuery$handle={RootQuery$handle}
+		                SubQuery={SubQuery$data}
+		                SubQuery$handle={SubQuery$handle}>
+		                {children}
+		            </Component__subRoute>
+		        </PageContextProvider>)
 		    );
 		};
 	`)
@@ -250,6 +256,52 @@ test('composes layouts and pages', async function () {
 		    }), required_queries);
 
 		    return <Component {...props} />;
+		};
+	`)
+})
+
+test('layout with params', async function () {
+	const config = await test_config()
+
+	// create the mock filesystem
+	await fs.mock({
+		[config.routesDir]: {
+			'[id]': {
+				'+page.gql': 'query RootQuery($id: ID!) { node(id: $id) { id } }',
+				'+page.tsx': 'export default function({ RootQuery}) { return "hello" }',
+			},
+		},
+	})
+	// generate the manifest
+	const manifest = await load_manifest({ config })
+
+	// generate the bundle for the nested page
+	await generate_entries({ config, manifest, documents: [], componentFields: [] })
+
+	const page_entry = await parseJS(
+		(await fs.readFile(
+			routerConventions.page_unit_path(config, Object.keys(manifest.pages)[0])
+		)) ?? '',
+		{ plugins: ['jsx'] }
+	)
+	expect(page_entry).toMatchInlineSnapshot(`
+		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
+		import Component___id_ from "../../../../../src/routes/[id]/+page";
+
+		export default (
+		    {
+		        children
+		    }
+		) => {
+		    const [RootQuery$data, RootQuery$handle] = useQueryResult("RootQuery");
+
+		    return (
+		        (<PageContextProvider keys={["id"]}>
+		            <Component___id_ RootQuery={RootQuery$data} RootQuery$handle={RootQuery$handle}>
+		                {children}
+		            </Component___id_>
+		        </PageContextProvider>)
+		    );
 		};
 	`)
 })

@@ -5,14 +5,13 @@ import * as recast from 'recast'
 
 import type { Config, Document, DocumentArtifact } from '../../../lib'
 import { printJS, HoudiniError, siteURL, fs, path } from '../../../lib'
+import { readonlyProperty, tsTypeReference } from '../../../lib/typescript'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
 import { serializeValue } from '../artifacts/utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
 import { withLoadingState } from './loadingState'
-import { tsTypeReference } from './typeReference'
-import { readonlyProperty } from './types'
 
 const AST = recast.types.builders
 

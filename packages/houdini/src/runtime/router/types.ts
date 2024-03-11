@@ -28,7 +28,7 @@ export type RouterPageManifest<_ComponentType> = {
 		{
 			artifact: () => Promise<{ default: QueryArtifact }>
 			loading: boolean
-			variables: string[]
+			variables: Record<string, { type: string }>
 		}
 	>
 	component: () => Promise<{ default: (props: any) => _ComponentType }>

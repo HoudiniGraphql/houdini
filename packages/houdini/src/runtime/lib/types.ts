@@ -436,6 +436,11 @@ export type PageManifest = {
 	layouts: string[]
 	/** The filepath of the unit */
 	path: string
+	/**
+	 * The name and type of every route paramter that this page can use.
+	 * null indicates the type is unknown (not constrained by a query)
+	 **/
+	params: Record<string, { type: string; wrappers: string[] } | null>
 }
 
 export type QueryManifest = {
@@ -447,6 +452,6 @@ export type QueryManifest = {
 	loading: boolean
 	/** The filepath of the unit */
 	path: string
-	/** The list of variables that this query cares about */
-	variables: string[]
+	/** The name and GraphQL type for the variables that this query cares about */
+	variables: Record<string, { wrappers: string[]; type: string }>
 }

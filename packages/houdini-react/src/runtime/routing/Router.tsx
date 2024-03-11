@@ -51,6 +51,10 @@ export function Router({
 
 	// find the matching page for the current route
 	const [page, variables] = find_match(manifest, currentURL)
+	// if we dont have a page, its a 404
+	if (!page) {
+		throw new Error('404')
+	}
 
 	// the only time this component will directly suspend (instead of one of its children)
 	// is if we don't have the component source. Dependencies on query results or artifacts
@@ -123,7 +127,7 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<LocationContext.Provider value={{ pathname: currentURL }}>
+			<LocationContext.Provider value={{ pathname: currentURL, params: variables ?? {} }}>
 				<PageComponent url={currentURL} key={page.id} />
 			</LocationContext.Provider>
 		</VariableContext.Provider>
@@ -328,7 +332,7 @@ function usePageData({
 			// const last = last_variables.get(artifact)
 			let last: GraphQLVariables = {}
 			let usedVariables: GraphQLVariables = {}
-			for (const variable of pageVariables) {
+			for (const variable of Object.keys(pageVariables)) {
 				last[variable] = last_variables.get(artifact)![variable]
 				usedVariables[variable] = (variables ?? {})[variable]
 			}
@@ -578,7 +582,10 @@ export function useCurrentVariables(): GraphQLVariables {
 
 const VariableContext = React.createContext<GraphQLVariables>(null)
 
-const LocationContext = React.createContext<{ pathname: string }>({ pathname: '' })
+const LocationContext = React.createContext<{ pathname: string; params: Record<string, any> }>({
+	pathname: '',
+	params: {},
+})
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
@@ -778,6 +785,31 @@ export function router_cache({
 	}
 
 	return result
+}
+
+const PageContext = React.createContext<{ params: Record<string, any> }>({ params: {} })
+
+export function PageContextProvider({
+	keys,
+	children,
+}: {
+	keys: string[]
+	children: React.ReactNode
+}) {
+	const location = useLocation()
+	const params = Object.fromEntries(
+		Object.entries(location.params).filter(([key]) => keys.includes(key))
+	)
+
+	return <PageContext.Provider value={{ params }}>{children}</PageContext.Provider>
+}
+
+export function useRoute<PageProps extends { Params: {} }>(): RouteProp<PageProps['Params']> {
+	return useContext(PageContext)
+}
+
+export type RouteProp<Params> = {
+	params: Params
 }
 
 // a signal promise is a promise is used to send signals by having listeners attach

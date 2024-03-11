@@ -13,6 +13,7 @@ export * from './deepMerge'
 export * from './plugin'
 export * from './detectTools'
 export * from '../runtime/router/match'
+export * from './typescript'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'
