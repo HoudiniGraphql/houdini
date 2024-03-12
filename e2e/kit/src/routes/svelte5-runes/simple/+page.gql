@@ -1,0 +1,10 @@
+query Svelte5Simple {
+  usersConnection(first: 2, snapshot: "hello-svelte-5") @paginate {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}

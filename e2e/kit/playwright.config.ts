@@ -1,31 +1,23 @@
-// manual switch for now until replayio is fixed (currently breaking our tests)
-const with_replayio = false;
+import { ReporterDescription, defineConfig, devices } from '@playwright/test';
 
-const use = with_replayio
-  ? {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...replayDevices['Replay Chromium'],
-      screenshot: 'only-on-failure'
-    }
-  : { screenshot: 'only-on-failure' };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const reporter = [['list']];
+const reporters: ReporterDescription[] = [['list'], ['html', { open: 'never' }]];
 if (process.env.CI) {
-  reporter.push(['html', { open: 'never' }]);
-  reporter.push(['github']);
+  reporters.push(['github']);
 }
 
-const config = {
+export default defineConfig({
+  testMatch: 'spec.ts',
+  use: {
+    headless: true,
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure'
+  },
   retries: process.env.CI ? 3 : 0,
   workers: 5,
-  reporter,
-  use,
+  reporter: reporters,
   webServer: {
     command: 'npm run build && npm run preview',
     port: 3007,
     timeout: 120 * 1000
   }
-};
-
-export default config;
+});
