@@ -5,7 +5,7 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = async (event) => {
   if (!event.params.userId) {
-    throw redirect(307, routes.Home);
+    redirect(307, routes.Home);
   }
 
   const variables = { id: event.params.userId };
