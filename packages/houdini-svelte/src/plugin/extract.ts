@@ -34,6 +34,7 @@ type EmbeddedScript = {
 		start: number
 		end: number
 	}
+	hasRunes: boolean
 }
 
 export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
@@ -48,6 +49,9 @@ export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
 	str = str.replace(/(<script[^>]*)(\s+)(generics="[^"]+?")/, (_, $1, $2, $3) => {
 		return $1 + $2 + ' '.repeat($3.length)
 	})
+
+	const compileResult = svelte.compile(str, {})
+	const hasRunes = compileResult.metadata.runes
 
 	const preprocessed = await svelte.preprocess(str, [
 		{
@@ -91,6 +95,7 @@ export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
 			start: greaterThanIndex,
 			end: lessThanIndex,
 		},
+		hasRunes: hasRunes,
 	}
 }
 

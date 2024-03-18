@@ -2,7 +2,7 @@
   import type { PageData } from './$houdini';
   import UserDetailsSvelte5 from './UserDetailsSvelte5.svelte';
 
-  const { data } = $props<{ data: PageData }>();
+  const { data }: {data: PageData} = $props();
   const { Svelte5UsersList } = $derived(data);
 </script>
 

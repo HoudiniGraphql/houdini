@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fragment, graphql, type Svelte5UserDetails } from '$houdini';
 
-  const { user } = $props<{ user: Svelte5UserDetails }>();
+  const { user }: { user: Svelte5UserDetails } = $props();
 
   const userDetails = $derived(
     fragment(

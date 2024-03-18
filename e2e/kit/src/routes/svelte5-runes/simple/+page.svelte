@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { CachePolicy } from '$houdini';
-  import type { PageData } from '../../svelte5/simple/$houdini';
+  import type { PageData } from './$houdini';
 
-  const { data } = $props<{ data: PageData }>();
+  const { data }: { data: PageData } = $props();
   const { Svelte5Simple } = $derived(data);
 </script>
 
