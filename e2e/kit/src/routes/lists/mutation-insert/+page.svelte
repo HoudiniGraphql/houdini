@@ -25,12 +25,14 @@
   };
 </script>
 
-<button on:click={addUser}>+ Add</button>
+<button id="addusers" on:click={addUser}>+ Add</button>
 
-{#if $UsersListMutationInsertUsers.data}
-  <ul>
-    {#each $UsersListMutationInsertUsers.data.usersConnection.edges as userEdge}
-      <li>{userEdge.node?.name} - {userEdge.node?.testField}</li>
-    {/each}
-  </ul>
-{/if}
+<div id="result">
+  {#if $UsersListMutationInsertUsers.data}
+    <ul>
+      {#each $UsersListMutationInsertUsers.data.usersConnection.edges as userEdge}
+        <li>{userEdge.node?.name} - {userEdge.node?.testField}</li>
+      {/each}
+    </ul>
+  {/if}
+</div>

@@ -20,6 +20,7 @@ export const routes = {
 
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',
+  Lists_mutation_insert: '/lists/mutation-insert',
   blocking: '/blocking',
 
   Stores_SSR: '/stores/ssr',

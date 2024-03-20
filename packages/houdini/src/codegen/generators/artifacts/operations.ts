@@ -28,8 +28,19 @@ export function operationsByPath(
 	// inside of the mutation could contain operations
 	graphql.visit(definition, {
 		FragmentSpread(node, _, __, ___, ancestors) {
+			// at this point, the fragment spread can contain the hashed parameters from an `@with` directive in it.
+			// if this fragment spread has a `@with` directive, strip the last `_asdf` from the name and check if that is a list fragment
+			let nameWithoutHash = node.name.value
+
+			if (
+				node.directives &&
+				node.directives.find((directive) => directive.name.value === 'with')
+			) {
+				nameWithoutHash = nameWithoutHash.substring(0, nameWithoutHash.lastIndexOf('_'))
+			}
+
 			// if the fragment is not a list operation, we don't care about it now
-			if (!config.isListFragment(node.name.value)) {
+			if (!config.isListFragment(nameWithoutHash)) {
 				return
 			}
 
@@ -44,8 +55,8 @@ export function operationsByPath(
 				operationObject({
 					config,
 					filepath,
-					listName: config.listNameFromFragment(node.name.value),
-					operationKind: config.listOperationFromFragment(node.name.value),
+					listName: config.listNameFromFragment(nameWithoutHash),
+					operationKind: config.listOperationFromFragment(nameWithoutHash),
 					type: parentTypeFromAncestors(config.schema, filepath, ancestors).name,
 					selection: node,
 				})
