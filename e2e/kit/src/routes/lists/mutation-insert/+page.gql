@@ -1,0 +1,11 @@
+query UsersListMutationInsertUsers($someParam: Boolean!) {
+  usersConnection(first: 100, snapshot: "users-list-mutation-insert") @list(name: "MyList") {
+    edges {
+      node {
+        id
+        name
+        testField(someParam: $someParam)
+      }
+    }
+  }
+}
