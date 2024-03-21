@@ -1984,6 +1984,124 @@ describe('mutation artifacts', function () {
 		`)
 	})
 
+	test('insert operation and @with directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @with(filter: "Hello World")
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery($filter: String) {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+						field(filter: $filter)
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "b1ad7b854a43149aedac6832e6a5bff625e125f516e1fea5806bf4123c4ee687",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert_1oDy9M
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_insert_1oDy9M on User {
+			  firstName
+			  field(filter: "Hello World")
+			  id
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "operations": [{
+			                                "action": "insert",
+			                                "list": "All_Users",
+			                                "position": "last"
+			                            }],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "field": {
+			                                        "type": "String",
+			                                        "keyRaw": "field(filter: \\"Hello World\\")",
+			                                        "nullable": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {
+			                                        "arguments": {
+			                                            "filter": {
+			                                                "kind": "StringValue",
+			                                                "value": "Hello World"
+			                                            }
+			                                        }
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {}
+			};
+
+			"HoudiniHash=ba51f7673207e362cd0ba18f1dee123fc094a90123d0657b0d56c26d021426df";
+		`)
+	})
+
 	test('insert operation allList', async function () {
 		// the config to use in tests
 		const config = testConfig()
@@ -2086,6 +2204,125 @@ describe('mutation artifacts', function () {
 			};
 
 			"HoudiniHash=90d93ca64a69bec0880925b8af471b0da1cf76964df0b6b6c3af30b6fd877217";
+		`)
+	})
+
+	test('insert operation allList and @with directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @with(filter: "Hello World") @allLists
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery($filter: String) {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+						field(filter: $filter)
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "b1ad7b854a43149aedac6832e6a5bff625e125f516e1fea5806bf4123c4ee687",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_insert_1oDy9M
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_insert_1oDy9M on User {
+			  firstName
+			  field(filter: "Hello World")
+			  id
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "operations": [{
+			                                "action": "insert",
+			                                "list": "All_Users",
+			                                "position": "last",
+			                                "target": "all"
+			                            }],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "field": {
+			                                        "type": "String",
+			                                        "keyRaw": "field(filter: \\"Hello World\\")",
+			                                        "nullable": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_insert": {
+			                                        "arguments": {
+			                                            "filter": {
+			                                                "kind": "StringValue",
+			                                                "value": "Hello World"
+			                                            }
+			                                        }
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {}
+			};
+
+			"HoudiniHash=f6b965893f6a89f0d97c9a63645b36de599756e3e135d8912b1e0b741164caeb";
 		`)
 	})
 
@@ -2289,6 +2526,125 @@ describe('mutation artifacts', function () {
 			};
 
 			"HoudiniHash=18243e748112d965c35ee2f2b0e29d430a9c472e30c96f253449296ae3fe636a";
+		`)
+	})
+
+	test('toggle operation allList and @with directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_toggle @with(filter: "Hello World") @allLists @prepend
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery($filter: String) {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+						field(filter: $filter)
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "d7187de06687137a262178ad23eecf315461cd5cef17e2b384cbcdd25fe1e752",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_toggle_1oDy9M
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_toggle_1oDy9M on User {
+			  firstName
+			  field(filter: "Hello World")
+			  id
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "operations": [{
+			                                "action": "toggle",
+			                                "list": "All_Users",
+			                                "position": "first",
+			                                "target": "all"
+			                            }],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "field": {
+			                                        "type": "String",
+			                                        "keyRaw": "field(filter: \\"Hello World\\")",
+			                                        "nullable": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_toggle": {
+			                                        "arguments": {
+			                                            "filter": {
+			                                                "kind": "StringValue",
+			                                                "value": "Hello World"
+			                                            }
+			                                        }
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {}
+			};
+
+			"HoudiniHash=2b2f4aafb54ec3bdba80389398aff1d4b6f478a5e58ec714bb6aa82c48e987b5";
 		`)
 	})
 
@@ -2609,6 +2965,124 @@ describe('mutation artifacts', function () {
 			};
 
 			"HoudiniHash=cc9a6fb32e9b6a79e2a3c46885d07b11078f84dcb8c52555fb96e3ff6f87f8b2";
+		`)
+	})
+
+	test('toggle operation and @with directive', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_toggle @with(filter: "Hello World")
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery($filter: String) {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+						field(filter: $filter)
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "d7187de06687137a262178ad23eecf315461cd5cef17e2b384cbcdd25fe1e752",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      ...All_Users_toggle_1oDy9M
+			      id
+			    }
+			  }
+			}
+
+			fragment All_Users_toggle_1oDy9M on User {
+			  firstName
+			  field(filter: "Hello World")
+			  id
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "operations": [{
+			                                "action": "toggle",
+			                                "list": "All_Users",
+			                                "position": "last"
+			                            }],
+
+			                            "selection": {
+			                                "fields": {
+			                                    "firstName": {
+			                                        "type": "String",
+			                                        "keyRaw": "firstName"
+			                                    },
+
+			                                    "field": {
+			                                        "type": "String",
+			                                        "keyRaw": "field(filter: \\"Hello World\\")",
+			                                        "nullable": true
+			                                    },
+
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+			                                        "visible": true
+			                                    }
+			                                },
+
+			                                "fragments": {
+			                                    "All_Users_toggle": {
+			                                        "arguments": {
+			                                            "filter": {
+			                                                "kind": "StringValue",
+			                                                "value": "Hello World"
+			                                            }
+			                                        }
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {}
+			};
+
+			"HoudiniHash=4a95f1e6dc9fdce153311e84965a99e72f76fc56a063fced1e28efefc50f143a";
 		`)
 	})
 
