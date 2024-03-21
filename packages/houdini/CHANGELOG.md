@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.46
+
+### Patch Changes
+
+-   [#1289](https://github.com/HoudiniGraphql/houdini/pull/1289) [`6820d36e`](https://github.com/HoudiniGraphql/houdini/commit/6820d36ea4f452f904319a322afa44f6765b5285) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Mutation list operations now work if you need to pass a `@with` directive to the fragment spread
+
 ## 1.2.45
 
 ### ✨ Features
