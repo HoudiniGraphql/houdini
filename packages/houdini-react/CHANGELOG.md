@@ -1,5 +1,12 @@
 # houdini-react
 
+## 1.2.46
+
+### Patch Changes
+
+-   Updated dependencies [[`6820d36e`](https://github.com/HoudiniGraphql/houdini/commit/6820d36ea4f452f904319a322afa44f6765b5285)]:
+    -   houdini@1.2.46
+
 ## 1.2.45
 
 ### ✨ Features
