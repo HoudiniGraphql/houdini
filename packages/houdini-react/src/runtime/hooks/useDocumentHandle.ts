@@ -145,6 +145,7 @@ export type DocumentHandle<
 > = {
 	data: _Data
 	partial: boolean
+	fetch: FetchFn<_Data, _Input>
 } & RefetchHandlers<_Artifact, _Data, _Input>
 
 type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObject, _Input> =
