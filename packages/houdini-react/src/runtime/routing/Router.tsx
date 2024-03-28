@@ -11,6 +11,7 @@ import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router
 import React from 'react'
 import { useContext } from 'react'
 
+import { DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle'
 import { useDocumentStore } from '../hooks/useDocumentStore'
 import { SuspenseCache, suspense_cache } from './cache'
 
@@ -589,23 +590,30 @@ const LocationContext = React.createContext<{ pathname: string; params: Record<s
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
-): [_Data | null, DocumentStore<_Data, _Input>] {
-	const store_ref = useRouterContext().data_cache.get(name)! as unknown as DocumentStore<
-		_Data,
-		_Input
-	>
+): [_Data | null, DocumentHandle<any, any>] {
+	const { data_cache, artifact_cache } = useRouterContext()
+	const store_ref = data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>
 	// get the live data from the store
-	const [{ data, errors }, observer] = useDocumentStore<_Data, _Input>({
+	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
 		observer: store_ref,
 	})
+
+	const { data, errors } = storeValue
 
 	// if there is an error in the response we need to throw to the nearest boundary
 	if (errors && errors.length > 0) {
 		throw new Error(JSON.stringify(errors))
 	}
 
-	return [data, observer]
+	const artifact = artifact_cache.get(name)!
+	const handle = useDocumentHandle({
+		artifact,
+		observer,
+		storeValue,
+	})
+
+	return [data, handle]
 }
 
 function useLinkBehavior({
