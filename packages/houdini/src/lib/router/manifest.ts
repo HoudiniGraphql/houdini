@@ -225,7 +225,7 @@ async function add_view(args: {
 }) {
 	const target = args.type === 'page' ? args.project.pages : args.project.layouts
 	const queries = await extractQueries(args.contents)
-	console.log({ queries })
+
 	// look for any queries that we are asking for that aren't available
 	const missing_queries = queries.filter((query) => !args.queries.includes(query))
 	if (missing_queries.length > 0) {
