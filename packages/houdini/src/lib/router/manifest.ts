@@ -387,5 +387,17 @@ export async function extractQueries(source: string): Promise<string[]> {
 		return []
 	}
 
-	return props.filter((p) => p !== 'children' && !p.endsWith('$handle'))
+	return props.reduce<string[]>((queries, query) => {
+		// skip the children prop
+		if (query === 'children') {
+			return queries
+		}
+
+		// if the query ends with $handle just use the query name
+		if (query.endsWith('$handle')) {
+			query = query.substring(0, query.length - '$handle'.length)
+		}
+
+		return queries.concat([query])
+	}, [])
 }

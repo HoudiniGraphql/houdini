@@ -615,6 +615,27 @@ describe('extractQueries', async () => {
 			expected: ['title', 'content'],
 		},
 		{
+			name: '$handle',
+			source: `
+      import React from 'react';
+
+      interface Props {
+        title: string;
+        content: string;
+      }
+
+      const MyComponent = ({ title$handle }: Props) => (
+        <div>
+          <h1>{title}</h1>
+          <p>{content}</p>
+        </div>
+      );
+
+      export default MyComponent;
+    `,
+			expected: ['title'],
+		},
+		{
 			name: 'Functional component with function expression',
 			source: `
       import React from 'react';
