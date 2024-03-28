@@ -590,7 +590,7 @@ const LocationContext = React.createContext<{ pathname: string; params: Record<s
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
-): [_Data | null, DocumentHandle<any, any>] {
+): [_Data | null, DocumentHandle<any, _Data, _Input>] {
 	const { data_cache, artifact_cache } = useRouterContext()
 	const store_ref = data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>
 	// get the live data from the store
