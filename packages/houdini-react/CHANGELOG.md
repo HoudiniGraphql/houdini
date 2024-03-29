@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.46
+
+### 🐛 Fixes
+
+-   [#1291](https://github.com/HoudiniGraphql/houdini/pull/1291) [`c1628ef0`](https://github.com/HoudiniGraphql/houdini/commit/c1628ef0706f825744a2f95ca324b6a552a30d93) @AlecAivazis - Fix $handle reference
+
+### Dependency Changes
+
+-   Updated dependencies [[`f45e9126`](https://github.com/HoudiniGraphql/houdini/commit/f45e9126e2481cfcd67043e1f5bd7bef6575acaf), [`6820d36e`](https://github.com/HoudiniGraphql/houdini/commit/6820d36ea4f452f904319a322afa44f6765b5285)]:
+    -   houdini@1.2.46
+
 ## 1.2.45
 
 ### ✨ Features
