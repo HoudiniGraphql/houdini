@@ -2,11 +2,13 @@
 
 ## 1.2.46
 
-### Patch Changes
+### ✨ Features
 
--   [#1286](https://github.com/HoudiniGraphql/houdini/pull/1286) [`f45e9126`](https://github.com/HoudiniGraphql/houdini/commit/f45e9126e2481cfcd67043e1f5bd7bef6575acaf) Thanks [@Hebilicious](https://github.com/Hebilicious)! - add support for the new 'using' syntax (explicit resource management: https://github.com/tc39/proposal-explicit-resource-management)
+-   [#1286](https://github.com/HoudiniGraphql/houdini/pull/1286) [`f45e9126`](https://github.com/HoudiniGraphql/houdini/commit/f45e9126e2481cfcd67043e1f5bd7bef6575acaf) @Hebilicious - add support for the new 'using' syntax (explicit resource management: https://github.com/tc39/proposal-explicit-resource-management)
 
--   [#1289](https://github.com/HoudiniGraphql/houdini/pull/1289) [`6820d36e`](https://github.com/HoudiniGraphql/houdini/commit/6820d36ea4f452f904319a322afa44f6765b5285) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Mutation list operations now work if you need to pass a `@with` directive to the fragment spread
+### 🐛 Fixes
+
+-   [#1289](https://github.com/HoudiniGraphql/houdini/pull/1289) [`6820d36e`](https://github.com/HoudiniGraphql/houdini/commit/6820d36ea4f452f904319a322afa44f6765b5285) @SeppahBaws - Mutation list operations now work if you need to pass a `@with` directive to the fragment spread
 
 ## 1.2.45
 
