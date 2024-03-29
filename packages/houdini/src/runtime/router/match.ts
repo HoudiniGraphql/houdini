@@ -42,6 +42,7 @@ export function find_match<_ComponentType>(
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
 	let matchVariables: GraphQLVariables = null
+
 	for (const page of Object.values(manifest.pages)) {
 		// check if the current url matches
 		const urlMatch = current.match(page.pattern)
