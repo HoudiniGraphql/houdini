@@ -14,7 +14,7 @@
 		"web": "vite dev",
 		"dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "vite build",
-		"tests": "playwright test ",
+		"tests": "playwright test",
 		"test": "npm run tests",
 		"tw": "npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
 		"preview": "vite dev"

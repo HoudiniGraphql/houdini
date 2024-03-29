@@ -165,7 +165,7 @@ export async function locator_click(page: Page, selector: string) {
  * @returns The response of the page
  */
 export async function goto(page: Page, url: string): Promise<null | Response> {
-	const res = await page.goto(url)
+	const res = await page.goto(url, { waitUntil: 'domcontentloaded' })
 	await expect_n_gql(page, null, 0)
 	return res
 }
