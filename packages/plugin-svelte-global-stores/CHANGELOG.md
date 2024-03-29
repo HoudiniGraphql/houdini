@@ -1,5 +1,13 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.2.46
+
+### Patch Changes
+
+-   Updated dependencies [[`f45e9126`](https://github.com/HoudiniGraphql/houdini/commit/f45e9126e2481cfcd67043e1f5bd7bef6575acaf), [`6820d36e`](https://github.com/HoudiniGraphql/houdini/commit/6820d36ea4f452f904319a322afa44f6765b5285)]:
+    -   houdini@1.2.46
+    -   houdini-svelte@1.2.46
+
 ## 1.2.45
 
 ### Dependency Changes
