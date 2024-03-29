@@ -15,7 +15,7 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { useSession } from '../routing/Router'
+import { useClient, useSession } from '../routing/Router'
 
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
@@ -35,6 +35,17 @@ export function useDocumentHandle<
 
 	// grab the current session value
 	const [session] = useSession()
+
+	// we want to use a separate observer for pagination queries
+	const client = useClient()
+	const paginationObserver = React.useMemo(() => {
+		// if the artifact doesn't support pagination, don't do anything
+		if (!artifact.refetch?.paginated) {
+			return null
+		}
+
+		return client.observe<_Data, _Input>({ artifact })
+	}, [artifact.name])
 
 	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
 	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {
@@ -60,7 +71,9 @@ export function useDocumentHandle<
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
 			return {
+				artifact,
 				data: storeValue.data,
+				variables: storeValue.variables,
 				fetch: fetchQuery,
 				partial: storeValue.partial,
 			}
@@ -74,12 +87,12 @@ export function useDocumentHandle<
 				getVariables: () => storeValue.variables!,
 				fetch: fetchQuery,
 				fetchUpdate: (args, updates) => {
-					return observer.send({
+					return paginationObserver!.send({
 						...args,
 						cacheParams: {
+							...args?.cacheParams,
 							disableSubscriptions: true,
 							applyUpdates: updates,
-							...args?.cacheParams,
 						},
 						session,
 					})
@@ -88,7 +101,9 @@ export function useDocumentHandle<
 			})
 
 			return {
+				artifact,
 				data: storeValue.data,
+				variables: storeValue.variables,
 				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
@@ -107,7 +122,7 @@ export function useDocumentHandle<
 				storeName: artifact.name,
 				fetch: fetchQuery,
 				fetchUpdate: async (args, updates = ['append']) => {
-					return observer.send({
+					return paginationObserver!.send({
 						...args,
 						cacheParams: {
 							disableSubscriptions: true,
@@ -120,7 +135,9 @@ export function useDocumentHandle<
 			})
 
 			return {
+				artifact,
 				data: storeValue.data,
+				variables: storeValue.variables,
 				fetch: handlers.fetch,
 				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
@@ -130,12 +147,14 @@ export function useDocumentHandle<
 
 		// we don't want to add anything
 		return {
+			artifact,
 			data: storeValue.data,
+			variables: storeValue.variables,
 			fetch: fetchQuery,
 			refetch: fetchQuery,
 			partial: storeValue.partial,
 		}
-	}, [artifact, observer, session, storeValue, true, true])
+	}, [artifact, observer, session, storeValue])
 }
 
 export type DocumentHandle<
@@ -145,7 +164,8 @@ export type DocumentHandle<
 > = {
 	data: _Data
 	partial: boolean
-	fetch: FetchFn<_Data, _Input>
+	fetch: FetchFn<_Data, Partial<_Input>>
+	variables: _Input
 } & RefetchHandlers<_Artifact, _Data, _Input>
 
 type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObject, _Input> =

@@ -399,6 +399,11 @@ export async function extractQueries(source: string): Promise<string[]> {
 			query = query.substring(0, query.length - '$handle'.length)
 		}
 
+		// if the query already exists, don't add it again
+		if (queries.includes(query)) {
+			return queries
+		}
+
 		return queries.concat([query])
 	}, [])
 }

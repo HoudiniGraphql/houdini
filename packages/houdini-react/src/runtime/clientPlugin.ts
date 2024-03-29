@@ -6,7 +6,7 @@ const plugin: () => ClientPlugin = () => () => {
 			next({
 				...ctx,
 				cacheParams: {
-					...ctx.fetchParams,
+					...ctx.cacheParams,
 					serverSideFallback: false,
 				},
 			})

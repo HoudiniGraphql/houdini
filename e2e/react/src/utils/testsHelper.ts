@@ -53,16 +53,9 @@ export async function expect_n_gql(
 	let nbResponse = 0
 	const listStr: string[] = []
 
-	// function fnReq(request: any) {
-	//   // console.log('>>', request.method(), request.url());
-	//   if (request.url().endsWith(routes.GraphQL)) {
-	//     nbRequest++;
-	//   }
-	// }
-
 	async function fnRes(response: Response) {
 		// console.log('<<', response.status(), response.url());
-		if (response.url().endsWith('/_api')) {
+		if (response.url().endsWith('/graphql')) {
 			timing.push(new Date().valueOf() - start)
 			try {
 				const json = await response.json()
@@ -171,12 +164,8 @@ export async function locator_click(page: Page, selector: string) {
  * By default goto expect NO graphql response, if you expect some, use: `goto_expect_n_gql`
  * @returns The response of the page
  */
-export async function goto(
-	page: Page,
-	url: string,
-	waitUntil: 'domcontentloaded' | 'load' | 'networkidle' | 'commit' = 'domcontentloaded'
-): Promise<null | Response> {
-	const res = await page.goto(url, { waitUntil })
+export async function goto(page: Page, url: string): Promise<null | Response> {
+	const res = await page.goto(url)
 	await expect_n_gql(page, null, 0)
 	return res
 }

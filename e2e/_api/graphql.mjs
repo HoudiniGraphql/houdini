@@ -67,7 +67,7 @@ let monkeys = [
 ]
 
 // example data
-const dataUsers = [
+export const dataUsers = [
 	{
 		id: '1',
 		name: 'Bruce Willis',
@@ -135,7 +135,7 @@ const listA = []
 const listB = []
 
 const userSnapshots = {}
-function getUserSnapshot(snapshot) {
+export function getUserSnapshot(snapshot) {
 	if (!userSnapshots[snapshot]) {
 		userSnapshots[snapshot] = dataUsers.map((user) => ({
 			...user,
@@ -324,6 +324,9 @@ export const resolvers = {
 			}
 
 			return null
+		},
+		avatarURL: (user, { size }) => {
+			return !size ? user.avatarURL : user.avatarURL + `?size=${size}`
 		},
 	},
 

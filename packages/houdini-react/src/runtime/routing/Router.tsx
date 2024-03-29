@@ -51,7 +51,7 @@ export function Router({
 	})
 
 	// find the matching page for the current route
-	const [page, variables] = find_match(manifest, currentURL)
+	const [page, variables] = find_match(configFile, manifest, currentURL)
 	// if we dont have a page, its a 404
 	if (!page) {
 		throw new Error('404')
@@ -109,7 +109,7 @@ export function Router({
 			// there are 2 things that we could preload: the page component and the data
 
 			// look for the matching route information
-			const [page, variables] = find_match(manifest, url)
+			const [page, variables] = find_match(configFile, manifest, url)
 
 			// load the page component if necessary
 			if (['both', 'component'].includes(which)) {
@@ -200,7 +200,6 @@ function usePageData({
 			observer
 				.send({
 					variables: variables,
-					cacheParams: { disableSubscriptions: true },
 					session,
 				})
 				.then(async () => {
@@ -247,9 +246,10 @@ function usePageData({
 												config: configFile,
 											})
 										)}
+									}).then(() => {
+										window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
 									})
 
-									window.__houdini__nav_caches__?.data_cache.set(artifactName, new_store)
 								}
 
 
@@ -591,28 +591,33 @@ const LocationContext = React.createContext<{ pathname: string; params: Record<s
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
 ): [_Data | null, DocumentHandle<any, _Data, _Input>] {
+	// pull the global context values
 	const { data_cache, artifact_cache } = useRouterContext()
+
+	// load the store reference (this will suspend)
 	const store_ref = data_cache.get(name)! as unknown as DocumentStore<_Data, _Input>
+
 	// get the live data from the store
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact: store_ref.artifact,
 		observer: store_ref,
 	})
 
+	// pull out the store values we care about
 	const { data, errors } = storeValue
 
 	// if there is an error in the response we need to throw to the nearest boundary
 	if (errors && errors.length > 0) {
 		throw new Error(JSON.stringify(errors))
 	}
-
-	const artifact = artifact_cache.get(name)!
+	// create the handle that we will use to interact with the store
 	const handle = useDocumentHandle({
-		artifact,
+		artifact: artifact_cache.get(name)!,
 		observer,
 		storeValue,
 	})
 
+	// we're done
 	return [data, handle]
 }
 

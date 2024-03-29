@@ -679,6 +679,20 @@ describe('extractQueries', async () => {
     `,
 			expected: ['firstName', 'lastName'],
 		},
+		{
+			name: "handle and query don't duplicate",
+			source: `
+      import React from 'react';
+
+      export default function({ Query, Query$handle }) {
+        return (
+          <div>
+          </div>
+        );
+      };
+    `,
+			expected: ['Query'],
+		},
 	]
 
 	for (const testCase of testCases) {
