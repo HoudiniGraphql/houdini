@@ -40,8 +40,13 @@ scalar DateTime
 scalar File
 
 enum ForceReturn {
+  """Some error"""
   ERROR
+
+  """Normal"""
   NORMAL
+
+  """No value"""
   NULL
 }
 
@@ -55,10 +60,15 @@ type Message1 {
   message: String!
 }
 
+"""A monkey."""
 type Monkey implements Animal & Node {
+  """Whether the monkey has a banana or not"""
   hasBanana: Boolean!
   id: ID!
   name: String!
+
+  """Whether the monkey has a banana or not"""
+  oldHasBanana: Boolean @deprecated(reason: "Use hasBanana")
 }
 
 type MonkeyConnection implements AnimalConnection {
@@ -76,7 +86,16 @@ type Mutation {
   addCity(name: String!): City!
   addLibrary(city: ID!, name: String!): Library!
   addNonNullUser(birthDate: DateTime!, delay: Int, enumValue: MyEnum, force: ForceReturn, name: String!, snapshot: String!, types: [TypeOfUser!]): User!
-  addUser(birthDate: DateTime!, delay: Int, enumValue: MyEnum, force: ForceReturn, name: String!, snapshot: String!, types: [TypeOfUser!]): User
+  addUser(
+    """The users birth date"""
+    birthDate: DateTime!
+    delay: Int
+    enumValue: MyEnum
+    force: ForceReturn
+    name: String!
+    snapshot: String!
+    types: [TypeOfUser!]
+  ): User
   createA(a: String!): A!
   createB(b: String!): B!
   deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
@@ -88,11 +107,16 @@ type Mutation {
   updateUser(birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
 }
 
+"""Can be Value1 or Value2."""
 enum MyEnum {
+  """The first value"""
   Value1
-  Value2
+
+  """The second value"""
+  Value2 @deprecated(reason: "Use Value1 instead")
 }
 
+"""A node."""
 interface Node {
   id: ID!
 }
@@ -111,6 +135,8 @@ type Query {
   cities: [City]!
   city(delay: Int, id: ID!): City
   hello: String
+
+  """Get a monkey by its id"""
   monkey(id: ID!): Monkey
   monkeys: MonkeyConnection!
   node(id: ID!): Node

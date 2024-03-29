@@ -10,7 +10,7 @@ test('Component fields with correct argument value', async ({ page }) => {
 	await expect_to_be(page, '1:Bruce Willis')
 
 	// click on the link 2
-	await page.click('user-link-2')
+	await page.click('#user-link-2')
 
 	// wait some time
 	await sleep(100)

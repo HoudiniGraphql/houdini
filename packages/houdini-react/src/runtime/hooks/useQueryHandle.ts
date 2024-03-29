@@ -133,6 +133,7 @@ export function useQueryHandle<
 				},
 			})
 			.then((value) => {
+				// @ts-expect-error
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,
@@ -155,7 +156,7 @@ export function useQueryHandle<
 
 	// make sure we prefer the latest store value instead of the initial version we loaded on mount
 	if (!result && suspenseValue?.resolved) {
-		return suspenseValue.resolved as DocumentHandle<_Artifact, _Data, _Input>
+		return suspenseValue.resolved as unknown as DocumentHandle<_Artifact, _Data, _Input>
 	}
 
 	return {

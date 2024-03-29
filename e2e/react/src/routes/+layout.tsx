@@ -3,7 +3,6 @@ import React from 'react'
 import { routes } from '~/utils/routes'
 
 import type { LayoutProps } from './$types'
-import './index.css'
 
 export default function ({ children }: LayoutProps) {
 	// save the cache reference on the window
@@ -13,22 +12,24 @@ export default function ({ children }: LayoutProps) {
 			// @ts-ignore
 			globalThis.window.cache = cache
 		}
-	})
+	}, [])
 
 	return (
 		<>
-			<ul style={{ listStyle: 'none' }}>
+			<div className="flex flex-row gap-2 mb-4 w-full flex-wrap">
 				{Object.entries(routes).map(([route, url]) => {
 					return (
-						<li key={url}>
-							<a href={url} data-houdini-preload>
-								{route}
-							</a>
-						</li>
+						<a
+							className="border-solid border-[var(--links)] border-2 p-2"
+							key={url}
+							href={url}
+							data-houdini-preload
+						>
+							{route}
+						</a>
 					)
 				})}
-			</ul>
-			<hr />
+			</div>
 			<div>{children}</div>
 		</>
 	)

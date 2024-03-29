@@ -1,0 +1,5 @@
+query OffsetVariablePaginationQuery($limit: Int!) {
+	usersList(limit: $limit, snapshot: "pagination-query-offset-variables") @paginate {
+		name
+	}
+}

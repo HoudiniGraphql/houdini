@@ -1,5 +1,6 @@
 import type { GraphQLVariables } from '$houdini/runtime/lib/types'
 
+import { parseScalar, type ConfigFile } from '../lib'
 import type { RouterManifest, RouterPageManifest } from './types'
 
 /**
@@ -21,16 +22,19 @@ export interface ParamMatcher {
 
 // find the matching page given the current path
 export function find_match<_ComponentType>(
+	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: true
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
 export function find_match<_ComponentType>(
+	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull?: false
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables]
 export function find_match<_ComponentType>(
+	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
 	allowNull: boolean = true
@@ -38,6 +42,7 @@ export function find_match<_ComponentType>(
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
 	let matchVariables: GraphQLVariables = null
+
 	for (const page of Object.values(manifest.pages)) {
 		// check if the current url matches
 		const urlMatch = current.match(page.pattern)
@@ -55,8 +60,21 @@ export function find_match<_ComponentType>(
 		throw new Error('404')
 	}
 
+	// we might have to marshal the variables
+	let variables: GraphQLVariables = {}
+	// each of the matched documents might tell us how to handle a subset of the
+	// matchVariables. look at every document's input specification and marshal
+	// any values that are in matchVariables
+	for (const document of Object.values(match?.documents ?? {})) {
+		for (const [variable, { type }] of Object.entries(document.variables)) {
+			if (matchVariables?.[variable]) {
+				variables[variable] = parseScalar(config, type, matchVariables[variable])
+			}
+		}
+	}
+
 	// @ts-ignore
-	return [match, matchVariables]
+	return [match, variables]
 }
 
 /**

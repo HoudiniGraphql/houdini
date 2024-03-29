@@ -225,6 +225,7 @@ async function add_view(args: {
 }) {
 	const target = args.type === 'page' ? args.project.pages : args.project.layouts
 	const queries = await extractQueries(args.contents)
+
 	// look for any queries that we are asking for that aren't available
 	const missing_queries = queries.filter((query) => !args.queries.includes(query))
 	if (missing_queries.length > 0) {
@@ -387,5 +388,22 @@ export async function extractQueries(source: string): Promise<string[]> {
 		return []
 	}
 
-	return props.filter((p) => p !== 'children')
+	return props.reduce<string[]>((queries, query) => {
+		// skip the children prop
+		if (query === 'children') {
+			return queries
+		}
+
+		// if the query ends with $handle just use the query name
+		if (query.endsWith('$handle')) {
+			query = query.substring(0, query.length - '$handle'.length)
+		}
+
+		// if the query already exists, don't add it again
+		if (queries.includes(query)) {
+			return queries
+		}
+
+		return queries.concat([query])
+	}, [])
 }

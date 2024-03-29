@@ -261,6 +261,12 @@ export default {
 							initialVariables: variables,
 						})
 
+						// initialize the observer we just created
+						observer.send({
+							setup: true,
+							variables,
+						})
+
 						// save it in the cache
 						initialData[artifactName] = observer
 						initialVariables[artifactName] = variables

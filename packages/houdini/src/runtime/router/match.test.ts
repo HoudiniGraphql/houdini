@@ -1,5 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
+import { testConfigFile } from '../../test'
 import { exec, find_match, parse_page_pattern } from './match'
 import type { RouterManifest } from './types'
 
@@ -137,8 +138,10 @@ describe('find_match parse and match', async function () {
 				),
 			}
 
+			const configFile = testConfigFile()
+
 			// find the match
-			const [match] = find_match(manifest, expected)
+			const [match] = find_match(configFile, manifest, expected)
 			expect(match?.id).toEqual(expected)
 		})
 	}

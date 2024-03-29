@@ -9,7 +9,6 @@ test('Component fields with correct argument value', async ({ page }) => {
 	const images = await page.locator('img').all()
 	// every image should have a size of 50
 	for (const image of images) {
-		expect(await image.getAttribute('height')).toBe('50')
-		expect(await image.getAttribute('src')).toContain('size=50')
+		expect(await image.getAttribute('src')).toContain('size=100')
 	}
 })

@@ -7,10 +7,7 @@ export default function App({ children }) {
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<title>Houdini • e2e • React</title>
-				<link
-					rel="stylesheet"
-					href="https://cdn.jsdelivr.net/npm/water.css@2/out/dark.css"
-				/>
+				<link rel="stylesheet" href="/assets/output.css" />
 			</head>
 			<body style={{ maxWidth: '100%' }}>
 				<ErrorBoundary>{children}</ErrorBoundary>
