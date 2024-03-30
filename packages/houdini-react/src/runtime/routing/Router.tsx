@@ -112,12 +112,12 @@ export function Router({
 			const [page, variables] = find_match(configFile, manifest, url)
 
 			// load the page component if necessary
-			if (['both', 'component'].includes(which)) {
+			if (['page', 'component'].includes(which)) {
 				loadComponent(page)
 			}
 
 			// load the page component if necessary
-			if (['both', 'data'].includes(which)) {
+			if (['page', 'data'].includes(which)) {
 				loadData(page, variables)
 			}
 		},
@@ -173,7 +173,15 @@ function usePageData({
 	const [session] = useSession()
 
 	// the function to load a query using the cache references
-	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
+	function load_query({
+		id,
+		artifact,
+		variables,
+	}: {
+		id: string
+		artifact: QueryArtifact
+		variables: GraphQLVariables
+	}): Promise<void> {
 		// TODO: better tracking - only register the variables that were used
 		// track the new variables
 		for (const artifact of Object.keys(page.documents)) {
@@ -376,7 +384,7 @@ function usePageData({
 					`)
 
 					// now that we have the artifact, we can load the query too
-					load_query({ id: artifact.name, artifact })
+					load_query({ id: artifact.name, artifact, variables })
 				})
 				.catch((err) => {
 					// TODO: handle error
@@ -389,7 +397,7 @@ function usePageData({
 		for (const artifact of Object.values(found_artifacts)) {
 			// if we don't have the query, load it
 			if (!data_cache.has(artifact.name)) {
-				load_query({ id: artifact.name, artifact })
+				load_query({ id: artifact.name, artifact, variables })
 			}
 		}
 	}
@@ -707,12 +715,17 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 	React.useEffect(() => {
 		const mouseMove: HTMLAnchorElement['onmousemove'] = (e) => {
 			const target = e.target
-			if (!(target instanceof HTMLAnchorElement)) {
+			if (!(target instanceof HTMLElement)) {
+				return
+			}
+
+			const anchor = target.closest('a')
+			if (!anchor) {
 				return
 			}
 
 			// if the anchor doesn't allow for preloading, don't do anything
-			let preloadWhichRaw = target.attributes.getNamedItem('data-houdini-preload')?.value
+			let preloadWhichRaw = anchor.attributes.getNamedItem('data-houdini-preload')?.value
 			let preloadWhich: PreloadWhichValue =
 				!preloadWhichRaw || preloadWhichRaw === 'true'
 					? 'page'
@@ -733,7 +746,7 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 
 			// set the new timeout to track _this_ anchor
 			timeoutRef.current = setTimeout(() => {
-				const url = target.attributes.getNamedItem('href')?.value
+				const url = anchor.attributes.getNamedItem('href')?.value
 				if (!url) {
 					return
 				}
