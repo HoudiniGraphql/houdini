@@ -205,12 +205,15 @@ function usePageData({
 			resolve = res
 			reject = rej
 
+			console.log('sending query', observer.artifact.name, variables)
+
 			observer
 				.send({
 					variables: variables,
 					session,
 				})
 				.then(async () => {
+					console.log('query resolved', observer.artifact.name, observer.state)
 					data_cache.set(id, observer)
 
 					// if there is an error, we need to reject the promise
