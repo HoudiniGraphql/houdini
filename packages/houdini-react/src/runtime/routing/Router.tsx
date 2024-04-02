@@ -136,7 +136,6 @@ export function Router({
 					pathname: currentURL,
 					goto: setCurrentURL,
 					params: variables ?? {},
-					goto: setCurrentURL,
 				}}
 			>
 				<PageComponent url={currentURL} key={page.id} />
