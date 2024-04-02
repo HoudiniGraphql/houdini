@@ -110,6 +110,10 @@ export function Router({
 
 			// look for the matching route information
 			const [page, variables] = find_match(configFile, manifest, url)
+			if (!page) {
+				console.log(url)
+				return
+			}
 
 			// load the page component if necessary
 			if (['page', 'component'].includes(which)) {
@@ -213,7 +217,6 @@ function usePageData({
 					session,
 				})
 				.then(async () => {
-					console.log('query resolved', observer.artifact.name, observer.state)
 					data_cache.set(id, observer)
 
 					// if there is an error, we need to reject the promise
@@ -331,6 +334,10 @@ function usePageData({
 		targetPage: RouterPageManifest<ComponentType>,
 		variables: GraphQLVariables | null
 	) {
+		if (!targetPage) {
+			return
+		}
+
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const [artifact, { variables: pageVariables }] of Object.entries(
 			targetPage.documents
