@@ -121,7 +121,6 @@ export function Router({
 
 			// load the page component if necessary
 			if (['page', 'data'].includes(which)) {
-				console.log('loading data', page, variables)
 				loadData(page, variables)
 			}
 		},
@@ -208,8 +207,6 @@ function usePageData({
 		const promise = new Promise<void>((res, rej) => {
 			resolve = res
 			reject = rej
-
-			console.log('sending query', observer.artifact.name, variables)
 
 			observer
 				.send({
