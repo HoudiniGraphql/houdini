@@ -15,7 +15,7 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { useClient, useSession } from '../routing/Router'
+import { useClient, useLocation, useSession } from '../routing/Router'
 
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
@@ -32,6 +32,7 @@ export function useDocumentHandle<
 }): DocumentHandle<_Artifact, _Data, _Input> & { fetch: FetchFn<_Data, _Input> } {
 	const [forwardPending, setForwardPending] = React.useState(false)
 	const [backwardPending, setBackwardPending] = React.useState(false)
+	const location = useLocation()
 
 	// grab the current session value
 	const [session] = useSession()
@@ -65,6 +66,10 @@ export function useDocumentHandle<
 		const fetchQuery: FetchFn<_Data, _Input> = (args) =>
 			observer.send({
 				...args,
+				variables: {
+					...location.params,
+					...args?.variables,
+				},
 				session,
 			})
 
