@@ -131,7 +131,14 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<LocationContext.Provider value={{ pathname: currentURL, params: variables ?? {} }}>
+			<LocationContext.Provider
+				value={{
+					pathname: currentURL,
+					goto: setCurrentURL,
+					params: variables ?? {},
+					goto: setCurrentURL,
+				}}
+			>
 				<PageComponent url={currentURL} key={page.id} />
 			</LocationContext.Provider>
 		</VariableContext.Provider>
@@ -598,9 +605,15 @@ export function useCurrentVariables(): GraphQLVariables {
 
 const VariableContext = React.createContext<GraphQLVariables>(null)
 
-const LocationContext = React.createContext<{ pathname: string; params: Record<string, any> }>({
+const LocationContext = React.createContext<{
+	pathname: string
+	params: Record<string, any>
+	// a function to imperatively navigate to a url
+	goto: (url: string) => void
+}>({
 	pathname: '',
 	params: {},
+	goto: () => {},
 })
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
