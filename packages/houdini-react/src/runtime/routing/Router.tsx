@@ -111,7 +111,6 @@ export function Router({
 			// look for the matching route information
 			const [page, variables] = find_match(configFile, manifest, url)
 			if (!page) {
-				console.log(url)
 				return
 			}
 
@@ -122,6 +121,7 @@ export function Router({
 
 			// load the page component if necessary
 			if (['page', 'data'].includes(which)) {
+				console.log('loading data', page, variables)
 				loadData(page, variables)
 			}
 		},
