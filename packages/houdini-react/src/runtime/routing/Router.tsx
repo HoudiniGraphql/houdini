@@ -100,11 +100,17 @@ export function Router({
 		}
 	}, [])
 
+	const goto = (url: string) => {
+		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
+		data_cache.clear()
+
+		// perform the navigation
+		setCurrentURL(url)
+	}
+
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
-		goto: (val: string) => {
-			setCurrentURL(val)
-		},
+		goto,
 		preload(url: string, which: PreloadWhichValue) {
 			// there are 2 things that we could preload: the page component and the data
 
@@ -134,12 +140,7 @@ export function Router({
 			<LocationContext.Provider
 				value={{
 					pathname: currentURL,
-					goto: (url) => {
-						// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
-						data_cache.clear()
-
-						setCurrentURL(url)
-					},
+					goto,
 					params: variables ?? {},
 				}}
 			>
