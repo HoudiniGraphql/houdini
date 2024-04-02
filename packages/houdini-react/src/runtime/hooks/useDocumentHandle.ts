@@ -63,15 +63,25 @@ export function useDocumentHandle<
 		}
 
 		// add the session value to the
-		const fetchQuery: FetchFn<_Data, _Input> = (args) =>
-			observer.send({
+		const fetchQuery: FetchFn<_Data, _Input> = (args) => {
+			// before we send the query, we need to figure out which variables are
+			// actually useful for this document
+			const usedVariables = Object.fromEntries(
+				Object.keys(observer.artifact.input?.fields ?? {}).map((fieldName) => [
+					fieldName,
+					location.params[fieldName],
+				])
+			)
+
+			return observer.send({
 				...args,
 				variables: {
-					...location.params,
+					...usedVariables,
 					...args?.variables,
 				},
 				session,
 			})
+		}
 
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
