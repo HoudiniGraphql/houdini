@@ -70,7 +70,7 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache } = useRouterContext()
+	const { component_cache, data_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	// if we got this far then we're past the suspense
@@ -134,7 +134,12 @@ export function Router({
 			<LocationContext.Provider
 				value={{
 					pathname: currentURL,
-					goto: setCurrentURL,
+					goto: (url) => {
+						// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
+						data_cache.clear()
+
+						setCurrentURL(url)
+					},
 					params: variables ?? {},
 				}}
 			>
