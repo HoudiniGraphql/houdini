@@ -1,5 +1,11 @@
 import { yellow } from '@kitql/helpers'
-import type { ExpressionKind, StatementKind } from 'ast-types/lib/gen/kinds'
+import type {
+	ExpressionKind,
+	IdentifierKind,
+	ObjectPatternKind,
+	StatementKind,
+	VariableDeclaratorKind,
+} from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import type { Config, Script } from 'houdini'
 import { find_graphql, formatErrors } from 'houdini'
@@ -34,22 +40,55 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		return
 	}
 
-	// find all of the props of the component by looking for export statements
-	const props = (
-		page.script.body.filter(
-			(statement) =>
-				statement.type === 'ExportNamedDeclaration' &&
-				statement.declaration?.type === 'VariableDeclaration'
-		) as ExportNamedDeclaration[]
-	).flatMap(({ declaration }) =>
-		(declaration as VariableDeclaration)!.declarations.map((dec) => {
-			if (dec.type === 'VariableDeclarator') {
-				return dec.id.type === 'Identifier' ? dec.id.name : ''
+	// Find all props of the component
+	let props: (string | IdentifierKind)[] = []
+
+	if (page.svelte5Runes) {
+		// In runes, we need to find props defined by the `$props` rune.
+
+		for (let i = 0; i < page.script.body.length; i++) {
+			let statement = page.script.body[i]
+
+			if (statement.type !== 'VariableDeclaration') {
+				continue
 			}
 
-			return dec.name
-		})
-	)
+			const propsStatement = statement.declarations.find(
+				(x) =>
+					x.type === 'VariableDeclarator' &&
+					x.init &&
+					x.init.type === 'CallExpression' &&
+					x.init.callee.type === 'Identifier' &&
+					x.init.callee.name === '$props' &&
+					x.id.type === 'ObjectPattern'
+			) as VariableDeclaratorKind | undefined
+
+			if (propsStatement && propsStatement.id.type === 'ObjectPattern') {
+				propsStatement.id.properties.forEach((property) => {
+					if (property.type === 'ObjectProperty' && property.key.type === 'Identifier') {
+						props.push(property.key.name)
+					}
+				})
+			}
+		}
+	} else {
+		// In legacy mode, we need to find props by looking for export statements
+		props = (
+			page.script.body.filter(
+				(statement) =>
+					statement.type === 'ExportNamedDeclaration' &&
+					statement.declaration?.type === 'VariableDeclaration'
+			) as ExportNamedDeclaration[]
+		).flatMap(({ declaration }) =>
+			(declaration as VariableDeclaration)!.declarations.map((dec) => {
+				if (dec.type === 'VariableDeclarator') {
+					return dec.id.type === 'Identifier' ? dec.id.name : ''
+				}
+
+				return dec.name
+			})
+		)
+	}
 
 	ensure_imports({
 		config: page.config,
@@ -205,7 +244,9 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 								AST.blockStatement([
 									AST.ifStatement(
 										AST.identifier('isBrowser'),
-										AST.blockStatement([AST.expressionStatement(queryLoadExpression)])
+										AST.blockStatement([
+											AST.expressionStatement(queryLoadExpression),
+										])
 									),
 								])
 							),
@@ -219,7 +260,11 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 						AST.identifier('$'),
 
 						AST.expressionStatement(
-							AST.logicalExpression('&&', AST.identifier('isBrowser'), queryLoadExpression)
+							AST.logicalExpression(
+								'&&',
+								AST.identifier('isBrowser'),
+								queryLoadExpression
+							)
 						)
 					),
 				]

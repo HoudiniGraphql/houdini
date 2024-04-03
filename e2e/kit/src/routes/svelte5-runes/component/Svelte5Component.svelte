@@ -12,7 +12,7 @@
 
   let result = $derived(
     graphql(`
-      query Svelte5ComponentQuery($id: ID! = "1") @load {
+      query Svelte5ComponentQuery($id: ID!) @load {
         user(id: $id, snapshot: "svelte-5-component") {
           name
         }

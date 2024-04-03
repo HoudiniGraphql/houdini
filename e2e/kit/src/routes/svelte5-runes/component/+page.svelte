@@ -2,4 +2,6 @@
   import Svelte5Component from './Svelte5Component.svelte';
 </script>
 
-<Svelte5Component />
+<div id="result">
+  <Svelte5Component id="2" />
+</div>

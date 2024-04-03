@@ -358,7 +358,12 @@ describe('Svelte 5 runes', function () {
 			                artifact: _houdini_TestQuery.artifact,
 
 			                input: _TestQueryVariables.call(new RequestContext(), {
-			                    props: {}
+			                    props: {
+			                        prop1: prop1,
+			                        prop2: prop2,
+			                        prop3: prop3,
+			                        prop4: prop4
+			                    }
 			                })
 			            })
 			        });

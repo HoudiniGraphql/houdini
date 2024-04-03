@@ -17,6 +17,6 @@
     </ul>
   {/if}
 
-  <pre>{JSON.stringify($Svelte5UsersList.pageInfo, null, 2)}</pre>
-  <button onclick={()=> Svelte5UsersList.loadNextPage()}>load more</button>
+  <div id="pageInfo">{JSON.stringify($Svelte5UsersList.pageInfo)}</div>
+  <button id="next" onclick={()=> Svelte5UsersList.loadNextPage()}>load more</button>
 </div>
