@@ -265,6 +265,7 @@ export default {
 						observer.send({
 							setup: true,
 							variables,
+							session: window.__houdini__initial__session__,
 						})
 
 						// save it in the cache
