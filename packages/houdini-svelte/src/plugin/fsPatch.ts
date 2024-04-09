@@ -109,6 +109,10 @@ filesystem.readFileSync = function (fp, options) {
 
 // @ts-ignore
 filesystem.statSync = function (filepath: string, options: Parameters<filesystem.StatSyncFn>[1]) {
+    if (typeof filepath.includes !== "function") {
+        throw Error("[LOOK HERE] filepath.includes is not a function! filepath is " + JSON.stringify(filepath));
+    }
+
 	if (!filepath.includes('routes') || !path.basename(filepath).startsWith('+')) {
 		return _statSync(filepath, options as any)
 	}
