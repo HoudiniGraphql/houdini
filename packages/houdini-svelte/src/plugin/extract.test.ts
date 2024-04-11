@@ -451,6 +451,16 @@ describe('parser svelte 5 runes detection', () => {
                 $inspect(count).with((type) => console.log(count));
             </script>`,
 			},
+			{
+				runeName: '$host',
+				document: `<script>
+                    function greet(greeting) {
+                        $host().dispatchEvent(
+                            new CustomEvent('greeting', { detail: greeting })
+                        );
+                    }
+                </script>`,
+			},
 		]
 
 		await Promise.all(
