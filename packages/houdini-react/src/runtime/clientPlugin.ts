@@ -2,7 +2,7 @@ import type { ClientPlugin } from 'houdini'
 
 const plugin: () => ClientPlugin = () => () => {
 	return {
-		beforeNetwork(ctx, { next }) {
+		start(ctx, { next }) {
 			next({
 				...ctx,
 				cacheParams: {

@@ -19,7 +19,7 @@ export const cachePolicy =
 	}): ClientPlugin =>
 	() => {
 		return {
-			network(ctx, { initialValue, next, resolve, marshalVariables }) {
+			beforeNetwork(ctx, { initialValue, next, resolve, marshalVariables }) {
 				const { policy, artifact } = ctx
 				let useCache = false
 				// enforce cache policies for queries

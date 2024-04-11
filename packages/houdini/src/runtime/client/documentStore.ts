@@ -98,7 +98,7 @@ export class DocumentStore<
 		this.#configFile = getCurrentConfig()
 
 		this.#plugins = pipeline ?? [
-			// cache policy needs to always come first so that it can be the first fetch_enter to fire
+			// cache policy needs to always come first so that it can be the first network to fire
 			cachePolicy({
 				cache,
 				enabled: enableCache,
