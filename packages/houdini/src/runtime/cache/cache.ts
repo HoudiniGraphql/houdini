@@ -106,6 +106,11 @@ export class Cache {
 
 	// register the provided callbacks with the fields specified by the selection
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
+		// if the cache is disabled, dont do anything
+		if (this._internal_unstable.disabled) {
+			return
+		}
+
 		// add the subscribers to every field in the specification
 		return this._internal_unstable.subscriptions.add({
 			parent: spec.parentID || rootID,
@@ -334,7 +339,7 @@ export class Cache {
 
 class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
-	private _disabled = false
+	disabled = false
 
 	_config?: ConfigFile
 	storage: InMemoryStorage
@@ -380,10 +385,10 @@ class CacheInternal {
 		this.createComponent = createComponent ?? (() => ({}))
 
 		// the cache should always be disabled on the server, unless we're testing
-		this._disabled = disabled
+		this.disabled = disabled
 		try {
 			if (process.env.HOUDINI_TEST === 'true') {
-				this._disabled = false
+				this.disabled = false
 			}
 		} catch {
 			// if process.env doesn't exist, that's okay just use the normal value
@@ -421,7 +426,7 @@ class CacheInternal {
 		forceStale?: boolean
 	}): FieldSelection[] {
 		// if the cache is disabled, dont do anything
-		if (this._disabled) {
+		if (this.disabled) {
 			return []
 		}
 
