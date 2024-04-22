@@ -2996,3 +2996,87 @@ test('removing all subscribers of a field cleans up reference count object', fun
 	// make sure the subscribers object is empty
 	expect(cache._internal_unstable.subscriptions.size).toEqual(0)
 })
+
+test('reference count garbage collection requires totally empty garbage', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection1: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	const selection2: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						firstName: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection: selection1,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+
+	// subscribe to selection 1
+	const spec1 = {
+		set: vi.fn(),
+		selection: selection1,
+		rootType: 'Query',
+	}
+	cache.subscribe(spec1)
+
+	// subscribe to selection 2
+	const spec2 = {
+		set: vi.fn(),
+		selection: selection2,
+		rootType: 'Query',
+	}
+	cache.subscribe(spec2)
+
+	// sanity check
+	expect(cache._internal_unstable.subscriptions.size).toEqual(5)
+
+	// remove the subscription from spec 1 which should clear the subscription on id, but not first name
+	cache.unsubscribe(spec1)
+
+	// make sure the subscribers object is empty
+	expect(cache._internal_unstable.subscriptions.size).toEqual(2)
+})

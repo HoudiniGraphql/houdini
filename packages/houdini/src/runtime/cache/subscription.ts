@@ -412,7 +412,7 @@ export class InMemorySubscriptions {
 		}
 
 		// if we got this far and there are no subscribers on the field, we need to clean things up
-		if (subscriberField && subscriberField.referenceCounts.size === 0) {
+		if (subscriber.size === 0) {
 			this.subscribers.delete(id)
 		}
 	}
