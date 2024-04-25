@@ -2,9 +2,9 @@
 
 ## 1.2.47
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#1296](https://github.com/HoudiniGraphql/houdini/pull/1296) [`e6368686`](https://github.com/HoudiniGraphql/houdini/commit/e6368686cd283f46c77755efb70701aa1da729fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix memory leak in cache's reference counting
+-   [#1296](https://github.com/HoudiniGraphql/houdini/pull/1296) [`e6368686`](https://github.com/HoudiniGraphql/houdini/commit/e6368686cd283f46c77755efb70701aa1da729fe) @AlecAivazis - Fix memory leak in cache's reference counting
 
 ## 1.2.46
 
