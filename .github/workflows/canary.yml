@@ -6,7 +6,7 @@ on:
     push:
         branches:
             - next
-            - plugin-runtime-search
+            - error-memory-leak
 
 env:
     CI: true

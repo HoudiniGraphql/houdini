@@ -375,10 +375,13 @@ export class InMemorySubscriptions {
 		let targets: SubscriptionSpec['set'][] = []
 
 		const subscriber = this.subscribers.get(id)
-		const subscriberField = subscriber?.get(fieldName)
+		if (!subscriber) {
+			return
+		}
+		const subscriberField = subscriber.get(fieldName)
 
 		for (const spec of specs) {
-			const counts = subscriber?.get(fieldName)?.referenceCounts
+			const counts = subscriber.get(fieldName)?.referenceCounts
 
 			// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
 			if (!counts?.has(spec.set)) {
@@ -394,6 +397,11 @@ export class InMemorySubscriptions {
 				// remove the reference to the set function
 				counts.delete(spec.set)
 			}
+
+			// if we have no more references to the field, we need to remove it from the map
+			if (counts.size === 0) {
+				subscriber.delete(fieldName)
+			}
 		}
 
 		// we do need to remove the set from the list
@@ -401,6 +409,11 @@ export class InMemorySubscriptions {
 			subscriberField.selections = this.get(id, fieldName).filter(
 				([{ set }]) => !targets.includes(set)
 			)
+		}
+
+		// if we got this far and there are no subscribers on the field, we need to clean things up
+		if (subscriber.size === 0) {
+			this.subscribers.delete(id)
 		}
 	}
 
@@ -440,5 +453,16 @@ export class InMemorySubscriptions {
 				this.removeAllSubscribers(id, subscribers, visited)
 			}
 		}
+	}
+
+	get size() {
+		let size = 0
+		for (const [, nodeCounts] of this.subscribers) {
+			for (const [, { referenceCounts }] of nodeCounts) {
+				size += [...referenceCounts.values()].reduce((size, count) => size + count, 0)
+			}
+		}
+
+		return size
 	}
 }
