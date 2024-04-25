@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-Fix memory leak
+Fix memory leak in cache's reference counting
