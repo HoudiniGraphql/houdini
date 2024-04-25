@@ -6,7 +6,7 @@ export type FetchParamFn = (ctx: FetchParamsInput) => Required<ClientPluginConte
 export const fetchParams: (fn?: FetchParamFn) => ClientPlugin =
 	(fn = () => ({})) =>
 	() => ({
-		beforeNetwork(ctx, { next, marshalVariables }) {
+		start(ctx, { next, marshalVariables }) {
 			next({
 				...ctx,
 				fetchParams: fn({

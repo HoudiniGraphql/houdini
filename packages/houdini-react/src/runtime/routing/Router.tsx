@@ -70,7 +70,7 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache } = useRouterContext()
+	const { component_cache, data_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	// if we got this far then we're past the suspense
@@ -100,24 +100,33 @@ export function Router({
 		}
 	}, [])
 
+	const goto = (url: string) => {
+		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
+		data_cache.clear()
+
+		// perform the navigation
+		setCurrentURL(url)
+	}
+
 	// links are powered using anchor tags that we intercept and handle ourselves
 	useLinkBehavior({
-		goto: (val: string) => {
-			setCurrentURL(val)
-		},
+		goto,
 		preload(url: string, which: PreloadWhichValue) {
 			// there are 2 things that we could preload: the page component and the data
 
 			// look for the matching route information
 			const [page, variables] = find_match(configFile, manifest, url)
+			if (!page) {
+				return
+			}
 
 			// load the page component if necessary
-			if (['both', 'component'].includes(which)) {
+			if (['page', 'component'].includes(which)) {
 				loadComponent(page)
 			}
 
 			// load the page component if necessary
-			if (['both', 'data'].includes(which)) {
+			if (['page', 'data'].includes(which)) {
 				loadData(page, variables)
 			}
 		},
@@ -128,7 +137,13 @@ export function Router({
 	// its needs
 	return (
 		<VariableContext.Provider value={variables}>
-			<LocationContext.Provider value={{ pathname: currentURL, params: variables ?? {} }}>
+			<LocationContext.Provider
+				value={{
+					pathname: currentURL,
+					goto,
+					params: variables ?? {},
+				}}
+			>
 				<PageComponent url={currentURL} key={page.id} />
 			</LocationContext.Provider>
 		</VariableContext.Provider>
@@ -173,7 +188,15 @@ function usePageData({
 	const [session] = useSession()
 
 	// the function to load a query using the cache references
-	function load_query({ id, artifact }: { id: string; artifact: QueryArtifact }): Promise<void> {
+	function load_query({
+		id,
+		artifact,
+		variables,
+	}: {
+		id: string
+		artifact: QueryArtifact
+		variables: GraphQLVariables
+	}): Promise<void> {
 		// TODO: better tracking - only register the variables that were used
 		// track the new variables
 		for (const artifact of Object.keys(page.documents)) {
@@ -320,6 +343,10 @@ function usePageData({
 		targetPage: RouterPageManifest<ComponentType>,
 		variables: GraphQLVariables | null
 	) {
+		if (!targetPage) {
+			return
+		}
+
 		// if any of the artifacts that this page on have new variables, we need to clear the data cache
 		for (const [artifact, { variables: pageVariables }] of Object.entries(
 			targetPage.documents
@@ -376,7 +403,7 @@ function usePageData({
 					`)
 
 					// now that we have the artifact, we can load the query too
-					load_query({ id: artifact.name, artifact })
+					load_query({ id: artifact.name, artifact, variables })
 				})
 				.catch((err) => {
 					// TODO: handle error
@@ -389,7 +416,7 @@ function usePageData({
 		for (const artifact of Object.values(found_artifacts)) {
 			// if we don't have the query, load it
 			if (!data_cache.has(artifact.name)) {
-				load_query({ id: artifact.name, artifact })
+				load_query({ id: artifact.name, artifact, variables })
 			}
 		}
 	}
@@ -583,9 +610,15 @@ export function useCurrentVariables(): GraphQLVariables {
 
 const VariableContext = React.createContext<GraphQLVariables>(null)
 
-const LocationContext = React.createContext<{ pathname: string; params: Record<string, any> }>({
+const LocationContext = React.createContext<{
+	pathname: string
+	params: Record<string, any>
+	// a function to imperatively navigate to a url
+	goto: (url: string) => void
+}>({
 	pathname: '',
 	params: {},
+	goto: () => {},
 })
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
@@ -707,12 +740,17 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 	React.useEffect(() => {
 		const mouseMove: HTMLAnchorElement['onmousemove'] = (e) => {
 			const target = e.target
-			if (!(target instanceof HTMLAnchorElement)) {
+			if (!(target instanceof HTMLElement)) {
+				return
+			}
+
+			const anchor = target.closest('a')
+			if (!anchor) {
 				return
 			}
 
 			// if the anchor doesn't allow for preloading, don't do anything
-			let preloadWhichRaw = target.attributes.getNamedItem('data-houdini-preload')?.value
+			let preloadWhichRaw = anchor.attributes.getNamedItem('data-houdini-preload')?.value
 			let preloadWhich: PreloadWhichValue =
 				!preloadWhichRaw || preloadWhichRaw === 'true'
 					? 'page'
@@ -733,7 +771,7 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 
 			// set the new timeout to track _this_ anchor
 			timeoutRef.current = setTimeout(() => {
-				const url = target.attributes.getNamedItem('href')?.value
+				const url = anchor.attributes.getNamedItem('href')?.value
 				if (!url) {
 					return
 				}

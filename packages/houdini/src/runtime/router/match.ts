@@ -61,7 +61,9 @@ export function find_match<_ComponentType>(
 	}
 
 	// we might have to marshal the variables
-	let variables: GraphQLVariables = {}
+	let variables: GraphQLVariables = {
+		...matchVariables,
+	}
 	// each of the matched documents might tell us how to handle a subset of the
 	// matchVariables. look at every document's input specification and marshal
 	// any values that are in matchVariables
