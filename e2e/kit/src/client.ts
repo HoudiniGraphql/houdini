@@ -21,8 +21,7 @@ export default new HoudiniClient({
     // if we're ever unauthenticated, a request was sent that didn't thread
     // the session through so let's error
     if (!session?.user?.token) {
-      console.log(session);
-      throw new Error('Did not encounter session');
+      return {};
     }
 
     // Turn on and off (to link with 'with_persisted_queries' of "./e2e/_api/server.mjs")

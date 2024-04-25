@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 1.2.47
+
+### 🐛 Fixes
+
+-   [#1293](https://github.com/HoudiniGraphql/houdini/pull/1293) [`8409c703`](https://github.com/HoudiniGraphql/houdini/commit/8409c703a79b037a655ac45455d10965aebae681) @SeppahBaws - Fix houdini-svelte occasionally causing the Svelte LSP to crash
+
+### Dependency Changes
+
+-   Updated dependencies [[`e6368686`](https://github.com/HoudiniGraphql/houdini/commit/e6368686cd283f46c77755efb70701aa1da729fe)]:
+    -   houdini@1.2.47
+
 ## 1.2.46
 
 ### Dependency Changes

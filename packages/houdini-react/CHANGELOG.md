@@ -1,5 +1,16 @@
 # houdini-react
 
+## 1.2.47
+
+### 🐛 Fixes
+
+-   [#1297](https://github.com/HoudiniGraphql/houdini/pull/1297) [`d1686d0c`](https://github.com/HoudiniGraphql/houdini/commit/d1686d0cd912808bfe6101faf2c2d2ccb8390ac1) @AlecAivazis - fix bug with useRoute pulling route params
+
+### Dependency Changes
+
+-   Updated dependencies [[`e6368686`](https://github.com/HoudiniGraphql/houdini/commit/e6368686cd283f46c77755efb70701aa1da729fe)]:
+    -   houdini@1.2.47
+
 ## 1.2.46
 
 ### 🐛 Fixes
