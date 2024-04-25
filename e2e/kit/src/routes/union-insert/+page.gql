@@ -1,12 +1,16 @@
 query AorB {
-  aOrB @list(name: "All_AorB") {
-    ... on A {
-      id
-      a
-    }
-    ... on B {
-      id
-      b
+  aOrB  {
+    edges {
+      node @list(name: "All_AorB") {
+        ... on A {
+          id
+          a
+        }
+        ... on B {
+          id
+          b
+        }
+      }
     }
   }
 }
