@@ -50,6 +50,7 @@
     "vite-plugin-lib-reporter": "^0.0.7"
   },
   "dependencies": {
+    "@sveltejs/adapter-node": "^5.0.1",
     "graphql-ws": "^5.8.2"
   }
 }
