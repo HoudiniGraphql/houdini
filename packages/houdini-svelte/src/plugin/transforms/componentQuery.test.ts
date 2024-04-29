@@ -325,7 +325,7 @@ describe('Svelte 5 runes', function () {
 				)
 			`
 		)
-	
+
 		// make sure we added the right stuff
 		expect(route).toMatchInlineSnapshot(`
 			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
