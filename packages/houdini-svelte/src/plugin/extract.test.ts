@@ -386,9 +386,16 @@ describe('parser svelte 5 runes detection', () => {
             </script>`,
 			},
 			{
+				runeName: '$state.snapshot',
+				document: `<script>
+                const isHoudiniAwesome = true;
+                console.log($state.snapshot(isHoudiniAwesome));
+            </script>`,
+			},
+			{
 				runeName: '$props',
 				document: `<script>
-                const {prop1, prop2} = $props();
+                const { prop1, prop2 } = $props();
             </script>`,
 			},
 			{
@@ -406,7 +413,7 @@ describe('parser svelte 5 runes detection', () => {
 			{
 				runeName: '$derived.by',
 				document: `<script>
-                let derived = $derived(() => 1 + 2);
+                let derived = $derived.by(() => 1 + 2);
             </script>`,
 			},
 			{

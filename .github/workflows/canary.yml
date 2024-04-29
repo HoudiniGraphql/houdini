@@ -6,7 +6,7 @@ on:
     push:
         branches:
             - next
-            - error-memory-leak
+            - svelte-5
 
 env:
     CI: true

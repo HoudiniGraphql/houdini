@@ -39,11 +39,12 @@ type EmbeddedScript = {
 	useRunes: boolean
 }
 
-// Source: https://github.com/sveltejs/svelte/blob/0cf2e9832284b1555268a03c8323415a270fb71f/packages/svelte/src/compiler/phases/constants.js#L31
+// Source: https://github.com/sveltejs/svelte/blob/8b1a26904a0d50d058564198904db578276ae775/packages/svelte/src/compiler/phases/constants.js#L31
 // Be sure to update this when this list changes.
 const svelteRunes: string[] = [
 	'$state',
 	'$state.frozen',
+	'$state.snapshot',
 	'$props',
 	'$bindable',
 	'$derived',
@@ -54,7 +55,7 @@ const svelteRunes: string[] = [
 	'$effect.root',
 	'$inspect',
 	'$inspect().with',
-	'$host'
+	'$host',
 ]
 
 export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
