@@ -1,0 +1,104 @@
+---
+title: Svelte 5
+description: Using Houdini with Svelte 5 runes
+---
+
+# Setting up
+
+Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode. All you need to do is bump the Houdini version in your `package.json` and you should be good to go.
+
+# Using runes
+
+Updating your code to make use of runes is pretty straight-forward. Simply wrap your query/fragment/mutation definition in a `$derived()` rune and you should be good to go.
+Here are some examples of how to use runes with Houdini:
+
+## Route queries
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+
+    const { data }: { data: PageData } = $props();
+    const { MyProfile } = $derived(data);
+</script>
+
+<p>Welcome, {$MyProfile.data?.user.name}!</p>
+```
+
+## Component queries
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import type { UserDetailsVariables } from './$houdini';
+
+    const { id }: { id: string } = $props();
+
+    export const _UserDetailsVariables: UserDetailsVariables = ({props}) => {
+        return {
+            id: props.id
+        }
+    }
+
+    const store = $derived(
+        graphql(`
+            query UserDetails($id: ID!) {
+                user(id: $id) {
+                    name
+                }
+            }
+        `)
+    );
+</script>
+
+<p>{$store.data?.user.name}</p>
+```
+
+## Fragments
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import { fragment, graphql, type UserCardFragment } from '$houdini';
+
+    const { user }: { user: UserCardFragment } = $props();
+
+    const data = $derived(
+        fragment(
+            user,
+            graphql(`
+                fragment UserCardFragment on User {
+                    name
+                    age
+                }
+            `)
+        )
+    )
+</script>
+
+<p>{$data.name} is {$data.age} years old!</p>
+```
+
+## Mutations
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import { graphql } from '$houdini';
+
+    const uncheckItem = $derived(
+        graphql(`
+            mutation UncheckItem($id: ID!) {
+                uncheckItem(item: $id) {
+                    item {
+                        id
+                        completed
+                    }
+                }
+            }
+        `)
+    )
+</script>
+
+<button onclick={() => uncheckItem.mutate({ id: 'my-item' })}>
+    Uncheck Item
+</button>
+
+```
