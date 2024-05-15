@@ -9,7 +9,7 @@ test.describe('customIDs', () => {
     // expect to have the righ data
     await expect_to_be(
       page,
-      'User: 1 - Book: 0 - Rate: 10 User: 5 - Book: 5 - Rate: 8 User: 1 - Book: 1 - Rate: 9'
+      'User: 1 - Book: 0 - Rate: 10User: 5 - Book: 5 - Rate: 8User: 1 - Book: 1 - Rate: 9'
     );
 
     const ret = await expect_1_gql(page, 'button[id=u77]');
@@ -20,7 +20,7 @@ test.describe('customIDs', () => {
     // displayed result with the updated value to 77
     await expect_to_be(
       page,
-      'User: 1 - Book: 0 - Rate: 10 User: 5 - Book: 5 - Rate: 8 User: 1 - Book: 1 - Rate: 77'
+      'User: 1 - Book: 0 - Rate: 10User: 5 - Book: 5 - Rate: 8User: 1 - Book: 1 - Rate: 77'
     );
   });
 });

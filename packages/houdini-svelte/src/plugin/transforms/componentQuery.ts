@@ -2,7 +2,6 @@ import { yellow } from '@kitql/helpers'
 import type {
 	ExpressionKind,
 	IdentifierKind,
-	ObjectPatternKind,
 	StatementKind,
 	VariableDeclaratorKind,
 } from 'ast-types/lib/gen/kinds'
