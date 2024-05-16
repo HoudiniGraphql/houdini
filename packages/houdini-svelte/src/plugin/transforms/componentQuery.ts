@@ -224,10 +224,9 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 
 			/**
 			 * In Runes mode, we need to generate:
+			 * (the effect rune only runs in the browser, so we don't need to do an extra check)
 			 * $effect(() => {
-			 *   if (isBrowser) {
-			 *     _houdini_<queryName>.fetch({...})
-			 *   }
+			 *   _houdini_<queryName>.fetch({...})
 			 * })
 			 *
 			 * In legacy mode, we need to generate:
@@ -240,14 +239,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 						AST.callExpression(AST.identifier('$effect'), [
 							AST.arrowFunctionExpression(
 								[],
-								AST.blockStatement([
-									AST.ifStatement(
-										AST.identifier('isBrowser'),
-										AST.blockStatement([
-											AST.expressionStatement(queryLoadExpression),
-										])
-									),
-								])
+								AST.blockStatement([AST.expressionStatement(queryLoadExpression)])
 							),
 						])
 					),

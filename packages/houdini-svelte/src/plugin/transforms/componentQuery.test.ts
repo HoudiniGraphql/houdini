@@ -290,15 +290,13 @@ describe('Svelte 5 runes', function () {
 			let value = $derived(_houdini_TestQuery);
 
 			$effect(() => {
-			    if (isBrowser) {
-			        _houdini_TestQuery.fetch({
-			            variables: marshalInputs({
-			                config: getCurrentConfig(),
-			                artifact: _houdini_TestQuery.artifact,
-			                input: {}
-			            })
-			        });
-			    }
+			    _houdini_TestQuery.fetch({
+			        variables: marshalInputs({
+			            config: getCurrentConfig(),
+			            artifact: _houdini_TestQuery.artifact,
+			            input: {}
+			        })
+			    });
 			});
 		`)
 	})
@@ -351,23 +349,21 @@ describe('Svelte 5 runes', function () {
 			const result = $derived(_houdini_TestQuery);
 
 			$effect(() => {
-			    if (isBrowser) {
-			        _houdini_TestQuery.fetch({
-			            variables: marshalInputs({
-			                config: getCurrentConfig(),
-			                artifact: _houdini_TestQuery.artifact,
+			    _houdini_TestQuery.fetch({
+			        variables: marshalInputs({
+			            config: getCurrentConfig(),
+			            artifact: _houdini_TestQuery.artifact,
 
-			                input: _TestQueryVariables.call(new RequestContext(), {
-			                    props: {
-			                        prop1: prop1,
-			                        prop2: prop2,
-			                        prop3: prop3,
-			                        prop4: prop4
-			                    }
-			                })
+			            input: _TestQueryVariables.call(new RequestContext(), {
+			                props: {
+			                    prop1: prop1,
+			                    prop2: prop2,
+			                    prop3: prop3,
+			                    prop4: prop4
+			                }
 			            })
-			        });
-			    }
+			        })
+			    });
 			});
 		`)
 	})
