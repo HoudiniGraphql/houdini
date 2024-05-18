@@ -5,14 +5,16 @@ description: Using Houdini with Svelte 5 runes
 
 # Setting up
 
-Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode. All you need to do is bump the Houdini version in your `package.json` and you should be good to go.
+Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode. All you need to do is bump the Houdini version in your `package.json`.
 
 # Using runes
 
-Updating your code to make use of runes is pretty straight-forward. Simply wrap your query/fragment/mutation definition in a `$derived()` rune and you should be good to go.
-Here are some examples of how to use runes with Houdini:
+Updating your code to make use of runes is pretty straight-forward. Houdini still makes use of Svelte Stores, so your code will continue to work as normal.
+Here are some examples of how to use Houdini with svelte runes:
 
 ## Route queries
+
+If your query is SSR'ed, you need to get the store from the PageData like so:
 
 ```svelte:typescriptToggle=true
 <script lang="ts">
@@ -27,27 +29,28 @@ Here are some examples of how to use runes with Houdini:
 
 ## Component queries
 
+The only thing that changes with component queries is how your props are coming in to your component:
+
 ```svelte:typescriptToggle=true
 <script lang="ts">
+    import { graphql } from '$houdini';
     import type { UserDetailsVariables } from './$houdini';
 
     const { id }: { id: string } = $props();
 
-    export const _UserDetailsVariables: UserDetailsVariables = ({props}) => {
+    export const _UserDetailsVariables: UserDetailsVariables = ({ props }) => {
         return {
             id: props.id
         }
     }
 
-    const store = $derived(
-        graphql(`
-            query UserDetails($id: ID!) {
-                user(id: $id) {
-                    name
-                }
+    const store = graphql(`
+        query UserDetails($id: ID!) {
+            user(id: $id) {
+                name
             }
-        `)
-    );
+        }
+    `);
 </script>
 
 <p>{$store.data?.user.name}</p>
@@ -55,23 +58,23 @@ Here are some examples of how to use runes with Houdini:
 
 ## Fragments
 
+Similar to component queries, the only thing that changes with fragments is how you get the fragment from your props:
+
 ```svelte:typescriptToggle=true
 <script lang="ts">
     import { fragment, graphql, type UserCardFragment } from '$houdini';
 
     const { user }: { user: UserCardFragment } = $props();
 
-    const data = $derived(
-        fragment(
-            user,
-            graphql(`
-                fragment UserCardFragment on User {
-                    name
-                    age
-                }
-            `)
-        )
-    )
+    const data = fragment(
+        user,
+        graphql(`
+            fragment UserCardFragment on User {
+                name
+                age
+            }
+        `)
+    );
 </script>
 
 <p>{$data.name} is {$data.age} years old!</p>
@@ -79,22 +82,22 @@ Here are some examples of how to use runes with Houdini:
 
 ## Mutations
 
+Mutations are unchanged, simply use them as before:
+
 ```svelte:typescriptToggle=true
 <script lang="ts">
     import { graphql } from '$houdini';
 
-    const uncheckItem = $derived(
-        graphql(`
-            mutation UncheckItem($id: ID!) {
-                uncheckItem(item: $id) {
-                    item {
-                        id
-                        completed
-                    }
+    const uncheckItem = graphql(`
+        mutation UncheckItem($id: ID!) {
+            uncheckItem(item: $id) {
+                item {
+                    id
+                    completed
                 }
             }
-        `)
-    )
+        }
+    `);
 </script>
 
 <button onclick={() => uncheckItem.mutate({ id: 'my-item' })}>

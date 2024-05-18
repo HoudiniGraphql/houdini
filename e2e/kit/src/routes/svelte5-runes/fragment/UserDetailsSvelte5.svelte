@@ -3,16 +3,14 @@
 
   const { user }: { user: Svelte5UserDetails } = $props();
 
-  const userDetails = $derived(
-    fragment(
-      user,
-      graphql(`
-        fragment Svelte5UserDetails on User {
-          name
-          birthDate
-        }
-      `)
-    )
+  const userDetails = fragment(
+    user,
+    graphql(`
+      fragment Svelte5UserDetails on User {
+        name
+        birthDate
+      }
+    `)
   );
 </script>
 

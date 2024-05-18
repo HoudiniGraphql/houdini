@@ -10,15 +10,13 @@
     };
   };
 
-  let result = $derived(
-    graphql(`
-      query Svelte5ComponentQuery($id: ID!) @load {
-        user(id: $id, snapshot: "svelte-5-component") {
-          name
-        }
+  const result = graphql(`
+    query Svelte5ComponentQuery($id: ID!) @load {
+      user(id: $id, snapshot: "svelte-5-component") {
+        name
       }
-    `)
-  );
+    }
+  `);
 </script>
 
 {$result.data?.user.name}
