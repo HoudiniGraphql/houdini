@@ -33,7 +33,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                node-version: 20.13.1
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
@@ -63,7 +63,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                node-version: 20.13.1
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
@@ -106,7 +106,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                node-version: 20.13.1
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
@@ -160,7 +160,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 21.7.3
+                node-version: 20.13.1
 
             # pnpm
 
@@ -201,7 +201,7 @@ jobs:
                 key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
-            - run: pnpm playwright install
+            - run: pnpm playwright install --with-deps
               if: steps.playwright-cache.outputs.cache-hit != 'true'
 
             # Run tests
@@ -230,7 +230,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                node-version: 20.13.1
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
