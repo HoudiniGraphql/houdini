@@ -39,12 +39,13 @@ type EmbeddedScript = {
 	useRunes: boolean
 }
 
-// Source: https://github.com/sveltejs/svelte/blob/8b1a26904a0d50d058564198904db578276ae775/packages/svelte/src/compiler/phases/constants.js#L31
+// Source: https://github.com/sveltejs/svelte/blob/d4718e0755eac1e505292d0fb7cfd8682eca3048/packages/svelte/src/compiler/phases/constants.js#L31
 // Be sure to update this when this list changes.
 const svelteRunes: string[] = [
 	'$state',
 	'$state.frozen',
 	'$state.snapshot',
+	'$state.is',
 	'$props',
 	'$bindable',
 	'$derived',

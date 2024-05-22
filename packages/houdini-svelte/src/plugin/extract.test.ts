@@ -393,6 +393,13 @@ describe('parser svelte 5 runes detection', () => {
             </script>`,
 			},
 			{
+				runeName: '$state.is',
+				document: `<script>
+                let isHoudiniAwesome = true;
+                console.log($state.is(isHoudiniAwesome, true));
+            </script>`,
+			},
+			{
 				runeName: '$props',
 				document: `<script>
                 const { prop1, prop2 } = $props();
