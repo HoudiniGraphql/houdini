@@ -1,4 +1,4 @@
-import { ReporterDescription, defineConfig, devices } from '@playwright/test';
+import { ReporterDescription, defineConfig } from '@playwright/test';
 
 const reporters: ReporterDescription[] = [['list'], ['html', { open: 'never' }]];
 if (process.env.CI) {
