@@ -11,7 +11,7 @@ import {
 import React from 'react'
 import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
 
-import { setManifest } from '.'
+import { manifest, setManifest } from '.'
 import { writeTsconfig } from './codegen/typeRoot'
 
 let viteEnv: ConfigEnv
@@ -30,14 +30,12 @@ let devServer = false
 // virtual:houdini/pages/[name] - An entry for every page
 // virtual:houdini/artifacts/[name] - An entry for loading an artifact and notifying the artifact cache
 
-let manifest: ProjectManifest
-
 export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
 		viteEnv = env
 		try {
-			manifest = await load_manifest({
+			var manifest = await load_manifest({
 				config,
 			})
 		} catch (e) {
@@ -182,11 +180,14 @@ export default {
 
 		// the filename is the true arg. the extension just tells vite how to transfrom.
 		const parsedPath = path.parse(arg)
-		const queryName = parsedPath.name
+		const pageName = parsedPath.name
 
 		// if we are rendering the virtual page
 		if (which === 'pages') {
-			const page = manifest.pages[queryName]
+			const page = manifest.pages[pageName]
+			if (!page) {
+				throw new Error('unknown page' + pageName)
+			}
 
 			// we need the list of queries that have loading states (and therefore create ssr signals)
 			const pendingQueries = page.queries.filter((query) => {
@@ -205,7 +206,7 @@ export default {
 				import { Cache } from '$houdini/runtime/cache/cache'
 				import { router_cache } from '$houdini'
 				import client from '$houdini/plugins/houdini-react/runtime/client'
-				import Component from '$houdini/plugins/houdini-react/units/entries/${queryName}.jsx'
+				import Component from '$houdini/plugins/houdini-react/units/entries/${pageName}.jsx'
 				import { injectComponents } from '$houdini/plugins/houdini-react/runtime/componentFields'
 
 				// if there is pending data (or artifacts) then we should prime the caches
@@ -283,7 +284,7 @@ export default {
 						initialVariables: window.__houdini__pending_variables__,
 						initialArtifacts,
 						components: {
-							'${queryName}': Component
+							'${pageName}': Component
 						}
 					})
 				}
@@ -306,14 +307,14 @@ export default {
 		if (which === 'artifacts') {
 			// the arg is the name of the artifact
 			const artifact = (await fs.readFile(
-				path.join(config.artifactDirectory, queryName + '.js')
+				path.join(config.artifactDirectory, pageName + '.js')
 			))!.replace('export default', 'const artifact = ')
 
 			return (
 				artifact +
 				`
-if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${queryName}")) {
-	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(queryName)}, artifact)
+if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_cache && !window.__houdini__nav_caches__.artifact_cache.has("${pageName}")) {
+	window.__houdini__nav_caches__.artifact_cache.set(${JSON.stringify(pageName)}, artifact)
 }
 `
 			)

@@ -130,7 +130,7 @@ function fallbacks_units_dir(config: Config, which: 'page' | 'layout', base?: st
 	return path.join(units_dir(config, base), 'fallbacks', which)
 }
 
-function units_dir(config: Config, base: string = base_dir(config)) {
+export function units_dir(config: Config, base: string = base_dir(config)) {
 	return path.join(base, 'units')
 }
 
