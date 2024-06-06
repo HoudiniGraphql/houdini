@@ -103,8 +103,6 @@ async function walk_routes(args: {
 		withFileTypes: true,
 	})
 
-	console.log('walking into', args.filepath)
-
 	// every step down defines a new variable context
 	const variables = { ...args.variables }
 

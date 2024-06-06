@@ -67,7 +67,6 @@ export default function (opts?: PluginConfig): Plugin[] {
 					config.pluginMode = true
 
 					// generate the runtime
-					console.log('generating')
 					await generate(config)
 				},
 				delay: 100,
