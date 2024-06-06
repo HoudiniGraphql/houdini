@@ -2,7 +2,10 @@
   import { graphql } from '$houdini';
   import type { PageData } from './$houdini';
 
-  const { data }: { data: PageData } = $props();
+  interface Props {
+    data: PageData;
+  }
+  const { data }: Props = $props();
   const { Svelte5MutationGetData } = $derived(data);
 
   const changeNameMutation = graphql(`

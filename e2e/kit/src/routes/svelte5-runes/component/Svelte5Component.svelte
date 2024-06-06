@@ -2,7 +2,10 @@
   import { graphql } from '$houdini';
   import type { Svelte5ComponentQueryVariables } from './$houdini';
 
-  const { id }: { id: string } = $props();
+  interface Props {
+    id: string;
+  }
+  const { id }: Props = $props();
 
   export const _Svelte5ComponentQueryVariables: Svelte5ComponentQueryVariables = ({ props }) => {
     return {

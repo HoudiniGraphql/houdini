@@ -20,7 +20,10 @@ If your query is SSR'ed, you need to get the store from the PageData like so:
 <script lang="ts">
     import type { PageData } from './$houdini'
 
-    const { data }: { data: PageData } = $props();
+    interface Props {
+        data: PageData;
+    }
+    const { data }: Props = $props();
     const { MyProfile } = $derived(data);
 </script>
 
@@ -36,7 +39,10 @@ The only thing that changes with component queries is how your props are coming 
     import { graphql } from '$houdini';
     import type { UserDetailsVariables } from './$houdini';
 
-    const { id }: { id: string } = $props();
+    interface Props {
+        id: string;
+    }
+    const { id }: Props = $props();
 
     export const _UserDetailsVariables: UserDetailsVariables = ({ props }) => {
         return {
@@ -64,7 +70,10 @@ Similar to component queries, the only thing that changes with fragments is how 
 <script lang="ts">
     import { fragment, graphql, type UserCardFragment } from '$houdini';
 
-    const { user }: { user: UserCardFragment } = $props();
+    interface Props {
+        user: UserCardFragment
+    }
+    const { user }: Props = $props();
 
     const data = fragment(
         user,
@@ -103,5 +112,4 @@ Mutations are unchanged, simply use them as before:
 <button onclick={() => uncheckItem.mutate({ id: 'my-item' })}>
     Uncheck Item
 </button>
-
 ```
