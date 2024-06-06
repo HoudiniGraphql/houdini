@@ -197,6 +197,10 @@ function prepareSelection({
 						{}
 					),
 				}))
+
+				if (field.directives.find((d) => d.name.value === config.optimisticKeyDirective)) {
+					fieldObj.optimisticKey = true
+				}
 			}
 
 			if (keys.includes(field.name.value)) {

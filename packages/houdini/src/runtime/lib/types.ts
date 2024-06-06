@@ -78,7 +78,9 @@ export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	enableLoadingState?: 'global' | 'local'
 }
 
-export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
+export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
+	optimisticKeys?: boolean
+}
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
 	enableLoadingState?: 'global' | 'local'
@@ -221,6 +223,7 @@ export type SubscriptionSelection = {
 				fragment: string
 				variables: ValueMap | null
 			}
+			optimisticKey?: boolean
 		}
 	}
 	abstractFields?: {

@@ -1206,7 +1206,7 @@ function validateOptimisticKeys(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		const typeInfo = new graphql.TypeInfo(config.schema)
 		return graphql.visitWithTypeInfo(typeInfo, {
-			[graphql.Kind.SELECTION_SET]: (node) => {
+			[graphql.Kind.SELECTION_SET]: (node, _, __, ___, ancestors) => {
 				// track if we find an optimistic key directive
 				let found: string[] = []
 				// look at every field in the selection set
@@ -1226,6 +1226,19 @@ function validateOptimisticKeys(config: Config) {
 				// if we did find a directive make sure that we found the directive on
 				// every key for the type
 				if (found.length > 0) {
+					const doc = ancestors[0] as graphql.DocumentNode
+					const operation = doc.definitions?.find(
+						(def) => def.kind === 'OperationDefinition'
+					)
+					if (operation && operation.operation !== 'mutation') {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`@${config.optimisticKeyDirective} can only be in mutations`
+							)
+						)
+						return
+					}
+
 					const parent = typeInfo.getParentType()
 					if (!parent) {
 						return

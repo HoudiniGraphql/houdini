@@ -1238,6 +1238,28 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@optimisticKey on non-mutation',
+		pass: false,
+		documents: [
+			`
+			query A {
+				ghost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+			`
+			query B {
+				ghost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@required may not be used on non-nullable fields',
 		pass: false,
 		documents: [

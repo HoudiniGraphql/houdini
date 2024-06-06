@@ -362,6 +362,18 @@ export default function artifactGenerator(stats: {
 						}
 					}
 
+					// mutations might have optimisticKeys we need to track
+					if (artifact.kind === 'HoudiniMutation') {
+						// look for the optimistic key directive
+						graphql.visit(doc.document, {
+							[graphql.Kind.DIRECTIVE](node) {
+								if (node.name.value === config.optimisticKeyDirective) {
+									artifact.optimisticKeys = true
+								}
+							},
+						})
+					}
+
 					// adding artifactData of plugins (only if any information is present)
 					artifact.pluginData = {}
 					for (const plugin of config.plugins) {
