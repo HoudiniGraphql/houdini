@@ -1230,7 +1230,10 @@ function validateOptimisticKeys(config: Config) {
 					const operation = doc.definitions?.find(
 						(def) => def.kind === 'OperationDefinition'
 					)
-					if (operation && operation.operation !== 'mutation') {
+					if (
+						operation &&
+						(operation as graphql.OperationDefinitionNode).operation !== 'mutation'
+					) {
 						ctx.reportError(
 							new graphql.GraphQLError(
 								`@${config.optimisticKeyDirective} can only be in mutations`

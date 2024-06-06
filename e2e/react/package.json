@@ -32,8 +32,8 @@
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
-		"react": "^18.3.0-canary-d6dcad6a8-20230914",
-		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
+		"react": "19.0.0-rc-eb259b5d3b-20240605",
+		"react-dom": "19.0.0-rc-eb259b5d3b-20240605",
 		"react-streaming-compat": "^0.3.18"
 	},
 	"devDependencies": {

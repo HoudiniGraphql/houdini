@@ -6,6 +6,7 @@ import type {
 	Config,
 	Document,
 	DocumentArtifact,
+	MutationArtifact,
 	QueryArtifact,
 	SubscriptionSelection,
 } from '../../../lib'
@@ -368,7 +369,7 @@ export default function artifactGenerator(stats: {
 						graphql.visit(doc.document, {
 							[graphql.Kind.DIRECTIVE](node) {
 								if (node.name.value === config.optimisticKeyDirective) {
-									artifact.optimisticKeys = true
+									;(artifact as MutationArtifact).optimisticKeys = true
 								}
 							},
 						})
