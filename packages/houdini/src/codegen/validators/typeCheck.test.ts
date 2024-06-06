@@ -1163,6 +1163,81 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@optimisticKey on single key',
+		pass: true,
+		documents: [
+			`
+			query B {
+				user  {
+					id @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on non-key',
+		pass: false,
+		documents: [
+			`
+			query B {
+				user  {
+					firstName @optimisticKey
+				}
+			}
+			`,
+			`
+			query B {
+				user  {
+					firstName @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on multiple key - missing',
+		pass: false,
+		documents: [
+			`
+			query B {
+				ghost  {
+					aka @optimisticKey
+				}
+			}
+			`,
+			`
+			query B {
+				ghost  {
+					aka @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on multiple key - found',
+		pass: true,
+		documents: [
+			`
+			query A {
+				ghost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+			`
+			query B {
+				ghost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@required may not be used on non-nullable fields',
 		pass: false,
 		documents: [

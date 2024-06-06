@@ -53,6 +53,11 @@ directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, 
 directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 
 """
+	@${config.optimisticKeyDirective} is used to identify a field as an optimistic key
+"""
+directive @${config.optimisticKeyDirective} on FIELD
+
+"""
 	@${
 		config.listAppendDirective
 	} is used to tell the runtime to add the result to the start of the list

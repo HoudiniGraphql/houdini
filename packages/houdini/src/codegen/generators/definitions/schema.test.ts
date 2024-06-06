@@ -36,6 +36,9 @@ test('adds internal documents to schema', async function () {
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
 
+			"""@optimisticKey is used to identify a field as an optimistic key"""
+			directive @optimisticKey on FIELD
+
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append on FRAGMENT_SPREAD
 
@@ -124,6 +127,9 @@ test('list operations are included', async function () {
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
+
+			"""@optimisticKey is used to identify a field as an optimistic key"""
+			directive @optimisticKey on FIELD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append on FRAGMENT_SPREAD
@@ -232,6 +238,9 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
+
+			"""@optimisticKey is used to identify a field as an optimistic key"""
+			directive @optimisticKey on FIELD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append on FRAGMENT_SPREAD
@@ -353,6 +362,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
+
+			"""@optimisticKey is used to identify a field as an optimistic key"""
+			directive @optimisticKey on FIELD
 
 			"""@append is used to tell the runtime to add the result to the start of the list"""
 			directive @append on FRAGMENT_SPREAD
