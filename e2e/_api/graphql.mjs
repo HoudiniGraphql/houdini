@@ -70,6 +70,14 @@ type Mutation {
 		delay: Int
 		avatarURL: String
 	): User!
+	updateUserByID(
+		id: ID!
+		name: String
+		snapshot: String!
+		birthDate: DateTime
+		delay: Int
+		avatarURL: String
+	): User!
 	singleUpload(file: File!): String!
 	multipleUpload(files: [File!]!): [String!]!
 	addCity(name: String!): City!
@@ -597,6 +605,7 @@ export const resolvers = {
 				birthDate: args.birthDate,
 				enumValue: args.enumValue,
 				types: args.types ?? [],
+				avatarURL: '',
 			}
 			list.push(user)
 			return user
@@ -608,6 +617,30 @@ export const resolvers = {
 
 			const list = getUserSnapshot(args.snapshot)
 			const userIndex = list.findIndex((c) => c.id === `${args.snapshot}:${args.id}`)
+			if (userIndex === -1) {
+				throw new GraphQLError('User not found', { code: 404 })
+			}
+			if (args.birthDate) {
+				list[userIndex].birthDate = args.birthDate
+			}
+			if (args.name) {
+				list[userIndex].name = args.name
+			}
+			if (args.avatarURL) {
+				list[userIndex].avatarURL = args.avatarURL
+			}
+
+			pubSub.publish('userUpdate', args.id + ':' + args.snapshot, list[userIndex])
+
+			return list[userIndex]
+		},
+		updateUserByID: async (_, args) => {
+			if (args.delay) {
+				await sleep(args.delay)
+			}
+
+			const list = getUserSnapshot(args.snapshot)
+			const userIndex = list.findIndex((c) => c.id === args.id)
 			if (userIndex === -1) {
 				throw new GraphQLError('User not found', { code: 404 })
 			}

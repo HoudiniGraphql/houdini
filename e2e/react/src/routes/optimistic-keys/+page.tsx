@@ -1,12 +1,15 @@
 import { useMutation, graphql } from '$houdini'
+import React from 'react'
 
 import { PageProps } from './$types'
 
 export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) {
+	const [error, setError] = React.useState('')
+
 	const [_, update] = useMutation(
 		graphql(`
-			mutation OptimisticKeyTestMutation($id: ID!, $avatarURL: String!) {
-				updateUser(id: $id, snapshot: "foo", avatarURL: $avatarURL) {
+			mutation OptimisticKeyTestUpdateMutation($id: ID!, $avatarURL: String!) {
+				updateUserByID(id: $id, snapshot: "OptimisticKeyTest", avatarURL: $avatarURL) {
 					id
 					avatarURL
 				}
@@ -14,22 +17,79 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 		`)
 	)
 
+	const [__, create] = useMutation(
+		graphql(`
+			mutation OptimisticKeyTestCreateMutation($name: String!, $birthDate: DateTime!) {
+				addUser(
+					snapshot: "OptimisticKeyTest"
+					name: $name
+					birthDate: $birthDate
+					delay: 5000
+				) {
+					id @optimisticKey
+					avatarURL
+					name
+					...OptimisticKeyTest_insert
+				}
+			}
+		`)
+	)
+
 	return (
 		<>
+			{error ? <div data-error="true">{error}</div> : null}
 			<div>
-				<button data-test-action="add">Add User</button>
+				<button
+					data-test-action="add"
+					onClick={() =>
+						create({
+							variables: { birthDate: new Date(), name: 'New User' },
+							optimisticResponse: {
+								addUser: {
+									avatarURL: 'test',
+									name: 'New User',
+								},
+							},
+						})
+					}
+				>
+					Add User
+				</button>
 			</div>
-			{OptimisticKeyTest?.usersConnection.edges.map((edge) => (
-				<div key={edge.node.id}>
-					{edge.node.id}: <span style={{ margin: '0 10px' }}>{edge.node.name}</span>
-					<button
-						data-action-update={edge.node.id}
-						onClick={() => update({ variables: { id: edge.node.id, avatarURL: 'a' } })}
-					>
-						Update
-					</button>
-				</div>
-			))}
+
+			<table style={{ marginTop: 8, width: 1000, verticalAlign: 'middle' }}>
+				<tbody>
+					{OptimisticKeyTest?.usersConnection.edges.map((edge, i) => (
+						<tr key={edge.node.id}>
+							<td>{edge.node.id}</td>
+							<td>{edge.node.name}</td>
+							<td>{edge.node.avatarURL}</td>
+							<td style={{ textAlign: 'right' }}>
+								<button
+									data-action={
+										i === OptimisticKeyTest?.usersConnection.edges.length - 1
+											? 'update'
+											: null
+									}
+									onClick={async () => {
+										const { errors } = await update({
+											variables: {
+												id: edge.node.id,
+												avatarURL: 'a',
+											},
+										})
+										if (errors) {
+											setError(errors.map((e) => e.message).join(', '))
+										}
+									}}
+								>
+									Update
+								</button>
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
 		</>
 	)
 }

@@ -1,11 +1,10 @@
 query OptimisticKeyTest {
-	usersConnection(first: 4, snapshot: "OptimisticKeyTest")
-		@list(name: "OptimisticKeyTest")
-		@required {
+	usersConnection(snapshot: "OptimisticKeyTest") @list(name: "OptimisticKeyTest") @required {
 		edges @required {
 			node @required {
 				id
 				name
+				avatarURL
 			}
 		}
 	}

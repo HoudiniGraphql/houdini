@@ -1264,7 +1264,7 @@ td,
   th {
   padding: 6px;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   word-wrap: break-word;
 }
 
@@ -1469,3 +1469,4 @@ body > footer {
     text-decoration: underline;
   }
 }
+
