@@ -104,7 +104,7 @@ type Mutation {
   multipleUpload(files: [File!]!): [String!]!
   singleUpload(file: File!): String!
   updateRentedBook(bookId: Int!, rate: Int!, userId: String!): RentedBook
-  updateUser(birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
+  updateUser(avatarURL: String, birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
 }
 
 """Can be Value1 or Value2."""
