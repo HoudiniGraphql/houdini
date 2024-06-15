@@ -1260,6 +1260,28 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@optimisticKey on object type',
+		pass: false,
+		documents: [
+			`
+			query A {
+				ghost @optimisticKey {
+					aka
+					name
+				}
+			}
+			`,
+			`
+			query B {
+				ghost @optimisticKey {
+					aka
+					name
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@required may not be used on non-nullable fields',
 		pass: false,
 		documents: [

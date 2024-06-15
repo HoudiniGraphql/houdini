@@ -1,14 +1,11 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
-import { CachePolicy, PendingValue, type QueryArtifact } from '../../lib'
+import { CachePolicy, PendingValue } from '../../lib'
 import { setMockConfig } from '../../lib/config'
-import { ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPlugin } from '../documentStore'
-import { DocumentStore } from '../documentStore'
 import { cachePolicy } from './cache'
+import { createStore, fakeFetch } from './test'
 
 /**
  * Testing the cache plugin
@@ -471,92 +468,3 @@ test('loading states when fetching is true', async function () {
 		variables: null,
 	})
 })
-
-/**
- * Utilities for testing the cache plugin
- */
-export function createStore(
-	args: Partial<HoudiniClientConstructorArgs> & { artifact?: QueryArtifact } = {}
-): DocumentStore<any, any> {
-	// if we dont have anything passed, just use the fake fetch as the plugin
-	if (!args.plugins && !args.pipeline) {
-		args.plugins = [fakeFetch({})]
-	}
-
-	// instantiate the client
-	const client = new HoudiniClient({
-		url: 'URL',
-		...args,
-	})
-
-	return new DocumentStore({
-		plugins: args.plugins ? createPluginHooks(client.plugins) : undefined,
-		pipeline: args.pipeline ? createPluginHooks(client.plugins) : undefined,
-		client,
-		artifact: args.artifact ?? {
-			kind: ArtifactKind.Query,
-			hash: '7777',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Query',
-			pluginData: {},
-			enableLoadingState: 'local',
-			selection: {
-				fields: {
-					viewer: {
-						type: 'User',
-						visible: true,
-						keyRaw: 'viewer',
-						loading: { kind: 'continue' },
-						selection: {
-							fields: {
-								id: {
-									type: 'ID',
-									visible: true,
-									keyRaw: 'id',
-								},
-								firstName: {
-									type: 'String',
-									visible: true,
-									keyRaw: 'firstName',
-									loading: { kind: 'value' },
-								},
-								__typename: {
-									type: 'String',
-									visible: true,
-									keyRaw: '__typename',
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	})
-}
-
-export function fakeFetch({
-	result = {
-		data: {
-			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
-			},
-		},
-		errors: null,
-		fetching: false,
-		variables: null,
-		source: DataSource.Network,
-		partial: false,
-		stale: false,
-	},
-	spy = vi.fn(),
-} = {}) {
-	return (() => ({
-		network(ctx, { resolve }) {
-			spy(ctx)
-			resolve(ctx, { ...result })
-		},
-	})) as ClientPlugin
-}

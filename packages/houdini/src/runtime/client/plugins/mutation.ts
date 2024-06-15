@@ -1,8 +1,12 @@
 import type { Cache } from '../../cache/cache'
+import { getFieldsForType } from '../../lib'
 import { marshalSelection } from '../../lib/scalars'
-import type { SubscriptionSpec } from '../../lib/types'
-import { ArtifactKind } from '../../lib/types'
+import type { GraphQLObject, SubscriptionSpec } from '../../lib/types'
+import { ArtifactKind, SubscriptionSelection } from '../../lib/types'
 import { documentPlugin } from '../utils'
+
+// a place to store all of the optimistic keys that are pending
+const UsedKeys = new Set<string>()
 
 export const mutation = (cache: Cache) =>
 	documentPlugin(ArtifactKind.Mutation, () => {
@@ -25,6 +29,15 @@ export const mutation = (cache: Cache) =>
 				// and make sure they are included in the final set of subscribers to notify
 				let toNotify: SubscriptionSpec[] = []
 				if (optimisticResponse) {
+					// if the mutation has optimistic keys embedded in the response, we need to
+					// add them to the response and register the values in our global state (only on the client)
+					if (
+						ctx.artifact.kind === ArtifactKind.Mutation &&
+						ctx.artifact.optimisticKeys
+					) {
+						injectOptimisticKeys(ctx.artifact.selection, optimisticResponse, UsedKeys)
+					}
+
 					toNotify = cache.write({
 						selection: ctx.artifact.selection,
 						// make sure that any scalar values get processed into something we can cache
@@ -94,3 +107,44 @@ export const mutation = (cache: Cache) =>
 			},
 		}
 	})
+
+export function injectOptimisticKeys(
+	selection: SubscriptionSelection,
+	obj: GraphQLObject,
+	store: Set<string>
+): any {
+	// we need to walk the selection and inject the optimistic keys into the response
+	// collect all of the fields that we need to write
+	let targetSelection = getFieldsForType(
+		selection,
+		obj['__typename'] as string | undefined,
+		false
+	)
+
+	// data is an object with fields that we need to write to the store
+	for (const [field, { selection: fieldSelection, optimisticKey }] of Object.entries(
+		targetSelection
+	)) {
+		// if this field is marked as an optimistic key, add it to the obj
+		if (optimisticKey) {
+			const key = new Date().getTime().toString()
+			store.add(key)
+			// @ts-ignore
+			obj[field] = key
+		}
+
+		// if there is no sub-selection for this field, we're done
+		if (!fieldSelection) {
+			continue
+		}
+
+		// if there is no field underneath us but we have a selection, we're done
+		if (!obj[field]) {
+			continue
+		}
+
+		injectOptimisticKeys(fieldSelection, obj[field] as {}, store)
+	}
+
+	return obj
+}

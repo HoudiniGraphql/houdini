@@ -27,9 +27,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 					delay: 5000
 				) {
 					id @optimisticKey
-					avatarURL
-					name
-					...OptimisticKeyTest_insert
+					...OptimisticKeyTest_insert @mask_disable
 				}
 			}
 		`)

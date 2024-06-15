@@ -7,7 +7,7 @@ import type { GraphQLValue } from '../lib/types'
 // ie: deleting a user should not slow down looking up a list of cats
 
 export class InMemoryStorage {
-	private data: Layer[]
+	data: Layer[]
 	private idCount = 1
 	private rank = 0
 
