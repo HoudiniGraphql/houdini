@@ -15,7 +15,7 @@ import type { ClientPlugin } from '../documentStore'
 //
 // The major constraint here is that a document could be invoked multiple times, each of which
 // can put the corresponding chain into a pending state. A doucment can also contain multiple
-// keys in its response so we to keep track of the query query in our data where we encounter the key.
+// keys in its response so we to keep track of the query path in our data where we encounter the key.
 //
 // So, we have 2 different mappings we need to track:
 // a mapping from optimistic key to the list of callbacks that need to be notified

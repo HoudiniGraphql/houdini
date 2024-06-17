@@ -175,11 +175,13 @@ test('OptimisticKeys Plugin', async function () {
 	// sending the second mutation with the optimistic ID as an input should block
 	// until the first mutation resolves.
 	let secondResolved: QueryResult | null = null
-	second.send({
-		variables: {
-			id: record.id,
-		},
-	})
+	second
+		.send({
+			variables: {
+				id: record.id,
+			},
+		})
+		.then((val) => (secondResolved = val))
 
 	// wait for a bit, just to be sure
 	await sleep(200)
@@ -194,4 +196,5 @@ test('OptimisticKeys Plugin', async function () {
 	// make sure we did get a value
 	await sleep(200)
 	expect(secondVariables).toEqual({ id: '1' })
+	expect(secondResolved).toBeTruthy()
 })
