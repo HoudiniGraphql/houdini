@@ -4,8 +4,9 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
-import { ArtifactKind, SubscriptionSelection } from '../../lib/types'
-import { injectOptimisticKeys, mutation } from './mutation'
+import { ArtifactKind, QueryResult, SubscriptionSelection, GraphQLObject } from '../../lib/types'
+import { mutation } from './mutation'
+import { optimisticKeys } from './optimisticKeys'
 import { createStore, fakeFetch } from './test'
 
 /**
@@ -16,7 +17,10 @@ beforeEach(async () => {
 	setMockConfig({})
 })
 
-test('MutationPlugin', async function () {
+test('OptimisticKeys Plugin', async function () {
+	const callbacks = {}
+	const keys = {}
+
 	// create a cache instance we can test against with the mutation plugin
 	const cache = new Cache({ ...config, disabled: false })
 
@@ -73,12 +77,13 @@ test('MutationPlugin', async function () {
 			},
 		},
 		pipeline: [
+			optimisticKeys(callbacks, keys),
 			mutation(cache),
 			fakeFetch({
 				data: {
 					createUser: { id: '1', firstName: 'Alice', __typename: 'User' },
 				},
-				onRequest: (cb) => (resolveMutation = cb),
+				onRequest: (variables, cb) => (resolveMutation = cb),
 			}),
 		],
 	})
@@ -97,12 +102,13 @@ test('MutationPlugin', async function () {
 	expect(resolveMutation).not.toBeNull()
 
 	// we should have added an ID to the cache
-	let linkedID = cache._internal_unstable.storage.data[0].links['_ROOT_']['createUser']
-	expect(linkedID).toBeDefined()
-	const record = cache._internal_unstable.storage.data[0].fields[linkedID as string]
+	let optimisticLink = cache._internal_unstable.storage.data[0].links['_ROOT_']['createUser']
+	expect(optimisticLink).toBeDefined()
+	const record = cache._internal_unstable.storage.data[0].fields[optimisticLink as string]
 	expect(record.id).toBeDefined()
 
 	// now that we have an id, we can send a second mutation that will block until we resolve the first
+	let secondVariables: GraphQLObject | null = null
 	const second = createStore({
 		artifact: {
 			kind: ArtifactKind.Mutation,
@@ -111,7 +117,15 @@ test('MutationPlugin', async function () {
 			name: 'TestArtifact',
 			rootType: 'Mutation',
 			pluginData: {},
-			optimisticKeys: true,
+			optimisticKeys: false,
+			input: {
+				fields: {
+					id: 'String',
+				},
+				types: {},
+				defaults: {},
+				runtimeScalars: {},
+			},
 			selection: {
 				fields: {
 					createUser: {
@@ -125,8 +139,7 @@ test('MutationPlugin', async function () {
 									type: 'ID',
 									visible: true,
 									keyRaw: 'id',
-									optimisticKey: true,
-									directives: [{ name: 'optimisticKey', arguments: {} }],
+									optimisticKey: false,
 								},
 								firstName: {
 									type: 'String',
@@ -144,69 +157,41 @@ test('MutationPlugin', async function () {
 					},
 				},
 			},
-			input: {
-				fields: {},
-				types: {},
-				defaults: {},
-				runtimeScalars: {},
-			},
 		},
 		pipeline: [
-			mutation(cache),
+			optimisticKeys(callbacks, keys),
 			fakeFetch({
 				data: {
-					createUser: { id: '1', firstName: 'Alice', __typename: 'User' },
+					createUser: { id: '2', firstName: 'Alice', __typename: 'User' },
 				},
-				onRequest: (cb) => (resolveMutation = cb),
+				onRequest: (variables, cb) => {
+					secondVariables = variables
+					cb()
+				},
 			}),
 		],
 	})
-})
 
-test('injectOptimisticKeys', function () {
-	const selection: SubscriptionSelection = {
-		fields: {
-			createUser: {
-				type: 'User',
-				visible: true,
-				keyRaw: 'createUser',
-				loading: { kind: 'continue' },
-				selection: {
-					fields: {
-						id: {
-							type: 'ID',
-							visible: true,
-							keyRaw: 'id',
-							optimisticKey: true,
-							directives: [{ name: 'optimisticKey', arguments: {} }],
-						},
-						firstName: {
-							type: 'String',
-							visible: true,
-							keyRaw: 'firstName',
-							loading: { kind: 'value' },
-						},
-						__typename: {
-							type: 'String',
-							visible: true,
-							keyRaw: '__typename',
-						},
-					},
-				},
-			},
+	// sending the second mutation with the optimistic ID as an input should block
+	// until the first mutation resolves.
+	let secondResolved: QueryResult | null = null
+	second.send({
+		variables: {
+			id: record.id,
 		},
+	})
+
+	// wait for a bit, just to be sure
+	await sleep(200)
+	expect(secondResolved).toBeFalsy()
+
+	// we can now resolve the first mutation (which will provide the ID for the second)
+	if (resolveMutation) {
+		// @ts-ignore
+		resolveMutation?.()
 	}
 
-	// the place to store optimistic keys
-	const keys = new Set<string>()
-
-	// the optimistic response
-	const input: { createUser: { firstName: string; id?: string } } = {
-		createUser: {
-			firstName: 'Alec',
-		},
-	}
-	const result = injectOptimisticKeys(selection, input, keys)
-
-	expect(result.createUser.id).toBeDefined()
+	// make sure we did get a value
+	await sleep(200)
+	expect(secondVariables).toEqual({ id: '1' })
 })

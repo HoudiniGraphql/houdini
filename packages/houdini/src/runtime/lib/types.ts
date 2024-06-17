@@ -32,6 +32,7 @@ declare global {
 			optimisticResponse?: GraphQLObject
 			parentID?: string
 			silenceLoading?: boolean
+			mutationID?: number
 		}
 	}
 }

@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
-import { type DocumentArtifact, QueryResult } from '../../lib'
+import { type DocumentArtifact, GraphQLObject, QueryResult } from '../../lib'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 import { DocumentStore } from '../documentStore'
@@ -76,7 +76,7 @@ export function fakeFetch({
 }: {
 	data?: any
 	spy?: (ctx: ClientPluginContext) => void
-	onRequest?: (cb: () => void) => void
+	onRequest?: (variables: GraphQLObject, cb: () => void) => void
 }) {
 	const result: QueryResult = {
 		data: data ?? {
@@ -98,7 +98,9 @@ export function fakeFetch({
 		network(ctx, { resolve }) {
 			spy?.(ctx)
 			if (onRequest) {
-				onRequest(() => resolve(ctx, { ...result }))
+				onRequest(ctx.variables ?? {}, () => resolve(ctx, { ...result }))
+			} else {
+				resolve(ctx, { ...result })
 			}
 		},
 	})) as ClientPlugin
