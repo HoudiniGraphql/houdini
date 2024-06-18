@@ -39,7 +39,7 @@ export const optimisticKeys =
 		callbackCache: CallbackMap = callbacks,
 		keyCache: KeyMap = keys,
 		objectIDs: OptimisticObjectIDMap = objectIDMap,
-		invocationCounter: number = 0
+		invocationCounter: number = 1
 	): ClientPlugin =>
 	() => {
 		return {
@@ -136,10 +136,6 @@ export const optimisticKeys =
 
 								// clean up the caches since we're done with this key
 								delete callbackCache[optimisticValue]
-								if (ctx.stuff.mutationID) {
-									delete keyCache[ctx.stuff.mutationID]
-									delete objectIDs[ctx.stuff.mutationID]
-								}
 							},
 							onIDChange: (optimisticValue, realValue) =>
 								cache.registerKeyMap(optimisticValue, realValue),
@@ -148,6 +144,15 @@ export const optimisticKeys =
 				}
 
 				// we're done
+				resolve(ctx)
+			},
+
+			end(ctx, { resolve }) {
+				if (typeof ctx.stuff.mutationID !== 'undefined') {
+					delete keyCache[ctx.stuff.mutationID]
+					delete objectIDs[ctx.stuff.mutationID]
+				}
+
 				resolve(ctx)
 			},
 		}
