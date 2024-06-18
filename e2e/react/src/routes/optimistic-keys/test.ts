@@ -21,4 +21,11 @@ test('Hello World', async ({ page }) => {
 	} catch {}
 
 	expect(found).toBe(false)
+
+	// the value in the last row should be 'b'
+
+	// wait for the final mutation to resolve
+	await page.waitForTimeout(3000)
+
+	// the value in the last row should be 'a'
 })

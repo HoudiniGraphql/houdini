@@ -9,7 +9,12 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 	const [_, update] = useMutation(
 		graphql(`
 			mutation OptimisticKeyTestUpdateMutation($id: ID!, $avatarURL: String!) {
-				updateUserByID(id: $id, snapshot: "OptimisticKeyTest", avatarURL: $avatarURL) {
+				updateUserByID(
+					id: $id
+					snapshot: "OptimisticKeyTest"
+					avatarURL: $avatarURL
+					delay: 5000
+				) {
 					id
 					avatarURL
 				}
@@ -27,7 +32,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 					delay: 5000
 				) {
 					id @optimisticKey
-					...OptimisticKeyTest_insert @mask_disable
+					...OptimisticKeyTest_insert @mask_disable @prepend
 				}
 			}
 		`)
@@ -74,6 +79,12 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 											variables: {
 												id: edge.node.id,
 												avatarURL: 'a',
+											},
+											optimisticResponse: {
+												updateUserByID: {
+													id: edge.node.id,
+													avatarURL: 'b',
+												},
 											},
 										})
 										if (errors) {

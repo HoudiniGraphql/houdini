@@ -10,6 +10,7 @@ export class InMemoryStorage {
 	data: Layer[]
 	private idCount = 1
 	private rank = 0
+	private idMaps: Record<string, string> = {}
 
 	constructor() {
 		this.data = []
@@ -21,6 +22,10 @@ export class InMemoryStorage {
 
 	get nextRank(): number {
 		return this.rank++
+	}
+
+	registerIDMap(from: string, to: string) {
+		this.idMaps[from] = to
 	}
 
 	// create a layer and return its id
@@ -68,9 +73,8 @@ export class InMemoryStorage {
 			layer.replaceID(replacement)
 		}
 	}
-
 	get(
-		id: string,
+		targetID: string,
 		field: string,
 		defaultValue?: any
 	): {
@@ -90,93 +94,102 @@ export class InMemoryStorage {
 		// the list of layers we used to build up the value
 		const layerIDs: number[] = []
 
+		// the record might be known by multiple ids and we  need to look at every layer
+		// in the correct order
+		const recordIDs = [this.idMaps[targetID], targetID].filter(Boolean) as string[]
+
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
-			const layer = this.data[i]
-			let [layerValue, kind] = layer.get(id, field)
-			const layerOperations = layer.getOperations(id, field) || []
-			layer.deletedIDs.forEach((v) => {
-				// if the layer wants to undo a delete for the id
-				if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
-					return
-				}
-				operations.remove.add(v)
-			})
+			// consider every id that we know about
+			for (const id of recordIDs) {
+				const layer = this.data[i]
+				let [layerValue, kind] = layer.get(id, field)
 
-			// if we don't have a value to return, we're done
-			if (typeof layerValue === 'undefined' && defaultValue) {
-				const targetLayer = this.topLayer
-				const layerID = targetLayer.id
-				targetLayer.writeField(id, field, defaultValue)
-				layerValue = defaultValue
-			}
-
-			// if the layer does not contain a value for the field, move on
-			if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
-				if (layer.deletedIDs.size > 0) {
-					layerIDs.push(layer.id)
-				}
-				continue
-			}
-
-			// if the result isn't an array we can just use the value since we can't
-			// apply operations to the field
-			if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
-				return {
-					value: layerValue,
-					kind,
-					displayLayers: [layer.id],
-				}
-			}
-
-			// if the layer contains operations or values add it to the list of relevant layers
-			// add the layer to the list
-			layerIDs.push(layer.id)
-
-			// if we have an operation
-			if (layerOperations.length > 0) {
-				// process every operation
-				for (const op of layerOperations) {
-					// remove operation
-					if (isRemoveOperation(op)) {
-						operations.remove.add(op.id)
+				const layerOperations = layer.getOperations(id, field) || []
+				layer.deletedIDs.forEach((v) => {
+					// if the layer wants to undo a delete for the id
+					if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
+						return
 					}
-					// inserts are sorted by location
-					if (isInsertOperation(op)) {
-						operations.insert[op.location].unshift(op.id)
+					operations.remove.add(v)
+				})
+
+				// if we don't have a value to return, we're done
+				if (typeof layerValue === 'undefined' && defaultValue) {
+					const targetLayer = this.topLayer
+					targetLayer.writeField(id, field, defaultValue)
+					layerValue = defaultValue
+				}
+
+				// if the layer does not contain a value for the field, move on
+				if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
+					if (layer.deletedIDs.size > 0) {
+						layerIDs.push(layer.id)
 					}
-					// if we found a delete operation, we're done
-					if (isDeleteOperation(op)) {
-						return {
-							value: undefined,
-							kind: 'unknown',
-							displayLayers: [],
+					continue
+				}
+
+				// if the result isn't an array we can just use the value since we can't
+				// apply operations to the field
+				if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
+					return {
+						value: layerValue,
+						kind,
+						displayLayers: [layer.id],
+					}
+				}
+
+				// if the layer contains operations or values add it to the list of relevant layers
+				// add the layer to the list
+				layerIDs.push(layer.id)
+
+				// if we have an operation
+				if (layerOperations.length > 0) {
+					// process every operation
+					for (const op of layerOperations) {
+						// remove operation
+						if (isRemoveOperation(op)) {
+							operations.remove.add(op.id)
+						}
+						// inserts are sorted by location
+						if (isInsertOperation(op)) {
+							operations.insert[op.location].unshift(op.id)
+						}
+						// if we found a delete operation, we're done
+						if (isDeleteOperation(op)) {
+							return {
+								value: undefined,
+								kind: 'unknown',
+								displayLayers: [],
+							}
 						}
 					}
 				}
-			}
 
-			// if we don't have a value to return, we're done
-			if (typeof layerValue === 'undefined') {
-				continue
-			}
+				// if we don't have a value to return, we're done
+				if (typeof layerValue === 'undefined') {
+					continue
+				}
 
-			// if there are no operations, move along
-			if (
-				!operations.remove.size &&
-				!operations.insert.start.length &&
-				!operations.insert.end.length
-			) {
-				return { value: layerValue, displayLayers: layerIDs, kind: 'link' }
-			}
+				// if there are no operations, move along
+				if (
+					!operations.remove.size &&
+					!operations.insert.start.length &&
+					!operations.insert.end.length
+				) {
+					return { value: layerValue, displayLayers: layerIDs, kind: 'link' }
+				}
 
-			// we have operations to apply to the list
-			return {
-				value: [...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
-					(value) => !operations.remove.has(value as string)
-				),
-				displayLayers: layerIDs,
-				kind,
+				// we have operations to apply to the list
+				return {
+					value: [
+						...operations.insert.start,
+						...layerValue,
+						...operations.insert.end,
+					].filter((value) => !operations.remove.has(value as string)),
+					displayLayers: layerIDs,
+					kind,
+				}
 			}
 		}
 

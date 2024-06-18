@@ -1,4 +1,6 @@
-import { getFieldsForType } from '../../lib'
+import type { Cache } from '../../cache/cache'
+import configFile from '../../imports/config'
+import { computeID, getFieldsForType, keyFieldsForType } from '../../lib'
 import type {
 	GraphQLObject,
 	NestedList,
@@ -25,11 +27,18 @@ import type { ClientPlugin } from '../documentStore'
 
 export type CallbackMap = Record<string, Array<(newID: any) => void>>
 export type KeyMap = Record<number, Record<string, keyof CallbackMap>>
+type OptimisticObjectIDMap = Record<number, Record<string, string>>
+
+const keys: KeyMap = {}
+const callbacks: CallbackMap = {}
+const objectIDMap: OptimisticObjectIDMap = {}
 
 export const optimisticKeys =
 	(
-		callbackCache: CallbackMap = {},
-		keyCache: KeyMap = {},
+		cache: Cache,
+		callbackCache: CallbackMap = callbacks,
+		keyCache: KeyMap = keys,
+		objectIDs: OptimisticObjectIDMap = objectIDMap,
 		invocationCounter: number = 0
 	): ClientPlugin =>
 	() => {
@@ -55,11 +64,14 @@ export const optimisticKeys =
 						response: optimisticResponse,
 						callbackStore: callbackCache,
 						keyStore: keyCache,
+						objectIDs,
 						mutationID: newCtx.stuff.mutationID,
 					})
 
+					// use the updated optimistic response for the rest of the chain
 					newCtx.stuff.optimisticResponse = optimisticResponse
 				}
+
 				// make sure we write to the correct layer in the cache
 				next(newCtx)
 			},
@@ -110,21 +122,29 @@ export const optimisticKeys =
 					typeof ctx.stuff.mutationID !== 'undefined'
 				) {
 					// look for any values in the response that correspond to values in the keyCache
-					const newKeys = extractResponseKeys(
+					extractResponseKeys(
+						cache,
 						value.data ?? {},
+						ctx.artifact.selection,
 						keyCache,
-						ctx.stuff.mutationID
+						ctx.stuff.mutationID,
+						{
+							onNewKey: (optimisticValue: string, realValue: string) => {
+								callbackCache[optimisticValue].forEach((cb) => {
+									cb(realValue)
+								})
+
+								// clean up the caches since we're done with this key
+								delete callbackCache[optimisticValue]
+								if (ctx.stuff.mutationID) {
+									delete keyCache[ctx.stuff.mutationID]
+									delete objectIDs[ctx.stuff.mutationID]
+								}
+							},
+							onIDChange: (optimisticValue, realValue) =>
+								cache.registerKeyMap(optimisticValue, realValue),
+						}
 					)
-
-					// notify any dependent chains
-					for (const [key, newID] of Object.entries(newKeys)) {
-						// invoke each callback
-						callbackCache[newID].forEach((cb) => cb(key))
-
-						// clean up the caches since we're done with this key
-						delete callbackCache[newID]
-						delete keyCache[ctx.stuff.mutationID]
-					}
 				}
 
 				// we're done
@@ -141,6 +161,7 @@ function addKeysToResponse(args: {
 	type?: string
 	path?: string
 	mutationID: number
+	objectIDs: OptimisticObjectIDMap
 }): any {
 	// we need to walk the selection and inject the optimistic keys into the response
 	// collect all of the fields that we need to write
@@ -163,7 +184,6 @@ function addKeysToResponse(args: {
 			const keyValue = new Date().getTime().toString()
 			newKeys.push(keyValue)
 			args.response[field] = keyValue
-
 			args.callbackStore[keyValue] = []
 			args.keyStore[args.mutationID] = {
 				[pathSoFar]: keyValue,
@@ -197,6 +217,18 @@ function addKeysToResponse(args: {
 		}
 	}
 
+	// if there were optimistic keys added to the response, we need to
+	// track the ID holding the new value
+	if (newKeys.length > 0) {
+		const objID = `${args.type}:${computeID(configFile, args.type ?? '', args.response)}`
+		for (const key of newKeys) {
+			args.objectIDs[args.mutationID] = {
+				...args.objectIDs[args.mutationID],
+				[key]: objID,
+			}
+		}
+	}
+
 	return args.response
 }
 
@@ -205,7 +237,7 @@ function extractInputKeys(
 	store: CallbackMap,
 	found: Record<string, string | null> = {}
 ) {
-	for (const [key, value] of Object.entries(obj)) {
+	for (const value of Object.values(obj)) {
 		if (typeof value === 'string' && store[value]) {
 			found[value] = null
 		}
@@ -225,37 +257,110 @@ function extractInputKeys(
 }
 
 function extractResponseKeys(
+	cache: Cache,
 	response: GraphQLObject,
+	selection: SubscriptionSelection,
 	keyMap: KeyMap,
 	mutationID: number,
-	result: Record<string, string> = {},
-	path: string = ''
-): Record<string, string> {
-	for (const [key, value] of Object.entries(response)) {
-		const pathSoFar = `${path ?? ''}.${key}`
+	events: {
+		onNewKey: (optimisticValue: string, realValue: string) => void
+		onIDChange: (optimisticValue: string, realValue: string) => void
+	},
+	objectIDs: OptimisticObjectIDMap = objectIDMap,
+	path: string = '',
+	type: string = ''
+) {
+	// collect all of the fields that we need to write
+	let targetSelection = getFieldsForType(
+		selection,
+		response['__typename'] as string | undefined,
+		false
+	)
+
+	let optimisticID: string | null = null
+
+	// data is an object with fields that we need to write to the store
+	for (const [field, value] of Object.entries(response)) {
+		// if the path corresponds to an optimistic key
+		const pathSoFar = `${path ?? ''}.${field}`
 
 		if (typeof value === 'string' && keyMap[mutationID][pathSoFar]) {
-			result[value] = keyMap[mutationID][pathSoFar]
+			const newKey = keyMap[mutationID][pathSoFar]
+			// notify the listeners that the key has changed
+			events.onNewKey(newKey, value)
+
+			// grab the optimistic ID referenced by the path
+			optimisticID = objectIDs[mutationID][newKey]
 		}
 
+		// grab the selection info we care about
+		if (!selection || !targetSelection[field]) {
+			continue
+		}
+
+		// look up the field in our schema
+		let { type, selection: fieldSelection } = targetSelection[field]
+
+		// walk down lists in the response
 		if (Array.isArray(value)) {
 			for (const [index, item] of flattenList(value).entries()) {
-				if (item && typeof item === 'object') {
+				if (item && typeof item === 'object' && fieldSelection) {
 					extractResponseKeys(
+						cache,
 						item as GraphQLObject,
+						fieldSelection,
 						keyMap,
 						mutationID,
-						result,
-						`${pathSoFar}[${index}]`
+						events,
+						objectIDs,
+						`${pathSoFar}[${index}]`,
+						type
 					)
 				}
 			}
-		} else if (value && typeof value === 'object') {
-			extractResponseKeys(value, keyMap, mutationID, result, pathSoFar)
+		}
+		// walk down objects in the response
+		else if (value && typeof value === 'object' && fieldSelection) {
+			extractResponseKeys(
+				cache,
+				value,
+				fieldSelection,
+				keyMap,
+				mutationID,
+				events,
+				objectIDs,
+				pathSoFar,
+				type
+			)
 		}
 	}
 
-	return result
+	// if we found an optimistic ID in the previous step
+	if (optimisticID) {
+		// once we're done walking down, we can compute the id
+		const id = computeID(configFile, type, response)
+
+		// if the id has changed, we need to tell the cache that the two ids are the same
+		events.onIDChange(`${type}:${id}`, optimisticID)
+
+		// we need to write new values for the key fields in the cache
+		// that are owned by the old key
+		cache.write({
+			selection: {
+				fields: Object.fromEntries(
+					keyFieldsForType(configFile, type).map((key) => [
+						key,
+						{
+							type: 'scalar',
+							keyRaw: key,
+						},
+					])
+				),
+			},
+			parent: optimisticID,
+			data: response,
+		})
+	}
 }
 
 function flattenList(source: NestedList<GraphQLValue>): Array<GraphQLValue> {

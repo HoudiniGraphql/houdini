@@ -1,8 +1,7 @@
 import type { Cache } from '../../cache/cache'
-import { getFieldsForType } from '../../lib'
 import { marshalSelection } from '../../lib/scalars'
-import type { GraphQLObject, SubscriptionSpec } from '../../lib/types'
-import { ArtifactKind, SubscriptionSelection } from '../../lib/types'
+import type { SubscriptionSpec } from '../../lib/types'
+import { ArtifactKind } from '../../lib/types'
 import { documentPlugin } from '../utils'
 
 export const mutation = (cache: Cache) =>

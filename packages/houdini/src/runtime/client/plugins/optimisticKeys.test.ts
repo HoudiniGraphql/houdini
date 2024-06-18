@@ -1,10 +1,10 @@
 import { sleep } from '@kitql/helpers'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { beforeEach, expect, test } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
-import { ArtifactKind, QueryResult, SubscriptionSelection, GraphQLObject } from '../../lib/types'
+import { ArtifactKind, QueryResult, GraphQLObject } from '../../lib/types'
 import { mutation } from './mutation'
 import { optimisticKeys } from './optimisticKeys'
 import { createStore, fakeFetch } from './test'
@@ -77,7 +77,7 @@ test('OptimisticKeys Plugin', async function () {
 			},
 		},
 		pipeline: [
-			optimisticKeys(callbacks, keys),
+			optimisticKeys(cache, callbacks, keys),
 			mutation(cache),
 			fakeFetch({
 				data: {
@@ -159,7 +159,7 @@ test('OptimisticKeys Plugin', async function () {
 			},
 		},
 		pipeline: [
-			optimisticKeys(callbacks, keys),
+			optimisticKeys(cache, callbacks, keys),
 			fakeFetch({
 				data: {
 					createUser: { id: '2', firstName: 'Alice', __typename: 'User' },

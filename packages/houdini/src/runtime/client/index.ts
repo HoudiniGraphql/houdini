@@ -116,7 +116,7 @@ export class HoudiniClient {
 					// to the standard set
 					(
 						[
-							optimisticKeys(),
+							optimisticKeys(this.cache ?? cacheRef),
 							// make sure that documents always work
 							queryPlugin(this.cache ?? cacheRef),
 							mutationPlugin(this.cache ?? cacheRef),
