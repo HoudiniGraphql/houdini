@@ -13,7 +13,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 					id: $id
 					snapshot: "OptimisticKeyTest"
 					avatarURL: $avatarURL
-					delay: 5000
+					delay: 2000
 				) {
 					id
 					avatarURL
@@ -61,6 +61,14 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 			</div>
 
 			<table style={{ marginTop: 8, width: 1000, verticalAlign: 'middle' }}>
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Name</th>
+						<th>Avatar URL</th>
+						<th></th>
+					</tr>
+				</thead>
 				<tbody>
 					{OptimisticKeyTest?.usersConnection.edges.map((edge, i) => (
 						<tr key={edge.node.id}>
