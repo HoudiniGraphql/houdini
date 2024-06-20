@@ -146,7 +146,7 @@ export class Cache {
 	}
 
 	// when an optimistic key resolves, we might momentarily know the same record by different IDs
-	registerKeyMap(source: string, mapped: string) {
+	registerKeyMap(source: string | number, mapped: string | number) {
 		this._internal_unstable.storage.registerIDMap(source, mapped)
 	}
 

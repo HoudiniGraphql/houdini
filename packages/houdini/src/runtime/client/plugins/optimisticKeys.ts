@@ -1,6 +1,6 @@
 import type { Cache } from '../../cache/cache'
 import configFile from '../../imports/config'
-import { computeID, getFieldsForType, keyFieldsForType } from '../../lib'
+import { computeID, getFieldsForType, keyFieldsForType, marshalSelection } from '../../lib'
 import type {
 	GraphQLObject,
 	NestedList,
@@ -16,16 +16,16 @@ import type { ClientPlugin } from '../documentStore'
 // a way to keep track of the pending keys and then notify other request chains.
 //
 // The major constraint here is that a document could be invoked multiple times, each of which
-// can put the corresponding chain into a pending state. A doucment can also contain multiple
-// keys in its response so we to keep track of the query path in our data where we encounter the key.
+// can put the corresponding chain into a pending state. A document can also contain multiple
+// keys in its response so we need to keep track of the query path in our data where we encounter the key.
 //
-// So, we have 2 different mappings we need to track:
+// Therefore, we have 2 different mappings we need to track:
 // a mapping from optimistic key to the list of callbacks that need to be notified
 // a mapping of invocation id and path to the generated optimistic key
 // NOTE: we need 2 different indexes so even though ^ could be merged into a single map.
 //       since we need to know if an input is a generated key and if a path is a generated key
 
-export type CallbackMap = Record<string, Array<(newID: any) => void>>
+export type CallbackMap = Record<string | number, Array<(newID: any) => void>>
 export type KeyMap = Record<number, Record<string, keyof CallbackMap>>
 type OptimisticObjectIDMap = Record<number, Record<string, string>>
 
@@ -129,7 +129,7 @@ export const optimisticKeys =
 						keyCache,
 						ctx.stuff.mutationID,
 						{
-							onNewKey: (optimisticValue: string, realValue: string) => {
+							onNewKey: (optimisticValue, realValue) => {
 								callbackCache[optimisticValue].forEach((cb) => {
 									cb(realValue)
 								})
@@ -181,12 +181,39 @@ function addKeysToResponse(args: {
 	for (const [field, { type, selection: fieldSelection, optimisticKey }] of Object.entries(
 		targetSelection
 	)) {
+		const value = args.response[field]
 		const pathSoFar = `${args.path ?? ''}.${field}`
 
 		// if this field is marked as an optimistic key, add it to the obj
 		if (optimisticKey) {
-			// TODO: be smarter about this. we should generate the correct type for the key
-			const keyValue = new Date().getTime().toString()
+			// figure out the value we should use for the optimistic key
+			let keyValue
+
+			// if there is a value already in the response then we should use that
+			if (value) {
+				// marshal the value into something we can use for an id
+				const { marshaled } = marshalSelection({
+					data: { marshaled: value },
+					selection: {
+						fields: {
+							value: {
+								type,
+								keyRaw: 'value',
+							},
+						},
+					},
+				}) as { marshaled: string }
+
+				// use the marshaled value as the key
+				keyValue = marshaled
+			}
+			// if the field isn't present in the optimistic payload then we need to come up
+			// with our own value for the key based on the type
+			else {
+				keyValue = generateKey(type)
+			}
+
+			// we need to populate the various stores that we use to track the keys
 			newKeys.push(keyValue)
 			args.response[field] = keyValue
 			args.callbackStore[keyValue] = []
@@ -194,7 +221,6 @@ function addKeysToResponse(args: {
 				[pathSoFar]: keyValue,
 			}
 		}
-		const value = args.response[field]
 
 		// keep walking down the selection
 		if (fieldSelection) {
@@ -268,8 +294,8 @@ function extractResponseKeys(
 	keyMap: KeyMap,
 	mutationID: number,
 	events: {
-		onNewKey: (optimisticValue: string, realValue: string) => void
-		onIDChange: (optimisticValue: string, realValue: string) => void
+		onNewKey: (optimisticValue: string | number, realValue: string | number) => void
+		onIDChange: (optimisticValue: string | number, realValue: string | number) => void
 	},
 	objectIDs: OptimisticObjectIDMap = objectIDMap,
 	path: string = '',
@@ -404,4 +430,18 @@ function replaceKeyWithVariable(
 	}
 
 	return variables
+}
+
+function generateKey(type: string) {
+	if (type === 'Int') {
+		return new Date().getTime()
+	}
+
+	if (type === 'String') {
+		return new Date().getTime().toString()
+	}
+
+	throw new Error(
+		`unsupported type for optimistic key: ${type}. Please provide a value in your mutation arguments.`
+	)
 }

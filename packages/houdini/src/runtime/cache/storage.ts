@@ -10,7 +10,7 @@ export class InMemoryStorage {
 	data: Layer[]
 	private idCount = 1
 	private rank = 0
-	private idMaps: Record<string, string> = {}
+	private idMaps: Record<string | number, string | number> = {}
 
 	constructor() {
 		this.data = []
@@ -24,7 +24,7 @@ export class InMemoryStorage {
 		return this.rank++
 	}
 
-	registerIDMap(from: string, to: string) {
+	registerIDMap(from: string | number, to: string | number) {
 		this.idMaps[from] = to
 	}
 

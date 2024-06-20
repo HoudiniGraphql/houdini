@@ -10,13 +10,13 @@ import {
 	type SubscriptionSelection,
 } from './types'
 
-export async function marshalSelection({
+export function marshalSelection({
 	selection,
 	data,
 }: {
 	selection: SubscriptionSelection
 	data: any
-}): Promise<{} | null | undefined> {
+}): Record<string, any> | null | undefined {
 	const config = getCurrentConfig()
 
 	if (data === null || typeof data === 'undefined') {
@@ -26,52 +26,50 @@ export async function marshalSelection({
 	// if we are looking at a list
 	if (Array.isArray(data)) {
 		// unmarshal every entry in the list
-		return await Promise.all(data.map((val) => marshalSelection({ selection, data: val })))
+		return data.map((val) => marshalSelection({ selection, data: val }))
 	}
 
 	const targetSelection = getFieldsForType(selection, data['__typename'] as string, false)
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
-		await Promise.all(
-			Object.entries(data as {}).map(async ([fieldName, value]) => {
-				// leave the fragment entry alone
-				if (fieldName === fragmentKey) {
-					return [fieldName, value]
-				}
-
-				// look up the type for the field
-				const { type, selection } = targetSelection[fieldName]
-				// if we don't have type information for this field, just use it directly
-				// it's most likely a non-custom scalars or enums
-				if (!type) {
-					return [fieldName, value]
-				}
-
-				// if there is a sub selection, walk down the selection
-				if (selection) {
-					return [fieldName, await marshalSelection({ selection, data: value })]
-				}
-
-				// is the type something that requires marshaling
-				if (config!.scalars?.[type]) {
-					const marshalFn = config!.scalars[type].marshal
-					if (!marshalFn) {
-						throw new Error(
-							`scalar type ${type} is missing a \`marshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
-						)
-					}
-					if (Array.isArray(value)) {
-						return [fieldName, value.map(marshalFn)]
-					}
-					return [fieldName, marshalFn(value)]
-				}
-
-				// if the type doesn't require marshaling and isn't a referenced type
-				// then the type is a scalar that doesn't require marshaling
+		Object.entries(data as {}).map(([fieldName, value]) => {
+			// leave the fragment entry alone
+			if (fieldName === fragmentKey) {
 				return [fieldName, value]
-			})
-		)
+			}
+
+			// look up the type for the field
+			const { type, selection } = targetSelection[fieldName]
+			// if we don't have type information for this field, just use it directly
+			// it's most likely a non-custom scalars or enums
+			if (!type) {
+				return [fieldName, value]
+			}
+
+			// if there is a sub selection, walk down the selection
+			if (selection) {
+				return [fieldName, marshalSelection({ selection, data: value })]
+			}
+
+			// is the type something that requires marshaling
+			if (config!.scalars?.[type]) {
+				const marshalFn = config!.scalars[type].marshal
+				if (!marshalFn) {
+					throw new Error(
+						`scalar type ${type} is missing a \`marshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
+					)
+				}
+				if (Array.isArray(value)) {
+					return [fieldName, value.map(marshalFn)]
+				}
+				return [fieldName, marshalFn(value)]
+			}
+
+			// if the type doesn't require marshaling and isn't a referenced type
+			// then the type is a scalar that doesn't require marshaling
+			return [fieldName, value]
+		})
 	)
 }
 
