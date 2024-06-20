@@ -13,7 +13,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 					id: $id
 					snapshot: "OptimisticKeyTest"
 					avatarURL: $avatarURL
-					delay: 2000
+					delay: 4000
 				) {
 					id
 					avatarURL
@@ -43,13 +43,13 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 			{error ? <div data-error="true">{error}</div> : null}
 			<div>
 				<button
-					data-test-action="add"
+					data-test-action="create"
 					onClick={() =>
 						create({
 							variables: { birthDate: new Date(), name: 'New User' },
 							optimisticResponse: {
 								addUser: {
-									avatarURL: 'test',
+									avatarURL: 'optimistic value 1',
 									name: 'New User',
 								},
 							},
@@ -74,24 +74,20 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 						<tr key={edge.node.id}>
 							<td>{edge.node.id}</td>
 							<td>{edge.node.name}</td>
-							<td>{edge.node.avatarURL}</td>
+							<td data-testid={i === 0 ? 'target' : ''}>{edge.node.avatarURL}</td>
 							<td style={{ textAlign: 'right' }}>
 								<button
-									data-action={
-										i === OptimisticKeyTest?.usersConnection.edges.length - 1
-											? 'update'
-											: null
-									}
+									data-test-action={i === 0 ? 'update' : null}
 									onClick={async () => {
 										const { errors } = await update({
 											variables: {
 												id: edge.node.id,
-												avatarURL: 'a',
+												avatarURL: 'final value',
 											},
 											optimisticResponse: {
 												updateUserByID: {
 													id: edge.node.id,
-													avatarURL: 'b',
+													avatarURL: 'optimistic value 2',
 												},
 											},
 										})

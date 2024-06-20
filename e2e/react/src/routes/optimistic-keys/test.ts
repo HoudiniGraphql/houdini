@@ -9,6 +9,14 @@ test('Hello World', async ({ page }) => {
 	// and then update it immediately
 	await page.click('[data-test-action="create"]')
 
+	const getValue = async () => {
+		const elements = await page.getByTestId('target')
+		return await elements.textContent()
+	}
+
+	// the value in the last row should be 'optimistic value 1'
+	expect(await getValue()).toBe('optimistic value 1')
+
 	// click on the last list in the row
 	await page.click('[data-test-action="update"]')
 
@@ -22,10 +30,12 @@ test('Hello World', async ({ page }) => {
 
 	expect(found).toBe(false)
 
-	// the value in the last row should be 'b'
+	// the value in the last row should be 'optimistic value 2'
+	expect(await getValue()).toBe('optimistic value 2')
 
 	// wait for the final mutation to resolve
-	await page.waitForTimeout(3000)
+	await page.waitForTimeout(6000)
 
-	// the value in the last row should be 'a'
+	// the value in the last row should be 'final value'
+	expect(await getValue()).toBe('final value')
 })
