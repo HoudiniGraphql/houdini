@@ -21,10 +21,10 @@ test('Hello World', async ({ page }) => {
 	await page.click('[data-test-action="update"]')
 
 	// wait a few seconds and make sure there are no errors
-	await page.waitForTimeout(3000)
+	await page.waitForTimeout(300)
 	let found = false
 	try {
-		await page.waitForSelector('[data-error="true"]', { timeout: 1000 })
+		await page.waitForSelector('[data-error="true"]', { timeout: 100 })
 		found = true
 	} catch {}
 
@@ -34,7 +34,7 @@ test('Hello World', async ({ page }) => {
 	expect(await getValue()).toBe('optimistic value 2')
 
 	// wait for the final mutation to resolve
-	await page.waitForTimeout(6000)
+	await page.waitForTimeout(200)
 
 	// the value in the last row should be 'final value'
 	expect(await getValue()).toBe('final value')
