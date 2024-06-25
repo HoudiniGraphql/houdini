@@ -436,9 +436,9 @@ describe('parser svelte 5 runes detection', () => {
             </script>`,
 			},
 			{
-				runeName: '$effect.active',
+				runeName: '$effect.tracking',
 				document: `<script>
-                const isActive = $effect.active();
+                const isActive = $effect.tracking();
             </script>`,
 			},
 			{

@@ -39,7 +39,7 @@ type EmbeddedScript = {
 	useRunes: boolean
 }
 
-// Source: https://github.com/sveltejs/svelte/blob/d4718e0755eac1e505292d0fb7cfd8682eca3048/packages/svelte/src/compiler/phases/constants.js#L31
+// Source: https://github.com/sveltejs/svelte/blob/879b0119d53e93c118c9c8519f0f7f54138c34d2/packages/svelte/src/compiler/phases/constants.js#L31
 // Be sure to update this when this list changes.
 const svelteRunes: string[] = [
 	'$state',
@@ -52,7 +52,7 @@ const svelteRunes: string[] = [
 	'$derived.by',
 	'$effect',
 	'$effect.pre',
-	'$effect.active',
+	'$effect.tracking',
 	'$effect.root',
 	'$inspect',
 	'$inspect().with',
