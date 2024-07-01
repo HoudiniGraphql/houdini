@@ -14,14 +14,16 @@
 		{ label: 'dark', icon: 'sun' }
 	]
 
+	const COOKIE_TIMEOUT = 60 * 60 * 24 * 365 // One year
+
 	function setLang() {
-		document.cookie = `lang=${other_lang};path=/;SameSite=Lax`
+		document.cookie = `lang=${other_lang};path=/;SameSite=Lax;max-age=${COOKIE_TIMEOUT}`
 		lang = other_lang
 	}
 
 	function setTheme() {
 		ui_theme = ui_theme ? 0 : 1
-		document.cookie = `ui_theme=${ui_theme};path=/;SameSite=Lax`
+		document.cookie = `ui_theme=${ui_theme};path=/;SameSite=Lax;max-age=${COOKIE_TIMEOUT}`
 	}
 </script>
 
