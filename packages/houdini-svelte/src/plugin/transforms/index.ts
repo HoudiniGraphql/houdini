@@ -24,6 +24,7 @@ export default async function apply_transforms(
 	// and then join them back together
 	let script: Script | null = null
 	let position: { start: number; end: number } | null = null
+	let useRunes = false
 
 	try {
 		if (page.filepath.endsWith('.svelte')) {
@@ -31,6 +32,7 @@ export default async function apply_transforms(
 			if (res) {
 				script = res.script
 				position = res.position
+				useRunes = res.useRunes
 			} else {
 				// if the route script is nill we can just use an empty program
 				script = recast.types.builders.program([])
@@ -48,6 +50,7 @@ export default async function apply_transforms(
 		...page,
 		framework,
 		script,
+		svelte5Runes: useRunes,
 	}
 
 	// send the scripts through the pipeline

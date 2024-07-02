@@ -52,7 +52,8 @@ export async function find_graphql(
 			if (
 				node.type !== 'TaggedTemplateExpression' &&
 				node.type !== 'CallExpression' &&
-				node.type !== 'TSPropertySignature'
+				node.type !== 'TSPropertySignature' &&
+				node.type !== 'VariableDeclaration'
 			) {
 				return
 			}
