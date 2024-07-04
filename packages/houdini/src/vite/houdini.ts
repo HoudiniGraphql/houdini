@@ -1,5 +1,5 @@
 import type { SourceMapInput } from 'rollup'
-import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
+import type { UserConfig, ResolvedConfig, ConfigEnv, PluginOption } from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
@@ -20,7 +20,7 @@ let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
 let devServer = false
 
-export default function Plugin(opts: PluginConfig = {}): VitePlugin {
+export default function Plugin(opts: PluginConfig = {}): PluginOption {
 	return {
 		name: 'houdini',
 
@@ -150,7 +150,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					continue
 				}
 
-				// @ts-expect-error
 				await plugin.vite!.buildStart.call(this, {
 					...args,
 					houdiniConfig: config,

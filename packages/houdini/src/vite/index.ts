@@ -1,6 +1,6 @@
 import minimatch from 'minimatch'
-import type { Plugin } from 'vite'
-import watch_and_run from 'vite-plugin-watch-and-run'
+import type { PluginOption } from 'vite'
+import { watchAndRun } from 'vite-plugin-watch-and-run'
 
 import generate from '../codegen'
 import type { PluginConfig } from '../lib'
@@ -13,7 +13,7 @@ export * from './imports'
 export * from './schema'
 export * from './houdini'
 
-export default function (opts?: PluginConfig): Plugin[] {
+export default function (opts?: PluginConfig): PluginOption[] {
 	// we need some way for the graphql tag to detect that we are running on the server
 	// so we don't get an error when importing.
 	process.env.HOUDINI_PLUGIN = 'true'
@@ -25,10 +25,10 @@ export default function (opts?: PluginConfig): Plugin[] {
 		houdini_vite(opts),
 		watch_remote_schema(opts),
 		watch_local_schema(watchSchemaListref),
-		watch_and_run([
+		watchAndRun([
 			{
 				name: 'Houdini',
-				quiet: true,
+				logs: [],
 				async watchFile(filepath: string) {
 					// load the config file
 					const config = await getConfig(opts)
