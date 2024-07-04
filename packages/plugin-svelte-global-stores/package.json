@@ -27,11 +27,11 @@
         "vitest": "^1.6.0"
     },
     "dependencies": {
-        "@sveltejs/kit": "^1.9.3",
+        "@sveltejs/kit": "^2.5.18",
         "houdini": "workspace:^",
         "houdini-svelte": "workspace:^",
         "recast": "^0.23.1",
-        "svelte": "^3.56.0"
+        "svelte": "^4.2.18"
     },
     "files": [
         "build"
