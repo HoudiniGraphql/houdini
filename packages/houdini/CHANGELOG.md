@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.48
+
+### Patch Changes
+
+-   [#1312](https://github.com/HoudiniGraphql/houdini/pull/1312) [`e21f7c6a`](https://github.com/HoudiniGraphql/houdini/commit/e21f7c6a700eafe7c2eaa5f9ce6856a64f5abba7) @SeppahBaws - Fix "Cannot read properties of undefined (reading 'watchFiles')" error using vite 5.3
+
 ## 1.2.47
 
 ### 🐛 Fixes
