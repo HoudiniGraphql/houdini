@@ -212,7 +212,7 @@ You should now go and confirm that you can see all of the forms associated with 
 
 This point is kind of hard to get across but maybe you can already see what we mean. In this last example we built a component that had needed a particular selection of data and also used another component which itself had its own requirements. By giving each component their own fragment, we were able to maintain a very loose coupling between our components and not have to leave it up to coincidence that the correct information was part of the route's query.
 
-You should think of fragments as the main building block for describing your component's data requirements in Houdini. As your project grows, your component library will fill with components that are smart enough to ask for exactly the information they need. Can you imagine how this could apply to a `UserAvatar` component that seems to constantly evolve from needing just first and last initials, to also wanting the user's email, and finally some user-configured favorite color?
+You should think of fragments as the main building block for describing your component's data requirements in Houdini. As your project grows, your component library will be filled with components that are smart enough to ask for exactly the information they need. Can you imagine how this could apply to a `UserAvatar` component that seems to constantly evolve from needing just first and last initials, to also wanting the user's email, and finally some user-configured favorite color?
 
 </DeepDive>
 
