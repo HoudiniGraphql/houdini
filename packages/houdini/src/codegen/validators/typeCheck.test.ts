@@ -1167,8 +1167,8 @@ const table: Row[] = [
 		pass: true,
 		documents: [
 			`
-			query B {
-				user  {
+			mutation B {
+				updateUser  {
 					id @optimisticKey
 				}
 			}
@@ -1180,15 +1180,15 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-			query B {
-				user  {
+			mutation B {
+				updateUser  {
 					firstName @optimisticKey
 				}
 			}
 			`,
 			`
-			query B {
-				user  {
+			mutation A {
+				updateUser  {
 					firstName @optimisticKey
 				}
 			}
@@ -1200,15 +1200,15 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-			query B {
-				ghost  {
+			mutation A {
+				updateGhost  {
 					aka @optimisticKey
 				}
 			}
 			`,
 			`
-			query B {
-				ghost  {
+			mutation B {
+				updateGhost  {
 					aka @optimisticKey
 				}
 			}
@@ -1220,16 +1220,16 @@ const table: Row[] = [
 		pass: true,
 		documents: [
 			`
-			query A {
-				ghost  {
+			mutation A {
+				updateGhost  {
 					aka @optimisticKey
 					name @optimisticKey
 				}
 			}
 			`,
 			`
-			query B {
-				ghost  {
+			mutation B {
+				updateGhost  {
 					aka @optimisticKey
 					name @optimisticKey
 				}
@@ -1264,16 +1264,16 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-			query A {
-				ghost @optimisticKey {
+			mutation A {
+				updateGhost @optimisticKey {
 					aka
 					name
 				}
 			}
 			`,
 			`
-			query B {
-				ghost @optimisticKey {
+			mutation B {
+				updateGhost @optimisticKey {
 					aka
 					name
 				}

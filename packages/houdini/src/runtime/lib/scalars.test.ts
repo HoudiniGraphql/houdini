@@ -341,12 +341,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection: artifact.selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			items: [
 				{
 					createdAt: date.getTime(),
@@ -371,12 +371,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection: artifact.selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			items: [
 				{
 					dates: [date1.getTime(), date2.getTime()],
@@ -394,12 +394,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection: artifact.selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			items: [
 				{
 					dates: [],
@@ -427,12 +427,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		await expect(() =>
+		expect(() =>
 			marshalSelection({
 				selection: artifact.selection,
 				data,
 			})
-		).rejects.toThrow(/scalar type DateTime is missing a `marshal` function/)
+		).toThrow(/scalar type DateTime is missing a `marshal` function/)
 	})
 
 	test('undefined', async function () {
@@ -458,12 +458,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			item: undefined,
 		})
 	})
@@ -491,12 +491,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			item: null,
 		})
 	})
@@ -551,12 +551,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			item: {
 				createdAt: date.getTime(),
 				creator: {
@@ -580,12 +580,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			rootBool: true,
 		})
 	})
@@ -604,12 +604,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			enumValue: 'Hello',
 		})
 	})
@@ -628,12 +628,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		await expect(
+		expect(
 			marshalSelection({
 				selection,
 				data,
 			})
-		).resolves.toEqual({
+		).toEqual({
 			enumValue: ['Hello', 'World'],
 		})
 	})

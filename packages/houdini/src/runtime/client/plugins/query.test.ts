@@ -3,8 +3,8 @@ import { beforeEach, expect, test, vi } from 'vitest'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
-import { createStore, fakeFetch } from './cache.test'
 import { query } from './query'
+import { createStore, fakeFetch } from './test'
 
 const config = testConfigFile()
 beforeEach(async () => {
