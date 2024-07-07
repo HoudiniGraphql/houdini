@@ -11,7 +11,7 @@ description: The third part of the Houdini intro focusing on how to update the c
 
 Thanks for making it this far! We really appreciate the time you are spending to learn Houdini.
 
-So far we've only covered how to read data from our server. Clearly this is only part of the picture since most projects need to be able to update the server's state.
+So far we've only covered how to read data from our server. Clearly this is only one part of the picture since most projects need to be able to update the server's state.
 
 <GraphQLExplained title="Mutations">
 
