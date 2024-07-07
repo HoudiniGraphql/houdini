@@ -55,7 +55,7 @@ export async function expect_n_gql(
 
 	async function fnRes(response: Response) {
 		// console.log('<<', response.status(), response.url());
-		if (response.url().endsWith('/graphql')) {
+		if (response.url().endsWith('/_api')) {
 			timing.push(new Date().valueOf() - start)
 			try {
 				const json = await response.json()

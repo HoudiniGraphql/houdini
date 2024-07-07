@@ -73,7 +73,7 @@ export function Router({
 	const { component_cache, data_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
-	// if we got this far then we're past the suspense
+	// if we got this far then we're past suspense
 
 	//
 	// Now that we know we aren't going to throw, let's set up the event listeners
@@ -100,6 +100,7 @@ export function Router({
 		}
 	}, [])
 
+	// the function to call to navigate to a url
 	const goto = (url: string) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		data_cache.clear()

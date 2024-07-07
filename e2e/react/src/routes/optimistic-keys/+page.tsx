@@ -13,7 +13,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 					id: $id
 					snapshot: "OptimisticKeyTest"
 					avatarURL: $avatarURL
-					delay: 300
+					delay: 500
 				) {
 					id
 					avatarURL
@@ -29,7 +29,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 					snapshot: "OptimisticKeyTest"
 					name: $name
 					birthDate: $birthDate
-					delay: 200
+					delay: 400
 				) {
 					id @optimisticKey
 					...OptimisticKeyTest_insert @mask_disable @prepend

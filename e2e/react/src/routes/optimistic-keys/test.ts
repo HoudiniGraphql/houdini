@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test'
 import { routes } from '~/utils/routes'
+import { sleep } from '~/utils/sleep'
 import { goto } from '~/utils/testsHelper.js'
 
-test('Hello World', async ({ page }) => {
+test('@optimisticKey', async ({ page }) => {
 	await goto(page, routes.optimistic_keys)
 
 	// in order for this to work, we should be able to create a new user
@@ -21,7 +22,7 @@ test('Hello World', async ({ page }) => {
 	await page.click('[data-test-action="update"]')
 
 	// wait a few seconds and make sure there are no errors
-	await page.waitForTimeout(300)
+	await sleep(300)
 	let found = false
 	try {
 		await page.waitForSelector('[data-error="true"]', { timeout: 100 })
@@ -34,7 +35,7 @@ test('Hello World', async ({ page }) => {
 	expect(await getValue()).toBe('optimistic value 2')
 
 	// wait for the final mutation to resolve
-	await page.waitForTimeout(200)
+	await sleep(500)
 
 	// the value in the last row should be 'final value'
 	expect(await getValue()).toBe('final value')
