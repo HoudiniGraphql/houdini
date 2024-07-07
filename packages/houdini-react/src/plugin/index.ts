@@ -4,14 +4,12 @@ import {
 	plugin,
 	fragmentKey,
 	load_manifest,
+	processComponentFieldDirective,
 	type ArtifactKinds,
 	type Document,
 	type Config,
 	type Plugin,
 	type ProjectManifest,
-	processComponentFieldDirective,
-	routerConventions,
-	fs,
 } from 'houdini'
 import path from 'node:path'
 import { loadEnv } from 'vite'

@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
-import { type DocumentArtifact, GraphQLObject, QueryResult } from '../../lib'
+import type { DocumentArtifact, GraphQLObject, QueryResult } from '../../lib'
 import { ArtifactKind, DataSource } from '../../lib/types'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 import { DocumentStore } from '../documentStore'

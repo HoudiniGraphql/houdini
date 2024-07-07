@@ -1,4 +1,4 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import type { Plugin } from 'vite'
 import watch_and_run from 'vite-plugin-watch-and-run'
