@@ -213,7 +213,9 @@ function usePageData({
 		}
 
 		// send the request
-		const observer = client.observe({ artifact, cache })
+		const observer = data_cache.has(artifact.name)
+			? data_cache.get(artifact.name)!
+			: client.observe({ artifact, cache })
 
 		let resolve: () => void = () => {}
 		let reject: (message: string) => void = () => {}
@@ -358,7 +360,6 @@ function usePageData({
 			}
 
 			// compare the last known variables with the current set
-			// const last = last_variables.get(artifact)
 			let last: GraphQLVariables = {}
 			let usedVariables: GraphQLVariables = {}
 			for (const variable of Object.keys(pageVariables)) {

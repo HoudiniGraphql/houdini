@@ -6,7 +6,6 @@ import { goto } from '~/utils/testsHelper.js'
 test('handle fetch remembers server-side variables', async function ({ page }) {
 	// in this test, variables are stringified in the #variables div
 	const getVariables = async () => {
-		console.log(await page.textContent('#variables'))
 		return JSON.parse((await page.textContent('#variables')) as string)
 	}
 

@@ -441,6 +441,10 @@ function generateKey(type: string) {
 		return new Date().getTime().toString()
 	}
 
+	if (type === 'ID') {
+		return new Date().getTime().toString()
+	}
+
 	throw new Error(
 		`unsupported type for optimistic key: ${type}. Please provide a value in your mutation arguments.`
 	)
