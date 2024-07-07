@@ -148,7 +148,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest]
-                framework: [e2e-svelte, e2e-kit]
+                framework: [e2e-svelte, e2e-kit, e2e-react]
         runs-on: ${{ matrix.os }}
 
         steps:
