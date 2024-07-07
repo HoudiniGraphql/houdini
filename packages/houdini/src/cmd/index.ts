@@ -44,6 +44,7 @@ program
 	.command('pull-schema')
 	.usage('[options]')
 	.description('pull the latest schema from your api')
+	.option('-o, --output [outputPath]', 'the destination for the schema contents')
 	.option(
 		'-h, --headers <headers...>',
 		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
