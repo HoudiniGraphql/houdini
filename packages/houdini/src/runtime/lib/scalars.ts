@@ -58,7 +58,7 @@ export async function marshalSelection({
 					const marshalFn = config!.scalars[type].marshal
 					if (!marshalFn) {
 						throw new Error(
-							`scalar type ${type} is missing a \`marshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
+							`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`
 						)
 					}
 					if (Array.isArray(value)) {
