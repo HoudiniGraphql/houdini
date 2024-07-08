@@ -432,7 +432,7 @@ describe('marshal selection', function () {
 				selection: artifact.selection,
 				data,
 			})
-		).rejects.toThrow(/scalar type DateTime is missing a `marshal` function/)
+		).rejects.toThrow(/Scalar type DateTime is missing a `marshal` function/)
 	})
 
 	test('undefined', async function () {

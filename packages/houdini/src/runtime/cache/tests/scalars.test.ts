@@ -71,6 +71,57 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	})
 })
 
+test('reading a list of custom scalars unmarshals every scalar correctly', function () {
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			node: {
+				type: 'Node',
+
+				visible: true,
+				keyRaw: 'node',
+				selection: {
+					fields: {
+						dates: {
+							type: 'DateTime',
+
+							visible: true,
+							keyRaw: 'dates',
+						},
+						id: {
+							type: 'ID',
+
+							visible: true,
+							keyRaw: 'id',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	const data = {
+		node: {
+			id: '1',
+			dates: [
+				new Date(1955, 2, 19).getTime(),
+				new Date(1948, 11, 21).getTime(),
+				new Date(1937, 5, 0).getTime(),
+			],
+		},
+	}
+
+	cache.write({ selection, data })
+
+	expect(cache.read({ parent: rootID, selection }).data).toEqual({
+		node: {
+			id: '1',
+			dates: data.node.dates.map((d) => new Date(d)),
+		},
+	})
+})
+
 test('can store and retrieve lists of lists of scalars', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
