@@ -40,6 +40,7 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 					// Write the schema
 					const schemaState = await pullSchema(
 						apiURL!,
+						config.schemaFetchTimeout(),
 						config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
 						await config.pullHeaders()
 					)

@@ -183,6 +183,13 @@ export class Config {
 		return this.processEnvValues(env, apiURL)
 	}
 
+	schemaFetchTimeout() {
+		const timeout = this.configFile.watchSchema?.timeout
+		const defaultTimeout = 30000 // 30 seconds.
+
+		return timeout ?? defaultTimeout
+	}
+
 	get include() {
 		// if the config file has one, use it
 		if (this.configFile.include) {
@@ -1137,7 +1144,12 @@ export async function getConfig({
 				// we might have to create the file
 				else if (!(await fs.readFile(_config.schemaPath))) {
 					console.log('⌛ Pulling schema from api')
-					schemaOk = (await pullSchema(apiURL, _config.schemaPath)) !== null
+					schemaOk =
+						(await pullSchema(
+							apiURL,
+							_config.schemaFetchTimeout(),
+							_config.schemaPath
+						)) !== null
 				}
 			}
 

@@ -286,6 +286,13 @@ export type WatchSchemaConfig = {
 	interval?: number | null
 
 	/**
+	 * Sets a custom timeout in milliseconds which is used to cancel fetching the schema. If the timeout is reached
+	 * before the remote API has responded, the request is cancelled and an error is displayed.
+	 * The default is 30 seconds (30000 milliseconds)
+	 */
+	timeout?: number | null
+
+	/**
 	 * An object containing the environment variables you want passed onto the api when polling for a new schema.
 	 * The keys dictate the header names. If the value is a string, the corresponding environment variable will be used
 	 * directly. If the value is a function, the current environment will be passed to your function so you can perform any
