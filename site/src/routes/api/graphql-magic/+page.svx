@@ -77,9 +77,13 @@ mutation NewItem($input: AddItemInput!) {
 
 `@cache` is used on a query document to customize the cache behavior. This includes informaton like what [cache policy](/guides/caching-data) should be used by the runtime or if you are okay with partial results from the cache. For a full list of cache policies, check out the [caching guide](/guides/caching-data) and for more information on partial responses, see the [section on partial data](/guides/caching-data#partial-data).
 
-### `@paginate(name: String)`
+### `@paginate(name: String, mode: PaginateMode)`
 
 A field marked with `@paginate` is updated with calls to the page loaders returned by the pagination function. For more information on pagination check out the [guide](/guides/pagination). If you pass a value for the `name` argument, the underlying list can be updated using the [operation fragments](/api/mutation#lists).
+
+You can overwrite the default pagination behavior on a per-list basis by passing a value to the `mode` argument:
+- `Infinite`: new results are added to the existing list.
+- `SinglePage`: new results will replace the contents of the existing list.
 
 ### `@blocking`
 

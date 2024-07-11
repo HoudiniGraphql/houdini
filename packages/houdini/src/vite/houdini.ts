@@ -244,7 +244,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// bundle up the contextual stuff
 			const ctx: TransformPage = {
 				content: code,
-				watch_file: this.addWatchFile,
+				watch_file: this.addWatchFile.bind(this),
 				config: config,
 				filepath,
 				// @ts-ignore

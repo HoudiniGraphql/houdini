@@ -1,6 +1,6 @@
 import { getConfig, pullSchema, path } from '../lib'
 
-export default async function (args: { headers: string[] }) {
+export default async function (args: { headers: string[]; output?: string }) {
 	const config = await getConfig({ noSchema: true })
 	const apiURL = await config.apiURL()
 	// Check if apiUrl is set in config
@@ -11,9 +11,6 @@ export default async function (args: { headers: string[] }) {
 		process.exit(1)
 		return
 	}
-
-	// The target path -> current working directory by default. Should we allow passing custom paths?
-	const targetPath = process.cwd()
 
 	let headers = await config.pullHeaders()
 	let headerStrings: string[] = []
@@ -31,6 +28,11 @@ export default async function (args: { headers: string[] }) {
 		}, headers)
 	}
 
+	// the destination for the schema can come from the cli arguments, the config file, or a default
+	const targetPath = args.output
+		? path.resolve(args.output)
+		: config.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+
 	// Write the schema
-	await pullSchema(apiURL, config.schemaPath ?? path.resolve(targetPath, 'schema.json'), headers)
+	await pullSchema(apiURL, targetPath, headers)
 }

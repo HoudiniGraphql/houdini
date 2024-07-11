@@ -1118,7 +1118,14 @@ class CacheInternal {
 				const fnUnmarshal = this.config?.scalars?.[type]?.unmarshal
 				if (fnUnmarshal) {
 					// pass the primitive value to the unmarshal function
-					fieldTarget[attributeName] = fnUnmarshal(value) as GraphQLValue
+					// if value is an array of scalars, we need to unmarshal every single item individually.
+					if (Array.isArray(value)) {
+						fieldTarget[attributeName] = value.map(
+							(v) => fnUnmarshal(v) as GraphQLValue
+						)
+					} else {
+						fieldTarget[attributeName] = fnUnmarshal(value) as GraphQLValue
+					}
 				}
 				// the field does not have an unmarshal function
 				else {

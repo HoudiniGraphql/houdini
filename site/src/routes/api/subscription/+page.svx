@@ -102,9 +102,9 @@ export default new HoudiniClient({
 })
 ```
 
-### Server-Side Events
+### Server-Sent Events
 
-If your server supports the latest Server-Side events, you can use them to power your subscriptions:
+If your server supports the latest [Server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events), you can use them to power your subscriptions:
 
 ```typescript:title=src/client.ts&typescriptToggle=true
 import { createClient } from 'graphql-sse'
