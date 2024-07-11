@@ -147,7 +147,7 @@ export class Cache {
 
 	// when an optimistic key resolves, we might momentarily know the same record by different IDs
 	registerKeyMap(source: string | number, mapped: string | number) {
-		this._internal_unstable.storage.registerIDMap(source, mapped)
+		this._internal_unstable.storage.registerIDMapping(source, mapped)
 	}
 
 	// remove the record from the cache's store and unsubscribe from it

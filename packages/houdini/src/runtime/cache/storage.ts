@@ -24,7 +24,7 @@ export class InMemoryStorage {
 		return this.rank++
 	}
 
-	registerIDMap(from: string | number, to: string | number) {
+	registerIDMapping(from: string | number, to: string | number) {
 		this.idMaps[from] = to
 	}
 
@@ -262,6 +262,12 @@ export class InMemoryStorage {
 
 		// delete the layers we merged
 		this.data.splice(startingIndex + 1, layerIndex - startingIndex - 1)
+
+		// if everything had merged down then there are no optimistic layers left and we can
+		// reset any deleted id mappings
+		if (this.data.length === 1) {
+			this.idMaps = {}
+		}
 	}
 
 	get topLayer(): Layer {

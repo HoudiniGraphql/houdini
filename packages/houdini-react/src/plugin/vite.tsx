@@ -224,7 +224,7 @@ export default {
 					componentCache: window.__houdini__client__.componentCache,
 					createComponent: (fn, props) => React.createElement(fn, props)
 				})
-				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer(true)
+				window.__houdini__hydration__layer__ ??= window.__houdini__cache__._internal_unstable.storage.createLayer()
 
 				// link up the cache we just created with the client
 				window.__houdini__client__.setCache(window.__houdini__cache__)

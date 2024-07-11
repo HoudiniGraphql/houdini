@@ -147,6 +147,7 @@ export const optimisticKeys =
 				resolve(ctx)
 			},
 
+			// when the mutation ends, we no longer have any dependents that we have to track
 			end(ctx, { resolve }) {
 				if (typeof ctx.stuff.mutationID !== 'undefined') {
 					delete keyCache[ctx.stuff.mutationID]

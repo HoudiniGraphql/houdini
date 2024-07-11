@@ -247,7 +247,7 @@ function usePageData({
 
 								const artifactName = "${artifact.name}"
 								const value = ${JSON.stringify(
-									await marshalSelection({
+									marshalSelection({
 										selection: observer.artifact.selection,
 										data: observer.state.data,
 									})
