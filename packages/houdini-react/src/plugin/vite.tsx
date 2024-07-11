@@ -34,8 +34,9 @@ export default {
 	// we want to set up some vite aliases by default
 	async config(config, env) {
 		viteEnv = env
+		let manifest: ProjectManifest
 		try {
-			var manifest = await load_manifest({
+			manifest = await load_manifest({
 				config,
 			})
 		} catch (e) {
