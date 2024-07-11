@@ -149,7 +149,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest]
-                framework: [e2e-svelte, e2e-kit]
+                framework: [e2e-svelte, e2e-kit, e2e-react]
         runs-on: ${{ matrix.os }}
 
         steps:
@@ -210,77 +210,13 @@ jobs:
             - name: Build packages
               run: pnpm run build
 
-            - name: End-to-End Tests ${{ matrix.framework }}
+            - name: End-to-End Tests (Svelte)
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
+              if: ${{ matrix.framework }} != 'e2e-react'
 
-    react_e2e_tests:
-        name: End-to-End Tests (React)
-        strategy:
-            matrix:
-                os: [ubuntu-latest]
-                framework: [e2e-react]
-        runs-on: ${{ matrix.os }}
-
-        steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
-              with:
-                node-version: 21.7.3
-
-            # pnpm
-
-            - uses: pnpm/action-setup@v2.0.1
-              name: Install pnpm
-              id: pnpm-install
-              with:
-                version: 8
-
-            - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
-            - uses: actions/cache@v3
-              name: Setup pnpm cache
-              with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ matrix.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install
-
-            # Playwright
-
-            # Use Playwright version as part of the cache key
-            # AFAIK this is a x-platform way to get your installed Playwright version.
-            # Be sure to be diligent in specifying ^, ~, or locked versions.
-            - run: |
-                echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
-              id: playwright-version
-
-            - uses: actions/cache@v3
-              id: playwright-cache
-              with:
-                key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
-                path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-
-            - run: pnpm playwright install
-              if: steps.playwright-cache.outputs.cache-hit != 'true'
-
-            # Run tests
-
-            - name: Build packages
-              run: pnpm run build
-
-            - name: End-to-End Tests ${{ matrix.framework }}
+            - name: End-to-End Tests (React)
               run: pnpm --filter ${{ matrix.framework }} tests
+              if: ${{ matrix.framework }} == 'e2e-react'
 
     e2e_sveltekit_linter:
         name: End-to-End Linter
