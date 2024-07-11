@@ -56,6 +56,7 @@ export class Config {
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string
 	schemaPollInterval: number | null
+    schemaPollTimeout: number
 	schemaPollHeaders:
 		| ((env: any) => Record<string, string>)
 		| Record<string, string | ((env: any) => string)>
@@ -153,6 +154,7 @@ export class Config {
 		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
+        this.schemaPollTimeout = watchSchema?.timeout ?? 30000;
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
@@ -181,13 +183,6 @@ export class Config {
 
 		const env = await this.getEnv()
 		return this.processEnvValues(env, apiURL)
-	}
-
-	schemaFetchTimeout() {
-		const timeout = this.configFile.watchSchema?.timeout
-		const defaultTimeout = 30000 // 30 seconds.
-
-		return timeout ?? defaultTimeout
 	}
 
 	get include() {
@@ -1147,7 +1142,7 @@ export async function getConfig({
 					schemaOk =
 						(await pullSchema(
 							apiURL,
-							_config.schemaFetchTimeout(),
+							_config.schemaPollTimeout,
 							_config.schemaPath
 						)) !== null
 				}
