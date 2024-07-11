@@ -1,5 +1,15 @@
 # houdini
 
+## 1.2.49
+
+### Patch Changes
+
+-   [#1324](https://github.com/HoudiniGraphql/houdini/pull/1324) [`a0a67eab`](https://github.com/HoudiniGraphql/houdini/commit/a0a67eab658acf1108049d5f2c304ef335716082) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add a configurable timeout to to fetching the remote schema
+
+-   [#1322](https://github.com/HoudiniGraphql/houdini/pull/1322) [`c9a019de`](https://github.com/HoudiniGraphql/houdini/commit/c9a019ded20018116dde50f50f1e4d31dd89e189) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Make sure lists of custom scalars are unmarshaled item per item instead of as one list
+
+-   [#1319](https://github.com/HoudiniGraphql/houdini/pull/1319) [`ba4be40f`](https://github.com/HoudiniGraphql/houdini/commit/ba4be40f6b5820582bf1ca213a36babbba1e55c3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add -o argument to pull-schema for specifying the file path
+
 ## 1.2.48
 
 ### Patch Changes
