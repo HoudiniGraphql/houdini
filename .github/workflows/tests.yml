@@ -161,7 +161,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                node-version: 21.7.3
 
             # pnpm
 
