@@ -34,5 +34,5 @@ export default async function (args: { headers: string[]; output?: string }) {
 		: config.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 
 	// Write the schema
-	await pullSchema(apiURL, targetPath, headers)
+	await pullSchema(apiURL, config.schemaPollTimeout, targetPath, headers)
 }

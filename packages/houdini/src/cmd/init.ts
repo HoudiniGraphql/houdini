@@ -149,7 +149,15 @@ export async function init(
 					  extractHeadersStr(value_splited.slice(1).join(' '))
 					: headers
 
-			pullSchema_content = await pullSchema(local_url, schemaPath, local_headers, true)
+			// Since we don't have a config file yet, we need to provide the default here.
+			const fetchTimeout = 30000
+			pullSchema_content = await pullSchema(
+				local_url,
+				fetchTimeout,
+				schemaPath,
+				local_headers,
+				true
+			)
 
 			if (pullSchema_content === null) {
 				const msg = `If you need to pass headers, add them after the URL (eg: '${green(

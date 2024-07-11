@@ -56,6 +56,7 @@ export class Config {
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string
 	schemaPollInterval: number | null
+	schemaPollTimeout: number
 	schemaPollHeaders:
 		| ((env: any) => Record<string, string>)
 		| Record<string, string | ((env: any) => string)>
@@ -153,6 +154,7 @@ export class Config {
 		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
+		this.schemaPollTimeout = watchSchema?.timeout ?? 30000
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.#fragmentVariableMaps = {}
@@ -1137,7 +1139,12 @@ export async function getConfig({
 				// we might have to create the file
 				else if (!(await fs.readFile(_config.schemaPath))) {
 					console.log('⌛ Pulling schema from api')
-					schemaOk = (await pullSchema(apiURL, _config.schemaPath)) !== null
+					schemaOk =
+						(await pullSchema(
+							apiURL,
+							_config.schemaPollTimeout,
+							_config.schemaPath
+						)) !== null
 				}
 			}
 
