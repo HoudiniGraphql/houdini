@@ -67,10 +67,17 @@ export function useDocumentHandle<
 			// before we send the query, we need to figure out which variables are
 			// actually useful for this document
 			const usedVariables = Object.fromEntries(
-				Object.keys(observer.artifact.input?.fields ?? {}).map((fieldName) => [
-					fieldName,
-					location.params[fieldName],
-				])
+				Object.keys(observer.artifact.input?.fields ?? {}).reduce<[string, any][]>(
+					(entries, fieldName) => {
+						// if the field is not a url parameter, skip it
+						if (!(fieldName in location.params)) {
+							return entries
+						}
+
+						return [...entries, [fieldName, location.params[fieldName]]]
+					},
+					[]
+				)
 			)
 
 			return observer.send({

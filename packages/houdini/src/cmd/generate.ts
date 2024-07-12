@@ -37,6 +37,7 @@ export async function generate(
 		if (config.localSchema) {
 			config.schema = await loadLocalSchema(config)
 		}
+
 		// Pull the newest schema if the flag is set
 		else if (args.pullSchema && (await config.apiURL())) {
 			await pullSchema(args)

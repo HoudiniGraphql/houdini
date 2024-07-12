@@ -4,12 +4,12 @@ import {
 	plugin,
 	fragmentKey,
 	load_manifest,
+	processComponentFieldDirective,
 	type ArtifactKinds,
 	type Document,
 	type Config,
 	type Plugin,
 	type ProjectManifest,
-	processComponentFieldDirective,
 } from 'houdini'
 import path from 'node:path'
 import { loadEnv } from 'vite'
@@ -31,13 +31,11 @@ export const hooks: Plugin = async () => ({
 	// always make sure our definition of the manifest is up to date before
 	// we generate anything
 	async beforeGenerate({ config }) {
-		if (!manifest) {
-			try {
-				manifest = await load_manifest({ config })
-			} catch (e) {
-				console.log('something went wrong: ' + (e as Error).message)
-				return
-			}
+		try {
+			manifest = await load_manifest({ config })
+		} catch (e) {
+			console.log('something went wrong: ' + (e as Error).message)
+			return
 		}
 	},
 

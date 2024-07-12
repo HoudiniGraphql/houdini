@@ -148,7 +148,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest]
-                framework: [e2e-svelte, e2e-kit]
+                framework: [e2e-svelte, e2e-kit, e2e-react]
         runs-on: ${{ matrix.os }}
 
         steps:
@@ -160,7 +160,7 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 16.17.0
+                node-version: 21.7.3
 
             # pnpm
 
@@ -209,8 +209,13 @@ jobs:
             - name: Build packages
               run: pnpm run build
 
-            - name: End-to-End Tests ${{ matrix.framework }}
+            - name: End-to-End Tests (Svelte)
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
+              if: matrix.framework != 'e2e-react'
+
+            - name: End-to-End Tests (React)
+              run: pnpm --filter ${{ matrix.framework }} tests
+              if: matrix.framework == 'e2e-react'
 
     e2e_sveltekit_linter:
         name: End-to-End Linter

@@ -53,6 +53,11 @@ directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, 
 directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 
 """
+	@${config.optimisticKeyDirective} is used to identify a field as an optimistic key
+"""
+directive @${config.optimisticKeyDirective} on FIELD
+
+"""
 	@${
 		config.listAppendDirective
 	} is used to tell the runtime to add the result to the start of the list
@@ -194,11 +199,11 @@ directive @${config.componentFieldDirective}(field: String!, prop: String, expor
 		.join('\n')}`
 
 	// newSchema holds the schema elements that we need to remove from queries (eg added by plugins)
-	config.newSchema = graphql.print(mergeTypeDefs([internalSchema, config.newSchema]))
+	config.newSchema = graphql.print(mergeTypeDefs([internalSchema]))
 
 	// schemaString is the value that gets printed to disk to extend the user's schema
 	// it gets updated when newSchema is set so we just need to add the extensions
-	config.schemaString += extensions
+	config.schemaString += extensions.replaceAll('extend type', 'type')
 
 	// build up the full schema by mixing everything together
 	config.schema = graphql.buildSchema(

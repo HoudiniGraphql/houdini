@@ -194,6 +194,88 @@ you don't have to provide a complete response for an optimistic value, the cache
 whatever information you give it (as long as its found in the mutation body). Because of this,
 the store value won't update until the mutation resolves.
 
+### Optimistic Keys
+
+Sometimes it's not possible to know the ID to provide an optimistic response before hand. Most commonly,
+this happens when you are trying to create a new record and insert the result into a list. Take for example,
+the following mutation:
+
+```graphql
+mutation CreateTodoItem($text: String!) {
+	createItem(text: $text) {
+		item {
+			id
+			text
+			...All_Items_insert
+		}
+	}
+}
+```
+
+If you wanted to submit this mutation with an optimistic response, it might look something like:
+
+```javascript
+CreateTodoItem.mutate(
+	{
+		text: "My Item":
+	},
+	{
+		optimisticResponse: {
+			createItem: {
+				item: {
+					id: "????" // <--- what goes here?
+					text: "My Item",
+				}
+			}
+		}
+	}
+)
+```
+
+To support this situation, you can tell Houdini to generate a temporary ID for you using the `@optimisticKey`
+directive:
+
+```graphql
+mutation CreateTodoItem($text: String!) {
+	createItem(text: $text) {
+		item {
+			id @optimisticKey
+			text
+
+			...All_Items_insert
+		}
+	}
+}
+```
+
+And now you don't have to provide an ID to the optimitic response. Houdini will keep track the generated value and
+replace it with the real one when the mutation resolves:
+
+```javascript
+CreateTodoItem.mutate(
+	{
+		text: "My Item":
+	},
+	{
+		optimisticResponse: {
+			createItem: {
+				item: {
+					text: "My Item",
+				}
+			}
+		}
+	}
+)
+```
+
+Now you might be asking how this is different from the regular situation where you just made up an id on your own. Well, the
+important distinction is that Houdini tracks these generated keys internally. If you were to use one as the input for another
+mutation before the create mutation resolves (say to mark the new item as complete), the second mutation would block while
+it waits for the valid ID value from the server.
+
+If your record's keys are a custom scalar that Houdini cannot support, you will have to provide a value in your `optimisticResponse`
+object.
+
 ### Why is typescript missing fields?
 
 If you are using typescript, you might notice that the generated types for optimistic

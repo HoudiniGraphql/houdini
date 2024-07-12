@@ -211,6 +211,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 
 			type Mutation {
 				updateUser: User!
+				updateGhost: Ghost!
 				addFriend: AddFriendOutput!
 				believeIn: BelieveInOutput!
 				deleteUser(id: ID!): DeleteUserOutput!

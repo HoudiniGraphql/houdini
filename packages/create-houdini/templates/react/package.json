@@ -12,8 +12,8 @@
 		"houdini": "^HOUDINI_VERSION",
 		"houdini-react": "^HOUDINI_VERSION",
 		"houdini-adapter-auto": "^HOUDINI_VERSION",
-		"react": "19.0.0-canary-2b036d3f1-20240327",
-		"react-dom": "19.0.0-canary-2b036d3f1-20240327",
+		"react": "19.0.0-rc-eb259b5d3b-20240605",
+		"react-dom": "19.0.0-rc-eb259b5d3b-20240605",
 		"graphql-yoga": "4.0.4",
 		"graphql": "15.8.0",
 		"@whatwg-node/server": "^0.9.14"
@@ -24,7 +24,7 @@
 	},
 	"resolutions": {
 		"graphql": "15.8.0",
-		"react": "19.0.0-canary-2b036d3f1-20240327",
-		"react-dom": "19.0.0-canary-2b036d3f1-20240327"
+		"react": "19.0.0-rc-eb259b5d3b-20240605",
+		"react-dom": "19.0.0-rc-eb259b5d3b-20240605"
 	}
 }

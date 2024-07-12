@@ -73,7 +73,7 @@ export function Router({
 	const { component_cache, data_cache } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
-	// if we got this far then we're past the suspense
+	// if we got this far then we're past suspense
 
 	//
 	// Now that we know we aren't going to throw, let's set up the event listeners
@@ -100,6 +100,7 @@ export function Router({
 		}
 	}, [])
 
+	// the function to call to navigate to a url
 	const goto = (url: string) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		data_cache.clear()
@@ -212,7 +213,9 @@ function usePageData({
 		}
 
 		// send the request
-		const observer = client.observe({ artifact, cache })
+		const observer = data_cache.has(artifact.name)
+			? data_cache.get(artifact.name)!
+			: client.observe({ artifact, cache })
 
 		let resolve: () => void = () => {}
 		let reject: (message: string) => void = () => {}
@@ -244,7 +247,7 @@ function usePageData({
 
 								const artifactName = "${artifact.name}"
 								const value = ${JSON.stringify(
-									await marshalSelection({
+									marshalSelection({
 										selection: observer.artifact.selection,
 										data: observer.state.data,
 									})
@@ -357,7 +360,6 @@ function usePageData({
 			}
 
 			// compare the last known variables with the current set
-			// const last = last_variables.get(artifact)
 			let last: GraphQLVariables = {}
 			let usedVariables: GraphQLVariables = {}
 			for (const variable of Object.keys(pageVariables)) {

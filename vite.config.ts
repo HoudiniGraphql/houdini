@@ -14,7 +14,7 @@ export default defineConfig({
 			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
 		coverage: {
-			provider: 'c8',
+			provider: 'v8',
 		},
 	},
 })

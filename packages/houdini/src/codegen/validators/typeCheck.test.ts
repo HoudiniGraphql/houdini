@@ -1163,6 +1163,125 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@optimisticKey on single key',
+		pass: true,
+		documents: [
+			`
+			mutation B {
+				updateUser  {
+					id @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on non-key',
+		pass: false,
+		documents: [
+			`
+			mutation B {
+				updateUser  {
+					firstName @optimisticKey
+				}
+			}
+			`,
+			`
+			mutation A {
+				updateUser  {
+					firstName @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on multiple key - missing',
+		pass: false,
+		documents: [
+			`
+			mutation A {
+				updateGhost  {
+					aka @optimisticKey
+				}
+			}
+			`,
+			`
+			mutation B {
+				updateGhost  {
+					aka @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on multiple key - found',
+		pass: true,
+		documents: [
+			`
+			mutation A {
+				updateGhost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+			`
+			mutation B {
+				updateGhost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on non-mutation',
+		pass: false,
+		documents: [
+			`
+			query A {
+				ghost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+			`
+			query B {
+				ghost  {
+					aka @optimisticKey
+					name @optimisticKey
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@optimisticKey on object type',
+		pass: false,
+		documents: [
+			`
+			mutation A {
+				updateGhost @optimisticKey {
+					aka
+					name
+				}
+			}
+			`,
+			`
+			mutation B {
+				updateGhost @optimisticKey {
+					aka
+					name
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: '@required may not be used on non-nullable fields',
 		pass: false,
 		documents: [

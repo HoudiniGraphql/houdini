@@ -4,15 +4,13 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"api": "cross-env TZ=utc e2e-api",
 		"build:": "cd ../../ && ((pnpm run build && cd -) || (cd - && exit 1))",
 		"build:dev": "pnpm build: && pnpm dev",
 		"build:web": "pnpm build: && pnpm web",
 		"build:test": "pnpm build: && pnpm test",
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
-		"web": "vite dev",
-		"dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"dev": "vite dev",
 		"build": "vite build",
 		"tests": "playwright test",
 		"test": "npm run tests",
@@ -32,8 +30,8 @@
 		"houdini": "workspace:^",
 		"houdini-adapter-cloudflare": "workspace:^",
 		"houdini-react": "workspace:^",
-		"react": "^18.3.0-canary-d6dcad6a8-20230914",
-		"react-dom": "^18.3.0-canary-d6dcad6a8-20230914",
+		"react": "19.0.0-rc-eb259b5d3b-20240605",
+		"react-dom": "19.0.0-rc-eb259b5d3b-20240605",
 		"react-streaming-compat": "^0.3.18"
 	},
 	"devDependencies": {

@@ -346,7 +346,9 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				// make sure every argument defined in a fragment is used
 				noUnusedFragmentArguments(config),
 				// make sure that @loading is used correctly
-				validateLoadingDirective(config)
+				validateLoadingDirective(config),
+				// make sure @optimisticKey is used on any keys
+				validateOptimisticKeys(config)
 			)
 
 	for (const { filename, document: parsed, originalString } of docs) {
@@ -1197,6 +1199,65 @@ function validateLoadingDirective(config: Config) {
 				}
 			},
 		}
+	}
+}
+
+function validateOptimisticKeys(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		const typeInfo = new graphql.TypeInfo(config.schema)
+		return graphql.visitWithTypeInfo(typeInfo, {
+			[graphql.Kind.SELECTION_SET]: (node, _, __, ___, ancestors) => {
+				// track if we find an optimistic key directive
+				let found: string[] = []
+				// look at every field in the selection set
+				for (const selection of node.selections) {
+					// if we find the directive, mark it
+					if (
+						selection.kind === 'Field' &&
+						selection.directives?.find(
+							(d) => d.name.value === config.optimisticKeyDirective
+						)
+					) {
+						// add the field to the list
+						found.push(selection.name.value)
+					}
+				}
+
+				// if we did find a directive make sure that we found the directive on
+				// every key for the type
+				if (found.length > 0) {
+					const doc = ancestors[0] as graphql.DocumentNode
+					const operation = doc.definitions?.find(
+						(def) => def.kind === 'OperationDefinition'
+					)
+					if (
+						operation &&
+						(operation as graphql.OperationDefinitionNode).operation !== 'mutation'
+					) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`@${config.optimisticKeyDirective} can only be in mutations`
+							)
+						)
+						return
+					}
+
+					const parent = typeInfo.getParentType()
+					if (!parent) {
+						return
+					}
+					const keys = config.keyFieldsForType(parent.name)
+					// make sure that the two lists match
+					if (keys.length !== found.length || !keys.every((key) => found.includes(key))) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`@${config.optimisticKeyDirective} must be applied to every key field for a type`
+							)
+						)
+					}
+				}
+			},
+		})
 	}
 }
 

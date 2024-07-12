@@ -1,3 +1,4 @@
+import type * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -31,6 +32,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// add watch-and-run to their vite config
 		async config(userConfig, env) {
 			config = await getConfig(opts)
+
 			viteEnv = env
 
 			let result: UserConfig = {
@@ -68,6 +70,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			if (!isSecondaryBuild()) {
 				viteConfig = conf
 			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configResolved !== 'function') {
 					continue
@@ -195,6 +198,14 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		async configureServer(server) {
 			devServer = true
 
+			// if there is a local schema we need to use that when generating
+			if (config.localSchema) {
+				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
+					.default as graphql.GraphQLSchema
+				// make sure we watch the file for changes
+				server.watcher.add(config.localSchemaPath)
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.configureServer !== 'function') {
 					continue
@@ -204,11 +215,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					...server,
 					houdiniConfig: config,
 				})
-			}
-
-			// if there is a local schema we need to use that when generating
-			if (config.localSchema && !config.schema) {
-				config.schema = await loadLocalSchema(config)
 			}
 
 			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)

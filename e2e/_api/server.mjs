@@ -58,7 +58,7 @@ async function main() {
 		cors: {
 			origin: ['*'],
 			credentials: true,
-			methods: ['POST'],
+			methods: ['*'],
 		},
 		maskedErrors: false,
 		graphiql: {

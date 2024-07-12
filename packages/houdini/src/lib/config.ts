@@ -17,6 +17,7 @@ import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
+import { loadLocalSchema } from './router'
 import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from './types'
 import { LogLevel } from './types'
 
@@ -368,6 +369,10 @@ export class Config {
 		return path.join(this.sourceDir, 'api')
 	}
 
+	get localSchemaPath() {
+		return path.join(this.localApiDir, '+schema')
+	}
+
 	get localAPIUrl() {
 		return localApiEndpoint(this.configFile)
 	}
@@ -620,6 +625,10 @@ export class Config {
 
 	get listDirective() {
 		return 'list'
+	}
+
+	get optimisticKeyDirective() {
+		return 'optimisticKey'
 	}
 
 	get listPrependDirective() {
@@ -1004,7 +1013,10 @@ export async function getConfig({
 	noSchema,
 	forceReload,
 	...extraConfig
-}: PluginConfig & { noSchema?: boolean; forceReload?: boolean } = {}): Promise<Config> {
+}: PluginConfig & {
+	noSchema?: boolean
+	forceReload?: boolean
+} = {}): Promise<Config> {
 	// if we force a reload, we will bypass this part
 	if (!forceReload) {
 		if (_config) {
@@ -1121,6 +1133,11 @@ export async function getConfig({
 			}
 		} catch {}
 		_config.localSchema = localSchema
+
+		// if we have a local schema, then we should just build it if we haven't
+		if (localSchema) {
+			_config.schema = await loadLocalSchema(_config)
+		}
 
 		const apiURL = await _config.apiURL()
 

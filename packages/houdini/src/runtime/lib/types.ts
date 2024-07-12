@@ -32,6 +32,7 @@ declare global {
 			optimisticResponse?: GraphQLObject
 			parentID?: string
 			silenceLoading?: boolean
+			mutationID?: number
 		}
 	}
 }
@@ -78,7 +79,9 @@ export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	enableLoadingState?: 'global' | 'local'
 }
 
-export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'>
+export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
+	optimisticKeys?: boolean
+}
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
 	enableLoadingState?: 'global' | 'local'
@@ -167,14 +170,9 @@ export type MutationOperation = {
 
 export type GraphQLObject = { [key: string]: GraphQLValue }
 
-export type GraphQLValue =
-	| number
-	| string
-	| boolean
-	| null
-	| GraphQLObject
-	| GraphQLValue[]
-	| undefined
+export type GraphQLDefaultScalar = string | number | boolean
+
+export type GraphQLValue = GraphQLDefaultScalar | null | GraphQLObject | GraphQLValue[] | undefined
 
 export type GraphQLVariables = { [key: string]: any } | null
 
@@ -221,6 +219,7 @@ export type SubscriptionSelection = {
 				fragment: string
 				variables: ValueMap | null
 			}
+			optimisticKey?: boolean
 		}
 	}
 	abstractFields?: {

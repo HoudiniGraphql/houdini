@@ -2102,6 +2102,88 @@ describe('mutation artifacts', function () {
 		`)
 	})
 
+	test('optimsticKey paths', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		const docs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							id @optimisticKey
+						}
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "A",
+			    "kind": "HoudiniMutation",
+			    "hash": "cec5c0890ba01a7c84acd987c7e7d797e8e08f2a4af3df33fa2a69f31230563c",
+
+			    "raw": \`mutation A {
+			  addFriend {
+			    friend {
+			      id
+			    }
+			  }
+			}
+			\`,
+
+			    "rootType": "Mutation",
+
+			    "selection": {
+			        "fields": {
+			            "addFriend": {
+			                "type": "AddFriendOutput",
+			                "keyRaw": "addFriend",
+
+			                "selection": {
+			                    "fields": {
+			                        "friend": {
+			                            "type": "User",
+			                            "keyRaw": "friend",
+
+			                            "selection": {
+			                                "fields": {
+			                                    "id": {
+			                                        "type": "ID",
+			                                        "keyRaw": "id",
+
+			                                        "directives": [{
+			                                            "name": "optimisticKey",
+			                                            "arguments": {}
+			                                        }],
+
+			                                        "optimisticKey": true,
+			                                        "visible": true
+			                                    }
+			                                }
+			                            },
+
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+			    "optimisticKeys": true
+			};
+
+			"HoudiniHash=78181b23be8762c5db8fd2686b9fed3e8082853857f967e31990ba79350332f4";
+		`)
+	})
+
 	test('insert operation allList', async function () {
 		// the config to use in tests
 		const config = testConfig()

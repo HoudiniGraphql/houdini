@@ -4,17 +4,266 @@ import { GraphQLError } from 'graphql'
 import { GraphQLScalarType, Kind } from 'graphql'
 import { createPubSub } from 'graphql-yoga'
 import path from 'path'
-import url from 'url'
 
 import { connectionFromArray } from './util.mjs'
 
 const pubSub = createPubSub()
 
-const sourceFiles = ['schema.graphql', 'schema-hello.graphql']
-export const typeDefs = sourceFiles.map((filepath) => {
-	const filepathToUse = path.join(path.dirname(url.fileURLToPath(import.meta.url)), filepath)
-	return fs.readFileSync(path.resolve(filepathToUse), 'utf-8')
-})
+export const typeDefs = /* GraphQL */ `
+	"""
+	Date custom scalar type
+	"""
+	scalar DateTime
+	scalar File
+
+	"""
+	Can be Value1 or Value2.
+	"""
+	enum MyEnum {
+		"The first value"
+		Value1
+		"The second value"
+		Value2 @deprecated(reason: "Use Value1 instead")
+	}
+
+	enum TypeOfUser {
+		NICE
+		COOL
+	}
+
+	enum ForceReturn {
+		"Normal"
+		NORMAL
+		"No value"
+		NULL
+		"Some error"
+		ERROR
+	}
+
+	type Mutation {
+		addUser(
+			"""
+			The users birth date
+			"""
+			birthDate: DateTime!
+			name: String!
+			snapshot: String!
+			enumValue: MyEnum
+			types: [TypeOfUser!]
+			delay: Int
+			force: ForceReturn
+		): User
+		addNonNullUser(
+			birthDate: DateTime!
+			name: String!
+			snapshot: String!
+			enumValue: MyEnum
+			types: [TypeOfUser!]
+			delay: Int
+			force: ForceReturn
+		): User!
+		updateUser(
+			id: ID!
+			name: String
+			snapshot: String!
+			birthDate: DateTime
+			delay: Int
+			avatarURL: String
+		): User!
+		updateUserByID(
+			id: ID!
+			name: String
+			snapshot: String!
+			birthDate: DateTime
+			delay: Int
+			avatarURL: String
+		): User!
+		singleUpload(file: File!): String!
+		multipleUpload(files: [File!]!): [String!]!
+		addCity(name: String!): City!
+		addLibrary(city: ID!, name: String!): Library!
+		addBook(library: ID!, title: String!): Book!
+		deleteCity(city: ID!): City!
+		deleteLibrary(library: ID!): Library!
+		deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
+		updateRentedBook(userId: String!, bookId: Int!, rate: Int!): RentedBook
+		createA(a: String!): A!
+		createB(b: String!): B!
+	}
+
+	"""
+	A node.
+	"""
+	interface Node {
+		id: ID!
+	}
+
+	type PageInfo {
+		endCursor: String
+		hasNextPage: Boolean!
+		hasPreviousPage: Boolean!
+		startCursor: String
+	}
+
+	input UserNameFilter {
+		name: String!
+	}
+
+	union UnionAorB = A | B
+
+	type Query {
+		hello: String
+		aOrB: [UnionAorB!]!
+		avgYearsBirthDate: Float!
+		node(id: ID!): Node
+		user(id: ID!, snapshot: String!, tmp: Boolean, delay: Int, forceNullDate: Boolean): User!
+		usersConnection(
+			after: String
+			before: String
+			first: Int
+			last: Int
+			snapshot: String!
+		): UserConnection!
+		usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+		userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
+		userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
+		session: String
+		cities: [City]!
+		city(id: ID!, delay: Int): City
+		userNodesResult(snapshot: String!, forceMessage: Boolean!): UserNodesResult!
+		userResult(id: ID!, snapshot: String!, forceMessage: Boolean!): UserResult!
+		rentedBooks: [RentedBook!]!
+		animals: AnimalConnection!
+		monkeys: MonkeyConnection!
+		"""
+		Get a monkey by its id
+		"""
+		monkey(id: ID!): Monkey
+	}
+
+	type Subscription {
+		userUpdate(id: ID!, snapshot: String): User
+	}
+
+	type User implements Node {
+		birthDate: DateTime
+		friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+		"This is the same list as what's used globally. its here to tests fragments"
+		usersConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+		usersConnectionSnapshot(
+			after: String
+			before: String
+			first: Int
+			last: Int
+			snapshot: String!
+		): UserConnection!
+		"This is the same list as what's used globally. its here to tests fragments"
+		userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
+		friendsList(limit: Int, offset: Int): [User!]!
+		id: ID!
+		name: String!
+		enumValue: MyEnum
+		types: [TypeOfUser!]!
+		testField(someParam: Boolean!): String
+		avatarURL(size: Int): String!
+	}
+
+	interface Animal implements Node {
+		id: ID!
+		name: String!
+	}
+
+	"""
+	A monkey.
+	"""
+	type Monkey implements Node & Animal {
+		id: ID!
+		name: String!
+		"""
+		Whether the monkey has a banana or not
+		"""
+		hasBanana: Boolean!
+		"""
+		Whether the monkey has a banana or not
+		"""
+		oldHasBanana: Boolean @deprecated(reason: "Use hasBanana")
+	}
+
+	interface AnimalConnection {
+		edges: [AnimalEdge!]!
+		pageInfo: PageInfo!
+	}
+
+	interface AnimalEdge {
+		cursor: String
+		node: Animal
+	}
+
+	type MonkeyConnection implements AnimalConnection {
+		edges: [MonkeyEdge!]!
+		pageInfo: PageInfo!
+	}
+
+	type MonkeyEdge implements AnimalEdge {
+		cursor: String
+		node: Monkey
+	}
+
+	type UserConnection {
+		edges: [UserEdge!]!
+		pageInfo: PageInfo!
+	}
+
+	type UserEdge {
+		cursor: String
+		node: User
+	}
+
+	type UserNodes {
+		totalCount: Int
+		nodes: [User!]!
+	}
+
+	type Book {
+		id: ID!
+		title: String!
+	}
+
+	type Library {
+		id: ID!
+		name: String!
+		books: [Book]!
+	}
+
+	type City {
+		id: ID!
+		name: String!
+		libraries: [Library]!
+	}
+
+	type RentedBook {
+		userId: String!
+		bookId: Int!
+		rate: Int!
+	}
+
+	type A {
+		id: ID!
+		a: String!
+	}
+
+	type B {
+		id: ID!
+		b: String!
+	}
+
+	union UserNodesResult = UserNodes | Message1
+	union UserResult = User | Message1
+
+	type Message1 {
+		message: String!
+	}
+`
 
 // Example Cities/Libraries/Books data
 // Assume a traditional relational database for storage - each table with unique ID.
@@ -356,6 +605,7 @@ export const resolvers = {
 				birthDate: args.birthDate,
 				enumValue: args.enumValue,
 				types: args.types ?? [],
+				avatarURL: '',
 			}
 			list.push(user)
 			return user
@@ -375,6 +625,33 @@ export const resolvers = {
 			}
 			if (args.name) {
 				list[userIndex].name = args.name
+			}
+			if (args.avatarURL) {
+				list[userIndex].avatarURL = args.avatarURL
+			}
+
+			pubSub.publish('userUpdate', args.id + ':' + args.snapshot, list[userIndex])
+
+			return list[userIndex]
+		},
+		updateUserByID: async (_, args) => {
+			if (args.delay) {
+				await sleep(args.delay)
+			}
+
+			const list = getUserSnapshot(args.snapshot)
+			const userIndex = list.findIndex((c) => c.id === args.id)
+			if (userIndex === -1) {
+				throw new GraphQLError('User not found', { code: 404 })
+			}
+			if (args.birthDate) {
+				list[userIndex].birthDate = args.birthDate
+			}
+			if (args.name) {
+				list[userIndex].name = args.name
+			}
+			if (args.avatarURL) {
+				list[userIndex].avatarURL = args.avatarURL
 			}
 
 			pubSub.publish('userUpdate', args.id + ':' + args.snapshot, list[userIndex])

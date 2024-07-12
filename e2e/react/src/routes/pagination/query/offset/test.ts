@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { test } from '@playwright/test'
 import { routes } from '~/utils/routes.js'
 import { expect_1_gql, expect_to_be, goto } from '~/utils/testsHelper.js'
 

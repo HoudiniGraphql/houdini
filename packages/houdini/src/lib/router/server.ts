@@ -1,6 +1,7 @@
 import type * as graphql from 'graphql'
 import path from 'node:path'
 
+import { fs } from '..'
 import type { Config } from '../config'
 import { localApiEndpoint, type ConfigFile } from '../types'
 
@@ -18,21 +19,30 @@ export function internalRoutes(config: ConfigFile): string[] {
 }
 
 export async function buildLocalSchema(config: Config): Promise<void> {
-	// before we build the local schcema, we need to generate the typescript config file
-	// so that we can resolve all of the necessary imports
+	// before we build the local schcema, we should check if it already exists
+	// so we dont do it again
 
 	// load the current version of vite
 	const { build } = await import('vite')
 
+	const schema = path.join(config.localApiDir, '+schema')
+	const outDir = path.join(config.rootDir, 'temp')
+
 	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
-	const schema = path.join(config.localApiDir, '+schema')
+	try {
+		await fs.remove(path.join(outDir, 'assets', 'schema.js'))
+	} catch {}
+
+	try {
+		await fs.mkdir(outDir)
+	} catch {}
 
 	// build the schema somewhere we can import from
 	await build({
 		logLevel: 'silent',
 		build: {
-			outDir: path.join(config.rootDir, 'temp'),
+			outDir,
 			rollupOptions: {
 				input: {
 					schema,
@@ -55,7 +65,9 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 }
 
 export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
-	await buildLocalSchema(config)
+	if (!isSecondaryBuild()) {
+		await buildLocalSchema(config)
+	}
 
 	// import the schema we just built
 	const { default: schema } = await import(

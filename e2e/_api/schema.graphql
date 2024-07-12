@@ -30,7 +30,9 @@ enum ForceReturn {
 
 type Mutation {
 	addUser(
-		"""The users birth date"""
+		"""
+		The users birth date
+		"""
 		birthDate: DateTime!
 		name: String!
 		snapshot: String!
@@ -48,7 +50,22 @@ type Mutation {
 		delay: Int
 		force: ForceReturn
 	): User!
-	updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
+	updateUser(
+		id: ID!
+		name: String
+		snapshot: String!
+		birthDate: DateTime
+		delay: Int
+		avatarURL: String
+	): User!
+	updateUserByID(
+		id: ID!
+		name: String
+		snapshot: String!
+		birthDate: DateTime
+		delay: Int
+		avatarURL: String
+	): User!
 	singleUpload(file: File!): String!
 	multipleUpload(files: [File!]!): [String!]!
 	addCity(name: String!): City!
@@ -83,6 +100,7 @@ input UserNameFilter {
 union UnionAorB = A | B
 
 type Query {
+	hello: String
 	aOrB: [UnionAorB!]!
 	avgYearsBirthDate: Float!
 	node(id: ID!): Node

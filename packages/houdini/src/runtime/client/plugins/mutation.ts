@@ -16,14 +16,14 @@ export const mutation = (cache: Cache) =>
 				// well-defined ordering to a subtle situation so that seems like a win
 				const layerOptimistic = cache._internal_unstable.storage.createLayer(true)
 
-				// the optimistic response gets passed in the context's stuff bag
-				const optimisticResponse = ctx.stuff.optimisticResponse
-
 				// if there is an optimistic response then we need to write the value immediately
 
 				// hold onto the list of subscribers that we updated because of the optimistic response
 				// and make sure they are included in the final set of subscribers to notify
 				let toNotify: SubscriptionSpec[] = []
+
+				// the optimistic response gets passed in the context's stuff bag
+				const optimisticResponse = ctx.stuff.optimisticResponse
 				if (optimisticResponse) {
 					toNotify = cache.write({
 						selection: ctx.artifact.selection,

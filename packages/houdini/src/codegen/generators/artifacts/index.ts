@@ -6,6 +6,7 @@ import type {
 	Config,
 	Document,
 	DocumentArtifact,
+	MutationArtifact,
 	QueryArtifact,
 	SubscriptionSelection,
 } from '../../../lib'
@@ -360,6 +361,18 @@ export default function artifactGenerator(stats: {
 								? 'global'
 								: 'local'
 						}
+					}
+
+					// mutations might have optimisticKeys we need to track
+					if (artifact.kind === 'HoudiniMutation') {
+						// look for the optimistic key directive
+						graphql.visit(doc.document, {
+							[graphql.Kind.DIRECTIVE](node) {
+								if (node.name.value === config.optimisticKeyDirective) {
+									;(artifact as MutationArtifact).optimisticKeys = true
+								}
+							},
+						})
 					}
 
 					// adding artifactData of plugins (only if any information is present)

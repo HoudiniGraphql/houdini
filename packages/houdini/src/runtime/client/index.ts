@@ -14,6 +14,7 @@ import {
 	mutation as mutationPlugin,
 	query as queryPlugin,
 	throwOnError as throwOnErrorPlugin,
+	optimisticKeys,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
@@ -115,6 +116,7 @@ export class HoudiniClient {
 					// to the standard set
 					(
 						[
+							optimisticKeys(this.cache ?? cacheRef),
 							// make sure that documents always work
 							queryPlugin(this.cache ?? cacheRef),
 							mutationPlugin(this.cache ?? cacheRef),

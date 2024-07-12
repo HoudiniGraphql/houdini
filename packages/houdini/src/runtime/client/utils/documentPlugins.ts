@@ -42,6 +42,7 @@ export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): 
 		return {
 			start: enterWrapper(sourceHandlers.start),
 			network: enterWrapper(sourceHandlers.network),
+			beforeNetwork: enterWrapper(sourceHandlers.beforeNetwork),
 			afterNetwork: exitWrapper(sourceHandlers.afterNetwork),
 			end: exitWrapper(sourceHandlers.end),
 			catch: sourceHandlers.catch
