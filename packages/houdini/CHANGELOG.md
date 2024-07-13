@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.50
+
+### Patch Changes
+
+-   [#1318](https://github.com/HoudiniGraphql/houdini/pull/1318) [`75999ca0`](https://github.com/HoudiniGraphql/houdini/commit/75999ca0a1a743579351a9b8a04b26dc31b1dc3c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add @optimisticKey decorator
+
 ## 1.2.49
 
 ### Patch Changes
