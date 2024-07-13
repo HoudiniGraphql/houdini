@@ -1,5 +1,5 @@
 ---
-'houdini': minor
+'houdini': patch
 ---
 
 Add @optimisticKey decorator
