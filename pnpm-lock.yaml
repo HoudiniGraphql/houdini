@@ -220,9 +220,6 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../../packages/houdini
-      houdini-adapter-cloudflare:
-        specifier: workspace:^
-        version: link:../../packages/adapter-cloudflare
       houdini-react:
         specifier: workspace:^
         version: link:../../packages/houdini-react
@@ -260,9 +257,15 @@ importers:
       hono:
         specifier: ^3.6.0
         version: 3.6.0
+      houdini-adapter-cloudflare:
+        specifier: workspace:^
+        version: link:../../packages/adapter-cloudflare
       houdini-adapter-node:
         specifier: workspace:^
         version: link:../../packages/adapter-node
+      houdini-adapter-spa:
+        specifier: workspace:^
+        version: link:../../packages/adapter-spa
       postcss:
         specifier: ^8.4.31
         version: 8.4.31

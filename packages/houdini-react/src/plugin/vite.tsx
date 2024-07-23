@@ -73,6 +73,12 @@ export default {
 				'entries/adapter': routerConventions.adapter_config_path(config),
 			}
 
+			if (config.adapter && config.adapter?.includePaths) {
+				Object.assign(conf.build!.rollupOptions!.input, config.adapter?.includePaths)
+			}
+
+			console.log('includePaths:', config.adapter?.includePaths)
+
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
 				conf.build!.rollupOptions!.input[
@@ -116,6 +122,11 @@ export default {
 	async closeBundle(config) {
 		// skip close bundles during dev mode
 		if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+			return
+		}
+
+		// only continue if we are supposed to generate the server assets
+		if (config.adapter?.disableServer) {
 			return
 		}
 

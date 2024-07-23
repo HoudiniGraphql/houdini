@@ -33,6 +33,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		async config(userConfig, env) {
 			config = await getConfig(opts)
 
+			// make sure we remember the adapter
+			config.adapter = opts.adapter
+
 			viteEnv = env
 
 			let result: UserConfig = {
@@ -121,10 +124,11 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			const manifest = await load_manifest({ config, includeArtifacts: true })
 
 			// before we load the adapter we want to do some manual prep on the directories
-			// pull the ssr directory out of assets
-			await fs.recursiveCopy(path.join(sourceDir, 'ssr'), path.join(outDir, 'ssr'))
-			await fs.rmdir(path.join(sourceDir, 'ssr'))
-
+			// pull the ssr directory out of assets (if applicable)
+			if (!config.adapter?.disableServer) {
+				await fs.recursiveCopy(path.join(sourceDir, 'ssr'), path.join(outDir, 'ssr'))
+				await fs.rmdir(path.join(sourceDir, 'ssr'))
+			}
 			// copy the asset directory into the build directory
 			await fs.recursiveCopy(sourceDir, path.join(outDir, 'assets'))
 
