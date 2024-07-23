@@ -396,6 +396,19 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0(typescript@4.9.4)
 
+  packages/adapter-spa:
+    dependencies:
+      houdini:
+        specifier: workspace:^
+        version: link:../houdini
+    devDependencies:
+      scripts:
+        specifier: workspace:^
+        version: link:../_scripts
+      tsup:
+        specifier: ^7.2.0
+        version: 7.2.0(typescript@4.9.4)
+
   packages/create-houdini:
     dependencies:
       '@clack/prompts':
@@ -9720,7 +9733,7 @@ packages:
   /puppeteer@1.20.0:
     resolution: {integrity: sha512-bt48RDBy2eIwZPrkgbcwHtb51mj2nKvHOPMaSH2IsWiv7lOG9k9zhaRzpDZafrk05ajMc3cu+lSQYYOfH2DkVQ==}
     engines: {node: '>=6.4.0'}
-    deprecated: < 22.5.0 is no longer supported
+    deprecated: < 22.6.4 is no longer supported
     requiresBuild: true
     dependencies:
       debug: 4.3.4(supports-color@9.3.1)

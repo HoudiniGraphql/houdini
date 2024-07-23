@@ -48,7 +48,7 @@ export async function generate_fallbacks({
 
 		const fallback_path = routerConventions.fallback_unit_path(config, which, id)
 		const page_path = path.join(
-			config.pluginDirectory('houdini-router'),
+			config.pluginDirectory('houdini-react'),
 			'..',
 			'..',
 			'..',

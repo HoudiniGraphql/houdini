@@ -94,7 +94,7 @@ export const hooks: Plugin = async () => ({
 				// all we need to do is import the client from the fixed
 				// location and export as the default
 				const runtimeFilePath = path.join(
-					config.pluginRuntimeDirectory('houdini-router'),
+					config.pluginRuntimeDirectory('houdini-react'),
 					'config.js'
 				)
 

@@ -1,5 +1,4 @@
 /// <references types="houdini-react">
-/// <references types="houdini-router">
 /** @type {import('houdini').ConfigFile} */
 const config = {
 	defaultPartial: true,

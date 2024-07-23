@@ -69,7 +69,7 @@ async function generate_query_wrapper(args: PageBundleInput) {
 
 	// compute the import path from this component to the user's project
 	const page_path = path.join(
-		args.config.pluginDirectory('houdini-router'),
+		args.config.pluginDirectory('houdini-react'),
 		'..',
 		'..',
 		'..',
