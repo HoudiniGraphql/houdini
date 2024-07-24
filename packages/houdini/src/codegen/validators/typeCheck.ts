@@ -270,7 +270,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 									`@${config.listDirective} on ${green(
 										targetType.name
 									)} has a configuration issue: ` +
-									`${targetType} dos not have a valid key. ` +
+									`${targetType} does not have a valid key. ` +
 									`Please check this link for more information: https://houdinigraphql.com/guides/caching-data#custom-ids`,
 							})
 						)
@@ -1120,19 +1120,16 @@ function validateLoadingDirective(config: Config) {
 		let global = false
 
 		return {
-			enter: {
-				OperationDefinition(node) {
+			enter: (node) => {
+				if (
+					node.kind === graphql.Kind.OPERATION_DEFINITION ||
+					node.kind === graphql.Kind.FRAGMENT_DEFINITION
+				) {
 					// if the operation has the loading mutation its being applied globally
 					if (node.directives?.find((d) => d.name.value === config.loadingDirective)) {
 						global = true
 					}
-				},
-				FragmentDefinition(node) {
-					// if the operation has the loading mutation its being applied globally
-					if (node.directives?.find((d) => d.name.value === config.loadingDirective)) {
-						global = true
-					}
-				},
+				}
 			},
 			FragmentSpread(node, _, __, ___, ancestors) {
 				// we only care about fields with the loading directive

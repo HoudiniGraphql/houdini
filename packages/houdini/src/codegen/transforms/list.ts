@@ -353,11 +353,11 @@ export default async function addListFragments(
 export function connectionSelection(
 	config: Config,
 	field: graphql.GraphQLField<any, any>,
-	type: graphql.GraphQLObjectType,
+	type: graphql.GraphQLObjectType | graphql.GraphQLInterfaceType,
 	selection: graphql.SelectionSetNode | undefined
 ): {
 	selection: graphql.SelectionSetNode | undefined
-	type: graphql.GraphQLObjectType
+	type: graphql.GraphQLObjectType | graphql.GraphQLInterfaceType
 	connection: boolean
 	error: string | null
 } {
@@ -419,7 +419,9 @@ export function connectionSelection(
 
 	return {
 		selection: nodeSelection.selectionSet,
-		type: unwrapType(config, nodeField.type).type as graphql.GraphQLObjectType,
+		type: unwrapType(config, nodeField.type).type as
+			| graphql.GraphQLObjectType
+			| graphql.GraphQLInterfaceType,
 		connection: true,
 		error: null,
 	}

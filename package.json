@@ -36,7 +36,7 @@
 		"@types/react": "^18.2.22",
 		"@vitest/ui": "^1.6.0",
 		"eslint-plugin-unused-imports": "^2.0.0",
-		"graphql": "^15.8.0",
+		"graphql": "^16.9.0",
 		"lint-staged": "^12.3.4",
 		"prettier": "^2.8.3",
 		"turbo": "^1.8.8",
@@ -58,6 +58,6 @@
 		"*.json": "prettier -w "
 	},
 	"resolutions": {
-		"graphql": "15.5.0"
+		"graphql": "16.9.0"
 	}
 }

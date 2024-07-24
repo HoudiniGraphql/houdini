@@ -207,7 +207,10 @@ export async function find_graphql(
 
 				// invoker the walker's callback with the right context
 				await walker.tag({
-					parsedDocument: { kind: 'Document', definitions: [definition.parsed] },
+					parsedDocument: {
+						kind: graphql.Kind.DOCUMENT,
+						definitions: [definition.parsed],
+					},
 					node: {
 						...node,
 						...this,
@@ -293,20 +296,20 @@ function extractAnonymousQuery(
 			}
 
 			const parsed: graphql.FragmentDefinitionNode = {
-				kind: 'FragmentDefinition',
+				kind: graphql.Kind.FRAGMENT_DEFINITION,
 				typeCondition: {
-					kind: 'NamedType',
+					kind: graphql.Kind.NAMED_TYPE,
 					name: {
-						kind: 'Name',
+						kind: graphql.Kind.NAME,
 						value: selection.typeCondition?.name.value || '',
 					},
 				},
 				name: {
-					kind: 'Name',
+					kind: graphql.Kind.NAME,
 					value: fragmentName,
 				},
 				selectionSet: {
-					kind: 'SelectionSet',
+					kind: graphql.Kind.SELECTION_SET,
 					selections: selection.selectionSet.selections,
 				},
 				directives: selection.directives,
