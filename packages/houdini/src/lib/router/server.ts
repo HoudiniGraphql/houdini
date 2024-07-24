@@ -48,7 +48,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 					schema,
 				},
 				output: {
-					entryFileNames: 'assets/[name].js',
+					entryFileNames: '[name].js',
 				},
 			},
 			ssr: true,
@@ -71,7 +71,10 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 
 	// import the schema we just built
 	const { default: schema } = await import(
-		path.join(config.rootDir, 'temp', 'assets', `schema.js?${Date.now().valueOf()}}`)
+		path.join(
+			routerConventions.temp_dir(config, 'schema'),
+			`schema.js?${Date.now().valueOf()}}`
+		)
 	)
 
 	return schema

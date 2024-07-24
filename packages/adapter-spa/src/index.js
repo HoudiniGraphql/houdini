@@ -7,11 +7,20 @@ import ReactDOM from 'react-dom/server'
 // in order to prepare the app as a single-page app, we have 2 create 2 additional files:
 // - an index.js that imports the application and calls React.render. This file needs to be built by vite so it's passed with the includePaths option for an adapter
 // - an index.html containing the static shell that wraps the application.
-const adapter = async ({ config, outDir }) => {}
+const adapter = async ({ config, outDir }) => {
+	// the first thing we need to do is pull out the rendered html file into the root of the outDir
+	await fs.copyFile(
+		path.join(outDir, 'assets', '$houdini', 'temp', 'spa-shell', 'index.html'),
+		path.join(outDir, 'index.html')
+	)
+
+	await fs.rmdir(path.join(outDir, 'assets', '$houdini'))
+}
 
 // make sure we include the app entry point in the bundle
 adapter.includePaths = {
 	app: fileURLToPath(new URL('./app.js', import.meta.url).href),
+	shell: '$houdini/temp/spa-shell/index.html',
 }
 
 // we dont want any server artifacts to be generated
@@ -27,6 +36,7 @@ adapter.pre = async ({ config, outDir, conventions }) => {
 	// before we can import and render the user's index file, we need to compile it with vite
 	await build({
 		build: {
+			emptyOutDir: false,
 			ssr: true,
 			rollupOptions: {
 				output: {
@@ -58,12 +68,13 @@ adapter.pre = async ({ config, outDir, conventions }) => {
 				}),
 			],
 		})
-	).replace('</head>', "<script type='module' src='./assets/app.js'></script></head>")
+	).replace(
+		'</head>',
+		"<script type='module' src='$houdini/../dist/assets/app.js'></script></head>"
+	)
 
 	// write the shell to the outDir
-	await fs.writeFile(path.join(outDir, 'index.html'), shellContents)
-
-	console.log('wrote html template to', path.join(shellDir, 'index.html'))
+	await fs.writeFile(path.join(shellDir, 'index.html'), shellContents)
 }
 
 export default adapter
