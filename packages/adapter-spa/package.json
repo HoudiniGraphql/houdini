@@ -32,7 +32,7 @@
         "houdini": "workspace:^",
         "react": "19.0.0-rc-eb259b5d3b-20240605",
         "react-dom": "19.0.0-rc-eb259b5d3b-20240605",
-        "vite": "^5.3.4"
+		"vite": "^4.1.4"
     },
     "files": [
         "build"
