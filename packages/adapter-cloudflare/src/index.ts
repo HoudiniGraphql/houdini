@@ -9,8 +9,6 @@ const adapter: Adapter = async ({ adapterPath, outDir }) => {
 		fileURLToPath(new URL('./worker.js', import.meta.url).href)
 	))!
 
-	console.log(fileURLToPath(new URL('./worker.js', import.meta.url).href))
-
 	// make sure that the adapter module imports from the correct path
 	workerContents = workerContents.replaceAll('houdini/adapter', adapterPath)
 
