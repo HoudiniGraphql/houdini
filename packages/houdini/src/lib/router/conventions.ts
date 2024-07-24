@@ -85,6 +85,10 @@ export async function read_layoutView(base: string) {
 	return [null, null]
 }
 
+export function temp_dir(config: Config, key: string) {
+	return path.join(config.rootDir, 'temp', key)
+}
+
 export function router_index_path(config: Config) {
 	return path.join(config.routesDir, '..', '+index.jsx')
 }

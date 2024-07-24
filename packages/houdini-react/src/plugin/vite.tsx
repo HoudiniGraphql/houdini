@@ -9,6 +9,7 @@ import {
 	routerConventions,
 } from 'houdini'
 import React from 'react'
+import ReactDOM from 'react-dom/server'
 import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
 
 import { manifest, setManifest } from '.'
@@ -73,11 +74,9 @@ export default {
 				'entries/adapter': routerConventions.adapter_config_path(config),
 			}
 
-			if (config.adapter && config.adapter?.includePaths) {
+			if (env.command === 'build' && config.adapter && config.adapter?.includePaths) {
 				Object.assign(conf.build!.rollupOptions!.input, config.adapter?.includePaths)
 			}
-
-			console.log('includePaths:', config.adapter?.includePaths)
 
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
@@ -101,6 +100,7 @@ export default {
 					'~/*': path.join(config.projectRoot, 'src', '*'),
 				},
 			},
+			type: 'custom',
 			...conf,
 		}
 	},

@@ -1,7 +1,7 @@
 import type * as graphql from 'graphql'
 import path from 'node:path'
 
-import { fs } from '..'
+import { fs, routerConventions } from '..'
 import type { Config } from '../config'
 import { localApiEndpoint, type ConfigFile } from '../types'
 
@@ -26,7 +26,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 	const { build } = await import('vite')
 
 	const schema = path.join(config.localApiDir, '+schema')
-	const outDir = path.join(config.rootDir, 'temp')
+	const outDir = routerConventions.temp_dir(config, 'schema')
 
 	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 

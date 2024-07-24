@@ -16,7 +16,7 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "build": "tsup src/index.ts --format esm,cjs  --minify --dts --clean --out-dir build && cp src/app.js build/app.js",
+        "build": "",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build"
     },
@@ -25,23 +25,26 @@
         "tsup": "^7.2.0"
     },
     "dependencies": {
-        "houdini": "workspace:^"
+        "@types/react-dom": "^18.0.10",
+        "houdini": "workspace:^",
+        "react": "19.0.0-rc-eb259b5d3b-20240605",
+        "react-dom": "19.0.0-rc-eb259b5d3b-20240605"
     },
     "files": [
-        "build"
+        "src"
     ],
     "exports": {
         "./package.json": "./package.json",
         ".": {
-            "import": "./build/index.js",
-            "require": "./build/index.cjs"
+            "import": "./src/index.js",
+            "require": "./src/index.cjs"
         }
     },
-    "types": "./build/index.d.ts",
+    "types": "./src/index.d.ts",
     "typesVersions": {
         "*": {
             "app": [
-                "build/app.d.ts"
+                "src/app.d.ts"
             ]
         }
     }

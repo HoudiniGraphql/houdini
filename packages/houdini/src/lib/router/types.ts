@@ -12,4 +12,11 @@ export type Adapter = ((args: {
 }) => void | Promise<void>) & {
 	includePaths?: Record<string, string>
 	disableServer?: boolean
+	pre?: (args: {
+		config: Config
+		conventions: typeof routerConventions
+		sourceDir: string
+		publicBase: string
+		outDir: string
+	}) => Promise<void> | void
 }

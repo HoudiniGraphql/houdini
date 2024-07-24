@@ -152,6 +152,17 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
+			// check if the adapter has a pre hook
+			if (config.adapter?.pre && viteEnv.command === 'build' && !isSecondaryBuild()) {
+				await config.adapter.pre({
+					config,
+					conventions: routerConventions,
+					sourceDir: viteConfig.build.outDir,
+					publicBase: viteConfig.base,
+					outDir: config.routerBuildDirectory,
+				})
+			}
+
 			for (const plugin of config.plugins) {
 				if (typeof plugin.vite?.buildStart !== 'function') {
 					continue
