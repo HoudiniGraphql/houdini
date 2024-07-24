@@ -17,7 +17,7 @@ import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
-import { Adapter, loadLocalSchema } from './router'
+import { type Adapter, loadLocalSchema } from './router'
 import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from './types'
 import { LogLevel } from './types'
 
