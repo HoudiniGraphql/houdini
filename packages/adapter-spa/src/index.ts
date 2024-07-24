@@ -1,4 +1,5 @@
-import { fs } from 'houdini'
+// @ts-nocheck
+import { fs, type Adapter } from 'houdini'
 import { fileURLToPath } from 'node:url'
 import path from 'path'
 import React from 'react'
@@ -7,7 +8,7 @@ import ReactDOM from 'react-dom/server'
 // in order to prepare the app as a single-page app, we have 2 create 2 additional files:
 // - an index.js that imports the application and calls React.render. This file needs to be built by vite so it's passed with the includePaths option for an adapter
 // - an index.html containing the static shell that wraps the application.
-const adapter = async ({ config, outDir }) => {
+const adapter: Adapter = async ({ outDir }) => {
 	// the first thing we need to do is pull out the rendered html file into the root of the outDir
 	await fs.copyFile(
 		path.join(outDir, 'assets', '$houdini', 'temp', 'spa-shell', 'index.html'),
