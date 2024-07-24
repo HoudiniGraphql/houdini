@@ -42,19 +42,10 @@
             "types": "./build/plugin/index.d.ts",
             "import": "./build/plugin-esm/index.js",
             "require": "./build/plugin-cjs/index.js"
-        },
-        "./test": {
-            "types": "./build/test/index.d.ts",
-            "import": "./build/test-esm/index.js",
-            "require": "./build/test-cjs/index.js"
         }
     },
     "typesVersions": {
-        "*": {
-            "test": [
-                "build/test/index.d.ts"
-            ]
-        }
+        "*": {}
     },
     "main": "./build/plugin-cjs/index.js",
     "types": "./build/plugin/index.d.ts"

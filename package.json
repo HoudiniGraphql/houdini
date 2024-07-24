@@ -36,6 +36,7 @@
 		"@types/react": "^18.2.22",
 		"@vitest/coverage-v8": "^1.6.0",
 		"@vitest/ui": "^1.6.0",
+		"graphql": "^16.9.0",
 		"eslint-plugin-unused-imports": "^3.0.0",
 		"graphql": "^15.8.0",
 		"lint-staged": "^12.3.4",
@@ -59,6 +60,6 @@
 		"*.json": "prettier -w "
 	},
 	"resolutions": {
-		"graphql": "15.5.0"
+		"graphql": "16.9.0"
 	}
 }
