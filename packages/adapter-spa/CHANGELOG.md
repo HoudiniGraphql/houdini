@@ -1,1 +1,0 @@
-# houdini-adapter-spa

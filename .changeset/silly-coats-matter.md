@@ -1,5 +1,5 @@
 ---
-'houdini-adapter-spa': patch
+'houdini-adapter-static': patch
 ---
 
 initial release
