@@ -15,7 +15,9 @@ const adapter: Adapter = async ({ outDir }) => {
 		path.join(outDir, 'index.html')
 	)
 
-	await fs.rmdir(path.join(outDir, 'assets', '$houdini'))
+	try {
+		await fs.rmdir(path.join(outDir, 'assets', '$houdini'))
+	} catch {}
 }
 
 // make sure we include the app entry point in the bundle
