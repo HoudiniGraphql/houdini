@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { fs, type Adapter } from 'houdini'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import React from 'react'
 import ReactDOM from 'react-dom/server'
 
