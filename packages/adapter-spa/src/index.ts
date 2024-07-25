@@ -20,7 +20,6 @@ const adapter: Adapter = async ({ outDir }) => {
 
 // make sure we include the app entry point in the bundle
 adapter.includePaths = {
-	app: fileURLToPath(new URL('./app.js', import.meta.url).href),
 	shell: '$houdini/temp/spa-shell/index.html',
 }
 
@@ -28,6 +27,13 @@ adapter.includePaths = {
 adapter.disableServer = true
 
 adapter.pre = async ({ config, outDir, conventions }) => {
+	// before we do anything, we need to ensure the user isn't using a local API
+	if (config.localSchema) {
+		throw new Error(
+			"Houdini's SPA adapter cannot be used if your project relies on a local schema"
+		)
+	}
+
 	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
 	const { build } = await import('vite')
@@ -71,7 +77,7 @@ adapter.pre = async ({ config, outDir, conventions }) => {
 		})
 	).replace(
 		'</head>',
-		"<script type='module' src='$houdini/../dist/assets/app.js'></script></head>"
+		"<script type='module' src='virtual:houdini/static-entry'></script></head>"
 	)
 
 	// write the shell to the outDir

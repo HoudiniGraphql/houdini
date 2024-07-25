@@ -191,8 +191,8 @@ export default {
 		let [, which, arg] = id.split('/')
 
 		// the filename is the true arg. the extension just tells vite how to transfrom.
-		const parsedPath = path.parse(arg)
-		const pageName = parsedPath.name
+		const parsedPath = arg ? path.parse(arg) : ''
+		const pageName = parsedPath ? parsedPath.name : ''
 
 		// if we are rendering the virtual page
 		if (which === 'pages') {
@@ -330,6 +330,31 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 }
 `
 			)
+		}
+
+		if (which === 'static-entry') {
+			return `
+import App from '$houdini/plugins/houdini-react/units/render/App'
+import { Cache } from '$houdini/runtime/cache/cache'
+import { router_cache } from '$houdini/plugins/houdini-react/runtime/routing'
+import manifest from '$houdini/plugins/houdini-react/runtime/manifest'
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+
+const domNode = document.getElementById('app')
+const root = createRoot(domNode)
+
+const cache = new Cache()
+
+root.render(React.createElement(App, {
+	initialURL: window.location.pathname,
+	cache: cache,
+	session: null,
+	manifest: manifest,
+
+	...router_cache()
+}))
+`
 		}
 	},
 
