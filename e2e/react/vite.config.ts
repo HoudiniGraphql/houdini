@@ -5,7 +5,6 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	base: '/foo/',
 	server: {
 		port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
 	},
