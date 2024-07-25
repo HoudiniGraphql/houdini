@@ -31,7 +31,7 @@
         "rollup": "^3.7.4",
         "scripts": "workspace:^",
         "vite": "^4.1.4",
-        "vitest": "^0.28.3"
+        "vitest": "^1.6.0"
     },
     "dependencies": {
         "@babel/parser": "^7.23.9",
