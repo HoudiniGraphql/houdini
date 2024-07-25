@@ -1,7 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import houdini from 'houdini/vite';
 import { libReporter } from 'vite-plugin-lib-reporter';
-import adapter from '@sveltejs/adapter-node';
+import adapter from '@sveltejs/adapter-static';
 
 /** @type {import('vite').UserConfig} */
 const config = {

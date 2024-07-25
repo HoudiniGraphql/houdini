@@ -17,7 +17,7 @@ import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
-import { loadLocalSchema } from './router'
+import { type Adapter, loadLocalSchema } from './router'
 import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from './types'
 import { LogLevel } from './types'
 
@@ -63,6 +63,8 @@ export class Config {
 		| Record<string, string | ((env: any) => string)>
 	pluginMode: boolean = false
 	plugins: PluginMeta[] = []
+
+	adapter?: Adapter
 
 	// while processing documents, we might run into componenetFields on fragment
 	// definitions.

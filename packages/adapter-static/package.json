@@ -1,0 +1,55 @@
+{
+    "name": "houdini-adapter-static",
+    "version": "1.2.49",
+    "description": "The adapter for deploying your Houdini application as a single-page application without a server component",
+    "keywords": [
+        "houdini",
+        "adpter",
+        "node"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "npx tsc src/* --allowJs --outDir build --module esnext --target esnext --allowSyntheticDefaultImports --declaration  || exit 0 ",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build"
+    },
+    "devDependencies": {
+        "@types/react-dom": "^18.3.0",
+        "@types/node": "^18.7.23",
+        "csstype": "^3.1.3",
+        "scripts": "workspace:^",
+        "tsup": "^7.2.0",
+        "typescript": "^5.5.4"
+    },
+    "dependencies": {
+        "houdini": "workspace:^",
+        "react": "19.0.0-rc-eb259b5d3b-20240605",
+        "react-dom": "19.0.0-rc-eb259b5d3b-20240605",
+		"vite": "^4.1.4"
+    },
+    "files": [
+        "build"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": "./build/index.js",
+            "require": "./build/index.cjs"
+        }
+    },
+    "types": "./build/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "app": [
+                "build/app.d.ts"
+            ]
+        }
+    }
+}

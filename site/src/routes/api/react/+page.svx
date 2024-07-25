@@ -611,4 +611,7 @@ export default config
 Here is a list of the available adapters:
 
 - `houdini-adapter-cloudflare`: builds your application to run on Cloudflare Pages
+- `houdini-adapter-static`: builds your application to run as a single page application (no server bits). Keep in mind if you use this adapter,
+your `+index` file will be used to generate the static shell. This means that any special react components (error boundaries, etc) should be moved to the root `+layout`
+in order to preserve the behavior.
 - `houdini-adapter-auto`: tries to install the appropriate adapter for the current situation

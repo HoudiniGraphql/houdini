@@ -9,6 +9,7 @@ import {
 	routerConventions,
 } from 'houdini'
 import React from 'react'
+import ReactDOM from 'react-dom/server'
 import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
 
 import { manifest, setManifest } from '.'
@@ -73,6 +74,10 @@ export default {
 				'entries/adapter': routerConventions.adapter_config_path(config),
 			}
 
+			if (env.command === 'build' && config.adapter && config.adapter?.includePaths) {
+				Object.assign(conf.build!.rollupOptions!.input, config.adapter?.includePaths)
+			}
+
 			// every page in the manifest is a new entry point for vite
 			for (const [id, page] of Object.entries(manifest.pages)) {
 				conf.build!.rollupOptions!.input[
@@ -95,6 +100,7 @@ export default {
 					'~/*': path.join(config.projectRoot, 'src', '*'),
 				},
 			},
+			type: 'custom',
 			...conf,
 		}
 	},
@@ -116,6 +122,11 @@ export default {
 	async closeBundle(config) {
 		// skip close bundles during dev mode
 		if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+			return
+		}
+
+		// only continue if we are supposed to generate the server assets
+		if (config.adapter?.disableServer) {
 			return
 		}
 
@@ -180,8 +191,8 @@ export default {
 		let [, which, arg] = id.split('/')
 
 		// the filename is the true arg. the extension just tells vite how to transfrom.
-		const parsedPath = path.parse(arg)
-		const pageName = parsedPath.name
+		const parsedPath = arg ? path.parse(arg) : ''
+		const pageName = parsedPath ? parsedPath.name : ''
 
 		// if we are rendering the virtual page
 		if (which === 'pages') {
@@ -319,6 +330,31 @@ if (window.__houdini__nav_caches__ && window.__houdini__nav_caches__.artifact_ca
 }
 `
 			)
+		}
+
+		if (which === 'static-entry') {
+			return `
+import App from '$houdini/plugins/houdini-react/units/render/App'
+import { Cache } from '$houdini/runtime/cache/cache'
+import { router_cache } from '$houdini/plugins/houdini-react/runtime/routing'
+import manifest from '$houdini/plugins/houdini-react/runtime/manifest'
+import React from 'react'
+import { createRoot } from 'react-dom/client'
+
+const domNode = document.getElementById('app')
+const root = createRoot(domNode)
+
+const cache = new Cache()
+
+root.render(React.createElement(App, {
+	initialURL: window.location.pathname,
+	cache: cache,
+	session: null,
+	manifest: manifest,
+
+	...router_cache()
+}))
+`
 		}
 	},
 

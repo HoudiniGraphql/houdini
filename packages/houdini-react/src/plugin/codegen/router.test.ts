@@ -43,110 +43,110 @@ test('happy path', async function () {
 		.toMatchInlineSnapshot(`
 			"export default {
 						pages: {
-					\\"_\\": {
-						id: \\"_\\",
-						pattern: /^\\\\/$/,
+					"_": {
+						id: "_",
+						pattern: /^\\/$/,
 						params: [],
 
 					
 						documents: {
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: false,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/_\\")
+						component: () => import("../units/entries/_")
 					},
 
-					\\"__id_\\": {
-						id: \\"__id_\\",
-						pattern: /^\\\\/([^/]+?)\\\\/?$/,
-						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+					"__id_": {
+						id: "__id_",
+						pattern: /^\\/([^/]+?)\\/?$/,
+						params: [{"name":"id","optional":false,"rest":false,"chained":false}],
 
 					
 						documents: {
 							SubQuery: {
-										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
+										artifact: () => import("../../../artifacts/SubQuery"),
 										loading: false,
 										variables: {}
 									},
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: false,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/__id_\\")
+						component: () => import("../units/entries/__id_")
 					},
 
-					\\"_another\\": {
-						id: \\"_another\\",
-						pattern: /^\\\\/another\\\\/?$/,
+					"_another": {
+						id: "_another",
+						pattern: /^\\/another\\/?$/,
 						params: [],
 
 					
 						documents: {
 							MyQuery: {
-										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
+										artifact: () => import("../../../artifacts/MyQuery"),
 										loading: false,
 										variables: {}
 									},
 							MyLayoutQuery: {
-										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
+										artifact: () => import("../../../artifacts/MyLayoutQuery"),
 										loading: true,
 										variables: {}
 									},
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: false,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/_another\\")
+						component: () => import("../units/entries/_another")
 					},
 
-					\\"__id__nested\\": {
-						id: \\"__id__nested\\",
-						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
-						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+					"__id__nested": {
+						id: "__id__nested",
+						pattern: /^\\/([^/]+?)\\/nested\\/?$/,
+						params: [{"name":"id","optional":false,"rest":false,"chained":false}],
 
 					
 						documents: {
 							FinalQuery: {
-										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
+										artifact: () => import("../../../artifacts/FinalQuery"),
 										loading: true,
-										variables: {\\"foo\\":{\\"wrappers\\":[\\"Nullable\\"],\\"type\\":\\"Int\\"}}
+										variables: {"foo":{"wrappers":["Nullable"],"type":"Int"}}
 									},
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: false,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/__id__nested\\")
+						component: () => import("../units/entries/__id__nested")
 					},
 				},
 
 				layouts: {
-					\\"_\\": {
-						id: \\"_\\",
+					"_": {
+						id: "_",
 
 						queries: [],
 					},
-					\\"__id_\\": {
-						id: \\"__id_\\",
+					"__id_": {
+						id: "__id_",
 
-						queries: [\\"RootQuery\\"],
+						queries: ["RootQuery"],
 					},
-					\\"_another\\": {
-						id: \\"_another\\",
+					"_another": {
+						id: "_another",
 
-						queries: [\\"RootQuery\\"],
+						queries: ["RootQuery"],
 					}
 				}
 			}"
@@ -188,110 +188,110 @@ test('loading state at root', async function () {
 		.toMatchInlineSnapshot(`
 			"export default {
 						pages: {
-					\\"_\\": {
-						id: \\"_\\",
-						pattern: /^\\\\/$/,
+					"_": {
+						id: "_",
+						pattern: /^\\/$/,
 						params: [],
 
 					
 						documents: {
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: true,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/_\\")
+						component: () => import("../units/entries/_")
 					},
 
-					\\"__id_\\": {
-						id: \\"__id_\\",
-						pattern: /^\\\\/([^/]+?)\\\\/?$/,
-						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+					"__id_": {
+						id: "__id_",
+						pattern: /^\\/([^/]+?)\\/?$/,
+						params: [{"name":"id","optional":false,"rest":false,"chained":false}],
 
 					
 						documents: {
 							SubQuery: {
-										artifact: () => import(\\"../../../artifacts/SubQuery\\"),
+										artifact: () => import("../../../artifacts/SubQuery"),
 										loading: false,
 										variables: {}
 									},
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: true,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/__id_\\")
+						component: () => import("../units/entries/__id_")
 					},
 
-					\\"_another\\": {
-						id: \\"_another\\",
-						pattern: /^\\\\/another\\\\/?$/,
+					"_another": {
+						id: "_another",
+						pattern: /^\\/another\\/?$/,
 						params: [],
 
 					
 						documents: {
 							MyQuery: {
-										artifact: () => import(\\"../../../artifacts/MyQuery\\"),
+										artifact: () => import("../../../artifacts/MyQuery"),
 										loading: false,
 										variables: {}
 									},
 							MyLayoutQuery: {
-										artifact: () => import(\\"../../../artifacts/MyLayoutQuery\\"),
+										artifact: () => import("../../../artifacts/MyLayoutQuery"),
 										loading: false,
 										variables: {}
 									},
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: true,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/_another\\")
+						component: () => import("../units/entries/_another")
 					},
 
-					\\"__id__nested\\": {
-						id: \\"__id__nested\\",
-						pattern: /^\\\\/([^/]+?)\\\\/nested\\\\/?$/,
-						params: [{\\"name\\":\\"id\\",\\"optional\\":false,\\"rest\\":false,\\"chained\\":false}],
+					"__id__nested": {
+						id: "__id__nested",
+						pattern: /^\\/([^/]+?)\\/nested\\/?$/,
+						params: [{"name":"id","optional":false,"rest":false,"chained":false}],
 
 					
 						documents: {
 							FinalQuery: {
-										artifact: () => import(\\"../../../artifacts/FinalQuery\\"),
+										artifact: () => import("../../../artifacts/FinalQuery"),
 										loading: false,
 										variables: {}
 									},
 							RootQuery: {
-										artifact: () => import(\\"../../../artifacts/RootQuery\\"),
+										artifact: () => import("../../../artifacts/RootQuery"),
 										loading: true,
 										variables: {}
 									}
 						},
 
-						component: () => import(\\"../units/entries/__id__nested\\")
+						component: () => import("../units/entries/__id__nested")
 					},
 				},
 
 				layouts: {
-					\\"_\\": {
-						id: \\"_\\",
+					"_": {
+						id: "_",
 
 						queries: [],
 					},
-					\\"__id_\\": {
-						id: \\"__id_\\",
+					"__id_": {
+						id: "__id_",
 
-						queries: [\\"RootQuery\\"],
+						queries: ["RootQuery"],
 					},
-					\\"_another\\": {
-						id: \\"_another\\",
+					"_another": {
+						id: "_another",
 
-						queries: [\\"RootQuery\\"],
+						queries: ["RootQuery"],
 					}
 				}
 			}"

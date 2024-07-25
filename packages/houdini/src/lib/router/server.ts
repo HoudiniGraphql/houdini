@@ -1,7 +1,7 @@
 import type * as graphql from 'graphql'
 import path from 'node:path'
 
-import { fs } from '..'
+import { fs, routerConventions } from '..'
 import type { Config } from '../config'
 import { localApiEndpoint, type ConfigFile } from '../types'
 
@@ -26,7 +26,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 	const { build } = await import('vite')
 
 	const schema = path.join(config.localApiDir, '+schema')
-	const outDir = path.join(config.rootDir, 'temp')
+	const outDir = routerConventions.temp_dir(config, 'schema')
 
 	process.env.HOUDINI_SECONDARY_BUILD = 'true'
 
@@ -48,7 +48,7 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 					schema,
 				},
 				output: {
-					entryFileNames: 'assets/[name].js',
+					entryFileNames: '[name].js',
 				},
 			},
 			ssr: true,
@@ -71,7 +71,10 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 
 	// import the schema we just built
 	const { default: schema } = await import(
-		path.join(config.rootDir, 'temp', 'assets', `schema.js?${Date.now().valueOf()}}`)
+		path.join(
+			routerConventions.temp_dir(config, 'schema'),
+			`schema.js?${Date.now().valueOf()}}`
+		)
 	)
 
 	return schema

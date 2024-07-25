@@ -40,7 +40,7 @@ There are a few different places that use the function exported from this direct
 the artifacts that describe every document in a project (identified as strings tagged with `graphql`).
 These artifacts not only save the runtime from parsing the user's documents but also enable core features
 such as compiling fragments and queries into a single string that can be sent to the API. The
-[codegen pipeline](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codgen/index.ts) is built out of
+[codegen pipeline](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/index.ts) is built out of
 tasks that operate on the strings found in a project. These tasks fall into three categories:
 
 - **Validators** are defined in [packages/houdini/src/codegen/validators](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/codegen/validators) and ensure that

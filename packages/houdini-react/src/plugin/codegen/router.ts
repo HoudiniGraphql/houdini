@@ -24,7 +24,7 @@ export function format_router_manifest({
 	// which is added as part of the runtime transform.
 
 	// when computing relative paths, this is the current directory
-	const from = '$houdini/plugins/houdini-router/runtime'
+	const from = '$houdini/plugins/houdini-react/runtime'
 
 	// we're just going to build up the contents of the file as a
 	// string and return it

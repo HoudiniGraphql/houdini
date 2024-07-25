@@ -463,7 +463,7 @@ export function RouterContextProvider({
 	last_variables,
 	session: ssrSession = {},
 }: {
-	children: React.ReactElement
+	children: React.ReactNode
 	client: HoudiniClient
 	cache: Cache
 	artifact_cache: SuspenseCache<QueryArtifact>

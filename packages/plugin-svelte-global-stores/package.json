@@ -24,7 +24,7 @@
     },
     "devDependencies": {
         "scripts": "workspace:^",
-        "vitest": "^0.28.3"
+        "vitest": "^1.6.0"
     },
     "dependencies": {
         "@sveltejs/kit": "^1.9.3",
