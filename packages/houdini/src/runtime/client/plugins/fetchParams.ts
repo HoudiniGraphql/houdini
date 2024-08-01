@@ -11,6 +11,7 @@ export const fetchParams: (fn?: FetchParamFn) => ClientPlugin =
 			if (ctx.variables) {
 				for (const variable of ctx.artifact.stripVariables) {
 					delete ctx.variables[variable]
+					delete ctx.stuff.inputs.marshaled[variable]
 				}
 			}
 
