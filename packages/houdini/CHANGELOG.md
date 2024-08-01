@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.52
+
+### Patch Changes
+
+-   [#1330](https://github.com/HoudiniGraphql/houdini/pull/1330) [`69b7781e`](https://github.com/HoudiniGraphql/houdini/commit/69b7781e11b0824081be8a863a574d176d6bd138) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Strip unused variables on their way to the server
+
 ## 1.2.51
 
 ### Patch Changes
