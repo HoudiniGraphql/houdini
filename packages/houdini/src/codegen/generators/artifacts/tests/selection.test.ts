@@ -145,6 +145,7 @@ test('list of fragment unions', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -303,6 +304,7 @@ test('fragments in lists', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -502,6 +504,7 @@ test('concrete selection applies mask over abstract selection', async function (
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -836,6 +839,7 @@ test("multiple abstract selections don't conflict", async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1079,6 +1083,7 @@ test('componentFields get embedded in the selection', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1177,6 +1182,7 @@ test('componentFields get embedded in the selection', async function () {
 		\`,
 
 		    "rootType": "User",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1265,6 +1271,7 @@ test('fragment argument passed to directive', async function () {
 		\`,
 
 		    "rootType": "User",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {

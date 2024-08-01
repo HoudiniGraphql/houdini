@@ -113,6 +113,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	rootType: string
 	input?: InputObject
 	hasComponents?: boolean
+	stripVariables: Array<string>
 	refetch?: {
 		path: string[]
 		method: 'cursor' | 'offset'
