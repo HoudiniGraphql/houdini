@@ -562,6 +562,7 @@ test('embeds node pagination query as a separate document', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -848,6 +849,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1649,6 +1651,7 @@ test('generated query has same refetch spec', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1957,6 +1960,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {

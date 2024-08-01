@@ -7,6 +7,13 @@ export const fetchParams: (fn?: FetchParamFn) => ClientPlugin =
 	(fn = () => ({})) =>
 	() => ({
 		start(ctx, { next, marshalVariables }) {
+			// before we move onto the next plugin, we need to strip the variables as they go through
+			if (ctx.variables) {
+				for (const variable of ctx.artifact.stripVariables) {
+					delete ctx.variables[variable]
+				}
+			}
+
 			next({
 				...ctx,
 				fetchParams: fn({

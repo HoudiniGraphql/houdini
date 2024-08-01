@@ -92,6 +92,7 @@ test('@loading on fragment - happy path', async function () {
 		}
 		\`;
 		    "rootType": "User";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "id": {
@@ -250,6 +251,7 @@ test('@loading on query - happy path', async function () {
 		}
 		\`;
 		    "rootType": "Query";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "user": {
@@ -397,6 +399,7 @@ test('@loading on list', async function () {
 		}
 		\`;
 		    "rootType": "Query";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "users": {
@@ -502,6 +505,7 @@ test('generated types include fragment loading state', async function () {
 		}
 		\`;
 		    "rootType": "Query";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "users": {
@@ -624,6 +628,7 @@ test('global @loading on fragment', async function () {
 		}
 		\`;
 		    "rootType": "Query";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "users": {

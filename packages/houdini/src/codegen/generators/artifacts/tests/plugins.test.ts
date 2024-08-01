@@ -42,6 +42,7 @@ test("doesn't include directives defined in plugins", async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -109,6 +110,7 @@ test('plugins can customize the hash', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {

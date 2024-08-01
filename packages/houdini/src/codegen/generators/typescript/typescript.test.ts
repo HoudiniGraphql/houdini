@@ -142,6 +142,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "firstName": {
@@ -226,6 +227,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -317,6 +319,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -409,6 +412,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "firstName": {
@@ -502,6 +506,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "firstName": {
@@ -593,6 +598,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "firstName": {
@@ -678,6 +684,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -755,6 +762,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "users": {
@@ -835,6 +843,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -930,6 +939,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "entity": {
@@ -1079,6 +1089,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Mutation";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "doThing": {
@@ -1212,6 +1223,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Mutation";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "doThing": {
@@ -1314,6 +1326,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -1443,6 +1456,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -1544,6 +1558,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -1650,6 +1665,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "nodes": {
@@ -1773,6 +1789,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "entities": {
@@ -1900,6 +1917,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "nodes": {
@@ -2042,6 +2060,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "entities": {
@@ -2180,6 +2199,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "allItems": {
@@ -2276,6 +2296,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "allItems": {
@@ -2361,6 +2382,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "listOfLists": {
@@ -2459,6 +2481,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -2643,6 +2666,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Mutation";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "doThing": {
@@ -2753,6 +2777,7 @@ describe('typescript', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2932,6 +2957,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3097,6 +3123,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3209,6 +3236,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "friends": {
@@ -3352,6 +3380,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3468,6 +3497,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "friends": {
@@ -3565,6 +3595,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3668,6 +3699,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3765,6 +3797,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3877,6 +3910,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -3994,6 +4028,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Query";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "user": {
@@ -4130,6 +4165,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "User";
+			    "stripVariables": [];
 			    "selection": {
 			        "fields": {
 			            "id": {
@@ -4349,6 +4385,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Node";
+			    "stripVariables": [];
 			    "selection": {
 			        "abstractFields": {
 			            "fields": {
@@ -4453,6 +4490,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Entity";
+			    "stripVariables": [];
 			    "selection": {
 			        "abstractFields": {
 			            "fields": {
@@ -4558,6 +4596,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Entity";
+			    "stripVariables": [];
 			    "selection": {
 			        "abstractFields": {
 			            "fields": {
@@ -4675,6 +4714,7 @@ describe('typescript', function () {
 			}
 			\`;
 			    "rootType": "Entity";
+			    "stripVariables": [];
 			    "selection": {
 			        "abstractFields": {
 			            "fields": {
@@ -4784,6 +4824,7 @@ test('overlapping fragments', async function () {
 		}
 		\`;
 		    "rootType": "User";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "id": {
@@ -4880,6 +4921,7 @@ test('componentField scalars', async function () {
 		}
 		\`;
 		    "rootType": "Query";
+		    "stripVariables": [];
 		    "selection": {
 		        "fields": {
 		            "users": {

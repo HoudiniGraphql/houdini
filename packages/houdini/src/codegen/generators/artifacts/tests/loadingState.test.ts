@@ -67,6 +67,7 @@ test('persists loading behavior in selection', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -297,6 +298,7 @@ test('loading state on mixed abstract type', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -507,6 +509,7 @@ test('loading state on multiple branches of an abstract selection', async functi
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -668,6 +671,7 @@ test('loading state on inline fragments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -796,6 +800,7 @@ test('persist count in loading spec', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -950,6 +955,7 @@ test('loading state on definitions', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1127,6 +1133,7 @@ test('loading cascade', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {

@@ -49,6 +49,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -82,6 +83,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		\`,
 
 		    "rootType": "User",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -146,6 +148,7 @@ test('selection includes fragments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -206,6 +209,7 @@ test('selection includes fragments', async function () {
 		\`,
 
 		    "rootType": "User",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -269,6 +273,7 @@ test('internal directives are scrubbed', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -355,6 +360,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": ["parentID"],
 
 		    "selection": {
 		        "fields": {
@@ -447,6 +453,7 @@ test('overlapping query and fragment selection', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -528,6 +535,7 @@ test('interface to interface inline fragment', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -674,6 +682,7 @@ test('paginate over unions', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -905,6 +914,7 @@ test('overlapping query and fragment nested selection', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1034,6 +1044,7 @@ test('selections with interfaces', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1179,6 +1190,7 @@ test('selections with unions', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1326,6 +1338,7 @@ test('selections with overlapping unions', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1489,6 +1502,7 @@ test('selections with unions of abstract types', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1654,6 +1668,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1833,6 +1848,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -1927,6 +1943,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2034,6 +2051,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2136,6 +2154,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2231,6 +2250,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2339,6 +2359,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2454,6 +2475,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2553,6 +2575,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2661,6 +2684,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2780,6 +2804,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2888,6 +2913,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -2993,6 +3019,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3100,6 +3127,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3215,6 +3243,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3304,6 +3333,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3382,6 +3412,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3485,6 +3516,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3595,6 +3627,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3705,6 +3738,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3815,6 +3849,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -3926,6 +3961,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4037,6 +4073,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4148,6 +4185,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4259,6 +4297,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4368,6 +4407,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4503,6 +4543,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Mutation",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4607,6 +4648,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4740,6 +4782,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -4986,6 +5029,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -5202,6 +5246,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -5327,6 +5372,7 @@ describe('mutation artifacts', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -5465,6 +5511,7 @@ test('custom scalar shows up in artifact', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -5574,6 +5621,7 @@ test('operation inputs', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -5674,6 +5722,7 @@ describe('subscription artifacts', function () {
 			\`,
 
 			    "rootType": "Subscription",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -5761,6 +5810,7 @@ test('some artifactData added to artifact specific to plugins', async function (
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -5862,6 +5912,7 @@ test('nested recursive fragments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -5987,6 +6038,7 @@ test('leave @include and @skip alone', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -6126,6 +6178,7 @@ test('fragment references are embedded in artifact', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -6241,6 +6294,7 @@ test('fragment variables are embedded in artifact', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -6360,6 +6414,7 @@ test('fragment nested in root', async function () {
 		\`,
 
 		    "rootType": "User",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -6475,6 +6530,7 @@ test('client nullability', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -6720,6 +6776,7 @@ test('nested abstract fragment on connection', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -7023,6 +7080,7 @@ test('nested abstract fragments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -7165,6 +7223,7 @@ test('nested abstract fragments', async function () {
 		\`,
 
 		    "rootType": "AnimalConnection",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -7294,6 +7353,7 @@ test('runtimeScalars', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -7386,6 +7446,7 @@ describe('default arguments', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -7495,6 +7556,7 @@ describe('default arguments', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -7586,6 +7648,7 @@ describe('default arguments', function () {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {

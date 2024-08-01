@@ -61,6 +61,7 @@ describe('load', () => {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -165,6 +166,7 @@ describe('blocking', () => {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {
@@ -209,6 +211,7 @@ describe('blocking', () => {
 			\`,
 
 			    "rootType": "Query",
+			    "stripVariables": [],
 
 			    "selection": {
 			        "fields": {

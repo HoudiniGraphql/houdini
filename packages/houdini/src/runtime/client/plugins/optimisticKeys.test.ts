@@ -31,6 +31,7 @@ test('OptimisticKeys Plugin', async function () {
 	const first = createStore({
 		artifact: {
 			kind: ArtifactKind.Mutation,
+			stripVariables: [],
 			hash: '7777',
 			raw: 'RAW_TEXT',
 			name: 'TestArtifact',
@@ -112,6 +113,7 @@ test('OptimisticKeys Plugin', async function () {
 	const second = createStore({
 		artifact: {
 			kind: ArtifactKind.Mutation,
+			stripVariables: [],
 			hash: '7777',
 			raw: 'RAW_TEXT',
 			name: 'TestArtifact',

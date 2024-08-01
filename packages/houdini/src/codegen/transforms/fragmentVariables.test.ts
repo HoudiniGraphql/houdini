@@ -60,6 +60,7 @@ test('pass argument values to generated fragments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -156,6 +157,7 @@ test('pass structured values as argument values to generated fragments', async f
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -263,6 +265,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -354,6 +357,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -458,6 +462,7 @@ test('thread query variables to inner fragments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -593,6 +598,7 @@ test('inner fragment with intermediate default value', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -706,6 +712,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -806,6 +813,7 @@ test('default arguments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -898,6 +906,7 @@ test('list arguments', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -988,6 +997,7 @@ test('persists fragment variables in artifact', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1170,6 +1180,7 @@ test('variables referenced deeply in objects', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1233,6 +1244,7 @@ test('variables referenced deeply in objects', async function () {
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1329,6 +1341,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {
@@ -1391,6 +1404,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		\`,
 
 		    "rootType": "Query",
+		    "stripVariables": [],
 
 		    "selection": {
 		        "fields": {

@@ -136,6 +136,7 @@ export default function artifactGenerator(stats: {
 					// 1. all references to internal directives
 					// 2. all variables only used by internal directives
 					const usedVariableNames = new Set<string>()
+					const unusedVariables = new Set<string>()
 					let documentWithoutInternalDirectives = graphql.visit(document, {
 						Directive(node) {
 							// if the directive is one of the internal ones, remove it
@@ -162,6 +163,7 @@ export default function artifactGenerator(stats: {
 								const name = variableDefinitionNode.variable.name.value
 
 								if (!usedVariableNames.has(name)) {
+									unusedVariables.add(name)
 									return null
 								}
 							},
@@ -283,6 +285,7 @@ export default function artifactGenerator(stats: {
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
+						stripVariables: [...unusedVariables],
 						selection: selection({
 							config,
 							filepath: doc.filename,

@@ -28,6 +28,7 @@ export function createStore(
 		pipeline: args.pipeline ? createPluginHooks(client.plugins) : undefined,
 		client,
 		artifact: args.artifact ?? {
+			stripVariables: [],
 			kind: ArtifactKind.Query,
 			hash: '7777',
 			raw: 'RAW_TEXT',
