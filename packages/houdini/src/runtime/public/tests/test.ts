@@ -159,6 +159,7 @@ export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache(testConfig
 
 export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
 	artifact: {
+		stripVariables: [],
 		kind: ArtifactKind.Fragment,
 		hash: '',
 		raw: '',
@@ -171,6 +172,7 @@ export const testFragment = (selection: SubscriptionSelection): { artifact: Frag
 
 export const testQuery = (selection: SubscriptionSelection): { artifact: QueryArtifact } => ({
 	artifact: {
+		stripVariables: [],
 		kind: ArtifactKind.Query,
 		hash: '',
 		raw: '',
