@@ -125,17 +125,23 @@ export class DocumentStore<
 		metadata,
 		session,
 		fetch,
-		variables,
+		variables: vars,
 		policy,
 		stuff,
 		cacheParams,
 		setup = false,
 		silenceEcho = false,
 	}: SendParams = {}) {
+		const variables = { ...vars }
+		// before we move onto the next plugin, we need to strip the variables as they go through
+		for (const variable of this.artifact.stripVariables) {
+			delete variables[variable]
+		}
+
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
-			name: this.artifact.name,
+			name: this.this..name,
 			text: this.artifact.raw,
 			hash: this.artifact.hash,
 			policy: policy ?? (this.artifact as QueryArtifact).policy,
@@ -555,14 +561,6 @@ class ClientPluginContextWrapper {
 
 			// track the last variables used
 			ctx.variables = val
-		}
-
-		// before we move onto the next plugin, we need to strip the variables as they go through
-		if (ctx.variables) {
-			for (const variable of artifact.stripVariables) {
-				delete ctx.variables[variable]
-				delete ctx.stuff.inputs.marshaled[variable]
-			}
 		}
 
 		ctx.stuff = {
