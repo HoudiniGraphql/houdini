@@ -19,7 +19,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					name: ctx.name,
 					text: ctx.text,
 					hash: ctx.hash,
-					variables: marshalVariables(ctx),
+					variables: { ...marshalVariables(ctx) },
 				}
 
 				// before we move onto the next plugin, we need to strip the variables as they go through
