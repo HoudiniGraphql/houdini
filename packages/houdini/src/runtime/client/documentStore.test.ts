@@ -1175,6 +1175,7 @@ export function createStore(
 		pipeline: createPluginHooks(plugins),
 		artifact: {
 			kind: ArtifactKind.Query,
+			stripVariables: [],
 			hash: '1234',
 			raw: 'RAW_TEXT',
 			name: 'TestArtifact',
@@ -1209,6 +1210,7 @@ export function createFragmentStore(
 		client,
 		pipeline: createPluginHooks(plugins),
 		artifact: {
+			stripVariables: [],
 			kind: ArtifactKind.Fragment,
 			hash: '1234',
 			raw: 'RAW_TEXT',
@@ -1244,6 +1246,7 @@ function createStoreMutation(
 		pipeline: createPluginHooks(plugins),
 		artifact: {
 			kind: ArtifactKind.Mutation,
+			stripVariables: [],
 			hash: '1234',
 			raw: 'RAW_TEXT',
 			name: 'TestArtifact_Mutation',
