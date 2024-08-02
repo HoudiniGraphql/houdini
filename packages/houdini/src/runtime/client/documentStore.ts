@@ -557,6 +557,14 @@ class ClientPluginContextWrapper {
 			ctx.variables = val
 		}
 
+		// before we move onto the next plugin, we need to strip the variables as they go through
+		if (ctx.variables) {
+			for (const variable of artifact.stripVariables) {
+				delete ctx.variables[variable]
+				delete ctx.stuff.inputs.marshaled[variable]
+			}
+		}
+
 		ctx.stuff = {
 			...ctx.stuff,
 			inputs: {
