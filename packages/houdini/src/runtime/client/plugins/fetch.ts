@@ -22,6 +22,11 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					variables: marshalVariables(ctx),
 				}
 
+				// before we move onto the next plugin, we need to strip the variables as they go through
+				for (const variable of ctx.artifact.stripVariables) {
+					delete fetchParams.variables[variable]
+				}
+
 				let fetchFn = defaultFetch(client.url, ctx.fetchParams)
 				// the provided parameter either specifies the URL or is the entire function to
 				// use

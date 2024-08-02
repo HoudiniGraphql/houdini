@@ -125,19 +125,13 @@ export class DocumentStore<
 		metadata,
 		session,
 		fetch,
-		variables: vars,
+		variables,
 		policy,
 		stuff,
 		cacheParams,
 		setup = false,
 		silenceEcho = false,
 	}: SendParams = {}) {
-		const variables = { ...vars }
-		// before we move onto the next plugin, we need to strip the variables as they go through
-		for (const variable of this.artifact.stripVariables) {
-			delete variables[variable]
-		}
-
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			config: this.#configFile!,
