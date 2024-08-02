@@ -1,8 +1,7 @@
 import type { PluginHooks } from 'houdini'
 import { fs, path } from 'houdini'
-import type { PathLike } from 'node:fs'
-import filesystem, { Dirent } from 'node:fs'
-import filesystemPromises from 'node:fs/promises'
+import filesystem, { Dirent, type PathOrFileDescriptor, type PathLike } from 'node:fs'
+import filesystemPromises, { type FileHandle } from 'node:fs/promises'
 
 import { _config } from '.'
 import type { Framework } from './kit'
@@ -15,7 +14,7 @@ import {
 } from './kit'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default (getFramwork: () => Framework) =>
+export default (getFramework: () => Framework) =>
 	({
 		async resolveId(filepath, _, { config, isEntry }) {
 			// without this check, the block underneath breaks relative imports from root layout
@@ -34,7 +33,7 @@ export default (getFramwork: () => Framework) =>
 
 			// if we are resolving any of the files we need to generate
 			if (
-				is_route_script(getFramwork(), filepath) ||
+				is_route_script(getFramework(), filepath) ||
 				is_root_layout(config, filepath) ||
 				is_root_layout_server(config, filepath)
 			) {
@@ -50,7 +49,7 @@ export default (getFramwork: () => Framework) =>
 
 			// if we are processing a route script or the root layout, we should always return _something_
 			if (
-				is_route_script(getFramwork(), filepath) ||
+				is_route_script(getFramework(), filepath) ||
 				is_root_layout_server(config, filepath)
 			) {
 				filepath = resolve_relative(config, filepath)
@@ -79,9 +78,18 @@ const _statSync = filesystem.statSync
 const _readFileSync = filesystem.readFileSync
 const _unlinkSync = filesystem.unlinkSync
 
+function getStringFilepath(fp: PathOrFileDescriptor | FileHandle): string {
+	if (fp instanceof URL) {
+		// resolves problem where local URL toString() returns a path prefixed with 'file://' even on
+		// POSIX devices in Electron 29 and node 20+
+		return fp.pathname
+	}
+	return fp.toString()
+}
+
 // @ts-ignore
 filesystem.readFileSync = function (fp, options) {
-	const filepath = fp.toString()
+	const filepath = getStringFilepath(fp)
 
 	if (
 		filepath.endsWith('+page.js') ||
@@ -89,7 +97,7 @@ filesystem.readFileSync = function (fp, options) {
 		filepath.replace('.ts', '.js').endsWith('+layout.server.js')
 	) {
 		try {
-			return _readFileSync(filepath, options)
+			return _readFileSync(fp, options)
 		} catch {
 			return typeof options === 'string' || options?.encoding ? '' : Buffer.from('')
 		}
@@ -97,30 +105,30 @@ filesystem.readFileSync = function (fp, options) {
 
 	if (filepath.endsWith(path.join('src', 'routes', '+layout.svelte'))) {
 		try {
-			return _readFileSync(filepath, options)
+			return _readFileSync(fp, options)
 		} catch {
 			return typeof options === 'string' || options?.encoding
 				? empty_layout
 				: Buffer.from(empty_layout)
 		}
 	}
-	return _readFileSync(filepath, options)
+	return _readFileSync(fp, options)
 }
 
 // @ts-ignore
 filesystem.statSync = function (fp: PathLike, options: Parameters<filesystem.StatSyncFn>[1]) {
-	let filepath = fp.toString()
+	let filepath = getStringFilepath(fp)
 
 	if (!filepath.includes('routes') || !path.basename(filepath).startsWith('+')) {
-		return _statSync(fp, options as any)
+		return _statSync(fp, options)
 	}
 
 	try {
-		const result = _statSync(filepath, options as any)
+		const result = _statSync(fp, options)
 		return result
 	} catch (error) {
 		// everything internal to houdini should assume posix paths
-		filepath = path.posixify(filepath.toString())
+		filepath = path.posixify(filepath)
 
 		const mock = virtual_file(path.basename(filepath), { withFileTypes: true })
 
@@ -157,13 +165,14 @@ filesystem.unlinkSync = function (filepath: PathLike) {
 
 // @ts-ignore
 filesystem.readdirSync = function (
-	filepath: PathLike,
+	fp: PathLike,
 	options: Parameters<typeof filesystem.readdirSync>[1]
 ) {
-	if (!filepath.toString().includes('routes')) return _readDirSync(filepath, options)
+	const filepath = getStringFilepath(fp)
+	if (!filepath.includes('routes')) return _readDirSync(fp, options)
 
 	// WORKAROUND: Using `unknown` type because our inherited options are not fully exhaustive.
-	const result: unknown[] = _readDirSync(filepath, options)
+	const result: unknown[] = _readDirSync(fp, options)
 
 	const file_names = result.map((file) => {
 		if (file instanceof Dirent) {
@@ -183,7 +192,7 @@ filesystem.readdirSync = function (
 		result.push(virtual_file('+page.js', options))
 	}
 
-	const posix_filepath = path.posixify(filepath.toString())
+	const posix_filepath = path.posixify(filepath)
 
 	// there needs to always be a root load function that passes the session down
 	// also, if there is a layout file but no layout.js, we need to make one
