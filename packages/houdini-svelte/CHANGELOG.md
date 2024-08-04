@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
--   [#1334](https://github.com/HoudiniGraphql/houdini/pull/1334) [`a4fac956`](https://github.com/HoudiniGraphql/houdini/commit/a4fac95634584d38f9e78329fc69b1bd8cc2412d) Thanks [@fnimick](https://github.com/fnimick)! - Fix filesystem patches to not use illegal paths
+-   [#1334](https://github.com/HoudiniGraphql/houdini/pull/1334) [`a4fac956`](https://github.com/HoudiniGraphql/houdini/commit/a4fac95634584d38f9e78329fc69b1bd8cc2412d) Thanks @fnimick! - Fix filesystem patches to not use illegal paths
 
 -   Updated dependencies []:
     -   houdini@1.2.54
