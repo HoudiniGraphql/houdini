@@ -22,6 +22,7 @@ This section contains posts that cover fundamental principles to help you build 
 - [Uploading Files](/guides/uploading-files) - A guide on handling file uploads via mutations
 - [Persisted Queries](/guides/persisted-queries) - A guide on persisted queries (including APQ)
 - [Typescript](/guides/typescript) - An overview of the TypeScript API
+- [Svelte 5 Runes](/guides/svelte-5) - A guide to using Houdini with Svelte 5 Runes
 - [Contributing Guide](/guides/contributing) - A guide written for people looking to contribute to Houdini
 - [Architecture](/guides/architecture) - An overview of Houdini's architecture for people building plugins
 

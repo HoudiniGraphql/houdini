@@ -13,8 +13,8 @@
   $: browser && limit && updateQS();
 
   async function updateQS() {
-    $page.url.searchParams.set('limit', limit.toString());
-    const newUrl = $page.url.href;
+    const newUrl = new URL($page.url);
+    newUrl.searchParams.set('limit', limit.toString());
     await invalidate(newUrl);
     await goto(newUrl, { replaceState: true, keepFocus: true });
   }
