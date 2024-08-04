@@ -31,7 +31,7 @@
         "houdini": "workspace:^",
         "houdini-svelte": "workspace:^",
         "recast": "^0.23.1",
-        "svelte": "5.0.0-next.175"
+        "svelte": "5.0.0-next.208"
     },
     "files": [
         "build"
