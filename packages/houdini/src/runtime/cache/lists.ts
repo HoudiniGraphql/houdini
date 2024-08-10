@@ -239,7 +239,7 @@ export class List {
 		// figure out the id of the type we are adding
 		const dataID = this.cache._internal_unstable.id(listType, data)
 
-		// if there are conditions for this operation
+		// validate any conditions for this operation
 		if (!this.validateWhen() || !dataID) {
 			return
 		}

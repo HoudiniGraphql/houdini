@@ -153,7 +153,11 @@ export class InMemoryStorage {
 						}
 						// inserts are sorted by location
 						if (isInsertOperation(op)) {
-							operations.insert[op.location].unshift(op.id)
+							if (op.location === OperationLocation.end) {
+								operations.insert[op.location].unshift(op.id)
+							} else {
+								operations.insert[op.location].push(op.id)
+							}
 						}
 						// if we found a delete operation, we're done
 						if (isDeleteOperation(op)) {
@@ -519,7 +523,7 @@ export class Layer {
 			const fields: OperationMap['fieldName']['fields'] = {}
 
 			// merge the two operation maps
-			for (const opMap of [this.operations[id], layer.operations[id]].filter(Boolean)) {
+			for (const opMap of [layer.operations[id], this.operations[id]].filter(Boolean)) {
 				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
 					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
 				}
