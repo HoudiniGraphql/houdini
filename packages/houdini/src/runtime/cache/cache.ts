@@ -744,7 +744,6 @@ class CacheInternal {
 							// look up the node reference
 							const { value } = this.storage.get(id, 'node')
 							const node = value as string
-
 							// if the id is being adding and is part of the empty edges, don't include it
 							if (newNodeIDs.includes(node) && emptyEdges.includes(node)) {
 								return false

@@ -1522,7 +1522,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 		},
 	}
 
-	// start off associated with one object
+	// start off associated with just one object
 	cache.write({
 		selection,
 		data: {
@@ -1553,11 +1553,8 @@ test('inserting data with an update overwrites a record inserted with list.appen
 		selection,
 	})
 
-	const layer = cache._internal_unstable.storage.createLayer(true)
-
 	// insert an element into the list (no parent ID)
 	cache.list('All_Users').append({
-		layer,
 		selection: {
 			fields: {
 				id: { visible: true, type: 'ID', keyRaw: 'id' },
@@ -1688,8 +1685,6 @@ test('inserting data with an update overwrites a record inserted with list.appen
 			},
 		},
 	})
-
-	cache._internal_unstable.storage.resolveLayer(layer.id)
 
 	expect(
 		cache.read({
