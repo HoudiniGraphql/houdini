@@ -10,7 +10,7 @@ export class InMemoryStorage {
 	data: Layer[]
 	private idCount = 1
 	private rank = 0
-	idMaps: Record<string | number, string | number> = {}
+	idMaps: Record<string, string> = {}
 
 	constructor() {
 		this.data = []
@@ -24,8 +24,9 @@ export class InMemoryStorage {
 		return this.rank++
 	}
 
-	registerIDMapping(from: string | number, to: string | number) {
+	registerIDMapping(from: string, to: string) {
 		this.idMaps[from] = to
+		this.idMaps[to] = from
 	}
 
 	// create a layer and return its id
@@ -45,12 +46,12 @@ export class InMemoryStorage {
 		return this.topLayer.insert(id, field, location, target)
 	}
 
-	remove(id: string, field: string, target: string, layerToUser = this.topLayer) {
-		return layerToUser.remove(id, field, target)
+	remove(id: string, field: string, target: string, layer = this.topLayer) {
+		return layer.remove(id, field, target)
 	}
 
-	delete(id: string, layerToUser = this.topLayer) {
-		return layerToUser.delete(id)
+	delete(id: string, layer = this.topLayer) {
+		return layer.delete(id)
 	}
 
 	deleteField(id: string, field: string) {
@@ -112,6 +113,9 @@ export class InMemoryStorage {
 						return
 					}
 					operations.remove.add(v)
+					if (this.idMaps[v]) {
+						operations.remove.add(this.idMaps[v])
+					}
 				})
 
 				// if we don't have a value to return, we're done
