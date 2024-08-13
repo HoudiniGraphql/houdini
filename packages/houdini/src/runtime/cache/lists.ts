@@ -120,11 +120,16 @@ export class ListManager {
 	}
 
 	removeIDFromAllLists(id: string, layer?: Layer) {
+		let removed = false
 		for (const fieldMap of this.lists.values()) {
 			for (const list of fieldMap.values()) {
-				list.removeID(id, undefined, layer)
+				if (list.removeID(id, undefined, layer)) {
+					removed = true
+				}
 			}
 		}
+
+		return removed
 	}
 
 	deleteField(parentID: string, field: string) {
@@ -544,7 +549,14 @@ export class ListCollection {
 	}
 
 	removeID(...args: Parameters<List['removeID']>) {
-		this.lists.forEach((list) => list.removeID(...args))
+		let removed = false
+		this.lists.forEach((list) => {
+			if (list.removeID(...args)) {
+				removed = true
+			}
+		})
+
+		return removed
 	}
 
 	remove(...args: Parameters<List['remove']>) {

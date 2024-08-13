@@ -486,6 +486,33 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 		})
 
+		test('a delete and insert on the same layer correctly cancel out', function () {
+			const storage = new InMemoryStorage()
+
+			// add a linked list we will remove from in a layer
+			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:3', 'User:4'])
+
+			// create an optimistic layer we will use to mutate the list
+			const layer = storage.createLayer(true)
+			// insert the same user
+			layer.remove('User:1', 'friends', 'User:2')
+			layer.insert('User:1', 'friends', 'end', 'User:2')
+
+			// make sure we removed the user from the list
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3', 'User:4'],
+				displayLayers: [layer.id, baseLayerID],
+				kind: 'link',
+			})
+
+			// make sure we removed the user from the list
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3', 'User:4'],
+				displayLayers: [layer.id, baseLayerID],
+				kind: 'link',
+			})
+		})
+
 		test.todo(
 			'resolving layer with deletes and fields removes old data and retains the new stuff'
 		)

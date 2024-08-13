@@ -39,6 +39,10 @@ export class InMemorySubscriptions {
 		return Object.keys(this.subscribers.get(parent) || {})
 	}
 
+	copySubscribers(from: string, to: string) {
+		this.subscribers.set(to, this.subscribers.get(from) || new Map())
+	}
+
 	add({
 		parent,
 		spec,
@@ -304,6 +308,12 @@ export class InMemorySubscriptions {
 		return this.subscribers.get(id)?.get(field)?.selections || []
 	}
 
+	getAll(id: string): FieldSelection[] {
+		return [...(this.subscribers.get(id)?.values() || [])].flatMap(
+			(fieldSub) => fieldSub.selections
+		)
+	}
+
 	remove(
 		id: string,
 		selection: SubscriptionSelection,
@@ -417,7 +427,18 @@ export class InMemorySubscriptions {
 		}
 	}
 
-	removeAllSubscribers(id: string, targets?: SubscriptionSpec[], visited: string[] = []) {
+	removeAllSubscribers(id: string, targets?: SubscriptionSpec[]) {
+		// get the list of subscriptions specs for the id if we didn't provide a specific list
+		if (!targets) {
+			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((spec) =>
+				spec.selections[0].flatMap((sel) => Object.values(sel || {})!)
+			)
+		}
+
+		return this._walk_removeAllSubscribers(id, targets)
+	}
+
+	_walk_removeAllSubscribers(id: string, targets: SubscriptionSpec[], visited: string[] = []) {
 		visited.push(id)
 
 		const subscriber = this.subscribers.get(id)
@@ -450,7 +471,7 @@ export class InMemorySubscriptions {
 				}
 
 				// keep walking down
-				this.removeAllSubscribers(id, subscribers, visited)
+				this._walk_removeAllSubscribers(id, subscribers, visited)
 			}
 		}
 	}

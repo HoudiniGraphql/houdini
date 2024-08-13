@@ -146,21 +146,28 @@ export class Cache {
 	}
 
 	// when an optimistic key resolves, we might momentarily know the same record by different IDs
-	registerKeyMap(source: string | number, mapped: string | number) {
+	registerKeyMap(source: string, mapped: string) {
 		this._internal_unstable.storage.registerIDMapping(source, mapped)
+		this._internal_unstable.subscriptions.copySubscribers(source, mapped)
 	}
 
 	// remove the record from the cache's store and unsubscribe from it
 	delete(id: string, layer?: Layer) {
-		// clean up any subscribers associated with the record before we destroy the actual values that will let us
-		// walk down
-		this._internal_unstable.subscriptions.removeAllSubscribers(id)
+		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
+			Boolean
+		) as string[]
 
-		// make sure we remove the id from any lists that it appears in
-		this._internal_unstable.lists.removeIDFromAllLists(id, layer)
+		for (const recordID of recordIDs) {
+			// clean up any subscribers associated with the record before we destroy the actual values that will let us
+			// walk down
+			this._internal_unstable.subscriptions.removeAllSubscribers(recordID)
 
-		// delete the record from the store
-		this._internal_unstable.storage.delete(id, layer)
+			// make sure we remove the id from any lists that it appears in
+			const removed = this._internal_unstable.lists.removeIDFromAllLists(recordID, layer)
+
+			// delete the record from the store
+			this._internal_unstable.storage.delete(recordID, layer)
+		}
 	}
 
 	// set the cache's config
@@ -925,6 +932,13 @@ class CacheInternal {
 						if (!targetID) {
 							continue
 						}
+
+						toNotify.push(
+							...this.subscriptions
+								.getAll(targetID)
+								.filter((sub) => sub[0].parentID !== targetID)
+						)
+
 						this.cache.delete(targetID, layer)
 					}
 				}
@@ -950,7 +964,7 @@ class CacheInternal {
 		stepsFromConnection?: number | null
 		ignoreMasking?: boolean
 		loading?: boolean
-		// if this is true then we are ignoring masking and checking the full selection for
+		// if this is true then we are ignoring masking and checking the full select
 		// data. we will still return the masked value if we have it.
 		fullCheck?: boolean
 	}): {
