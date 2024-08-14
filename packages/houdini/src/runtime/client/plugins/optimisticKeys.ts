@@ -296,7 +296,7 @@ function extractResponseKeys(
 	mutationID: number,
 	events: {
 		onNewKey: (optimisticValue: string | number, realValue: string | number) => void
-		onIDChange: (optimisticValue: string | number, realValue: string | number) => void
+		onIDChange: (optimisticValue: string, realValue: string) => void
 	},
 	objectIDs: OptimisticObjectIDMap = objectIDMap,
 	path: string = '',
