@@ -29,7 +29,6 @@ export function useFragment<
 	// on the client, we want to ensure that we apply masking to the initial value by
 	// loading the value from cache
 	if (reference && parent) {
-		// console.log('reading from cache', parent)
 		cachedValue = cache.read({
 			selection: document.artifact.selection,
 			parent,
