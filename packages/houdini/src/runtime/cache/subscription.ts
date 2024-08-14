@@ -389,9 +389,8 @@ export class InMemorySubscriptions {
 			return
 		}
 		const subscriberField = subscriber.get(fieldName)
-
 		for (const spec of specs) {
-			const counts = subscriber.get(fieldName)?.referenceCounts
+			const counts = subscriberField?.referenceCounts
 
 			// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
 			if (!counts?.has(spec.set)) {
@@ -431,49 +430,24 @@ export class InMemorySubscriptions {
 		// get the list of subscriptions specs for the id if we didn't provide a specific list
 		if (!targets) {
 			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((spec) =>
-				spec.selections[0].flatMap((sel) => Object.values(sel || {})!)
+				spec.selections.flatMap((sel) => sel[0]!)
 			)
 		}
 
-		return this._walk_removeAllSubscribers(id, targets)
-	}
-
-	_walk_removeAllSubscribers(id: string, targets: SubscriptionSpec[], visited: string[] = []) {
-		visited.push(id)
-
-		const subscriber = this.subscribers.get(id)
-		// every field that currently being subscribed to needs to be cleaned up
-		for (const [key, val] of subscriber?.entries() ?? []) {
-			// grab the current set of subscribers
-			const subscribers = targets || val.selections.map(([spec]) => spec)
-
-			// delete the subscriber for the field
-			this.removeSubscribers(id, key, subscribers)
-
-			// look up the value for the field so we can remove any subscribers that existed because of a
-			// subscriber to this record
-			const { value, kind } = this.cache._internal_unstable.storage.get(id, key)
-
-			// if the field is a scalar, there's nothing more to do
-			if (kind === 'scalar') {
-				continue
-			}
-
-			// if the value is a single link , wrap it in a list. otherwise, flatten the link list
-			const nextTargets = Array.isArray(value)
-				? flatten(value as NestedList)
-				: [value as string]
-
-			for (const id of nextTargets) {
-				// if we have already visited this id, move on
-				if (visited.includes(id)) {
-					continue
-				}
-
-				// keep walking down
-				this._walk_removeAllSubscribers(id, subscribers, visited)
+		for (const target of targets) {
+			// we shouldn't use the root selection here because we only care about the subselections
+			// related to the target
+			for (const subselection of this.findSubSelections(
+				target.parentID || rootID,
+				target.selection,
+				target.variables || {},
+				id
+			)) {
+				this.remove(id, subselection, targets, target.variables || {})
 			}
 		}
+
+		return
 	}
 
 	get size() {
@@ -485,5 +459,59 @@ export class InMemorySubscriptions {
 		}
 
 		return size
+	}
+
+	findSubSelections(
+		parentID: string,
+		selection: SubscriptionSelection,
+		variables: {},
+		searchTarget: string,
+		selections = [] as Array<SubscriptionSelection>
+	): Array<SubscriptionSelection> {
+		// walk down the selection, looking up cached information along the way to identity instances where
+		// the target id is embedded inside of the selection
+
+		// figure out the correct selection
+		const __typename = this.cache._internal_unstable.storage.get(parentID, '__typename')
+			.value as string
+		let targetSelection = getFieldsForType(selection, __typename, false)
+
+		// look at the fields for ones corresponding to links
+		for (const fieldSelection of Object.values(targetSelection || {})) {
+			// if the field points to a link then we need to see if the linked record
+			// is the one we are looking for
+			if (!fieldSelection.selection) {
+				continue
+			}
+
+			const key = evaluateKey(fieldSelection.keyRaw, variables || {})
+
+			const linkedRecord = this.cache._internal_unstable.storage.get(parentID, key)
+			// if the links aren't an array then wrap it
+			const links = !Array.isArray(linkedRecord.value)
+				? [linkedRecord.value as string]
+				: flatten(linkedRecord.value as NestedList)
+
+			// if we found a selection that includes the target, great - we're done and walking down
+			// will unsubscribe from everything
+			if (links.includes(searchTarget)) {
+				selections.push(fieldSelection.selection)
+			}
+			// if we didn't find the target, we need to keep walking down the selection. maybe its somewhere
+			else {
+				// we need to keep walking down the selection
+				for (const link of links) {
+					this.findSubSelections(
+						link,
+						fieldSelection.selection,
+						variables,
+						searchTarget,
+						selections
+					)
+				}
+			}
+		}
+
+		return selections
 	}
 }

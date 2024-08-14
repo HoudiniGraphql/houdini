@@ -163,7 +163,7 @@ export class Cache {
 			this._internal_unstable.subscriptions.removeAllSubscribers(recordID)
 
 			// make sure we remove the id from any lists that it appears in
-			const removed = this._internal_unstable.lists.removeIDFromAllLists(recordID, layer)
+			this._internal_unstable.lists.removeIDFromAllLists(recordID, layer)
 
 			// delete the record from the store
 			this._internal_unstable.storage.delete(recordID, layer)
