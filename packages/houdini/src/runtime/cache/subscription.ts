@@ -6,8 +6,8 @@ import type {
 	SubscriptionSpec,
 	NestedList,
 } from '../lib/types'
-import { rootID, type Cache } from './cache'
-import { evaluateKey } from './stuff'
+import { type Cache } from './cache'
+import { evaluateKey, rootID } from './stuff'
 
 export type FieldSelection = [
 	SubscriptionSpec,

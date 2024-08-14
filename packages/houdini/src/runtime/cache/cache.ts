@@ -20,7 +20,7 @@ import { ListManager } from './lists'
 import { StaleManager } from './staleManager'
 import type { Layer, LayerID } from './storage'
 import { InMemoryStorage } from './storage'
-import { evaluateKey } from './stuff'
+import { evaluateKey, rootID } from './stuff'
 import { InMemorySubscriptions, type FieldSelection } from './subscription'
 
 export class Cache {
@@ -146,7 +146,7 @@ export class Cache {
 	}
 
 	// when an optimistic key resolves, we might momentarily know the same record by different IDs
-	registerKeyMap(source: string | number, mapped: string | number) {
+	registerKeyMap(source: string, mapped: string) {
 		this._internal_unstable.storage.registerIDMapping(source, mapped)
 	}
 
@@ -1548,9 +1548,6 @@ export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLVal
 		)
 	}
 }
-
-// fields on the root of the data store are keyed with a fixed id
-export const rootID = '_ROOT_'
 
 type DisplaySummary = { id: string; field: string; value?: any }
 

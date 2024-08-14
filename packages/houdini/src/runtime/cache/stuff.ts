@@ -51,3 +51,6 @@ export function evaluateKey(key: string, variables: Record<string, any> | null =
 
 // the list of characters that make up a valid graphql variable name
 const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
+
+// fields on the root of the data store are keyed with a fixed id
+export const rootID = '_ROOT_'

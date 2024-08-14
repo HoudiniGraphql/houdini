@@ -1,8 +1,8 @@
 import { flatten } from '../lib/flatten'
 import type { SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../lib/types'
 import type { Cache } from './cache'
-import { rootID } from './cache'
 import type { Layer } from './storage'
+import { rootID } from './stuff'
 
 export class ListManager {
 	rootID: string
