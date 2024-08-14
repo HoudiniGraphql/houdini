@@ -55,7 +55,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				// look at the list of ancestors to see if we required a parent ID
 				let needsParent = false
 
-				// if we are looking at an operation that's not query
+				// if we are looking at an operation that's not q`uery
 				if (
 					(definition.kind !== 'OperationDefinition' &&
 						definition.kind !== 'FragmentDefinition') ||
@@ -231,7 +231,7 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				}
 
 				// we need to validate that we have id configs for the target of the list
-				let targetTypes: readonly graphql.GraphQLObjectType<any, any>[] = [type]
+				let targetTypes: readonly graphql.GraphQLObjectType<any, any>[] = []
 
 				// a union doesn't have fields itself so every possible type needs to have a valid key
 				if (graphql.isUnionType(type)) {
@@ -254,6 +254,8 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 						// so we have to use the possible types in our check
 						targetTypes = config.schema.getPossibleTypes(type)
 					}
+				} else {
+					targetTypes = [type]
 				}
 
 				// make sure there is an id field
