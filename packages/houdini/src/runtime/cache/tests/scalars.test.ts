@@ -3,7 +3,8 @@ import { test, expect } from 'vitest'
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib/types'
 import { RefetchUpdateMode } from '../../lib/types'
-import { Cache, rootID } from '../cache'
+import { Cache } from '../cache'
+import { rootID } from '../stuff'
 
 const config = testConfigFile({
 	scalars: {

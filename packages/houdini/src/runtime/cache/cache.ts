@@ -20,7 +20,7 @@ import { ListManager } from './lists'
 import { StaleManager } from './staleManager'
 import type { Layer, LayerID } from './storage'
 import { InMemoryStorage } from './storage'
-import { evaluateKey } from './stuff'
+import { evaluateKey, rootID } from './stuff'
 import { InMemorySubscriptions, type FieldSelection } from './subscription'
 
 export class Cache {
@@ -1584,9 +1584,6 @@ export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLVal
 		)
 	}
 }
-
-// fields on the root of the data store are keyed with a fixed id
-export const rootID = '_ROOT_'
 
 type DisplaySummary = { id: string; field: string; value?: any }
 

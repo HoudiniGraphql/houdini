@@ -11,12 +11,16 @@ export async function mutationStore({ config, pluginRoot }: GenerateHookInput, d
 	const storeName = store_name({ config, name: doc.name })
 	const globalStoreName = global_store_name({ config, name: doc.name })
 
-	const storeData = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}'
+	const storeData = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}/${
+		doc.name
+	}'
 
 export const ${globalStoreName} = new ${storeName}()`
 
 	// the type definitions for the store
-	const typeDefs = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}'
+	const typeDefs = `import { ${storeName} } from '../../houdini-svelte/${stores_directory_name()}/${
+		doc.name
+	}'
 
 export const ${globalStoreName}: ${storeName}`
 
