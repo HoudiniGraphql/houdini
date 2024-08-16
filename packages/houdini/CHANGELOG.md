@@ -1,5 +1,13 @@
 # houdini
 
+## 1.2.55
+
+### Patch Changes
+
+-   [#1339](https://github.com/HoudiniGraphql/houdini/pull/1339) [`98859e78`](https://github.com/HoudiniGraphql/houdini/commit/98859e78e088cf733edc35b3ad96b1a1f9f48b79) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix circular import in generated runtime
+
+-   [#1337](https://github.com/HoudiniGraphql/houdini/pull/1337) [`5add29a6`](https://github.com/HoudiniGraphql/houdini/commit/5add29a68489fd9382d0809cf574a1db2746aae8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Various fixes for optimistic use cases
+
 ## 1.2.54
 
 ## 1.2.53
