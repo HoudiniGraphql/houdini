@@ -1,6 +1,6 @@
 {
     "name": "houdini",
-    "version": "1.2.54",
+    "version": "1.2.55",
     "description": "The disappearing GraphQL clients",
     "keywords": [
         "typescript",
