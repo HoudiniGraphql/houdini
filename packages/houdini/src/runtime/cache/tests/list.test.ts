@@ -1522,7 +1522,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 		},
 	}
 
-	// start off associated with one object
+	// start off associated with just one object
 	cache.write({
 		selection,
 		data: {
@@ -1684,6 +1684,38 @@ test('inserting data with an update overwrites a record inserted with list.appen
 				],
 			},
 		},
+	})
+
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		data: {
+			viewer: {
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								firstName: 'jane',
+								id: '2',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								firstName: 'mary',
+								id: '3',
+							},
+						},
+					],
+				},
+				id: '1',
+			},
+		},
+		partial: false,
+		stale: false,
 	})
 })
 
@@ -5327,8 +5359,42 @@ test('inserting in list at a specific layer affects just that layer', function (
 		{}
 	)
 
+	// write some data before the layer
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			newUser: {
+				id: '2',
+			},
+		},
+	})
+
 	// create a layer that we will write against
 	const layer = cache._internal_unstable.storage.createLayer(true)
+
 	// write some data to the specific layer
 	cache.write({
 		selection: {
@@ -5363,6 +5429,12 @@ test('inserting in list at a specific layer affects just that layer', function (
 		},
 	})
 
-	// make sure the layer has what we expect
-	expect(layer.links['User:1'].friends).toEqual(['User:3'])
+	expect(layer.operations['User:1'].fields['friends']).toEqual([
+		{
+			id: 'User:3',
+			kind: 'insert',
+			location: 'end',
+		},
+	])
+	expect(layer.links['User:1']).not.toBeDefined()
 })

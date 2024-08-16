@@ -146,21 +146,28 @@ export class Cache {
 	}
 
 	// when an optimistic key resolves, we might momentarily know the same record by different IDs
-	registerKeyMap(source: string | number, mapped: string | number) {
+	registerKeyMap(source: string, mapped: string) {
 		this._internal_unstable.storage.registerIDMapping(source, mapped)
+		this._internal_unstable.subscriptions.copySubscribers(source, mapped)
 	}
 
 	// remove the record from the cache's store and unsubscribe from it
 	delete(id: string, layer?: Layer) {
-		// clean up any subscribers associated with the record before we destroy the actual values that will let us
-		// walk down
-		this._internal_unstable.subscriptions.removeAllSubscribers(id)
+		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
+			Boolean
+		) as string[]
 
-		// make sure we remove the id from any lists that it appears in
-		this._internal_unstable.lists.removeIDFromAllLists(id, layer)
+		for (const recordID of recordIDs) {
+			// clean up any subscribers associated with the record before we destroy the actual values that will let us
+			// walk down
+			this._internal_unstable.subscriptions.removeAllSubscribers(recordID)
 
-		// delete the record from the store
-		this._internal_unstable.storage.delete(id, layer)
+			// make sure we remove the id from any lists that it appears in
+			this._internal_unstable.lists.removeIDFromAllLists(recordID, layer)
+
+			// delete the record from the store
+			this._internal_unstable.storage.delete(recordID, layer)
+		}
 	}
 
 	// set the cache's config
@@ -702,6 +709,12 @@ class CacheInternal {
 					forceNotify,
 				})
 
+				// we have to do something different if we are writing to an optimistic layer or not
+				let action = () => {
+					// update the cached value
+					layer.writeLink(parent, key, linkedIDs)
+				}
+
 				// if we're supposed to apply this write as an update, we need to figure out how
 				if (applyUpdates && updates) {
 					// if we are updating the edges field, we might need to do a little more than just
@@ -738,7 +751,6 @@ class CacheInternal {
 							// look up the node reference
 							const { value } = this.storage.get(id, 'node')
 							const node = value as string
-
 							// if the id is being adding and is part of the empty edges, don't include it
 							if (newNodeIDs.includes(node) && emptyEdges.includes(node)) {
 								return false
@@ -759,10 +771,28 @@ class CacheInternal {
 						// if we have to prepend it, do so
 						if (update === 'prepend') {
 							linkedIDs = newIDs.concat(oldIDs as (string | null)[])
+							if (layer?.optimistic) {
+								action = () => {
+									for (const id of newIDs) {
+										if (id) {
+											layer.insert(parent, key, 'start', id)
+										}
+									}
+								}
+							}
 						}
 						// otherwise we might have to append it
 						else if (update === 'append') {
 							linkedIDs = oldIDs.concat(newIDs)
+							if (layer?.optimistic) {
+								action = () => {
+									for (const id of newIDs) {
+										if (id) {
+											layer.insert(parent, key, 'end', id)
+										}
+									}
+								}
+							}
 						}
 						// if the update is a replace do the right thing
 						else if (update === 'replace') {
@@ -798,8 +828,7 @@ class CacheInternal {
 
 				// if there was a change in the list
 				if (contentChanged || (oldIDs.length === 0 && newIDs.length === 0)) {
-					// update the cached value
-					layer.writeLink(parent, key, linkedIDs)
+					action()
 				}
 
 				// every new id that isn't a prevous relationship needs a new subscriber
@@ -903,6 +932,13 @@ class CacheInternal {
 						if (!targetID) {
 							continue
 						}
+
+						toNotify.push(
+							...this.subscriptions
+								.getAll(targetID)
+								.filter((sub) => sub[0].parentID !== targetID)
+						)
+
 						this.cache.delete(targetID, layer)
 					}
 				}
@@ -928,7 +964,7 @@ class CacheInternal {
 		stepsFromConnection?: number | null
 		ignoreMasking?: boolean
 		loading?: boolean
-		// if this is true then we are ignoring masking and checking the full selection for
+		// if this is true then we are ignoring masking and checking the full select
 		// data. we will still return the masked value if we have it.
 		fullCheck?: boolean
 	}): {

@@ -40,3 +40,24 @@ test('@optimisticKey', async ({ page }) => {
 	// the value in the last row should be 'final value'
 	expect(await getValue()).toBe('final value')
 })
+
+test('@optimisticKey - double click', async ({ page }) => {
+	await goto(page, routes.optimistic_keys)
+
+	// all we have to do is double click twice and make sure we didn't get an error when it resolves
+	await page.click('[data-test-action="create"]')
+	await page.click('[data-test-action="create"]')
+
+	// wait a few seconds and make sure there are no errors
+	await sleep(300)
+
+	// wait a few seconds and make sure there are no errors
+	await sleep(300)
+	let found = false
+	try {
+		await page.waitForSelector('h1', { timeout: 100 })
+		found = true
+	} catch {}
+
+	expect(found).toBe(false)
+})
