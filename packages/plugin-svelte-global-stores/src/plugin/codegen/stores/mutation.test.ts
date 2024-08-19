@@ -31,7 +31,7 @@ test('generates a store for every mutation', async function () {
 
 	expect(parsed).toMatchInlineSnapshot(
 		`
-		import { TestMutation1Store } from '../../houdini-svelte/stores'
+		import { TestMutation1Store } from '../../houdini-svelte/stores/TestMutation1'
 
 		export const GQL_TestMutation1 = new TestMutation1Store()
 	`

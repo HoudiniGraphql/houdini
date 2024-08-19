@@ -10,7 +10,7 @@ export class InMemoryStorage {
 	data: Layer[]
 	private idCount = 1
 	private rank = 0
-	private idMaps: Record<string | number, string | number> = {}
+	idMaps: Record<string, string> = {}
 
 	constructor() {
 		this.data = []
@@ -24,8 +24,9 @@ export class InMemoryStorage {
 		return this.rank++
 	}
 
-	registerIDMapping(from: string | number, to: string | number) {
+	registerIDMapping(from: string, to: string) {
 		this.idMaps[from] = to
+		this.idMaps[to] = from
 	}
 
 	// create a layer and return its id
@@ -45,12 +46,12 @@ export class InMemoryStorage {
 		return this.topLayer.insert(id, field, location, target)
 	}
 
-	remove(id: string, field: string, target: string, layerToUser = this.topLayer) {
-		return layerToUser.remove(id, field, target)
+	remove(id: string, field: string, target: string, layer = this.topLayer) {
+		return layer.remove(id, field, target)
 	}
 
-	delete(id: string, layerToUser = this.topLayer) {
-		return layerToUser.delete(id)
+	delete(id: string, layer = this.topLayer) {
+		return layer.delete(id)
 	}
 
 	deleteField(id: string, field: string) {
@@ -112,6 +113,9 @@ export class InMemoryStorage {
 						return
 					}
 					operations.remove.add(v)
+					if (this.idMaps[v]) {
+						operations.remove.add(this.idMaps[v])
+					}
 				})
 
 				// if we don't have a value to return, we're done
@@ -153,7 +157,11 @@ export class InMemoryStorage {
 						}
 						// inserts are sorted by location
 						if (isInsertOperation(op)) {
-							operations.insert[op.location].unshift(op.id)
+							if (op.location === OperationLocation.end) {
+								operations.insert[op.location].unshift(op.id)
+							} else {
+								operations.insert[op.location].push(op.id)
+							}
 						}
 						// if we found a delete operation, we're done
 						if (isDeleteOperation(op)) {
@@ -519,7 +527,7 @@ export class Layer {
 			const fields: OperationMap['fieldName']['fields'] = {}
 
 			// merge the two operation maps
-			for (const opMap of [this.operations[id], layer.operations[id]].filter(Boolean)) {
+			for (const opMap of [layer.operations[id], this.operations[id]].filter(Boolean)) {
 				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
 					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
 				}

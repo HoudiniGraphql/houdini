@@ -1,4 +1,4 @@
-import { rootID } from '../cache/cache'
+import { rootID } from '../cache/stuff'
 import { marshalInputs } from '../lib'
 import { keyFieldsForType } from '../lib/config'
 import type { FragmentArtifact, GraphQLObject } from '../lib/types'

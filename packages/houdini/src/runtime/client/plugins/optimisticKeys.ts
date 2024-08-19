@@ -137,8 +137,9 @@ export const optimisticKeys =
 								// clean up the caches since we're done with this key
 								delete callbackCache[optimisticValue]
 							},
-							onIDChange: (optimisticValue, realValue) =>
-								cache.registerKeyMap(optimisticValue, realValue),
+							onIDChange: (optimisticValue, realValue) => {
+								cache.registerKeyMap(optimisticValue, realValue)
+							},
 						}
 					)
 				}
@@ -296,7 +297,7 @@ function extractResponseKeys(
 	mutationID: number,
 	events: {
 		onNewKey: (optimisticValue: string | number, realValue: string | number) => void
-		onIDChange: (optimisticValue: string | number, realValue: string | number) => void
+		onIDChange: (optimisticValue: string, realValue: string) => void
 	},
 	objectIDs: OptimisticObjectIDMap = objectIDMap,
 	path: string = '',

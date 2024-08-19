@@ -346,34 +346,103 @@ describe('in memory layers', function () {
 			})
 		})
 
-		test('insert into linked list', function () {
+		test('insert into end of linked list', function () {
 			const storage = new InMemoryStorage()
 
 			// add a linked list that we will append to in an optimistic layer
 			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:2'])
 
 			// create an optimistic layer and insert a new friend
-			const layer = storage.createLayer(true)
-			layer.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			const layer1 = storage.createLayer(true)
+			layer1.insert('User:1', 'friends', OperationLocation.end, 'User:3')
 
 			// insert some more records in a non-optimistic layer
 			storage.insert('User:1', 'friends', OperationLocation.end, 'User:5')
+			const layer3 = storage.topLayer
 
 			// make sure we got the full list back
 			expect(storage.get('User:1', 'friends')).toEqual({
 				value: ['User:2', 'User:3', 'User:5'],
-				displayLayers: [storage.topLayer.id, layer.id, baseLayerID],
+				displayLayers: [storage.topLayer.id, layer1.id, baseLayerID],
+				kind: 'link',
+			})
+
+			// create an optimistic layer and insert a new friend
+			const layer2 = storage.createLayer(true)
+			layer2.insert('User:1', 'friends', OperationLocation.end, 'User:6')
+
+			// make sure we got the full list back
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:2', 'User:3', 'User:5', 'User:6'],
+				displayLayers: [layer2.id, layer3.id, layer1.id, baseLayerID],
 				kind: 'link',
 			})
 
 			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
-			layer.clear()
-			layer.insert('User:1', 'friends', OperationLocation.end, 'User:4')
-			storage.resolveLayer(layer.id)
+			layer2.clear()
+			layer2.insert('User:1', 'friends', OperationLocation.end, 'User:7')
+			storage.resolveLayer(layer2.id)
+
+			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
+			layer1.clear()
+			layer1.insert('User:1', 'friends', OperationLocation.end, 'User:4')
+			storage.resolveLayer(layer1.id)
 
 			// look up the linked list
 			expect(storage.get('User:1', 'friends')).toEqual({
-				value: ['User:2', 'User:5', 'User:4'],
+				value: ['User:2', 'User:4', 'User:5', 'User:7'],
+				displayLayers: [baseLayerID],
+				kind: 'link',
+			})
+			// there should only be one layer
+			expect(storage.layerCount).toEqual(1)
+		})
+
+		test('insert into start of linked list', function () {
+			const storage = new InMemoryStorage()
+
+			// add a linked list that we will append to in an optimistic layer
+			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:2'])
+
+			// create an optimistic layer and insert a new friend
+			const layer1 = storage.createLayer(true)
+			layer1.insert('User:1', 'friends', OperationLocation.start, 'User:3')
+
+			// insert some more records in a non-optimistic layer
+			storage.insert('User:1', 'friends', OperationLocation.start, 'User:5')
+			const layer3 = storage.topLayer
+
+			// make sure we got the full list back
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:5', 'User:3', 'User:2'],
+				displayLayers: [storage.topLayer.id, layer1.id, baseLayerID],
+				kind: 'link',
+			})
+
+			// create an optimistic layer and insert a new friend
+			const layer2 = storage.createLayer(true)
+			layer2.insert('User:1', 'friends', OperationLocation.start, 'User:6')
+
+			// make sure we got the full list back
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:6', 'User:5', 'User:3', 'User:2'],
+				displayLayers: [layer2.id, layer3.id, layer1.id, baseLayerID],
+				kind: 'link',
+			})
+
+			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
+			layer2.clear()
+			layer2.insert('User:1', 'friends', OperationLocation.start, 'User:7')
+			storage.resolveLayer(layer2.id)
+
+			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
+			layer1.clear()
+			layer1.insert('User:1', 'friends', OperationLocation.start, 'User:4')
+			storage.resolveLayer(layer1.id)
+
+			// look up the linked list
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:7', 'User:5', 'User:4', 'User:2'],
 				displayLayers: [baseLayerID],
 				kind: 'link',
 			})
@@ -415,6 +484,33 @@ describe('in memory layers', function () {
 				kind: 'link',
 			})
 			expect(storage.layerCount).toEqual(1)
+		})
+
+		test('a delete and insert on the same layer correctly cancel out', function () {
+			const storage = new InMemoryStorage()
+
+			// add a linked list we will remove from in a layer
+			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:3', 'User:4'])
+
+			// create an optimistic layer we will use to mutate the list
+			const layer = storage.createLayer(true)
+			// insert the same user
+			layer.remove('User:1', 'friends', 'User:2')
+			layer.insert('User:1', 'friends', 'end', 'User:2')
+
+			// make sure we removed the user from the list
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3', 'User:4'],
+				displayLayers: [layer.id, baseLayerID],
+				kind: 'link',
+			})
+
+			// make sure we removed the user from the list
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3', 'User:4'],
+				displayLayers: [layer.id, baseLayerID],
+				kind: 'link',
+			})
 		})
 
 		test.todo(

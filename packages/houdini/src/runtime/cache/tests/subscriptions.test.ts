@@ -4,6 +4,7 @@ import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
 import { RefetchUpdateMode } from '../../lib'
 import { Cache } from '../cache'
+import { rootID } from '../stuff'
 
 const config = testConfigFile()
 
@@ -1128,6 +1129,11 @@ test('deleting a node removes nested subscriptions', function () {
 				keyRaw: 'viewer',
 				selection: {
 					fields: {
+						__typename: {
+							type: 'String',
+							visible: true,
+							keyRaw: '__typename',
+						},
 						id: {
 							type: 'ID',
 							visible: true,
@@ -1144,6 +1150,11 @@ test('deleting a node removes nested subscriptions', function () {
 							},
 							selection: {
 								fields: {
+									__typename: {
+										type: 'String',
+										visible: true,
+										keyRaw: '__typename',
+									},
 									id: {
 										type: 'ID',
 										visible: true,
@@ -1168,9 +1179,11 @@ test('deleting a node removes nested subscriptions', function () {
 		selection,
 		data: {
 			viewer: {
+				__typename: 'User',
 				id: '1',
 				friends: [
 					{
+						__typename: 'User',
 						id: '2',
 						firstName: 'jane',
 					},
@@ -1197,6 +1210,369 @@ test('deleting a node removes nested subscriptions', function () {
 
 	// sanity check
 	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+})
+
+test('find subSelection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						__typename: {
+							type: 'String',
+							visible: true,
+							keyRaw: '__typename',
+						},
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									__typename: {
+										type: 'String',
+										visible: true,
+										keyRaw: '__typename',
+									},
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				friends: [
+					{
+						__typename: 'User',
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
+		rootID,
+		selection,
+		{},
+		'User:1'
+	)
+
+	expect(subSelections).toEqual([
+		{
+			fields: {
+				__typename: {
+					type: 'String',
+					visible: true,
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					visible: true,
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					selection: {
+						fields: {
+							__typename: {
+								type: 'String',
+								visible: true,
+								keyRaw: '__typename',
+							},
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								visible: true,
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	])
+})
+
+test('find subSelection - avoid cycles', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						__typename: {
+							type: 'String',
+							visible: true,
+							keyRaw: '__typename',
+						},
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									__typename: {
+										type: 'String',
+										visible: true,
+										keyRaw: '__typename',
+									},
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				friends: [
+					{
+						__typename: 'User',
+						id: '1',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
+		rootID,
+		selection,
+		{},
+		'User:1'
+	)
+
+	expect(subSelections).toEqual([
+		{
+			fields: {
+				__typename: {
+					type: 'String',
+					visible: true,
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					visible: true,
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					selection: {
+						fields: {
+							__typename: {
+								type: 'String',
+								visible: true,
+								keyRaw: '__typename',
+							},
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								visible: true,
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	])
+})
+
+test('find subSelection - deeply nested', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						__typename: {
+							type: 'String',
+							visible: true,
+							keyRaw: '__typename',
+						},
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									__typename: {
+										type: 'String',
+										visible: true,
+										keyRaw: '__typename',
+									},
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				__typename: 'User',
+				id: '1',
+				friends: [
+					{
+						__typename: 'User',
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
+		rootID,
+		selection,
+		{},
+		'User:2'
+	)
+
+	expect(subSelections).toEqual([
+		{
+			fields: {
+				__typename: {
+					type: 'String',
+					visible: true,
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					visible: true,
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					visible: true,
+					keyRaw: 'firstName',
+				},
+			},
+		},
+	])
 })
 
 test('same record twice in a query survives one unsubscribe (reference counting)', function () {
