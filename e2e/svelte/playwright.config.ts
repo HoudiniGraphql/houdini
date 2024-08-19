@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig } from '@playwright/test'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const reporter = [['list']]
@@ -9,7 +9,7 @@ if (process.env.CI) {
 
 const config = defineConfig({
 	retries: process.env.CI ? 3 : 0,
-  testMatch: 'spec.ts',
+	testMatch: 'spec.ts',
 	workers: 5,
 	reporter,
 	screenshot: 'only-on-failure',
@@ -18,6 +18,6 @@ const config = defineConfig({
 		port: 3006,
 		timeout: 120 * 1000,
 	},
-});
+})
 
 export default config
