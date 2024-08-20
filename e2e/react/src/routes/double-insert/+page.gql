@@ -1,0 +1,10 @@
+query DoubleInsertTest {
+  list1: usersList(snapshot: "DoubleInsert") @list(name: "Double_Insert_List_1") {
+    id
+    name
+  }
+  list2: usersList(snapshot: "DoubleInsert") @list(name: "Double_Insert_List_2") {
+    id
+    name
+  }
+}
