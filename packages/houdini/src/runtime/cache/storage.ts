@@ -580,6 +580,7 @@ export class Layer {
 			[id]: {
 				...this.operations[id],
 				fields: {
+					...this.operations[id]?.fields,
 					[field]: [...(this.operations[id]?.fields[field] || []), operation],
 				},
 			},
