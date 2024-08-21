@@ -405,11 +405,10 @@ describe('in memory layers', function () {
 			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:2'])
 			storage.writeLink('User:2', 'friends', ['User:1'])
 
-			// create an optimistic layer and insert a new friend
+			// insert into the first list
 			const layer1 = storage.createLayer(true)
 			layer1.insert('User:1', 'friends', OperationLocation.start, 'User:3')
-
-			// insert some more records in a non-optimistic layer
+			// insert into the second list
 			layer1.insert('User:2', 'friends', OperationLocation.start, 'User:5')
 
 			// make sure we get both list back
