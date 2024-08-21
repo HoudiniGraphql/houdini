@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.56
+
+### Patch Changes
+
+-   [#1343](https://github.com/HoudiniGraphql/houdini/pull/1343) [`1728454f`](https://github.com/HoudiniGraphql/houdini/commit/1728454f0f1ca6a35ad5c4c039cc6e2f6212ab25) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when 2 different lists are inserted in the same operation
+
 ## 1.2.55
 
 ### Patch Changes
