@@ -398,6 +398,32 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 		})
 
+		test('two inserts on the same layer', function () {
+			const storage = new InMemoryStorage()
+
+			// add 2 base lists will append to
+			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:2'])
+			storage.writeLink('User:2', 'friends', ['User:1'])
+
+			// insert into the first list
+			const layer1 = storage.createLayer(true)
+			layer1.insert('User:1', 'friends', OperationLocation.start, 'User:3')
+			// insert into the second list
+			layer1.insert('User:2', 'friends', OperationLocation.start, 'User:5')
+
+			// make sure we get both list back
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3', 'User:2'],
+				displayLayers: [layer1.id, baseLayerID],
+				kind: 'link',
+			})
+			expect(storage.get('User:2', 'friends')).toEqual({
+				value: ['User:5', 'User:1'],
+				displayLayers: [layer1.id, baseLayerID],
+				kind: 'link',
+			})
+		})
+
 		test('insert into start of linked list', function () {
 			const storage = new InMemoryStorage()
 
