@@ -315,6 +315,7 @@ export async function extractQueries(source: string): Promise<string[]> {
 
 	// walk through the function body and find the default export
 	for (const node of ast.body) {
+		// @ts-expect-error
 		if (t.isExportDefaultDeclaration(node)) {
 			if (
 				t.isFunctionDeclaration(node.declaration) ||
@@ -335,6 +336,7 @@ export async function extractQueries(source: string): Promise<string[]> {
 	// if the default export was an identifier then go back through and find the correct  one
 	if (defaultExportIdentifier) {
 		for (const node of ast.body) {
+			// @ts-expect-error
 			if (t.isVariableDeclaration(node)) {
 				for (const declaration of node.declarations) {
 					if (
