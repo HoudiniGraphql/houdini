@@ -71,7 +71,7 @@ importers:
         version: 4.9.5
       vite:
         specifier: ^4.1.4
-        version: 4.5.3(@types/node@22.5.0)
+        version: 4.5.3(@types/node@18.19.46)
       vitest:
         specifier: ^0.28.3
         version: 0.28.5(@vitest/ui@0.28.5)
@@ -183,7 +183,7 @@ importers:
         version: 4.9.5
       vite:
         specifier: ^4.1.4
-        version: 4.5.3(@types/node@22.5.0)
+        version: 4.5.3(@types/node@18.19.46)
       vite-plugin-lib-reporter:
         specifier: ^0.0.7
         version: 0.0.7
@@ -274,7 +274,7 @@ importers:
         version: 4.9.5
       vite:
         specifier: ^4.1.0
-        version: 4.5.3(@types/node@22.5.0)
+        version: 4.5.3(@types/node@18.19.46)
       wrangler:
         specifier: ^3.7.0
         version: 3.71.0(@cloudflare/workers-types@4.20240806.0)
@@ -322,7 +322,7 @@ importers:
         version: 4.9.5
       vite:
         specifier: ^4.1.1
-        version: 4.5.3(@types/node@22.5.0)
+        version: 4.5.3(@types/node@18.19.46)
 
   packages/_scripts:
     dependencies:
@@ -448,8 +448,8 @@ importers:
         specifier: ^1.0.2
         version: 1.2.0
       '@whatwg-node/server':
-        specifier: ^0.9.14
-        version: 0.9.47
+        specifier: ^0.9.49
+        version: 0.9.49
       ast-types:
         specifier: ^0.16.1
         version: 0.16.1
@@ -460,13 +460,13 @@ importers:
         specifier: ^4.2.2
         version: 4.3.1
       estree-walker:
-        specifier: ^3.0.1
-        version: 3.0.3
+        specifier: 3.0.1
+        version: 3.0.1
       fs-extra:
         specifier: ^10.1.0
         version: 10.1.0
       glob:
-        specifier: ^8.0.3
+        specifier: ^8.1.0
         version: 8.1.0
       graphql:
         specifier: 16.9.0
@@ -478,8 +478,8 @@ importers:
         specifier: ^3.4.7
         version: 3.6.0
       micromatch:
-        specifier: ^4.0.5
-        version: 4.0.7
+        specifier: ^4.0.8
+        version: 4.0.8
       minimatch:
         specifier: ^5.1.0
         version: 5.1.6
@@ -528,7 +528,7 @@ importers:
         version: 4.5.3(@types/node@18.19.46)
       vitest:
         specifier: ^0.28.3
-        version: 0.28.5
+        version: 0.28.5(@vitest/ui@0.28.5)
 
   packages/houdini-react:
     dependencies:
@@ -643,7 +643,7 @@ importers:
         version: 3.59.2
       vite:
         specifier: ^4.1.1
-        version: 4.5.3(@types/node@22.5.0)
+        version: 4.5.3(@types/node@18.19.46)
     devDependencies:
       '@types/minimatch':
         specifier: ^5.1.2
@@ -738,7 +738,7 @@ importers:
         version: 4.1.2
       vite:
         specifier: ^4.1.1
-        version: 4.5.3(@types/node@22.5.0)
+        version: 4.5.3(@types/node@18.19.46)
     devDependencies:
       '@babel/parser':
         specifier: ^7.20.7
@@ -1191,7 +1191,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.24.7
       '@babel/parser': 7.25.4
       '@babel/types': 7.25.4
-      debug: 4.3.6
+      debug: 4.3.6(supports-color@9.4.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -1351,7 +1351,7 @@ packages:
       '@changesets/types': 6.0.0
       '@manypkg/get-packages': 1.1.3
       fs-extra: 7.0.1
-      micromatch: 4.0.7
+      micromatch: 4.0.8
     dev: true
 
   /@changesets/errors@0.2.0:
@@ -1403,7 +1403,7 @@ packages:
       '@changesets/types': 6.0.0
       '@manypkg/get-packages': 1.1.3
       is-subdir: 1.2.0
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       spawndamnit: 2.0.0
     dev: true
 
@@ -2466,7 +2466,7 @@ packages:
       jest-haste-map: 29.7.0
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       pirates: 4.0.6
       slash: 3.0.0
       write-file-atomic: 4.0.2
@@ -2998,7 +2998,7 @@ packages:
       svelte: 3.59.2
       tiny-glob: 0.2.9
       undici: 5.20.0
-      vite: 4.5.3(@types/node@22.5.0)
+      vite: 4.5.3(@types/node@18.19.46)
     transitivePeerDependencies:
       - supports-color
 
@@ -3013,7 +3013,7 @@ packages:
       '@sveltejs/vite-plugin-svelte': 2.5.3(svelte@3.59.2)(vite@4.5.3)
       debug: 4.3.6(supports-color@9.4.0)
       svelte: 3.59.2
-      vite: 4.5.3(@types/node@22.5.0)
+      vite: 4.5.3(@types/node@18.19.46)
     transitivePeerDependencies:
       - supports-color
 
@@ -3031,7 +3031,7 @@ packages:
       magic-string: 0.30.11
       svelte: 3.59.2
       svelte-hmr: 0.15.3(svelte@3.59.2)
-      vite: 4.5.3(@types/node@22.5.0)
+      vite: 4.5.3(@types/node@18.19.46)
       vitefu: 0.2.5(vite@4.5.3)
     transitivePeerDependencies:
       - supports-color
@@ -3552,7 +3552,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.24.7(@babel/core@7.25.2)
       magic-string: 0.27.0
       react-refresh: 0.14.2
-      vite: 4.5.3(@types/node@22.5.0)
+      vite: 4.5.3(@types/node@18.19.46)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -3637,8 +3637,26 @@ packages:
       urlpattern-polyfill: 10.0.0
     dev: false
 
+  /@whatwg-node/fetch@0.9.21:
+    resolution: {integrity: sha512-Wt0jPb+04JjobK0pAAN7mEHxVHcGA9HoP3OyCsZtyAecNQeADXCZ1MihFwVwjsgaRYuGVmNlsCmLxlG6mor8Gw==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@whatwg-node/node-fetch': 0.5.25
+      urlpattern-polyfill: 10.0.0
+    dev: false
+
   /@whatwg-node/node-fetch@0.5.22:
     resolution: {integrity: sha512-ccjjD+JCaylDGGcbJ69jFK2FaoGobpyOiDr2FnzSpcEss20MJzfJAiUIrpglWADplyB2AwfunMM7ph3IpPArhw==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@kamilkisiela/fast-url-parser': 1.1.4
+      busboy: 1.6.0
+      fast-querystring: 1.1.2
+      tslib: 2.6.3
+    dev: false
+
+  /@whatwg-node/node-fetch@0.5.25:
+    resolution: {integrity: sha512-m6TrxcJlS8ptYLTQL+Ex931RFJsoCQtBQWBNHi5b0xHS0C7FJGUJl1asYZ7MdOhZqdiMVcs1lNJeHsfzyUNjOg==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@kamilkisiela/fast-url-parser': 1.1.4
@@ -3652,6 +3670,14 @@ packages:
     engines: {node: '>=18.0.0'}
     dependencies:
       '@whatwg-node/fetch': 0.9.20
+      tslib: 2.6.3
+    dev: false
+
+  /@whatwg-node/server@0.9.49:
+    resolution: {integrity: sha512-3KzLXw80gWnTsQ746G/LFdCThTPfDodjQs4PnmoNuPa6XUOl4HWq8TlJpxtmnEEB+y+UYLal+3VQ68dtYlbUDQ==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@whatwg-node/fetch': 0.9.21
       tslib: 2.6.3
     dev: false
 
@@ -4913,18 +4939,6 @@ packages:
     dependencies:
       ms: 2.1.3
 
-  /debug@4.3.6:
-    resolution: {integrity: sha512-O/09Bd4Z1fBrU4VzkhFqVgpPzaGbw6Sm9FEkBT1A/YBXQFGuuSxa1dN2nxgxS34JmKXqYx8CZAwEVoJFImUXIg==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
-    dev: true
-
   /debug@4.3.6(supports-color@9.4.0):
     resolution: {integrity: sha512-O/09Bd4Z1fBrU4VzkhFqVgpPzaGbw6Sm9FEkBT1A/YBXQFGuuSxa1dN2nxgxS34JmKXqYx8CZAwEVoJFImUXIg==}
     engines: {node: '>=6.0'}
@@ -6163,6 +6177,10 @@ packages:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
     dev: false
 
+  /estree-walker@3.0.1:
+    resolution: {integrity: sha512-woY0RUD87WzMBUiZLx8NsYr23N5BKsOMZHhu2hoNRVh6NXGfoiT1KOL8G3UHlJAnEDGmfa5ubNA/AacfG+Kb0g==}
+    dev: false
+
   /estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
     dependencies:
@@ -6307,7 +6325,7 @@ packages:
       '@nodelib/fs.walk': 1.2.8
       glob-parent: 5.1.2
       merge2: 1.4.1
-      micromatch: 4.0.7
+      micromatch: 4.0.8
     dev: true
 
   /fast-json-stable-stringify@2.1.0:
@@ -6422,7 +6440,7 @@ packages:
   /find-yarn-workspace-root2@1.2.16:
     resolution: {integrity: sha512-hr6hb1w8ePMpPVUK39S4RlwJzi+xPLuVuG8XlwXU3KD5Yn3qgBWVfy3AzNlDhWvE1EORCE65/Qm26rFQt3VLVA==}
     dependencies:
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       pkg-dir: 4.2.0
     dev: true
 
@@ -6752,7 +6770,7 @@ packages:
       '@graphql-yoga/logger': 1.0.0
       '@graphql-yoga/subscription': 4.0.0
       '@whatwg-node/fetch': 0.9.20
-      '@whatwg-node/server': 0.9.47
+      '@whatwg-node/server': 0.9.49
       dset: 3.1.3
       graphql: 16.9.0
       lru-cache: 10.4.3
@@ -7347,7 +7365,7 @@ packages:
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
       jest-worker: 29.7.0
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       walker: 1.0.8
     optionalDependencies:
       fsevents: 2.3.3
@@ -7372,7 +7390,7 @@ packages:
       '@types/stack-utils': 2.0.3
       chalk: 4.1.2
       graceful-fs: 4.2.11
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       pretty-format: 29.7.0
       slash: 3.0.0
       stack-utils: 2.0.6
@@ -7630,7 +7648,7 @@ packages:
       execa: 5.1.1
       lilconfig: 2.0.5
       listr2: 4.0.5
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       normalize-path: 3.0.0
       object-inspect: 1.13.2
       pidtree: 0.5.0
@@ -8268,8 +8286,8 @@ packages:
       - supports-color
     dev: true
 
-  /micromatch@4.0.7:
-    resolution: {integrity: sha512-LPP/3KorzCwBxfeUuZmaR6bG2kdeHSbe0P2tY3FLRU4vYrjYz5hI4QZwV0njUx3jeuKe67YukQ1LSPZBKDqO/Q==}
+  /micromatch@4.0.8:
+    resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
     dependencies:
       braces: 3.0.3
@@ -10417,7 +10435,7 @@ packages:
       is-glob: 4.0.3
       jiti: 1.21.6
       lilconfig: 2.1.0
-      micromatch: 4.0.7
+      micromatch: 4.0.8
       normalize-path: 3.0.0
       object-hash: 3.0.0
       picocolors: 1.0.1
@@ -11116,7 +11134,7 @@ packages:
     hasBin: true
     dependencies:
       cac: 6.7.14
-      debug: 4.3.6
+      debug: 4.3.6(supports-color@9.4.0)
       mlly: 1.7.1
       pathe: 1.1.2
       picocolors: 1.0.1
@@ -11176,42 +11194,6 @@ packages:
       rollup: 3.29.4
     optionalDependencies:
       fsevents: 2.3.3
-    dev: true
-
-  /vite@4.5.3(@types/node@22.5.0):
-    resolution: {integrity: sha512-kQL23kMeX92v3ph7IauVkXkikdDRsYMGTVl5KY2E9OY4ONLvkHf04MDTbnfo6NKxZiDLWzVpP5oTa8hQD8U3dg==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>= 14'
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      '@types/node': 22.5.0
-      esbuild: 0.18.20
-      postcss: 8.4.41
-      rollup: 3.29.4
-    optionalDependencies:
-      fsevents: 2.3.3
 
   /vitefu@0.2.5(vite@4.5.3):
     resolution: {integrity: sha512-SgHtMLoqaeeGnd2evZ849ZbACbnwQCIwRH57t18FxcXoZop0uQu0uzlIhJBlF/eWVzuce0sHeqPcDo+evVcg8Q==}
@@ -11221,63 +11203,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      vite: 4.5.3(@types/node@22.5.0)
-
-  /vitest@0.28.5:
-    resolution: {integrity: sha512-pyCQ+wcAOX7mKMcBNkzDwEHRGqQvHUl0XnoHR+3Pb1hytAHISgSxv9h0gUiSiYtISXUU3rMrKiKzFYDrI6ZIHA==}
-    engines: {node: '>=v14.16.0'}
-    hasBin: true
-    peerDependencies:
-      '@edge-runtime/vm': '*'
-      '@vitest/browser': '*'
-      '@vitest/ui': '*'
-      happy-dom: '*'
-      jsdom: '*'
-    peerDependenciesMeta:
-      '@edge-runtime/vm':
-        optional: true
-      '@vitest/browser':
-        optional: true
-      '@vitest/ui':
-        optional: true
-      happy-dom:
-        optional: true
-      jsdom:
-        optional: true
-    dependencies:
-      '@types/chai': 4.3.17
-      '@types/chai-subset': 1.3.5
-      '@types/node': 18.19.46
-      '@vitest/expect': 0.28.5
-      '@vitest/runner': 0.28.5
-      '@vitest/spy': 0.28.5
-      '@vitest/utils': 0.28.5
-      acorn: 8.12.1
-      acorn-walk: 8.3.3
-      cac: 6.7.14
-      chai: 4.5.0
-      debug: 4.3.6
-      local-pkg: 0.4.3
-      pathe: 1.1.2
-      picocolors: 1.0.1
-      source-map: 0.6.1
-      std-env: 3.7.0
-      strip-literal: 1.3.0
-      tinybench: 2.9.0
-      tinypool: 0.3.1
-      tinyspy: 1.1.1
       vite: 4.5.3(@types/node@18.19.46)
-      vite-node: 0.28.5(@types/node@18.19.46)
-      why-is-node-running: 2.3.0
-    transitivePeerDependencies:
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-    dev: true
 
   /vitest@0.28.5(@vitest/ui@0.28.5):
     resolution: {integrity: sha512-pyCQ+wcAOX7mKMcBNkzDwEHRGqQvHUl0XnoHR+3Pb1hytAHISgSxv9h0gUiSiYtISXUU3rMrKiKzFYDrI6ZIHA==}
