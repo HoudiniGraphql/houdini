@@ -368,14 +368,9 @@ export function fragmentArguments(
 				}
 
 				let type = parseArgumentTypeString(typeArg.value)
-				let defaultValueField =
-					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
-				let defaultValue
-				if (defaultValueField?.kind === graphql.Kind.STRING) {
-					defaultValue = defaultValueField as graphql.ConstValueNode
-				} else {
-					defaultValue = null
-				}
+				let defaultValue =
+					(arg.value.fields?.find((arg) => arg.name.value === 'default')
+						?.value as graphql.ConstValueNode) || null
 
 				return [
 					{
