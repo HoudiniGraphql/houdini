@@ -12,7 +12,6 @@ export async function runPipeline<_TransformType>(
 	target: _TransformType
 ) {
 	for (const transform of pipeline) {
-		console.log(transform)
 		await transform?.(config, target)
 	}
 }
