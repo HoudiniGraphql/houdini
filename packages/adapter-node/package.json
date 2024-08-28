@@ -21,6 +21,7 @@
         "build:build": "pnpm build: && pnpm build"
     },
     "devDependencies": {
+        "@types/node": "^22.5.1",
         "scripts": "workspace:^",
         "tsup": "^7.2.0"
     },

@@ -371,12 +371,8 @@ export function fragmentArguments(
 				let defaultValueField =
 					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
 				let defaultValue
-				if (
-					defaultValueField?.kind === graphql.Kind.STRING &&
-					defaultValueField.value !== ''
-				) {
-					console.log(defaultValueField)
-					defaultValue = graphql.parseConstValue(defaultValueField.value)
+				if (defaultValueField?.kind === graphql.Kind.STRING) {
+					defaultValue = defaultValueField as graphql.ConstValueNode
 				} else {
 					defaultValue = null
 				}
