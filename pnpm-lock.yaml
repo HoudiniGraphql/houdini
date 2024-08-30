@@ -285,7 +285,7 @@ importers:
         specifier: ^4.9.3
         version: 4.9.4
       vite:
-        specifier: ^4.1.0
+        specifier: ^4.1.4
         version: 4.1.4(@types/node@22.9.0)(terser@5.16.1)
       wrangler:
         specifier: ^3.7.0
@@ -333,7 +333,7 @@ importers:
         specifier: ^4.9.3
         version: 4.9.4
       vite:
-        specifier: ^4.1.1
+        specifier: ^4.1.4
         version: 4.1.4(@types/node@22.9.0)(terser@5.16.1)
 
   packages/_scripts:
@@ -354,11 +354,11 @@ importers:
         specifier: ^8.0.3
         version: 8.0.3
       rollup:
-        specifier: ^3.7.4
-        version: 3.7.4
+        specifier: ^3.27.1
+        version: 3.27.1
       rollup-plugin-typescript2:
         specifier: ^0.34.0
-        version: 0.34.1(rollup@3.7.4)(typescript@4.9.4)
+        version: 0.34.1(rollup@3.27.1)(typescript@4.9.4)
       typescript:
         specifier: ^4.9
         version: 4.9.4
@@ -630,8 +630,8 @@ importers:
         specifier: ^0.23.1
         version: 0.23.1
       rollup:
-        specifier: ^3.7.4
-        version: 3.14.0
+        specifier: ^3.27.1
+        version: 3.27.1
       use-deep-compare-effect:
         specifier: ^1.8.1
         version: 1.8.1(react@19.0.0-rc-eb259b5d3b-20240605)
@@ -688,8 +688,8 @@ importers:
         specifier: ^0.23.1
         version: 0.23.1
       rollup:
-        specifier: ^3.7.4
-        version: 3.7.4
+        specifier: ^3.27.1
+        version: 3.27.1
       svelte:
         specifier: ^5.0.0
         version: 5.0.2
@@ -789,7 +789,7 @@ importers:
         specifier: ^4.1.1
         version: 4.1.1
       vite:
-        specifier: ^4.1.1
+        specifier: ^4.1.4
         version: 4.1.4(@types/node@22.9.0)(terser@5.16.1)
     devDependencies:
       '@babel/parser':
@@ -6422,18 +6422,8 @@ packages:
   rollup-pluginutils@2.8.2:
     resolution: {integrity: sha512-EEp9NhnUkwY8aif6bxgovPHMoMoNr2FulJziTndpt5H9RdwC47GSGuII9XxpSdzVGM0GWrNPHV6ie1LTNJPaLQ==}
 
-  rollup@3.14.0:
-    resolution: {integrity: sha512-o23sdgCLcLSe3zIplT9nQ1+r97okuaiR+vmAPZPTDYB7/f3tgWIYNyiQveMsZwshBT0is4eGax/HH83Q7CG+/Q==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-
   rollup@3.27.1:
     resolution: {integrity: sha512-tXNDFwOkN6C2w5Blj1g6ForKeFw6c1mDu5jxoeDO3/pmYjgt+8yvIFjKzH5FQUq70OKZBkOt0zzv0THXL7vwzQ==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-
-  rollup@3.7.4:
-    resolution: {integrity: sha512-jN9rx3k5pfg9H9al0r0y1EYKSeiRANZRYX32SuNXAnKzh6cVyf4LZVto1KAuDnbHT03E1CpsgqDKaqQ8FZtgxw==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -14284,12 +14274,12 @@ snapshots:
     dependencies:
       rollup-plugin-inject: 3.0.2
 
-  rollup-plugin-typescript2@0.34.1(rollup@3.7.4)(typescript@4.9.4):
+  rollup-plugin-typescript2@0.34.1(rollup@3.27.1)(typescript@4.9.4):
     dependencies:
       '@rollup/pluginutils': 4.2.1
       find-cache-dir: 3.3.2
       fs-extra: 10.1.0
-      rollup: 3.7.4
+      rollup: 3.27.1
       semver: 7.3.8
       tslib: 2.4.1
       typescript: 4.9.4
@@ -14298,15 +14288,7 @@ snapshots:
     dependencies:
       estree-walker: 0.6.1
 
-  rollup@3.14.0:
-    optionalDependencies:
-      fsevents: 2.3.3
-
   rollup@3.27.1:
-    optionalDependencies:
-      fsevents: 2.3.3
-
-  rollup@3.7.4:
     optionalDependencies:
       fsevents: 2.3.3
 

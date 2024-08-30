@@ -50,7 +50,7 @@
         "estree-walker": "3.0.1",
         "fs-extra": "^10.1.0",
         "glob": "^8.1.0",
-        "graphql": "^15.8.0",
+        "graphql": "^16.9.0",
         "graphql-yoga": "^4.0.4",
         "memfs": "^3.4.7",
         "micromatch": "^4.0.8",
