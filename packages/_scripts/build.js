@@ -138,7 +138,6 @@ async function build({ packages, source, bundle = true, plugin, cmd }) {
 				platform: 'node',
 				format: which,
 				external,
-				sourcemap: 'both',
 				banner: {
 					js: header,
 				},
