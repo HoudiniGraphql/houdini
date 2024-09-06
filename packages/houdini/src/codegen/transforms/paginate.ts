@@ -713,6 +713,19 @@ function objectNode([type, defaultValue]: [
 	string,
 	number | string | undefined
 ]): graphql.ObjectValueNode {
+	let defaultValueNode: graphql.ObjectFieldNode[] = []
+	if (defaultValue) {
+		defaultValueNode = [
+			{
+				kind: graphql.Kind.OBJECT_FIELD,
+				name: { kind: graphql.Kind.NAME, value: 'default' },
+				value: {
+					kind: typeof defaultValue === 'number' ? graphql.Kind.INT : graphql.Kind.STRING,
+					value: defaultValue.toString(),
+				},
+			},
+		]
+	}
 	const node: graphql.ObjectValueNode = {
 		kind: graphql.Kind.OBJECT,
 		fields: [
@@ -727,21 +740,7 @@ function objectNode([type, defaultValue]: [
 					value: type,
 				},
 			},
-			...(defaultValue
-				? ([
-						{
-							kind: graphql.Kind.OBJECT_FIELD,
-							name: { kind: graphql.Kind.NAME, value: 'default' },
-							value: {
-								kind:
-									typeof defaultValue === 'number'
-										? graphql.Kind.INT
-										: graphql.Kind.STRING,
-								value: defaultValue.toString(),
-							},
-						},
-				  ] as graphql.ObjectFieldNode[])
-				: []),
+			...defaultValueNode,
 		],
 	}
 
