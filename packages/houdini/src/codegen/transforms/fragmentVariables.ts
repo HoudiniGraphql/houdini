@@ -332,7 +332,7 @@ export type FragmentArgument = {
 	name: string
 	type: graphql.TypeNode
 	required: boolean
-	defaultValue: graphql.ValueNode | null
+	defaultValue: graphql.ConstValueNode | null
 }
 
 export function fragmentArguments(
@@ -369,7 +369,8 @@ export function fragmentArguments(
 
 				let type = parseArgumentTypeString(typeArg.value)
 				let defaultValue =
-					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
+					(arg.value.fields?.find((arg) => arg.name.value === 'default')
+						?.value as graphql.ConstValueNode) || null
 
 				return [
 					{
@@ -396,7 +397,7 @@ export function parseArgumentTypeString(input: string): graphql.TypeNode {
 		}
 
 		return {
-			kind: 'NonNullType',
+			kind: graphql.Kind.NON_NULL_TYPE,
 			type: inner,
 		}
 	}
@@ -406,16 +407,16 @@ export function parseArgumentTypeString(input: string): graphql.TypeNode {
 		const inner = parseArgumentTypeString(input.substring(1, input.length - 1))
 
 		return {
-			kind: 'ListType',
+			kind: graphql.Kind.LIST_TYPE,
 			type: inner,
 		}
 	}
 
 	// we are dealing with a name
 	return {
-		kind: 'NamedType',
+		kind: graphql.Kind.NAMED_TYPE,
 		name: {
-			kind: 'Name',
+			kind: graphql.Kind.NAME,
 			value: input,
 		},
 	}
@@ -521,12 +522,12 @@ export function fragmentArgumentsDefinitions(
 	// we have a list of the arguments
 	return args.map<graphql.VariableDefinitionNode>((arg) => {
 		return {
-			kind: 'VariableDefinition',
+			kind: graphql.Kind.VARIABLE_DEFINITION,
 			type: arg.type,
 			variable: {
-				kind: 'Variable',
+				kind: graphql.Kind.VARIABLE,
 				name: {
-					kind: 'Name',
+					kind: graphql.Kind.NAME,
 					value: arg.name,
 				},
 			},

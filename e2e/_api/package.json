@@ -15,7 +15,7 @@
 		"@envelop/core": "^3.0.6",
 		"@kitql/helpers": "^0.8.2",
 		"fs-extra": "^10.1.0",
-		"graphql": "^15.8.0",
+		"graphql": "^16.9.0",
 		"graphql-relay": "^0.10.0",
 		"graphql-ws": "^5.8.2",
 		"graphql-yoga": "^4.0.4",

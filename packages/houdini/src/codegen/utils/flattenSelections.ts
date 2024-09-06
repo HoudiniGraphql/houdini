@@ -1,4 +1,4 @@
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 
 import type { Config } from '../../lib'
 import { HoudiniError } from '../../lib'
@@ -172,16 +172,16 @@ class FieldCollection {
 			if (this.applyFragments || include) {
 				this.add({
 					selection: {
-						kind: 'InlineFragment',
+						kind: graphql.Kind.INLINE_FRAGMENT,
 						typeCondition: {
-							kind: 'NamedType',
+							kind: graphql.Kind.NAMED_TYPE,
 							name: {
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 								value: definition.typeCondition.name.value,
 							},
 						},
 						selectionSet: {
-							kind: 'SelectionSet',
+							kind: graphql.Kind.SELECTION_SET,
 							selections: [...definition.selectionSet.selections],
 						},
 					},
@@ -250,7 +250,7 @@ class FieldCollection {
 						...field.astNode,
 						selectionSet: field.astNode.selectionSet
 							? {
-									kind: 'SelectionSet',
+									kind: graphql.Kind.SELECTION_SET,
 									selections: field.selection.toSelectionSet(),
 							  }
 							: undefined,
@@ -260,9 +260,9 @@ class FieldCollection {
 			.concat(
 				Object.values(this.fragmentSpreads).map<graphql.FragmentSpreadNode>((spread) => {
 					return {
-						kind: 'FragmentSpread',
+						kind: graphql.Kind.FRAGMENT_SPREAD,
 						name: {
-							kind: 'Name',
+							kind: graphql.Kind.NAME,
 							value: spread.name.value,
 						},
 						directives: spread.directives,

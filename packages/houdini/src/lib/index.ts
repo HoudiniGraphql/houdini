@@ -14,6 +14,7 @@ export * from './plugin'
 export * from './detectTools'
 export * from '../runtime/router/match'
 export * from './typescript'
+export * from './watchAndRun'
 
 export * from './walk'
 export type { EmbeddedGraphqlDocument } from './walk'

@@ -54,7 +54,12 @@ export function _serverHandler<ComponentType = unknown>({
 			// get the parsed query
 			const parsed = parse(query)
 
-			return await execute(schema, parsed, null, session, variables)
+			return await execute({
+				schema,
+				document: parsed,
+				contextValue: session,
+				variableValues: variables,
+			})
 		})
 	}
 

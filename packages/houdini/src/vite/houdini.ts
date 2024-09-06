@@ -168,7 +168,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					continue
 				}
 
-				// @ts-expect-error
 				await plugin.vite!.buildStart.call(this, {
 					...args,
 					houdiniConfig: config,

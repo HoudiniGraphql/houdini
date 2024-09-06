@@ -46,9 +46,9 @@ export default async function componentFields(
 					const args: graphql.ArgumentNode[] = []
 					for (const arg of node.arguments ?? []) {
 						args.push({
-							kind: 'Argument',
+							kind: graphql.Kind.ARGUMENT,
 							name: {
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 								value: arg.name.value,
 							},
 							value: arg.value,
@@ -56,9 +56,9 @@ export default async function componentFields(
 					}
 					if (args.length > 0) {
 						directives.push({
-							kind: 'Directive',
+							kind: graphql.Kind.DIRECTIVE,
 							name: {
-								kind: 'Name',
+								kind: graphql.Kind.NAME,
 								value: config.withDirective,
 							},
 							arguments: args,
@@ -67,9 +67,9 @@ export default async function componentFields(
 
 					// replace the field with a fragment spread
 					return {
-						kind: 'FragmentSpread',
+						kind: graphql.Kind.FRAGMENT_SPREAD,
 						name: {
-							kind: 'Name',
+							kind: graphql.Kind.NAME,
 							value: fragment,
 						},
 						directives,
