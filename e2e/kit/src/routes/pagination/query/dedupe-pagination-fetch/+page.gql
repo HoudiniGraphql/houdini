@@ -1,0 +1,9 @@
+query DedupePaginationFetch {
+  usersConnection(first: 2, delay: 500, snapshot: "dedupe-pagination-fetch") @paginate {
+    edges {
+      node {
+        name
+      }
+    }
+  }
+}

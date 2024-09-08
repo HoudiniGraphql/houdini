@@ -13,6 +13,8 @@ import type {
 	FetchParams,
 } from './types'
 
+let inFlightPageFetches: string[] = []
+
 export function cursorHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
 	artifact,
 	fetchUpdate: parentFetchUpdate,
@@ -57,8 +59,19 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			throw missingPageSizeError(functionName)
 		}
 
+		// Get the in flight pagination fetches for this artifact.
+		const pageFetchKey = `${artifact.name}:${where}`
+		const inFlightIdx = inFlightPageFetches.findIndex((x) => x === pageFetchKey)
+		// If this artifact and `where` combination exists, we can skip this exact same fetch.
+		if (inFlightIdx >= 0) {
+			return
+		}
+
 		// Get the Pagination Mode
 		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+
+		// Mark this page as currently fetching.
+		inFlightPageFetches.push(pageFetchKey)
 
 		// send the query
 		await (isSinglePage ? parentFetch : parentFetchUpdate)(
@@ -71,6 +84,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			},
 			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
 		)
+
+		// Un-mark this page as currently fetching.
+		inFlightPageFetches.splice(inFlightIdx)
 	}
 
 	const getPageInfo = () => {
