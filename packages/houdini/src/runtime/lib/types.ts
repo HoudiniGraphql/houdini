@@ -77,10 +77,12 @@ export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
 	enableLoadingState?: 'global' | 'local'
+	dedupe?: 'first' | 'last'
 }
 
 export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
 	optimisticKeys?: boolean
+	dedupe?: 'first' | 'last'
 }
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {

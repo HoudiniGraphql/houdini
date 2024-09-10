@@ -347,7 +347,7 @@ test('adds required fragment args to pagination query', async function () {
 
 	// load the contents of the file
 	expect(docs[1]?.document).toMatchInlineSnapshot(`
-		query PaginatedFragment_Pagination_Query($snapshot: String!, $first: Int = 2, $after: String, $last: Int, $before: String, $id: ID!) {
+		query PaginatedFragment_Pagination_Query($snapshot: String!, $first: Int = 2, $after: String, $last: Int, $before: String, $id: ID!) @dedupe {
 		  node(id: $id) {
 		    __typename
 		    id
@@ -460,7 +460,7 @@ test('embeds pagination query as a separate document', async function () {
 
 	// load the contents of the file
 	expect(docs[1]?.document).toMatchInlineSnapshot(`
-		query UserFriends_Pagination_Query($first: Int = 10, $after: String) {
+		query UserFriends_Pagination_Query($first: Int = 10, $after: String) @dedupe {
 		  ...UserFriends_jrGTj @with(first: $first, after: $after) @mask_disable
 		}
 

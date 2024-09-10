@@ -496,6 +496,15 @@ export default async function paginate(config: Config, documents: Document[]): P
 											  )
 									)
 							),
+						directives: [
+							{
+								kind: graphql.Kind.DIRECTIVE,
+								name: {
+									kind: graphql.Kind.NAME,
+									value: config.dedupeDirective,
+								},
+							},
+						],
 						selectionSet: {
 							kind: graphql.Kind.SELECTION_SET,
 							selections: !nodeQuery

@@ -630,7 +630,7 @@ export class Config {
 	}
 
 	get dedupeDirective() {
-		return 'list'
+		return 'dedupe'
 	}
 
 	get optimisticKeyDirective() {
