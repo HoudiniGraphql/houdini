@@ -2,7 +2,7 @@ import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { ensureImports, type Config, path } from '.'
+import { ensureImports, type Config, path, fs } from '.'
 import { unwrapType, TypeWrapper } from './graphql'
 
 const AST = recast.types.builders
@@ -221,4 +221,52 @@ export function scalarPropertyValue(
 			return AST.tsAnyKeyword()
 		}
 	}
+}
+
+export async function writeTsConfig(config: Config) {
+	await fs.mkdirp(config.rootDir)
+	await fs.writeFile(
+		path.join(config.rootDir, 'tsconfig.json'),
+		JSON.stringify(
+			{
+				compilerOptions: {
+					paths: {
+						$houdini: ['.'],
+						'$houdini/*': ['./*'],
+						'~': ['../src'],
+						'~/*': ['../src/*'],
+					},
+					rootDirs: ['..', './types'],
+					target: 'ESNext',
+					useDefineForClassFields: true,
+					lib: ['DOM', 'DOM.Iterable', 'ESNext'],
+					allowJs: false,
+					skipLibCheck: true,
+					esModuleInterop: false,
+					allowSyntheticDefaultImports: true,
+					strict: true,
+					forceConsistentCasingInFileNames: true,
+					module: 'ESNext',
+					moduleResolution: 'Node',
+					resolveJsonModule: true,
+					isolatedModules: true,
+					noEmit: true,
+					jsx: 'react-jsx',
+				},
+				include: [
+					'ambient.d.ts',
+					'./types/**/$types.d.ts',
+					'../vite.config.ts',
+					'../src/**/*.js',
+					'../src/**/*.ts',
+					'../src/**/*.jsx',
+					'../src/**/*.tsx',
+					'../src/+app.d.ts',
+				],
+				exclude: ['../node_modules/**', './[!ambient.d.ts]**'],
+			},
+			null,
+			4
+		)
+	)
 }

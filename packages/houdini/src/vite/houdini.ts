@@ -14,6 +14,7 @@ import {
 	load_manifest,
 	loadLocalSchema,
 	isSecondaryBuild,
+	writeTsConfig,
 } from '../lib'
 
 let config: Config
@@ -152,6 +153,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
+			await writeTsConfig(config)
+
 			// check if the adapter has a pre hook
 			if (config.adapter?.pre && viteEnv.command === 'build' && !isSecondaryBuild()) {
 				await config.adapter.pre({
@@ -212,6 +215,8 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		async configureServer(server) {
 			devServer = true
+
+			await writeTsConfig(config)
 
 			// if there is a local schema we need to use that when generating
 			if (config.localSchema) {
