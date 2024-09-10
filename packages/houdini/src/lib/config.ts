@@ -1138,7 +1138,6 @@ export async function getConfig({
 
 		// if we have a local schema, then we should just build it if we haven't
 		if (localSchema) {
-			console.log('here')
 			_config.schema = await loadLocalSchema(_config)
 		}
 
