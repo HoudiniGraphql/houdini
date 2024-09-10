@@ -230,6 +230,7 @@ export async function writeTsConfig(config: Config) {
 		JSON.stringify(
 			{
 				compilerOptions: {
+					baseUrl: '.',
 					paths: {
 						$houdini: ['.'],
 						'$houdini/*': ['./*'],

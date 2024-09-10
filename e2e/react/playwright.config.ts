@@ -8,7 +8,7 @@ export default defineConfig({
 	testIgnore: '**/$houdini/**',
 
 	webServer: {
-		command: 'npm run build && PORT=3008 npm run dev',
+		command: 'PORT=3008 npm run dev',
 		port: 3008,
 		timeout: 120 * 1000,
 	},
