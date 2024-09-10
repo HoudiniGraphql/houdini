@@ -9,11 +9,9 @@ import {
 	routerConventions,
 } from 'houdini'
 import React from 'react'
-import ReactDOM from 'react-dom/server'
 import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
 
 import { manifest, setManifest } from '.'
-import { writeTsconfig } from './codegen/typeRoot'
 
 let viteEnv: ConfigEnv
 let devServer = false
@@ -113,10 +111,6 @@ export default {
 
 		// let them all through as is but strip anything that comes before the marker
 		return id.substring(id.indexOf('virtual:houdini'))
-	},
-
-	async buildStart({ houdiniConfig }) {
-		await writeTsconfig(houdiniConfig)
 	},
 
 	async closeBundle(config) {
@@ -363,7 +357,6 @@ root.render(React.createElement(App, {
 	// capture the request before vite's dev server processes it.
 	async configureServer(server) {
 		devServer = true
-		await writeTsconfig(server.houdiniConfig)
 
 		server.middlewares.use(async (req, res, next) => {
 			if (!req.url) {
