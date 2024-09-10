@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.57
+
+### Patch Changes
+
+-   [#1350](https://github.com/HoudiniGraphql/houdini/pull/1350) [`fe0d7599`](https://github.com/HoudiniGraphql/houdini/commit/fe0d75996ac5632fe8a10dde85a3f59b036dd3c7) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when generating fresh project files with a local schema
+
 ## 1.2.56
 
 ### Patch Changes

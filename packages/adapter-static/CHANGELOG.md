@@ -1,5 +1,12 @@
 # houdini-adapter-static
 
+## 1.2.57
+
+### Patch Changes
+
+-   Updated dependencies [[`fe0d7599`](https://github.com/HoudiniGraphql/houdini/commit/fe0d75996ac5632fe8a10dde85a3f59b036dd3c7)]:
+    -   houdini@1.2.57
+
 ## 1.2.56
 
 ### Patch Changes
