@@ -364,7 +364,7 @@ root.render(React.createElement(App, {
 				return
 			}
 
-			// import the router manifest from tfhe runtime
+			// import the router manifest from the runtime
 			// pull in the project's manifest
 			const { default: router_manifest } = (await server.ssrLoadModule(
 				path.join(
