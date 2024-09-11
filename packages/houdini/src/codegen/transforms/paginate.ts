@@ -225,6 +225,16 @@ export default async function paginate(config: Config, documents: Document[]): P
 					return {
 						...node,
 						variableDefinitions: finalVariables,
+						directives: [
+							...(node.directives || []),
+							{
+								kind: graphql.Kind.DIRECTIVE,
+								name: {
+									kind: graphql.Kind.NAME,
+									value: config.dedupeDirective,
+								},
+							},
+						],
 					} as graphql.OperationDefinitionNode
 				},
 				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist
@@ -496,15 +506,6 @@ export default async function paginate(config: Config, documents: Document[]): P
 											  )
 									)
 							),
-						directives: [
-							{
-								kind: graphql.Kind.DIRECTIVE,
-								name: {
-									kind: graphql.Kind.NAME,
-									value: config.dedupeDirective,
-								},
-							},
-						],
 						selectionSet: {
 							kind: graphql.Kind.SELECTION_SET,
 							selections: !nodeQuery

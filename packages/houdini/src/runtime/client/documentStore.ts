@@ -24,6 +24,8 @@ const steps = {
 	backwards: ['end', 'afterNetwork'],
 } as const
 
+let inFlightPageFetches: Record<string, AbortController> = {}
+
 export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables
@@ -46,6 +48,10 @@ export class DocumentStore<
 	pendingPromise: { then: (val: any) => void } | null = null
 
 	serverSideFallback?: boolean
+
+	controllerKey(variables: any) {
+		return this.artifact.name
+	}
 
 	constructor({
 		artifact,
@@ -133,6 +139,29 @@ export class DocumentStore<
 		silenceEcho = false,
 		abortController = new AbortController(),
 	}: SendParams = {}) {
+		// if the document we are sending is meant to be deduped, then we need to look for an existing
+		// controller for the document
+		if ('dedupe' in this.artifact) {
+			// if there is already a pending request
+			if (inFlightPageFetches[this.controllerKey(variables)]) {
+				// we have to abort _something_
+				if (this.artifact.dedupe === 'first') {
+					// cancel the existing one
+					inFlightPageFetches[this.controllerKey(variables)].abort()
+					// and register the new one
+					inFlightPageFetches[this.controllerKey(variables)] = abortController
+				}
+				// otherwise we have to abort this one
+				else {
+					abortController.abort()
+				}
+			}
+			// register this abort controller as being in flight
+			else {
+				inFlightPageFetches[this.controllerKey(variables)] = abortController
+			}
+		}
+
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			abortController,
@@ -189,7 +218,14 @@ export class DocumentStore<
 			this.#step('forward', state)
 		})
 
-		return await promise
+		// fire off the chain
+		const response = await promise
+
+		// after the whole plugin chain, we need to clean up the in flight tracking
+		delete inFlightPageFetches[this.controllerKey(variables)]
+
+		// we're done
+		return response
 	}
 
 	async cleanup() {
@@ -362,7 +398,9 @@ export class DocumentStore<
 			try {
 				// if the abort controller has been triggered, dont go further
 				if (draft.abortController.signal.aborted) {
-					throw new DOMException('aborted')
+					const abortError = new Error('aborted')
+					abortError.name = 'AbortError'
+					throw abortError
 				}
 
 				// @ts-expect-error

@@ -2,7 +2,7 @@ import type { SendParams } from '../client/documentStore'
 import { getCurrentConfig } from './config'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy } from './types'
+import { CachePolicy, DataSource } from './types'
 import type {
 	CursorHandlers,
 	FetchFn,
@@ -44,8 +44,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 		fetch?: typeof globalThis.fetch
 		where: 'start' | 'end'
 	}) => {
-		const config = getCurrentConfig()
-
 		// build up the variables to pass to the query
 		const loadVariables: _Input = {
 			...getVariables(),
@@ -61,7 +59,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
-		await (isSinglePage ? parentFetch : parentFetchUpdate)(
+		return (isSinglePage ? parentFetch : parentFetchUpdate)(
 			{
 				variables: loadVariables,
 				fetch,
@@ -78,7 +76,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 	}
 
 	return {
-		loadNextPage: async ({
+		loadNextPage: ({
 			first,
 			after,
 			fetch,
@@ -93,7 +91,15 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			const currentPageInfo = getPageInfo()
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasNextPage) {
-				return
+				return Promise.resolve({
+					data: getState(),
+					errors: null,
+					fetching: false,
+					partial: false,
+					stale: false,
+					source: DataSource.Cache,
+					variables: getVariables(),
+				})
 			}
 
 			// only specify the page count if we're given one
@@ -105,7 +111,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			}
 
 			// load the page
-			return await loadPage({
+			return loadPage({
 				pageSizeVar: 'first',
 				functionName: 'loadNextPage',
 				input,
@@ -114,7 +120,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 				where: 'end',
 			})
 		},
-		loadPreviousPage: async ({
+		loadPreviousPage: ({
 			last,
 			before,
 			fetch,
@@ -130,7 +136,15 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
-				return
+				return Promise.resolve({
+					data: getState(),
+					errors: null,
+					fetching: false,
+					partial: false,
+					stale: false,
+					source: DataSource.Cache,
+					variables: getVariables(),
+				})
 			}
 
 			// only specify the page count if we're given one
@@ -142,7 +156,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			}
 
 			// load the page
-			return await loadPage({
+			return loadPage({
 				pageSizeVar: 'last',
 				functionName: 'loadPreviousPage',
 				input,
