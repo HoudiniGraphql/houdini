@@ -37,8 +37,8 @@ test('adds internal documents to schema', async function () {
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
-			@dedupe is used to prevent an operation from running twice. If the operation is sent
-			while there is already one pending and the cancelFirst arg is true, the first one will be canceled instead of the second.
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
 			"""
 			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
@@ -135,8 +135,8 @@ test('list operations are included', async function () {
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
-			@dedupe is used to prevent an operation from running twice. If the operation is sent
-			while there is already one pending and the cancelFirst arg is true, the first one will be canceled instead of the second.
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
 			"""
 			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
@@ -252,8 +252,8 @@ test('list operations are included but delete directive should not be in when we
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
-			@dedupe is used to prevent an operation from running twice. If the operation is sent
-			while there is already one pending and the cancelFirst arg is true, the first one will be canceled instead of the second.
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
 			"""
 			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
@@ -382,8 +382,8 @@ test("writing twice doesn't duplicate definitions", async function () {
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
-			@dedupe is used to prevent an operation from running twice. If the operation is sent
-			while there is already one pending and the cancelFirst arg is true, the first one will be canceled instead of the second.
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
 			"""
 			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
