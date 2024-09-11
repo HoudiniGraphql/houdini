@@ -1,5 +1,4 @@
 import type { SendParams } from '../client/documentStore'
-import { getCurrentConfig } from './config'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 import { CachePolicy, DataSource } from './types'
