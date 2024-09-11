@@ -92,7 +92,6 @@ export const routes = {
   Pagination_query_bidirectional_cursor: '/pagination/query/bidirectional-cursor',
   Pagination_query_bidirectional_cursor_single_page:
     '/pagination/query/bidirectional-cursor-single-page',
-  Pagination_query_dedupe_pagination_fetch: 'pagination/query/dedupe-pagination-fetch',
   Pagination_query_offset: '/pagination/query/offset',
   Pagination_query_offset_single_page: '/pagination/query/offset-single-page',
   Pagination_query_offset_variable: '/pagination/query/offset-variable',
