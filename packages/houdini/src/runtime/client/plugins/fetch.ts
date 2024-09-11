@@ -20,7 +20,6 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					text: ctx.text,
 					hash: ctx.hash,
 					variables: { ...marshalVariables(ctx) },
-					signal: ctx.abortController.signal,
 				}
 
 				// before we move onto the next plugin, we need to strip the variables as they go through
@@ -46,7 +45,10 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 						// figure out if we need to do something special for multipart uploads
 						const newArgs = handleMultipart(fetchParams, args) ?? args
 						// use the new args if they exist, otherwise the old ones are good
-						return fetch(url, newArgs)
+						return fetch(url, {
+							...newArgs,
+							signal: ctx.abortController.signal,
+						})
 					},
 					metadata: ctx.metadata,
 					session: ctx.session || {},
@@ -125,7 +127,6 @@ export type FetchParams = {
 	text: string
 	hash: string
 	variables: { [key: string]: any }
-	signal: AbortSignal
 }
 
 function handleMultipart(
