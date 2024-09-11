@@ -1,0 +1,15 @@
+query DedupePaginationFetch {
+	usersConnection(first: 2, delay: 1000, snapshot: "dedupe-pagination-fetch") @paginate {
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+		edges {
+			node {
+				name
+			}
+		}
+	}
+}

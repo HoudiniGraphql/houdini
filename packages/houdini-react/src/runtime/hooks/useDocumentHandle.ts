@@ -56,9 +56,21 @@ export function useDocumentHandle<
 		) => {
 			return async (value: any) => {
 				setLoading(true)
-				const result = await fn(value)
+				let result: _Result | null = null
+				let err: Error | null = null
+				try {
+					result = await fn(value)
+				} catch (e) {
+					err = e as Error
+				}
 				setLoading(false)
-				return result
+				// ignore abort errors when loading pages
+				if (err && err.name !== 'AbortError') {
+					throw err
+				}
+
+				// we're done
+				return result || observer.state
 			}
 		}
 

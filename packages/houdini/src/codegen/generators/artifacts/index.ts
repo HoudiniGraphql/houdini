@@ -237,8 +237,8 @@ export default function artifactGenerator(stats: {
 								cancelFirstArg &&
 								cancelFirstArg.value.kind === 'BooleanValue' &&
 								cancelFirstArg.value
-									? 'last'
-									: 'first'
+									? 'first'
+									: 'last'
 						}
 
 						// use this selection set
