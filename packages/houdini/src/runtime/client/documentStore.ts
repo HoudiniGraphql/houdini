@@ -24,7 +24,7 @@ const steps = {
 	backwards: ['end', 'afterNetwork'],
 } as const
 
-let inFlightPageFetches: Record<string, AbortController> = {}
+let inflightRequests: Record<string, AbortController> = {}
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
@@ -143,13 +143,13 @@ export class DocumentStore<
 		// controller for the document
 		if ('dedupe' in this.artifact) {
 			// if there is already a pending request
-			if (inFlightPageFetches[this.controllerKey(variables)]) {
+			if (inflightRequests[this.controllerKey(variables)]) {
 				// we have to abort _something_
 				if (this.artifact.dedupe === 'first') {
 					// cancel the existing one
-					inFlightPageFetches[this.controllerKey(variables)].abort()
+					inflightRequests[this.controllerKey(variables)].abort()
 					// and register the new one
-					inFlightPageFetches[this.controllerKey(variables)] = abortController
+					inflightRequests[this.controllerKey(variables)] = abortController
 				}
 				// otherwise we have to abort this one
 				else {
@@ -158,7 +158,7 @@ export class DocumentStore<
 			}
 			// register this abort controller as being in flight
 			else {
-				inFlightPageFetches[this.controllerKey(variables)] = abortController
+				inflightRequests[this.controllerKey(variables)] = abortController
 			}
 		}
 
@@ -222,7 +222,7 @@ export class DocumentStore<
 		const response = await promise
 
 		// after the whole plugin chain, we need to clean up the in flight tracking
-		delete inFlightPageFetches[this.controllerKey(variables)]
+		delete inflightRequests[this.controllerKey(variables)]
 
 		// we're done
 		return response
