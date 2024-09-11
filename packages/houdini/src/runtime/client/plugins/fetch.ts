@@ -20,6 +20,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 					text: ctx.text,
 					hash: ctx.hash,
 					variables: { ...marshalVariables(ctx) },
+					signal: ctx.abortController.signal,
 				}
 
 				// before we move onto the next plugin, we need to strip the variables as they go through
@@ -124,6 +125,7 @@ export type FetchParams = {
 	text: string
 	hash: string
 	variables: { [key: string]: any }
+	signal: AbortSignal
 }
 
 function handleMultipart(

@@ -131,9 +131,11 @@ export class DocumentStore<
 		cacheParams,
 		setup = false,
 		silenceEcho = false,
+		abortController = new AbortController(),
 	}: SendParams = {}) {
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
+			abortController,
 			config: this.#configFile!,
 			name: this.artifact.name,
 			text: this.artifact.raw,
@@ -358,6 +360,11 @@ export class DocumentStore<
 			}
 
 			try {
+				// if the abort controller has been triggered, dont go further
+				if (draft.abortController.signal.aborted) {
+					throw new DOMException('aborted')
+				}
+
 				// @ts-expect-error
 				// invoke the target with the correct handlers
 				const result = target(draft, handlers)
@@ -635,6 +642,7 @@ export type ClientPluginContext = {
 	metadata?: App.Metadata | null
 	session?: App.Session | null
 	fetchParams?: RequestInit
+	abortController: AbortController
 	cacheParams?: {
 		layer?: Layer
 		notifySubscribers?: SubscriptionSpec[]
@@ -696,4 +704,5 @@ export type SendParams = {
 	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
 	silenceEcho?: boolean
+	abortController?: AbortController
 }
