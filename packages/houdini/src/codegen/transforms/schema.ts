@@ -55,8 +55,8 @@ directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 """
 	@${
 		config.dedupeDirective
-	} is used to prevent an operation from running twice. If the operation is sent
-	while there is already one pending and the cancelFirst arg is true, the first one will be canceled instead of the second.
+	} is used to prevent an operation from running more than once at the same time.
+	If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
 """
 directive @${config.dedupeDirective}(cancelFirst: Boolean) on QUERY | MUTATION
 
