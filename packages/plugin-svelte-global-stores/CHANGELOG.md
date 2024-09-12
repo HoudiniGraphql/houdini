@@ -1,5 +1,13 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.2.60
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.60
+    -   houdini-svelte@1.2.60
+
 ## 1.2.59
 
 ### Patch Changes
