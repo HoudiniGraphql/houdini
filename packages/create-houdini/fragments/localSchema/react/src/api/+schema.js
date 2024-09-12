@@ -8,7 +8,7 @@ export default createSchema({
 	`,
 	resolvers: {
 		Query: {
-			hello: () => 'world',
+			hello: () => 'Greetings from your local api 👋',
 		},
 	},
 })

@@ -1,0 +1,3 @@
+query HelloHoudini {
+	hello
+}
