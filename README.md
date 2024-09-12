@@ -8,7 +8,7 @@
   <br />
 
   <strong>
-    The disappearing GraphQL client.
+    The disappearing GraphQL framework
   </strong>
   <br />
   <br />
