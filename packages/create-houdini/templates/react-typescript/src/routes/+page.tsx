@@ -2,7 +2,7 @@ import type { PageProps } from './$types'
 
 export default function ({}: PageProps) {
 	return (
-		<div>
+		<div className="flex flex-col gap-8">
 			<h2>Home</h2>
 
 			<p>
