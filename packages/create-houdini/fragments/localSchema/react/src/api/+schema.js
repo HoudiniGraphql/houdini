@@ -3,12 +3,12 @@ import { createSchema } from 'graphql-yoga'
 export default createSchema({
 	typeDefs: /* GraphQL */ `
 		type Query {
-			hello: String
+			message: String
 		}
 	`,
 	resolvers: {
 		Query: {
-			hello: () => 'Greetings from your local api 👋',
+			message: () => 'Greetings from your local api 👋',
 		},
 	},
 })
