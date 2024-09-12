@@ -1,5 +1,13 @@
 # create-houdini
 
+## 1.2.59
+
+### Patch Changes
+
+-   [#1355](https://github.com/HoudiniGraphql/houdini/pull/1355) [`224a5aab`](https://github.com/HoudiniGraphql/houdini/commit/224a5aabf39088177b3a65aa2509ea240c9643f9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More improvements to create template
+
+-   [#1355](https://github.com/HoudiniGraphql/houdini/pull/1355) [`224a5aab`](https://github.com/HoudiniGraphql/houdini/commit/224a5aabf39088177b3a65aa2509ea240c9643f9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More template improvements for create
+
 ## 1.2.58
 
 ### Patch Changes
