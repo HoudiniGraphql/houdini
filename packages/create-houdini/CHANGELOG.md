@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.58
+
+### Patch Changes
+
+-   [#1353](https://github.com/HoudiniGraphql/houdini/pull/1353) [`f68e424d`](https://github.com/HoudiniGraphql/houdini/commit/f68e424d4b5df93dc0a6825a10947c1c478571d3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - improve template for projects with local schemas
+
 ## 1.2.57
 
 ## 1.2.56

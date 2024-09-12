@@ -1,5 +1,12 @@
 # houdini-svelte
 
+## 1.2.58
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.58
+
 ## 1.2.57
 
 ### Patch Changes
