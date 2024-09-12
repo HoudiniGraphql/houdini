@@ -196,8 +196,7 @@ console.log(
 		italic(
 			`${bold('❔ More help')} ` +
 				`at ${cyan('https://houdinigraphql.com')} ` +
-				`(📄 Docs, ⭐ Github, 📣 Discord, ...) ` +
-				`${sponsor_msg ? `\n${sponsor_msg}` : ``}\n`
+				`(📄 Docs, ⭐ Github, 📣 Discord, ...) `
 		)
 	)
 )
