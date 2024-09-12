@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.61
+
+### Patch Changes
+
+-   [`c3403d54`](https://github.com/HoudiniGraphql/houdini/commit/c3403d5486cb9b786354a79e39b04189aae2334c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More rushed create template changes before lightning talk
+
 ## 1.2.60
 
 ### Patch Changes
