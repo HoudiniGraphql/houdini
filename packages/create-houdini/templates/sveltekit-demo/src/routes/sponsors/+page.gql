@@ -1,6 +1,0 @@
-query PageSponsors {
-	sponsors {
-		...SponsorInfo
-		tiersTitle
-	}
-}
