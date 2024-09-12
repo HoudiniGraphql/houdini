@@ -1,9 +1,9 @@
-export default function ({ Hello }) {
+export default function ({ HelloHoudini }) {
 	return (
 		<div className="flex flex-col gap-8">
 			<h2>Home</h2>
 
-			<p>{Hello.message}</p>
+			<p>{HelloHoudini.message}</p>
 		</div>
 	)
 }
