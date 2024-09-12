@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.60
+
+### Patch Changes
+
+-   [`fb2a6e89`](https://github.com/HoudiniGraphql/houdini/commit/fb2a6e89e55abc1bcf189c4ba45488573afcffdc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix typo in create script
+
 ## 1.2.59
 
 ### Patch Changes
