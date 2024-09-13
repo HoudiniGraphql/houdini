@@ -122,6 +122,7 @@ export const typeDefs = /* GraphQL */ `
 			before: String
 			first: Int
 			last: Int
+			delay: Int
 			snapshot: String!
 		): UserConnection!
 		usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
@@ -450,7 +451,12 @@ export const resolvers = {
 			}
 			throw new GraphQLError('No authorization found', { code: 403 })
 		},
-		usersConnection(_, args) {
+		usersConnection: async (_, args) => {
+			// simulate network delay
+			if (args.delay) {
+				await sleep(args.delay)
+			}
+
 			return connectionFromArray(getUserSnapshot(args.snapshot), args)
 		},
 		user: async (_, args) => {

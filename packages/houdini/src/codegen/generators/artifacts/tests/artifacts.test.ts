@@ -846,6 +846,7 @@ test('paginate over unions', async function () {
 		    },
 
 		    "pluginData": {},
+		    "dedupe": "last",
 
 		    "input": {
 		        "fields": {
@@ -4931,6 +4932,7 @@ describe('mutation artifacts', function () {
 			    },
 
 			    "pluginData": {},
+			    "dedupe": "last",
 
 			    "input": {
 			        "fields": {
@@ -5183,6 +5185,7 @@ describe('mutation artifacts', function () {
 			    },
 
 			    "pluginData": {},
+			    "dedupe": "last",
 
 			    "input": {
 			        "fields": {
@@ -7706,4 +7709,148 @@ describe('default arguments', function () {
 			"HoudiniHash=4b2886d3afb40660837727c266b5667c81698e3bbf240ec47270a262842f61d8";
 		`)
 	})
+})
+
+test('persists dedupe which', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query FindUser @dedupe{
+				usersByOffset {
+					name
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "FindUser",
+		    "kind": "HoudiniQuery",
+		    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+
+		    "raw": \`query FindUser {
+		  usersByOffset {
+		    name
+		    id
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+		    "stripVariables": [],
+
+		    "selection": {
+		        "fields": {
+		            "usersByOffset": {
+		                "type": "User",
+		                "keyRaw": "usersByOffset",
+
+		                "selection": {
+		                    "fields": {
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name",
+		                            "visible": true
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "dedupe": "last",
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=752d5f5b068733a0ab1039b96b5f9d13a45a872329bca86998b1971c4ce0816b";
+	`)
+})
+
+test('persists dedupe first', async function () {
+	// the config to use in tests
+	const config = testConfig()
+	// the documents to test
+	const docs: Document[] = [
+		mockCollectedDoc(`
+			query FindUser @dedupe(cancelFirst: true) {
+				usersByOffset {
+					name
+				}
+			}
+		`),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "FindUser",
+		    "kind": "HoudiniQuery",
+		    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+
+		    "raw": \`query FindUser {
+		  usersByOffset {
+		    name
+		    id
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+		    "stripVariables": [],
+
+		    "selection": {
+		        "fields": {
+		            "usersByOffset": {
+		                "type": "User",
+		                "keyRaw": "usersByOffset",
+
+		                "selection": {
+		                    "fields": {
+		                        "name": {
+		                            "type": "String",
+		                            "keyRaw": "name",
+		                            "visible": true
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "dedupe": "first",
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=3dfb64916aa4359cf85f08b3544bbc7382fd818935c5a0e92f324a2d2519c227";
+	`)
 })

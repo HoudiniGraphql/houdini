@@ -1061,7 +1061,7 @@ test('query with forwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String) {
+		query Users($first: Int = 10, $after: String) @dedupe {
 		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -1108,7 +1108,7 @@ test('query with custom first args', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($limit: Int!, $after: String) {
+		query Users($limit: Int!, $after: String) @dedupe {
 		  usersByForwardsCursor(first: $limit, after: $after) @paginate {
 		    edges {
 		      node {
@@ -1155,7 +1155,7 @@ test('query with backwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users {
+		query Users @dedupe {
 		  usersByBackwardsCursor(last: 10) @paginate {
 		    edges {
 		      node {
@@ -1198,12 +1198,11 @@ test('query with offset paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($limit: Int = 10, $offset: Int) {
+		query Users($limit: Int = 10, $offset: Int) @dedupe {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
 		}
-
 	`)
 })
 
@@ -1230,7 +1229,7 @@ test('query with backwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int, $after: String, $last: Int = 10, $before: String) {
+		query Users($first: Int, $after: String, $last: Int = 10, $before: String) @dedupe {
 		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1277,7 +1276,7 @@ test('query with forwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String, $last: Int, $before: String) {
+		query Users($first: Int = 10, $after: String, $last: Int, $before: String) @dedupe {
 		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1324,7 +1323,7 @@ test("don't generate unsupported directions", async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String) {
+		query Users($first: Int = 10, $after: String) @dedupe {
 		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -1371,7 +1370,7 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int!, $after: String, $last: Int, $before: String) {
+		query Users($first: Int!, $after: String, $last: Int, $before: String) @dedupe {
 		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1418,7 +1417,7 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int!, $first: Int, $after: String, $before: String) {
+		query Users($last: Int!, $first: Int, $after: String, $before: String) @dedupe {
 		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1461,12 +1460,11 @@ test("offset paginated query doesn't overlap variables", async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($limit: Int! = 10, $offset: Int) {
+		query Users($limit: Int! = 10, $offset: Int) @dedupe {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
 		}
-
 	`)
 })
 

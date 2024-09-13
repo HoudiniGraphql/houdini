@@ -110,6 +110,7 @@ type Query {
 		before: String
 		first: Int
 		last: Int
+        delay: Int
 		snapshot: String!
 	): UserConnection!
 	usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!

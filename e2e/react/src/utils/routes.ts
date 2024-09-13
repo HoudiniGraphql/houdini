@@ -1,4 +1,5 @@
 export const routes = {
+	api: '/_api',
 	hello: '/hello-world',
 	scalars: '/scalars',
 	componentFields_simple: '/component_fields/simple',
@@ -10,6 +11,7 @@ export const routes = {
 	pagination_query_forwards: '/pagination/query/connection-forwards',
 	pagination_query_bidirectional: '/pagination/query/connection-bidirectional',
 	pagination_query_offset: '/pagination/query/offset',
+	pagination_dedupe: '/pagination/query/dedupe',
 	pagination_query_offset_singlepage: '/pagination/query/offset-singlepage',
 	pagination_query_offset_variable: '/pagination/query/offset-variable/2',
 	optimistic_keys: '/optimistic-keys',

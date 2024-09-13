@@ -53,6 +53,14 @@ directive @${config.paginateDirective}(${config.listOrPaginateNameArg}: String, 
 directive @${config.listPrependDirective} on FRAGMENT_SPREAD
 
 """
+	@${
+		config.dedupeDirective
+	} is used to prevent an operation from running more than once at the same time.
+	If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+"""
+directive @${config.dedupeDirective}(cancelFirst: Boolean) on QUERY | MUTATION
+
+"""
 	@${config.optimisticKeyDirective} is used to identify a field as an optimistic key
 """
 directive @${config.optimisticKeyDirective} on FIELD

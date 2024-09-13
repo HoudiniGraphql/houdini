@@ -629,6 +629,10 @@ export class Config {
 		return 'list'
 	}
 
+	get dedupeDirective() {
+		return 'dedupe'
+	}
+
 	get optimisticKeyDirective() {
 		return 'optimisticKey'
 	}

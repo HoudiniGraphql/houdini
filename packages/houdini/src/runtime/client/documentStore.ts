@@ -24,6 +24,8 @@ const steps = {
 	backwards: ['end', 'afterNetwork'],
 } as const
 
+let inflightRequests: Record<string, AbortController> = {}
+
 export class DocumentStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables
@@ -46,6 +48,10 @@ export class DocumentStore<
 	pendingPromise: { then: (val: any) => void } | null = null
 
 	serverSideFallback?: boolean
+
+	controllerKey(variables: any) {
+		return this.artifact.name
+	}
 
 	constructor({
 		artifact,
@@ -131,9 +137,34 @@ export class DocumentStore<
 		cacheParams,
 		setup = false,
 		silenceEcho = false,
+		abortController = new AbortController(),
 	}: SendParams = {}) {
+		// if the document we are sending is meant to be deduped, then we need to look for an existing
+		// controller for the document
+		if ('dedupe' in this.artifact) {
+			// if there is already a pending request
+			if (inflightRequests[this.controllerKey(variables)]) {
+				// we have to abort _something_
+				if (this.artifact.dedupe === 'first') {
+					// cancel the existing one
+					inflightRequests[this.controllerKey(variables)].abort()
+					// and register the new one
+					inflightRequests[this.controllerKey(variables)] = abortController
+				}
+				// otherwise we have to abort this one
+				else {
+					abortController.abort()
+				}
+			}
+			// register this abort controller as being in flight
+			else {
+				inflightRequests[this.controllerKey(variables)] = abortController
+			}
+		}
+
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
+			abortController,
 			config: this.#configFile!,
 			name: this.artifact.name,
 			text: this.artifact.raw,
@@ -187,7 +218,14 @@ export class DocumentStore<
 			this.#step('forward', state)
 		})
 
-		return await promise
+		// fire off the chain
+		const response = await promise
+
+		// after the whole plugin chain, we need to clean up the in flight tracking
+		delete inflightRequests[this.controllerKey(variables)]
+
+		// we're done
+		return response
 	}
 
 	async cleanup() {
@@ -358,6 +396,13 @@ export class DocumentStore<
 			}
 
 			try {
+				// if the abort controller has been triggered, dont go further
+				if (draft.abortController.signal.aborted) {
+					const abortError = new Error('aborted')
+					abortError.name = 'AbortError'
+					throw abortError
+				}
+
 				// @ts-expect-error
 				// invoke the target with the correct handlers
 				const result = target(draft, handlers)
@@ -635,6 +680,7 @@ export type ClientPluginContext = {
 	metadata?: App.Metadata | null
 	session?: App.Session | null
 	fetchParams?: RequestInit
+	abortController: AbortController
 	cacheParams?: {
 		layer?: Layer
 		notifySubscribers?: SubscriptionSpec[]
@@ -696,4 +742,5 @@ export type SendParams = {
 	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
 	silenceEcho?: boolean
+	abortController?: AbortController
 }

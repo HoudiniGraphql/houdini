@@ -77,10 +77,12 @@ export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
 	enableLoadingState?: 'global' | 'local'
+	dedupe?: 'first' | 'last'
 }
 
 export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
 	optimisticKeys?: boolean
+	dedupe?: 'first' | 'last'
 }
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
@@ -313,13 +315,13 @@ export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 		after?: string
 		fetch?: typeof globalThis.fetch
 		metadata?: {}
-	}) => Promise<void>
+	}) => Promise<QueryResult<_Data, _Input>>
 	loadPreviousPage: (args?: {
 		last?: number
 		before?: string
 		fetch?: typeof globalThis.fetch
 		metadata?: {}
-	}) => Promise<void>
+	}) => Promise<QueryResult<_Data, _Input>>
 	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
 }
 

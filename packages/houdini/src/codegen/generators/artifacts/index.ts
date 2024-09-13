@@ -187,6 +187,9 @@ export default function artifactGenerator(stats: {
 					let selectionSet: graphql.SelectionSetNode
 					let originalSelectionSet: graphql.SelectionSetNode | null = null
 
+					// extract the deduplication behavior
+					let dedupe: QueryArtifact['dedupe']
+
 					const fragmentDefinitions = doc.document.definitions
 						.filter<graphql.FragmentDefinitionNode>(
 							(definition): definition is graphql.FragmentDefinitionNode =>
@@ -220,6 +223,22 @@ export default function artifactGenerator(stats: {
 									operation.operation +
 									'. Maybe you need to re-run the introspection query?',
 							})
+						}
+
+						const dedupeDirective = operation.directives?.find(
+							(directive) => directive.name.value === config.dedupeDirective
+						)
+						if (dedupeDirective) {
+							const cancelFirstArg = dedupeDirective.arguments?.find(
+								(arg) => arg.name.value === 'cancelFirst'
+							)
+
+							dedupe =
+								cancelFirstArg &&
+								cancelFirstArg.value.kind === 'BooleanValue' &&
+								cancelFirstArg.value
+									? 'first'
+									: 'last'
 						}
 
 						// use this selection set
@@ -319,6 +338,13 @@ export default function artifactGenerator(stats: {
 					// we write the hash only at this stage, because plugins can take adventage of artifacts to write the hash.
 					const hash_value = hashPluginBaseRaw({ config, document: { ...doc, artifact } })
 					artifact.hash = hash_value
+
+					if (
+						artifact.kind === 'HoudiniQuery' ||
+						(artifact.kind === 'HoudiniMutation' && dedupe)
+					) {
+						artifact.dedupe = dedupe
+					}
 
 					// apply the visibility mask to the artifact so that only
 					// fields in the direct selection are visible

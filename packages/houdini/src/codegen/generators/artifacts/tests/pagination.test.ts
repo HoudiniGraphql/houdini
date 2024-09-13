@@ -781,6 +781,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		    },
 
 		    "pluginData": {},
+		    "dedupe": "last",
 
 		    "input": {
 		        "fields": {

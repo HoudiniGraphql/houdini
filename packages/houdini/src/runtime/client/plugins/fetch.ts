@@ -45,7 +45,10 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 						// figure out if we need to do something special for multipart uploads
 						const newArgs = handleMultipart(fetchParams, args) ?? args
 						// use the new args if they exist, otherwise the old ones are good
-						return fetch(url, newArgs)
+						return fetch(url, {
+							...newArgs,
+							signal: ctx.abortController.signal,
+						})
 					},
 					metadata: ctx.metadata,
 					session: ctx.session || {},

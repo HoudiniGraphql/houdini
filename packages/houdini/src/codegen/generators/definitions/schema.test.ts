@@ -36,6 +36,12 @@ test('adds internal documents to schema', async function () {
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
 
+			"""
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			"""
+			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
+
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
 
@@ -127,6 +133,12 @@ test('list operations are included', async function () {
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
+
+			"""
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			"""
+			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
@@ -238,6 +250,12 @@ test('list operations are included but delete directive should not be in when we
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
+
+			"""
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			"""
+			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
@@ -362,6 +380,12 @@ test("writing twice doesn't duplicate definitions", async function () {
 
 			"""@prepend is used to tell the runtime to add the result to the end of the list"""
 			directive @prepend on FRAGMENT_SPREAD
+
+			"""
+			@dedupe is used to prevent an operation from running more than once at the same time.
+			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			"""
+			directive @dedupe(cancelFirst: Boolean) on QUERY | MUTATION
 
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
