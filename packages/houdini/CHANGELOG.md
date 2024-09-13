@@ -1,5 +1,11 @@
 # houdini
 
+## 1.2.62
+
+### Patch Changes
+
+-   [#1352](https://github.com/HoudiniGraphql/houdini/pull/1352) [`2cf22c7c`](https://github.com/HoudiniGraphql/houdini/commit/2cf22c7ccae088b107770b819d2c0019054d3c6e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add @dedupe directive
+
 ## 1.2.61
 
 ## 1.2.60
