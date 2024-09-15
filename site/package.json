@@ -33,7 +33,7 @@
 		"prettier": "^2.8.3",
 		"prettier-plugin-svelte": "^2.9.0",
 		"recast": "^0.23.1",
-		"remark-mermaid": "^0.2.0",
+		"@theguild/remark-mermaid": "^0.1.2",
 		"svelte-check": "^3.0.1",
 		"svelte-kit-cookie-session": "3.0.6",
 		"tslib": "^2.3.1",
