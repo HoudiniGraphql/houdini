@@ -9,8 +9,22 @@ Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode
 
 # Using runes
 
-Updating your code to make use of runes is pretty straight-forward. Houdini still makes use of Svelte Stores, so your code will continue to work as normal.
-Here are some examples of how to use Houdini with svelte runes:
+Updating your code to make use of runes is straight-forward.
+Houdini still makes use of Svelte Stores, so your code will continue to work as normal.
+Just start using Runes and Houdini will adapt to your needs!
+
+If you are forcing Runes mode enabled in your svelte config, you need to tell Houdini to also generate Runes by default:
+```js:title=houdini.config.js
+const config = {
+    // ... other options
+    plugins: {
+        'houdini-svelte': {
+            // Add this line if necessary:
+            forceRunesMode: true
+        }
+    }
+}
+```
 
 ## Route queries
 

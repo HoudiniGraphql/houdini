@@ -11,7 +11,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("instance");')
 	})
@@ -21,7 +21,7 @@ describe('parser tests', () => {
 				console.log('module')
 			</script>`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("module");')
 	})
@@ -33,7 +33,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -45,7 +45,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`
 			type Foo = {
@@ -61,7 +61,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('export let x: T;')
 	})
@@ -92,7 +92,7 @@ describe('parser tests', () => {
 				</script>
 			`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`
 			import * as FormPrimitive from "formsnap";
@@ -115,7 +115,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -130,7 +130,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("script");')
 	})
@@ -144,7 +144,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -162,7 +162,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -178,7 +178,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
@@ -197,7 +197,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
@@ -219,7 +219,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -234,7 +234,7 @@ describe('parser tests', () => {
 			</div>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -262,7 +262,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -290,7 +290,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
@@ -320,7 +320,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`const example = object({});`)
 	})
@@ -334,7 +334,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`const example = object({});`)
 	})
@@ -364,7 +364,7 @@ describe('parser svelte 5 runes detection', () => {
 
 		await Promise.all(
 			testCases.map(async (testCase) => {
-				const result = await parseSvelte(testCase.document)
+				const result = await parseSvelte(testCase.document, false)
 
 				expect(result?.useRunes, testCase.title).toBe(false)
 			})
@@ -472,7 +472,7 @@ describe('parser svelte 5 runes detection', () => {
 
 		await Promise.all(
 			testCases.map(async (testCase) => {
-				const result = await parseSvelte(testCase.document)
+				const result = await parseSvelte(testCase.document, false)
 
 				expect(result?.useRunes, `detects usage with ${testCase.runeName} rune`).toBe(true)
 			})

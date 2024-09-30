@@ -15,6 +15,7 @@ import {
 	is_route_script,
 	layout_query_path,
 	page_query_path,
+	plugin_config,
 	route_data_path,
 	route_page_path,
 	store_import_path,
@@ -65,7 +66,8 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 				? page.script
 				: (
 						await parseSvelte(
-							(await fs.readFile(route_page_path(page.config, page.filepath))) || ''
+							(await fs.readFile(route_page_path(page.config, page.filepath))) || '',
+							plugin_config(page.config).forceRunesMode
 						)
 				  )?.script ?? null,
 			inline_query_store
