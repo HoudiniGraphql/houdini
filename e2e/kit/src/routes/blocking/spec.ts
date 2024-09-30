@@ -15,7 +15,7 @@ test.describe('blocking', () => {
     expect(h2).toBe('query_with_blocking_disable');
 
     // we should have no data
-    await expect_to_be(page, 'undefined-undefined');
+    await expect_to_be(page, '-');
 
     // the delay is 1000, let's wait a bit more
     await sleep(1500);

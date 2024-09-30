@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import { CachePolicy, GQL_Session, GQL_UpdateUserSubUnsub } from '$houdini';
+  import { onMount } from 'svelte';
 
   async function mutate() {
     await GQL_UpdateUserSubUnsub.mutate(
@@ -16,11 +16,12 @@
 
   // there's nothing passing the session there to this fetch so the result is undefined
 
-  $: browser &&
+  onMount(() => {
     GQL_Session.fetch({
       metadata: { logResult: true },
       policy: CachePolicy.NetworkOnly // to enforce a new fetch (even if it's alreay in cache somewhere else)
     });
+  });
 </script>
 
 <h1>Metadata</h1>

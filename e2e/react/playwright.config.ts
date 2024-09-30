@@ -6,6 +6,7 @@ export default defineConfig({
 	reporter: process.env.CI ? [['list'], ['html'], ['github']] : [['list']],
 	use: { screenshot: 'only-on-failure' },
 	testIgnore: '**/$houdini/**',
+	testMatch: 'test.ts',
 
 	webServer: {
 		command: 'PORT=3008 npm run dev',

@@ -7,7 +7,7 @@ export async function load(event: LoadEvent) {
   };
 }
 
-graphql`
+graphql(`
   query TestMutationUpdateUsersList {
     usersList(limit: 5, snapshot: "update-user-mutation") {
       id
@@ -15,4 +15,4 @@ graphql`
       ...UserInfo
     }
   }
-`;
+`);

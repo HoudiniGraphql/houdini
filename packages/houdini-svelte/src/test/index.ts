@@ -6,7 +6,7 @@ import { mockCollectedDoc, testConfig } from 'houdini/test'
 import { pluginHooks } from '../plugin'
 import { parseSvelte } from '../plugin/extract'
 import type { Framework } from '../plugin/kit'
-import { layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
+import { layout_query_path, page_query_path, plugin_config, route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
 
 const schema = `
@@ -136,9 +136,13 @@ export async function route_test({
 
 	// return both
 	return {
-		component: (await parseSvelte(component_result.code))?.script ?? null,
+		component:
+			(await parseSvelte(component_result.code, plugin_config(config).forceRunesMode))
+				?.script ?? null,
 		script: await parseJS(script_result.code),
-		layout: (await parseSvelte(layout_result.code))?.script ?? null,
+		layout:
+			(await parseSvelte(layout_result.code, plugin_config(config).forceRunesMode))?.script ??
+			null,
 		layout_script: await parseJS(layout_script_result.code),
 	}
 }
@@ -166,7 +170,7 @@ export async function component_test(
 	})
 
 	// return both
-	return (await parseSvelte(result.code))?.script ?? null
+	return (await parseSvelte(result.code, plugin_config(config).forceRunesMode))?.script ?? null
 }
 
 export async function test_transform_svelte(filepath: string, content: string) {
@@ -187,7 +191,7 @@ export async function test_transform_svelte(filepath: string, content: string) {
 	})
 
 	// return both
-	return (await parseSvelte(result.code))?.script ?? null
+	return (await parseSvelte(result.code, plugin_config(config).forceRunesMode))?.script ?? null
 }
 
 export async function test_transform_js(filepath: string, content: string) {

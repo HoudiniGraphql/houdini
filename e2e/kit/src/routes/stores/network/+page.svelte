@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import { GQL_Hello, GQL_usersList } from '$houdini';
+  import { onMount } from 'svelte';
 
-  $: browser && GQL_usersList.fetch();
-  $: browser && GQL_Hello.fetch();
+  onMount(() => {
+    GQL_usersList.fetch();
+    GQL_Hello.fetch();
+  });
 </script>
 
 <h1>NETWORK</h1>
