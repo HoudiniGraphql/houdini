@@ -367,4 +367,47 @@ describe('Svelte 5 runes', function () {
 			});
 		`)
 	})
+
+	test('force Runes mode enabled', async function () {
+		const route = await component_test(
+			`
+				const store = graphql(\`
+					query TestQuery($test: String!) @load {
+						users(stringValue: $test) {
+							id
+						}
+					}
+				\`)
+			`,
+			{
+				plugins: {
+					'houdini-plugin-svelte-global-stores': {},
+					'houdini-svelte': {
+						framework: 'kit',
+						forceRunesMode: true,
+					},
+				},
+			}
+		)
+
+		expect(route).toMatchInlineSnapshot(`
+			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import { getCurrentConfig } from "$houdini/runtime/lib/config";
+			import { marshalInputs } from "$houdini/runtime/lib/scalars";
+			const _houdini_TestQuery = new TestQueryStore();
+			const store = _houdini_TestQuery;
+
+			$effect(() => {
+			    _houdini_TestQuery.fetch({
+			        variables: marshalInputs({
+			            config: getCurrentConfig(),
+			            artifact: _houdini_TestQuery.artifact,
+			            input: {}
+			        })
+			    });
+			});
+		`)
+	})
 })

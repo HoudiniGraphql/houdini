@@ -5,7 +5,7 @@ import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
 import { parseSvelte } from '../extract'
-import type { Framework } from '../kit'
+import { plugin_config, type Framework } from '../kit'
 import query from './componentQuery'
 import kit from './kit'
 import tags from './tags'
@@ -28,7 +28,7 @@ export default async function apply_transforms(
 
 	try {
 		if (page.filepath.endsWith('.svelte')) {
-			const res = await parseSvelte(page.content)
+			const res = await parseSvelte(page.content, plugin_config(page.config).forceRunesMode)
 			if (res) {
 				script = res.script
 				position = res.position

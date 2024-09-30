@@ -179,7 +179,7 @@ export async function walk_routes(
 			if (!contents) {
 				continue
 			}
-			const parsed = await parseSvelte(contents)
+			const parsed = await parseSvelte(contents, plugin_config(config).forceRunesMode)
 			if (!parsed) {
 				continue
 			}
@@ -209,7 +209,7 @@ export async function walk_routes(
 			if (!contents) {
 				continue
 			}
-			const parsed = await parseSvelte(contents)
+			const parsed = await parseSvelte(contents, plugin_config(config).forceRunesMode)
 			if (!parsed) {
 				continue
 			}
@@ -239,7 +239,7 @@ export async function walk_routes(
 			if (!contents) {
 				continue
 			}
-			const parsed = await parseSvelte(contents)
+			const parsed = await parseSvelte(contents, plugin_config(config).forceRunesMode)
 			if (!parsed) {
 				continue
 			}
@@ -415,6 +415,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 		pageQueryFilename: '+page.gql',
 		layoutQueryFilename: '+layout.gql',
 		static: false,
+		forceRunesMode: false,
 		...cfg,
 		customStores: {
 			query: '../runtime/stores/query.QueryStore',

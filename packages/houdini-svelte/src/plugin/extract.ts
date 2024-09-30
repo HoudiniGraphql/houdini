@@ -4,6 +4,8 @@ import type { Config, Maybe, Script } from 'houdini'
 import { find_graphql, parseJS } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
+import { plugin_config } from './kit'
+
 export default async function ({
 	config,
 	content,
@@ -12,7 +14,8 @@ export default async function ({
 	content: string
 }): Promise<string[]> {
 	const documents: string[] = []
-	let parsedFile = await parseSvelte(content)
+
+	let parsedFile = await parseSvelte(content, plugin_config(config).forceRunesMode)
 	if (!parsedFile) {
 		return documents
 	}
@@ -58,7 +61,10 @@ const svelteRunes: string[] = [
 	'$host',
 ]
 
-export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
+export async function parseSvelte(
+	str: string,
+	forceRunes: boolean
+): Promise<Maybe<EmbeddedScript>> {
 	// parsing a file happens in two steps:
 	// - first we use svelte's parser to find the bounds of the script tag
 	// - then we run the contents through babel to parse it
@@ -113,46 +119,51 @@ export async function parseSvelte(str: string): Promise<Maybe<EmbeddedScript>> {
 	// while the second has a "MemberExpression" callee.
 	let usesRunes = false
 
-	walk(scriptParsed, {
-		enter(node) {
-			if (node.type === 'CallExpression') {
-				let callNode = node as CallExpressionKind
+	// If we were forced to enable Runes mode, we don't need to walk the tree to check if we're using Runes
+	if (forceRunes) {
+		usesRunes = true
+	} else {
+		walk(scriptParsed, {
+			enter(node) {
+				if (node.type === 'CallExpression') {
+					let callNode = node as CallExpressionKind
 
-				if (callNode.callee.type === 'Identifier') {
-					// Callee type can be 'Identifier' in the case of `$state()` etc.
-					const calleeName = callNode.callee.name
+					if (callNode.callee.type === 'Identifier') {
+						// Callee type can be 'Identifier' in the case of `$state()` etc.
+						const calleeName = callNode.callee.name
 
-					// See if the callee name matches any of the known runes
-					if (svelteRunes.some((rune) => rune === calleeName)) {
-						usesRunes = true
+						// See if the callee name matches any of the known runes
+						if (svelteRunes.some((rune) => rune === calleeName)) {
+							usesRunes = true
 
-						// We detected a Rune, stop walking the AST
-						this.skip()
-					}
-				} else if (callNode.callee.type === 'MemberExpression') {
-					// Or it can be a "MemberExpression" in the case of $state.frozen()`
-					const callee = callNode.callee
+							// We detected a Rune, stop walking the AST
+							this.skip()
+						}
+					} else if (callNode.callee.type === 'MemberExpression') {
+						// Or it can be a "MemberExpression" in the case of $state.frozen()`
+						const callee = callNode.callee
 
-					// The `object` and `property` nodes need to be an Identifier
-					if (
-						callee.object.type !== 'Identifier' ||
-						callee.property.type !== 'Identifier'
-					) {
-						return
-					}
+						// The `object` and `property` nodes need to be an Identifier
+						if (
+							callee.object.type !== 'Identifier' ||
+							callee.property.type !== 'Identifier'
+						) {
+							return
+						}
 
-					// See if the callee name matches any of the known runes
-					const calleeName = `${callee.object.name}.${callee.property.name}`
-					if (svelteRunes.some((rune) => rune === calleeName)) {
-						usesRunes = true
+						// See if the callee name matches any of the known runes
+						const calleeName = `${callee.object.name}.${callee.property.name}`
+						if (svelteRunes.some((rune) => rune === calleeName)) {
+							usesRunes = true
 
-						// We detected a Rune, stop walking the AST
-						this.skip()
+							// We detected a Rune, stop walking the AST
+							this.skip()
+						}
 					}
 				}
-			}
-		},
-	})
+			},
+		})
+	}
 
 	return {
 		script: scriptParsed,
