@@ -380,9 +380,9 @@ describe('parser svelte 5 runes detection', () => {
             </script>`,
 			},
 			{
-				runeName: '$state.frozen',
+				runeName: '$state.raw',
 				document: `<script>
-                let count = $state.frozen(0);
+                let count = $state.raw(0);
             </script>`,
 			},
 			{
@@ -390,13 +390,6 @@ describe('parser svelte 5 runes detection', () => {
 				document: `<script>
                 const isHoudiniAwesome = true;
                 console.log($state.snapshot(isHoudiniAwesome));
-            </script>`,
-			},
-			{
-				runeName: '$state.is',
-				document: `<script>
-                let isHoudiniAwesome = true;
-                console.log($state.is(isHoudiniAwesome, true));
             </script>`,
 			},
 			{

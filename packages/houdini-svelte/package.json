@@ -37,7 +37,7 @@
         "houdini": "workspace:^",
         "recast": "^0.23.1",
         "rollup": "^3.7.4",
-        "svelte": "5.0.0-next.243",
+        "svelte": "5.0.0-next.260",
         "vite": "^5.3.3"
     },
     "files": [

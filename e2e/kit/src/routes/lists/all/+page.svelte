@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { goto, invalidate } from '$app/navigation';
   import { page } from '$app/stores';
   import { GQL_ListAll_AddUser } from '$houdini';
-  import { onMount } from 'svelte';
   import type { PageData } from './$houdini';
 
   export let data: PageData;
@@ -10,10 +10,7 @@
   $: ({ ListAll } = data);
 
   let limit = parseInt($page.url.searchParams.get('limit') ?? '1', 10);
-
-  onMount(() => {
-    updateQS();
-  });
+  $: browser && limit && updateQS();
 
   async function updateQS() {
     const newUrl = new URL($page.url);
