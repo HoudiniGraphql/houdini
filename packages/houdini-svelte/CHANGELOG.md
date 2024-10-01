@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.2.63
+
+### Patch Changes
+
+-   [#1362](https://github.com/HoudiniGraphql/houdini/pull/1362) [`8d4226ed`](https://github.com/HoudiniGraphql/houdini/commit/8d4226ed6a840868cfbfee0584b06f621d86bc37) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix return types for pagination loadNextPage and loadPreviousPage
+
+-   Updated dependencies []:
+    -   houdini@1.2.63
+
 ## 1.2.62
 
 ### Patch Changes
