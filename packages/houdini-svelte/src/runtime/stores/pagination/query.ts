@@ -86,7 +86,7 @@ export class QueryStoreCursor<
 
 	async loadPreviousPage(
 		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
-	) {
+	): Promise<ReturnType<CursorHandlers<_Data, _Input>['loadPreviousPage']>> {
 		const handlers = await this.#handlers()
 		try {
 			return await handlers.loadPreviousPage(args)
@@ -94,13 +94,16 @@ export class QueryStoreCursor<
 			const err = e as Error
 			// if the error is an abort error then we don't want to throw
 			if (err.name === 'AbortError') {
+				return get(this.observer)
 			} else {
 				throw err
 			}
 		}
 	}
 
-	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
+	async loadNextPage(
+		args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]
+	): Promise<ReturnType<CursorHandlers<_Data, _Input>['loadNextPage']>> {
 		const handlers = await this.#handlers()
 		try {
 			return await handlers.loadNextPage(args)
@@ -108,6 +111,7 @@ export class QueryStoreCursor<
 			const err = e as Error
 			// if the error is an abort error then we don't want to throw
 			if (err.name === 'AbortError') {
+				return get(this.observer)
 			} else {
 				throw err
 			}
