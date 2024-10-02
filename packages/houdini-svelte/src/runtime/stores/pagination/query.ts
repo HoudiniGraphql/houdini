@@ -86,7 +86,7 @@ export class QueryStoreCursor<
 
 	async loadPreviousPage(
 		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
-	): Promise<ReturnType<CursorHandlers<_Data, _Input>['loadPreviousPage']>> {
+	): Promise<QueryResult<_Data, _Input>> {
 		const handlers = await this.#handlers()
 		try {
 			return await handlers.loadPreviousPage(args)
@@ -103,7 +103,7 @@ export class QueryStoreCursor<
 
 	async loadNextPage(
 		args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]
-	): Promise<ReturnType<CursorHandlers<_Data, _Input>['loadNextPage']>> {
+	): Promise<QueryResult<_Data, _Input>> {
 		const handlers = await this.#handlers()
 		try {
 			return await handlers.loadNextPage(args)
