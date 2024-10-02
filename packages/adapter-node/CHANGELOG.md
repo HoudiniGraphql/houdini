@@ -1,5 +1,12 @@
 # houdini-adapter-node
 
+## 1.2.64
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@1.2.64
+
 ## 1.2.63
 
 ### Patch Changes

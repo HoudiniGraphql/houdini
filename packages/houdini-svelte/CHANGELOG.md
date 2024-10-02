@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 1.2.64
+
+### Patch Changes
+
+-   [#1364](https://github.com/HoudiniGraphql/houdini/pull/1364) [`4d5552a0`](https://github.com/HoudiniGraphql/houdini/commit/4d5552a0f4858e56977ed0e55fff045318231fef) Thanks @SeppahBaws! - Properly fix return types for pagination handlers
+
+-   Updated dependencies []:
+    -   houdini@1.2.64
+
 ## 1.2.63
 
 ### Patch Changes
