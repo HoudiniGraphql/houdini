@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@kitql/helpers": "^0.8.2",
-    "@playwright/test": "1.44.0",
+    "@playwright/test": "1.48.0",
     "@sveltejs/adapter-auto": "^3.2.1",
     "@sveltejs/kit": "^2.5.10",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
