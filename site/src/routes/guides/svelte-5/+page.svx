@@ -13,7 +13,8 @@ Updating your code to make use of runes is straight-forward.
 Houdini still makes use of Svelte Stores, so your code will continue to work as normal.
 Just start using Runes and Houdini will adapt to your needs!
 
-If you are forcing Runes mode enabled in your svelte config, you need to tell Houdini to also generate Runes by default:
+If you are only using runes or you have enabled runes globally in your svelte config, you can tell Houdini to enable runes mode globally as well.
+Enabling this has the potential to speed up preprocessing, since Houdini can skip a check in every svelte file it needs to process.
 ```js:title=houdini.config.js
 const config = {
     // ... other options
