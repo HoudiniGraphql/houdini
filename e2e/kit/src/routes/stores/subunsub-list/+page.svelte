@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import { GQL_UsersListSubUnSub } from '$houdini';
+  import { onMount } from 'svelte';
 
-  $: browser && GQL_UsersListSubUnSub.fetch();
+  onMount(() => {
+    GQL_UsersListSubUnSub.fetch();
+  });
 </script>
 
 <h1>Sub Unsub - List</h1>

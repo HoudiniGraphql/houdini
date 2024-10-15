@@ -12,7 +12,8 @@ test.describe('NETWORK Page', () => {
     const ssrResp = await goto(page, routes.Stores_Network);
 
     const ele = await ssrResp?.text();
-    expect(ele).toContain('<ul></ul>');
+    // Svelte 5 inserts these [] comments to indicate hydration fragments. 👉 https://github.com/sveltejs/svelte/issues/10609
+    expect(ele).toContain('<ul><!--[--><!--]--></ul>');
   });
 
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {

@@ -8,7 +8,6 @@
     };
   };
 
-  // svelte-ignore unused-export-let
   export let id = '';
 
   $: result = graphql(`

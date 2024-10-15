@@ -24,21 +24,21 @@
     },
     "devDependencies": {
         "@types/minimatch": "^5.1.2",
-        "prettier-plugin-svelte": "^2.9.0",
+        "prettier-plugin-svelte": "^3.2.2",
         "scripts": "workspace:^",
         "vitest": "^1.6.0"
     },
     "dependencies": {
         "@kitql/helpers": "^0.8.2",
-        "@sveltejs/kit": "^1.9.3",
+        "@sveltejs/kit": "^2.5.3",
         "ast-types": "^0.16.1",
         "estree-walker": "^3.0.1",
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
         "recast": "^0.23.1",
         "rollup": "^3.7.4",
-        "svelte": "^3.57.0",
-        "vite": "^4.1.1"
+        "svelte": "5.0.0-next.260",
+        "vite": "^5.3.3"
     },
     "files": [
         "build"

@@ -21,7 +21,7 @@
 	},
 	"devDependencies": {
 		"@kitql/helpers": "^0.8.2",
-		"@playwright/test": "1.30.0",
+		"@playwright/test": "1.48.0",
 		"@sveltejs/vite-plugin-svelte": "^2.0.2",
 		"@tsconfig/svelte": "^3.0.0",
 		"concurrently": "7.1.0",

@@ -111,5 +111,11 @@ export const routes = {
   Stores_subunsub_mutation: '/stores/subunsub-mutation',
 
   Stores_Layouts: '/layouts',
-  Stores_Layouts_page2: '/layouts/page2'
+  Stores_Layouts_page2: '/layouts/page2',
+
+  Svelte5_Runes_Simple_SSR: '/svelte5-runes/simple-ssr',
+  Svelte5_Runes_Pagination: '/svelte5-runes/pagination',
+  Svelte5_Runes_Fragment: '/svelte5-runes/fragment',
+  Svelte5_Runes_Component: '/svelte5-runes/component',
+  Svelte5_Runes_Mutation: '/svelte5-runes/mutation'
 };
