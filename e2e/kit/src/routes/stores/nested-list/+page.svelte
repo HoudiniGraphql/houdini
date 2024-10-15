@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import {
     GQL_Cities,
     GQL_AddCity,
@@ -11,8 +10,11 @@
     type ForceReturn$options,
     GQL_RemoveBook
   } from '$houdini';
+  import { onMount } from 'svelte';
 
-  $: browser && GQL_Cities.fetch();
+  onMount(() => {
+    GQL_Cities.fetch();
+  });
 
   const addCity = (event: Event) => {
     const target = event?.target as HTMLInputElement;

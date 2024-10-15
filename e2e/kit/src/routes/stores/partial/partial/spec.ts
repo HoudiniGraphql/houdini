@@ -35,7 +35,7 @@ test.describe('Partial Pages', () => {
     // Click on the link and check directly the 3 divs
     expect_to_be(page, 'Partial:2', 'div[id="id"]');
     expect_to_be(page, 'Samuel Jackson', 'div[id="name"]');
-    expect_to_be(page, 'undefined', 'div[id="birthDate"]');
+    expect_to_be(page, '', 'div[id="birthDate"]');
 
     // Wait a bit so that the server respond and birthDate is displayed
     await sleep(2345);

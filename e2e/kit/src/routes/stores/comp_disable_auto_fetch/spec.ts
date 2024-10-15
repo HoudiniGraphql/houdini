@@ -7,7 +7,7 @@ test('Arriving on the page without data and without an auto fetch (SSR)', async 
   await goto(page, routes.Stores_Comp_disable_auto_fetch);
 
   const pContentIndex = await page.locator('p').allTextContents();
-  expect(pContentIndex).toEqual(['QueryExtNoAutoFetch - Number of users: undefined']);
+  expect(pContentIndex).toEqual(['QueryExtNoAutoFetch - Number of users: ']);
 });
 
 test('Arriving on the page without data and without an auto fetch (CSR)', async ({ page }) => {
@@ -16,5 +16,5 @@ test('Arriving on the page without data and without an auto fetch (CSR)', async 
   await clientSideNavigation(page, routes.Stores_Comp_disable_auto_fetch);
 
   const pContentIndex = await page.locator('p').allTextContents();
-  expect(pContentIndex).toEqual(['QueryExtNoAutoFetch - Number of users: undefined']);
+  expect(pContentIndex).toEqual(['QueryExtNoAutoFetch - Number of users: ']);
 });

@@ -5,7 +5,7 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = async (event) => {
   if (!event.params.userId) {
-    throw redirect(307, routes.Home);
+    redirect(307, routes.Home);
   }
 
   // instantiate a store using the class so we can see it work somewhere

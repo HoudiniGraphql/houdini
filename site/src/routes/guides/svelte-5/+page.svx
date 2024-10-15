@@ -1,0 +1,130 @@
+---
+title: Svelte 5
+description: Using Houdini with Svelte 5 runes
+---
+
+# Setting up
+
+Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode. All you need to do is bump the Houdini version in your `package.json`.
+
+# Using runes
+
+Updating your code to make use of runes is straight-forward.
+Houdini still makes use of Svelte Stores, so your code will continue to work as normal.
+Just start using Runes and Houdini will adapt to your needs!
+
+If you are only using runes or you have enabled runes globally in your svelte config, you can tell Houdini to enable runes mode globally as well.
+Enabling this has the potential to speed up preprocessing, since Houdini can skip a check in every svelte file it needs to process.
+```js:title=houdini.config.js
+const config = {
+    // ... other options
+    plugins: {
+        'houdini-svelte': {
+            // Add this line if necessary:
+            forceRunesMode: true
+        }
+    }
+}
+```
+
+## Route queries
+
+If your query is SSR'ed, you need to get the store from the PageData like so:
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import type { PageData } from './$houdini'
+
+    interface Props {
+        data: PageData;
+    }
+    const { data }: Props = $props();
+    const { MyProfile } = $derived(data);
+</script>
+
+<p>Welcome, {$MyProfile.data?.user.name}!</p>
+```
+
+## Component queries
+
+The only thing that changes with component queries is how your props are coming in to your component:
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import { graphql } from '$houdini';
+    import type { UserDetailsVariables } from './$houdini';
+
+    interface Props {
+        id: string;
+    }
+    const { id }: Props = $props();
+
+    export const _UserDetailsVariables: UserDetailsVariables = ({ props }) => {
+        return {
+            id: props.id
+        }
+    }
+
+    const store = graphql(`
+        query UserDetails($id: ID!) {
+            user(id: $id) {
+                name
+            }
+        }
+    `);
+</script>
+
+<p>{$store.data?.user.name}</p>
+```
+
+## Fragments
+
+Similar to component queries, the only thing that changes with fragments is how you get the fragment from your props:
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import { fragment, graphql, type UserCardFragment } from '$houdini';
+
+    interface Props {
+        user: UserCardFragment
+    }
+    const { user }: Props = $props();
+
+    const data = fragment(
+        user,
+        graphql(`
+            fragment UserCardFragment on User {
+                name
+                age
+            }
+        `)
+    );
+</script>
+
+<p>{$data.name} is {$data.age} years old!</p>
+```
+
+## Mutations
+
+Mutations are unchanged, simply use them as before:
+
+```svelte:typescriptToggle=true
+<script lang="ts">
+    import { graphql } from '$houdini';
+
+    const uncheckItem = graphql(`
+        mutation UncheckItem($id: ID!) {
+            uncheckItem(item: $id) {
+                item {
+                    id
+                    completed
+                }
+            }
+        }
+    `);
+</script>
+
+<button onclick={() => uncheckItem.mutate({ id: 'my-item' })}>
+    Uncheck Item
+</button>
+```

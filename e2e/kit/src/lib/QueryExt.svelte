@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import { GQL_usersListComp } from '$houdini';
+  import { onMount } from 'svelte';
 
-  $: browser && GQL_usersListComp.fetch();
+  onMount(() => {
+    GQL_usersListComp.fetch();
+  });
 </script>
 
 <p id="QueryExt-result">

@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import { CachePolicy, GQL_StoreForwardCursorPaginationQuery } from '$houdini';
+  import { onMount } from 'svelte';
 
-  $: browser && GQL_StoreForwardCursorPaginationQuery.fetch();
+  onMount(() => {
+    GQL_StoreForwardCursorPaginationQuery.fetch();
+  });
 
   function loadNextPage() {
     GQL_StoreForwardCursorPaginationQuery.loadNextPage();

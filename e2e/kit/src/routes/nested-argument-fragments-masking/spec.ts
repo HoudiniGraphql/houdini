@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expect_1_gql, expect_to_be, goto } from '../../lib/utils/testsHelper.js';
+import { goto } from '../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helpers';
 
 test('Nested fragment argument masking', async ({ page }) => {
