@@ -18,5 +18,8 @@
     "houdini-plugin-svelte-global-stores": "1.2.64",
     "site": "0.0.1"
   },
-  "changesets": []
+  "changesets": [
+    "gorgeous-lions-nail",
+    "new-comics-happen"
+  ]
 }

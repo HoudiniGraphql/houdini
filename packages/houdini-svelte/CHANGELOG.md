@@ -1,5 +1,18 @@
 # houdini-svelte
 
+## 2.0.0-next.0
+
+### Major Changes
+
+-   [#1371](https://github.com/HoudiniGraphql/houdini/pull/1371) [`c39d14d0`](https://github.com/HoudiniGraphql/houdini/commit/c39d14d0ac721248789bef1a46af9a460740cf26) Thanks [@github-actions](https://github.com/apps/github-actions)! - Add support for Svelte 5 and Svelte Runes
+
+### Patch Changes
+
+-   [`9fe06516`](https://github.com/HoudiniGraphql/houdini/commit/9fe06516becca5803b70c4455ee4a68a1ff1ad42) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Svelte version to 5.0
+
+-   Updated dependencies [[`9fe06516`](https://github.com/HoudiniGraphql/houdini/commit/9fe06516becca5803b70c4455ee4a68a1ff1ad42), [`c39d14d0`](https://github.com/HoudiniGraphql/houdini/commit/c39d14d0ac721248789bef1a46af9a460740cf26)]:
+    -   houdini@1.3.0-next.0
+
 ## 1.2.64
 
 ### Patch Changes
