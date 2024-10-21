@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-node",
-    "version": "1.2.65-next.0",
+    "version": "1.2.65",
     "description": "The adapter for deploying your Houdini application as a standalone node server",
     "keywords": [
         "houdini",
