@@ -4,11 +4,11 @@
 
 ### Major Changes
 
--   [#1373](https://github.com/HoudiniGraphql/houdini/pull/1373) [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add support for Svelte 5 and Svelte Runes
+-   [#1373](https://github.com/HoudiniGraphql/houdini/pull/1373) [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22) Thanks @SeppahBaws! - Add support for Svelte 5 and Svelte Runes
 
 ### Patch Changes
 
--   [#1373](https://github.com/HoudiniGraphql/houdini/pull/1373) [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Svelte version to 5.0
+-   [#1373](https://github.com/HoudiniGraphql/houdini/pull/1373) [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22) Thanks @SeppahBaws! - Bump Svelte version to 5.0
 
 -   Updated dependencies [[`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22), [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22)]:
     -   houdini@1.3.0
