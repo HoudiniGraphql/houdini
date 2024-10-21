@@ -1,5 +1,15 @@
 # houdini
 
+## 1.3.0
+
+### Minor Changes
+
+-   [`c39d14d0`](https://github.com/HoudiniGraphql/houdini/commit/c39d14d0ac721248789bef1a46af9a460740cf26) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add support for Svelte 5 and Svelte Runes
+
+### Patch Changes
+
+-   [`9fe06516`](https://github.com/HoudiniGraphql/houdini/commit/9fe06516becca5803b70c4455ee4a68a1ff1ad42) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Svelte version to 5.0
+
 ## 1.3.0-next.0
 
 ### Minor Changes
