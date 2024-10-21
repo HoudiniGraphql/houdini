@@ -11,7 +11,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("instance");')
 	})
@@ -21,7 +21,7 @@ describe('parser tests', () => {
 				console.log('module')
 			</script>`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("module");')
 	})
@@ -33,7 +33,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -45,7 +45,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`
 			type Foo = {
@@ -61,7 +61,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('export let x: T;')
 	})
@@ -92,7 +92,7 @@ describe('parser tests', () => {
 				</script>
 			`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`
 			import * as FormPrimitive from "formsnap";
@@ -115,7 +115,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -130,7 +130,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("script");')
 	})
@@ -144,7 +144,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -162,7 +162,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -178,7 +178,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
@@ -197,7 +197,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
@@ -219,7 +219,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -234,7 +234,7 @@ describe('parser tests', () => {
 			</div>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -262,7 +262,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`undefined`)
 	})
@@ -290,7 +290,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot('console.log("hello");')
 	})
@@ -320,7 +320,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`const example = object({});`)
 	})
@@ -334,8 +334,148 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = await parseSvelte(doc)
+		const result = await parseSvelte(doc, false)
 
 		expect(result?.script).toMatchInlineSnapshot(`const example = object({});`)
+	})
+})
+
+describe('parser svelte 5 runes detection', () => {
+	test("shouldn't detect runes where applicable", async () => {
+		const testCases = [
+			{
+				title: "shouldn't detect runes when there are none",
+				document: `<script>
+                let count = 0;
+            </script>
+            
+            <button on:click={() => count++}>
+                clicks: {count}
+            </button>`,
+			},
+			{
+				title: "shouldn't detect runes that are commented out",
+				document: `<script>
+                // we should replace this with const count = $state(0);
+                let count = 0;
+            </script>`,
+			},
+		]
+
+		await Promise.all(
+			testCases.map(async (testCase) => {
+				const result = await parseSvelte(testCase.document, false)
+
+				expect(result?.useRunes, testCase.title).toBe(false)
+			})
+		)
+	})
+
+	test('should detect usage of runes where applicable', async () => {
+		const testCases = [
+			{
+				runeName: '$state',
+				document: `<script>
+                let count = $state(0);
+            </script>`,
+			},
+			{
+				runeName: '$state.raw',
+				document: `<script>
+                let count = $state.raw(0);
+            </script>`,
+			},
+			{
+				runeName: '$state.snapshot',
+				document: `<script>
+                const isHoudiniAwesome = true;
+                console.log($state.snapshot(isHoudiniAwesome));
+            </script>`,
+			},
+			{
+				runeName: '$props',
+				document: `<script>
+                const { prop1, prop2 } = $props();
+            </script>`,
+			},
+			{
+				runeName: '$bindable',
+				document: `<script>
+                let { bindableProp = $bindable() } = $props();
+            </script>`,
+			},
+			{
+				runeName: '$derived',
+				document: `<script>
+                let doubled = $derived(1 + 2);
+            </script>`,
+			},
+			{
+				runeName: '$derived.by',
+				document: `<script>
+                let derived = $derived.by(() => 1 + 2);
+            </script>`,
+			},
+			{
+				runeName: '$effect',
+				document: `<script>
+                $effect(() => console.log("hello world"));
+            </script>`,
+			},
+			{
+				runeName: '$effect.pre',
+				document: `<script>
+                $effect.pre(() => console.log("hello world"));
+            </script>`,
+			},
+			{
+				runeName: '$effect.tracking',
+				document: `<script>
+                const isActive = $effect.tracking();
+            </script>`,
+			},
+			{
+				runeName: '$effect.root',
+				document: `<script>
+                const cleanup = $effect.root(() => {
+                    $effect(() => console.log("effect"));
+
+                    return () => console.log("cleanup");
+                });
+            </script>`,
+			},
+			{
+				runeName: '$inspect',
+				document: `<script>
+                let count = 0;
+                $inspect(count);
+            </script>`,
+			},
+			{
+				runeName: '$inspect.with',
+				document: `<script>
+                let count = 0;
+                $inspect(count).with((type) => console.log(count));
+            </script>`,
+			},
+			{
+				runeName: '$host',
+				document: `<script>
+                    function greet(greeting) {
+                        $host().dispatchEvent(
+                            new CustomEvent('greeting', { detail: greeting })
+                        );
+                    }
+                </script>`,
+			},
+		]
+
+		await Promise.all(
+			testCases.map(async (testCase) => {
+				const result = await parseSvelte(testCase.document, false)
+
+				expect(result?.useRunes, `detects usage with ${testCase.runeName} rune`).toBe(true)
+			})
+		)
 	})
 })

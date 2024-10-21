@@ -272,6 +272,13 @@ export type HoudiniSvelteConfig = {
 	framework: 'kit' | 'svelte' | undefined
 
 	/**
+	 * Force Houdini to always use Runes under the hood. Set this to true if you are enabling Runes mode globally for your app.
+	 * When disabled, Houdini will try to detect Runes and go into Runes mode if required.
+	 * @default false
+	 */
+	forceRunesMode?: boolean
+
+	/**
 	 * Override the classes used when building stores for documents. Values should take the form package.export
 	 * For example, if you have a store exported from $lib/stores you should set the value to "$lib/stores.CustomStore".
 	 */

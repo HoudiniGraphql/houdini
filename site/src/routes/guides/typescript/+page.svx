@@ -48,7 +48,7 @@ declare namespace App {
 
 When working with Houdini's [generated load functions](/api/query#automatic-loading) (whether in a route or component), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
 
-```typescript:title=src/routes/myProifle/+page.ts
+```typescript:title=src/routes/myProfile/+page.ts
 import { graphql } from '$houdini'
 import type { AfterLoadEvent } from './$houdini'
 
@@ -70,7 +70,7 @@ export function _houdini_afterLoad({ data }: AfterLoadEvent) {
 Your `PageData` type will also come from `./$houdini` since SvelteKit's generated type definitions don't know about the generated load:
 
 ```svelte:title=src/routes/myProfile/+page.svelte -->
-<script>
+<script lang="ts">
 	import { PageData } from './$houdini'
 
 	export let data: PageData

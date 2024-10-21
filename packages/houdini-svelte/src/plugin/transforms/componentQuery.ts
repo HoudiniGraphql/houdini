@@ -1,5 +1,10 @@
 import { yellow } from '@kitql/helpers'
-import type { ExpressionKind } from 'ast-types/lib/gen/kinds'
+import type {
+	ExpressionKind,
+	IdentifierKind,
+	StatementKind,
+	VariableDeclaratorKind,
+} from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import type { Config, Script } from 'houdini'
 import { find_graphql, formatErrors } from 'houdini'
@@ -34,22 +39,55 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 		return
 	}
 
-	// find all of the props of the component by looking for export statements
-	const props = (
-		page.script.body.filter(
-			(statement) =>
-				statement.type === 'ExportNamedDeclaration' &&
-				statement.declaration?.type === 'VariableDeclaration'
-		) as ExportNamedDeclaration[]
-	).flatMap(({ declaration }) =>
-		(declaration as VariableDeclaration)!.declarations.map((dec) => {
-			if (dec.type === 'VariableDeclarator') {
-				return dec.id.type === 'Identifier' ? dec.id.name : ''
+	// Find all props of the component
+	let props: (string | IdentifierKind)[] = []
+
+	if (page.svelte5Runes) {
+		// In runes, we need to find props defined by the `$props` rune.
+
+		for (let i = 0; i < page.script.body.length; i++) {
+			let statement = page.script.body[i]
+
+			if (statement.type !== 'VariableDeclaration') {
+				continue
 			}
 
-			return dec.name
-		})
-	)
+			const propsStatement = statement.declarations.find(
+				(x) =>
+					x.type === 'VariableDeclarator' &&
+					x.init &&
+					x.init.type === 'CallExpression' &&
+					x.init.callee.type === 'Identifier' &&
+					x.init.callee.name === '$props' &&
+					x.id.type === 'ObjectPattern'
+			) as VariableDeclaratorKind | undefined
+
+			if (propsStatement && propsStatement.id.type === 'ObjectPattern') {
+				propsStatement.id.properties.forEach((property) => {
+					if (property.type === 'ObjectProperty' && property.key.type === 'Identifier') {
+						props.push(property.key.name)
+					}
+				})
+			}
+		}
+	} else {
+		// In legacy mode, we need to find props by looking for export statements
+		props = (
+			page.script.body.filter(
+				(statement) =>
+					statement.type === 'ExportNamedDeclaration' &&
+					statement.declaration?.type === 'VariableDeclaration'
+			) as ExportNamedDeclaration[]
+		).flatMap(({ declaration }) =>
+			(declaration as VariableDeclaration)!.declarations.map((dec) => {
+				if (dec.type === 'VariableDeclarator') {
+					return dec.id.type === 'Identifier' ? dec.id.name : ''
+				}
+
+				return dec.name
+			})
+		)
+	}
 
 	ensure_imports({
 		config: page.config,
@@ -120,91 +158,110 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 				})
 			}
 
-			return [
-				// define the inputs for the query
-				AST.labeledStatement(
-					AST.identifier('$'),
-
-					AST.expressionStatement(
-						AST.logicalExpression(
-							'&&',
-							AST.identifier('isBrowser'),
-							AST.callExpression(
-								AST.memberExpression(
-									store_id(query.name!.value),
-									AST.identifier('fetch')
-								),
-								[
-									AST.objectExpression([
-										AST.objectProperty(
-											AST.identifier('variables'),
-											//
-											AST.callExpression(AST.identifier('marshalInputs'), [
-												AST.objectExpression([
-													AST.objectProperty(
-														AST.identifier('config'),
-														AST.callExpression(
-															AST.identifier('getCurrentConfig'),
+			const queryLoadExpression = AST.callExpression(
+				AST.memberExpression(store_id(query.name!.value), AST.identifier('fetch')),
+				[
+					AST.objectExpression([
+						AST.objectProperty(
+							AST.identifier('variables'),
+							//
+							AST.callExpression(AST.identifier('marshalInputs'), [
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.identifier('config'),
+										AST.callExpression(AST.identifier('getCurrentConfig'), [])
+									),
+									AST.objectProperty(
+										AST.identifier('artifact'),
+										AST.memberExpression(
+											store_id(query.name!.value),
+											AST.identifier('artifact')
+										)
+									),
+									AST.objectProperty(
+										AST.identifier('input'),
+										has_variables
+											? AST.callExpression(
+													AST.memberExpression(
+														AST.identifier(variable_fn),
+														AST.identifier('call')
+													),
+													[
+														AST.newExpression(
+															AST.identifier('RequestContext'),
 															[]
-														)
-													),
-													AST.objectProperty(
-														AST.identifier('artifact'),
-														AST.memberExpression(
-															store_id(query.name!.value),
-															AST.identifier('artifact')
-														)
-													),
-													AST.objectProperty(
-														AST.identifier('input'),
-														has_variables
-															? AST.callExpression(
-																	AST.memberExpression(
-																		AST.identifier(variable_fn),
-																		AST.identifier('call')
-																	),
-																	[
-																		AST.newExpression(
+														),
+														AST.objectExpression([
+															AST.objectProperty(
+																AST.identifier('props'),
+																// pass every prop explicitly
+																AST.objectExpression(
+																	props.map((prop) =>
+																		AST.objectProperty(
 																			AST.identifier(
-																				'RequestContext'
+																				prop as string
 																			),
-																			[]
-																		),
-																		AST.objectExpression([
-																			AST.objectProperty(
-																				AST.identifier(
-																					'props'
-																				),
-																				// pass every prop explicitly
-																				AST.objectExpression(
-																					props.map(
-																						(prop) =>
-																							AST.objectProperty(
-																								AST.identifier(
-																									prop as string
-																								),
-																								AST.identifier(
-																									prop as string
-																								)
-																							)
-																					)
-																				)
-																			),
-																		]),
-																	]
-															  )
-															: AST.objectExpression([])
-													),
-												]),
-											])
-										),
-									]),
-								]
+																			AST.identifier(
+																				prop as string
+																			)
+																		)
+																	)
+																)
+															),
+														]),
+													]
+											  )
+											: AST.objectExpression([])
+									),
+								]),
+							])
+						),
+					]),
+				]
+			)
+
+			let finalExpression: StatementKind[] = []
+
+			/**
+			 * In Runes mode, we need to generate:
+			 * (the effect rune only runs in the browser, so we don't need to do an extra check)
+			 * $effect(() => {
+			 *   _houdini_<queryName>.fetch({...})
+			 * })
+			 *
+			 * In legacy mode, we need to generate:
+			 * $: isBrowser && _houdini_<queryName>.fetch({...})
+			 */
+
+			if (page.svelte5Runes) {
+				finalExpression = [
+					AST.expressionStatement(
+						AST.callExpression(AST.identifier('$effect'), [
+							AST.arrowFunctionExpression(
+								[],
+								AST.blockStatement([AST.expressionStatement(queryLoadExpression)])
+							),
+						])
+					),
+				]
+			} else {
+				finalExpression = [
+					// define the inputs for the query
+					AST.labeledStatement(
+						AST.identifier('$'),
+
+						AST.expressionStatement(
+							AST.logicalExpression(
+								'&&',
+								AST.identifier('isBrowser'),
+								queryLoadExpression
 							)
 						)
-					)
-				),
-			]
+					),
+				]
+			}
+
+			return finalExpression
 		})
 	)
 }

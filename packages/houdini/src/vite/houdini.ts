@@ -171,7 +171,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					continue
 				}
 
-				// @ts-expect-error
+				// @ts-ignore This builds fine but typescript thinks there's an error...
 				await plugin.vite!.buildStart.call(this, {
 					...args,
 					houdiniConfig: config,

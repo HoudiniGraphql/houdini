@@ -8,16 +8,16 @@ test('happy path updates', async ({ page }) => {
 
   // click on one of the button to ensure we're not listening
   await page.click('#mutate-foo');
-  await expect_to_be(page, 'undefined,undefined');
+  await expect_to_be(page, ',');
 
   // test only one active
   await page.click('#listen-1');
   await page.click('#mutate-foo');
   await sleep(100);
-  await expect_to_be(page, '"foo",undefined');
+  await expect_to_be(page, '"foo",');
   await page.click('#mutate-bar');
   await sleep(100);
-  await expect_to_be(page, '"bar",undefined');
+  await expect_to_be(page, '"bar",');
 
   // test both active
   await page.click('#listen-2');
