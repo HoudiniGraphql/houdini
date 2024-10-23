@@ -588,13 +588,13 @@ async function packageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkIn
 	// houdini should be a dev dependencies
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
-		houdini: '^PACKAGE_VERSION',
+		houdini: '^HOUDINI_PACKAGE_VERSION',
 	}
 
 	if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'kit') {
 		packageJSON.devDependencies = {
 			...packageJSON.devDependencies,
-			'houdini-svelte': '^PACKAGE_VERSION',
+			'houdini-svelte': '^HOUDINI_SVELTE_PACKAGE_VERSION',
 		}
 	} else {
 		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)

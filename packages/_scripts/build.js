@@ -24,6 +24,17 @@ export default async function ({ plugin }) {
 	delete package_json['bin']
 	delete package_json['types']
 
+	// We also need to pull in the versions of our other packages.
+	const packages = {}
+	for (const dirname of await fs.readdir(path.dirname(process.cwd()))) {
+		packages[dirname] = JSON.parse(
+			await fs.readFile(
+				path.join(path.dirname(process.cwd()), dirname, 'package.json'),
+				'utf-8'
+			)
+		)
+	}
+
 	// look at every directory in the source
 	for (const dirname of await fs.readdir(src_dir)) {
 		const dir = path.join(src_dir, dirname)
@@ -34,7 +45,7 @@ export default async function ({ plugin }) {
 
 		// plugins get bundled
 		if (dirname === 'plugin') {
-			await build({ package_json, source: dir, plugin })
+			await build({ packages, source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = './build/plugin-cjs/index.js'
 			package_json.exports['.'] = {
@@ -47,7 +58,7 @@ export default async function ({ plugin }) {
 
 		// lib defines the main entry point
 		else if (dirname === 'lib') {
-			await build({ package_json, source: dir, plugin })
+			await build({ packages, source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = `./build/${dirname}-cjs/index.js`
 			package_json.exports[`.`] = {
@@ -59,18 +70,18 @@ export default async function ({ plugin }) {
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
-			await build({ package_json, source: dir, bundle: false, plugin })
+			await build({ packages, source: dir, bundle: false, plugin })
 		}
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			package_json.bin = './build/cmd-esm/index.js'
-			await build({ package_json, source: dir, plugin, bundle: true, cmd: true })
+			await build({ packages, source: dir, plugin, bundle: true, cmd: true })
 		}
 
 		// its not a special directory, treat it as a sub module
 		else {
 			await build({
-				package_json,
+				packages,
 				source: dir,
 				plugin,
 				bundle: dirname !== 'server' && dirname !== 'streaming',
@@ -92,7 +103,7 @@ export default async function ({ plugin }) {
 }
 
 // create esm and cjs builds of the source
-async function build({ package_json, source, bundle = true, plugin, cmd }) {
+async function build({ packages, source, bundle = true, plugin, cmd }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
@@ -132,7 +143,8 @@ async function build({ package_json, source, bundle = true, plugin, cmd }) {
 				},
 				plugins: [
 					replace({
-						PACKAGE_VERSION: package_json.version,
+						HOUDINI_PACKAGE_VERSION: packages.houdini.version,
+						HOUDINI_SVELTE_PACKAGE_VERSION: packages['houdini-svelte'].version,
 					}),
 				],
 			}
