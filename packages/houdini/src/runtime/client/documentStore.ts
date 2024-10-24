@@ -53,7 +53,7 @@ export class DocumentStore<
 	serverSideFallback?: boolean
 
 	controllerKey(variables: any) {
-		return this.artifact.name
+		return `${this.artifact.name}@${stableStringify(variables)}`
 	}
 
 	constructor({
@@ -149,30 +149,22 @@ export class DocumentStore<
 			this.artifact.dedupe &&
 			this.artifact.dedupe.match !== 'None'
 		) {
+			// if we are matching on variables then we should use that for the controller key, otherwise
+			// just use an empty object
+			const controllerKey = this.controllerKey(
+				this.artifact.dedupe.match === DedupeMatchMode.Variables ? variables : {}
+			)
 			// if there is already a pending request
-			if (inflightRequests[this.controllerKey(variables)]) {
-				// confirm that the match is valid before we abort
-				if (
-					this.artifact.dedupe.match === DedupeMatchMode.Variables &&
-					!deepEquals(
-						inflightRequests[this.controllerKey(variables)].variables,
-						variables
-					)
-				) {
-					// the variables don't match don't do anything
-				} else {
-					// we have to abort _something_
-
-					if (this.artifact.dedupe.cancel === 'first') {
-						// cancel the existing one
-						inflightRequests[this.controllerKey(variables)].controller.abort()
-						// and register the new one
-						inflightRequests[this.controllerKey(variables)].controller = abortController
-					}
-					// otherwise we have to abort this one
-					else {
-						abortController.abort()
-					}
+			if (inflightRequests[controllerKey]) {
+				if (this.artifact.dedupe.cancel === 'first') {
+					// cancel the existing one
+					inflightRequests[this.controllerKey(variables)].controller.abort()
+					// and register the new one
+					inflightRequests[this.controllerKey(variables)].controller = abortController
+				}
+				// otherwise we have to abort this one
+				else {
+					abortController.abort()
 				}
 			}
 			// register this abort controller as being in flight
@@ -765,4 +757,35 @@ export type SendParams = {
 	setup?: boolean
 	silenceEcho?: boolean
 	abortController?: AbortController
+}
+
+// stableStringify is a deterministic version of JSON.stringify
+type JsonValue = string | number | boolean | null | JsonArray | JsonObject
+type JsonArray = JsonValue[]
+type JsonObject = { [key: string]: JsonValue }
+
+// stable stringify is a deterministic version of JSON.stringify that sorts object keys
+function stableStringify(obj: JsonValue): string {
+	return JSON.stringify(sortObject(obj))
+}
+
+// sortObject sorts the keys of an object recursively
+function sortObject(obj: JsonValue): JsonValue {
+	// Handle non-object cases
+	if (obj === null || typeof obj !== 'object') {
+		return obj
+	}
+
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		return obj.map(sortObject)
+	}
+
+	// Handle objects
+	return Object.keys(obj)
+		.sort()
+		.reduce<JsonObject>((result, key) => {
+			result[key] = sortObject(obj[key])
+			return result
+		}, {})
 }
