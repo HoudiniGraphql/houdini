@@ -4,6 +4,7 @@ import * as recast from 'recast'
 import type {
 	CachePolicies,
 	Config,
+	DedupeMatchModes,
 	Document,
 	DocumentArtifact,
 	MutationArtifact,
@@ -12,6 +13,7 @@ import type {
 } from '../../../lib'
 import {
 	ArtifactKind,
+	DedupeMatchMode,
 	HoudiniError,
 	cleanupFiles,
 	fs,
@@ -233,12 +235,22 @@ export default function artifactGenerator(stats: {
 								(arg) => arg.name.value === 'cancelFirst'
 							)
 
-							dedupe =
-								cancelFirstArg &&
-								cancelFirstArg.value.kind === 'BooleanValue' &&
-								cancelFirstArg.value
-									? 'first'
-									: 'last'
+							const matchArg = dedupeDirective.arguments?.find(
+								(arg) => arg.name.value === 'match'
+							)
+
+							dedupe = {
+								cancel:
+									cancelFirstArg &&
+									cancelFirstArg.value.kind === 'BooleanValue' &&
+									cancelFirstArg.value
+										? 'first'
+										: 'last',
+								match:
+									matchArg && matchArg.value.kind === 'StringValue'
+										? (matchArg.value.value as DedupeMatchModes)
+										: DedupeMatchMode.Operation,
+							}
 						}
 
 						// use this selection set

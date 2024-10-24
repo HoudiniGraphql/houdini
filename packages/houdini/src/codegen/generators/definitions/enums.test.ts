@@ -24,6 +24,14 @@ test('generates runtime definitions for each enum', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		type ValuesOf<T> = T[keyof T]
 			
+		export declare const DedupeMatchMode: {
+		    readonly Variables: "Variables";
+		    readonly Operation: "Operation";
+		    readonly None: "None";
+		}
+
+		export type DedupeMatchMode$options = ValuesOf<typeof DedupeMatchMode>
+		 
 		/** Documentation of testenum1 */
 		export declare const TestEnum1: {
 		    /** Documentation of Value1 */
@@ -71,6 +79,12 @@ test('generates runtime definitions for each enum', async function () {
 		export const TestEnum2 = {
 		    "Value3": "Value3",
 		    "Value2": "Value2"
+		};
+
+		export const DedupeMatchMode = {
+		    "Variables": "Variables",
+		    "Operation": "Operation",
+		    "None": "None"
 		};
 	`)
 })

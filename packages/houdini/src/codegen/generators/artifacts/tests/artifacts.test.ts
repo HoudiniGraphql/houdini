@@ -846,7 +846,11 @@ test('paginate over unions', async function () {
 		    },
 
 		    "pluginData": {},
-		    "dedupe": "last",
+
+		    "dedupe": {
+		        "cancel": "last",
+		        "match": "Operation"
+		    },
 
 		    "input": {
 		        "fields": {
@@ -4932,7 +4936,11 @@ describe('mutation artifacts', function () {
 			    },
 
 			    "pluginData": {},
-			    "dedupe": "last",
+
+			    "dedupe": {
+			        "cancel": "last",
+			        "match": "Operation"
+			    },
 
 			    "input": {
 			        "fields": {
@@ -5185,7 +5193,11 @@ describe('mutation artifacts', function () {
 			    },
 
 			    "pluginData": {},
-			    "dedupe": "last",
+
+			    "dedupe": {
+			        "cancel": "last",
+			        "match": "Operation"
+			    },
 
 			    "input": {
 			        "fields": {
@@ -7774,7 +7786,12 @@ test('persists dedupe which', async function () {
 		    },
 
 		    "pluginData": {},
-		    "dedupe": "last",
+
+		    "dedupe": {
+		        "cancel": "last",
+		        "match": "Operation"
+		    },
+
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -7846,7 +7863,12 @@ test('persists dedupe first', async function () {
 		    },
 
 		    "pluginData": {},
-		    "dedupe": "first",
+
+		    "dedupe": {
+		        "cancel": "first",
+		        "match": "Operation"
+		    },
+
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
