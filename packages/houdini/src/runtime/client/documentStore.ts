@@ -15,7 +15,7 @@ import type {
 	CachePolicies,
 	GraphQLVariables,
 } from '../lib/types'
-import { ArtifactKind } from '../lib/types'
+import { ArtifactKind, DedupeMatchMode } from '../lib/types'
 import { cachePolicy } from './plugins'
 
 // the list of states to step in what direction
@@ -24,7 +24,10 @@ const steps = {
 	backwards: ['end', 'afterNetwork'],
 } as const
 
-let inflightRequests: Record<string, AbortController> = {}
+let inflightRequests: Record<
+	string,
+	{ variables: Record<string, any> | null | undefined; controller: AbortController }
+> = {}
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
@@ -141,24 +144,43 @@ export class DocumentStore<
 	}: SendParams = {}) {
 		// if the document we are sending is meant to be deduped, then we need to look for an existing
 		// controller for the document
-		if ('dedupe' in this.artifact) {
+		if (
+			'dedupe' in this.artifact &&
+			this.artifact.dedupe &&
+			this.artifact.dedupe.match !== 'None'
+		) {
 			// if there is already a pending request
 			if (inflightRequests[this.controllerKey(variables)]) {
-				// we have to abort _something_
-				if (this.artifact.dedupe === 'first') {
-					// cancel the existing one
-					inflightRequests[this.controllerKey(variables)].abort()
-					// and register the new one
-					inflightRequests[this.controllerKey(variables)] = abortController
-				}
-				// otherwise we have to abort this one
-				else {
-					abortController.abort()
+				// confirm that the match is valid before we abort
+				if (
+					this.artifact.dedupe.match === DedupeMatchMode.Variables &&
+					!deepEquals(
+						inflightRequests[this.controllerKey(variables)].variables,
+						variables
+					)
+				) {
+					// the variables don't match don't do anything
+				} else {
+					// we have to abort _something_
+
+					if (this.artifact.dedupe.cancel === 'first') {
+						// cancel the existing one
+						inflightRequests[this.controllerKey(variables)].controller.abort()
+						// and register the new one
+						inflightRequests[this.controllerKey(variables)].controller = abortController
+					}
+					// otherwise we have to abort this one
+					else {
+						abortController.abort()
+					}
 				}
 			}
 			// register this abort controller as being in flight
 			else {
-				inflightRequests[this.controllerKey(variables)] = abortController
+				inflightRequests[this.controllerKey(variables)] = {
+					variables,
+					controller: abortController,
+				}
 			}
 		}
 
