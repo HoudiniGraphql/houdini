@@ -151,11 +151,12 @@ export class DocumentStore<
 		) {
 			// if we are matching on variables then we should use that for the controller key, otherwise
 			// just use an empty object
-			const controllerKey = this.controllerKey(
+			const dedupeKey = this.controllerKey(
 				this.artifact.dedupe.match === DedupeMatchMode.Variables ? variables : {}
 			)
+
 			// if there is already a pending request
-			if (inflightRequests[controllerKey]) {
+			if (inflightRequests[dedupeKey]) {
 				if (this.artifact.dedupe.cancel === 'first') {
 					// cancel the existing one
 					inflightRequests[this.controllerKey(variables)].controller.abort()
