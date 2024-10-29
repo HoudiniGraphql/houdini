@@ -59,7 +59,11 @@ export async function pullSchema(
 
 		// Check if the schemapath ends with .gql or .graphql - if so write the schema as string
 		// Otherwise write the json/introspection
-		if (schemaPath!.endsWith('gql') || schemaPath!.endsWith('graphql')) {
+		if (
+			schemaPath!.endsWith('gql') ||
+			schemaPath!.endsWith('graphql') ||
+			schemaPath.endsWith('graphqls')
+		) {
 			const schema = graphql.buildClientSchema(jsonSchema)
 			fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
 		} else {
