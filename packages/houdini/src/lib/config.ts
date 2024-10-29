@@ -1398,7 +1398,11 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	const contents = (await fs.readFile(schemaPath))!
 
 	// if the schema points to an sdl file
-	if (schemaPath.endsWith('gql') || schemaPath.endsWith('graphql')) {
+	if (
+		schemaPath.endsWith('gql') ||
+		schemaPath.endsWith('graphql') ||
+		schemaPath.endsWith('graphqls')
+	) {
 		return graphql.buildSchema(contents)
 	}
 
