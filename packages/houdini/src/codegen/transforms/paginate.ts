@@ -225,29 +225,31 @@ export default async function paginate(config: Config, documents: Document[]): P
 					return {
 						...node,
 						variableDefinitions: finalVariables,
-						directives: [
-							...(node.directives || []),
-							{
-								kind: graphql.Kind.DIRECTIVE,
-								name: {
-									kind: graphql.Kind.NAME,
-									value: config.dedupeDirective,
-								},
-								arguments: [
+						directives: config.configFile.supressPaginationDeduplication
+							? node.directives
+							: [
+									...(node.directives || []),
 									{
-										kind: 'Argument',
+										kind: graphql.Kind.DIRECTIVE,
 										name: {
-											kind: 'Name',
-											value: 'match',
+											kind: graphql.Kind.NAME,
+											value: config.dedupeDirective,
 										},
-										value: {
-											kind: 'EnumValue',
-											value: DedupeMatchMode.Variables,
-										},
+										arguments: [
+											{
+												kind: 'Argument',
+												name: {
+													kind: 'Name',
+													value: 'match',
+												},
+												value: {
+													kind: 'EnumValue',
+													value: DedupeMatchMode.Operation,
+												},
+											},
+										],
 									},
-								],
-							},
-						],
+							  ],
 					} as graphql.OperationDefinitionNode
 				},
 				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist

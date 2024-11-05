@@ -163,6 +163,11 @@ export type ConfigFile = {
 	defaultPaginateMode?: PaginateModes
 
 	/**
+	 * Prevents the runtime from deduplicating pagination requests
+	 */
+	supressPaginationDeduplication?: boolean
+
+	/**
 	 * A list of fields to use when computing a record’s id. The default value is ['id']. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids
 	 */
 	defaultKeys?: string[]

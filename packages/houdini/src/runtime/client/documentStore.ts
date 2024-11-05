@@ -53,7 +53,11 @@ export class DocumentStore<
 	serverSideFallback?: boolean
 
 	controllerKey(variables: any) {
-		return `${this.artifact.name}@${stableStringify(variables)}`
+		const usedVariables =
+			'dedupe' in this.artifact && this.artifact.dedupe?.match !== DedupeMatchMode.Variables
+				? {}
+				: variables
+		return `${this.artifact.name}@${stableStringify(usedVariables)}`
 	}
 
 	constructor({
@@ -151,17 +155,15 @@ export class DocumentStore<
 		) {
 			// if we are matching on variables then we should use that for the controller key, otherwise
 			// just use an empty object
-			const dedupeKey = this.controllerKey(
-				this.artifact.dedupe.match === DedupeMatchMode.Variables ? variables : {}
-			)
+			const dedupeKey = this.controllerKey(variables)
 
 			// if there is already a pending request
 			if (inflightRequests[dedupeKey]) {
 				if (this.artifact.dedupe.cancel === 'first') {
 					// cancel the existing one
-					inflightRequests[this.controllerKey(variables)].controller.abort()
+					inflightRequests[dedupeKey].controller.abort()
 					// and register the new one
-					inflightRequests[this.controllerKey(variables)].controller = abortController
+					inflightRequests[dedupeKey].controller = abortController
 				}
 				// otherwise we have to abort this one
 				else {
@@ -170,7 +172,7 @@ export class DocumentStore<
 			}
 			// register this abort controller as being in flight
 			else {
-				inflightRequests[this.controllerKey(variables)] = {
+				inflightRequests[dedupeKey] = {
 					variables,
 					controller: abortController,
 				}

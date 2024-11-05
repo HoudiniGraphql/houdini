@@ -1085,6 +1085,55 @@ test('query with forwards cursor paginate', async function () {
 	`)
 })
 
+test('suppress pagination dedupe', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                query Users {
+                    usersByForwardsCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		supressPaginationDeduplication: true,
+	})
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($first: Int = 10, $after: String) {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+	`)
+})
+
 test('query with custom first args', async function () {
 	const docs = [
 		mockCollectedDoc(
