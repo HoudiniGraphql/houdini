@@ -244,7 +244,7 @@ export default async function paginate(config: Config, documents: Document[]): P
 												},
 												value: {
 													kind: 'EnumValue',
-													value: DedupeMatchMode.Operation,
+													value: DedupeMatchMode.Variables,
 												},
 											},
 										],
