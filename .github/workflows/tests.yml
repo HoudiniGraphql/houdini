@@ -132,7 +132,7 @@ jobs:
               run: cd houdini && pnpm run compile
 
             - name: Create template project
-              run: pnpm dlx sv create project --check-types none --template demo --no-integrations --no-install
+              run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
 
             - name: Run init
               run: cd project && node ../houdini/packages/houdini/build/cmd-esm/index.js init -y
