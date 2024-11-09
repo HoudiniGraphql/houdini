@@ -6,16 +6,17 @@
  */
 export function graphQLDocumentsChanged(
 	source: string,
-	previousDocuments: Record<string, string>
+	previousDocuments: Record<string, string> | undefined
 ): [boolean, Record<string, string>] {
 	const newDocuments = extractDocuments(source)
+	if (previousDocuments === undefined) return [true, newDocuments]
 	const newNames = Object.keys(newDocuments)
 	const oldNames = Object.keys(previousDocuments)
 
 	if (newNames.length !== oldNames.length) return [true, newDocuments]
 
 	return [
-		newNames.every(
+		!newNames.every(
 			(key) => key in previousDocuments && previousDocuments[key] === newDocuments[key]
 		),
 		newDocuments,

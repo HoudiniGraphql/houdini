@@ -52,7 +52,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 			if (fileContents) {
 				const [documentsChanged, documents] = graphQLDocumentsChanged(
 					fileContents,
-					extractedDocuments[absolutePath] ?? {}
+					extractedDocuments[absolutePath]
 				)
 
 				if (documentsChanged) {
