@@ -81,6 +81,7 @@ export function extractGraphQLStrings(text: string): string[] {
 	const results: string[] = []
 	let currentIndex = 0
 
+	// eslint-disable-next-line no-constant-condition
 	while (true) {
 		// Find the start of a graphql function call
 		const callStart = text.indexOf('graphql(', currentIndex)
