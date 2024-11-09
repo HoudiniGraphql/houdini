@@ -1175,7 +1175,7 @@ export async function getConfig({
 			if (schemaOk && !noSchema) {
 				try {
 					_config.schema = await loadSchemaFile(_config.schemaPath)
-				} catch(e) {
+				} catch (e) {
 					console.error(`⚠️  Your schema file could not be loaded: ${e}`)
 				}
 			}
