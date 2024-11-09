@@ -369,7 +369,7 @@ export type GenerateHookInput = {
 export type PluginConfig = {
 	configPath?: string
 	adapter?: Adapter
-	autoCodeGen: 'smart' | 'off' | 'startup' | 'watch'
+	autoCodeGen?: 'smart' | 'off' | 'startup' | 'watch'
 } & Partial<ConfigFile>
 
 export * from '../runtime/lib/types'

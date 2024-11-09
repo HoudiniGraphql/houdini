@@ -1,7 +1,7 @@
 import minimatch from 'minimatch'
 import { readFile } from 'node:fs/promises'
 import type { Plugin, ViteDevServer } from 'vite'
-import watch_and_run from 'vite-plugin-watch-and-run'
+import { watchAndRun } from 'vite-plugin-watch-and-run'
 
 import generate from '../codegen'
 import type { PluginConfig } from '../lib'
@@ -36,7 +36,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 		watch_local_schema(watchSchemaListref),
 	]
 
-	const codegen = async (_server?: ViteDevServer, absolutePath?: string) => {
+	const codegen = async (_server: ViteDevServer | undefined, absolutePath: string | null) => {
 		// load the config file
 		const config = await getConfig(opts)
 		if (config.localSchema) {
@@ -47,7 +47,7 @@ export default function (opts?: PluginConfig): Plugin[] {
 		// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
 		config.pluginMode = true
 
-		if (opts.autoCodeGen === 'smart' && absolutePath) {
+		if (opts?.autoCodeGen === 'smart' && absolutePath) {
 			const fileContents = await readFile(absolutePath).then((buf) => buf.toString('utf8'))
 			if (fileContents) {
 				const [documentsChanged, documents] = graphQLDocumentsChanged(
@@ -72,16 +72,16 @@ export default function (opts?: PluginConfig): Plugin[] {
 
 	switch (opts.autoCodeGen) {
 		case 'startup':
-			void codegen()
+			void codegen(undefined, null)
 			break
 
 		case 'watch':
 		case 'smart':
 			plugins.push(
-				watch_and_run([
+				// @ts-ignore TODO
+				watchAndRun([
 					{
 						name: 'Houdini',
-						quiet: true,
 						async watchFile(filepath: string) {
 							// load the config file
 							const config = await getConfig(opts)
