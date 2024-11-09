@@ -47,7 +47,8 @@ export default function (opts?: PluginConfig): Plugin[] {
 		// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
 		config.pluginMode = true
 
-		if (opts?.autoCodeGen === 'smart' && absolutePath) {
+		//                                                   .gql files always trigger a reload
+		if (opts?.autoCodeGen === 'smart' && absolutePath && !absolutePath.endsWith('.gql')) {
 			const fileContents = await readFile(absolutePath).then((buf) => buf.toString('utf8'))
 			if (fileContents) {
 				const [documentsChanged, documents] = graphQLDocumentsChanged(
