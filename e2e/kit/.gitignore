@@ -7,6 +7,6 @@ node_modules
 .env.*
 !.env.example
 
-$houdini
+.houdini
 playwright-report
 test-results
