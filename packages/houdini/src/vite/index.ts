@@ -51,9 +51,19 @@ export default function (opts?: PluginConfig): Plugin[] {
 		if (opts?.autoCodeGen === 'smart' && absolutePath && !absolutePath.endsWith('.gql')) {
 			const fileContents = await readFile(absolutePath).then((buf) => buf.toString('utf8'))
 			if (fileContents) {
+				const previousDocuments = extractedDocuments[absolutePath]
+				if (!previousDocuments) {
+					// To prevent full-page reloads every time we change something in a new document, just don't reload.
+					// Second change of the same document will trigger a reload
+					// It's better that way since most non-.gql files are modified for non-gql reasons most of the time
+					const [_, documents] = graphQLDocumentsChanged(fileContents, {})
+					extractedDocuments[absolutePath] = documents
+					return
+				}
+
 				const [documentsChanged, documents] = graphQLDocumentsChanged(
 					fileContents,
-					extractedDocuments[absolutePath]
+					previousDocuments
 				)
 
 				if (documentsChanged) {
