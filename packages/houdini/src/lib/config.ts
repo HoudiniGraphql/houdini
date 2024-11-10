@@ -36,8 +36,9 @@ export class Config {
 	localSchema: boolean
 	projectRoot: string
 	schema: graphql.GraphQLSchema
+	outputDir?: string
 	schemaPath?: string
-	persistedQueriesPath: string = './$houdini/persisted_queries.json'
+	persistedQueriesPath: string
 	exclude: string[]
 	scalars?: ConfigFile['scalars']
 	module: 'commonjs' | 'esm' = 'esm'
@@ -101,6 +102,7 @@ export class Config {
 		let {
 			schema,
 			schemaPath = './schema.graphql',
+			outputDir = '$houdini',
 			exclude = [],
 			module = 'esm',
 			scalars,
@@ -145,6 +147,7 @@ export class Config {
 		this.projectRoot = path.dirname(
 			projectDir ? path.join(process.cwd(), projectDir) : filepath
 		)
+		this.outputDir = outputDir
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
@@ -159,12 +162,10 @@ export class Config {
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
 		this.schemaPollTimeout = watchSchema?.timeout ?? 30000
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
-		this.rootDir = path.join(this.projectRoot, '$houdini')
+		this.rootDir = path.join(this.projectRoot, this.outputDir)
+		this.persistedQueriesPath =
+			persistedQueriesPath ?? path.join(this.rootDir, 'persisted_queries.json')
 		this.#fragmentVariableMaps = {}
-
-		if (persistedQueriesPath) {
-			this.persistedQueriesPath = persistedQueriesPath
-		}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -389,7 +390,7 @@ export class Config {
 		return path.join(this.rootDir, 'runtime')
 	}
 
-	// Default to => $houdini/graphql
+	// Default to => <rootDir>/graphql
 	get definitionsDirectory() {
 		return this.definitionsFolder
 			? path.join(this.projectRoot, this.definitionsFolder)

@@ -416,6 +416,7 @@ export default app
 	await fs.writeFile(svelteMainJsPath, newContent)
 }
 
+// TODO: add the alias for the houdini folder
 async function svelteConfig(targetPath: string, typescript: boolean) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 
@@ -461,6 +462,7 @@ export default config;
 /******************************/
 /*  Global files              */
 /******************************/
+// TODO: add the alias for the houdini folder
 async function gitIgnore(targetPath: string) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''

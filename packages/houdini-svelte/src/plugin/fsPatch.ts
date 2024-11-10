@@ -276,6 +276,7 @@ function is_root_route(filepath: PathLike): boolean {
 		filepath = filepath.slice(0, -1)
 	}
 
+	// TODO: drag config into here
 	return (
 		filepath.endsWith(path.join('src', 'routes')) &&
 		// ignore the src/routes that exists in the type roots
