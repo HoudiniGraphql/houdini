@@ -48,25 +48,25 @@ export default function (opts?: PluginConfig): Plugin[] {
 		config.pluginMode = true
 
 		if (opts?.autoCodeGen === 'smart' && absolutePath) {
-		    const isGraphQLFile = /\.g(raph)?ql$/.test(absolutePath)
+			const isGraphQLFile = /\.g(raph)?ql$/.test(absolutePath)
 			const fileContents = await readFile(absolutePath).then((buf) => buf.toString('utf8'))
 			if (fileContents && isGraphQLFile) {
 				// For graphql files, the extractedDocuments entry contains a single graphql "document" (which does not have to be an actual document) named '_' which is the entire file contents
 				// This allows us to only reload .gql files when their content actually changes. Writes to .gql files could not actually change their content, especially when the write was triggered by a write to the schema.graphql from the api server development workflow just because resolver implementation code was tweaked, but actual schema content was left unchanged.
 				const previousContent = extractedDocuments[absolutePath]?._.trim() ?? ''
 				// If the file is empty, don't assume anything changed
-				if (fileContents !== "" && previousContent !== fileContents) {
-						extractedDocuments[absolutePath] = { _: fileContents }
+				if (fileContents !== '' && previousContent !== fileContents) {
+					extractedDocuments[absolutePath] = { _: fileContents }
 				} else {
-						return
+					return
 				}
-		    } else if (fileContents) {
+			} else if (fileContents) {
 				const previousDocuments = extractedDocuments[absolutePath]
 				if (!previousDocuments) {
 					// To prevent full-page reloads every time we change something in a new document, just don't reload.
 					// Second change of the same document will trigger a reload
 					// It's better that way since most non-.gql files are modified for non-gql reasons most of the time
-				    // This logic is reversed for .gql documents: reload on first change encountered since writes to graphql files are much more likely to cause a change in the graphql document
+					// This logic is reversed for .gql documents: reload on first change encountered since writes to graphql files are much more likely to cause a change in the graphql document
 					const [_, documents] = graphQLDocumentsChanged(fileContents, {})
 					extractedDocuments[absolutePath] = documents
 					return
