@@ -58,7 +58,9 @@
 		"*.js": "prettier -w ",
 		"*.json": "prettier -w "
 	},
-	"resolutions": {
-		"graphql": "15.5.0"
+	"pnpm": {
+		"overrides": {
+			"graphql": "15.5.0"
+		}
 	}
 }
