@@ -1,6 +1,6 @@
 import { defaultComponentField, type Cache } from '$houdini/runtime/cache/cache'
 import { getFieldsForType } from '$houdini/runtime/lib/selection'
-import type { DocumentArtifact, GraphQLValue } from 'houdini'
+import type { DocumentArtifact, GraphQLLoadedValue, GraphQLValue } from 'houdini'
 
 export function injectComponents({
 	cache,
@@ -12,7 +12,7 @@ export function injectComponents({
 	cache: Cache
 	selection: DocumentArtifact['selection']
 	data: GraphQLValue | null
-	variables: Record<string, GraphQLValue> | undefined | null
+	variables: Record<string, GraphQLLoadedValue> | undefined | null
 	parentType?: string
 }) {
 	// if the value is null, we're done
