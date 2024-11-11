@@ -1,10 +1,12 @@
 import { computeKey, PendingValue } from '../lib'
 import type { ConfigFile } from '../lib/config'
-import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
+import { computeID, defaultConfigValues, getCurrentConfig, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
 import { getFieldsForType } from '../lib/selection'
 import type {
+	GraphQLLoadedObject,
+	GraphQLLoadedValue,
 	GraphQLObject,
 	GraphQLValue,
 	NestedList,
@@ -1535,7 +1537,7 @@ class CacheInternal {
 	}
 }
 
-export function evaluateVariables(variables: ValueMap, args: GraphQLObject) {
+export function evaluateVariables(variables: ValueMap, args: GraphQLLoadedObject) {
 	return Object.fromEntries(
 		Object.entries(variables).map(([key, value]) => [key, variableValue(value, args)])
 	)
@@ -1548,7 +1550,7 @@ function wrapInLists<T>(target: T, count: number = 0): T | NestedList<T> {
 	return wrapInLists([target], count - 1)
 }
 
-export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {
+export function variableValue(value: ValueNode, args: GraphQLLoadedObject): GraphQLLoadedValue {
 	if (value.kind === 'StringValue') {
 		return value.value
 	}
@@ -1607,7 +1609,7 @@ export function defaultComponentField({
 	cache: Cache
 	component: Required<Required<SubscriptionSelection>['fields'][string]>['component']
 	loading?: boolean
-	variables: Record<string, GraphQLValue> | undefined | null
+	variables: Record<string, GraphQLLoadedValue> | undefined | null
 	parent: string
 }) {
 	return (props: any) => {

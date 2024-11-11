@@ -173,9 +173,26 @@ export type MutationOperation = {
 
 export type GraphQLObject = { [key: string]: GraphQLValue }
 
+export type GraphQLLoadedObject = {
+	[key: string]: GraphQLLoadedValue
+}
+
 export type GraphQLDefaultScalar = string | number | boolean
 
-export type GraphQLValue = GraphQLDefaultScalar | null | GraphQLObject | GraphQLValue[] | undefined
+export type GraphQLLoadedValue =
+	| GraphQLDefaultScalar
+	| null
+	| GraphQLLoadedObject
+	| GraphQLLoadedValue[]
+	| undefined
+
+export type GraphQLValue =
+	| LoadingType
+	| GraphQLDefaultScalar
+	| null
+	| GraphQLObject
+	| GraphQLValue[]
+	| undefined
 
 export type GraphQLVariables = { [key: string]: any } | null
 
