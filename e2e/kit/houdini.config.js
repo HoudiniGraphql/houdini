@@ -7,7 +7,6 @@ const config = {
   defaultPartial: true,
   acceptImperativeInstability: true,
   outputDir: '.houdini',
-  rootDir: 'hi',
   // logLevel: 'Full',
   scalars: {
     DateTime: {
