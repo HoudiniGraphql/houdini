@@ -101,7 +101,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component__ from "../../../../src/routes/+layout";
+		import Component__ from "../../../../../src/routes/+layout";
 
 		export default (
 		    {
