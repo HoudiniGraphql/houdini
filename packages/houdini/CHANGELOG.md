@@ -1,5 +1,15 @@
 # houdini
 
+## 1.3.1
+
+### Patch Changes
+
+-   [#1384](https://github.com/HoudiniGraphql/houdini/pull/1384) [`70dab292`](https://github.com/HoudiniGraphql/houdini/commit/70dab292b4590183f7c0ccfa3731c28c4ea3f6b1) Thanks [@ewen-lbh](https://github.com/ewen-lbh)! - Don't crash dev server when a schema loading error occurs
+
+-   [#1382](https://github.com/HoudiniGraphql/houdini/pull/1382) [`24e6bef9`](https://github.com/HoudiniGraphql/houdini/commit/24e6bef9a28875e0026f9aa1ef0e71aba17447e2) Thanks [@gschulze](https://github.com/gschulze)! - Support GraphQL files with \*.graphqls extension
+
+-   [#1376](https://github.com/HoudiniGraphql/houdini/pull/1376) [`fa869cea`](https://github.com/HoudiniGraphql/houdini/commit/fa869ceab903190f7c098bb02e7f838a3609e947) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix init script using incorrect version for houdini-svelte plugin
+
 ## 1.3.0
 
 ### Minor Changes
