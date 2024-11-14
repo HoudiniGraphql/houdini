@@ -46,7 +46,7 @@
         "react-dom": "19.0.0-rc-eb259b5d3b-20240605",
         "react-streaming-compat": "^0.3.18",
         "recast": "^0.23.1",
-        "rollup": "^3.27.1",
+        "rollup": "^4.16.4",
         "use-deep-compare-effect": "^1.8.1"
     },
     "files": [

@@ -43,7 +43,7 @@
         "@types/fs-extra": "^9.0.13",
         "@types/micromatch": "^4.0.2",
         "@ungap/structured-clone": "^1.0.2",
-        "@whatwg-node/server": "^0.9.49",
+        "@whatwg-node/server": "^0.9.14",
         "ast-types": "^0.16.1",
         "commander": "^9.4.0",
         "deepmerge": "^4.2.2",
