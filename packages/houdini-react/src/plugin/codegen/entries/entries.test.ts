@@ -72,7 +72,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component__subRoute_nested from "../../../../src/routes/subRoute/nested/+page";
+		import Component__subRoute_nested from "../../../../../src/routes/subRoute/nested/+page";
 
 		export default (
 		    {
@@ -286,7 +286,7 @@ test('layout with params', async function () {
 	)
 	expect(page_entry).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component___id_ from "../../../../src/routes/[id]/+page";
+		import Component___id_ from "../../../../../src/routes/[id]/+page";
 
 		export default (
 		    {
