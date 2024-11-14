@@ -32,14 +32,13 @@ test("doesn't include directives defined in plugins", async function () {
 		export default {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "93f2f73a7b5bc8ec643024414471b0b955d2916b1edd8f3d94109020078bf106",
+		    "hash": "c7107190130ccc3ccf92de1ea4963527723f14bfb7f3ce572094d544bc40757b",
 
 		    "raw": \`query MyQuery {
 		  users(stringValue: "asdf") {
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -106,8 +105,7 @@ test('plugins can customize the hash', async function () {
 		  users(stringValue: "asdf") {
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],

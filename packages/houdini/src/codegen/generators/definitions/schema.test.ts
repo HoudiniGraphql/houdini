@@ -33,7 +33,9 @@ test('adds internal documents to schema', async function () {
 			"""
 			directive @paginate(name: String, mode: PaginateMode) on FIELD
 
-			"""@prepend is used to tell the runtime to add the result to the end of the list"""
+			"""
+			@prepend is used to tell the runtime to add the result to the end of the list
+			"""
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
@@ -48,7 +50,9 @@ test('adds internal documents to schema', async function () {
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
 
-			"""@append is used to tell the runtime to add the result to the start of the list"""
+			"""
+			@append is used to tell the runtime to add the result to the start of the list
+			"""
 			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
@@ -60,34 +64,50 @@ test('adds internal documents to schema', async function () {
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
 
-			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			"""
+			@with is used to provide arguments to fragments that have been marked with @arguments
+			"""
 			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_enable to enable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_enable on FRAGMENT_SPREAD
 
-			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_disable to disable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_disable on FRAGMENT_SPREAD
 
-			"""@loading is used to shape the value of your documents while they are loading"""
+			"""
+			@loading is used to shape the value of your documents while they are loading
+			"""
 			directive @loading(count: Int, cascade: Boolean) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
 
-			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			"""
+			@required makes a nullable field always non-null by making the parent null when the field is
+			"""
 			directive @required on FIELD
 
-			"""@componentField marks an inline fragment as the selection for a component field"""
+			"""
+			@componentField marks an inline fragment as the selection for a component field
+			"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
@@ -98,7 +118,9 @@ test('adds internal documents to schema', async function () {
 			  NoCache
 			}
 
-			"""The Component scalar is only defined if the user has any component fields"""
+			"""
+			The Component scalar is only defined if the user has any component fields
+			"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -140,7 +162,9 @@ test('list operations are included', async function () {
 			"""
 			directive @paginate(name: String, mode: PaginateMode) on FIELD
 
-			"""@prepend is used to tell the runtime to add the result to the end of the list"""
+			"""
+			@prepend is used to tell the runtime to add the result to the end of the list
+			"""
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
@@ -155,7 +179,9 @@ test('list operations are included', async function () {
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
 
-			"""@append is used to tell the runtime to add the result to the start of the list"""
+			"""
+			@append is used to tell the runtime to add the result to the start of the list
+			"""
 			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
@@ -167,34 +193,50 @@ test('list operations are included', async function () {
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
 
-			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			"""
+			@with is used to provide arguments to fragments that have been marked with @arguments
+			"""
 			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_enable to enable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_enable on FRAGMENT_SPREAD
 
-			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_disable to disable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_disable on FRAGMENT_SPREAD
 
-			"""@loading is used to shape the value of your documents while they are loading"""
+			"""
+			@loading is used to shape the value of your documents while they are loading
+			"""
 			directive @loading(count: Int, cascade: Boolean) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
 
-			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			"""
+			@required makes a nullable field always non-null by making the parent null when the field is
+			"""
 			directive @required on FIELD
 
-			"""@componentField marks an inline fragment as the selection for a component field"""
+			"""
+			@componentField marks an inline fragment as the selection for a component field
+			"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
@@ -205,7 +247,9 @@ test('list operations are included', async function () {
 			  NoCache
 			}
 
-			"""The Component scalar is only defined if the user has any component fields"""
+			"""
+			The Component scalar is only defined if the user has any component fields
+			"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -266,7 +310,9 @@ test('list operations are included but delete directive should not be in when we
 			"""
 			directive @paginate(name: String, mode: PaginateMode) on FIELD
 
-			"""@prepend is used to tell the runtime to add the result to the end of the list"""
+			"""
+			@prepend is used to tell the runtime to add the result to the end of the list
+			"""
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
@@ -281,7 +327,9 @@ test('list operations are included but delete directive should not be in when we
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
 
-			"""@append is used to tell the runtime to add the result to the start of the list"""
+			"""
+			@append is used to tell the runtime to add the result to the start of the list
+			"""
 			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
@@ -293,34 +341,50 @@ test('list operations are included but delete directive should not be in when we
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
 
-			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			"""
+			@with is used to provide arguments to fragments that have been marked with @arguments
+			"""
 			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_enable to enable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_enable on FRAGMENT_SPREAD
 
-			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_disable to disable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_disable on FRAGMENT_SPREAD
 
-			"""@loading is used to shape the value of your documents while they are loading"""
+			"""
+			@loading is used to shape the value of your documents while they are loading
+			"""
 			directive @loading(count: Int, cascade: Boolean) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
 
-			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			"""
+			@required makes a nullable field always non-null by making the parent null when the field is
+			"""
 			directive @required on FIELD
 
-			"""@componentField marks an inline fragment as the selection for a component field"""
+			"""
+			@componentField marks an inline fragment as the selection for a component field
+			"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
@@ -331,7 +395,9 @@ test('list operations are included but delete directive should not be in when we
 			  NoCache
 			}
 
-			"""The Component scalar is only defined if the user has any component fields"""
+			"""
+			The Component scalar is only defined if the user has any component fields
+			"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage
@@ -405,7 +471,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""
 			directive @paginate(name: String, mode: PaginateMode) on FIELD
 
-			"""@prepend is used to tell the runtime to add the result to the end of the list"""
+			"""
+			@prepend is used to tell the runtime to add the result to the end of the list
+			"""
 			directive @prepend on FRAGMENT_SPREAD
 
 			"""
@@ -420,7 +488,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""@optimisticKey is used to identify a field as an optimistic key"""
 			directive @optimisticKey on FIELD
 
-			"""@append is used to tell the runtime to add the result to the start of the list"""
+			"""
+			@append is used to tell the runtime to add the result to the start of the list
+			"""
 			directive @append on FRAGMENT_SPREAD
 
 			"""@allLists is used to tell the runtime to add the result to all list"""
@@ -432,34 +502,50 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""
 			directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
-			"""@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when on FRAGMENT_SPREAD
 
-			"""@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
+			"""
+			@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
 			directive @when_not on FRAGMENT_SPREAD
 
 			"""@arguments is used to define the arguments of a fragment"""
 			directive @arguments on FRAGMENT_DEFINITION
 
-			"""@with is used to provide arguments to fragments that have been marked with @arguments"""
+			"""
+			@with is used to provide arguments to fragments that have been marked with @arguments
+			"""
 			directive @with on FRAGMENT_SPREAD
 
 			"""@cache is used to specify cache rules for a query"""
 			directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-			"""@mask_enable to enable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_enable to enable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_enable on FRAGMENT_SPREAD
 
-			"""@mask_disable to disable masking on fragment (overwriting the global conf)"""
+			"""
+			@mask_disable to disable masking on fragment (overwriting the global conf)
+			"""
 			directive @mask_disable on FRAGMENT_SPREAD
 
-			"""@loading is used to shape the value of your documents while they are loading"""
+			"""
+			@loading is used to shape the value of your documents while they are loading
+			"""
 			directive @loading(count: Int, cascade: Boolean) on QUERY | FRAGMENT_DEFINITION | FIELD | FRAGMENT_SPREAD
 
-			"""@required makes a nullable field always non-null by making the parent null when the field is"""
+			"""
+			@required makes a nullable field always non-null by making the parent null when the field is
+			"""
 			directive @required on FIELD
 
-			"""@componentField marks an inline fragment as the selection for a component field"""
+			"""
+			@componentField marks an inline fragment as the selection for a component field
+			"""
 			directive @componentField(field: String!, prop: String, export: String, raw: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 
 			enum CachePolicy {
@@ -470,7 +556,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 			  NoCache
 			}
 
-			"""The Component scalar is only defined if the user has any component fields"""
+			"""
+			The Component scalar is only defined if the user has any component fields
+			"""
 			enum PaginateMode {
 			  Infinite
 			  SinglePage

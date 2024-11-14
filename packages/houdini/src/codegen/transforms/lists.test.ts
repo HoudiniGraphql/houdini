@@ -480,7 +480,7 @@ test('cannot use list directive if id is not a valid field', async function () {
 		nbError++
 		// @ts-ignore
 		expect(error[0].message).toMatchInlineSnapshot(
-			'"@list on [32mLegend[39m has a configuration issue: Legend dos not have a valid key. Please check this link for more information: https://houdinigraphql.com/guides/caching-data#custom-ids"'
+			`"@list on [32mLegend[39m has a configuration issue: Legend does not have a valid key. Please check this link for more information: https://houdinigraphql.com/guides/caching-data#custom-ids"`
 		)
 	}
 	expect(nbError).toBe(1)

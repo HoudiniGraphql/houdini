@@ -45,7 +45,7 @@ test('pass argument values to generated fragments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "63b95bca0542c187f64fef9cb34e6b242608469f6a7baffd959791c8cda019f8",
+		    "hash": "7cf541eeda9db6b5320d94607fab8f61795b66bfb075d9fbbf8c4fa05a5ef93e",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment_10b3uv
@@ -56,8 +56,7 @@ test('pass argument values to generated fragments', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -142,7 +141,7 @@ test('pass structured values as argument values to generated fragments', async f
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "10e652d668e97235806b7a3561475103741455c9a6bb1357113860758b865b29",
+		    "hash": "10d15eb2346c9fc957012df1a7be8a90e62cbbfea0ba24c08ef7473638aac0e2",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment_2jlKVi
@@ -153,8 +152,7 @@ test('pass structured values as argument values to generated fragments', async f
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -250,7 +248,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "ab2d1ea10cd570b2b0601c94918f5f6790f90da88447d312ebc4138cc99b8e7c",
+		    "hash": "bc1c99f3fb9d992d22be5a90356d3e588cf474a33a69c357b34aa79c09fec4d4",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -261,8 +259,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -342,7 +339,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "e1f9f94024736db98349817f3675dc3b2a7c73871ca98761721f4b9849926471",
+		    "hash": "de023c3fc47d48276c27811c22262d4bfb87aad00bbf3387077cfdd9c9f47d02",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -353,8 +350,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -442,7 +438,7 @@ test('thread query variables to inner fragments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "b47b265965f007004f2afa343be60b957aad287780ff0bfce23285a78b5c0e63",
+		    "hash": "6800a1d87efa61dbd7cb7663ee6b88125f1b0f4384fd92cd6225879c65a830f2",
 
 		    "raw": \`query AllUsers($name: String!) {
 		  ...QueryFragment_VDHGm
@@ -458,8 +454,7 @@ test('thread query variables to inner fragments', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -578,7 +573,7 @@ test('inner fragment with intermediate default value', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "09adc383071454f2de0a177990907e7616f1c69516611a283dd4bb5231ace3d0",
+		    "hash": "cf6625fcf8937941f787a1a9a30876ee2e74c322f16482368f7594e8dc2f6190",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -594,8 +589,7 @@ test('inner fragment with intermediate default value', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -692,7 +686,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "802f77faf17be02863ece90662db7e157c6911bbc9c7b49f191d0de332048543",
+		    "hash": "fafbd322d700df78d3c413c0b2293c5fe8a188eef37aded3763d9976bb29e783",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -708,8 +702,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -798,7 +791,7 @@ test('default arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "bce1104854002aaa0befe5045ad6b3780783d6488d2c91a132449918c5c61228",
+		    "hash": "4e6701d785dea5d897bb0f2e5732b764a5b9d5966f7bbf6fddc5ae8152163126",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment
@@ -809,8 +802,7 @@ test('default arguments', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -890,7 +882,7 @@ test('list arguments', async function () {
 		export default {
 		    "name": "AllUsers",
 		    "kind": "HoudiniQuery",
-		    "hash": "6f21b47d8e490e6df8692e5b322344e5853042c6bab027dd7b357f7bd6c291a9",
+		    "hash": "7e1be51764f0796dd6177c706a98fbb29936492e10238307f748343589401a40",
 
 		    "raw": \`query AllUsers {
 		  ...QueryFragment_3CgeGL
@@ -902,8 +894,7 @@ test('list arguments', async function () {
 		    __typename
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -986,15 +977,14 @@ test('persists fragment variables in artifact', async function () {
 		export default {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "695bc5e3268ac222dca193dd7daee95d4d0b773268624c45e521a69bbda62185",
+		    "hash": "b88adde313470424afb61bf45e7b71df8b81ca0e93500ebdcb2c1141aa7cf1fd",
 
 		    "raw": \`fragment QueryFragment on Query {
 		  users(boolValue: $cool, stringValue: $name) {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1169,15 +1159,14 @@ test('variables referenced deeply in objects', async function () {
 		export default {
 		    "name": "QueryFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "2ec5f34429b6e7e9240f8d051c53f10d627f195d9ba5a2400d2d01c783fb9c23",
+		    "hash": "d004e3d9616387b95d9529bcc23f4781b1fa99b70f050f2ea4c17409d85e5996",
 
 		    "raw": \`fragment QueryFragment on Query {
 		  usersByOffset(filter: {name: $name}) {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1229,7 +1218,7 @@ test('variables referenced deeply in objects', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "3732c2ad47dee53626f380d850a8f8ef511e892287b94b901e05de4ca549ff40",
+		    "hash": "e7b6075d4fef703c7375d9e582ecaab4da5bdc26edc7e92d004e174bf5def5f7",
 
 		    "raw": \`query TestQuery {
 		  ...QueryFragment_32RKor
@@ -1240,8 +1229,7 @@ test('variables referenced deeply in objects', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1326,7 +1314,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery1",
 		    "kind": "HoudiniQuery",
-		    "hash": "a686b6492a07c32752ba286df91f4e84058324c0d64e96c6b5e6f399c9719f32",
+		    "hash": "c34b3297e140c5742038818dd6582acef375a4b069f1b6c8fb6b504d200a616f",
 
 		    "raw": \`query TestQuery1 {
 		  ...QueryFragment_32RKor
@@ -1337,8 +1325,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1389,7 +1376,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		export default {
 		    "name": "TestQuery2",
 		    "kind": "HoudiniQuery",
-		    "hash": "487e32683c414ded5a9941e98fba099deaae6e497899bb8bf24d3b8c3de1aa8a",
+		    "hash": "c92fc619fcbd1ef2609a20a449af5d8fd99a6d8cddf8cf006195cf26ca9e22d6",
 
 		    "raw": \`query TestQuery2 {
 		  ...QueryFragment_2wUXVX
@@ -1400,8 +1387,7 @@ test('can use the same fragment/argument combo multiple times', async function (
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
