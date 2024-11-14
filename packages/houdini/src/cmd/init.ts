@@ -318,7 +318,7 @@ async function houdiniConfig(
 		}
 	}
 
-	config.outputDir = '.houdini'
+	config.runtimeDir = '.houdini'
 
 	// if it's different for defaults, write it down
 	if (schemaPath !== './schema.graphql') {

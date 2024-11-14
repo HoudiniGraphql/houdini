@@ -209,7 +209,7 @@ export type ConfigFile = {
 	 * The relative path from your project directory pointing to your output directory.
 	 * @default `$houdini`
 	 */
-	outputDir?: string
+	runtimeDir?: string
 
 	/**
 	 * For now, the cache's imperative API is considered unstable. In order to suppress the warning,
