@@ -1,15 +1,15 @@
 import {
-	PluginHooks,
 	fs,
 	isSecondaryBuild,
 	load_manifest,
 	path,
+	PluginHooks,
 	type ProjectManifest,
-	type RouterManifest,
 	routerConventions,
+	type RouterManifest,
 } from 'houdini'
 import React from 'react'
-import { build, ConfigEnv, type BuildOptions, type Connect } from 'vite'
+import { build, type BuildOptions, ConfigEnv, type Connect } from 'vite'
 
 import { manifest, setManifest } from '.'
 
@@ -72,8 +72,15 @@ export default {
 				'entries/adapter': routerConventions.adapter_config_path(config),
 			}
 
-			if (env.command === 'build' && config.adapter && config.adapter?.includePaths) {
-				Object.assign(conf.build!.rollupOptions!.input, config.adapter?.includePaths)
+			if (env.command === 'build' && config.adapter && config.adapter.includePaths) {
+				if (typeof config.adapter?.includePaths === 'function') {
+					Object.assign(
+						conf.build!.rollupOptions!.input,
+						config.adapter.includePaths({ config })
+					)
+				} else {
+					Object.assign(conf.build!.rollupOptions!.input, config.adapter.includePaths)
+				}
 			}
 
 			// every page in the manifest is a new entry point for vite
