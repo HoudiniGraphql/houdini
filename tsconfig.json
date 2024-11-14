@@ -1,10 +1,20 @@
 {
-	"exclude": ["node_modules", "packages/*/build/**"],
-	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
+	"exclude": [
+		"node_modules",
+		"packages/*/build/**"
+	],
+	"include": [
+		"packages/**/*.ts",
+		"packages/**/*.tsx"
+	],
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",
-		"lib": ["ES2021", "DOM", "ES2021.String"],
+		"lib": [
+			"ES2021",
+			"DOM",
+			"ES2021.String"
+		],
 		"target": "ESNext",
 		"isolatedModules": true,
 		"resolveJsonModule": true,
@@ -20,8 +30,12 @@
 		"emitDeclarationOnly": true,
 		"baseUrl": "./packages/houdini",
 		"paths": {
-			"$houdini": ["../houdini/src"],
-			"$houdini/*": ["../houdini/src/*"]
+			"$houdini": [
+				"../houdini/src"
+			],
+			"$houdini/*": [
+				"../houdini/src/*"
+			]
 		},
 		"jsx": "react-jsx"
 	}
