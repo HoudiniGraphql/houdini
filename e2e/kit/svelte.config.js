@@ -12,8 +12,7 @@ const config = {
     adapter: adapter(),
 
     alias: {
-      $houdini: path.resolve('./.houdini'),
-      $lib: path.resolve('./src/lib')
+      $houdini: '.houdini/'
     }
   }
 };

@@ -418,7 +418,6 @@ export default app
 	await fs.writeFile(svelteMainJsPath, newContent)
 }
 
-// TODO: add the alias for the houdini folder
 async function svelteConfig(targetPath: string, typescript: boolean) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 
@@ -434,7 +433,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$houdini: './.houdini',
+			$houdini: '.houdini/'
 		}
 	}
 };
@@ -449,7 +448,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$houdini: './.houdini',
+			$houdini: '.houdini/'
 		}
 	}
 };
@@ -464,7 +463,6 @@ export default config;
 /******************************/
 /*  Global files              */
 /******************************/
-// TODO: add the alias for the houdini folder
 async function gitIgnore(targetPath: string) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
@@ -511,7 +509,7 @@ export default defineConfig({
 
 	resolve: {
 		alias: {
-			$houdini: path.resolve('.houdini'),
+			$houdini: '.houdini/',
 		},
 	},
 })
@@ -569,7 +567,7 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 		if (frameworkInfo.framework === 'svelte') {
 			tjsConfig.compilerOptions.paths = {
 				...tjsConfig.compilerOptions.paths,
-				$houdini: ['./.houdini'],
+				$houdini: ['./.houdini/'],
 				'$houdini/*': ['./.houdini/*'],
 			}
 		}
