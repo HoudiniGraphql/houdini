@@ -128,7 +128,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component__subRoute from "../../../../src/routes/subRoute/+layout";
+		import Component__subRoute from "../../../../../src/routes/subRoute/+layout";
 
 		export default (
 		    {
