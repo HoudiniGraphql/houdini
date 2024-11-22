@@ -1173,7 +1173,11 @@ export async function getConfig({
 
 			// the schema is safe to load
 			if (schemaOk && !noSchema) {
-				_config.schema = await loadSchemaFile(_config.schemaPath)
+				try {
+					_config.schema = await loadSchemaFile(_config.schemaPath)
+				} catch (e) {
+					console.error(`⚠️  Your schema file could not be loaded: ${e}`)
+				}
 			}
 		}
 
@@ -1398,7 +1402,11 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	const contents = (await fs.readFile(schemaPath))!
 
 	// if the schema points to an sdl file
-	if (schemaPath.endsWith('gql') || schemaPath.endsWith('graphql')) {
+	if (
+		schemaPath.endsWith('gql') ||
+		schemaPath.endsWith('graphql') ||
+		schemaPath.endsWith('graphqls')
+	) {
 		return graphql.buildSchema(contents)
 	}
 
