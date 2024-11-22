@@ -247,7 +247,7 @@ export default function artifactGenerator(stats: {
 										? 'first'
 										: 'last',
 								match:
-									matchArg && matchArg.value.kind === 'StringValue'
+									matchArg && matchArg.value.kind === 'EnumValue'
 										? (matchArg.value.value as DedupeMatchModes)
 										: DedupeMatchMode.Operation,
 							}

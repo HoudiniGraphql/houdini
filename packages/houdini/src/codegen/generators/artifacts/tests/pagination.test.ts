@@ -784,7 +784,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 
 		    "dedupe": {
 		        "cancel": "last",
-		        "match": "Operation"
+		        "match": "Variables"
 		    },
 
 		    "input": {
