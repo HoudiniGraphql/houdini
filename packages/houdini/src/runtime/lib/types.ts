@@ -10,6 +10,14 @@ export const CachePolicy = {
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>
 
+export const DedupeMatchMode = {
+	Variables: 'Variables',
+	Operation: 'Operation',
+	None: 'None',
+} as const
+
+export type DedupeMatchModes = ValuesOf<typeof DedupeMatchMode>
+
 export const PaginateMode = {
 	Infinite: 'Infinite',
 	SinglePage: 'SinglePage',
@@ -77,12 +85,18 @@ export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
 	enableLoadingState?: 'global' | 'local'
-	dedupe?: 'first' | 'last'
+	dedupe?: {
+		cancel: 'first' | 'last'
+		match: DedupeMatchModes
+	}
 }
 
 export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
 	optimisticKeys?: boolean
-	dedupe?: 'first' | 'last'
+	dedupe?: {
+		cancel: 'first' | 'last'
+		match: DedupeMatchModes
+	}
 }
 
 export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {

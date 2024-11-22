@@ -60,11 +60,14 @@ mutation UncompleteItem($id: ID!) {
 }
 ```
 
-### `@dedupe(cancelFirst: Boolean)`
+
+### `@dedupe(cancelFirst: Boolean, match: DedupeMatch)`
 
 `@dedupe` lets you control wether or not multiple copies of the same operation (query or mutation) are allowed to run at the same time.
 If you pass `true` for the `cancelFirst` argument then the first copy of the operation will be canceled (including any in-flight requests).
-If you pass `false` (or pass nothing at all) then the second request won't trigger if there is already one pending.
+If you pass `false` (or pass nothing at all) then the second request won't trigger if there is already one pending. `match` can take 3 different values.
+`Operation` will dedupe the request if there are any pending executions of the same operation, `Variables` will only dedupe the request if the variables match, and 
+`None` will never dedupe.
 
 ### `@when_not`
 

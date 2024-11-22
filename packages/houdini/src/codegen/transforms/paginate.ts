@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
 import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
-import { ArtifactKind, type PaginateModes } from '../../runtime/lib/types'
+import { ArtifactKind, DedupeMatchMode, type PaginateModes } from '../../runtime/lib/types'
 import {
 	fragmentArguments as collectFragmentArguments,
 	type FragmentArgument,
@@ -225,16 +225,31 @@ export default async function paginate(config: Config, documents: Document[]): P
 					return {
 						...node,
 						variableDefinitions: finalVariables,
-						directives: [
-							...(node.directives || []),
-							{
-								kind: graphql.Kind.DIRECTIVE,
-								name: {
-									kind: graphql.Kind.NAME,
-									value: config.dedupeDirective,
-								},
-							},
-						],
+						directives: config.configFile.supressPaginationDeduplication
+							? node.directives
+							: [
+									...(node.directives || []),
+									{
+										kind: graphql.Kind.DIRECTIVE,
+										name: {
+											kind: graphql.Kind.NAME,
+											value: config.dedupeDirective,
+										},
+										arguments: [
+											{
+												kind: 'Argument',
+												name: {
+													kind: 'Name',
+													value: 'match',
+												},
+												value: {
+													kind: 'EnumValue',
+													value: DedupeMatchMode.Variables,
+												},
+											},
+										],
+									},
+							  ],
 					} as graphql.OperationDefinitionNode
 				},
 				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist

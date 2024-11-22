@@ -51,6 +51,7 @@ By default, your config file can contain the following values:
 - `defaultPaginateMode` (optional, default: `"Infinite"`): The default mode for pagination. One of `"Infinite"` or `"SinglePage"`.
 - `defaultListPosition` (optional, default: "first"): One of `"first"` or `"last"` to indicate the default location for list operations.
 - `plugins` (optional): An object containing the set of plugins you want to add to your houdini application. The keys are plugin names, the values are plugin-specific configuration. The actual plugin API is undocumented and considered unstable while we try out various things internally. For an overview of your framework plugin's specific configuration, see below.
+- `supressPaginationDeduplication` (optional, default `false): Prevents the runtime from deduplicating pagination requests
 
 ## Svelte Plugin
 

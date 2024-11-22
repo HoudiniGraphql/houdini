@@ -15,7 +15,7 @@ import type {
 	CachePolicies,
 	GraphQLVariables,
 } from '../lib/types'
-import { ArtifactKind } from '../lib/types'
+import { ArtifactKind, DedupeMatchMode } from '../lib/types'
 import { cachePolicy } from './plugins'
 
 // the list of states to step in what direction
@@ -24,7 +24,10 @@ const steps = {
 	backwards: ['end', 'afterNetwork'],
 } as const
 
-let inflightRequests: Record<string, AbortController> = {}
+let inflightRequests: Record<
+	string,
+	{ variables: Record<string, any> | null | undefined; controller: AbortController }
+> = {}
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
@@ -50,7 +53,11 @@ export class DocumentStore<
 	serverSideFallback?: boolean
 
 	controllerKey(variables: any) {
-		return this.artifact.name
+		const usedVariables =
+			'dedupe' in this.artifact && this.artifact.dedupe?.match !== DedupeMatchMode.Variables
+				? {}
+				: variables
+		return `${this.artifact.name}@${stableStringify(usedVariables)}`
 	}
 
 	constructor({
@@ -141,15 +148,22 @@ export class DocumentStore<
 	}: SendParams = {}) {
 		// if the document we are sending is meant to be deduped, then we need to look for an existing
 		// controller for the document
-		if ('dedupe' in this.artifact) {
+		if (
+			'dedupe' in this.artifact &&
+			this.artifact.dedupe &&
+			this.artifact.dedupe.match !== 'None'
+		) {
+			// if we are matching on variables then we should use that for the controller key, otherwise
+			// just use an empty object
+			const dedupeKey = this.controllerKey(variables)
+
 			// if there is already a pending request
-			if (inflightRequests[this.controllerKey(variables)]) {
-				// we have to abort _something_
-				if (this.artifact.dedupe === 'first') {
+			if (inflightRequests[dedupeKey]) {
+				if (this.artifact.dedupe.cancel === 'first') {
 					// cancel the existing one
-					inflightRequests[this.controllerKey(variables)].abort()
+					inflightRequests[dedupeKey].controller.abort()
 					// and register the new one
-					inflightRequests[this.controllerKey(variables)] = abortController
+					inflightRequests[dedupeKey].controller = abortController
 				}
 				// otherwise we have to abort this one
 				else {
@@ -158,7 +172,10 @@ export class DocumentStore<
 			}
 			// register this abort controller as being in flight
 			else {
-				inflightRequests[this.controllerKey(variables)] = abortController
+				inflightRequests[dedupeKey] = {
+					variables,
+					controller: abortController,
+				}
 			}
 		}
 
@@ -743,4 +760,35 @@ export type SendParams = {
 	setup?: boolean
 	silenceEcho?: boolean
 	abortController?: AbortController
+}
+
+// stableStringify is a deterministic version of JSON.stringify
+type JsonValue = string | number | boolean | null | JsonArray | JsonObject
+type JsonArray = JsonValue[]
+type JsonObject = { [key: string]: JsonValue }
+
+// stable stringify is a deterministic version of JSON.stringify that sorts object keys
+function stableStringify(obj: JsonValue): string {
+	return JSON.stringify(sortObject(obj))
+}
+
+// sortObject sorts the keys of an object recursively
+function sortObject(obj: JsonValue): JsonValue {
+	// Handle non-object cases
+	if (obj === null || typeof obj !== 'object') {
+		return obj
+	}
+
+	// Handle arrays
+	if (Array.isArray(obj)) {
+		return obj.map(sortObject)
+	}
+
+	// Handle objects
+	return Object.keys(obj)
+		.sort()
+		.reduce<JsonObject>((result, key) => {
+			result[key] = sortObject(obj[key])
+			return result
+		}, {})
 }

@@ -1061,7 +1061,56 @@ test('query with forwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String) @dedupe {
+		query Users($first: Int = 10, $after: String) @dedupe(match: Variables) {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+	`)
+})
+
+test('suppress pagination dedupe', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                query Users {
+                    usersByForwardsCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		supressPaginationDeduplication: true,
+	})
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($first: Int = 10, $after: String) {
 		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -1108,7 +1157,7 @@ test('query with custom first args', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($limit: Int!, $after: String) @dedupe {
+		query Users($limit: Int!, $after: String) @dedupe(match: Variables) {
 		  usersByForwardsCursor(first: $limit, after: $after) @paginate {
 		    edges {
 		      node {
@@ -1155,7 +1204,7 @@ test('query with backwards cursor paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users @dedupe {
+		query Users @dedupe(match: Variables) {
 		  usersByBackwardsCursor(last: 10) @paginate {
 		    edges {
 		      node {
@@ -1198,7 +1247,7 @@ test('query with offset paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($limit: Int = 10, $offset: Int) @dedupe {
+		query Users($limit: Int = 10, $offset: Int) @dedupe(match: Variables) {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
@@ -1229,7 +1278,7 @@ test('query with backwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int, $after: String, $last: Int = 10, $before: String) @dedupe {
+		query Users($first: Int, $after: String, $last: Int = 10, $before: String) @dedupe(match: Variables) {
 		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1276,7 +1325,7 @@ test('query with forwards cursor on full paginate', async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String, $last: Int, $before: String) @dedupe {
+		query Users($first: Int = 10, $after: String, $last: Int, $before: String) @dedupe(match: Variables) {
 		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1323,7 +1372,7 @@ test("don't generate unsupported directions", async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int = 10, $after: String) @dedupe {
+		query Users($first: Int = 10, $after: String) @dedupe(match: Variables) {
 		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -1370,7 +1419,7 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($first: Int!, $after: String, $last: Int, $before: String) @dedupe {
+		query Users($first: Int!, $after: String, $last: Int, $before: String) @dedupe(match: Variables) {
 		  usersByCursor(first: $first, after: $after, last: $last, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1417,7 +1466,7 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($last: Int!, $first: Int, $after: String, $before: String) @dedupe {
+		query Users($last: Int!, $first: Int, $after: String, $before: String) @dedupe(match: Variables) {
 		  usersByCursor(last: $last, first: $first, after: $after, before: $before) @paginate {
 		    edges {
 		      node {
@@ -1460,7 +1509,7 @@ test("offset paginated query doesn't overlap variables", async function () {
 
 	// load the contents of the file
 	expect(docs[0]?.document).toMatchInlineSnapshot(`
-		query Users($limit: Int! = 10, $offset: Int) @dedupe {
+		query Users($limit: Int! = 10, $offset: Int) @dedupe(match: Variables) {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }

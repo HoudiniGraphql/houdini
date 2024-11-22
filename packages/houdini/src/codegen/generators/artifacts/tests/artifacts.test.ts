@@ -846,7 +846,11 @@ test('paginate over unions', async function () {
 		    },
 
 		    "pluginData": {},
-		    "dedupe": "last",
+
+		    "dedupe": {
+		        "cancel": "last",
+		        "match": "Variables"
+		    },
 
 		    "input": {
 		        "fields": {
@@ -4932,7 +4936,11 @@ describe('mutation artifacts', function () {
 			    },
 
 			    "pluginData": {},
-			    "dedupe": "last",
+
+			    "dedupe": {
+			        "cancel": "last",
+			        "match": "Variables"
+			    },
 
 			    "input": {
 			        "fields": {
@@ -5185,7 +5193,11 @@ describe('mutation artifacts', function () {
 			    },
 
 			    "pluginData": {},
-			    "dedupe": "last",
+
+			    "dedupe": {
+			        "cancel": "last",
+			        "match": "Variables"
+			    },
 
 			    "input": {
 			        "fields": {
@@ -7774,7 +7786,12 @@ test('persists dedupe which', async function () {
 		    },
 
 		    "pluginData": {},
-		    "dedupe": "last",
+
+		    "dedupe": {
+		        "cancel": "last",
+		        "match": "Operation"
+		    },
+
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
@@ -7846,11 +7863,172 @@ test('persists dedupe first', async function () {
 		    },
 
 		    "pluginData": {},
-		    "dedupe": "first",
+
+		    "dedupe": {
+		        "cancel": "first",
+		        "match": "Operation"
+		    },
+
 		    "policy": "CacheOrNetwork",
 		    "partial": false
 		};
 
 		"HoudiniHash=3dfb64916aa4359cf85f08b3544bbc7382fd818935c5a0e92f324a2d2519c227";
 	`)
+})
+
+describe('Parses the correct matching mode', function () {
+	test('match mode variables', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		// the documents to test
+		const docs: Document[] = [
+			mockCollectedDoc(`
+			query FindUser @dedupe(match: Variables) {
+				usersByOffset {
+					name
+				}
+			}
+		`),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "FindUser",
+			    "kind": "HoudiniQuery",
+			    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+
+			    "raw": \`query FindUser {
+			  usersByOffset {
+			    name
+			    id
+			  }
+			}
+			\`,
+
+			    "rootType": "Query",
+			    "stripVariables": [],
+
+			    "selection": {
+			        "fields": {
+			            "usersByOffset": {
+			                "type": "User",
+			                "keyRaw": "usersByOffset",
+
+			                "selection": {
+			                    "fields": {
+			                        "name": {
+			                            "type": "String",
+			                            "keyRaw": "name",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "dedupe": {
+			        "cancel": "last",
+			        "match": "Variables"
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=f3faa6e93bde578b11490f9a32518e410a47ec242b0ef94331fc4fb5b01ace20";
+		`)
+	})
+
+	test('match mode operation', async function () {
+		// the config to use in tests
+		const config = testConfig()
+		// the documents to test
+		const docs: Document[] = [
+			mockCollectedDoc(`
+			query FindUser @dedupe(match: Operation) {
+				usersByOffset {
+					name
+				}
+			}
+		`),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// load the contents of the file
+		expect(docs[0]).toMatchInlineSnapshot(`
+			export default {
+			    "name": "FindUser",
+			    "kind": "HoudiniQuery",
+			    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+
+			    "raw": \`query FindUser {
+			  usersByOffset {
+			    name
+			    id
+			  }
+			}
+			\`,
+
+			    "rootType": "Query",
+			    "stripVariables": [],
+
+			    "selection": {
+			        "fields": {
+			            "usersByOffset": {
+			                "type": "User",
+			                "keyRaw": "usersByOffset",
+
+			                "selection": {
+			                    "fields": {
+			                        "name": {
+			                            "type": "String",
+			                            "keyRaw": "name",
+			                            "visible": true
+			                        },
+
+			                        "id": {
+			                            "type": "ID",
+			                            "keyRaw": "id",
+			                            "visible": true
+			                        }
+			                    }
+			                },
+
+			                "visible": true
+			            }
+			        }
+			    },
+
+			    "pluginData": {},
+
+			    "dedupe": {
+			        "cancel": "last",
+			        "match": "Operation"
+			    },
+
+			    "policy": "CacheOrNetwork",
+			    "partial": false
+			};
+
+			"HoudiniHash=1e1c9cd888a109d85a8bda7c3470aeb645b25678fa17916a3b016816b7a9d783";
+		`)
+	})
 })
