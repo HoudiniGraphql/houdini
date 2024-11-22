@@ -39,6 +39,9 @@ test('adds internal documents to schema', async function () {
 			"""
 			@dedupe is used to prevent an operation from running more than once at the same time.
 			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation. 
+			If it's set to Variables then the request will only be deduplicated if the variables match. If match is set to None,
+			then the request will never be deduplicated.
 			"""
 			directive @dedupe(cancelFirst: Boolean, match: DedupeMatchMode) on QUERY | MUTATION
 
@@ -143,6 +146,9 @@ test('list operations are included', async function () {
 			"""
 			@dedupe is used to prevent an operation from running more than once at the same time.
 			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation. 
+			If it's set to Variables then the request will only be deduplicated if the variables match. If match is set to None,
+			then the request will never be deduplicated.
 			"""
 			directive @dedupe(cancelFirst: Boolean, match: DedupeMatchMode) on QUERY | MUTATION
 
@@ -266,6 +272,9 @@ test('list operations are included but delete directive should not be in when we
 			"""
 			@dedupe is used to prevent an operation from running more than once at the same time.
 			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation. 
+			If it's set to Variables then the request will only be deduplicated if the variables match. If match is set to None,
+			then the request will never be deduplicated.
 			"""
 			directive @dedupe(cancelFirst: Boolean, match: DedupeMatchMode) on QUERY | MUTATION
 
@@ -402,6 +411,9 @@ test("writing twice doesn't duplicate definitions", async function () {
 			"""
 			@dedupe is used to prevent an operation from running more than once at the same time.
 			If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
+			If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation. 
+			If it's set to Variables then the request will only be deduplicated if the variables match. If match is set to None,
+			then the request will never be deduplicated.
 			"""
 			directive @dedupe(cancelFirst: Boolean, match: DedupeMatchMode) on QUERY | MUTATION
 
