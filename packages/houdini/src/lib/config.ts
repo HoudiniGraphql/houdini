@@ -102,6 +102,8 @@ export class Config {
 		let {
 			schema,
 			schemaPath = './schema.graphql',
+
+			// Hey! If you change this default, please also update it in `/packages/houdini-svelte/src/plugin/fsPatch.ts`
 			runtimeDir = '$houdini',
 			exclude = [],
 			module = 'esm',
