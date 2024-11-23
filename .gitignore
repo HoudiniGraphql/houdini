@@ -25,3 +25,4 @@ vite.config.*.timestamp-*
 
 .vercel
 .netlify
+mise.toml
