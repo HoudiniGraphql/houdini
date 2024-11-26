@@ -1,5 +1,11 @@
 # houdini
 
+## 1.3.2
+
+### Patch Changes
+
+-   [#1378](https://github.com/HoudiniGraphql/houdini/pull/1378) [`d2dbcd2d`](https://github.com/HoudiniGraphql/houdini/commit/d2dbcd2de9b77b855053ea7775dff1207eb60a4c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add match argument to dedupe directive
+
 ## 1.3.1
 
 ### Patch Changes
