@@ -7835,15 +7835,14 @@ describe('Parses the correct matching mode', function () {
 			export default {
 			    "name": "FindUser",
 			    "kind": "HoudiniQuery",
-			    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+			    "hash": "db913235b0a6aa335c7d240ade03de4ee31d537ada41994f2e6b42aac3afa7b0",
 
 			    "raw": \`query FindUser {
 			  usersByOffset {
 			    name
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -7912,15 +7911,14 @@ describe('Parses the correct matching mode', function () {
 			export default {
 			    "name": "FindUser",
 			    "kind": "HoudiniQuery",
-			    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+			    "hash": "db913235b0a6aa335c7d240ade03de4ee31d537ada41994f2e6b42aac3afa7b0",
 
 			    "raw": \`query FindUser {
 			  usersByOffset {
 			    name
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
