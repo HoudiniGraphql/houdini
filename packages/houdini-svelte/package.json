@@ -26,6 +26,7 @@
         "@types/minimatch": "^5.1.2",
         "prettier-plugin-svelte": "^3.2.2",
         "scripts": "workspace:^",
+        "svelte": "^5.0.0",
         "vitest": "^1.6.0"
     },
     "dependencies": {
@@ -37,8 +38,10 @@
         "houdini": "workspace:^",
         "recast": "^0.23.1",
         "rollup": "^3.7.4",
-        "svelte": "^5.0.0",
         "vite": "^5.3.3"
+    },
+    "peerDependencies": {
+        "svelte": "^5.0.0"
     },
     "files": [
         "build"
