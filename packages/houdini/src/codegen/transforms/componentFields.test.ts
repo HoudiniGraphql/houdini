@@ -24,8 +24,7 @@ test('componentFields are replaced by their fragment', async function () {
 			  firstName
 			  id
 			  __typename
-			}
-			"
+			}"
 		`)
 	})()
 })
@@ -55,8 +54,7 @@ test('componentField arguments turn into fragment arguments', async function () 
 			  name(arg: 10)
 			  id
 			  __typename
-			}
-			"
+			}"
 		`)
 	})()
 })

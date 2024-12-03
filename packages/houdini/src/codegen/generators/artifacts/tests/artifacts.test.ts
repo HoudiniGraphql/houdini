@@ -41,12 +41,11 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+		    "hash": "24015ccbaa62e80c1a1364e01cf181591c9fbb03da6a9b32da97fb23f820ff78",
 
 		    "raw": \`query TestQuery {
 		  version
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -73,14 +72,13 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		export default {
 		    "name": "TestFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1",
+		    "hash": "084581b5154b8485bdbac1f29137b551205bf1ca4eca635a84199e16cbceb5f1",
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -131,7 +129,7 @@ test('selection includes fragments', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "890fc6dbeb79ac80cb60bef98a20cb51a59b209e3d015a48a027b3db4e6624bd",
+		    "hash": "be3aa33c62c8e8d6570339b1034fd11cd37ce9c76eb5e8bee2d770570eeb663c",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -144,8 +142,7 @@ test('selection includes fragments', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -199,14 +196,13 @@ test('selection includes fragments', async function () {
 		export default {
 		    "name": "TestFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1",
+		    "hash": "084581b5154b8485bdbac1f29137b551205bf1ca4eca635a84199e16cbceb5f1",
 
 		    "raw": \`fragment TestFragment on User {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -256,7 +252,7 @@ test('internal directives are scrubbed', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "9d58041683e24088d4bab3f04c2a319aa675013b1eedc19e3a5714743bbb20f1",
+		    "hash": "83519c640b07a6266d2e3e2c117746f72f94478eb2f46ad747901ca88450bbe4",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -269,8 +265,7 @@ test('internal directives are scrubbed', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -343,7 +338,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "9d58041683e24088d4bab3f04c2a319aa675013b1eedc19e3a5714743bbb20f1",
+		    "hash": "83519c640b07a6266d2e3e2c117746f72f94478eb2f46ad747901ca88450bbe4",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -356,8 +351,7 @@ test('variables only used by internal directives are scrubbed', async function (
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": ["parentID"],
@@ -435,7 +429,7 @@ test('overlapping query and fragment selection', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "873d00120214b1dd16765e67c42314ec06468b8f3fa85812412147a5dc943367",
+		    "hash": "2cc5cddc44bdcc3c42322c0aef974f10ac714f1a861e2e63f8ee25648df985c1",
 
 		    "raw": \`query TestQuery {
 		  user {
@@ -449,8 +443,7 @@ test('overlapping query and fragment selection', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -521,7 +514,7 @@ test('interface to interface inline fragment', async function () {
 		export default {
 		    "name": "MyQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "1523b7370764395a57e1a2434ea2e40290ac99d80a27c92438f8f053c0055998",
+		    "hash": "a330dcfec5abb4d00d38bc218e20f21e21be6366d48d81636a07c42ddac9d11f",
 
 		    "raw": \`query MyQuery($id: ID!) {
 		  node(id: $id) {
@@ -531,8 +524,7 @@ test('interface to interface inline fragment', async function () {
 		    id
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -641,7 +633,7 @@ test('paginate over unions', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "1d660603f2610ac59b38fd74f0b429f0c9c2cec3c64459cb222e7e26c7905e66",
+		    "hash": "e2ef37e889ff7321b925a45fff1af73eb12996f131f2458e640153a03decb66a",
 
 		    "refetch": {
 		        "path": ["entitiesByCursor"],
@@ -678,8 +670,7 @@ test('paginate over unions', async function () {
 		      endCursor
 		    }
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -893,7 +884,7 @@ test('overlapping query and fragment nested selection', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "25298a9f5705b2f18c259a596d2c2b00003e9234712537af9b254589c6b36626",
+		    "hash": "f441fe06ff9a291297795896d08658a11075629b072989da77ae1091cf4a34df",
 
 		    "raw": \`query TestQuery {
 		  friends {
@@ -915,8 +906,7 @@ test('overlapping query and fragment nested selection', async function () {
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1028,7 +1018,7 @@ test('selections with interfaces', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "8181fa3d03ae23a9e754dc7942f43979a196e69cb694d40e13edece1d5712d0e",
+		    "hash": "dcecf849e85da436e8b2180133c40252b6d0fc236a59d1eda07d2f36e6dc4d7a",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1045,8 +1035,7 @@ test('selections with interfaces', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1174,7 +1163,7 @@ test('selections with unions', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "6177321339bc293d1e89ab4aa31893cbfddce34bfd8a26af1a1878df17659ce4",
+		    "hash": "0a67584589a7d0e94bd292830f16677221919367fb88ba6ae1e5d6424a726c34",
 
 		    "raw": \`query Friends {
 		  entities {
@@ -1191,8 +1180,7 @@ test('selections with unions', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1321,7 +1309,7 @@ test('selections with overlapping unions', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "b97290b311e5555f225e6ce7281b2904531e6b0194fb70083b617835bacc3a61",
+		    "hash": "0e7538f4f26da448fd586c0b4291d92796407a27ea959c17c018a98933b40e05",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1339,8 +1327,7 @@ test('selections with overlapping unions', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1483,7 +1470,7 @@ test('selections with unions of abstract types', async function () {
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "0c20b2d8114b50a67eb9bd23410ce7d8811b50c402d95665ccd48e3682af4175",
+		    "hash": "a7c039d98e82af7992066b8c4156f82631a0692898ffb07e2788492df0d8f4cb",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1503,8 +1490,7 @@ test('selections with unions of abstract types', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1650,7 +1636,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		export default {
 		    "name": "Friends",
 		    "kind": "HoudiniQuery",
-		    "hash": "9ff85816b8980faa4ce2ff9540f1eb290312e3272b03984422282845f7627895",
+		    "hash": "b1774ca45ffdb6b52e00e2dd2af5247d4e2d7492f85a64baccd90e189b63ab05",
 
 		    "raw": \`query Friends {
 		  friends {
@@ -1669,8 +1655,7 @@ test('selections with concrete types matching multiple abstract types', async fu
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1840,7 +1825,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "B",
 			    "kind": "HoudiniMutation",
-			    "hash": "38005b47351eb4e6e14e3c13a8d0d206dac09bf80d6fa3c103a060a3990edd37",
+			    "hash": "d825b44300f0058240504d3b2fba7601dd64077c58219ddb5189faae2033857f",
 
 			    "raw": \`mutation B {
 			  addFriend {
@@ -1849,8 +1834,7 @@ describe('mutation artifacts', function () {
 			      id
 			    }
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -1930,7 +1914,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -1944,8 +1928,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2037,7 +2020,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "b1ad7b854a43149aedac6832e6a5bff625e125f516e1fea5806bf4123c4ee687",
+			    "hash": "318b26bb1905c0bbca5821e6178aa631994fd44b49490d192a47e8e97b0647e5",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2052,8 +2035,7 @@ describe('mutation artifacts', function () {
 			  firstName
 			  field(filter: "Hello World")
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2147,7 +2129,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "cec5c0890ba01a7c84acd987c7e7d797e8e08f2a4af3df33fa2a69f31230563c",
+			    "hash": "97ef3aee607724faacc4b4613fb049b52d28e94227f543c7b394e322eda17ec7",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2155,8 +2137,7 @@ describe('mutation artifacts', function () {
 			      id
 			    }
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2237,7 +2218,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2251,8 +2232,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2345,7 +2325,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "b1ad7b854a43149aedac6832e6a5bff625e125f516e1fea5806bf4123c4ee687",
+			    "hash": "318b26bb1905c0bbca5821e6178aa631994fd44b49490d192a47e8e97b0647e5",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2360,8 +2340,7 @@ describe('mutation artifacts', function () {
 			  firstName
 			  field(filter: "Hello World")
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2463,7 +2442,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4",
+			    "hash": "dc1971d8bc597d27220fc2c19d491dc470fd06fedd1308d2130df5c3ffe2f827",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2476,8 +2455,7 @@ describe('mutation artifacts', function () {
 
 			fragment All_Users_remove on User {
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2562,7 +2540,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da",
+			    "hash": "14844ea89ea3e888b8d3032c0b579abf637640b1e0de65582ec31e152300cc16",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2576,8 +2554,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_toggle on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2670,7 +2647,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "d7187de06687137a262178ad23eecf315461cd5cef17e2b384cbcdd25fe1e752",
+			    "hash": "bc399504c5fb4a638ea9a13c71f80e17d3c497f711495f5bfd1e57b5061a8303",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2685,8 +2662,7 @@ describe('mutation artifacts', function () {
 			  firstName
 			  field(filter: "Hello World")
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2791,7 +2767,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2805,8 +2781,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -2900,7 +2875,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -2914,8 +2889,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3006,7 +2980,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "e01f8a23cc33c10c4ee3745c041ee97f428b3b4676a5d8d681124f75b09306da",
+			    "hash": "14844ea89ea3e888b8d3032c0b579abf637640b1e0de65582ec31e152300cc16",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3020,8 +2994,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_toggle on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3113,7 +3086,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "d7187de06687137a262178ad23eecf315461cd5cef17e2b384cbcdd25fe1e752",
+			    "hash": "bc399504c5fb4a638ea9a13c71f80e17d3c497f711495f5bfd1e57b5061a8303",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3128,8 +3101,7 @@ describe('mutation artifacts', function () {
 			  firstName
 			  field(filter: "Hello World")
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3231,7 +3203,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4",
+			    "hash": "dc1971d8bc597d27220fc2c19d491dc470fd06fedd1308d2130df5c3ffe2f827",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3244,8 +3216,7 @@ describe('mutation artifacts', function () {
 
 			fragment All_Users_remove on User {
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3328,14 +3299,13 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
+			    "hash": "9384d744819f00a9d6ecdcfaba723e90f94dbec1e768bb9a2dd4d11f1d38cab2",
 
 			    "raw": \`mutation A {
 			  deleteUser(id: "1234") {
 			    userID
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3407,14 +3377,13 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
+			    "hash": "9384d744819f00a9d6ecdcfaba723e90f94dbec1e768bb9a2dd4d11f1d38cab2",
 
 			    "raw": \`mutation A {
 			  deleteUser(id: "1234") {
 			    userID
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3503,7 +3472,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3517,8 +3486,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3614,7 +3582,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3628,8 +3596,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3725,7 +3692,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3739,8 +3706,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3836,7 +3802,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3850,8 +3816,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -3948,7 +3913,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -3962,8 +3927,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -4060,7 +4024,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -4074,8 +4038,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -4172,7 +4135,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -4186,8 +4149,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -4284,7 +4246,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -4298,8 +4260,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -4401,15 +4362,14 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+			    "hash": "9213bfe3e00205983f14587d49ffda87d7ca30c44371c8e6aa0f38f399d84f37",
 
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -4530,7 +4490,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "A",
 			    "kind": "HoudiniMutation",
-			    "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+			    "hash": "d5fae982f620e0988514a4a6e933773a3353743fc94e160c7215bb65f6f89403",
 
 			    "raw": \`mutation A {
 			  addFriend {
@@ -4544,8 +4504,7 @@ describe('mutation artifacts', function () {
 			fragment All_Users_insert on User {
 			  firstName
 			  id
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Mutation",
 			    "stripVariables": [],
@@ -4642,15 +4601,14 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "2997353b3d1f04e02b9d211bb4f4069b63f8536b7f1eb686fc74fd8b3dab8dbd",
+			    "hash": "a3b6fe4ebea2be126d176bfea5fc42b306ed0d9e663da6fb8d9617efd3125a2b",
 
 			    "raw": \`query TestQuery {
 			  users(stringValue: "foo") {
 			    firstName
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -4749,7 +4707,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358",
+			    "hash": "4fd5bf9a9ff831ef58e03edc771751b532ace61cf39b350bf66260941001f2ae",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -4783,8 +4741,7 @@ describe('mutation artifacts', function () {
 			      endCursor
 			    }
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -5001,7 +4958,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358",
+			    "hash": "4fd5bf9a9ff831ef58e03edc771751b532ace61cf39b350bf66260941001f2ae",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -5035,8 +4992,7 @@ describe('mutation artifacts', function () {
 			      endCursor
 			    }
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -5250,15 +5206,14 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+			    "hash": "9213bfe3e00205983f14587d49ffda87d7ca30c44371c8e6aa0f38f399d84f37",
 
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -5376,15 +5331,14 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+			    "hash": "9213bfe3e00205983f14587d49ffda87d7ca30c44371c8e6aa0f38f399d84f37",
 
 			    "raw": \`query TestQuery($value: String!) {
 			  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 			    firstName
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -5516,14 +5470,13 @@ test('custom scalar shows up in artifact', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "b8314df1f7d924f76e6dfe6e7e3c8efd593db931c67c892311e97a9ec1d429b4",
+		    "hash": "6d3b1197489ec6ad1bacd3dc77ab79b1f075d373c8923be2f2e96b27ab8a7dce",
 
 		    "raw": \`query TestQuery {
 		  allItems {
 		    createdAt
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -5626,14 +5579,13 @@ test('operation inputs', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "f39d9c24c97c9c3cdcd916272e7ffb9d79cb4ad08ec294c829d647d4238c7e6b",
+		    "hash": "014c7791d749b2fce0a8d6d30d191fac3b37d4bbbf4b075322cb5ca9dbe09ba1",
 
 		    "raw": \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -5724,7 +5676,7 @@ describe('subscription artifacts', function () {
 			export default {
 			    "name": "B",
 			    "kind": "HoudiniSubscription",
-			    "hash": "755fb65bebc83835db68921b7e193809246fb6f9ee2e37cc66d7314b91a501e7",
+			    "hash": "421342a4a75c97ffbfb125e3dcf06cec1cea593be1bf1c774e1038c3ed363d91",
 
 			    "raw": \`subscription B {
 			  newUser {
@@ -5733,8 +5685,7 @@ describe('subscription artifacts', function () {
 			      id
 			    }
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Subscription",
 			    "stripVariables": [],
@@ -5817,12 +5768,11 @@ test('some artifactData added to artifact specific to plugins', async function (
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+		    "hash": "24015ccbaa62e80c1a1364e01cf181591c9fbb03da6a9b32da97fb23f820ff78",
 
 		    "raw": \`query TestQuery {
 		  version
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -5896,7 +5846,7 @@ test('nested recursive fragments', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "bef32f9431c60063291fea8375de73b98c703421a89721d8b03a9e5e0ae373bd",
+		    "hash": "c7875d1ffb00d945ee1f8be61e3f75b8dc3d31e47a3f9d4c6bf84569bf1a4c1b",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
@@ -5923,8 +5873,7 @@ test('nested recursive fragments', async function () {
 		  name
 		  ...NodeDetails
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -6033,7 +5982,7 @@ test('leave @include and @skip alone', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "ece1546c435cde03fdfb659b202fba2393b0b9828e8efbbe24f803a0707f3e02",
+		    "hash": "3ad0fff0ad120f72fd351b46d075a19fc4a7e1c5d1d1d4733dfcc9d26043fcf3",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
@@ -6049,8 +5998,7 @@ test('leave @include and @skip alone', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -6173,7 +6121,7 @@ test('fragment references are embedded in artifact', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "d5c8c7b13dddb230796354b42cd0a86ac0beed1d3a40e8b9288545908f96370d",
+		    "hash": "30a325b2371ac4a2a16be758f85fe34299392d05e521a2a9b22ddda009333904",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
@@ -6189,8 +6137,7 @@ test('fragment references are embedded in artifact', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -6288,7 +6235,7 @@ test('fragment variables are embedded in artifact', async function () {
 		export default {
 		    "name": "MyAnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "4b37690e134a34ea1c717ee69ed60772d979a81120bfbed99b20a68e9c8ea738",
+		    "hash": "d27693a0f8b25386667d938e07f2251eec0f04260bd155a715c90911cc94e930",
 
 		    "raw": \`query MyAnimalQuery {
 		  node(id: "some_id") {
@@ -6305,8 +6252,7 @@ test('fragment variables are embedded in artifact', async function () {
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -6412,7 +6358,7 @@ test('fragment nested in root', async function () {
 		export default {
 		    "name": "UserBase",
 		    "kind": "HoudiniFragment",
-		    "hash": "15225d2e5cba866e1a588cd399a03d5b2124156ac7003d3510544f22b7b9262c",
+		    "hash": "9b42e711c6a2c6963081878055088332491c172b2d746036a355db2d148fc1eb",
 
 		    "raw": \`fragment UserBase on User {
 		  id
@@ -6425,8 +6371,7 @@ test('fragment nested in root', async function () {
 		  id
 		  firstName
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -6508,7 +6453,7 @@ test('client nullability', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "af247d6de9dde7a1cab76049b4590fcf075346eec4bc7fc4a8937f2d71e4aade",
+		    "hash": "5b7b9615dce42b0673a170ba8e51068ebd7ddfed66cc996474da42ac1c92bf6f",
 
 		    "raw": \`query TestQuery($id: ID!) {
 		  node(id: $id) {
@@ -6541,8 +6486,7 @@ test('client nullability', async function () {
 		  name
 		  aka
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -6745,7 +6689,7 @@ test('nested abstract fragment on connection', async function () {
 		export default {
 		    "name": "AnimalQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "2f4654d4b23645ef3f39803cee2f770aea08e3b1716b5d4fa5efcbdf98a7ad08",
+		    "hash": "be1baabd9718fc3324dd82833c6f9cfbecbb566ee935baaa00d632c828207837",
 
 		    "raw": \`query AnimalQuery {
 		  animals {
@@ -6787,8 +6731,7 @@ test('nested abstract fragment on connection', async function () {
 		  name
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -7062,7 +7005,7 @@ test('nested abstract fragments', async function () {
 		export default {
 		    "name": "AnimalsOverview",
 		    "kind": "HoudiniQuery",
-		    "hash": "f8b2873db25ee257e57d33dce2ad02ea97ff20d623594812593a9fc75fe54527",
+		    "hash": "e08561197422d2657a5d55a8a37f1f1312df225a4966c59a0c6c043fa113e138",
 
 		    "raw": \`query AnimalsOverview {
 		  animals {
@@ -7091,8 +7034,7 @@ test('nested abstract fragments', async function () {
 		  name
 		  hasBanana
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -7212,7 +7154,7 @@ test('nested abstract fragments', async function () {
 		export default {
 		    "name": "AnimalsOverviewList",
 		    "kind": "HoudiniFragment",
-		    "hash": "80b0907b53d8a2fc39aa5fb018a75c8fc8d647ab741e3f4c4eea6a15ac5239cd",
+		    "hash": "d8ddbc0f31565ad88289ee2054b7f4f0718fc573d435d470c4fe1d89be65bdb9",
 
 		    "raw": \`fragment AnimalsOverviewList on AnimalConnection {
 		  edges {
@@ -7234,8 +7176,7 @@ test('nested abstract fragments', async function () {
 		  name
 		  hasBanana
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "AnimalConnection",
 		    "stripVariables": [],
@@ -7357,15 +7298,14 @@ test('runtimeScalars', async function () {
 		export default {
 		    "name": "AnimalsOverview",
 		    "kind": "HoudiniQuery",
-		    "hash": "7bdf3fd75d58f53835443b251587e4ccc3c4e5bcb7e9e8b41e8b15fca19cb82e",
+		    "hash": "97a70b7b377be64692fb480eab7a205ddd6f5fde8b3f941e5ba6cfc84d9ca991",
 
 		    "raw": \`query AnimalsOverview($id: ID!) {
 		  node(id: $id) {
 		    id
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -7447,7 +7387,7 @@ describe('default arguments', function () {
 			export default {
 			    "name": "UserFriends",
 			    "kind": "HoudiniQuery",
-			    "hash": "50713a85f40c418e37c1eb92eef9dc136b8916e78b4126a902bde2956a642db3",
+			    "hash": "b2639e5dd717d1b61306ffd329891f06ef1d0d846a6ee7c3861aac1b499a0e08",
 
 			    "raw": \`query UserFriends($count: Int = 10, $search: String = "bob") {
 			  user {
@@ -7457,8 +7397,7 @@ describe('default arguments', function () {
 			    }
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -7555,7 +7494,7 @@ describe('default arguments', function () {
 			export default {
 			    "name": "ListUsers",
 			    "kind": "HoudiniQuery",
-			    "hash": "8e997ca35d0030fcfbb888a740c20240530c85149e04b931e7d34d489d8be553",
+			    "hash": "82f257aed5de76e96f8662a2e72f339278a8512b6d319cdbca1e3cf12a839b5f",
 
 			    "raw": \`query ListUsers($bool: Boolean = true, $int: Int = 5, $float: Float = 3.14, $string: String = "hello world") {
 			  users(
@@ -7567,8 +7506,7 @@ describe('default arguments', function () {
 			    name
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -7652,15 +7590,14 @@ describe('default arguments', function () {
 			export default {
 			    "name": "FindUser",
 			    "kind": "HoudiniQuery",
-			    "hash": "178720d2fc874e6b58c920f655d292a59a6de314ed70ea9eee335b1ad3fb1755",
+			    "hash": "e3c7682e66769f2f9c9f69fd3ddd9a6e4de596c24bd0121ecc1dcfac547cf2ee",
 
 			    "raw": \`query FindUser($filter: UserFilter = {name: "bob"}) {
 			  usersByOffset(offset: 5, filter: $filter) {
 			    name
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -7745,15 +7682,14 @@ test('persists dedupe which', async function () {
 		export default {
 		    "name": "FindUser",
 		    "kind": "HoudiniQuery",
-		    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+		    "hash": "db913235b0a6aa335c7d240ade03de4ee31d537ada41994f2e6b42aac3afa7b0",
 
 		    "raw": \`query FindUser {
 		  usersByOffset {
 		    name
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -7822,15 +7758,14 @@ test('persists dedupe first', async function () {
 		export default {
 		    "name": "FindUser",
 		    "kind": "HoudiniQuery",
-		    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+		    "hash": "db913235b0a6aa335c7d240ade03de4ee31d537ada41994f2e6b42aac3afa7b0",
 
 		    "raw": \`query FindUser {
 		  usersByOffset {
 		    name
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -7900,15 +7835,14 @@ describe('Parses the correct matching mode', function () {
 			export default {
 			    "name": "FindUser",
 			    "kind": "HoudiniQuery",
-			    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+			    "hash": "db913235b0a6aa335c7d240ade03de4ee31d537ada41994f2e6b42aac3afa7b0",
 
 			    "raw": \`query FindUser {
 			  usersByOffset {
 			    name
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -7977,15 +7911,14 @@ describe('Parses the correct matching mode', function () {
 			export default {
 			    "name": "FindUser",
 			    "kind": "HoudiniQuery",
-			    "hash": "63be02f78e12d6dd155da0aac94892e700a5be1eeb66dfc2305740ce2464dd3b",
+			    "hash": "db913235b0a6aa335c7d240ade03de4ee31d537ada41994f2e6b42aac3afa7b0",
 
 			    "raw": \`query FindUser {
 			  usersByOffset {
 			    name
 			    id
 			  }
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],

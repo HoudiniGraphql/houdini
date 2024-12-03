@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-node",
-    "version": "1.2.66",
+    "version": "1.2.65-next.0",
     "description": "The adapter for deploying your Houdini application as a standalone node server",
     "keywords": [
         "houdini",
@@ -21,6 +21,7 @@
         "build:build": "pnpm build: && pnpm build"
     },
     "devDependencies": {
+        "@types/node": "^22.5.1",
         "scripts": "workspace:^",
         "tsup": "^7.2.0"
     },
