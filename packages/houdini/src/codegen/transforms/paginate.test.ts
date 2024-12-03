@@ -563,7 +563,7 @@ test('embeds node pagination query as a separate document', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "30767cc439cd988fba3fa4aed967f50c4a399802943d1648d6ef844e404e4195",
+		    "hash": "d99ce9848ab53728007c86488e9a8500df9c0c3072cc4860c401ef2dbd66e531",
 
 		    "refetch": {
 		        "path": ["friendsByForwardsCursor"],
@@ -612,8 +612,7 @@ test('embeds node pagination query as a separate document', async function () {
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -853,7 +852,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		export default {
 		    "name": "UserGhost_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "ed7cb843392ec40cc41958b5447504a23d6816c3d2b0372dd3c8087ed7e4fe28",
+		    "hash": "ca206605b235222a04bda04ef858befdd65dce92909efe2c25f6f168acadbf04",
 
 		    "refetch": {
 		        "path": ["friendsConnection"],
@@ -905,8 +904,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		  name
 		  aka
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1769,7 +1767,7 @@ test('generated query has same refetch spec', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "63ad0e8780be98430b6e2272df8bc6b3b4d8d78baa4f616d2ac5a6beb45bcb7e",
+		    "hash": "64aad962389a2f74023331779c97bec95ad34c343223bc3193770f5e637fdf35",
 
 		    "refetch": {
 		        "path": ["usersByCursor"],
@@ -1814,8 +1812,7 @@ test('generated query has same refetch spec', async function () {
 		    }
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -2089,7 +2086,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		export default {
 		    "name": "UserFriends",
 		    "kind": "HoudiniFragment",
-		    "hash": "1edf81feb135cb2a595dcaf31e1e559b2e2f0038db41d30f9d9f1bb9f0607ddc",
+		    "hash": "abe3145a9845b49df034c589d794c5b91c35fd3d36c90044a7d2957ce93535f6",
 
 		    "refetch": {
 		        "path": ["usersByCursor"],
@@ -2129,8 +2126,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		    }
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],

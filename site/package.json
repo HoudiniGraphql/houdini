@@ -44,7 +44,7 @@
 		"@sveltejs/adapter-netlify": "^2.0.5",
 		"feather-icons": "^4.29.0",
 		"flexsearch": "^0.7.31",
-		"graphql": "^15.8.0",
+		"graphql": "^16.9.0",
 		"graphql-yoga": "^4.0.4",
 		"lodash": "^4.17.21",
 		"mdsvex": "^0.10.6",
@@ -57,6 +57,6 @@
 		"svelte": "^3.57.0",
 		"svelte-preprocess": "^5.0.0",
 		"unist-util-visit": "^4.1.1",
-		"vite": "^4.1.1"
+		"vite": "^4.1.4"
 	}
 }

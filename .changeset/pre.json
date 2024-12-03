@@ -1,0 +1,25 @@
+{
+  "mode": "exit",
+  "tag": "next",
+  "initialVersions": {
+    "e2e-api": "0.0.1",
+    "e2e-kit": "0.0.1",
+    "e2e-react": "0.0.0",
+    "e2e-svelte": "0.0.1",
+    "scripts": "1.0.0",
+    "houdini-adapter-auto": "1.2.64",
+    "houdini-adapter-cloudflare": "1.2.64",
+    "houdini-adapter-node": "1.2.64",
+    "houdini-adapter-static": "1.2.64",
+    "create-houdini": "1.2.64",
+    "houdini": "1.2.64",
+    "houdini-react": "1.2.64",
+    "houdini-svelte": "1.2.64",
+    "houdini-plugin-svelte-global-stores": "1.2.64",
+    "site": "0.0.1"
+  },
+  "changesets": [
+    "gorgeous-lions-nail",
+    "new-comics-happen"
+  ]
+}

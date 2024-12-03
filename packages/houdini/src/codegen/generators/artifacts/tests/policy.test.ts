@@ -29,7 +29,7 @@ test('cache policy is persisted in artifact', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "72a09504e4d65757a4277e3ef95cd93788b7f918519924901c3d5d7d39a4d32a",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -38,8 +38,7 @@ test('cache policy is persisted in artifact', async function () {
 		    }
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -118,7 +117,7 @@ test('can change default cache policy', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "72a09504e4d65757a4277e3ef95cd93788b7f918519924901c3d5d7d39a4d32a",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -127,8 +126,7 @@ test('can change default cache policy', async function () {
 		    }
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -202,7 +200,7 @@ test('partial opt-in is persisted', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "72a09504e4d65757a4277e3ef95cd93788b7f918519924901c3d5d7d39a4d32a",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -211,8 +209,7 @@ test('partial opt-in is persisted', async function () {
 		    }
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -291,7 +288,7 @@ test('can set default partial opt-in', async function () {
 		export default {
 		    "name": "CachedFriends",
 		    "kind": "HoudiniQuery",
-		    "hash": "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
+		    "hash": "72a09504e4d65757a4277e3ef95cd93788b7f918519924901c3d5d7d39a4d32a",
 
 		    "raw": \`query CachedFriends {
 		  user {
@@ -300,8 +297,7 @@ test('can set default partial opt-in', async function () {
 		    }
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],

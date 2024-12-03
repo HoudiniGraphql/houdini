@@ -33,7 +33,7 @@
         "@sveltejs/kit": "^2.9.0",
         "ast-types": "^0.16.1",
         "estree-walker": "^3.0.1",
-        "graphql": "^15.8.0",
+        "graphql": "^16.9.0",
         "houdini": "workspace:^",
         "recast": "^0.23.1",
         "rollup": "^4.28.1",

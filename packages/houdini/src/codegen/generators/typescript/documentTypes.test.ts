@@ -159,7 +159,7 @@ test('generate document types', async function () {
 		export type TestQuery$artifact = {
 		    "name": "TestQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "588d554d8d7839596a619c1bfeaae326f42eb416c17dfeb016bee8434fae6043";
+		    "hash": "ba09d7c705c8de9e29e896a4cd0684242f966ca88518f498808bd5dfbdf93dab";
 		    "raw": \`query TestQuery {
 		  user(id: "123") {
 		    firstName
@@ -176,8 +176,7 @@ test('generate document types', async function () {
 		  firstname
 		  id
 		  __typename
-		}
-		\`;
+		}\`;
 		    "rootType": "Query";
 		    "stripVariables": [];
 		    "selection": {
@@ -273,15 +272,14 @@ test('generate document types', async function () {
 			export type otherInfo$artifact = {
 			    "name": "otherInfo";
 			    "kind": "HoudiniFragment";
-			    "hash": "ea797186970659edb8c7a021812ce5652a9fb1d4ca5f6b9acde4e0aa734e0a3e";
+			    "hash": "3d54f15de7525d15d1ad89402952ce08c6aa58f17823f908f6b7db81692f8492";
 			    "raw": \`fragment otherInfo on User {
 			  enumValue
 			  age
 			  firstname
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {

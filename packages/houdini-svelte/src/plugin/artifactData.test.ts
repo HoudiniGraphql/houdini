@@ -40,7 +40,7 @@ describe('load', () => {
 			export default {
 			    "name": "FragmentUpdateTestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "bf9b4819b5a3f31b73640acb3da7f0b5abc29e07a1292a2fe307415b619716e3",
+			    "hash": "9fefcfbc77da7cf98fcf99e2bfaccb4d9454a465e4149871a57de80b8658082e",
 
 			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
 			  node(id: $id) {
@@ -57,8 +57,7 @@ describe('load', () => {
 			  name
 			  id
 			  __typename
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -158,12 +157,11 @@ describe('blocking', () => {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+			    "hash": "24015ccbaa62e80c1a1364e01cf181591c9fbb03da6a9b32da97fb23f820ff78",
 
 			    "raw": \`query TestQuery {
 			  version
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -203,12 +201,11 @@ describe('blocking', () => {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+			    "hash": "24015ccbaa62e80c1a1364e01cf181591c9fbb03da6a9b32da97fb23f820ff78",
 
 			    "raw": \`query TestQuery {
 			  version
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],

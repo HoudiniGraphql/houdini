@@ -17,14 +17,14 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "build": "tsup src/index.ts src/worker.ts --format esm,cjs  --minify --dts --clean --out-dir build",
+        "build": "tsup src/index.ts src/worker.ts --format esm,cjs --minify --dts --clean --out-dir build",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build"
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20230904.0",
         "scripts": "workspace:^",
-        "tsup": "^7.2.0"
+        "tsup": "^8.3.5"
     },
     "dependencies": {
         "houdini": "workspace:^"

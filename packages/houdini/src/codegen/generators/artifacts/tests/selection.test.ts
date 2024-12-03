@@ -127,7 +127,7 @@ test('list of fragment unions', async function () {
 		export default {
 		    "name": "Entities",
 		    "kind": "HoudiniQuery",
-		    "hash": "4087fc510c6a4252213315a4c4a4d9c915ac81619f1210683e5e7c980cc3390f",
+		    "hash": "caae958e48a3d97c99baeac56b4e9594309b5aae4b86e32bc7516d0445866273",
 
 		    "raw": \`query Entities {
 		  entities {
@@ -141,8 +141,7 @@ test('list of fragment unions', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -271,7 +270,7 @@ test('fragments in lists', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "701b45dea27a1c86d40dc4ad9db1e3e1c16be62af21f8b31c784749ddcc4217a",
+		    "hash": "a59ca8bcc85d9dc33358afcdd7fabe4f58c5d6f5139a55011c0f8422bdb85f72",
 
 		    "raw": \`query TestQuery {
 		  usersByCursor {
@@ -306,8 +305,7 @@ test('fragments in lists', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -482,7 +480,7 @@ test('concrete selection applies mask over abstract selection', async function (
 		export default {
 		    "name": "MonkeyListQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "5e86edd84280f328c6e368f75bb1f19cfd2eff5876bc240cf98cca13daae05ad",
+		    "hash": "1e60729a73be7b6f70854fbc06993aea46eb6280c612b6c8f3ccf70fc0623c23",
 
 		    "raw": \`query MonkeyListQuery {
 		  monkeys {
@@ -506,8 +504,7 @@ test('concrete selection applies mask over abstract selection', async function (
 		    __typename
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -796,7 +793,7 @@ test("multiple abstract selections don't conflict", async function () {
 		export default {
 		    "name": "Articles",
 		    "kind": "HoudiniQuery",
-		    "hash": "aaa0127313b60910b437b95e7f37ea6bf01d5fbf426a5aa51da48916a91812de",
+		    "hash": "9ccdb6723f9a494fa92d8a438e2209d7097e7649efd30545de61223c993dcb36",
 
 		    "raw": \`query Articles {
 		  articles {
@@ -841,8 +838,7 @@ test("multiple abstract selections don't conflict", async function () {
 		    }
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1065,7 +1061,7 @@ test('componentFields get embedded in the selection', async function () {
 		export default {
 		    "name": "UserWithAvatar",
 		    "kind": "HoudiniQuery",
-		    "hash": "30e4c52e63f8d5ce74e8b8545a099d29e877df195141d1c67221b480f0840014",
+		    "hash": "ba2ff6df42ed6deca3fc893b304ca45cce2ef85cee82cf3502645154f8fcdb18",
 
 		    "raw": \`query UserWithAvatar {
 		  user {
@@ -1085,8 +1081,7 @@ test('componentFields get embedded in the selection', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1171,7 +1166,7 @@ test('componentFields get embedded in the selection', async function () {
 		export default {
 		    "name": "UserAvatar",
 		    "kind": "HoudiniFragment",
-		    "hash": "f5f2155463f80756d17e9e3294cd9f922bbe56ce135a0a39c84bb34b49a13f7e",
+		    "hash": "eca9dc662eddc7404a9a7d25105fccd8f729157db14059756adaa3bcc66bd517",
 
 		    "raw": \`fragment UserAvatar on User {
 		  firstName
@@ -1184,8 +1179,7 @@ test('componentFields get embedded in the selection', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -1267,14 +1261,13 @@ test('fragment argument passed to directive', async function () {
 		export default {
 		    "name": "UserDetailsArguments",
 		    "kind": "HoudiniFragment",
-		    "hash": "79a8d7df6a489a0f095761c3159630e50dd05bbff30c2a93bc9aa177cbe40cb5",
+		    "hash": "b95bffcfdfbb0dc292b732272b5cde271c600c41ee7f6dec52ba55b956b41533",
 
 		    "raw": \`fragment UserDetailsArguments on User {
 		  id
 		  birthday @include(if: $showBirthday)
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],

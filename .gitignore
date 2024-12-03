@@ -25,5 +25,8 @@ vite.config.*.timestamp-*
 
 .vercel
 .netlify
+<<<<<<< HEAD
 
+=======
+>>>>>>> 60b4ee4f (Bump GraphQL to v16 (#1387))
 mise.toml
