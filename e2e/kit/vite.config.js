@@ -14,10 +14,10 @@ const config = {
     libReporter([
       {
         name: 'houdini runtime core',
-        includes: ['$houdini/runtime'],
+        includes: ['.houdini/runtime'],
         excludes: [
-          '$houdini/index.js',
-          '$houdini/plugins/index.js',
+          '.houdini/index.js',
+          '.houdini/plugins/index.js',
           'houdini.config.js',
           'graphql-ws',
           'svelte'
@@ -25,11 +25,11 @@ const config = {
       },
       {
         name: 'houdini runtime svelte',
-        includes: ['$houdini/plugins/houdini-svelte/runtime', 'src/client.ts'],
+        includes: ['.houdini/plugins/houdini-svelte/runtime', 'src/client.ts'],
         excludes: [
-          '$houdini/runtime',
-          '$houdini/index.js',
-          '$houdini/plugins/index.js',
+          '.houdini/runtime',
+          '.houdini/index.js',
+          '.houdini/plugins/index.js',
           'graphql-ws',
           'vite/preload-helper',
           'svelte'
@@ -37,7 +37,7 @@ const config = {
       },
       {
         name: 'houdini full e2e',
-        includes: ['$houdini', 'src/client.ts', 'houdini.config.js'],
+        includes: ['.houdini', 'src/client.ts', 'houdini.config.js'],
         excludes: ['graphql-ws', 'vite/preload-helper', 'svelte']
       }
     ])

@@ -6,6 +6,7 @@ const config = {
   schemaPath: '../_api/*.graphql',
   defaultPartial: true,
   acceptImperativeInstability: true,
+  runtimeDir: '.houdini',
   // logLevel: 'Full',
   scalars: {
     DateTime: {

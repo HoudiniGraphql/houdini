@@ -195,7 +195,7 @@ export type ConfigFile = {
 	watchSchema?: WatchSchemaConfig
 
 	/**
-	 * Specifies the the persisted queries path and file. (default: `./$houdini/persisted_queries.json`)
+	 * Specifies the the persisted queries path and file. (default: `<rootDir>/persisted_queries.json`)
 	 */
 	persistedQueriesPath?: string
 
@@ -209,6 +209,12 @@ export type ConfigFile = {
 	 * @default process.cwd()
 	 */
 	projectDir?: string
+
+	/**
+	 * The relative path from your project directory pointing to your output directory.
+	 * @default `$houdini`
+	 */
+	runtimeDir?: string
 
 	/**
 	 * For now, the cache's imperative API is considered unstable. In order to suppress the warning,

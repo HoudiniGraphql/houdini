@@ -7,22 +7,22 @@ import ReactDOM from 'react-dom/server'
 // in order to prepare the app as a single-page app, we have 2 create 2 additional files:
 // - an index.js that imports the application and calls React.render. This file needs to be built by vite so it's passed with the includePaths option for an adapter
 // - an index.html containing the static shell that wraps the application.
-const adapter: Adapter = async ({ outDir }) => {
+const adapter: Adapter = async ({ outDir, config: { runtimeDir } }) => {
 	// the first thing we need to do is pull out the rendered html file into the root of the outDir
 	await fs.copyFile(
-		path.join(outDir, 'assets', '$houdini', 'temp', 'spa-shell', 'index.html'),
+		path.join(outDir, 'assets', runtimeDir, 'temp', 'spa-shell', 'index.html'),
 		path.join(outDir, 'index.html')
 	)
 
 	try {
-		await fs.rmdir(path.join(outDir, 'assets', '$houdini'))
+		await fs.rmdir(path.join(outDir, 'assets', runtimeDir))
 	} catch {}
 }
 
 // make sure we include the app entry point in the bundle
-adapter.includePaths = {
-	shell: '$houdini/temp/spa-shell/index.html',
-}
+adapter.includePaths = ({ config: { runtimeDir } }) => ({
+	shell: path.join(runtimeDir, 'temp', 'spa-shell', 'index.html'),
+})
 
 // we dont want any server artifacts to be generated
 adapter.disableServer = true

@@ -318,6 +318,8 @@ async function houdiniConfig(
 		}
 	}
 
+	config.runtimeDir = '.houdini'
+
 	// if it's different for defaults, write it down
 	if (schemaPath !== './schema.graphql') {
 		config.schemaPath = schemaPath
@@ -431,7 +433,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$houdini: './$houdini',
+			$houdini: '.houdini/'
 		}
 	}
 };
@@ -446,7 +448,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$houdini: './$houdini',
+			$houdini: '.houdini/'
 		}
 	}
 };
@@ -465,8 +467,8 @@ async function gitIgnore(targetPath: string) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
 
-	if (!existing.includes('\n$houdini\n')) {
-		await fs.writeFile(filepath, existing + '\n$houdini\n')
+	if (!existing.includes('\n.houdini\n')) {
+		await fs.writeFile(filepath, existing + '\n.houdini\n')
 	}
 }
 
@@ -478,11 +480,11 @@ async function graphqlRC(targetPath: string) {
   default:
     schema:
       - ./schema.graphql
-      - ./$houdini/graphql/schema.graphql
+      - ./.houdini/graphql/schema.graphql
     documents:
       - '**/*.gql'
       - '**/*.svelte'
-      - ./$houdini/graphql/documents.gql
+      - ./.houdini/graphql/documents.gql
 `
 
 	await fs.writeFile(target, content)
@@ -507,7 +509,7 @@ export default defineConfig({
 
 	resolve: {
 		alias: {
-			$houdini: path.resolve('$houdini'),
+			$houdini: '.houdini/',
 		},
 	},
 })
@@ -553,9 +555,9 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
 		if (frameworkInfo.framework === 'svelte') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './$houdini/types']
+			tjsConfig.compilerOptions.rootDirs = ['.', './.houdini/types']
 		} else if (frameworkInfo.framework === 'kit') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './$houdini/types']
+			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.houdini/types']
 		}
 
 		// In kit, no need to add manually the path. Why? Because:
@@ -565,8 +567,8 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 		if (frameworkInfo.framework === 'svelte') {
 			tjsConfig.compilerOptions.paths = {
 				...tjsConfig.compilerOptions.paths,
-				$houdini: ['./$houdini'],
-				'$houdini/*': ['./$houdini/*'],
+				$houdini: ['./.houdini/'],
+				'$houdini/*': ['./.houdini/*'],
 			}
 		}
 

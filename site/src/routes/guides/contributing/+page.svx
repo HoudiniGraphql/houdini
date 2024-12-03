@@ -25,6 +25,14 @@ should be able to visit `localhost:5173` in a web browser and see the end-to-end
 route in this application to work against. Don't worry about where it "belongs" - we'll make sure it goes in the right
 place when your PR is open.
 
+Make sure you're using NodeJS and PNPM versions compatible with the `engines` config in the repo's `package.json`, otherwise you may experience inconsistent behavior between local, CI and deploy environments. Some good options for multiple NodeJS versions are:
+
+- [nvm](https://github.com/nvm-sh/nvm)
+- [nix](https://nixos.org/)
+- [asdf](https://asdf-vm.com/)
+- [mise-en-place](https://mise.jdx.dev/)
+- [pkgx](https://github.com/pkgxdev/pkgx)
+
 ## General Introduction
 
 At a high level, houdini is broken up into a few parts. The core houdini project is located at [packages/houdini](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini) which provides the core artifact generation pipeline, cache runtime, vite plugin, and a collection of utilities for building extensions to the system.
