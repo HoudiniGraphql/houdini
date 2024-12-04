@@ -419,9 +419,6 @@ importers:
       react-dom:
         specifier: 19.0.0-rc-eb259b5d3b-20240605
         version: 19.0.0-rc-eb259b5d3b-20240605(react@19.0.0-rc-eb259b5d3b-20240605)
-      vite:
-        specifier: ^4.1.4
-        version: 4.1.4(@types/node@18.11.15)(terser@5.16.1)
     devDependencies:
       '@types/node':
         specifier: ^18.7.23
@@ -441,6 +438,9 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
+      vite:
+        specifier: ^5.3.3
+        version: 5.3.3(@types/node@18.11.15)(terser@5.16.1)
 
   packages/create-houdini:
     dependencies:
@@ -666,9 +666,6 @@ importers:
       '@kitql/helpers':
         specifier: ^0.8.2
         version: 0.8.2
-      '@sveltejs/kit':
-        specifier: ^2.5.3
-        version: 2.5.24(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
       ast-types:
         specifier: ^0.16.1
         version: 0.16.1
@@ -687,10 +684,10 @@ importers:
       rollup:
         specifier: ^3.7.4
         version: 3.7.4
-      vite:
-        specifier: ^5.3.3
-        version: 5.3.3(@types/node@18.11.15)(terser@5.16.1)
     devDependencies:
+      '@sveltejs/kit':
+        specifier: ^2.5.3
+        version: 2.5.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
       '@types/minimatch':
         specifier: ^5.1.2
         version: 5.1.2
@@ -703,15 +700,15 @@ importers:
       svelte:
         specifier: ^5.0.0
         version: 5.3.0
+      vite:
+        specifier: ^5.3.3
+        version: 5.3.3(@types/node@18.11.15)(terser@5.16.1)
       vitest:
         specifier: ^1.6.0
         version: 1.6.0(@types/node@18.11.15)(@vitest/ui@1.6.0)(terser@5.16.1)
 
   packages/plugin-svelte-global-stores:
     dependencies:
-      '@sveltejs/kit':
-        specifier: ^2.5.3
-        version: 2.5.24(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
       houdini:
         specifier: workspace:^
         version: link:../houdini
@@ -722,6 +719,9 @@ importers:
         specifier: ^0.23.1
         version: 0.23.1
     devDependencies:
+      '@sveltejs/kit':
+        specifier: ^2.5.3
+        version: 2.5.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
       scripts:
         specifier: workspace:^
         version: link:../_scripts
@@ -2334,6 +2334,15 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.3
 
+  '@sveltejs/kit@2.5.3':
+    resolution: {integrity: sha512-s6x7HBn/Fp+UNvyhJohjIA0FcJ+BWHGUDQ4PCg1D0EboUlvbimJQYchINu8G6sspLXYmlcsuNsp8bbcrRk85iw==}
+    engines: {node: '>=18.13'}
+    hasBin: true
+    peerDependencies:
+      '@sveltejs/vite-plugin-svelte': ^3.0.0
+      svelte: ^4.0.0 || ^5.0.0-next.0
+      vite: ^5.0.3
+
   '@sveltejs/vite-plugin-svelte-inspector@1.0.4':
     resolution: {integrity: sha512-zjiuZ3yydBtwpF3bj0kQNV0YXe+iKE545QGZVTaylW3eAzFr+pJ/cwK8lZEaRp4JtaJXhD5DyWAV4AxLh6DgaQ==}
     engines: {node: ^14.18.0 || >= 16}
@@ -3683,6 +3692,9 @@ packages:
 
   devalue@4.3.0:
     resolution: {integrity: sha512-n94yQo4LI3w7erwf84mhRUkUJfhLoCZiLyoOZ/QFsDbcWNZePrLwbQpvZBUG2TNxwV3VjCKPxkiiQA6pe3TrTA==}
+
+  devalue@4.3.3:
+    resolution: {integrity: sha512-UH8EL6H2ifcY8TbD2QsxwCC/pr5xSwPvv85LrLXVihmHVC3T3YqTCIwnR5ak0yO1KYqlxrPVOA/JVZJYPy2ATg==}
 
   devalue@5.0.0:
     resolution: {integrity: sha512-gO+/OMXF7488D+u3ue+G7Y4AA3ZmUnB3eHJXmBTgNHvr4ZNzl36A0ZtG+XCRNYCkYx/bFmw4qtkoFLa+wSrwAA==}
@@ -8880,7 +8892,7 @@ snapshots:
 
   '@kitql/helpers@0.8.9':
     dependencies:
-      esm-env: 1.0.0
+      esm-env: 1.2.1
 
   '@manypkg/find-root@1.1.0':
     dependencies:
@@ -9149,9 +9161,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/kit@2.5.24(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))':
+  '@sveltejs/kit@2.5.24(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))':
     dependencies:
-      '@sveltejs/vite-plugin-svelte': 4.0.0(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
+      '@sveltejs/vite-plugin-svelte': 4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
       '@types/cookie': 0.6.0
       cookie: 0.6.0
       devalue: 5.0.0
@@ -9163,20 +9175,38 @@ snapshots:
       sade: 1.8.1
       set-cookie-parser: 2.6.0
       sirv: 2.0.4
+      svelte: 5.3.1
+      tiny-glob: 0.2.9
+      vite: 5.3.3(@types/node@18.11.15)(terser@5.16.1)
+
+  '@sveltejs/kit@2.5.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))':
+    dependencies:
+      '@sveltejs/vite-plugin-svelte': 4.0.0(svelte@5.3.0)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
+      '@types/cookie': 0.6.0
+      cookie: 0.6.0
+      devalue: 4.3.3
+      esm-env: 1.2.1
+      import-meta-resolve: 4.1.0
+      kleur: 4.1.5
+      magic-string: 0.30.12
+      mrmime: 2.0.0
+      sade: 1.8.1
+      set-cookie-parser: 2.6.0
+      sirv: 2.0.4
       svelte: 5.3.0
       tiny-glob: 0.2.9
       vite: 5.3.3(@types/node@18.11.15)(terser@5.16.1)
 
-  '@sveltejs/kit@2.5.24(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))':
+  '@sveltejs/kit@2.5.3(@sveltejs/vite-plugin-svelte@4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1)))(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 4.0.0(svelte@5.3.1)(vite@5.3.3(@types/node@18.11.15)(terser@5.16.1))
       '@types/cookie': 0.6.0
       cookie: 0.6.0
-      devalue: 5.0.0
-      esm-env: 1.0.0
+      devalue: 4.3.3
+      esm-env: 1.2.1
       import-meta-resolve: 4.1.0
       kleur: 4.1.5
-      magic-string: 0.30.10
+      magic-string: 0.30.12
       mrmime: 2.0.0
       sade: 1.8.1
       set-cookie-parser: 2.6.0
@@ -9231,7 +9261,7 @@ snapshots:
       debug: 4.3.4(supports-color@9.3.1)
       deepmerge: 4.3.1
       kleur: 4.1.5
-      magic-string: 0.30.10
+      magic-string: 0.30.12
       svelte: 3.57.0
       svelte-hmr: 0.15.3(svelte@3.57.0)
       vite: 4.1.1(@types/node@18.11.15)(terser@5.16.1)
@@ -10882,6 +10912,8 @@ snapshots:
   detect-indent@6.1.0: {}
 
   devalue@4.3.0: {}
+
+  devalue@4.3.3: {}
 
   devalue@5.0.0: {}
 

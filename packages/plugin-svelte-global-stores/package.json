@@ -23,17 +23,18 @@
         "typedefs": "scripts typedefs --plugin"
     },
     "devDependencies": {
+        "@sveltejs/kit": "^2.5.3",
         "scripts": "workspace:^",
         "svelte": "^5.0.0",
         "vitest": "^1.6.0"
     },
     "dependencies": {
-        "@sveltejs/kit": "^2.5.3",
         "houdini": "workspace:^",
         "houdini-svelte": "workspace:^",
         "recast": "^0.23.1"
     },
     "peerDependencies": {
+        "@sveltejs/kit": "^2.5.3",
         "svelte": "^5.0.0"
     },
     "files": [

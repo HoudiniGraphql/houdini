@@ -60,6 +60,9 @@
         "recast": "^0.23.1",
         "vite-plugin-watch-and-run": "^1.7.0"
     },
+    "peerDependencies": {
+        "vite": "^5.3.3"
+    },
     "files": [
         "build"
     ],
