@@ -41,4 +41,4 @@ export default new HoudiniClient({
 })
 ```
 
-Tip: If your API uses HTTP-Only cookies, don't forget to add `include: "credentials"` to `fetchParams`' return value
+Tip: If your API uses HTTP-Only cookies, don't forget to add `credentials: "include"` to `fetchParams`' return value
