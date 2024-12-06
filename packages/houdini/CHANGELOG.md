@@ -1,5 +1,15 @@
 # houdini
 
+## 1.4.0
+
+### Minor Changes
+
+-   [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks [@endigma](https://github.com/endigma)! - Added support for configuring Houdini's output directory
+
+### Patch Changes
+
+-   [#1378](https://github.com/HoudiniGraphql/houdini/pull/1378) [`d2dbcd2d`](https://github.com/HoudiniGraphql/houdini/commit/d2dbcd2de9b77b855053ea7775dff1207eb60a4c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add match argument to dedupe directive
+
 ## 1.3.1
 
 ### Patch Changes
