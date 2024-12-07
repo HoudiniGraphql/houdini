@@ -20,7 +20,7 @@
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {
-        "@babel/types": "^7.21.5",
+        "@babel/types": "^7.24.6",
         "@trivago/prettier-plugin-sort-imports": "^4.0.0",
         "@types/glob": "^8.0.0",
         "@types/minimatch": "^5.1.2",
@@ -34,7 +34,7 @@
         "vitest": "^1.6.0"
     },
     "dependencies": {
-        "@babel/parser": "^7.23.9",
+        "@babel/parser": "^7.24.6",
         "@clack/prompts": "^0.6.3",
         "@graphql-tools/merge": "^9.0.0",
         "@graphql-tools/schema": "^9.0.4",
