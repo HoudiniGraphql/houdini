@@ -1,6 +1,10 @@
-import type { DocumentArtifact, GraphQLVariables, QueryResult } from '$houdini/lib/types'
+import type {
+	DocumentArtifact,
+	GraphQLVariables,
+	QueryResult,
+	GraphQLObject,
+} from '$houdini/lib/types'
 import type { DocumentStore, ObserveParams } from '$houdini/runtime/client'
-import type { GraphQLObject } from 'houdini'
 import * as React from 'react'
 
 import { useClient } from '../routing'
