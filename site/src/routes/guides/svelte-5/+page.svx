@@ -5,12 +5,15 @@ description: Using Houdini with Svelte 5 runes
 
 # Setting up
 
-Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode. All you need to do is bump the Houdini version in your `package.json`.
+Houdini works out of the box with Svelte 5, both in legacy mode or in runes mode.
+These are the minimum versions of Houdini that have support for Svelte 5:
+- `houdini v1.3.0` or later
+- `houdini-svelte v2.0.0` or later
 
 # Using runes
 
 Updating your code to make use of runes is straight-forward.
-Houdini still makes use of Svelte Stores, so your code will continue to work as normal.
+Houdini still makes use of Svelte stores, so your code will continue to work as normal.
 Just start using Runes and Houdini will adapt to your needs!
 
 If you are only using runes or you have enabled runes globally in your svelte config, you can tell Houdini to enable runes mode globally as well.
@@ -38,8 +41,8 @@ If your query is SSR'ed, you need to get the store from the PageData like so:
     interface Props {
         data: PageData;
     }
-    const { data }: Props = $props();
-    const { MyProfile } = $derived(data);
+    let { data }: Props = $props();
+    let { MyProfile } = $derived(data);
 </script>
 
 <p>Welcome, {$MyProfile.data?.user.name}!</p>
@@ -47,7 +50,10 @@ If your query is SSR'ed, you need to get the store from the PageData like so:
 
 ## Component queries
 
-The only thing that changes with component queries is how your props are coming in to your component:
+With a query inside a component, it is important to wrap the query with a `$derived()` so that it will be properly reactive.
+Svelte's migration script should pick this up correctly.
+
+It is important that you still need to export the `_QueryVariables` function as normal, so that Houdini can pick it up properly.
 
 ```svelte:typescriptToggle=true
 <script lang="ts">
@@ -57,7 +63,7 @@ The only thing that changes with component queries is how your props are coming 
     interface Props {
         id: string;
     }
-    const { id }: Props = $props();
+    let { id }: Props = $props();
 
     export const _UserDetailsVariables: UserDetailsVariables = ({ props }) => {
         return {
@@ -65,13 +71,15 @@ The only thing that changes with component queries is how your props are coming 
         }
     }
 
-    const store = graphql(`
-        query UserDetails($id: ID!) {
-            user(id: $id) {
-                name
+    let store = $derived(
+        graphql(`
+            query UserDetails($id: ID!) {
+                user(id: $id) {
+                    name
+                }
             }
-        }
-    `);
+        `)
+    );
 </script>
 
 <p>{$store.data?.user.name}</p>
@@ -79,7 +87,9 @@ The only thing that changes with component queries is how your props are coming 
 
 ## Fragments
 
-Similar to component queries, the only thing that changes with fragments is how you get the fragment from your props:
+Similar to component queries, fragments require a minimal effort to migrate over to Svelte 5 syntax and should get migrated over correctly with svelte's migrate script.
+
+They should look something like this:
 
 ```svelte:typescriptToggle=true
 <script lang="ts">
@@ -88,16 +98,18 @@ Similar to component queries, the only thing that changes with fragments is how 
     interface Props {
         user: UserCardFragment
     }
-    const { user }: Props = $props();
+    let { user }: Props = $props();
 
-    const data = fragment(
-        user,
-        graphql(`
-            fragment UserCardFragment on User {
-                name
-                age
-            }
-        `)
+    let data = $derived(
+        fragment(
+            user,
+            graphql(`
+                fragment UserCardFragment on User {
+                    name
+                    age
+                }
+            `)
+        )
     );
 </script>
 
