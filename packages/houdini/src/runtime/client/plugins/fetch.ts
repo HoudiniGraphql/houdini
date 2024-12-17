@@ -101,7 +101,7 @@ const defaultFetch = (
 			result.headers.get('content-type') !== 'application/graphql+json'
 		) {
 			throw new Error(
-				`Failed to fetch: server returned invalid response with error ${result.status}": ${result.statusText}`
+				`Failed to fetch: server returned invalid response with error ${result.status}: ${result.statusText}`
 			)
 		}
 
