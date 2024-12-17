@@ -100,7 +100,9 @@ const defaultFetch = (
 			result.headers.get('content-type') !== 'application/json' &&
 			result.headers.get('content-type') !== 'application/graphql+json'
 		) {
-			throw new Error(`${result.status}": ${result.statusText}`)
+			throw new Error(
+				`Failed to fetch: server returned invalid response with error ${result.status}": ${result.statusText}`
+			)
 		}
 
 		return await result.json()
