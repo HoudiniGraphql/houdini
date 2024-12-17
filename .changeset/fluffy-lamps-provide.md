@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-Throw the semantic HTML error code and message when receiving a non-JSON error response from the server
+Throw the semantic HTTP error code and message when receiving a non-JSON error response from the server
