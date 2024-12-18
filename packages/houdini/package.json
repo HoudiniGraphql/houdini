@@ -28,9 +28,9 @@
         "@types/ungap__structured-clone": "^0.3.0",
         "kleur": "^4.1.5",
         "prettier": "^2.8.3",
-        "rollup": "^4.13.0",
+        "rollup": "^4.28.1",
         "scripts": "workspace:^",
-        "vite": "^5.3.3",
+        "vite": "^6.0.3",
         "vitest": "^1.6.0"
     },
     "dependencies": {
