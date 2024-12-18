@@ -314,7 +314,9 @@ export async function extractQueries(source: string): Promise<string[]> {
 	let defaultExportIdentifier: string | null = null
 
 	// walk through the function body and find the default export
-	for (const node of ast.body) {
+	for (const n of ast.body) {
+		const node = n as t.Node // typecast from ast-types to @babel/types
+
 		if (t.isExportDefaultDeclaration(node)) {
 			if (
 				t.isFunctionDeclaration(node.declaration) ||
@@ -334,7 +336,9 @@ export async function extractQueries(source: string): Promise<string[]> {
 
 	// if the default export was an identifier then go back through and find the correct  one
 	if (defaultExportIdentifier) {
-		for (const node of ast.body) {
+		for (const n of ast.body) {
+			const node = n as t.Node // typecast from ast-types to @babel/types
+
 			if (t.isVariableDeclaration(node)) {
 				for (const declaration of node.declarations) {
 					if (
