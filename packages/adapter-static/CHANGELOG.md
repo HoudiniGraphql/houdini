@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
--   [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks [@endigma](https://github.com/endigma)! - Added support for configuring Houdini's output directory
+-   [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks @endigma! - Added support for configuring Houdini's output directory
 
 ### Patch Changes
 

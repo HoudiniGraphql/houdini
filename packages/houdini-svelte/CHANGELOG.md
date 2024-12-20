@@ -4,9 +4,9 @@
 
 ### Minor Changes
 
--   [#1402](https://github.com/HoudiniGraphql/houdini/pull/1402) [`21316ede`](https://github.com/HoudiniGraphql/houdini/commit/21316ede86e52dbdc3d0de7952385f9cb8307f46) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add support for vite 6
+-   [#1402](https://github.com/HoudiniGraphql/houdini/pull/1402) [`21316ede`](https://github.com/HoudiniGraphql/houdini/commit/21316ede86e52dbdc3d0de7952385f9cb8307f46) Thanks @SeppahBaws! - Add support for vite 6
 
--   [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks [@endigma](https://github.com/endigma)! - Added support for configuring Houdini's output directory
+-   [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks @endigma! - Added support for configuring Houdini's output directory
 
 ### Patch Changes
 
