@@ -97,8 +97,8 @@ const defaultFetch = (
 		// Avoid parsing the response if it's not JSON, as that will throw a SyntaxError
 		if (
 			!result.ok &&
-			result.headers.get('content-type') !== 'application/json' &&
-			result.headers.get('content-type') !== 'application/graphql+json'
+			!result.headers.get('content-type')?.startsWith('application/json') &&
+			!result.headers.get('content-type')?.startsWith('application/graphql+json')
 		) {
 			throw new Error(
 				`Failed to fetch: server returned invalid response with error ${result.status}: ${result.statusText}`
