@@ -1327,3 +1327,286 @@ test('fragment argument passed to directive', async function () {
 		"HoudiniHash=8362b2cdd240eeb06a44c498267a971b7010534b464bba2b36c34a9635eed2ce";
 	`)
 })
+
+test("many includes on a selection", async function() {
+	const config = testConfig()
+	const docs = [
+		mockCollectedDoc(
+			`query UserWithAvatar(
+				$includeUser: Boolean! = false, 
+				$includeFriends: Boolean! = false, 
+				$includeCat: Boolean! = false, 
+				$includeID: Boolean! = false, 
+				$includeName: Boolean! = false,
+				$includeOwner: Boolean! = false
+			) {
+				user @include(if: $includeUser) {
+					friends @include(if: $includeFriends) { 
+						cats @include(if: $includeCat) { 
+							id @include(if: $includeID)
+							name @include(if: $includeName)
+							owner @include(if: $includeOwner) { 
+								name @include(if: $includeName)
+							}
+						}
+					}
+				}
+			}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(config, docs)
+
+	expect(docs[0]).toMatchInlineSnapshot(`
+		export default {
+		    "name": "UserWithAvatar",
+		    "kind": "HoudiniQuery",
+		    "hash": "3f20f8ee99685045c1c32aa2198fec30bf034c27ea315f982a11c41c43dfbfd4",
+
+		    "raw": \`query UserWithAvatar($includeUser: Boolean! = false, $includeFriends: Boolean! = false, $includeCat: Boolean! = false, $includeID: Boolean! = false, $includeName: Boolean! = false, $includeOwner: Boolean! = false) {
+		  user @include(if: $includeUser) {
+		    friends @include(if: $includeFriends) {
+		      cats @include(if: $includeCat) {
+		        id @include(if: $includeID)
+		        name @include(if: $includeName)
+		        owner @include(if: $includeOwner) {
+		          name @include(if: $includeName)
+		          id
+		        }
+		      }
+		      id
+		    }
+		    id
+		  }
+		}
+		\`,
+
+		    "rootType": "Query",
+		    "stripVariables": [],
+
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
+
+		                "directives": [{
+		                    "name": "include",
+
+		                    "arguments": {
+		                        "if": {
+		                            "kind": "Variable",
+
+		                            "name": {
+		                                "kind": "Name",
+		                                "value": "includeUser"
+		                            }
+		                        }
+		                    }
+		                }],
+
+		                "selection": {
+		                    "fields": {
+		                        "friends": {
+		                            "type": "User",
+		                            "keyRaw": "friends",
+
+		                            "directives": [{
+		                                "name": "include",
+
+		                                "arguments": {
+		                                    "if": {
+		                                        "kind": "Variable",
+
+		                                        "name": {
+		                                            "kind": "Name",
+		                                            "value": "includeFriends"
+		                                        }
+		                                    }
+		                                }
+		                            }],
+
+		                            "selection": {
+		                                "fields": {
+		                                    "cats": {
+		                                        "type": "Cat",
+		                                        "keyRaw": "cats",
+
+		                                        "directives": [{
+		                                            "name": "include",
+
+		                                            "arguments": {
+		                                                "if": {
+		                                                    "kind": "Variable",
+
+		                                                    "name": {
+		                                                        "kind": "Name",
+		                                                        "value": "includeCat"
+		                                                    }
+		                                                }
+		                                            }
+		                                        }],
+
+		                                        "selection": {
+		                                            "fields": {
+		                                                "id": {
+		                                                    "type": "ID",
+		                                                    "keyRaw": "id",
+
+		                                                    "directives": [{
+		                                                        "name": "include",
+
+		                                                        "arguments": {
+		                                                            "if": {
+		                                                                "kind": "Variable",
+
+		                                                                "name": {
+		                                                                    "kind": "Name",
+		                                                                    "value": "includeID"
+		                                                                }
+		                                                            }
+		                                                        }
+		                                                    }],
+
+		                                                    "visible": true
+		                                                },
+
+		                                                "name": {
+		                                                    "type": "String",
+		                                                    "keyRaw": "name",
+
+		                                                    "directives": [{
+		                                                        "name": "include",
+
+		                                                        "arguments": {
+		                                                            "if": {
+		                                                                "kind": "Variable",
+
+		                                                                "name": {
+		                                                                    "kind": "Name",
+		                                                                    "value": "includeName"
+		                                                                }
+		                                                            }
+		                                                        }
+		                                                    }],
+
+		                                                    "visible": true
+		                                                },
+
+		                                                "owner": {
+		                                                    "type": "User",
+		                                                    "keyRaw": "owner",
+
+		                                                    "directives": [{
+		                                                        "name": "include",
+
+		                                                        "arguments": {
+		                                                            "if": {
+		                                                                "kind": "Variable",
+
+		                                                                "name": {
+		                                                                    "kind": "Name",
+		                                                                    "value": "includeOwner"
+		                                                                }
+		                                                            }
+		                                                        }
+		                                                    }],
+
+		                                                    "selection": {
+		                                                        "fields": {
+		                                                            "name": {
+		                                                                "type": "String",
+		                                                                "keyRaw": "name",
+
+		                                                                "directives": [{
+		                                                                    "name": "include",
+
+		                                                                    "arguments": {
+		                                                                        "if": {
+		                                                                            "kind": "Variable",
+
+		                                                                            "name": {
+		                                                                                "kind": "Name",
+		                                                                                "value": "includeName"
+		                                                                            }
+		                                                                        }
+		                                                                    }
+		                                                                }],
+
+		                                                                "visible": true
+		                                                            },
+
+		                                                            "id": {
+		                                                                "type": "ID",
+		                                                                "keyRaw": "id",
+		                                                                "visible": true
+		                                                            }
+		                                                        }
+		                                                    },
+
+		                                                    "visible": true
+		                                                }
+		                                            }
+		                                        },
+
+		                                        "visible": true
+		                                    },
+
+		                                    "id": {
+		                                        "type": "ID",
+		                                        "keyRaw": "id",
+		                                        "visible": true
+		                                    }
+		                                }
+		                            },
+
+		                            "visible": true
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+
+		    "input": {
+		        "fields": {
+		            "includeUser": "Boolean",
+		            "includeFriends": "Boolean",
+		            "includeCat": "Boolean",
+		            "includeID": "Boolean",
+		            "includeName": "Boolean",
+		            "includeOwner": "Boolean"
+		        },
+
+		        "types": {},
+
+		        "defaults": {
+		            "includeUser": false,
+		            "includeFriends": false,
+		            "includeCat": false,
+		            "includeID": false,
+		            "includeName": false,
+		            "includeOwner": false
+		        },
+
+		        "runtimeScalars": {}
+		    },
+
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=a8ac2107ca1e173b972707e5e8772eb04733efe2b5893597712f930dce6f88dd";
+	`)
+})
