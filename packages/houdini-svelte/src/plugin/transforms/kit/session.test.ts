@@ -318,3 +318,20 @@ test('passes session from root client-side layout', async function () {
 		}
 	`)
 })
+
+
+test('augments load function in root layout load', async function () {
+	const result = await test_transform_js('src/routes/+layout.js', `
+		import { browser } from '$app/environment';
+
+		export const load = async ({ url }) => {
+			console.log('routes/+layout.js start');
+			if (!browser) return;
+
+			console.log('this should only run in the browser');
+		};
+	
+	`)
+
+	expect(result).toMatchInlineSnapshot(``)
+})
