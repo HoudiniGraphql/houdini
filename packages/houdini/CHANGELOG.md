@@ -1,5 +1,11 @@
 # houdini
 
+## 1.4.1
+
+### Patch Changes
+
+-   [#1407](https://github.com/HoudiniGraphql/houdini/pull/1407) [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4) Thanks [@Mtn-View](https://github.com/Mtn-View)! - Fix error bug JSON response might get treated as non-JSON if it includes `charset` or `boundary`
+
 ## 1.4.0
 
 ### Minor Changes
