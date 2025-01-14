@@ -1,3 +1,4 @@
+import { walk } from 'estree-walker'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -67,29 +68,32 @@ function add_load_return(
 		else {
 			return_statement = AST.returnStatement(AST.objectExpression([]))
 			body.body.push(return_statement)
-			return_statement_index = body.body.length - 1
 		}
 
-		// replace the return statement with the variable declaration
-		const local_return_var = AST.identifier('__houdini__vite__plugin__return__value__')
-		body.body[return_statement_index] = AST.variableDeclaration('const', [
-			AST.variableDeclarator(local_return_var, return_statement.argument),
-		])
-
-		// its safe to insert a return statement after the declaration that references event
-		body.body.splice(
-			return_statement_index + 1,
-			0,
-			AST.returnStatement(
-				AST.objectExpression([...properties(event_id), AST.spreadElement(local_return_var)])
-			)
-		)
+		// now we need to walk through the body and replace any returns with one
+		// that has the additional information mixed in
+		return walk(body, {
+			enter(node) {
+				if (node.type === 'ReturnStatement') {
+					// replace the return statement with a new one that includes the returned value
+					const returnedValue = (node as ReturnStatement).argument
+					this.replace(
+						AST.returnStatement(
+							AST.objectExpression([
+								...properties(event_id),
+								AST.spreadElement(returnedValue ?? AST.objectExpression([])),
+							])
+						)
+					)
+				}
+			},
+		}) as BlockStatement
 	})
 }
 
 function modify_load(
 	page: SvelteTransformPage,
-	cb: (body: BlockStatement, event_id: Identifier) => void
+	cb: (body: BlockStatement, event_id: Identifier) => BlockStatement
 ) {
 	// before we do anything, we need to find the load function
 	let load_fn = find_exported_fn(page.script.body, 'load')
@@ -156,5 +160,5 @@ function modify_load(
 	}
 
 	// modify the body
-	cb(body, event_id)
+	load_fn.body = cb(body, event_id)
 }

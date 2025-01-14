@@ -543,11 +543,9 @@ describe('kit route processor', function () {
 
 		expect(route.layout_script).toMatchInlineSnapshot(`
 			export async function load(event) {
-			    const __houdini__vite__plugin__return__value__ = {};
-
 			    return {
 			        ...event.data,
-			        ...__houdini__vite__plugin__return__value__
+			        ...{}
 			    };
 			}
 		`)
@@ -606,14 +604,13 @@ describe('kit route processor', function () {
 			        throw err;
 			    }
 
-			    const __houdini__vite__plugin__return__value__ = {
-			        ...houdini_context.returnValue,
-			        ...result
-			    };
-
 			    return {
 			        ...context.data,
-			        ...__houdini__vite__plugin__return__value__
+
+			        ...{
+			            ...houdini_context.returnValue,
+			            ...result
+			        }
 			    };
 			}
 		`)
@@ -1175,14 +1172,13 @@ test('layout loads', async function () {
 		        throw err;
 		    }
 
-		    const __houdini__vite__plugin__return__value__ = {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-
 		    return {
 		        ...context.data,
-		        ...__houdini__vite__plugin__return__value__
+
+		        ...{
+		            ...houdini_context.returnValue,
+		            ...result
+		        }
 		    };
 		}
 	`)
@@ -1259,14 +1255,13 @@ test('layout inline query', async function () {
 		        throw err;
 		    }
 
-		    const __houdini__vite__plugin__return__value__ = {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-
 		    return {
 		        ...context.data,
-		        ...__houdini__vite__plugin__return__value__
+
+		        ...{
+		            ...houdini_context.returnValue,
+		            ...result
+		        }
 		    };
 		}
 	`)
