@@ -74,7 +74,6 @@ function add_load_return(
 		// that has the additional information mixed in
 		return walk(body, {
 			enter(node) {
-				console.log(node.type)
 				if (node.type === 'ReturnStatement') {
 					// replace the return statement with a new one that includes the returned value
 					const returnedValue = (node as ReturnStatement).argument
@@ -88,7 +87,7 @@ function add_load_return(
 					)
 				}
 			},
-		})
+		}) as BlockStatement
 	})
 }
 
