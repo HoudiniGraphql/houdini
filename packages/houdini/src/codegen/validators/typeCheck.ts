@@ -373,16 +373,24 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 }
 
 function validateRequiredDirective(config: Config, filepath: string) {
-	function isClientNullable(node: graphql.FieldNode, ignoreCurrent: boolean): boolean {
+	function isClientNullable(node: graphql.FieldNode | graphql.FragmentSpreadNode, ignoreCurrent: boolean): boolean {
 		const hasRequiredDirective = node.directives?.some(
 			({ name }) => name.value === config.requiredDirective
-		)
-		return (
-			(!ignoreCurrent && hasRequiredDirective) ||
-			node.selectionSet?.selections.some(
-				(node) => node.kind == 'Field' && isClientNullable(node, false)
-			) == true
-		)
+		) ?? false
+
+		if (!ignoreCurrent && hasRequiredDirective) {
+			return true;
+		}
+
+		if (node.kind === 'Field') {
+			return (
+				(!ignoreCurrent && hasRequiredDirective) || node.selectionSet?.selections.some(
+					(node) => node.kind == 'Field' || node.kind == 'FragmentSpread' && isClientNullable(node, false)
+				) == true
+			)
+		}
+
+		return false;
 	}
 
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
@@ -530,7 +538,7 @@ const validateLists = ({
 					ctx.reportError(
 						new graphql.GraphQLError(
 							'@connection was renamed to @list. Please change your components. ' +
-								'If you were using `cache.connection` in your components, you will need to update that to `cache.list` too.'
+							'If you were using `cache.connection` in your components, you will need to update that to `cache.list` too.'
 						)
 					)
 					return
@@ -725,7 +733,7 @@ function validateFragmentArguments(
 					ctx.reportError(
 						new graphql.GraphQLError(
 							`The following arguments are missing from the "${fragmentName}" fragment: ` +
-								JSON.stringify(missing)
+							JSON.stringify(missing)
 						)
 					)
 					return
