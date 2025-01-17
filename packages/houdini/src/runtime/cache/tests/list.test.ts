@@ -5438,3 +5438,183 @@ test('inserting in list at a specific layer affects just that layer', function (
 	])
 	expect(layer.links['User:1']).not.toBeDefined()
 })
+
+test("two operations referencing the same list don't commit twice", function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									visible: true,
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'Other_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									visible: true,
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// write some data with 2 operations
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+						},
+						{
+							action: 'insert',
+							list: 'Other_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			newUser: {
+				id: '2',
+			},
+		},
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: {
+						name: 'Other_Users',
+						connection: false,
+						type: 'User',
+					},
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	expect(result.data).toEqual({
+		friends: [
+			{
+				id: '2',
+			},
+		],
+	})
+})

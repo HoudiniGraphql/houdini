@@ -18,7 +18,22 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string, allLists?: boolean) {
+	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
+		// get the list collection
+		const lists = this.getLists(listName, id, allLists)
+		if (!lists) {
+			return null
+		}
+
+		// if we were given a set of matches to skip, we should do that now
+		if (skipMatches) {
+			return new ListCollection(lists.lists.filter((list) => !skipMatches.has(list.fieldRef)))
+		} else {
+			return lists
+		}
+	}
+
+	getLists(listName: string, id?: string, allLists?: boolean) {
 		const matches = this.lists.get(listName)
 
 		// if we don't have a list by that name, we're done
@@ -195,6 +210,10 @@ export class List {
 		this.connection = connection
 		this.manager = manager
 		this.abstract = abstract
+	}
+
+	get fieldRef() {
+		return `${this.recordID}.${this.key}`
 	}
 
 	// looks for the collection of all of the lists in the cache that satisfies a when
