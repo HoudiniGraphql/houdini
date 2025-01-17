@@ -3,7 +3,7 @@ import { routes } from '~/utils/routes'
 import { sleep } from '~/utils/sleep'
 import { expect_to_be, goto } from '~/utils/testsHelper'
 
-test('Component fields with correct argument value', async ({ page }) => {
+test('Route params', async ({ page }) => {
 	await goto(page, routes.route_params)
 
 	// be default we see user 1

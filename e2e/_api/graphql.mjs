@@ -112,6 +112,7 @@ export const typeDefs = /* GraphQL */ `
 	union UnionAorB = A | B
 
 	type Query {
+		book(title: String!): Book
 		hello: String
 		aOrB: [UnionAorB!]!
 		avgYearsBirthDate: Float!
@@ -428,6 +429,9 @@ export const resolvers = {
 			)
 
 			return toRet
+		},
+		book: (_, args) => {
+			return dataBooks.find((book) => book.title === args.title)
 		},
 		usersList: (_, args) => {
 			return [...getUserSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
