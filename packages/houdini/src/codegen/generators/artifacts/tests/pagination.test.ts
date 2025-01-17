@@ -30,7 +30,7 @@ test('pagination arguments stripped from key', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "fd66badc676c41d3a2449afc85e1901f9fc1580e030c7658acff1ce4fb1b4d3f",
+		    "hash": "ed9498ccbdc4d5a35b7fb6d1280ee254731c880e2484b4b34f8c462fb34c7985",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -55,6 +55,12 @@ test('pagination arguments stripped from key', async function () {
 		      node {
 		        id
 		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
 		    }
 		    edges {
 		      cursor
@@ -238,7 +244,7 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "fd66badc676c41d3a2449afc85e1901f9fc1580e030c7658acff1ce4fb1b4d3f",
+		    "hash": "ed9498ccbdc4d5a35b7fb6d1280ee254731c880e2484b4b34f8c462fb34c7985",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -263,6 +269,12 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		      node {
 		        id
 		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
 		    }
 		    edges {
 		      cursor
@@ -567,7 +579,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		export default {
 		    "name": "ScalarPagination",
 		    "kind": "HoudiniQuery",
-		    "hash": "52d1832ab8d47b638e7f73bf90390ffd2e3a41ec194f0cc821ebe51ad792d771",
+		    "hash": "bc8472e5f0b3987b33e8a9301e9d98033f6f8de399a96d73b5b5fbc35c3514a6",
 
 		    "refetch": {
 		        "path": ["user", "friendsByCursorScalar"],
@@ -600,6 +612,12 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		          }
 		          id
 		        }
+		      }
+		      pageInfo {
+		        hasPreviousPage
+		        hasNextPage
+		        startCursor
+		        endCursor
 		      }
 		      edges {
 		        cursor
@@ -855,7 +873,7 @@ test("sibling aliases don't get marked", async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "5efa295fd82f7f78f41f944f345fbea76fbf5c5988ecfed7e0ac3ae757423f5b",
+		    "hash": "4f933c65c6e551abd45d58d0136695d84e20e62b793f75cebb936091bfdfd2a5",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -887,6 +905,12 @@ test("sibling aliases don't get marked", async function () {
 		        }
 		        id
 		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
 		    }
 		    edges {
 		      cursor

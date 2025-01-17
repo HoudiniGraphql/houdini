@@ -325,6 +325,12 @@ test('connections marked with list directive get cursor information', async func
 		        }
 		      }
 		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
 		    edges {
 		      cursor
 		      node {
@@ -432,6 +438,12 @@ test('list flags connections', async function () {
 		          id
 		        }
 		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
 		    }
 		    edges {
 		      cursor
