@@ -1,4 +1,3 @@
-import { VariableDeclarationKind } from 'ast-types/lib/gen/kinds'
 import { walk } from 'estree-walker'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
