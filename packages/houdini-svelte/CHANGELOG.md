@@ -4,9 +4,9 @@
 
 ### Patch Changes
 
--   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue with sessions when load function was declared to be the result of a function (or a direct value)
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks @AlecAivazis! - Fix issue with sessions when load function was declared to be the result of a function (or a direct value)
 
--   [#1412](https://github.com/HoudiniGraphql/houdini/pull/1412) [`c307841f`](https://github.com/HoudiniGraphql/houdini/commit/c307841fc0994be1b18932dd1eb5c505a8a1fe8e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue with sessions if there are early returns in root layout load
+-   [#1412](https://github.com/HoudiniGraphql/houdini/pull/1412) [`c307841f`](https://github.com/HoudiniGraphql/houdini/commit/c307841fc0994be1b18932dd1eb5c505a8a1fe8e) Thanks @AlecAivazis! - Fix issue with sessions if there are early returns in root layout load
 
 -   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
     -   houdini@1.4.1
@@ -79,7 +79,7 @@
 
 ### Patch Changes
 
--   [#1352](https://github.com/HoudiniGraphql/houdini/pull/1352) [`2cf22c7c`](https://github.com/HoudiniGraphql/houdini/commit/2cf22c7ccae088b107770b819d2c0019054d3c6e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add @dedupe directive
+-   [#1352](https://github.com/HoudiniGraphql/houdini/pull/1352) [`2cf22c7c`](https://github.com/HoudiniGraphql/houdini/commit/2cf22c7ccae088b107770b819d2c0019054d3c6e) Thanks @AlecAivazis! - Add @dedupe directive
 
 -   Updated dependencies [[`2cf22c7c`](https://github.com/HoudiniGraphql/houdini/commit/2cf22c7ccae088b107770b819d2c0019054d3c6e)]:
     -   houdini@1.2.62
@@ -264,7 +264,7 @@
 
 ### 🐛 Fixes
 
--   [#1262](https://github.com/HoudiniGraphql/houdini/pull/1262) [`ca69bb81`](https://github.com/HoudiniGraphql/houdini/commit/ca69bb81b8d7aaa45a947ebe2054e90eaa856c09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix bug with loading offset lists page by page
+-   [#1262](https://github.com/HoudiniGraphql/houdini/pull/1262) [`ca69bb81`](https://github.com/HoudiniGraphql/houdini/commit/ca69bb81b8d7aaa45a947ebe2054e90eaa856c09) Thanks @AlecAivazis! - fix bug with loading offset lists page by page
 
 ### ✨ Features
 
@@ -584,7 +584,7 @@
 
 ### 🐛 Fixes
 
--   [#1011](https://github.com/HoudiniGraphql/houdini/pull/1011) [`d1529363`](https://github.com/HoudiniGraphql/houdini/commit/d1529363ce63e7b015f508142d080a08c94ed350) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix initialization issue in paginated queries
+-   [#1011](https://github.com/HoudiniGraphql/houdini/pull/1011) [`d1529363`](https://github.com/HoudiniGraphql/houdini/commit/d1529363ce63e7b015f508142d080a08c94ed350) Thanks @AlecAivazis! - Fix initialization issue in paginated queries
 
 ### Dependency Changes
 
@@ -602,7 +602,7 @@
 
 ### 🐛 Fixes
 
--   [#988](https://github.com/HoudiniGraphql/houdini/pull/988) [`a217c0c6`](https://github.com/HoudiniGraphql/houdini/commit/a217c0c6e0d8e2298d511db855f7df0e06539069) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix subscription fetching state tracking
+-   [#988](https://github.com/HoudiniGraphql/houdini/pull/988) [`a217c0c6`](https://github.com/HoudiniGraphql/houdini/commit/a217c0c6e0d8e2298d511db855f7df0e06539069) Thanks @AlecAivazis! - Fix subscription fetching state tracking
 
 -   [#954](https://github.com/HoudiniGraphql/houdini/pull/992) [`712bf948`](https://github.com/HoudiniGraphql/houdini/tree/712bf9483e8bdd0f3c2c063ffbbd3b0e9f0267a8) Thanks [@AlecAivazis](https://github.com/AlecAivazis) and [@SeppahBaws](https://github.com/SeppahBaws)! - Fix bug with fragments mixed into fields decorated with `@list`.
 
@@ -615,7 +615,7 @@
 
 ### ✨ Features
 
--   [#954](https://github.com/HoudiniGraphql/houdini/pull/954) [`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve performance by using fragments for fine-grain reactivity
+-   [#954](https://github.com/HoudiniGraphql/houdini/pull/954) [`f94b6ca`](https://github.com/HoudiniGraphql/houdini/commit/f94b6caf8bda21fdbe22b466dc01cb8f8f40448f) Thanks @AlecAivazis! - Improve performance by using fragments for fine-grain reactivity
 
 ### Dependency Updates
 
@@ -644,7 +644,7 @@
 
 ### 🐛 Fixes
 
--   [#971](https://github.com/HoudiniGraphql/houdini/pull/971) [`cb96d192`](https://github.com/HoudiniGraphql/houdini/commit/cb96d192419610f29a1ae029e8ceb9fbb9fbfec2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix svelte dependency
+-   [#971](https://github.com/HoudiniGraphql/houdini/pull/971) [`cb96d192`](https://github.com/HoudiniGraphql/houdini/commit/cb96d192419610f29a1ae029e8ceb9fbb9fbfec2) Thanks @AlecAivazis! - Fix svelte dependency
 
 ## 1.0.8
 
@@ -685,7 +685,7 @@
 
 ### ✨ Features
 
--   [#937](https://github.com/HoudiniGraphql/houdini/pull/937) [`8e18042`](https://github.com/HoudiniGraphql/houdini/commit/8e1804227ee056f3b51c00f04832f4f997fdf1bc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add unlisten method to subscription store
+-   [#937](https://github.com/HoudiniGraphql/houdini/pull/937) [`8e18042`](https://github.com/HoudiniGraphql/houdini/commit/8e1804227ee056f3b51c00f04832f4f997fdf1bc) Thanks @AlecAivazis! - Add unlisten method to subscription store
 
 ### Dependency Changes
 
@@ -703,7 +703,7 @@
 
 ### 🐛 Fixes
 
--   [#925](https://github.com/HoudiniGraphql/houdini/pull/925) [`2d86f6e`](https://github.com/HoudiniGraphql/houdini/commit/2d86f6eac523e6eb2739d3f5e8feab041b669391) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix fragment type definitions when parent is not-null
+-   [#925](https://github.com/HoudiniGraphql/houdini/pull/925) [`2d86f6e`](https://github.com/HoudiniGraphql/houdini/commit/2d86f6eac523e6eb2739d3f5e8feab041b669391) Thanks @AlecAivazis! - Fix fragment type definitions when parent is not-null
 
 ### Dependency Changes
 
@@ -724,29 +724,29 @@ For a better overview of the changes in this release, please visit the
 
 ### ⚠️ Breaking Changes
 
--   [#879](https://github.com/HoudiniGraphql/houdini/pull/879) [`ab96b1c`](https://github.com/HoudiniGraphql/houdini/commit/ab96b1cbdeb33385a36cd72ff5e7a1d04447577b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - MutationStore.mutate returns full payload
+-   [#879](https://github.com/HoudiniGraphql/houdini/pull/879) [`ab96b1c`](https://github.com/HoudiniGraphql/houdini/commit/ab96b1cbdeb33385a36cd72ff5e7a1d04447577b) Thanks @AlecAivazis! - MutationStore.mutate returns full payload
 
--   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - removed the config values for specify custom cursor stores for a specific direction
+-   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks @AlecAivazis! - removed the config values for specify custom cursor stores for a specific direction
 
--   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Removed `@manual_load` since queries defined inline in a component are no longer automatically loaded. In order to opt into generated loads for your inline queries, use the `@load` directive
+-   [#841](https://github.com/HoudiniGraphql/houdini/pull/841) [`55e750c`](https://github.com/HoudiniGraphql/houdini/commit/55e750c8c90121ba021c597fa9c66364bc2dca8d) Thanks @AlecAivazis! - Removed `@manual_load` since queries defined inline in a component are no longer automatically loaded. In order to opt into generated loads for your inline queries, use the `@load` directive
 
 ### ✨ Features
 
--   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added support for bidirectional pagination when using connections
+-   [#846](https://github.com/HoudiniGraphql/houdini/pull/846) [`3245233`](https://github.com/HoudiniGraphql/houdini/commit/32452332c446a6a779a687bd80e2278f1e66ceef) Thanks @AlecAivazis! - Added support for bidirectional pagination when using connections
 
--   [#847](https://github.com/HoudiniGraphql/houdini/pull/847) [`308ed34`](https://github.com/HoudiniGraphql/houdini/commit/308ed34af9be4913a1d5c9ac998ff53599601667) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add event argument to mutation for server-side operations
+-   [#847](https://github.com/HoudiniGraphql/houdini/pull/847) [`308ed34`](https://github.com/HoudiniGraphql/houdini/commit/308ed34af9be4913a1d5c9ac998ff53599601667) Thanks @AlecAivazis! - Add event argument to mutation for server-side operations
 
 ### 🐛 Fixes
 
--   [#897](https://github.com/HoudiniGraphql/houdini/pull/897) [`1298fef`](https://github.com/HoudiniGraphql/houdini/commit/1298fef24b7a0b8e377b1de4ff2892317516c75f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Invalid integer route paramters get unmarshaled as undefined
+-   [#897](https://github.com/HoudiniGraphql/houdini/pull/897) [`1298fef`](https://github.com/HoudiniGraphql/houdini/commit/1298fef24b7a0b8e377b1de4ff2892317516c75f) Thanks @AlecAivazis! - Invalid integer route paramters get unmarshaled as undefined
 
--   [#895](https://github.com/HoudiniGraphql/houdini/pull/895) [`d03ce3b`](https://github.com/HoudiniGraphql/houdini/commit/d03ce3ba3ab70bc3e94d81b87a1b1111cf206a50) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix sourcemaps
+-   [#895](https://github.com/HoudiniGraphql/houdini/pull/895) [`d03ce3b`](https://github.com/HoudiniGraphql/houdini/commit/d03ce3ba3ab70bc3e94d81b87a1b1111cf206a50) Thanks @AlecAivazis! - Fix sourcemaps
 
 ## 0.20.4
 
 ### 🐛 Fixes
 
--   [#868](https://github.com/HoudiniGraphql/houdini/pull/868) [`9808b74`](https://github.com/HoudiniGraphql/houdini/commit/9808b74176bc36fd847372ca7973605c725a5e51) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug preventing server.js and page.gql files from coexisting
+-   [#868](https://github.com/HoudiniGraphql/houdini/pull/868) [`9808b74`](https://github.com/HoudiniGraphql/houdini/commit/9808b74176bc36fd847372ca7973605c725a5e51) Thanks @AlecAivazis! - Fix bug preventing server.js and page.gql files from coexisting
 
 ### Dependency Changes
 
@@ -759,25 +759,25 @@ For a better overview of the changes in this release, please visit the
 
 ## 0.20.1
 
--   [#820](https://github.com/HoudiniGraphql/houdini/pull/820) [`c595749`](https://github.com/HoudiniGraphql/houdini/commit/c5957491bda52fae7eb96042203a47bab4d7cd9a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix build issue with monorepos
+-   [#820](https://github.com/HoudiniGraphql/houdini/pull/820) [`c595749`](https://github.com/HoudiniGraphql/houdini/commit/c5957491bda52fae7eb96042203a47bab4d7cd9a) Thanks @AlecAivazis! - Fix build issue with monorepos
 
 ## 0.20.0
 
 ### ⚠️ Breaking Changes
 
--   [#789](https://github.com/HoudiniGraphql/houdini/pull/789) [`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Removed this.error and this.redirect from function variables
+-   [#789](https://github.com/HoudiniGraphql/houdini/pull/789) [`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503) Thanks @AlecAivazis! - Removed this.error and this.redirect from function variables
 
--   [#800](https://github.com/HoudiniGraphql/houdini/pull/800) [`a107f6c`](https://github.com/HoudiniGraphql/houdini/commit/a107f6ce22f33719ed8c5fbeb49eb854d3238e9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rename `isFetching` to `fetching`
+-   [#800](https://github.com/HoudiniGraphql/houdini/pull/800) [`a107f6c`](https://github.com/HoudiniGraphql/houdini/commit/a107f6ce22f33719ed8c5fbeb49eb854d3238e9f) Thanks @AlecAivazis! - Rename `isFetching` to `fetching`
 
 ### ✨ Features
 
--   [#789](https://github.com/HoudiniGraphql/houdini/pull/789) [`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Query variables can now be inferred from route params
+-   [#789](https://github.com/HoudiniGraphql/houdini/pull/789) [`a8237aa`](https://github.com/HoudiniGraphql/houdini/commit/a8237aa5c309de68b126ed55c6fe3fd6f1b24503) Thanks @AlecAivazis! - Query variables can now be inferred from route params
 
 ### 🐛 Fixes
 
--   [#804](https://github.com/HoudiniGraphql/houdini/pull/804) [`2c89fab`](https://github.com/HoudiniGraphql/houdini/commit/2c89fab5b20213f6636a92ed5232c922a1b2785a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix onError error type
+-   [#804](https://github.com/HoudiniGraphql/houdini/pull/804) [`2c89fab`](https://github.com/HoudiniGraphql/houdini/commit/2c89fab5b20213f6636a92ed5232c922a1b2785a) Thanks @AlecAivazis! - Fix onError error type
 
--   [#803](https://github.com/HoudiniGraphql/houdini/pull/803) [`4c1c4f6`](https://github.com/HoudiniGraphql/houdini/commit/4c1c4f68a592ab78a496b1d2ddf05e3734b60fe2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Mutation store result types can never be undefined
+-   [#803](https://github.com/HoudiniGraphql/houdini/pull/803) [`4c1c4f6`](https://github.com/HoudiniGraphql/houdini/commit/4c1c4f68a592ab78a496b1d2ddf05e3734b60fe2) Thanks @AlecAivazis! - Mutation store result types can never be undefined
 
 ## 0.19.4
 
@@ -785,13 +785,13 @@ For a better overview of the changes in this release, please visit the
 
 ### 🐛 Fixes
 
--   [#793](https://github.com/HoudiniGraphql/houdini/pull/793) [`d3ba00f`](https://github.com/HoudiniGraphql/houdini/commit/d3ba00f62d71d8cc7c2e89c8eb32a20370ecfe07) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix erorr when using satisfies expression with load functions
+-   [#793](https://github.com/HoudiniGraphql/houdini/pull/793) [`d3ba00f`](https://github.com/HoudiniGraphql/houdini/commit/d3ba00f62d71d8cc7c2e89c8eb32a20370ecfe07) Thanks @AlecAivazis! - Fix erorr when using satisfies expression with load functions
 
 ## 0.19.2
 
 ### ✨ Features
 
--   [#786](https://github.com/HoudiniGraphql/houdini/pull/786) [`0437769`](https://github.com/HoudiniGraphql/houdini/commit/043776906a1d7ec19e2e451ed4988614b14678e9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Static plugin config value can now be used to remove session infrastructure from application
+-   [#786](https://github.com/HoudiniGraphql/houdini/pull/786) [`0437769`](https://github.com/HoudiniGraphql/houdini/commit/043776906a1d7ec19e2e451ed4988614b14678e9) Thanks @AlecAivazis! - Static plugin config value can now be used to remove session infrastructure from application
 
 ## 0.19.1
 
@@ -803,9 +803,9 @@ For a better overview of the changes in this release, please visit the
 
 ### ✨ Features
 
--   [#776](https://github.com/HoudiniGraphql/houdini/pull/776) [`8f70291`](https://github.com/HoudiniGraphql/houdini/commit/8f702919e9a496a3de8cb22e035d4525a354a5d1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - graphql template tag can now be used as a function for automatic typing
+-   [#776](https://github.com/HoudiniGraphql/houdini/pull/776) [`8f70291`](https://github.com/HoudiniGraphql/houdini/commit/8f702919e9a496a3de8cb22e035d4525a354a5d1) Thanks @AlecAivazis! - graphql template tag can now be used as a function for automatic typing
 
--   [#779](https://github.com/HoudiniGraphql/houdini/pull/779) [`5739346`](https://github.com/HoudiniGraphql/houdini/commit/573934608c731a56fbdd7e0383fb6cb3be2faa4b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Load env from .env files
+-   [#779](https://github.com/HoudiniGraphql/houdini/pull/779) [`5739346`](https://github.com/HoudiniGraphql/houdini/commit/573934608c731a56fbdd7e0383fb6cb3be2faa4b) Thanks @AlecAivazis! - Load env from .env files
 
 -   [#778](https://github.com/HoudiniGraphql/houdini/pull/778) [`9a09f31`](https://github.com/HoudiniGraphql/houdini/commit/9a09f31c6b6681213f4931a7c520471d87814d42) Thanks [@jycouet](https://github.com/jycouet)! - bump init script to follow latest kit init (without dedicated preprocessor)
 
@@ -821,7 +821,7 @@ For a better overview of the changes in this release, please visit the
 
 ### ✨ Features
 
--   [#763](https://github.com/HoudiniGraphql/houdini/pull/763) [`9c096a0`](https://github.com/HoudiniGraphql/houdini/commit/9c096a030219c9d4ff2cde1f6e35f47b7f14d92b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump kit peerDepency to 1.0.0
+-   [#763](https://github.com/HoudiniGraphql/houdini/pull/763) [`9c096a0`](https://github.com/HoudiniGraphql/houdini/commit/9c096a030219c9d4ff2cde1f6e35f47b7f14d92b) Thanks @AlecAivazis! - bump kit peerDepency to 1.0.0
 
 ## 0.18.0
 
@@ -836,7 +836,7 @@ For a better overview of the changes in this release, please visit the
 
 ### 🐛 Fixes
 
--   [#747](https://github.com/HoudiniGraphql/houdini/pull/747) [`7a34399`](https://github.com/HoudiniGraphql/houdini/commit/7a34399623d978f1ea89ec0a3fcf847893aa48fc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when working with unions and interfaces
+-   [#747](https://github.com/HoudiniGraphql/houdini/pull/747) [`7a34399`](https://github.com/HoudiniGraphql/houdini/commit/7a34399623d978f1ea89ec0a3fcf847893aa48fc) Thanks @AlecAivazis! - Fix issue when working with unions and interfaces
 
 ### ✨ Features
 
@@ -878,7 +878,7 @@ For a better overview of the changes in this release, please visit the
 
 -   [#702](https://github.com/HoudiniGraphql/houdini/pull/702) [`83d9340`](https://github.com/HoudiniGraphql/houdini/commit/83d934072641acad3a959e49a14f29d838c960bf) Thanks [@sjcobb2022](https://github.com/sjcobb2022)! - FIX: type imports not generated correctly for non-fetching endpoints
 
--   [#703](https://github.com/HoudiniGraphql/houdini/pull/703) [`cb29530`](https://github.com/HoudiniGraphql/houdini/commit/cb295302f05e6a897eadf2ca95595d8c9c62e6ef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove unused functions in runtime
+-   [#703](https://github.com/HoudiniGraphql/houdini/pull/703) [`cb29530`](https://github.com/HoudiniGraphql/houdini/commit/cb295302f05e6a897eadf2ca95595d8c9c62e6ef) Thanks @AlecAivazis! - Remove unused functions in runtime
 
 ## 0.17.9
 
@@ -889,7 +889,7 @@ For a better overview of the changes in this release, please visit the
 
 ### 🐛 Fixes
 
--   [#691](https://github.com/HoudiniGraphql/houdini/pull/691) [`e707fbe`](https://github.com/HoudiniGraphql/houdini/commit/e707fbec36c223ad549c31df6bfa68ae312ffa9a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added artifact import to subscription stores
+-   [#691](https://github.com/HoudiniGraphql/houdini/pull/691) [`e707fbe`](https://github.com/HoudiniGraphql/houdini/commit/e707fbec36c223ad549c31df6bfa68ae312ffa9a) Thanks @AlecAivazis! - Added artifact import to subscription stores
 
 -   Updated dependencies []:
     -   houdini@0.17.8
@@ -898,7 +898,7 @@ For a better overview of the changes in this release, please visit the
 
 ### 🐛 Fixes
 
--   [#689](https://github.com/HoudiniGraphql/houdini/pull/689) [`db67e82`](https://github.com/HoudiniGraphql/houdini/commit/db67e822fcec2362538bda548d058fa7e3397ffa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix duplicate import for generated subscription stores
+-   [#689](https://github.com/HoudiniGraphql/houdini/pull/689) [`db67e82`](https://github.com/HoudiniGraphql/houdini/commit/db67e822fcec2362538bda548d058fa7e3397ffa) Thanks @AlecAivazis! - Fix duplicate import for generated subscription stores
 
 ## 0.17.6
 
@@ -908,7 +908,7 @@ For a better overview of the changes in this release, please visit the
 
 ### ✨ Features
 
--   [#676](https://github.com/HoudiniGraphql/houdini/pull/676) [`b7a07a3`](https://github.com/HoudiniGraphql/houdini/commit/b7a07a37ec1fd2fe7b9e6ca34e9e2beb53b84bce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add config for users to specify custom stores
+-   [#676](https://github.com/HoudiniGraphql/houdini/pull/676) [`b7a07a3`](https://github.com/HoudiniGraphql/houdini/commit/b7a07a37ec1fd2fe7b9e6ca34e9e2beb53b84bce) Thanks @AlecAivazis! - Add config for users to specify custom stores
 
 -   [#673](https://github.com/HoudiniGraphql/houdini/pull/673) [`3986d5e`](https://github.com/HoudiniGraphql/houdini/commit/3986d5e5491565a19fabc440972ef4d95d548e92) Thanks [@sjcobb2022](https://github.com/sjcobb2022)! - Improve generated types for routes
 
@@ -916,19 +916,19 @@ For a better overview of the changes in this release, please visit the
 
 ### 🐛 Fixes
 
--   [#659](https://github.com/HoudiniGraphql/houdini/pull/659) [`579fb0b`](https://github.com/HoudiniGraphql/houdini/commit/579fb0bd4ccc5ee6e9aad0cc6278b0a9bfa972d1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve typing for loadAll
+-   [#659](https://github.com/HoudiniGraphql/houdini/pull/659) [`579fb0b`](https://github.com/HoudiniGraphql/houdini/commit/579fb0bd4ccc5ee6e9aad0cc6278b0a9bfa972d1) Thanks @AlecAivazis! - Improve typing for loadAll
 
 ## 0.17.3
 
 ### 🐛 Fixes
 
--   [#643](https://github.com/HoudiniGraphql/houdini/pull/643) [`35b189f`](https://github.com/HoudiniGraphql/houdini/commit/35b189f8cc494ce4f80d54c00736e9dd8d3c69e7) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error preventing session in certain node versions
+-   [#643](https://github.com/HoudiniGraphql/houdini/pull/643) [`35b189f`](https://github.com/HoudiniGraphql/houdini/commit/35b189f8cc494ce4f80d54c00736e9dd8d3c69e7) Thanks @AlecAivazis! - Fix error preventing session in certain node versions
 
 ## 0.17.2
 
 ### 🐛 Fixes
 
--   [#639](https://github.com/HoudiniGraphql/houdini/pull/639) [`cfdb009`](https://github.com/HoudiniGraphql/houdini/commit/cfdb00907829576b142366bad8835e2d32f3ea78) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix error with generated route types
+-   [#639](https://github.com/HoudiniGraphql/houdini/pull/639) [`cfdb009`](https://github.com/HoudiniGraphql/houdini/commit/cfdb00907829576b142366bad8835e2d32f3ea78) Thanks @AlecAivazis! - Fix error with generated route types
 
 -   [#633](https://github.com/HoudiniGraphql/houdini/pull/633) [`8e52a90`](https://github.com/HoudiniGraphql/houdini/commit/8e52a907642003c3b9c9f9b2a4c9824e49136b5d) Thanks [@jycouet](https://github.com/jycouet)! - fix: queries will be sent once if they are defined in +(page|layout).gql
 
@@ -936,20 +936,20 @@ For a better overview of the changes in this release, please visit the
 
 ### 🐛 Fixes
 
--   [#630](https://github.com/HoudiniGraphql/houdini/pull/630) [`02d8fc4`](https://github.com/HoudiniGraphql/houdini/commit/02d8fc47f71980bd2b6492162b8e57808447bdbc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix relative imports from root layout
+-   [#630](https://github.com/HoudiniGraphql/houdini/pull/630) [`02d8fc4`](https://github.com/HoudiniGraphql/houdini/commit/02d8fc47f71980bd2b6492162b8e57808447bdbc) Thanks @AlecAivazis! - Fix relative imports from root layout
 
 ## 0.17.0
 
 ### ⚠️ Breaking Changes
 
--   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Split houdini into two packages: `houdini` and `houdini-svelte`
+-   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks @AlecAivazis! - Split houdini into two packages: `houdini` and `houdini-svelte`
 
 ### ✨ Features
 
--   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Adding layout.gql special file
+-   [#593](https://github.com/HoudiniGraphql/houdini/pull/593) [`c1363fe`](https://github.com/HoudiniGraphql/houdini/commit/c1363fe938ab94281272cad8939b892fd705a803) Thanks @AlecAivazis! - Adding layout.gql special file
 
--   [#610](https://github.com/HoudiniGraphql/houdini/pull/610) [`3168f7d`](https://github.com/HoudiniGraphql/houdini/commit/3168f7dffd06f5074d08652d2d2c459377bc73d6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Generate variable function definitions for non-route queries
+-   [#610](https://github.com/HoudiniGraphql/houdini/pull/610) [`3168f7d`](https://github.com/HoudiniGraphql/houdini/commit/3168f7dffd06f5074d08652d2d2c459377bc73d6) Thanks @AlecAivazis! - Generate variable function definitions for non-route queries
 
 ### 🐛 Fixes
 
--   [#613](https://github.com/HoudiniGraphql/houdini/pull/613) [`eb3ffe1`](https://github.com/HoudiniGraphql/houdini/commit/eb3ffe1fbf14180210464863cb7e2ca29892a1fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Avoid unnecessary data prop being added to route
+-   [#613](https://github.com/HoudiniGraphql/houdini/pull/613) [`eb3ffe1`](https://github.com/HoudiniGraphql/houdini/commit/eb3ffe1fbf14180210464863cb7e2ca29892a1fe) Thanks @AlecAivazis! - Avoid unnecessary data prop being added to route

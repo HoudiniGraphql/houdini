@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
--   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Version bump to align with rest of packages
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks @AlecAivazis! - Version bump to align with rest of packages
 
 ### Patch Changes
 
@@ -281,7 +281,7 @@
 
 ### Dependency Changes
 
--   [#1218](https://github.com/HoudiniGraphql/houdini/pull/1218) [`f824df7e`](https://github.com/HoudiniGraphql/houdini/commit/f824df7e3665619166fea6094074d2b37de92860) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add smart adapter
+-   [#1218](https://github.com/HoudiniGraphql/houdini/pull/1218) [`f824df7e`](https://github.com/HoudiniGraphql/houdini/commit/f824df7e3665619166fea6094074d2b37de92860) Thanks @AlecAivazis! - Add smart adapter
 
 -   Updated dependencies []:
     -   houdini@1.2.28

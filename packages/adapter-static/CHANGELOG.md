@@ -4,11 +4,11 @@
 
 ### Minor Changes
 
--   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Version bump to align with rest of packages
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) @AlecAivazis! - Version bump to align with rest of packages
 
 ### Patch Changes
 
--   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when shell was defined as tsx
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) @AlecAivazis! - Fix bug when shell was defined as tsx
 
 -   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
     -   houdini@1.4.1
@@ -140,7 +140,7 @@
 
 ### Patch Changes
 
--   [#1328](https://github.com/HoudiniGraphql/houdini/pull/1328) [`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - initial release
+-   [#1328](https://github.com/HoudiniGraphql/houdini/pull/1328) [`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d) @AlecAivazis! - initial release
 
 -   Updated dependencies [[`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d)]:
     -   houdini@1.2.51
