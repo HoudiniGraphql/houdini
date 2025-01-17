@@ -309,21 +309,16 @@ test('augments load function in root layout load', async function () {
 	const result = await test_transform_js(
 		'src/routes/+layout.js',
 		`
-		import { browser } from '$app/environment';
-
 		export const load = async ({ url }) => {
 			console.log('routes/+layout.js start');
 			if (!browser) return;
 
 			console.log('this should only run in the browser');
 		};
-
 	`
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import { browser } from "$app/environment";
-
 		export const load = async event => {
 		    let {
 		        url
@@ -343,5 +338,51 @@ test('augments load function in root layout load', async function () {
 		        ...{}
 		    };
 		};
+	`)
+})
+
+test("call expression assignment for load function", async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.js',
+		`
+
+		export const load = someFn()
+	`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		export const load = event => {
+		    const result = houdini__intermediate__load__(event);
+
+		    return {
+		        ...event.data,
+		        ...result
+		    };
+		};
+
+		const houdini__intermediate__load__ = someFn();
+	`)
+})
+
+test("value assignment for load function", async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.js',
+		`
+
+		export const load = someFn
+	`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		export const load = event => {
+		    const result = houdini__intermediate__load__(event);
+
+		    return {
+		        ...event.data,
+		        ...result
+		    };
+		};
+
+		const houdini__intermediate__load__ = someFn;
 	`)
 })
