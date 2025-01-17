@@ -341,7 +341,7 @@ test('augments load function in root layout load', async function () {
 	`)
 })
 
-test("call expression assignment for load function", async function () {
+test('call expression assignment for load function', async function () {
 	const result = await test_transform_js(
 		'src/routes/+layout.js',
 		`
@@ -364,7 +364,7 @@ test("call expression assignment for load function", async function () {
 	`)
 })
 
-test("value assignment for load function", async function () {
+test('value assignment for load function', async function () {
 	const result = await test_transform_js(
 		'src/routes/+layout.js',
 		`

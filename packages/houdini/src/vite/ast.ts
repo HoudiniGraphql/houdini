@@ -28,7 +28,16 @@ export function find_insert_index(script: Program) {
 export function find_exported_fn(
 	body: Statement[],
 	name: string
-): {declaration: FunctionDeclaration | FunctionExpression | ArrowFunctionExpression | null | Identifier | CallExpression, export: ExportNamedDeclaration} | null {
+): {
+	declaration:
+		| FunctionDeclaration
+		| FunctionExpression
+		| ArrowFunctionExpression
+		| null
+		| Identifier
+		| CallExpression
+	export: ExportNamedDeclaration
+} | null {
 	for (const statement of body) {
 		if (statement.type !== 'ExportNamedDeclaration') {
 			continue
@@ -39,7 +48,7 @@ export function find_exported_fn(
 		if (exportDeclaration.declaration?.type === 'FunctionDeclaration') {
 			const value = exportDeclaration.declaration as FunctionDeclaration
 			if (value.id?.name === name) {
-				return {declaration: exportDeclaration.declaration, export: exportDeclaration}
+				return { declaration: exportDeclaration.declaration, export: exportDeclaration }
 			}
 		}
 
@@ -80,12 +89,12 @@ export function find_exported_fn(
 			}
 
 			if (init.type === 'FunctionExpression' || init.type === 'ArrowFunctionExpression') {
-				return {declaration: init, export: exportDeclaration}
+				return { declaration: init, export: exportDeclaration }
 			}
-			
+
 			// if the initialized value is the result of a function, or a constant
 			if (init.type === 'Identifier' || init.type === 'CallExpression') {
-				return {declaration: init, export: exportDeclaration}
+				return { declaration: init, export: exportDeclaration }
 			}
 		}
 		// it wasn't something we care about, move along
@@ -114,7 +123,7 @@ export function find_exported_fn(
 		return null
 	}
 
-	return {declaration: exported.declaration as FunctionDeclaration, export: exported} 
+	return { declaration: exported.declaration as FunctionDeclaration, export: exported }
 }
 
 export function find_exported_id(program: Program, name: string) {
