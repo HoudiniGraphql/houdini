@@ -750,6 +750,46 @@ export const pageInfoSelection = [
 		kind: graphql.Kind.FIELD,
 		name: {
 			kind: graphql.Kind.NAME,
+			value: 'pageInfo',
+		},
+		selectionSet: {
+			kind: graphql.Kind.SELECTION_SET,
+			selections: [
+				{
+					kind: graphql.Kind.FIELD,
+					name: {
+						kind: graphql.Kind.NAME,
+						value: 'hasPreviousPage',
+					},
+				},
+				{
+					kind: graphql.Kind.FIELD,
+					name: {
+						kind: graphql.Kind.NAME,
+						value: 'hasNextPage',
+					},
+				},
+				{
+					kind: graphql.Kind.FIELD,
+					name: {
+						kind: graphql.Kind.NAME,
+						value: 'startCursor',
+					},
+				},
+				{
+					kind: graphql.Kind.FIELD,
+					name: {
+						kind: graphql.Kind.NAME,
+						value: 'endCursor',
+					},
+				},
+			],
+		},
+	},
+	{
+		kind: graphql.Kind.FIELD,
+		name: {
+			kind: graphql.Kind.NAME,
 			value: 'edges',
 		},
 		selectionSet: {
