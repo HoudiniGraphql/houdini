@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0
+
+### Major Changes
+
+-   [#1387](https://github.com/HoudiniGraphql/houdini/pull/1387) [`60b4ee4f`](https://github.com/HoudiniGraphql/houdini/commit/60b4ee4fe1a9cdfa6c14f2f6b5d18160392bd08e) Thanks [@endigma](https://github.com/endigma)! - Bump GraphQL to v16
+
 ## 1.3.1
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # houdini-react
 
+## 2.0.0
+
+### Major Changes
+
+-   [#1414](https://github.com/HoudiniGraphql/houdini/pull/1414) [`c29f6e33`](https://github.com/HoudiniGraphql/houdini/commit/c29f6e33526da176e9f806c791b59c79c59e3214) Thanks [@github-actions](https://github.com/apps/github-actions)! - useMutation handler throws an exception if there is an error in the payload
+
+### Minor Changes
+
+-   [#1387](https://github.com/HoudiniGraphql/houdini/pull/1387) [`60b4ee4f`](https://github.com/HoudiniGraphql/houdini/commit/60b4ee4fe1a9cdfa6c14f2f6b5d18160392bd08e) Thanks [@endigma](https://github.com/endigma)! - Bump GraphQL to v16
+
+### Patch Changes
+
+-   Updated dependencies [[`60b4ee4f`](https://github.com/HoudiniGraphql/houdini/commit/60b4ee4fe1a9cdfa6c14f2f6b5d18160392bd08e)]:
+    -   houdini@2.0.0
+
 ## 1.2.66
 
 ### Patch Changes
