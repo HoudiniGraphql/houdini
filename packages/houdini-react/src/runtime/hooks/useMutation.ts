@@ -35,13 +35,13 @@ export function useMutation<
 	const [session] = useSession()
 
 	//  sending the mutation just means invoking the observer's send method
-	const mutate: MutationHandler<_Result, _Input, _Optimistic> = ({
+	const mutate: MutationHandler<_Result, _Input, _Optimistic> = async ({
 		metadata,
 		fetch,
 		variables,
 		...mutationConfig
-	}) =>
-		observer.send({
+	}) => {
+		const result = await observer.send({
 			variables,
 			metadata,
 			session,
@@ -50,5 +50,18 @@ export function useMutation<
 			},
 		})
 
+		if (result.errors && result.errors?.length > 0) {
+			const err = new RuntimeGraphQLError(
+				result.errors.map((error) => error.message).join('. ')
+			)
+			err.raw = result.errors
+			throw err
+		}
+	}
+
 	return [pending, mutate]
+}
+
+export class RuntimeGraphQLError extends Error {
+	raw: QueryResult['errors'] = []
 }
