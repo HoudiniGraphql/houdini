@@ -27,6 +27,17 @@ describe('route_params', () => {
 			},
 		},
 		{
+			name: 'Parameter with space',
+			pattern: '/user/[id]',
+			url: '/user/4%202',
+			expected: {
+				variables: {
+					id: '4 2',
+				},
+				layout: null,
+			},
+		},
+		{
 			name: 'Route with a single required parameter (missing)',
 			pattern: '/user/[id]',
 			url: '/user',

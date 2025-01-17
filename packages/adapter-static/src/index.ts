@@ -54,7 +54,8 @@ adapter.pre = async ({ config, outDir, conventions }) => {
 			},
 			lib: {
 				entry: {
-					shell: conventions.router_index_path(config),
+					// the shell could be defined as tsx or jsx so just strip the extension
+					shell: conventions.router_index_path(config).replace('.jsx', ''),
 				},
 				formats: ['es'],
 			},

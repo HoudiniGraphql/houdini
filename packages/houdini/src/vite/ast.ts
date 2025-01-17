@@ -1,4 +1,4 @@
-import type * as recast from 'recast'
+import * as recast from 'recast'
 
 type Statement = recast.types.namedTypes.Statement
 type Program = recast.types.namedTypes.Program
@@ -8,6 +8,9 @@ type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 type Identifier = recast.types.namedTypes.Identifier
 type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 type FunctionExpression = recast.types.namedTypes.FunctionExpression
+type CallExpression = recast.types.namedTypes.CallExpression
+
+const AST = recast.types.builders
 
 export function find_insert_index(script: Program) {
 	let insert_index = script.body.findIndex((statement) => {
@@ -25,19 +28,27 @@ export function find_insert_index(script: Program) {
 export function find_exported_fn(
 	body: Statement[],
 	name: string
-): FunctionDeclaration | FunctionExpression | ArrowFunctionExpression | null {
+): {
+	declaration:
+		| FunctionDeclaration
+		| FunctionExpression
+		| ArrowFunctionExpression
+		| null
+		| Identifier
+		| CallExpression
+	export: ExportNamedDeclaration
+} | null {
 	for (const statement of body) {
 		if (statement.type !== 'ExportNamedDeclaration') {
 			continue
 		}
-
 		const exportDeclaration = statement as ExportNamedDeclaration
 
 		// if the exported thing is a function it could be what we're looking for
 		if (exportDeclaration.declaration?.type === 'FunctionDeclaration') {
 			const value = exportDeclaration.declaration as FunctionDeclaration
 			if (value.id?.name === name) {
-				return exportDeclaration.declaration
+				return { declaration: exportDeclaration.declaration, export: exportDeclaration }
 			}
 		}
 
@@ -78,7 +89,12 @@ export function find_exported_fn(
 			}
 
 			if (init.type === 'FunctionExpression' || init.type === 'ArrowFunctionExpression') {
-				return init
+				return { declaration: init, export: exportDeclaration }
+			}
+
+			// if the initialized value is the result of a function, or a constant
+			if (init.type === 'Identifier' || init.type === 'CallExpression') {
+				return { declaration: init, export: exportDeclaration }
 			}
 		}
 		// it wasn't something we care about, move along
@@ -107,7 +123,7 @@ export function find_exported_fn(
 		return null
 	}
 
-	return exported.declaration as FunctionDeclaration
+	return { declaration: exported.declaration as FunctionDeclaration, export: exported }
 }
 
 export function find_exported_id(program: Program, name: string) {

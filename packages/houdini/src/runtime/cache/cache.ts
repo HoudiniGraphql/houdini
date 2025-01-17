@@ -131,8 +131,13 @@ export class Cache {
 	}
 
 	// return the list handler to mutate a named list in the cache
-	list(name: string, parentID?: string, allLists?: boolean): ListCollection {
-		const handler = this._internal_unstable.lists.get(name, parentID, allLists)
+	list(
+		name: string,
+		parentID?: string,
+		allLists?: boolean,
+		skipMatches?: Set<string>
+	): ListCollection {
+		const handler = this._internal_unstable.lists.get(name, parentID, allLists, skipMatches)
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
@@ -846,6 +851,12 @@ class CacheInternal {
 				}
 			}
 
+			// there could be multiple operations that refer to the same field entry in the cache
+			// which would result in duplicate data. this is a useful pattern to ensure that the required
+			// fields are included for both lists so we want to support it. we need to track the operation targets
+			// we've already processed so we don't duplicate work
+			const processedOperations = new Set<string>()
+
 			// handle any operations relative to this node
 			for (const operation of operations || []) {
 				// turn the ID into something we can use
@@ -883,7 +894,12 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID, operation.target === 'all')
+							.list(
+								operation.list,
+								parentID,
+								operation.target === 'all',
+								processedOperations
+							)
 							.when(operation.when)
 							.addToList(
 								fieldSelection,
@@ -902,7 +918,12 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID, operation.target === 'all')
+							.list(
+								operation.list,
+								parentID,
+								operation.target === 'all',
+								processedOperations
+							)
 							.when(operation.when)
 							.toggleElement({
 								selection: fieldSelection,
@@ -921,7 +942,12 @@ class CacheInternal {
 						operation.list
 					) {
 						this.cache
-							.list(operation.list, parentID, operation.target === 'all')
+							.list(
+								operation.list,
+								parentID,
+								operation.target === 'all',
+								processedOperations
+							)
 							.when(operation.when)
 							.remove(target, variables, layer)
 					}
@@ -940,6 +966,18 @@ class CacheInternal {
 						)
 
 						this.cache.delete(targetID, layer)
+					}
+				}
+
+				if (operation.list) {
+					// figure out the field referenced by the list
+					const matchingLists = this.cache.list(
+						operation.list,
+						parentID,
+						operation.target === 'all'
+					)
+					for (const list of matchingLists.lists) {
+						processedOperations.add(list.fieldRef)
 					}
 				}
 			}

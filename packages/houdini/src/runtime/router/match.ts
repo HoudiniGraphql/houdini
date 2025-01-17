@@ -219,7 +219,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 			// an optional or rest parameter
 			if (param.rest) result[param.name] = ''
 		} else {
-			result[param.name] = value
+			result[param.name] = decodeURIComponent(value)
 		}
 	}
 

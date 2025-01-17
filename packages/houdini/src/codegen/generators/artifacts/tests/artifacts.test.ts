@@ -641,7 +641,7 @@ test('paginate over unions', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "1d660603f2610ac59b38fd74f0b429f0c9c2cec3c64459cb222e7e26c7905e66",
+		    "hash": "08460eca65b13b6651de34501d9c49719964dca434698bf0c4929d4aaf6e64e0",
 
 		    "refetch": {
 		        "path": ["entitiesByCursor"],
@@ -664,6 +664,12 @@ test('paginate over unions', async function () {
 		        }
 		        __typename
 		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
 		    }
 		    edges {
 		      cursor
@@ -4749,7 +4755,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358",
+			    "hash": "cd372a6df411857b10dc498b89090295f82ba66e2988f1c80e01c501bffe9236",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -4769,6 +4775,12 @@ describe('mutation artifacts', function () {
 			        firstName
 			        id
 			      }
+			    }
+			    pageInfo {
+			      hasPreviousPage
+			      hasNextPage
+			      startCursor
+			      endCursor
 			    }
 			    edges {
 			      cursor
@@ -5001,7 +5013,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "6fe0aeaa708161553cd04645834b38c4ce625fce10c46056efcff9a97988d358",
+			    "hash": "cd372a6df411857b10dc498b89090295f82ba66e2988f1c80e01c501bffe9236",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -5021,6 +5033,12 @@ describe('mutation artifacts', function () {
 			        firstName
 			        id
 			      }
+			    }
+			    pageInfo {
+			      hasPreviousPage
+			      hasNextPage
+			      startCursor
+			      endCursor
 			    }
 			    edges {
 			      cursor
