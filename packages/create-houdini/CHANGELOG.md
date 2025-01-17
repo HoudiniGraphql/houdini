@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.65
+
+### Patch Changes
+
+-   [#1413](https://github.com/HoudiniGraphql/houdini/pull/1413) [`e40c6aa1`](https://github.com/HoudiniGraphql/houdini/commit/e40c6aa19e78899c2e958503802029a1f5d257ee) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump react version
+
 ## 1.2.64
 
 ## 1.2.63

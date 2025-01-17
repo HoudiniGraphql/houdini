@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 2.1.1
+
+### Patch Changes
+
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue with sessions when load function was declared to be the result of a function (or a direct value)
+
+-   [#1412](https://github.com/HoudiniGraphql/houdini/pull/1412) [`c307841f`](https://github.com/HoudiniGraphql/houdini/commit/c307841fc0994be1b18932dd1eb5c505a8a1fe8e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue with sessions if there are early returns in root layout load
+
+-   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
+    -   houdini@1.4.1
+
 ## 2.1.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.3.1
+
+### Patch Changes
+
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when url encoded route parameters contain url encodings
+
+-   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
+    -   houdini@1.4.1
+
 ## 1.3.0
 
 ### Minor Changes

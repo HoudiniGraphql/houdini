@@ -1,5 +1,15 @@
 # houdini
 
+## 1.4.1
+
+### Patch Changes
+
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Include pageInfo in default pagination fields
+
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when multiple operations targetting the same list are found in a mutation
+
+-   [#1407](https://github.com/HoudiniGraphql/houdini/pull/1407) [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4) Thanks [@Mtn-View](https://github.com/Mtn-View)! - Fix error bug JSON response might get treated as non-JSON if it includes `charset` or `boundary`
+
 ## 1.4.0
 
 ### Minor Changes
