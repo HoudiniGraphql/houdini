@@ -1,5 +1,13 @@
 # houdini-plugin-svelte-global-stores
 
+## 1.3.3
+
+### Patch Changes
+
+-   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`c307841f`](https://github.com/HoudiniGraphql/houdini/commit/c307841fc0994be1b18932dd1eb5c505a8a1fe8e), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
+    -   houdini-svelte@2.1.1
+    -   houdini@1.4.1
+
 ## 1.3.2
 
 ### Patch Changes
@@ -400,7 +408,7 @@
 
 ### Dependency Changes
 
--   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) @AlecAivazis - Get all packages at same version
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks @AlecAivazis! - Get all packages at same version
 
 -   Updated dependencies [[`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072)]:
     -   houdini@1.2.18
