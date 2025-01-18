@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-Remove unused dependency
+Bump deprecated dependency version
