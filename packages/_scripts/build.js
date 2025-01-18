@@ -1,6 +1,6 @@
 import esbuild from 'esbuild'
 import { replace } from 'esbuild-plugin-replace'
-import glob from 'glob'
+import { glob } from 'glob'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 

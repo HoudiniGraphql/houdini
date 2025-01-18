@@ -1,7 +1,7 @@
 import fsSync from 'fs'
 import fs_extra from 'fs-extra'
 import fs from 'fs/promises'
-import glob from 'glob'
+import { glob } from 'glob'
 import path from 'path'
 import ts from 'typescript'
 
