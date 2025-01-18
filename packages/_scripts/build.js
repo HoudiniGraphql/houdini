@@ -3,7 +3,6 @@ import { replace } from 'esbuild-plugin-replace'
 import glob from 'glob'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { promisify } from 'node:util'
 
 // the relevant directories
 const build_dir = path.join(process.cwd(), 'build')
@@ -107,7 +106,7 @@ async function build({ packages, source, bundle = true, plugin, cmd }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
-		: await promisify(glob)(path.join(source, '**/**/!(*.test)*').replaceAll('\\', '/'), {
+		: await glob(path.join(source, '**/**/!(*.test)*').replaceAll('\\', '/'), {
 				nodir: true,
 		  })
 

@@ -4,7 +4,6 @@ import fs from 'fs/promises'
 import glob from 'glob'
 import path from 'path'
 import ts from 'typescript'
-import { promisify } from 'util'
 
 const { ModuleResolutionKind } = ts
 const tsConfig = JSON.parse(fsSync.readFileSync('../../tsconfig.json', 'utf-8'))
@@ -16,7 +15,7 @@ export default async function generate_typedefs({ plugin }) {
 	)
 
 	// grab any non-tests file
-	const files = (await promisify(glob)('./src/**/*.ts*', { nodir: true })).filter(
+	const files = (await glob('./src/**/*.ts*', { nodir: true })).filter(
 		(path) => !path.endsWith('.test.ts')
 	)
 
