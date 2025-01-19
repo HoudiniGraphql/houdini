@@ -31,5 +31,5 @@ export type RouterPageManifest<_ComponentType> = {
 			variables: Record<string, { type: string }>
 		}
 	>
-	component: () => Promise<{ default: (props: any) => _ComponentType }>
+	component: () => Promise<{ default: _ComponentType }>
 }

@@ -467,7 +467,7 @@ export function RouterContextProvider({
 	client: HoudiniClient
 	cache: Cache
 	artifact_cache: SuspenseCache<QueryArtifact>
-	component_cache: SuspenseCache<(props: any) => React.ReactElement>
+	component_cache: SuspenseCache<React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	ssr_signals: PendingCache
 	last_variables: LRUCache<GraphQLVariables>
@@ -522,7 +522,7 @@ type RouterContext = {
 
 	// We also need a cache for component references so we can avoid suspending
 	// when we load the same page multiple times
-	component_cache: SuspenseCache<(props: any) => React.ReactElement>
+	component_cache: SuspenseCache<React.ReactElement>
 
 	// Pages need a way to wait for data
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
@@ -791,7 +791,7 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 
 export type RouterCache = {
 	artifact_cache: SuspenseCache<QueryArtifact>
-	component_cache: SuspenseCache<(props: any) => React.ReactElement>
+	component_cache: SuspenseCache<React.ReactElement>
 	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
 	last_variables: LRUCache<GraphQLVariables>
 	ssr_signals: PendingCache
@@ -807,7 +807,7 @@ export function router_cache({
 }: {
 	pending_queries?: string[]
 	artifacts?: Record<string, QueryArtifact>
-	components?: Record<string, (props: any) => React.ReactElement>
+	components?: Record<string, React.ReactElement>
 	initialData?: Record<string, DocumentStore<GraphQLObject, GraphQLVariables>>
 	initialVariables?: Record<string, GraphQLVariables>
 	initialArtifacts?: Record<string, QueryArtifact>

@@ -28,14 +28,14 @@
 		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
 		"houdini-react": "workspace:^",
-		"react": "19.0.0-rc-eb259b5d3b-20240605",
-		"react-dom": "19.0.0-rc-eb259b5d3b-20240605",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
 		"react-streaming-compat": "^0.3.18"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.48.0",
-		"@types/react": "^18.0.27",
-		"@types/react-dom": "^18.0.10",
+		"@types/react": "^19.0.7",
+		"@types/react-dom": "^19.0.3",
 		"@vitejs/plugin-react": "^3.1.0",
 		"autoprefixer": "^10.4.16",
 		"concurrently": "7.1.0",
