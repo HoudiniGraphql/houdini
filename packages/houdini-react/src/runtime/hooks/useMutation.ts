@@ -57,6 +57,8 @@ export function useMutation<
 			err.raw = result.errors
 			throw err
 		}
+
+		return result
 	}
 
 	return [pending, mutate]

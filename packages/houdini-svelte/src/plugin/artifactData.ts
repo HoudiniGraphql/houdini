@@ -20,11 +20,6 @@ export function artifactData({
 	graphql.visit(document.document, {
 		// look for any field marked with a list
 		Directive(node, _, __, ___) {
-			// check loadDirective
-			if (node.name.value === config.loadDirective) {
-				isManualLoad = false
-			}
-
 			// blocking directives
 			if (node.name.value === config.blockingDirective) {
 				set_blocking = true

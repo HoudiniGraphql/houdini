@@ -6,6 +6,7 @@ import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
+import type { LoadTarget } from '..'
 import { parseSvelte } from '../../extract'
 import { extract_load_function } from '../../extractLoadFunction'
 import type { HoudiniRouteScript } from '../../kit'
@@ -28,8 +29,6 @@ import {
 } from '../../naming'
 import type { RouteParam } from '../../routing'
 import { route_params } from '../../routing'
-import type { LoadTarget } from '../componentQuery'
-import { find_inline_queries } from '../componentQuery'
 import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
@@ -56,22 +55,9 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 			  }).id
 
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, layout_query, inline_queries, page_info] = await Promise.all([
+	const [page_query, layout_query, page_info] = await Promise.all([
 		find_special_query('Page', page),
 		find_special_query('Layout', page),
-		find_inline_queries(
-			page,
-			// if we are currently on the route file, there's nothing to parse
-			route
-				? page.script
-				: (
-						await parseSvelte(
-							(await fs.readFile(route_page_path(page.config, page.filepath))) || '',
-							plugin_config(page.config).forceRunesMode
-						)
-				  )?.script ?? null,
-			inline_query_store
-		),
 		find_page_info(page),
 	])
 
@@ -82,7 +68,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 
 	// add the load functions
 	if (script) {
-		const queries_that_needs_a_load = [...houdini_load_queries, ...inline_queries]
+		const queries_that_needs_a_load = [...houdini_load_queries]
 		// Add special queries files to the list only if we are in the good context
 		const isLayout = is_layout(page.framework, page.filepath)
 		if (isLayout && layout_query) {
@@ -99,7 +85,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		})
 	}
 
-	if (route && inline_queries.length > 0) {
+	if (route) {
 		// we need to check if there is a declared data prop
 		const has_data = page.script.body.find(
 			(statement) =>

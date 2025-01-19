@@ -87,11 +87,6 @@ export const redirect = svelteKitRedirect
 	schema({ config }) {
 		return `
 """
-	@${config.loadDirective} is used to enable automatic fetch on inline queries.
-"""
-directive @${config.loadDirective} on QUERY
-
-"""
 	@${config.blockingDirective} is used to always await the fetch.
 """
 directive @${config.blockingDirective} on QUERY

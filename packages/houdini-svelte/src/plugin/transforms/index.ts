@@ -1,3 +1,4 @@
+import * as graphql from 'graphql'
 import type { Script } from 'houdini'
 import { printJS, parseJS, runPipeline, formatErrors } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
@@ -6,14 +7,15 @@ import type { SourceMapInput } from 'rollup'
 
 import { parseSvelte } from '../extract'
 import { plugin_config, type Framework } from '../kit'
-import query from './componentQuery'
 import kit from './kit'
 import tags from './tags'
 import type { SvelteTransformPage } from './types'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
-const pipeline = [kit, query, tags]
+const pipeline = [kit, tags]
+
+export type LoadTarget = graphql.OperationDefinitionNode
 
 export default async function apply_transforms(
 	framework: Framework,

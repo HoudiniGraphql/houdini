@@ -616,9 +616,6 @@ export class Config {
 		GraphQL conventions
 
 	*/
-	get loadDirective() {
-		return 'load'
-	}
 
 	get maskEnableDirective() {
 		return 'mask_enable'
