@@ -1,5 +1,16 @@
 # houdini-svelte
 
+## 2.2.0
+
+### Minor Changes
+
+-   [`cec37cdc39561567cc142d399b02632d5151822b`](https://github.com/HoudiniGraphql/houdini/commit/cec37cdc39561567cc142d399b02632d5151822b) Thanks [@endigma](https://github.com/endigma)! - Bump GraphQL to v16
+
+### Patch Changes
+
+-   Updated dependencies [[`cec37cdc39561567cc142d399b02632d5151822b`](https://github.com/HoudiniGraphql/houdini/commit/cec37cdc39561567cc142d399b02632d5151822b), [`f07875bf1e50370cdfdb762eae9311f0cc1e680f`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f)]:
+    -   houdini@2.0.0
+
 ## 2.1.1
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # houdini
 
+## 2.0.0
+
+### Major Changes
+
+-   [`cec37cdc39561567cc142d399b02632d5151822b`](https://github.com/HoudiniGraphql/houdini/commit/cec37cdc39561567cc142d399b02632d5151822b) Thanks [@endigma](https://github.com/endigma)! - Bump GraphQL to v16
+
+### Patch Changes
+
+-   [#1418](https://github.com/HoudiniGraphql/houdini/pull/1418) [`f07875bf1e50370cdfdb762eae9311f0cc1e680f`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump deprecated dependency version
+
 ## 1.4.1
 
 ### Patch Changes
