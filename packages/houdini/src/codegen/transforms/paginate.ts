@@ -148,7 +148,7 @@ export default async function paginate(config: Config, documents: Document[]): P
 						: // add the page info if we are dealing with cursor-based pagination
 						  {
 								...node.selectionSet,
-								selections: [...node.selectionSet.selections, ...pageInfoSelection],
+								selections: [...node.selectionSet.selections, ...selectionConnectionInfo],
 						  },
 				}
 			},
@@ -745,47 +745,7 @@ function objectNode([type, defaultValue]: [
 	return node
 }
 
-export const pageInfoSelection = [
-	{
-		kind: graphql.Kind.FIELD,
-		name: {
-			kind: graphql.Kind.NAME,
-			value: 'pageInfo',
-		},
-		selectionSet: {
-			kind: graphql.Kind.SELECTION_SET,
-			selections: [
-				{
-					kind: graphql.Kind.FIELD,
-					name: {
-						kind: graphql.Kind.NAME,
-						value: 'hasPreviousPage',
-					},
-				},
-				{
-					kind: graphql.Kind.FIELD,
-					name: {
-						kind: graphql.Kind.NAME,
-						value: 'hasNextPage',
-					},
-				},
-				{
-					kind: graphql.Kind.FIELD,
-					name: {
-						kind: graphql.Kind.NAME,
-						value: 'startCursor',
-					},
-				},
-				{
-					kind: graphql.Kind.FIELD,
-					name: {
-						kind: graphql.Kind.NAME,
-						value: 'endCursor',
-					},
-				},
-			],
-		},
-	},
+export const selectionConnectionInfo = [
 	{
 		kind: graphql.Kind.FIELD,
 		name: {

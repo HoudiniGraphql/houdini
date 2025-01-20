@@ -92,7 +92,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// this replaces wrapHook(validate) to group them up
 				validators.plugins,
 				...wrapHook(afterValidate),
-				transforms.addID,
+				transforms.addFields,
 				transforms.typename,
 				transforms.componentFields,
 				// list transform must go before fragment variables
