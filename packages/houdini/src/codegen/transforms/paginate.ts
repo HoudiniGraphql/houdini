@@ -142,14 +142,6 @@ export default async function paginate(config: Config, documents: Document[]): P
 					// any pagination arguments we run into will need to be replaced with variables
 					// since they will be hoisted into the arguments for the fragment or query
 					arguments: replaceArgumentsWithVariables(node.arguments, flags),
-					selectionSet: offsetPagination
-						? // no need to add any fields to the selection if we're dealing with offset pagination
-						  node.selectionSet
-						: // add the page info if we are dealing with cursor-based pagination
-						  {
-								...node.selectionSet,
-								selections: [...node.selectionSet.selections, ...selectionConnectionInfo],
-						  },
 				}
 			},
 		})
