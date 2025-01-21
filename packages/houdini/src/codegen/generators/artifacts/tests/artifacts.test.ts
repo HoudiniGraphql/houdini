@@ -641,7 +641,7 @@ test('paginate over unions', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "08460eca65b13b6651de34501d9c49719964dca434698bf0c4929d4aaf6e64e0",
+		    "hash": "c288a4c72d1d7ce2786cc5a4dcbb4263eae036fe4142f127d0b0cfab9895c45f",
 
 		    "refetch": {
 		        "path": ["entitiesByCursor"],
@@ -665,15 +665,10 @@ test('paginate over unions', async function () {
 		        __typename
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
+		        __typename
 		        __typename
 		      }
 		    }
@@ -4755,7 +4750,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "cd372a6df411857b10dc498b89090295f82ba66e2988f1c80e01c501bffe9236",
+			    "hash": "6ca70e636d72875139c7d7bb34b4a9f59d88e2b518613aa136fda4b0ed539936",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -4776,16 +4771,11 @@ describe('mutation artifacts', function () {
 			        id
 			      }
 			    }
-			    pageInfo {
-			      hasPreviousPage
-			      hasNextPage
-			      startCursor
-			      endCursor
-			    }
 			    edges {
 			      cursor
 			      node {
 			        __typename
+			        id
 			      }
 			    }
 			    pageInfo {
@@ -5013,7 +5003,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "cd372a6df411857b10dc498b89090295f82ba66e2988f1c80e01c501bffe9236",
+			    "hash": "6ca70e636d72875139c7d7bb34b4a9f59d88e2b518613aa136fda4b0ed539936",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -5034,16 +5024,11 @@ describe('mutation artifacts', function () {
 			        id
 			      }
 			    }
-			    pageInfo {
-			      hasPreviousPage
-			      hasNextPage
-			      startCursor
-			      endCursor
-			    }
 			    edges {
 			      cursor
 			      node {
 			        __typename
+			        id
 			      }
 			    }
 			    pageInfo {
