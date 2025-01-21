@@ -23,9 +23,7 @@
         "typedefs": "scripts typedefs --plugin"
     },
     "devDependencies": {
-        "@sveltejs/kit": "^2.5.3",
         "scripts": "workspace:^",
-        "svelte": "^5.0.0",
         "vitest": "^1.6.0"
     },
     "dependencies": {
