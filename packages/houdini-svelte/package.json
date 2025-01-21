@@ -35,7 +35,7 @@
         "graphql": "^15.8.0",
         "houdini": "workspace:^",
         "recast": "^0.23.1",
-        "rollup": "^3.7.4"
+        "rollup": "^4.28.1"
     },
     "peerDependencies": {
         "@sveltejs/kit": "^2.9.0",

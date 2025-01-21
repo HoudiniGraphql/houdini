@@ -354,11 +354,11 @@ importers:
         specifier: ^11.0.1
         version: 11.0.1
       rollup:
-        specifier: ^3.7.4
-        version: 3.7.4
+        specifier: ^4.28.1
+        version: 4.30.1
       rollup-plugin-typescript2:
         specifier: ^0.34.0
-        version: 0.34.1(rollup@3.7.4)(typescript@4.9.4)
+        version: 0.34.1(rollup@4.30.1)(typescript@4.9.4)
       typescript:
         specifier: ^4.9
         version: 4.9.4
@@ -682,8 +682,8 @@ importers:
         specifier: ^0.23.1
         version: 0.23.1
       rollup:
-        specifier: ^3.7.4
-        version: 3.27.1
+        specifier: ^4.28.1
+        version: 4.30.1
       svelte:
         specifier: ^5.0.0
         version: 5.0.2
@@ -6540,11 +6540,6 @@ packages:
 
   rollup@3.27.1:
     resolution: {integrity: sha512-tXNDFwOkN6C2w5Blj1g6ForKeFw6c1mDu5jxoeDO3/pmYjgt+8yvIFjKzH5FQUq70OKZBkOt0zzv0THXL7vwzQ==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-
-  rollup@3.7.4:
-    resolution: {integrity: sha512-jN9rx3k5pfg9H9al0r0y1EYKSeiRANZRYX32SuNXAnKzh6cVyf4LZVto1KAuDnbHT03E1CpsgqDKaqQ8FZtgxw==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -13058,7 +13053,7 @@ snapshots:
 
   jsonc-eslint-parser@2.1.0:
     dependencies:
-      acorn: 8.12.1
+      acorn: 8.14.0
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
       semver: 7.6.3
@@ -14534,12 +14529,12 @@ snapshots:
     dependencies:
       rollup-plugin-inject: 3.0.2
 
-  rollup-plugin-typescript2@0.34.1(rollup@3.7.4)(typescript@4.9.4):
+  rollup-plugin-typescript2@0.34.1(rollup@4.30.1)(typescript@4.9.4):
     dependencies:
       '@rollup/pluginutils': 4.2.1
       find-cache-dir: 3.3.2
       fs-extra: 10.1.0
-      rollup: 3.7.4
+      rollup: 4.30.1
       semver: 7.3.8
       tslib: 2.4.1
       typescript: 4.9.4
@@ -14553,10 +14548,6 @@ snapshots:
       fsevents: 2.3.3
 
   rollup@3.27.1:
-    optionalDependencies:
-      fsevents: 2.3.3
-
-  rollup@3.7.4:
     optionalDependencies:
       fsevents: 2.3.3
 
