@@ -23,12 +23,9 @@
         "typedefs": "scripts typedefs --plugin"
     },
     "devDependencies": {
-        "@sveltejs/kit": "^2.5.3",
         "@types/minimatch": "^5.1.2",
         "prettier-plugin-svelte": "^3.2.2",
         "scripts": "workspace:^",
-        "svelte": "^5.0.0",
-        "vite": "^5.3.3",
         "vitest": "^1.6.0"
     },
     "dependencies": {
