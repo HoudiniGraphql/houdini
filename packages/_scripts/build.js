@@ -128,7 +128,7 @@ async function build({ packages, source, bundle = true, plugin, cmd }) {
 			// compute the appropriate external dependencies based on what we are bundling
 			let external = []
 			if (bundle) {
-				external.push('vite', 'graphql', 'HOUDINI_CLIENT_PATH')
+				external.push('vite', 'graphql', 'svelte', '@sveltejs/kit', 'HOUDINI_CLIENT_PATH')
 			}
 
 			// the esbuild config
