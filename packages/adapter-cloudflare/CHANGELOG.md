@@ -1,5 +1,23 @@
 # houdini-adapter-cloudflare
 
+## 1.3.0
+
+### Minor Changes
+
+-   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) Thanks @AlecAivazis! - Version bump to align with rest of packages
+
+### Patch Changes
+
+-   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
+    -   houdini@1.4.1
+
+## 1.2.67
+
+### Patch Changes
+
+-   Updated dependencies [[`d6375b6b`](https://github.com/HoudiniGraphql/houdini/commit/d6375b6b04ecd48fba663e83b3aed9b6b25e51b3), [`21316ede`](https://github.com/HoudiniGraphql/houdini/commit/21316ede86e52dbdc3d0de7952385f9cb8307f46), [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde), [`d2dbcd2d`](https://github.com/HoudiniGraphql/houdini/commit/d2dbcd2de9b77b855053ea7775dff1207eb60a4c)]:
+    -   houdini@1.4.0
+
 ## 1.2.66
 
 ### Patch Changes
@@ -333,7 +351,7 @@
 
 ### Dependency Changes
 
--   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) @AlecAivazis - Get all packages at same version
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks @AlecAivazis! - Get all packages at same version
 
 -   Updated dependencies [[`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072)]:
     -   houdini@1.2.18
@@ -391,7 +409,7 @@
 
 ### Dependency Changes
 
--   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add cloudflare adapter
+-   [#1155](https://github.com/HoudiniGraphql/houdini/pull/1155) [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38) Thanks @AlecAivazis! - Add cloudflare adapter
 
 -   Updated dependencies [[`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38), [`adf90d3`](https://github.com/HoudiniGraphql/houdini/commit/adf90d3c3406c79c9b07060c764bf41289bf2a38)]:
     -   houdini@1.2.10

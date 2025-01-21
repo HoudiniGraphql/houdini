@@ -5,6 +5,7 @@ export const routes = {
 	componentFields_simple: '/component_fields/simple',
 	componentFields_arguments: '/component_fields/arguments',
 	route_params: '/route_params/1',
+	route_params_with_space: '/route_params_with_space/Callimachus%20Pinakes',
 	handle_1: '/handle/1',
 	handle_2: '/handle/2',
 	pagination_query_backwards: '/pagination/query/connection-backwards',

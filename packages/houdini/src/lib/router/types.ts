@@ -10,7 +10,7 @@ export type Adapter = ((args: {
 	manifest: ProjectManifest
 	adapterPath: string
 }) => void | Promise<void>) & {
-	includePaths?: Record<string, string>
+	includePaths?: Record<string, string> | ((args: { config: Config }) => Record<string, string>)
 	disableServer?: boolean
 	pre?: (args: {
 		config: Config

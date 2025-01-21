@@ -280,7 +280,9 @@ function is_root_route(filepath: PathLike): boolean {
 		filepath.endsWith(path.join('src', 'routes')) &&
 		// ignore the src/routes that exists in the type roots
 		!filepath.includes('.svelte-kit') &&
-		!filepath.includes('$houdini')
+		// ! Hey! This second value always needs to correspond to the default value for the runtimeDir
+		// if you're changing this here, please also update it in `/packages/houdini/src/lib/config.ts`
+		!filepath.includes(_config.runtimeDir ?? '$houdini')
 	)
 }
 

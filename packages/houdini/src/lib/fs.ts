@@ -315,7 +315,7 @@ export function snapshot(base?: string) {
 
 // wrap glob in a promise and enforce that the paths are always posix-style
 export async function glob(pattern: string) {
-	return await promisify(G)(path.posixify(pattern))
+	return await G(path.posixify(pattern))
 }
 
 glob.hasMagic = G.hasMagic

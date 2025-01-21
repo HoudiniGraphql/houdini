@@ -11,7 +11,7 @@ export default async function componentTypesGenerator(
 	// we can just filter out the ones that don't apply:t
 	// - in kit, exclude the route directory
 	// - group the files by directory
-	// - generate ./$houdini in the typeroot directory at the correct spot
+	// - generate runtimeDir in the typeroot directory at the correct spot
 
 	// there could be many queries in a given component so we can't just think about filepaths
 	const queries: Record<string, { name: string; query: string }[]> = {}

@@ -1,3 +1,4 @@
+import { walk } from 'estree-walker'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
@@ -10,6 +11,9 @@ type ReturnStatement = recast.types.namedTypes.ReturnStatement
 type BlockStatement = recast.types.namedTypes.BlockStatement
 type Identifier = recast.types.namedTypes.Identifier
 type ObjectExpression = recast.types.namedTypes.ObjectExpression
+type CallExpression = recast.types.namedTypes.CallExpression
+type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
+type VariableDeclarator = recast.types.namedTypes.VariableDeclarator
 
 export default function (page: SvelteTransformPage) {
 	if (is_root_layout_server(page.config, page.filepath)) {
@@ -67,33 +71,37 @@ function add_load_return(
 		else {
 			return_statement = AST.returnStatement(AST.objectExpression([]))
 			body.body.push(return_statement)
-			return_statement_index = body.body.length - 1
 		}
 
-		// replace the return statement with the variable declaration
-		const local_return_var = AST.identifier('__houdini__vite__plugin__return__value__')
-		body.body[return_statement_index] = AST.variableDeclaration('const', [
-			AST.variableDeclarator(local_return_var, return_statement.argument),
-		])
-
-		// its safe to insert a return statement after the declaration that references event
-		body.body.splice(
-			return_statement_index + 1,
-			0,
-			AST.returnStatement(
-				AST.objectExpression([...properties(event_id), AST.spreadElement(local_return_var)])
-			)
-		)
+		// now we need to walk through the body and replace any returns with one
+		// that has the additional information mixed in
+		return walk(body, {
+			enter(node) {
+				if (node.type === 'ReturnStatement') {
+					// replace the return statement with a new one that includes the returned value
+					const returnedValue = (node as ReturnStatement).argument
+					this.replace(
+						AST.returnStatement(
+							AST.objectExpression([
+								...properties(event_id),
+								AST.spreadElement(returnedValue ?? AST.objectExpression([])),
+							])
+						)
+					)
+				}
+			},
+		}) as BlockStatement
 	})
 }
 
 function modify_load(
 	page: SvelteTransformPage,
-	cb: (body: BlockStatement, event_id: Identifier) => void
+	cb: (body: BlockStatement, event_id: Identifier) => BlockStatement
 ) {
 	// before we do anything, we need to find the load function
-	let load_fn = find_exported_fn(page.script.body, 'load')
+	let exported = find_exported_fn(page.script.body, 'load')
 	let event_id = AST.identifier('event')
+	let load_fn = exported?.declaration || null
 
 	// lets get a reference to the body of the function
 	let body: BlockStatement = AST.blockStatement([])
@@ -104,7 +112,7 @@ function modify_load(
 			body = AST.blockStatement([AST.returnStatement(load_fn.body)])
 			load_fn.body = body
 		}
-	} else if (load_fn) {
+	} else if (load_fn && 'body' in load_fn) {
 		body = load_fn.body
 	}
 
@@ -123,8 +131,47 @@ function modify_load(
 		)
 		body = load_fn.body
 	}
-	// there is a load function, we need the event
-	else {
+	// the load function could be not an actual function but just an expression like an identifier or callexpression
+	// in which case we need to replace the declared value to be a function that passes event on and adds what we want
+	else if (load_fn.type === 'CallExpression' || load_fn.type === 'Identifier') {
+		const exportStatement = exported?.export
+
+		// this should never be true since we know load_fn exists but let's make typescript happy
+		if (!exportStatement) {
+			return
+		}
+
+		// add a global variable with the intermediate value
+		const intermediateID = AST.identifier('houdini__intermediate__load__')
+		page.script.body.push(
+			AST.variableDeclaration('const', [AST.variableDeclarator(intermediateID, load_fn)])
+		)
+
+		// build up a function that does the right thing
+		const newLoad = AST.arrowFunctionExpression(
+			[AST.identifier('event')],
+			AST.blockStatement([
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						AST.identifier('result'),
+						AST.callExpression(intermediateID, [AST.identifier('event')])
+					),
+				]),
+				AST.returnStatement(AST.identifier('result')),
+			])
+		)
+
+		// and change the declared value to be an arrow function that invokes the required function
+		// NOTE: we need the semi-colon here so we don't treat the above definition as a function
+		;(
+			(exportStatement.declaration as VariableDeclaration)!
+				.declarations[0] as VariableDeclarator
+		).init = newLoad
+
+		load_fn = newLoad
+		body = newLoad.body as BlockStatement
+		// there is a load function, we need the event
+	} else {
 		// if there are no identifiers, we need to add one
 		if (load_fn.params.length === 0) {
 			load_fn.params.push(event_id)
@@ -156,5 +203,5 @@ function modify_load(
 	}
 
 	// modify the body
-	cb(body, event_id)
+	load_fn.body = cb(body, event_id)
 }

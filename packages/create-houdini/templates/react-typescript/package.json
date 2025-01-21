@@ -12,22 +12,22 @@
 		"houdini": "^HOUDINI_VERSION",
 		"houdini-react": "^HOUDINI_VERSION",
 		"houdini-adapter-auto": "^HOUDINI_VERSION",
-		"react": "19.0.0-rc-eb259b5d3b-20240605",
-		"react-dom": "19.0.0-rc-eb259b5d3b-20240605",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
 		"graphql-yoga": "4.0.4",
 		"graphql": "15.8.0",
 		"@whatwg-node/server": "^0.9.14"
 	},
 	"devDependencies": {
-		"@types/react": "^18.0.27",
-		"@types/react-dom": "^18.0.10",
+		"@types/react": "^19.0.7",
+		"@types/react-dom": "^19.0.3",
 		"@vitejs/plugin-react": "^3.1.0",
 		"typescript": "^4.9.3",
 		"vite": "^4.1.0"
 	},
 	"resolutions": {
 		"graphql": "15.8.0",
-		"react": "19.0.0-rc-eb259b5d3b-20240605",
-		"react-dom": "19.0.0-rc-eb259b5d3b-20240605"
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
 	}
 }

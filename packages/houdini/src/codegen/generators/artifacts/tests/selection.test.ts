@@ -271,7 +271,7 @@ test('fragments in lists', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "91b23604b402b84e2d83099ca8afc0953ce7e9abdad65e7ea3fb20ba5893e4ce",
+		    "hash": "9076dbbe5ffd2ffc4cb00f7ed9d03d00d527ae2b5c64ad239ad43e235f0b8328",
 
 		    "raw": \`query TestQuery {
 		  usersByCursor {
@@ -285,6 +285,7 @@ test('fragments in lists', async function () {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {

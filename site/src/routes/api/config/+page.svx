@@ -35,9 +35,9 @@ By default, your config file can contain the following values:
 - `exclude` (optional): a pattern (or list of patterns) that filters out files that match the include pattern
 - `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files
 - `watchSchema` (optional, an object): configure the development server to poll a remote url for changes in the schema. When a change is detected, the dev server will automatically regenerate your runtime. For more information see [Schema Polling](#schema-polling).
-- `persistedQueriesPath` (optional, default: `./$houdini/persisted_queries.json`): Configure the path of the persisted queries file.
+- `persistedQueriesPath` (optional, default: `<rootDir>/persisted_queries.json`): Configure the path of the persisted queries file.
 - `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create.
-- `definitionsPath` (optional, default: `"$houdini/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
+- `definitionsPath` (optional, default: `"<rootDir>/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `scalars` (optional): An object describing custom scalars for your project (see below).
 - `cacheBufferSize` (optional, default: `10`): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
 - `defaultCachePolicy` (optional, default: `"CacheOrNetwork"`): The default cache policy to use for queries. For a list of the policies or other information see the [Caching Guide](/guides/caching-data).
@@ -74,6 +74,7 @@ Here is a summary of the possible configuration values:
 - `client` (optional, default: `"./src/client"`): a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
 - `defaultRouteBlocking` (optional, default: `false`): Specifies the default blocking behavior for client-side navigation. For more information, please visit [this section of the docs](https://houdinigraphql.com/api/query#loading-states).
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
+- `runtimeDir` (optional, default: `'$houdini`): The name of the directory used to output the generated Houdini runtime, relative to `projectDir`.
 - `pageQueryFilename` (optional, default: `"+page.gql"`): The name of the file used to define page queries.
 - `layoutQueryFilename` (optional, default: `"+layout.gql"`): The name of the file used to define layout queries.
 - `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the onError hook)

@@ -55,7 +55,7 @@ export async function generate_type_root({
 
 			const all_queries = (page?.query_options ?? []).concat(layout?.query_options ?? [])
 
-			// compute the path prefix to bring us to the root of the $houdini directory
+			// compute the path prefix to bring us to the root of the houdini runtimeDir
 			const relative = path.relative(target_dir, config.rootDir)
 
 			// build up the type definitions

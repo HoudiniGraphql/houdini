@@ -329,6 +329,7 @@ test('connections marked with list directive get cursor information', async func
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -340,6 +341,152 @@ test('connections marked with list directive get cursor information', async func
 		  }
 		  id
 		  __typename
+		}
+	`)
+})
+
+test('nested connections contain pageInfo', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_insert @prepend @parentID(value: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor @list(name:"User_Friends") {
+					edges {
+						node {
+							id
+							firstName
+							friendsByCursor @list(name:"Friends_by_Cursor"){
+								edges { 
+									node { 
+										id
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_insert @prepend @parentID(value: "1234")
+		    id
+		  }
+		}
+
+		fragment User_Friends_insert on User {
+		  id
+		  firstName
+		  friendsByCursor @list(name: "Friends_by_Cursor") {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		        id
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+	`)
+})
+
+test('nested connections contain pageInfo', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_insert @parentID(value:"foo")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor(first:10) @paginate(name:"User_Friends") {
+					edges {
+						node {
+							id
+							firstName
+							friendsByCursor @list(name:"Friends_by_Cursor"){
+								edges { 
+									node { 
+										id
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_insert @parentID(value: "foo")
+		    id
+		  }
+		}
+
+		fragment User_Friends_insert on User {
+		  id
+		  firstName
+		  friendsByCursor @list(name: "Friends_by_Cursor") {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		        id
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 	`)
 })
@@ -437,6 +584,7 @@ test('list flags connections', async function () {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {

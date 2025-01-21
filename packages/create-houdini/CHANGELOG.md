@@ -1,5 +1,11 @@
 # create-houdini
 
+## 1.2.65
+
+### Patch Changes
+
+-   [#1413](https://github.com/HoudiniGraphql/houdini/pull/1413) [`e40c6aa1`](https://github.com/HoudiniGraphql/houdini/commit/e40c6aa19e78899c2e958503802029a1f5d257ee) Thanks @AlecAivazis! - Bump react version
+
 ## 1.2.64
 
 ## 1.2.63
@@ -10,27 +16,27 @@
 
 ### Patch Changes
 
--   [`c3403d54`](https://github.com/HoudiniGraphql/houdini/commit/c3403d5486cb9b786354a79e39b04189aae2334c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More rushed create template changes before lightning talk
+-   [`c3403d54`](https://github.com/HoudiniGraphql/houdini/commit/c3403d5486cb9b786354a79e39b04189aae2334c) Thanks @AlecAivazis! - More rushed create template changes before lightning talk
 
 ## 1.2.60
 
 ### Patch Changes
 
--   [`fb2a6e89`](https://github.com/HoudiniGraphql/houdini/commit/fb2a6e89e55abc1bcf189c4ba45488573afcffdc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix typo in create script
+-   [`fb2a6e89`](https://github.com/HoudiniGraphql/houdini/commit/fb2a6e89e55abc1bcf189c4ba45488573afcffdc) Thanks @AlecAivazis! - Fix typo in create script
 
 ## 1.2.59
 
 ### Patch Changes
 
--   [#1355](https://github.com/HoudiniGraphql/houdini/pull/1355) [`224a5aab`](https://github.com/HoudiniGraphql/houdini/commit/224a5aabf39088177b3a65aa2509ea240c9643f9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More improvements to create template
+-   [#1355](https://github.com/HoudiniGraphql/houdini/pull/1355) [`224a5aab`](https://github.com/HoudiniGraphql/houdini/commit/224a5aabf39088177b3a65aa2509ea240c9643f9) Thanks @AlecAivazis! - More improvements to create template
 
--   [#1355](https://github.com/HoudiniGraphql/houdini/pull/1355) [`224a5aab`](https://github.com/HoudiniGraphql/houdini/commit/224a5aabf39088177b3a65aa2509ea240c9643f9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More template improvements for create
+-   [#1355](https://github.com/HoudiniGraphql/houdini/pull/1355) [`224a5aab`](https://github.com/HoudiniGraphql/houdini/commit/224a5aabf39088177b3a65aa2509ea240c9643f9) Thanks @AlecAivazis! - More template improvements for create
 
 ## 1.2.58
 
 ### Patch Changes
 
--   [#1353](https://github.com/HoudiniGraphql/houdini/pull/1353) [`f68e424d`](https://github.com/HoudiniGraphql/houdini/commit/f68e424d4b5df93dc0a6825a10947c1c478571d3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - improve template for projects with local schemas
+-   [#1353](https://github.com/HoudiniGraphql/houdini/pull/1353) [`f68e424d`](https://github.com/HoudiniGraphql/houdini/commit/f68e424d4b5df93dc0a6825a10947c1c478571d3) Thanks @AlecAivazis! - improve template for projects with local schemas
 
 ## 1.2.57
 
@@ -88,7 +94,7 @@
 
 ### Patch Changes
 
--   [#1220](https://github.com/HoudiniGraphql/houdini/pull/1220) [`4388b76f`](https://github.com/HoudiniGraphql/houdini/commit/4388b76fdaa356b9ff23250016c7f0932562d08e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bring in sync with other packages
+-   [#1220](https://github.com/HoudiniGraphql/houdini/pull/1220) [`4388b76f`](https://github.com/HoudiniGraphql/houdini/commit/4388b76fdaa356b9ff23250016c7f0932562d08e) Thanks @AlecAivazis! - Bring in sync with other packages
 
 ## 1.2.28
 
@@ -112,19 +118,19 @@
 
 ### Patch Changes
 
--   [`65c703c6`](https://github.com/HoudiniGraphql/houdini/commit/65c703c6c97e3ae4cdc8c676594a36f40ac70844) @AlecAivazis - fix invalid package.json config for create-houdini
+-   [`65c703c6`](https://github.com/HoudiniGraphql/houdini/commit/65c703c6c97e3ae4cdc8c676594a36f40ac70844) Thanks @AlecAivazis! - fix invalid package.json config for create-houdini
 
 ## 1.2.18
 
 ### Patch Changes
 
--   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) @AlecAivazis - Get all packages at same version
+-   [`7f6432a6`](https://github.com/HoudiniGraphql/houdini/commit/7f6432a6be5bd7bb7831f21ebe134698f1e2f072) Thanks @AlecAivazis! - Get all packages at same version
 
 ## 1.2.10
 
 ### Patch Changes
 
--   [`d105eca7`](https://github.com/HoudiniGraphql/houdini/commit/d105eca704590f7e534d90bf0ab8fef6e25cb229) @AlecAivazis - Update to latest tempaltes
+-   [`d105eca7`](https://github.com/HoudiniGraphql/houdini/commit/d105eca704590f7e534d90bf0ab8fef6e25cb229) Thanks @AlecAivazis! - Update to latest tempaltes
 
 ## 1.2.9
 

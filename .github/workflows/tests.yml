@@ -33,13 +33,13 @@ jobs:
             - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                node-version: 20.13.1
+                node-version: 20.18.1
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Install dependencies
               run: pnpm install
@@ -69,7 +69,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -112,7 +112,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -162,7 +162,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -230,7 +230,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
