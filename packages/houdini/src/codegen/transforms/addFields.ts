@@ -32,29 +32,38 @@ export default async function addFields(config: Config, documents: Document[]): 
 				// add the appropriate fields to the selection
 				let newNode = addKeysToSelection(config, node, fieldType)
 
-				// if the field is tagged with a list and is a connection we need to make sure 
+				// if the field is tagged with a list and is a connection we need to make sure
 				// the page info is included with it
-				if (node.directives?.find(directive => directive.name.value === config.listDirective || directive.name.value === config.paginateDirective)) {
+				if (
+					node.directives?.find(
+						(directive) =>
+							directive.name.value === config.listDirective ||
+							directive.name.value === config.paginateDirective
+					)
+				) {
 					const targetFieldDefinition = type.getFields()[
-											node.name.value
-										] as graphql.GraphQLField<any, any>
+						node.name.value
+					] as graphql.GraphQLField<any, any>
 					// we need to look if the field is a conneciton
-					const { connection } = connectionSelection(config, targetFieldDefinition, targetFieldDefinition.type as graphql.GraphQLObjectType, node.selectionSet)
+					const { connection } = connectionSelection(
+						config,
+						targetFieldDefinition,
+						targetFieldDefinition.type as graphql.GraphQLObjectType,
+						node.selectionSet
+					)
 					if (connection) {
 						newNode = {
 							...newNode,
 							selectionSet: {
-								kind:"SelectionSet",
+								kind: 'SelectionSet',
 								selections: [
 									...(newNode.selectionSet?.selections || []),
 									...selectionConnectionInfo,
-								]
-
-							}
+								],
+							},
 						}
 					}
 				}
-
 
 				// we're done processing the node
 				return newNode
@@ -102,7 +111,6 @@ function addKeysToSelection(
 	if (!graphql.isObjectType(fieldType) && !graphql.isInterfaceType(fieldType)) {
 		return node
 	}
-
 
 	// now we need to add the keys
 

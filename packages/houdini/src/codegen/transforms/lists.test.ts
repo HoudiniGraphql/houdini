@@ -345,7 +345,7 @@ test('connections marked with list directive get cursor information', async func
 	`)
 })
 
-test("nested connections contain pageInfo", async function() {
+test('nested connections contain pageInfo', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
@@ -418,8 +418,7 @@ test("nested connections contain pageInfo", async function() {
 	`)
 })
 
-
-test("nested connections contain pageInfo", async function() {
+test('nested connections contain pageInfo', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
