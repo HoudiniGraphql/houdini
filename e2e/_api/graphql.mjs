@@ -14,7 +14,7 @@ export const typeDefs = /* GraphQL */ `
 	Date custom scalar type
 	"""
 	scalar DateTime
-	scala File
+	scalar File
 
 	"""
 	Can be Value1 or Value2.
