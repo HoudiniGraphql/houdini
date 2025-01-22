@@ -38,11 +38,20 @@ export default {
 			manifest = await load_manifest({
 				config,
 			})
+			setManifest(manifest)
 		} catch (e) {
 			console.log('something went wrong. please try again. \n error: ' + (e as Error).message)
-			throw e
+			manifest = {
+				pages: {},
+				layouts: {},
+				page_queries: {},
+				layout_queries: {},
+				artifacts: [],
+				local_schema: false,
+				local_yoga: false,
+				component_fields: {},
+			}
 		}
-		setManifest(manifest)
 
 		// secondary builds have their own rollup config
 		let conf: { build?: BuildOptions; base?: string } = {
@@ -453,7 +462,6 @@ root.render(React.createElement(App, {
 	},
 } as PluginHooks['vite']
 
-// function:
 function getBody(request: Connect.IncomingMessage): Promise<string> {
 	return new Promise((resolve) => {
 		const bodyParts: Uint8Array[] = []
