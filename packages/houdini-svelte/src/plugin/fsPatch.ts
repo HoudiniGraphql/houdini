@@ -24,8 +24,11 @@ export default (getFramework: () => Framework) =>
 				if (match) {
 					return path.join(config.projectRoot, filepath.substring(match[1].length))
 				}
+
 				// if there is no deep relative import, do the default thing
-				return
+				return filepath.startsWith('/src')
+					? { id: path.join(config.projectRoot, filepath) }
+					: null
 			}
 
 			// everything internal to houdini should assume posix paths
