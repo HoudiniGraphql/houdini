@@ -31,8 +31,10 @@
     "dependencies": {
         "houdini": "workspace:^",
         "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "vite": "^4.1.4"
+        "react-dom": "^19.0.0"
+    },
+    "peerDependencies": {
+        "vite": "^5.3.3"
     },
     "files": [
         "build"
