@@ -90,7 +90,7 @@ export type LoadEventFetchParams<_Data extends GraphQLObject, _Input> = FetchGlo
 	_Input
 > & {
 	/**
-	 * Directly the `even` param coming from the `load` function
+	 * Directly the `event` param coming from the `load` function
 	 */
 	event?: LoadEvent
 }
