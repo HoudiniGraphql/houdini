@@ -1,4 +1,4 @@
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -220,8 +220,12 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 			// if there is a local schema we need to use that when generating
 			if (config.localSchema) {
-				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
-					.default as graphql.GraphQLSchema
+				try {
+					config.schema = (await server.ssrLoadModule(config.localSchemaPath))
+						.default as graphql.GraphQLSchema
+				} catch {
+					config.schema = graphql.buildSchema('type Query')
+				}
 				// make sure we watch the file for changes
 				server.watcher.add(config.localSchemaPath)
 			}
@@ -243,7 +247,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				await generate(config)
 			} catch (e) {
 				formatErrors(e)
-				throw e
 			}
 		},
 

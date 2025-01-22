@@ -390,7 +390,7 @@ root.render(React.createElement(App, {
 				requestHeaders.set(header[0], header[1] as string)
 			}
 
-			// wrap the vite request in a proper on
+			// wrap the vite request in a proper one
 			const request = new Request(
 				'https://localhost:5173' + req.url,
 				req.method === 'POST'

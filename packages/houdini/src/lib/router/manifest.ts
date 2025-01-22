@@ -29,62 +29,69 @@ export async function load_manifest(args: {
 	config: Config
 	includeArtifacts?: boolean
 }): Promise<ProjectManifest> {
-	// we'll start at the route directory and start building it up
-	const manifest = await walk_routes({
-		config: args.config,
-		url: '/',
-		filepath: args.config.routesDir,
-		project: {
-			component_fields: {},
-			pages: {},
-			layouts: {},
-			page_queries: {},
-			layout_queries: {},
-			artifacts: [],
-			local_schema: false,
-			local_yoga: false,
-		},
-		queries: [],
-		layouts: [],
-		variables: {},
-	})
-
-	// we might need to include the list of aritfacts in the project
-	if (args.includeArtifacts) {
-		try {
-			// look at the artifact directory for every artifact
-			for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
-				// only consider the js files
-				if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
-					continue
-				}
-
-				// push the artifact path without the extension
-				manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
-			}
-		} catch {}
+	let manifest: ProjectManifest = {
+		component_fields: {},
+		pages: {},
+		layouts: {},
+		page_queries: {},
+		layout_queries: {},
+		artifacts: [],
+		local_schema: false,
+		local_yoga: false,
 	}
 
-	// the schema could be any number of things:
-	// a directory (+schema/index.js)
-	// a javascript file
-	// a file that transpiles into javascript
-	// in order to address this, we're going to just look inside of the api directory for
-	// something named schema (regardless of directory or file)
 	try {
-		await fs.stat(args.config.localApiDir)
-		// look at the contents of the directory
-		for (const child of await fs.readdir(args.config.localApiDir, { withFileTypes: true })) {
-			const name = child.isDirectory() ? child.name : path.parse(child.name).name
+		// we'll start at the route directory and start building it up
+		manifest = await walk_routes({
+			config: args.config,
+			url: '/',
+			filepath: args.config.routesDir,
+			project: manifest,
+			queries: [],
+			layouts: [],
+			variables: {},
+		})
 
-			if (name === '+schema') {
-				manifest.local_schema = true
-			} else if (name === '+yoga') {
-				manifest.local_yoga = true
-			}
+		// we might need to include the list of aritfacts in the project
+		if (args.includeArtifacts) {
+			try {
+				// look at the artifact directory for every artifact
+				for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
+					// only consider the js files
+					if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
+						continue
+					}
+
+					// push the artifact path without the extension
+					manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
+				}
+			} catch {}
 		}
-	} catch {
-		// the so move on
+
+		// the schema could be any number of things:
+		// a directory (+schema/index.js)
+		// a javascript file
+		// a file that transpiles into javascript
+		// in order to address this, we're going to just look inside of the api directory for
+		// something named schema (regardless of directory or file)
+		try {
+			await fs.stat(args.config.localApiDir)
+			// look at the contents of the directory
+			for (const child of await fs.readdir(args.config.localApiDir, {
+				withFileTypes: true,
+			})) {
+				const name = child.isDirectory() ? child.name : path.parse(child.name).name
+
+				if (name === '+schema') {
+					manifest.local_schema = true
+				} else if (name === '+yoga') {
+					manifest.local_yoga = true
+				}
+			}
+		} catch {}
+	} catch (e) {
+		// if there is an error, we'll just return an empty manifest
+		console.error((e as Error).message ?? e)
 	}
 
 	return manifest
