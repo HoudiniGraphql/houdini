@@ -1,0 +1,10 @@
+{
+	"name": "houdini-go",
+	"description": "description",
+	"authors": "author",
+	"version": "1.0.0",
+	"dependencies": {},
+	"scripts": {
+		"build": "deno run --allow-read --allow-write --allow-env --allow-run _scripts/build.ts"
+	}
+}

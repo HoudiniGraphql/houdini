@@ -1,8 +1,8 @@
-import fsSync from 'fs'
 import fs_extra from 'fs-extra'
-import fs from 'fs/promises'
 import { glob } from 'glob'
-import path from 'path'
+import fsSync from 'node:fs'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import ts from 'typescript'
 
 const { ModuleResolutionKind } = ts
