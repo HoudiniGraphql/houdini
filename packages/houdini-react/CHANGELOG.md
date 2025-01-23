@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.3.2
+
+### Patch Changes
+
+-   [#1422](https://github.com/HoudiniGraphql/houdini/pull/1422) [`47f89581`](https://github.com/HoudiniGraphql/houdini/commit/47f895810a2340fe898f0c4fc4605e890f48fc9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing dev serer to crash if there are syntax errors in a local schema
+
+-   Updated dependencies [[`1f11803e`](https://github.com/HoudiniGraphql/houdini/commit/1f11803e98ad9aada1b4fb068a51af7948e82da0), [`47f89581`](https://github.com/HoudiniGraphql/houdini/commit/47f895810a2340fe898f0c4fc4605e890f48fc9f), [`f07875bf`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f), [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432)]:
+    -   houdini@1.4.2
+
 ## 1.3.1
 
 ### Patch Changes
