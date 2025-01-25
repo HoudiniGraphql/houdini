@@ -102,7 +102,6 @@ export default async function () {
 				)
 			)
 
-			await fs.writeFile(path.join(outputDir, "index.js"), "")
 		})
 	)
 
