@@ -182,6 +182,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 				// if the CacheOnly request doesn't give us anything,
 				// don't update the store
 				silenceEcho: true,
+				abortController: params.abortController,
 			})
 		}
 

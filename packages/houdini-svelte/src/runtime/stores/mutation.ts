@@ -23,6 +23,7 @@ export class MutationStore<
 			metadata,
 			fetch,
 			event,
+			abortController: abort,
 			...mutationConfig
 		}: {
 			// @ts-ignore
@@ -44,6 +45,7 @@ export class MutationStore<
 			fetch: context.fetch,
 			metadata,
 			session: context.session,
+			abortController: abort,
 			stuff: {
 				...mutationConfig,
 			},
@@ -53,4 +55,5 @@ export class MutationStore<
 
 export type MutationConfig<_Result, _Input, _Optimistic> = {
 	optimisticResponse?: _Optimistic
+	abortController?: AbortController
 }
