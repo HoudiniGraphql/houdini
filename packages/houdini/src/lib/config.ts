@@ -314,6 +314,7 @@ export class Config {
 					)
 				)
 					.flat()
+					.map((filepath) => path.posixify(filepath))
 					.filter((filepath) => this.includeFile(filepath))
 					// don't include the schema path as a source file
 					.filter((filepath) => {
