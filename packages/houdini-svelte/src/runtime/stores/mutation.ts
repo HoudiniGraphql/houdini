@@ -23,7 +23,7 @@ export class MutationStore<
 			metadata,
 			fetch,
 			event,
-			abortController: abort,
+			abortController,
 			...mutationConfig
 		}: {
 			// @ts-ignore
@@ -45,7 +45,7 @@ export class MutationStore<
 			fetch: context.fetch,
 			metadata,
 			session: context.session,
-			abortController: abort,
+			abortController,
 			stuff: {
 				...mutationConfig,
 			},
