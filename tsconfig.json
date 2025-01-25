@@ -20,8 +20,8 @@
 		"emitDeclarationOnly": true,
 		"baseUrl": "./packages/houdini",
 		"paths": {
-			"$houdini": ["../houdini/src"],
-			"$houdini/*": ["../houdini/src/*"]
+			"$houdini": ["../houdini/package"],
+			"$houdini/*": ["../houdini/package/*"]
 		},
 		"jsx": "react-jsx"
 	}

@@ -16,7 +16,7 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "compile": "scripts build",
+        "compile": "scripts build-go",
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {

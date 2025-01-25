@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "2.1.2",
+    "version": "2.1.1",
     "description": "The svelte plugin for houdini",
     "keywords": [
         "typescript",
@@ -19,7 +19,7 @@
     "type": "module",
     "scripts": {
         "tests": "vitest",
-        "compile": "scripts build --plugin",
+        "compile": "scripts build-node --plugin",
         "typedefs": "scripts typedefs --plugin"
     },
     "devDependencies": {
