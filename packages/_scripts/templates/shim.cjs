@@ -4,8 +4,11 @@ function getBinaryPath() {
 	// Lookup table for all platforms and binary distribution packages
 	const BINARY_DISTRIBUTION_PACKAGES = {
 		'linux-x64': 'my-package-linux-x64',
-		'linux-arm': 'my-package-linux-arm',
+		'linux-arm64': 'my-package-linux-arm64',
 		'win32-x64': 'my-package-windows-x64',
+		'win32-arm64': 'my-package-windows-arm64',
+		'darwin-x64': 'houdini-darwin-x64',
+		'darwin-arm64': 'houdini-darwin-arm64',
 	}
 
 	// Windows binaries end with .exe so we need to special case them.
@@ -15,7 +18,7 @@ function getBinaryPath() {
 	const platformSpecificPackageName =
 		BINARY_DISTRIBUTION_PACKAGES[`${process.platform}-${process.arch}`]
 
-		try {
+	try {
 		// Resolving will fail if the optionalDependency was not installed
 		return require.resolve(`../${platformSpecificPackageName}/bin/${binaryName}`)
 	} catch (e) {
