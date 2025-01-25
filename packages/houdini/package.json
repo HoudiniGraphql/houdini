@@ -17,8 +17,7 @@
     "type": "module",
     "scripts": {
         "compile": "scripts build-go",
-        "typedefs": "scripts typedefs",
-        "postinstall": "node postInstall.js"
+        "typedefs": "scripts typedefs"
     },
     "devDependencies": {
         "@babel/types": "^7.24.6",

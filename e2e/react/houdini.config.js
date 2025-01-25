@@ -1,6 +1,7 @@
 /// <references types="houdini-react">
 /** @type {import('houdini').ConfigFile} */
 const config = {
+	runtimeDir: '.houdini',
 	defaultPartial: true,
 	scalars: {
 		DateTime: {

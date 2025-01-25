@@ -125,6 +125,8 @@ export default async function () {
 
 	// read the install script
 	for (const script of ['postInstall.js', 'shim.js']) {
+		const scriptPath = path.join(buildDir, packageJSON.name, script)
+
 		let scriptContents = await fs.readFile(
 			path.join(path.dirname(new URL(import.meta.url).pathname), 'templates', script),
 			'utf8'
@@ -135,7 +137,9 @@ export default async function () {
 			.replace(/my-binary/g, packageJSON.name)
 			.replace(/package-version/g, packageJSON.version)
 
-		await fs.writeFile(path.join(buildDir, packageJSON.name, script), scriptContents, 'utf8')
+		await fs.writeFile(scriptPath, scriptContents, 'utf8')
+
+		await execCmd('chmod', ['+x', scriptPath], {})
 	}
 
 	// write the package.json somewhere that we can use later (the package scripts will modify it)

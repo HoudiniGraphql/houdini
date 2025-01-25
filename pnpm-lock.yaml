@@ -229,12 +229,6 @@ importers:
       graphql-yoga:
         specifier: ^4.0.4
         version: 4.0.4(graphql@15.5.0)
-      houdini:
-        specifier: workspace:^
-        version: link:../../packages/houdini
-      houdini-react:
-        specifier: workspace:^
-        version: link:../../packages/houdini-react
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -269,15 +263,6 @@ importers:
       hono:
         specifier: ^3.6.0
         version: 3.6.0
-      houdini-adapter-cloudflare:
-        specifier: workspace:^
-        version: link:../../packages/adapter-cloudflare
-      houdini-adapter-node:
-        specifier: workspace:^
-        version: link:../../packages/adapter-node
-      houdini-adapter-static:
-        specifier: workspace:^
-        version: link:../../packages/adapter-static
       postcss:
         specifier: ^8.4.31
         version: 8.4.31
@@ -13749,9 +13734,9 @@ snapshots:
 
   mlly@1.6.1:
     dependencies:
-      acorn: 8.12.1
+      acorn: 8.14.0
       pathe: 1.1.2
-      pkg-types: 1.0.3
+      pkg-types: 1.3.1
       ufo: 1.5.4
 
   mlly@1.7.4:
