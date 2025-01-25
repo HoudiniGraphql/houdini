@@ -1,5 +1,14 @@
 # houdini-react
 
+## 1.3.3
+
+### Patch Changes
+
+-   [#1426](https://github.com/HoudiniGraphql/houdini/pull/1426) [`711358eb`](https://github.com/HoudiniGraphql/houdini/commit/711358eb0bf368c46b5543c36342e506d4d898ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add abortController argument to query and mutation handles
+
+-   Updated dependencies [[`711358eb`](https://github.com/HoudiniGraphql/houdini/commit/711358eb0bf368c46b5543c36342e506d4d898ae)]:
+    -   houdini@1.4.3
+
 ## 1.3.2
 
 ### Patch Changes
