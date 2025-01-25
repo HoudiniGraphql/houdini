@@ -55,7 +55,7 @@ export default async function () {
 	} catch (e) {}
 
 	// load the current package.json to grab necessary metadata
-	const packageJSON = (
+	let packageJSON = (
 		await import(path.join(cwd, 'package.json'), {
 			assert: { type: 'json' },
 		})
@@ -105,34 +105,39 @@ export default async function () {
 	// now we need to create the root package
 	await fs.mkdir(path.join(buildDir, packageJSON.name))
 
-	// add an optional dependency for every platform
-	packageJSON.optionalDependencies = Object.fromEntries(
-		platforms.map((platform) => [
-			`@houdinigraphql/${packageJSON.name}-${platform.goOS}-${platform.arch}`,
-			packageJSON.version,
-		])
-	)
-	// make sure the postinstall script is wired up
-	packageJSON.scripts = {
-		...packageJSON.scripts,
-		postinstall: 'node install.js',
+	// modify the package.json
+	packageJSON = {
+		...packageJSON,
+		optionalDependencies: Object.fromEntries(
+			platforms.map((platform) => [
+				`@houdinigraphql/${packageJSON.name}-${platform.goOS}-${platform.arch}`,
+				packageJSON.version,
+			])
+		),
+		scripts: {
+			...packageJSON.scripts,
+			postinstall: 'node install.js',
+		},
+		bin: './shim.js',
+	}
+
+	// read the install script
+	for (const script of ['postInstall.js', 'shim.js']) {
+		let scriptContents = await fs.readFile(
+			path.join(path.dirname(new URL(import.meta.url).pathname), 'templates', script),
+			'utf8'
+		)
+		// apply the package specifics to the install script template
+		scriptContents = scriptContents
+			.replace(/my-package/g, packageJSON.name)
+			.replace(/my-binary/g, packageJSON.name)
+			.replace(/package-version/g, packageJSON.version)
+
+		await fs.writeFile(path.join(buildDir, packageJSON.name, script), scriptContents, 'utf8')
 	}
 
 	await fs.writeFile(
 		path.join(buildDir, packageJSON.name, 'package.json'),
 		JSON.stringify(packageJSON, null, 4)
 	)
-
-	// read the install script
-	let installScript = await fs.readFile(
-		path.join(path.dirname(new URL(import.meta.url).pathname), './postInstall.js'),
-		'utf8'
-	)
-	// apply the package specifics to the install script template
-	installScript = installScript
-		.replace(/my-package/g, packageJSON.name)
-		.replace(/my-binary/g, packageJSON.name)
-		.replace(/package-version/g, packageJSON.version)
-
-	await fs.writeFile(path.join(buildDir, packageJSON.name, 'install.js'), installScript, 'utf8')
 }
