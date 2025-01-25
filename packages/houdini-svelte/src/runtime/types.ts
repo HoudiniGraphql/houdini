@@ -83,11 +83,6 @@ type FetchGlobalParams<_Data extends GraphQLObject, _Input> = FetchParams<_Input
 	 * A function to call after the fetch happens (whether fake or not)
 	 */
 	then?: (val: _Data | null) => void | Promise<void>
-
-	/**
-	 * An abort controller to abort the request
-	 */
-	abortController?: AbortController
 }
 
 export type LoadEventFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
