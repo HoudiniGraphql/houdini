@@ -1,5 +1,4 @@
 ---
-'houdini-svelte': patch
 'houdini': patch
 ---
 
