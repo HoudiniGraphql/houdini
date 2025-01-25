@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 function getBinaryPath() {
 	// Lookup table for all platforms and binary distribution packages
 	const BINARY_DISTRIBUTION_PACKAGES = {
@@ -21,9 +23,7 @@ function getBinaryPath() {
 	}
 }
 
-// With `getBinaryPath()` could access the binary in you JavaScript code as follows
-module.exports.runBinary = function (...args) {
-	require('child_process').execFileSync(getBinaryPath(), args, {
-		stdio: 'inherit',
-	})
-}
+// this command needs to kick off the binary and pass the command line arguments through
+require('child_process').execFileSync(process.argv.slice(2), args, {
+	stdio: 'inherit',
+})

@@ -161,7 +161,7 @@ export default async function () {
 	try {
 		await fs.access(runtimeSource)
 		await build({
-			outDir: path.join(buildDir, packageJSON.name, 'build'),
+			outDir: path.join(buildDir, packageJSON.name),
 			source: runtimeSource,
 			bundle: false,
 		})
