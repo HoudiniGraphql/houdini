@@ -3,9 +3,9 @@ import type { ExpressionKind, StatementKind, TSTypeKind } from 'ast-types/lib/ge
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config, Document, DocumentArtifact } from '../../../lib'
-import { printJS, HoudiniError, siteURL, fs, path } from '../../../lib'
-import { readonlyProperty, tsTypeReference } from '../../../lib/typescript'
+import type { Config, Document, DocumentArtifact } from '../../../package/lib'
+import { printJS, HoudiniError, siteURL, fs, path } from '../../../package/lib'
+import { readonlyProperty, tsTypeReference } from '../../../package/lib/typescript'
 import { fragmentArgumentsDefinitions } from '../../transforms/fragmentVariables'
 import { flattenSelections } from '../../utils'
 import { serializeValue } from '../artifacts/utils'

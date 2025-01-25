@@ -1,7 +1,15 @@
 import * as graphql from 'graphql'
 
-import type { Config, PluginHooks, Document, LogLevels } from '../lib'
-import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
+import type { Config, PluginHooks, Document, LogLevels } from '../package/lib'
+import {
+	runPipeline as run,
+	LogLevel,
+	find_graphql,
+	parseJS,
+	HoudiniError,
+	fs,
+	path,
+} from '../package/lib'
 import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 import * as generators from './generators'
 import * as transforms from './transforms'

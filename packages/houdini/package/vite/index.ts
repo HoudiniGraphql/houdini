@@ -3,7 +3,7 @@ import minimatch from 'minimatch'
 import type { Plugin } from 'vite'
 import { watchAndRun } from 'vite-plugin-watch-and-run'
 
-import generate from '../codegen'
+import generate from '../../codegen'
 import type { PluginConfig } from '../lib'
 import { getConfig, formatErrors, path } from '../lib'
 import houdini_vite from './houdini'

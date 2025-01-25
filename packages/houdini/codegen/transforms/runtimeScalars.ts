@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { unwrapType, wrapType, type Config, type Document } from '../../lib'
+import { unwrapType, wrapType, type Config, type Document } from '../../package/lib'
 
 // for the purposes of the rest of the pipeline, a runtime scalar should be considered the same as
 // its GraphQL type. This transform converts the definitions and leaves behind a directive that

@@ -1,5 +1,5 @@
-import type { Config, Document } from '../../lib'
-import { HoudiniError } from '../../lib/error'
+import type { Config, Document } from '../../package/lib'
+import { HoudiniError } from '../../package/lib'
 
 // uniqueDocumentNames verifies that the documents all have unique names
 export default async function uniqueDocumentNames(config: Config, docs: Document[]): Promise<void> {

@@ -17,7 +17,8 @@
     "type": "module",
     "scripts": {
         "compile": "scripts build-go",
-        "typedefs": "scripts typedefs"
+        "typedefs": "scripts typedefs",
+        "postinstall": "node postInstall.js"
     },
     "devDependencies": {
         "@babel/types": "^7.24.6",
@@ -66,17 +67,20 @@
     "files": [
         "build"
     ],
+    "optionalDependencies": {
+        "@houdinigraphql/houdini-darwin-amd64": "1.4.2",
+        "@houdinigraphql/houdini-darwin-arm64": "1.4.2",
+        "@houdinigraphql/houdini-linux-amd64": "1.4.2",
+        "@houdinigraphql/houdini-linux-arm64": "1.4.2",
+        "@houdinigraphql/houdini-windows-amd64": "1.4.2",
+        "@houdinigraphql/houdini-windows-arm64": "1.4.2"
+    },
     "exports": {
         "./package.json": "./package.json",
         "./adapter": {
             "types": "./build/adapter/index.d.ts",
             "import": "./build/adapter-esm/index.js",
             "require": "./build/adapter-cjs/index.js"
-        },
-        "./codegen": {
-            "types": "./build/codegen/index.d.ts",
-            "import": "./build/codegen-esm/index.js",
-            "require": "./build/codegen-cjs/index.js"
         },
         ".": {
             "types": "./build/lib/index.d.ts",
@@ -99,9 +103,6 @@
             "adapter": [
                 "build/adapter/index.d.ts"
             ],
-            "codegen": [
-                "build/codegen/index.d.ts"
-            ],
             "test": [
                 "build/test/index.d.ts"
             ],
@@ -110,7 +111,6 @@
             ]
         }
     },
-    "bin": "./build/cmd-esm/index.js",
     "main": "./build/lib-cjs/index.js",
     "types": "./build/lib/index.d.ts"
 }

@@ -1,5 +1,5 @@
-import type { Config, Document } from '../../../lib'
-import { fs, path } from '../../../lib'
+import type { Config, Document } from '../../../package/lib'
+import { fs, path } from '../../../package/lib'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 
 export default async function writeIndexFile(config: Config, docs: Document[]) {

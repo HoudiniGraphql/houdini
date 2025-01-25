@@ -2,8 +2,8 @@
 import * as graphql from 'graphql'
 
 // internals
-import type { Config, Document } from '../../../lib'
-import { fs } from '../../../lib'
+import type { Config, Document } from '../../../package/lib'
+import { fs } from '../../../package/lib'
 
 // the persist output generator is responsible for generating a queryMap.json
 // to the provided path with the `hash` as key and the raw query as value.

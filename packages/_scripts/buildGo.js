@@ -2,6 +2,8 @@ import childProcess from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import { buildPackage, build } from './buildNode.js'
+
 // if a package needs to be published as a go script then we need to :
 // - compile the project for every supported os and architecture into a separate directory
 // - generate the appropriate package.json file for each os/architecture
@@ -116,7 +118,7 @@ export default async function () {
 		),
 		scripts: {
 			...packageJSON.scripts,
-			postinstall: 'node install.js',
+			postinstall: 'node postInstall.js',
 		},
 		bin: './shim.js',
 	}
@@ -136,8 +138,35 @@ export default async function () {
 		await fs.writeFile(path.join(buildDir, packageJSON.name, script), scriptContents, 'utf8')
 	}
 
-	await fs.writeFile(
-		path.join(buildDir, packageJSON.name, 'package.json'),
-		JSON.stringify(packageJSON, null, 4)
-	)
+	// write the package.json somewhere that we can use later (the package scripts will modify it)
+	const packageJSONPath = path.join(buildDir, packageJSON.name, 'package.json')
+	await fs.writeFile(packageJSONPath, JSON.stringify(packageJSON, null, 4))
+
+	// if there is a package directory then we need to build it and add the necessary entries in our package.json
+	const packagePath = path.join(cwd, 'package')
+	try {
+		await fs.access(packagePath)
+		await buildPackage({
+			packageJSONPath,
+			source: packagePath,
+			outDir: path.join(buildDir, packageJSON.name, 'build'),
+		})
+	} catch (e) {
+		console.log(e)
+		console.log('no package directory found, skipping build', packagePath)
+	}
+
+	// if there is a runtime directory then we need to handle that too
+	const runtimeSource = path.join(cwd, 'runtime')
+	try {
+		await fs.access(runtimeSource)
+		await build({
+			outDir: path.join(buildDir, packageJSON.name, 'build'),
+			source: runtimeSource,
+			bundle: false,
+		})
+	} catch (e) {
+		console.log(e)
+		console.log('no package directory found, skipping build', runtimeSource)
+	}
 }

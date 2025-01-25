@@ -4,17 +4,20 @@ import { glob } from 'glob'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-// the relevant directories
-const build_dir = path.join(process.cwd(), 'build')
-const src_dir = path.join(process.cwd(), 'src')
-
 // the function to build a project assuming the directory layout
 export default async function ({ plugin }) {
+	await buildPackage({
+		packageJSONPath: path.join(process.cwd(), 'package.json'),
+		source: path.join(process.cwd(), 'src'),
+		outDir: path.join(process.cwd(), 'build'),
+		plugin,
+	})
+}
+
+export async function buildPackage({ packageJSONPath, source, outDir, plugin, onlySource }) {
 	// this script will also modify the package.json so that it exports esm and cjs versions
 	// correctly
-	const package_json = JSON.parse(
-		await fs.readFile(path.join(process.cwd(), 'package.json'), 'utf-8')
-	)
+	const package_json = JSON.parse(await fs.readFile(packageJSONPath, 'utf-8'))
 	package_json.exports = {
 		'./package.json': './package.json',
 	}
@@ -34,17 +37,26 @@ export default async function ({ plugin }) {
 		)
 	}
 
-	// look at every directory in the source
-	for (const dirname of await fs.readdir(src_dir)) {
-		const dir = path.join(src_dir, dirname)
+	let options = onlySource ? [source] : []
+	if (!onlySource) {
+		// look at every directory in the source
+		for (const dirname of await fs.readdir(source)) {
+			const dir = path.join(source, dirname)
 
-		if (!(await fs.stat(dir)).isDirectory()) {
-			continue
+			if (!(await fs.stat(dir)).isDirectory()) {
+				continue
+			}
+
+			options.push(dir)
 		}
+	}
+
+	for (const dir of options) {
+		const dirname = path.basename(dir)
 
 		// plugins get bundled
 		if (dirname === 'plugin') {
-			await build({ packages, source: dir, plugin })
+			await build({ outDir, packages, source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = './build/plugin-cjs/index.js'
 			package_json.exports['.'] = {
@@ -57,7 +69,7 @@ export default async function ({ plugin }) {
 
 		// lib defines the main entry point
 		else if (dirname === 'lib') {
-			await build({ packages, source: dir, plugin })
+			await build({ outDir, packages, source: dir, plugin })
 			// when there's a plugin directory, that is the main entry point
 			package_json.main = `./build/${dirname}-cjs/index.js`
 			package_json.exports[`.`] = {
@@ -69,12 +81,12 @@ export default async function ({ plugin }) {
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
-			await build({ packages, source: dir, bundle: false, plugin })
+			await build({ outDir, packages, source: dir, bundle: false, plugin })
 		}
 		// cmd needs to be bundled and set as the project's bin
 		else if (dirname === 'cmd') {
 			package_json.bin = './build/cmd-esm/index.js'
-			await build({ packages, source: dir, plugin, bundle: true, cmd: true })
+			await build({ outDir, packages, source: dir, plugin, bundle: true, cmd: true })
 		}
 
 		// its not a special directory, treat it as a sub module
@@ -82,6 +94,7 @@ export default async function ({ plugin }) {
 			await build({
 				packages,
 				source: dir,
+				outDir,
 				plugin,
 				bundle: dirname !== 'server' && dirname !== 'streaming',
 			})
@@ -94,15 +107,12 @@ export default async function ({ plugin }) {
 			package_json.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
 		}
 
-		await fs.writeFile(
-			path.join(process.cwd(), 'package.json'),
-			JSON.stringify(package_json, null, 4)
-		)
+		await fs.writeFile(path.join(outDir, 'package.json'), JSON.stringify(package_json, null, 4))
 	}
 }
 
 // create esm and cjs builds of the source
-async function build({ packages, source, bundle = true, plugin, cmd }) {
+export async function build({ outDir, packages, source, bundle = true, plugin, cmd }) {
 	// if we aren't bundling, look up the entrypoints once
 	const children = bundle
 		? []
@@ -114,7 +124,7 @@ async function build({ packages, source, bundle = true, plugin, cmd }) {
 	await Promise.all(
 		['esm', 'cjs'].map(async (which) => {
 			// where we will put everything
-			const target_dir = path.join(build_dir, `${path.basename(source)}-${which}`)
+			const target_dir = path.join(outDir, `${path.basename(source)}-${which}`)
 
 			let header = cmd ? '#!/usr/bin/env node\n' : ''
 			if (bundle) {
@@ -140,12 +150,14 @@ async function build({ packages, source, bundle = true, plugin, cmd }) {
 				banner: {
 					js: header,
 				},
-				plugins: [
-					replace({
-						HOUDINI_PACKAGE_VERSION: packages.houdini.version,
-						HOUDINI_SVELTE_PACKAGE_VERSION: packages['houdini-svelte'].version,
-					}),
-				],
+				plugins: packages
+					? [
+							replace({
+								HOUDINI_PACKAGE_VERSION: packages.houdini.version,
+								HOUDINI_SVELTE_PACKAGE_VERSION: packages['houdini-svelte'].version,
+							}),
+					  ]
+					: [],
 			}
 
 			// if we are building, turn the source into a single file

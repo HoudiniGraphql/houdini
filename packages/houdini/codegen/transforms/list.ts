@@ -1,8 +1,14 @@
 import { green, yellow } from '@kitql/helpers'
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
-import { parentTypeFromAncestors, HoudiniError, siteURL, TypeWrapper, unwrapType } from '../../lib'
+import type { Config, Document } from '../../package/lib'
+import {
+	parentTypeFromAncestors,
+	HoudiniError,
+	siteURL,
+	TypeWrapper,
+	unwrapType,
+} from '../../package/lib'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { objectIdentificationSelection } from '../utils/objectIdentificationSelection'
 

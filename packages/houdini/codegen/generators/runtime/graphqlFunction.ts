@@ -1,6 +1,14 @@
 import * as recast from 'recast'
 
-import { fs, path, parseJS, printJS, ensureImports, type Config, type Document } from '../../../lib'
+import {
+	fs,
+	path,
+	parseJS,
+	printJS,
+	ensureImports,
+	type Config,
+	type Document,
+} from '../../../package/lib'
 
 const AST = recast.types.builders
 

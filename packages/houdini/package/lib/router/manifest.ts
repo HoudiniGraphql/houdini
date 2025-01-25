@@ -10,7 +10,7 @@ import {
 	unwrapType,
 	parse_page_pattern,
 } from '..'
-import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
+import type { ProjectManifest, PageManifest, QueryManifest } from '../../../runtime/lib/types'
 import {
 	read_layoutQuery,
 	read_layoutView,

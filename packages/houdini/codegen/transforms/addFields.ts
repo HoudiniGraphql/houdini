@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
-import { parentTypeFromAncestors, unwrapType } from '../../lib'
+import type { Config, Document } from '../../package/lib'
+import { parentTypeFromAncestors, unwrapType } from '../../package/lib'
 import { connectionSelection } from './list'
 import { selectionConnectionInfo } from './paginate'
 

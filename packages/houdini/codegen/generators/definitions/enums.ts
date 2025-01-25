@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import type { Config } from '../../../lib'
-import { fs, path, printJS } from '../../../lib'
+import type { Config } from '../../../package/lib'
+import { fs, path, printJS } from '../../../package/lib'
 import { moduleExport } from '../../utils'
 import { jsdocComment } from '../comments/jsdoc'
 

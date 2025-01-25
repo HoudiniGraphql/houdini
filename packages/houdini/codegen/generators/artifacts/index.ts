@@ -10,7 +10,7 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	SubscriptionSelection,
-} from '../../../lib'
+} from '../../../package/lib'
 import {
 	ArtifactKind,
 	DedupeMatchMode,
@@ -22,7 +22,7 @@ import {
 	hashRaw,
 	parentTypeFromAncestors,
 	printJS,
-} from '../../../lib'
+} from '../../../package/lib'
 import { flattenSelections, moduleExport } from '../../utils'
 import { fragmentArgumentsDefinitions } from '.././../transforms/fragmentVariables'
 import writeIndexFile from './indexFile'

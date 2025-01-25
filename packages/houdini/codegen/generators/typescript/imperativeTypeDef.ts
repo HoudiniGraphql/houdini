@@ -2,7 +2,7 @@ import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { type Config, type Document, ArtifactKind, ensureImports } from '../../../lib'
+import { type Config, type Document, ArtifactKind, ensureImports } from '../../../package/lib'
 import {
 	fs,
 	path,
@@ -10,8 +10,8 @@ import {
 	parentTypeFromAncestors,
 	TypeWrapper,
 	unwrapType,
-} from '../../../lib'
-import { scalarPropertyValue, tsTypeReference } from '../../../lib/typescript'
+} from '../../../package/lib'
+import { scalarPropertyValue, tsTypeReference } from '../../../package/lib/typescript'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 
 const AST = recast.types.builders

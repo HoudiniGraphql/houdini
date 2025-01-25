@@ -7,13 +7,13 @@ import type { BaseNode } from 'estree-walker'
 import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
 
-import type { CompiledDocumentKind } from '../runtime/lib/types'
+import type { CompiledDocumentKind } from '../../runtime/lib/types'
 import {
 	CompiledFragmentKind,
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-} from '../runtime/lib/types'
+} from '../../runtime/lib/types'
 import type { Config } from './config'
 import type { Script } from './types'
 

@@ -1,4 +1,4 @@
-import { type Config, fs, path } from '../../../lib'
+import { type Config, fs, path } from '../../../package/lib'
 
 export async function generatePluginIndex({
 	config,

@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../../lib'
-import { TypeWrapper, unwrapType, deepMerge, getRootType, HoudiniError } from '../../../lib'
+import type { Config, Document } from '../../../package/lib'
+import { TypeWrapper, unwrapType, deepMerge, getRootType, HoudiniError } from '../../../package/lib'
 import {
 	RefetchUpdateMode,
 	type MutationOperation,

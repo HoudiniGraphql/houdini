@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
-import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../lib'
+import type { Config, Document } from '../../package/lib'
+import { HoudiniError, parentTypeFromAncestors, unwrapType, wrapType } from '../../package/lib'
 import { ArtifactKind, DedupeMatchMode, type PaginateModes } from '../../runtime/lib/types'
 import {
 	fragmentArguments as collectFragmentArguments,

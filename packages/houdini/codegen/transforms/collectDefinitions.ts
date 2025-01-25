@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql'
 
-import type { Config, Document } from '../../lib'
-import { HoudiniError } from '../../lib'
+import type { Config, Document } from '../../package/lib'
+import { HoudiniError } from '../../package/lib'
 
 export type FragmentDependency = {
 	definition: graphql.FragmentDefinitionNode

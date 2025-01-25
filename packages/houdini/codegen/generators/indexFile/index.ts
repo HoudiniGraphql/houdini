@@ -1,6 +1,6 @@
 // locals
-import type { Config, Document } from '../../../lib'
-import { fs, path } from '../../../lib'
+import type { Config, Document } from '../../../package/lib'
+import { fs, path } from '../../../package/lib'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom } from '../../utils'
 
 // every document in the application should be re-exported from the root. this allows the user to balance

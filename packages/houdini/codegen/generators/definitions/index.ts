@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import type { Config } from '../../../lib'
-import { fs } from '../../../lib'
+import type { Config } from '../../../package/lib'
+import { fs } from '../../../package/lib'
 import enums from './enums'
 
 // schemaGenerator updates the schema file to contain all of the generated

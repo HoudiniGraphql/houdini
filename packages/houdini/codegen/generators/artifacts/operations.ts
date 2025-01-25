@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import type { Config } from '../../../lib'
-import { parentTypeFromAncestors } from '../../../lib'
+import type { Config } from '../../../package/lib'
+import { parentTypeFromAncestors } from '../../../package/lib'
 import type { MutationOperation } from '../../../runtime/lib/types'
 import { convertValue } from './utils'
 

@@ -1,8 +1,8 @@
 import { mergeTypeDefs } from '@graphql-tools/merge'
 import * as graphql from 'graphql'
 
-import type { Config, Document } from '../../lib'
-import { siteURL } from '../../lib'
+import type { Config, Document } from '../../package/lib'
+import { siteURL } from '../../package/lib'
 import { CachePolicy, DedupeMatchMode, PaginateMode } from '../../runtime/lib/types'
 import { fragmentArguments } from './fragmentVariables'
 
@@ -63,7 +63,7 @@ enum DedupeMatchMode {
 		config.dedupeDirective
 	} is used to prevent an operation from running more than once at the same time.
 	If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
-	If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation. 
+	If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation.
 	If it's set to Variables then the request will only be deduplicated if the variables match. If match is set to None,
 	then the request will never be deduplicated.
 """

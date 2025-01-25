@@ -1,7 +1,13 @@
 import structuredClone from '@ungap/structured-clone'
 import * as graphql from 'graphql'
 
-import { type Config, type Document, type ValueMap, HoudiniError, ArtifactKind } from '../../lib'
+import {
+	type Config,
+	type Document,
+	type ValueMap,
+	HoudiniError,
+	ArtifactKind,
+} from '../../package/lib'
 import { murmurHash } from '../utils'
 import { stripLoc } from '../utils/stripLoc'
 import type { FragmentDependency } from './collectDefinitions'

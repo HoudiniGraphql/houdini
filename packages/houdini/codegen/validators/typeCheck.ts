@@ -1,7 +1,7 @@
 import { green } from '@kitql/helpers'
 import * as graphql from 'graphql'
 
-import type { Config, Document, PaginateModes } from '../../lib'
+import type { Config, Document, PaginateModes } from '../../package/lib'
 import {
 	HoudiniError,
 	LogLevel,
@@ -10,7 +10,7 @@ import {
 	parentTypeFromAncestors,
 	siteURL,
 	unwrapType,
-} from '../../lib'
+} from '../../package/lib'
 import type { FragmentArgument } from '../transforms/fragmentVariables'
 import {
 	fragmentArguments as collectFragmentArguments,

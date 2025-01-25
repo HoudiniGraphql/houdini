@@ -1,6 +1,6 @@
 import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
-import type { Config, Document } from '../../../lib'
-import { siteURL as SITE_URL, fs, path } from '../../../lib'
+import type { Config, Document } from '../../../package/lib'
+import { siteURL as SITE_URL, fs, path } from '../../../package/lib'
 import generateGraphqlReturnTypes from './graphqlFunction'
 import injectPlugins from './injectPlugins'
 import { generatePluginIndex } from './pluginIndex'

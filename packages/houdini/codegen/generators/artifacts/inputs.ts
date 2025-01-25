@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 
-import { unwrapType } from '../../../lib'
-import type { Config } from '../../../lib/config'
+import { unwrapType } from '../../../package/lib'
+import type { Config } from '../../../package/lib/config'
 import { variableValue } from '../../../runtime/cache/cache'
 import type { InputObject } from '../../../runtime/lib/types'
 
