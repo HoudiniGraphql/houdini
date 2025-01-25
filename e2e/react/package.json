@@ -9,6 +9,7 @@
 		"build:test": "pnpm build: && pnpm test",
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
+		"houdini": "houdini",
 		"dev": "vite dev",
 		"build": "vite build",
 		"tests": "npm run build && playwright test",

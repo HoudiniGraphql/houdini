@@ -67,7 +67,7 @@ export default async function () {
 	await Promise.all(
 		platforms.map(async (platform) => {
 			// the module name is a combination of the current package name and the platform
-			const moduleName = `${packageJSON.name}-${platform.goOS}-${platform.arch}`
+			const moduleName = `${packageJSON.name}-${platform.goOS}-${platform.cpu}`
 
 			// put each binary in its own directory
 			const outputDir = path.join(buildDir, moduleName)
@@ -91,7 +91,7 @@ export default async function () {
 				path.join(outputDir, 'package.json'),
 				JSON.stringify(
 					{
-						name: `@houdinigraphql/${moduleName}`,
+						name: moduleName,
 						version: packageJSON.version,
 						bin,
 						os: [platform.nodeOS],
@@ -101,6 +101,8 @@ export default async function () {
 					4
 				)
 			)
+
+			await fs.writeFile(path.join(outputDir, "index.js"), "")
 		})
 	)
 
@@ -120,11 +122,11 @@ export default async function () {
 			...packageJSON.scripts,
 			postinstall: 'node postInstall.js',
 		},
-		bin: './shim.js',
+		bin: './shim.cjs',
 	}
 
 	// read the install script
-	for (const script of ['postInstall.js', 'shim.js']) {
+	for (const script of ['postInstall.js', 'shim.cjs']) {
 		const scriptPath = path.join(buildDir, packageJSON.name, script)
 
 		let scriptContents = await fs.readFile(

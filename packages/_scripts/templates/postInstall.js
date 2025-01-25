@@ -10,7 +10,7 @@ const BINARY_DISTRIBUTION_VERSION = 'package-version'
 const binaryName = process.platform === 'win32' ? 'my-binary.exe' : 'my-binary'
 
 // Determine package name for this platform
-const platformSpecificPackageName = `@houdinigraphql/my-package-${process.platform}-${process.arch}`
+const platformSpecificPackageName = `my-package-${process.platform}-${process.arch}`
 
 // Compute the path we want to emit the fallback binary to
 const fallbackBinaryPath = path.join(__dirname, binaryName)

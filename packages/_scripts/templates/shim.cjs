@@ -15,15 +15,15 @@ function getBinaryPath() {
 	const platformSpecificPackageName =
 		BINARY_DISTRIBUTION_PACKAGES[`${process.platform}-${process.arch}`]
 
-	try {
+		try {
 		// Resolving will fail if the optionalDependency was not installed
-		return require.resolve(`${platformSpecificPackageName}/bin/${binaryName}`)
+		return require.resolve(`../${platformSpecificPackageName}/bin/${binaryName}`)
 	} catch (e) {
-		return require('path').join(__dirname, '..', binaryName)
+		return require('path').join(__dirname, binaryName)
 	}
 }
 
 // this command needs to kick off the binary and pass the command line arguments through
-require('child_process').execFileSync(process.argv.slice(2), args, {
+require('child_process').execFileSync(getBinaryPath(), process.argv.slice(2), {
 	stdio: 'inherit',
 })
