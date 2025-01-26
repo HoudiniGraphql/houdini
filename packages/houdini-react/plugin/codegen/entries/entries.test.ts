@@ -72,7 +72,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(page_unit).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component__subRoute_nested from "../../../../../src/routes/subRoute/nested/+page";
+		import Component__subRoute_nested from "../../../../../routes/subRoute/nested/+page";
 
 		export default (
 		    {
@@ -101,7 +101,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(root_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component__ from "../../../../../src/routes/+layout";
+		import Component__ from "../../../../../routes/+layout";
 
 		export default (
 		    {
@@ -128,7 +128,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(deep_layout_unit).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component__subRoute from "../../../../../src/routes/subRoute/+layout";
+		import Component__subRoute from "../../../../../routes/subRoute/+layout";
 
 		export default (
 		    {
@@ -163,7 +163,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(page_fallback).toMatchInlineSnapshot(`
 		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/Router";
-		import Component from "../../../../../src/routes/subRoute/nested/+page";
+		import Component from "../../../../../routes/subRoute/nested/+page";
 		import { Suspense } from "react";
 
 		export default (
@@ -219,7 +219,7 @@ test('composes layouts and pages', async function () {
 	)
 	expect(layout_fallback).toMatchInlineSnapshot(`
 		import { useRouterContext, useCache, useQueryResult } from "$houdini/plugins/houdini-react/runtime/routing/Router";
-		import Component from "../../../../../src/routes/+layout";
+		import Component from "../../../../../routes/+layout";
 		import { Suspense } from "react";
 
 		export default (
@@ -286,7 +286,7 @@ test('layout with params', async function () {
 	)
 	expect(page_entry).toMatchInlineSnapshot(`
 		import { useQueryResult, PageContextProvider } from "$houdini/plugins/houdini-react/runtime/routing";
-		import Component___id_ from "../../../../../src/routes/[id]/+page";
+		import Component___id_ from "../../../../../routes/[id]/+page";
 
 		export default (
 		    {

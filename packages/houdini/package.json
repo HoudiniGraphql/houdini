@@ -13,10 +13,11 @@
         "type": "git",
         "url": "https://github.com/HoudiniGraphql/houdini.git"
     },
+    "bin": "./build/cmd-esm/index.js",
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "compile": "scripts build-go",
+        "compile": "scripts build-node",
         "typedefs": "scripts typedefs"
     },
     "devDependencies": {

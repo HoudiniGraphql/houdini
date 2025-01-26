@@ -27,7 +27,7 @@ export async function generate_renders({
 import { Router } from '$houdini/plugins/houdini-react/runtime'
 import React from 'react'
 
-import Shell from '../../../../../src/+index'
+import Shell from '../../../../../+index'
 
 export default (props) => (
 	<Shell>
@@ -43,9 +43,9 @@ import { HoudiniClient } from '$houdini/runtime/client'
 import { renderToStream } from 'houdini-react/server'
 import React from 'react'
 
-import { router_cache } from '../../runtime/routing'
+import { router_cache } from '../runtime/routing'
 // @ts-expect-error
-import client from '../../../../../src/+client'
+import client from '../../../../../+client'
 // @ts-expect-error
 import App from "./App"
 import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
@@ -143,10 +143,10 @@ export function createServerAdapter(options) {
 
 		${
 			manifest.local_schema
-				? `import schema from '../../../../../src/api/+schema'`
+				? `import schema from '../../../../../api/+schema'`
 				: ' const schema = null'
 		}
-		${manifest.local_yoga ? `import yoga from '.../../../../../src/api/+yoga'` : ' const yoga = null'}
+		${manifest.local_yoga ? `import yoga from '.../../../../../api/+yoga'` : ' const yoga = null'}
 
 		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
 

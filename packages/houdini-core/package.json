@@ -1,0 +1,10 @@
+{
+    "name": "houdini-core",
+    "version": "1.4.2",
+    "scripts": {
+        "compile": "scripts build-go"
+    },
+    "devDependencies": {
+        "scripts": "workspace:^"
+    }
+}

@@ -1,4 +1,4 @@
-import type { HoudiniClient } from '$houdini/runtime/client'
+import type { HoudiniClient } from 'houdini/src/runtime/client'
 
 let client: HoudiniClient | null = null
 

@@ -155,10 +155,7 @@ export default async function () {
 			source: packagePath,
 			outDir: path.join(buildDir, packageJSON.name, 'build'),
 		})
-	} catch (e) {
-		console.log(e)
-		console.log('no package directory found, skipping build', packagePath)
-	}
+	} catch (e) {}
 
 	// if there is a runtime directory then we need to handle that too
 	const runtimeSource = path.join(cwd, 'runtime')
@@ -169,8 +166,5 @@ export default async function () {
 			source: runtimeSource,
 			bundle: false,
 		})
-	} catch (e) {
-		console.log(e)
-		console.log('no package directory found, skipping build', runtimeSource)
-	}
+	} catch (e) {}
 }

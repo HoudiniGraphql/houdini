@@ -567,6 +567,12 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0(@types/node@18.11.15)(@vitest/ui@1.6.0)(terser@5.16.1)
 
+  packages/houdini-core:
+    devDependencies:
+      scripts:
+        specifier: workspace:^
+        version: link:../_scripts
+
   packages/houdini-react:
     dependencies:
       '@babel/parser':
