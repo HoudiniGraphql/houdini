@@ -1,7 +1,7 @@
 ---
-'houdini-plugin-svelte-global-stores': patch
-'houdini-adapter-static': patch
-'houdini': patch
+'houdini-plugin-svelte-global-stores': minor
+'houdini-adapter-static': minor
+'houdini': minor
 ---
 
 Fix vite peerdependency versions

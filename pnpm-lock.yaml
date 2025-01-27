@@ -420,7 +420,7 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
       vite:
-        specifier: ^6.0.3
+        specifier: ^5.3.3 || ^6.0.3
         version: 6.0.7(@types/node@18.11.15)(terser@5.16.1)
     devDependencies:
       '@types/node':
@@ -539,7 +539,7 @@ importers:
         specifier: ^0.23.1
         version: 0.23.1
       vite:
-        specifier: ^6.0.3
+        specifier: ^5.3.3 || ^6.0.3
         version: 6.0.7(@types/node@18.11.15)(terser@5.16.1)
       vite-plugin-watch-and-run:
         specifier: ^1.7.0
@@ -688,7 +688,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.2
       vite:
-        specifier: ^6.0.3
+        specifier: ^5.3.3 || ^6.0.3
         version: 6.0.7(@types/node@18.11.15)(terser@5.16.1)
     devDependencies:
       '@types/minimatch':
@@ -11982,8 +11982,8 @@ snapshots:
 
   espree@9.4.1:
     dependencies:
-      acorn: 8.12.1
-      acorn-jsx: 5.3.2(acorn@8.12.1)
+      acorn: 8.14.0
+      acorn-jsx: 5.3.2(acorn@8.14.0)
       eslint-visitor-keys: 3.4.3
 
   espree@9.6.1:
@@ -13219,7 +13219,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.24.6
       '@babel/types': 7.24.6
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   make-dir@3.1.0:
     dependencies:
@@ -15603,13 +15603,13 @@ snapshots:
     dependencies:
       browserslist: 4.21.4
       escalade: 3.1.1
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   update-browserslist-db@1.0.13(browserslist@4.22.1):
     dependencies:
       browserslist: 4.22.1
       escalade: 3.1.1
-      picocolors: 1.0.0
+      picocolors: 1.1.1
 
   uri-js@4.4.1:
     dependencies:
