@@ -34,7 +34,7 @@
         "react-dom": "^19.0.0"
     },
     "peerDependencies": {
-        "vite": "^5.3.3"
+        "vite": "^6.0.3"
     },
     "files": [
         "build"
