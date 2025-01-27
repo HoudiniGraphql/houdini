@@ -32,7 +32,7 @@
         "recast": "^0.23.1"
     },
     "peerDependencies": {
-        "@sveltejs/kit": "^2.5.3",
+        "@sveltejs/kit": "^2.9.0",
         "svelte": "^5.0.0"
     },
     "files": [
