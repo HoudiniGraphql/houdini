@@ -222,24 +222,17 @@ export type ConfigFile = {
 	router?: RouterConfig
 
 	/**
-	 * A collection of flags to opt-into experimental features are not yet stable and can break on any
-	 * minor version.
+	 * Configure the router to evaluate custom scalars using runtime values
 	 */
-	features?: {
-		/** Interact with the cache directly using an imperative API.*/
-		imperativeCache?: boolean
-		runtimeScalars?: Record<
-			string,
-			{
-				// the equivalent GraphQL type
-				type: string
-				// the function to call that serializes the type for the API
-				resolve: (args: RuntimeScalarPayload) => any
-			}
-		>
-		/** [React Only] Emebed component references in query responses*/
-		componentFields?: boolean
-	}
+	runtimeScalars?: Record<
+		string,
+		{
+			// the equivalent GraphQL type
+			type: string
+			// the function to call that serializes the type for the API
+			resolve: (args: RuntimeScalarPayload) => any
+		}
+	>
 }
 
 export type RuntimeScalarPayload = {

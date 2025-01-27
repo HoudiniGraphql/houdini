@@ -7,14 +7,19 @@ import * as generators from './generators'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
-// the main entry point of the compile script
+// the main entry point of the codegen pipeline
 export default async function compile(config: Config) {
-	// grab the graphql documents
-	const documents = await collectDocuments(config)
-
-	// push the documents through the pipeline
-	await runPipeline(config, documents)
+	// the code generation pipeline is distributed across a series of processes - one for each plugin
+	// which might be defined in a variety of languages. in order to ensure that each plugin can
+	// access the data defined in the javascript-based config file. This is performed by starting
+	// a server that provides access to the config file and then starting each plugin process.
 }
+
+// grab the graphql documents
+
+// const documents = await collectDocuments(config)
+// push the documents through the pipeline
+// await runPipeline(config, documents)
 
 // the compiler's job can be broken down into a few different tasks after the documents have been collected:
 // - validate their structure

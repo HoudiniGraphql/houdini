@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+package houdini;
+
+import "google/protobuf/struct.proto";
+
+service ConfigServer {
+    rpc GetConfig(GetConfigRequest) returns (StaticConfig) {}
+    rpc GetPluginConfig(PluginConfigRequest) returns (google.protobuf.Value) {}
+}
+
+message GetConfigRequest {}
+
+message PluginConfigRequest {
+    string name = 1;
+}
+
+message StaticConfig {
+    // Files to include in Houdini's processing
+    repeated string include = 1;
+
+    // Files to exclude from processing
+    repeated string exclude = 2;
+
+    // the schema of the protject as specified by the introspection query
+    google.protobuf.Value schema = 4;
+
+    // Custom scalar definitions
+    map<string, ScalarDefinition> scalars = 5;
+
+    // Path for internal fragment and directive definitions
+    string definitions_path = 6;
+
+    // Module type: ESM or CommonJS
+    enum ModuleType {
+      MODULE_TYPE_UNSPECIFIED = 0;
+      ESM = 1;
+      COMMONJS = 2;
+    }
+    ModuleType module = 7;
+
+    // Cache configuration
+    int32 cache_buffer_size = 8;
+    string default_cache_policy = 9;
+    bool default_partial = 10;
+    int64 default_lifetime = 11;
+
+    // List mutation configuration
+    enum ListPosition {
+      LIST_POSITION_UNSPECIFIED = 0;
+      APPEND = 1;
+      PREPEND = 2;
+    }
+    ListPosition default_list_position = 12;
+
+    // List target configuration
+    enum ListTarget {
+      LIST_TARGET_UNSPECIFIED = 0;
+      ALL = 1;
+      NULL = 2;
+    }
+    ListTarget default_list_target = 13;
+
+    // Pagination configuration
+    enum PaginateMode {
+      PAGINATE_MODE_UNSPECIFIED = 0;
+      INFINITE = 1;
+      SINGLE_PAGE = 2;
+    }
+    PaginateMode default_paginate_mode = 14;
+
+    bool suppress_pagination_deduplication = 15;
+
+    // Record ID configuration
+    repeated string default_keys = 16;
+    map<string, TypeConfig> types = 17;
+
+    // Logging configuration
+    enum LogLevel {
+      LOG_LEVEL_UNSPECIFIED = 0;
+      QUIET = 1;
+      FULL = 2;
+      SUMMARY = 3;
+      SHORT_SUMMARY = 4;
+    }
+    LogLevel log_level = 18;
+
+    // Fragment masking configuration
+    enum FragmentMasking {
+      FRAGMENT_MASKING_UNSPECIFIED = 0;
+      ENABLE = 1;
+      DISABLE = 2;
+    }
+    FragmentMasking default_fragment_masking = 19;
+
+    // Schema watching configuration
+    WatchSchemaConfig watch_schema = 20;
+
+    // Persisted queries configuration
+    string persisted_queries_path = 21;
+
+    // Project paths
+    string project_dir = 23;
+    string runtime_dir = 24;
+
+    // Router configuration
+    RouterConfig router = 25;
+
+    // Runtime scalar configuration
+    map<string, RuntimeScalar> runtime_scalars = 26;
+  }
+
+  // Supporting message definitions
+  message ScalarDefinition {
+    string type_name = 1;
+    // Additional scalar-specific configuration can be added here
+  }
+
+  message TypeConfig {
+    repeated string keys = 1;
+    // Additional type-specific configuration can be added here
+  }
+
+  message WatchSchemaConfig {
+    string url = 1;
+    map<string, string> headers = 2;
+    int32 interval = 3;
+  }
+
+  message RouterConfig {
+    // Router-specific configuration fields can be added here
+    map<string, string> options = 1;
+  }
+
+  message RuntimeScalar {
+    string type = 1;
+    // Note: The resolve function is not included since we only include the return value
+    // The actual resolution would happen in the application code
+  }
