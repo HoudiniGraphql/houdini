@@ -1,5 +1,15 @@
 # houdini
 
+## 1.5.0
+
+### Minor Changes
+
+-   [#1430](https://github.com/HoudiniGraphql/houdini/pull/1430) [`142cc664`](https://github.com/HoudiniGraphql/houdini/commit/142cc664ff6581bdaf4433222f0bcc8cfe82fee1) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix vite peerdependency versions
+
+### Patch Changes
+
+-   [#1428](https://github.com/HoudiniGraphql/houdini/pull/1428) [`ab8932e2`](https://github.com/HoudiniGraphql/houdini/commit/ab8932e22126a5b3c6f32e184eef53f15324e56f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix document paths on windows not being properly posixified
+
 ## 1.4.3
 
 ### Patch Changes
