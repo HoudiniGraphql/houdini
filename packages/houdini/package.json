@@ -39,7 +39,6 @@
         "@clack/prompts": "^0.6.3",
         "@graphql-tools/merge": "^9.0.0",
         "@graphql-tools/schema": "^9.0.4",
-        "@kitql/helpers": "^0.8.2",
         "@types/estree": "^1.0.0",
         "@types/fs-extra": "^9.0.13",
         "@types/micromatch": "^4.0.2",

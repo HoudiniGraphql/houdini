@@ -1,7 +1,6 @@
 import { Command } from 'commander'
 
-import type { HoudiniError } from '../lib'
-import { LogLevel } from '../lib'
+import type { HoudiniError } from '../../legacy/lib'
 import { generate } from './generate'
 import { init } from './init'
 import pullSchema from './pullSchema'
@@ -20,10 +19,6 @@ program
 		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.option('-v, --verbose', 'verbose error messages')
-	.option(
-		'-l, --log [level]',
-		`the log level for the generate command. One of ${JSON.stringify(Object.values(LogLevel))}`
-	)
 	.action(generate)
 
 // register the init command

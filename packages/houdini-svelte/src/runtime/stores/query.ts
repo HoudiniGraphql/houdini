@@ -9,7 +9,7 @@ import type {
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { FetchContext } from 'houdini/src/runtime/client/plugins/fetch'
-import { getCurrentConfig } from 'houdini/src/runtime/lib/config'
+import { current_config } from 'houdini/src/runtime/lib/config'
 import * as log from 'houdini/src/runtime/lib/log'
 import { get } from 'svelte/store'
 
@@ -100,7 +100,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		}
 
 		// blocking
-		const config = getCurrentConfig()
+		const config = current_config()
 		const config_svelte = (config.plugins as any)['houdini-svelte'] as HoudiniSvelteConfig
 		const pluginArtifact = this.artifact.pluginData['houdini-svelte'] as
 			| PluginArtifactData

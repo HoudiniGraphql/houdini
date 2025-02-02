@@ -3,7 +3,6 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import { type Adapter } from '../lib/router'
 import type { CachePolicies, ConfigFile, PaginateModes } from '../runtime/lib'
 import { CachePolicy, PaginateMode } from '../runtime/lib'
 import {
@@ -13,12 +12,12 @@ import {
 	localApiEndpoint,
 } from '../runtime/lib/config'
 import { houdini_mode } from './constants'
-import * as routerConventions from './conventions'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import { pullSchema } from './introspection'
 import * as path from './path'
 import { plugin } from './plugin'
+import { type Adapter, loadLocalSchema } from './router'
 import type { LogLevels, PluginConfig, PluginHooks, PluginInit, ValueMap } from './types'
 import { LogLevel } from './types'
 
@@ -105,7 +104,7 @@ export class Config {
 			schemaPath = './schema.graphql',
 
 			// Hey! If you change this default, please also update it in `/packages/houdini-svelte/src/plugin/fsPatch.ts`
-			runtimeDir = '.houdini',
+			runtimeDir = '$houdini',
 			exclude = [],
 			module = 'esm',
 			scalars,
@@ -152,7 +151,7 @@ export class Config {
 		)
 		this.runtimeDir = runtimeDir
 		this.scalars = scalars
-		this.cacheBufferSize = cacheBufferSize ?? 10
+		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.internalListPosition = defaultListPosition === 'append' ? 'last' : 'first'
@@ -315,6 +314,7 @@ export class Config {
 					)
 				)
 					.flat()
+					.map((filepath) => path.posixify(filepath))
 					.filter((filepath) => this.includeFile(filepath))
 					// don't include the schema path as a source file
 					.filter((filepath) => {
@@ -1424,85 +1424,3 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 
 const emptySchema = graphql.buildSchema('type Query { hello: String }')
 const defaultDirectives = emptySchema.getDirectives().map((dir) => dir.name)
-
-export function isSecondaryBuild() {
-	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
-}
-
-export function internalRoutes(config: ConfigFile): string[] {
-	const routes = [localApiEndpoint(config)]
-	if (config.router?.auth && 'redirect' in config.router.auth) {
-		routes.push(config.router.auth.redirect)
-	}
-
-	return routes
-}
-
-export async function buildLocalSchema(config: Config): Promise<void> {
-	// before we build the local schcema, we should check if it already exists
-	// so we dont do it again
-
-	// load the current version of vite
-	const { build } = await import('vite')
-
-	const schema = path.join(config.localApiDir, '+schema')
-	const outDir = routerConventions.temp_dir(config, 'schema')
-
-	process.env.HOUDINI_SECONDARY_BUILD = 'true'
-
-	try {
-		await fs.remove(path.join(outDir, 'assets', 'schema.js'))
-	} catch {}
-
-	try {
-		await fs.mkdir(outDir)
-	} catch {}
-
-	// build the schema somewhere we can import from
-	await build({
-		logLevel: 'silent',
-		build: {
-			outDir,
-			rollupOptions: {
-				input: {
-					schema,
-				},
-				output: {
-					entryFileNames: '[name].js',
-				},
-			},
-			ssr: true,
-			lib: {
-				entry: {
-					schema,
-				},
-				formats: ['es'],
-			},
-		},
-	})
-
-	process.env.HOUDINI_SECONDARY_BUILD = 'false'
-}
-
-export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSchema> {
-	if (!isSecondaryBuild()) {
-		await buildLocalSchema(config)
-	}
-
-	// import the schema we just built
-	try {
-		const { default: schema } = await import(
-			path.join(
-				routerConventions.temp_dir(config, 'schema'),
-				`schema.js?${Date.now().valueOf()}}`
-			)
-		)
-
-		return schema
-	} catch (e) {
-		const message = 'message' in (e as Error) ? (e as Error).message : e
-		// if we fail to load the schema, log a message to the user and just return an empty one
-		console.error('⚠️ Failed to load local schema: ', message)
-		return new graphql.GraphQLSchema({})
-	}
-}

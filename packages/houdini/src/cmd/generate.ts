@@ -1,7 +1,8 @@
-import { formatErrors, getConfig, loadLocalSchema } from '../lib'
-import type { Config, ConfigFile } from '../lib'
-import { startServer as startConfigServer } from '../lib/configServer'
-import pullSchema from './pullSchema'
+import { run_codegen } from '../lib/codegen'
+import { start_server as start_config_server } from '../lib/configServer'
+import { format_error } from '../lib/error'
+import { get_config, type Config } from '../lib/project'
+import pull_schema from './pullSchema'
 
 export async function generate(
 	args: {
@@ -17,41 +18,26 @@ export async function generate(
 		verbose: false,
 	}
 ) {
-	// grab the config file
-	let config: Config | null = null
-
-	// build up extra config values from command line arguments
-	const extraConfig: Partial<ConfigFile> = {}
-	if (args.log) {
-		extraConfig.logLevel = args.log
-	}
-
 	try {
-		// load config
-		config = await getConfig(extraConfig)
-		if (args.output) {
-			config.persistedQueriesPath = args.output
-		}
+		// grab the config file
+		let config: Config | null = await get_config()
 
-		// if we have a local schema then we need to load it
-		if (config.localSchema) {
-			config.schema = await loadLocalSchema(config)
-		}
-
-		// Pull the newest schema if the flag is set
-		else if (args.pullSchema && (await config.apiURL())) {
-			await pullSchema(args)
-		}
+		// we need an object that we'll as the env
+		const env = {}
 
 		// before we can start the codegen process we need to start the config server
-		const [server, port] = await startConfigServer(() => config!)
+		const [server, port] = await start_config_server(
+			() => config!,
+			() => env
+		)
 
-		console.log('config server running on ' + port)
+		// we can now run the codegen process
+		await run_codegen(config, port)
 
 		// we're done with the config server
-		// server.close()
+		server.close()
 	} catch (e) {
-		formatErrors(e, function (error) {
+		format_error(e, function (error) {
 			if (args.verbose && 'stack' in error && error.stack) {
 				console.error(error.stack.split('\n').slice(1).join('\n'))
 			}

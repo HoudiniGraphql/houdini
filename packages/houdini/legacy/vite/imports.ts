@@ -1,7 +1,7 @@
 import * as recast from 'recast'
 
-import type { Config } from '../../src/lib/config'
-import type { Script } from '../../src/lib/types'
+import type { Config } from '../lib/config'
+import type { Script } from '../lib/types'
 import type { TransformPage } from './houdini'
 
 const AST = recast.types.builders

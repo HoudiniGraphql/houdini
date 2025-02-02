@@ -3,7 +3,7 @@
 import { createSchema, createYoga } from 'graphql-yoga'
 import http from 'node:http'
 
-import { Config } from './config'
+import { Config, ConfigFile } from './project'
 
 const typeDefs = `
 type Query {
@@ -144,7 +144,10 @@ Custom scalar for handling JSON data
 scalar JSON
 `
 
-export function startServer(getConfig: () => Config): Promise<[http.Server, number]> {
+export function start_server(
+	get_config: () => Config,
+	env: () => Record<string, string>
+): Promise<[http.Server, number]> {
 	return new Promise((resolve, reject) => {
 		// use yoga for the graphql server
 		const yoga = createYoga({
@@ -155,91 +158,90 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 				resolvers: {
 					Query: {
 						config: async () => {
-							const config = getConfig()
+							const config = get_config()
 
 							return {
-								include: config.include,
-								exclude: config.exclude,
+								include: config.config_file.include,
+								exclude: config.config_file.exclude,
 
 								schema: config.schema,
 
-								scalars: !config.scalars
+								scalars: !config.config_file.scalars
 									? null
 									: Object.fromEntries(
-											Object.entries(config.scalars).map(([key, value]) => [
-												key,
-												value.type,
-											])
+											Object.entries(config.config_file.scalars).map(
+												([key, value]) => [key, value.type]
+											)
 									  ),
 
-								definitionsPath: config.definitionsDirectory,
+								definitionsPath: config.config_file.definitionsPath,
 
 								// Module configuration
-								module: config.module,
+								module: config.config_file.module,
 
 								// Cache configuration
-								cacheBufferSize: config.cacheBufferSize,
-								defaultCachePolicy: config.defaultCachePolicy,
-								defaultPartial: config.defaultPartial,
-								defaultLifetime: config.configFile.defaultLifetime,
+								cacheBufferSize: config.config_file.cacheBufferSize,
+								defaultCachePolicy: config.config_file.defaultCachePolicy,
+								defaultPartial: config.config_file.defaultPartial,
+								defaultLifetime: config.config_file.defaultLifetime,
 
 								// List configuration
-								defaultListPosition: config.internalListPosition,
-								defaultListTarget: config.defaultListTarget,
+								defaultListPosition: config.config_file.defaultListPosition,
+								defaultListTarget: config.config_file.defaultListTarget,
 
 								// Pagination configuration
-								defaultPaginateMode: config.defaultPaginateMode,
+								defaultPaginateMode: config.config_file.defaultPaginateMode,
 								suppressPaginationDeduplication:
-									config.configFile.supressPaginationDeduplication,
+									config.config_file.supressPaginationDeduplication,
 
 								// Record ID configuration
-								defaultKeys: config.defaultKeys,
-								types: !config.configFile.types
+								defaultKeys: config.config_file.defaultKeys,
+								types: !config.config_file.types
 									? null
 									: Object.fromEntries(
-											Object.entries(config.configFile.types).map(
+											Object.entries(config.config_file.types).map(
 												([key, value]) => [key, { keys: value.keys }]
 											)
 									  ),
 
 								// Logging configuration
-								logLevel: config.logLevel,
+								logLevel: config.config_file.logLevel,
 
 								// Fragment masking configuration
-								defaultFragmentMasking: config.defaultFragmentMasking.toUpperCase(),
+								defaultFragmentMasking:
+									config.config_file.defaultFragmentMasking?.toUpperCase() ??
+									'ENABLE',
 
 								// Schema watching configuration
-								watchSchema: !config.configFile.watchSchema
+								watchSchema: !config.config_file.watchSchema
 									? null
 									: {
-											url: config.configFile.watchSchema.url,
-											headers: config.configFile.watchSchema.headers
-												? typeof config.configFile.watchSchema.headers ===
+											url: config.config_file.watchSchema.url,
+											headers: config.config_file.watchSchema.headers
+												? typeof config.config_file.watchSchema.headers ===
 												  'object'
-													? config.configFile.watchSchema.headers
-													: config.configFile.watchSchema.headers(
-															await config.getEnv()
-													  )
+													? config.config_file.watchSchema.headers
+													: config.config_file.watchSchema.headers(env())
 												: {},
-											interval: config.configFile.watchSchema.interval,
-											timeout: config.configFile.watchSchema.timeout,
+											interval: config.config_file.watchSchema.interval,
+											timeout: config.config_file.watchSchema.timeout,
 									  },
 
 								// Persisted queries configuration
-								persistedQueriesPath: config.persistedQueriesPath,
+								persistedQueriesPath: config.config_file.persistedQueriesPath,
 
 								// Project paths
-								projectRoot: config.projectRoot,
-								runtimeDir: config.configFile.runtimeDir,
+								projectRoot: config.root_dir,
+								runtimeDir: config.config_file.runtimeDir,
 
 								// Router configuration
-								router: config.configFile.router,
+								router: config.config_file.router,
 
 								// Runtime scalar configuration
-								runtimeScalars: !config.configFile.runtimeScalars
+								runtimeScalars: !config.config_file.runtimeScalars
 									? null
 									: Object.fromEntries(
-											Object.entries(config.configFile.runtimeScalars).map(
+											Object.entries(config.config_file.runtimeScalars).map(
 												([key, value]) => [key, { type: value.type }]
 											)
 									  ),
@@ -247,7 +249,7 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 						},
 						pluginConfig: (_: any, { name }: { name: string }) => {
 							// @ts-expect-error
-							return config.configFile.plugins?.[name]
+							return config.plugins?.[name]
 						},
 					},
 				},

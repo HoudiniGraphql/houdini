@@ -1,8 +1,10 @@
-import { getConfig, pullSchema, path } from '../lib'
+import * as path from '../lib/path'
+import { get_config } from '../lib/project'
+import { pullSchema } from '../lib/schema'
 
 export default async function (args: { headers: string[]; output?: string }) {
-	const config = await getConfig({ noSchema: true })
-	const apiURL = await config.apiURL()
+	const config = await get_config()
+	const apiURL = ''
 	// Check if apiUrl is set in config
 	if (!apiURL) {
 		console.log(
@@ -12,7 +14,8 @@ export default async function (args: { headers: string[]; output?: string }) {
 		return
 	}
 
-	let headers = await config.pullHeaders()
+	// let headers = await config.pullHeaders()
+	let headers = {}
 	let headerStrings: string[] = []
 
 	if (args.headers) {
@@ -31,8 +34,8 @@ export default async function (args: { headers: string[]; output?: string }) {
 	// the destination for the schema can come from the cli arguments, the config file, or a default
 	const targetPath = args.output
 		? path.resolve(args.output)
-		: config.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+		: config.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 
 	// Write the schema
-	await pullSchema(apiURL, config.schemaPollTimeout, targetPath, headers)
+	await pullSchema(apiURL, config.config_file.watchSchema?.timeout ?? 30000, targetPath, headers)
 }

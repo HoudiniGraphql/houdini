@@ -3,7 +3,7 @@ import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
 import generate from '../../src/codegen'
-import type { Config, PluginConfig } from '../../src/lib'
+import type { Config, PluginConfig } from '../lib'
 import {
 	path,
 	getConfig,
@@ -12,10 +12,10 @@ import {
 	deepMerge,
 	routerConventions,
 	load_manifest,
-	loadLocalSchema,
-	isSecondaryBuild,
+	load_local_schema,
+	is_secondary_build,
 	writeTsConfig,
-} from '../../src/lib'
+} from '../lib'
 
 let config: Config
 let viteConfig: ResolvedConfig
@@ -71,7 +71,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		},
 
 		async configResolved(conf) {
-			if (!isSecondaryBuild()) {
+			if (!is_secondary_build()) {
 				viteConfig = conf
 			}
 
@@ -96,7 +96,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				await plugin.vite!.closeBundle.call(this, config)
 			}
 
-			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+			if (is_secondary_build() || viteEnv.mode !== 'production' || devServer) {
 				return
 			}
 
@@ -156,7 +156,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			await writeTsConfig(config)
 
 			// check if the adapter has a pre hook
-			if (config.adapter?.pre && viteEnv.command === 'build' && !isSecondaryBuild()) {
+			if (config.adapter?.pre && viteEnv.command === 'build' && !is_secondary_build()) {
 				await config.adapter.pre({
 					config,
 					conventions: routerConventions,
@@ -179,10 +179,10 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (!devServer && !isSecondaryBuild() && !process.env.HOUDINI_SKIP_GENERATE) {
+			if (!devServer && !is_secondary_build() && !process.env.HOUDINI_SKIP_GENERATE) {
 				// make sure we have an up-to-date schema
 				if (config.localSchema && !config.schema) {
-					config.schema = await loadLocalSchema(config)
+					config.schema = await load_local_schema(config)
 				}
 
 				// run the codegen

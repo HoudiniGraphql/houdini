@@ -2,15 +2,15 @@ import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
 import { parseJS, type TypeWrapper, unwrapType } from '..'
+import { path, fs, type Config, parse_page_pattern } from '../../lib'
+import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
 import {
 	read_layoutQuery,
 	read_layoutView,
 	read_pageView,
 	read_pageQuery,
 	page_id,
-} from '../../../src/lib/conventions'
-import { path, fs, type Config, parse_page_pattern } from '../../lib'
-import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
+} from '../conventions'
 
 export type { ProjectManifest, PageManifest, QueryManifest }
 

@@ -105,12 +105,6 @@ export type ConfigFile = {
 	 * FYI: `schemaPath` or `schema` should be defined
 	 */
 	schemaPath?: string
-	/**
-	 * Raw graphql schema
-	 *
-	 * FYI: `schemaPath` or `schema` should be defined
-	 */
-	schema?: string | GraphQLSchema
 
 	/**
 	 * An object describing custom scalars for your project. For more information: https://www.houdinigraphql.com/api/config#custom-scalars

@@ -1,4 +1,4 @@
-import * as path from './path'
+import { path } from '.'
 
 // any error that the compiler could fire
 export class HoudiniError extends Error {
@@ -25,7 +25,7 @@ export class HoudiniError extends Error {
 	}
 }
 
-export function format_error(e: unknown, after?: (e: Error) => void) {
+export function formatErrors(e: unknown, afterError?: (e: Error) => void) {
 	// we need an array of errors to loop through
 	const errors = (Array.isArray(e) ? e : [e]) as (Error & {
 		filepath?: string
@@ -46,6 +46,6 @@ export function format_error(e: unknown, after?: (e: Error) => void) {
 				console.error(`${error.description}`)
 			}
 		}
-		after?.(e as Error)
+		afterError?.(e as Error)
 	}
 }

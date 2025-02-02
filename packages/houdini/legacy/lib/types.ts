@@ -14,16 +14,17 @@ import type {
 } from 'rollup'
 import type { ConfigEnv, ResolvedConfig, UserConfig, ViteDevServer } from 'vite'
 
-import type { TransformPage } from '../../legacy/vite/houdini'
-import type { Adapter } from '../lib/router'
-import type { ConfigFile } from '../runtime/lib/config'
+import type { ConfigFile } from '../../src/runtime/lib/config'
 import type {
 	ArtifactKinds,
 	BaseCompiledDocument,
 	DocumentArtifact,
+	ProjectManifest,
 	ValueOf,
-} from '../runtime/lib/types'
+} from '../../src/runtime/lib/types'
+import type { TransformPage } from '../vite/houdini'
 import type { Config } from './config'
+import * as routerConventions from './conventions'
 
 type Program = recast.types.namedTypes.Program
 
@@ -368,8 +369,28 @@ export type GenerateHookInput = {
 
 export type PluginConfig = { configPath?: string; adapter?: Adapter } & Partial<ConfigFile>
 
-export * from '../runtime/lib/types'
-export * from '../runtime/lib/config'
-export * from '../runtime/client'
+export * from '../../src/runtime/lib/types'
+export * from '../../src/runtime/lib/config'
+export * from '../../src/runtime/client'
 
 export type ValueMap = Record<string, graphql.ValueNode>
+
+export type Adapter = ((args: {
+	config: Config
+	conventions: typeof routerConventions
+	sourceDir: string
+	publicBase: string
+	outDir: string
+	manifest: ProjectManifest
+	adapterPath: string
+}) => void | Promise<void>) & {
+	includePaths?: Record<string, string> | ((args: { config: Config }) => Record<string, string>)
+	disableServer?: boolean
+	pre?: (args: {
+		config: Config
+		conventions: typeof routerConventions
+		sourceDir: string
+		publicBase: string
+		outDir: string
+	}) => Promise<void> | void
+}

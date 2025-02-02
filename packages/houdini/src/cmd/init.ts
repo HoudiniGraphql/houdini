@@ -2,7 +2,7 @@ import * as p from '@clack/prompts'
 import { bold, cyan, gray, green, italic } from 'kleur/colors'
 import { execSync } from 'node:child_process'
 
-import { fs, path, pullSchema } from '../lib'
+import { fs, path, pullSchema } from '../../legacy/lib'
 import type { ConfigFile } from '../runtime/lib/config'
 
 function pCancel(cancelText = 'Operation cancelled.') {

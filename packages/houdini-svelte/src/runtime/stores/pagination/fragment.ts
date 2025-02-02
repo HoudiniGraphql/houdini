@@ -9,7 +9,7 @@ import type {
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { DocumentStore } from 'houdini/src/runtime/client'
-import { getCurrentConfig, keyFieldsForType } from 'houdini/src/runtime/lib/config'
+import { current_config, key_fields } from 'houdini/src/runtime/lib/config'
 import { siteURL } from 'houdini/src/runtime/lib/constants'
 import { extractPageInfo } from 'houdini/src/runtime/lib/pageInfo'
 import { cursorHandlers, offsetHandlers } from 'houdini/src/runtime/lib/pagination'
@@ -44,7 +44,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 	}
 
 	protected queryVariables(getState: () => _Data | null): _Input {
-		const config = getCurrentConfig()
+		const config = current_config()
 
 		const { targetType } = this.paginationArtifact.refetch || {}
 		const typeConfig = config.types?.[targetType || '']
@@ -62,7 +62,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 			// @ts-ignore
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
-			const keys = keyFieldsForType(config, targetType || '')
+			const keys = key_fields(config, targetType || '')
 			// @ts-ignore
 			idVariables = Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 		}

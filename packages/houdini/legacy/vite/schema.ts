@@ -1,8 +1,8 @@
 import { sleep } from '@kitql/helpers'
 import type { Plugin } from 'vite'
 
-import type { PluginConfig } from '../../src/lib'
-import { formatErrors, getConfig, pullSchema, path, fs } from '../../src/lib'
+import type { PluginConfig } from '../lib'
+import { formatErrors, getConfig, pullSchema, path, fs } from '../lib'
 
 export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 	let go = true
