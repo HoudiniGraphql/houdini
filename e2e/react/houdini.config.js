@@ -27,9 +27,9 @@ const config = {
 		},
 	},
 
-	plugins: {
-		'houdini-react': {},
-	},
+	// plugins: {
+	// 	'houdini-react': {},
+	// },
 
 	router: {
 		auth: {

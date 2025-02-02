@@ -24,6 +24,7 @@
 		"@whatwg-node/server": "^0.9.14",
 		"cookie": "^0.5.0",
 		"e2e-api": "workspace:^",
+		"houdini": "workspace:^",
 		"graphql-yoga": "^4.0.4",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",

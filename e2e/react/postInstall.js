@@ -4,7 +4,7 @@ import fs from 'fs/promises'
 // we need to copy them from the various build directories and put them in our node_modules
 // get the list of directories in the build directory
 
-for (const pkg of ['houdini', 'houdini-react']) {
+for (const pkg of ['houdini-core', 'houdini-react']) {
 	const buildDir = `../../packages/${pkg}/build`
 	const dirs = await fs.readdir(buildDir)
 

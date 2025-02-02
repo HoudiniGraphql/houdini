@@ -124,7 +124,7 @@ directive @${config.blockingDisableDirective} on QUERY
 				module: store_import_path({
 					config,
 					name: doc.name,
-				}).replaceAll('$houdini', '..'),
+				}).replaceAll('.houdini', '..'),
 			})
 
 			// and use the store as the return value

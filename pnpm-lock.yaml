@@ -220,6 +220,9 @@ importers:
       graphql-yoga:
         specifier: ^4.0.4
         version: 4.0.4(graphql@15.5.0)
+      houdini:
+        specifier: workspace:^
+        version: link:../../packages/houdini
       react:
         specifier: ^19.0.0
         version: 19.0.0

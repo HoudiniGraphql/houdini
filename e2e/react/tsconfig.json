@@ -1,3 +1,4 @@
-{
-	"extends": "./$houdini/tsconfig.json"
-}
+// {
+// 	"extends": "./.houdini/tsconfig.json"
+// }
+{}

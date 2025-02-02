@@ -112,7 +112,7 @@ export default async function () {
 		...packageJSON,
 		optionalDependencies: Object.fromEntries(
 			platforms.map((platform) => [
-				`@houdinigraphql/${packageJSON.name}-${platform.goOS}-${platform.arch}`,
+				`${packageJSON.name}-${platform.goOS}-${platform.arch}`,
 				packageJSON.version,
 			])
 		),
