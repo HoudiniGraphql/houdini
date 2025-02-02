@@ -6,11 +6,9 @@ const config = {
 	scalars: {
 		DateTime: {
 			type: 'Date',
-			// turn the api's response into that type
 			unmarshal(val) {
 				return new Date(val)
 			},
-			// turn the value into something the API can use
 			marshal(val) {
 				return val.getTime()
 			},
@@ -38,10 +36,6 @@ const config = {
 			redirect: '/auth/token',
 			sessionKeys: ['supersecret'],
 		},
-	},
-
-	features: {
-		componentFields: true,
 	},
 }
 
