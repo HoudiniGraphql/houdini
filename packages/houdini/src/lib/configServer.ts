@@ -8,10 +8,10 @@ import { Config } from './config'
 const typeDefs = `
 type Query {
   """Get the static configuration"""
-  getConfig: StaticConfig!
+  config: StaticConfig!
 
   """Get configuration for a specific plugin"""
-  getPluginConfig(name: String!): JSON
+  pluginConfig(name: String!): JSON
 }
 
 """
@@ -51,26 +51,25 @@ enum FragmentMasking {
   DISABLE
 }
 
-# Input Types
-input WatchSchemaConfig {
+type WatchSchemaConfig {
   url: String!
   headers: JSON
   interval: Int
 }
 
-input RouterConfig {
+type RouterConfig {
   options: JSON
 }
 
-input ScalarDefinition {
+type ScalarDefinition {
   typeName: String!
 }
 
-input TypeConfig {
+type TypeConfig {
   keys: [String!]!
 }
 
-input RuntimeScalar {
+type RuntimeScalar {
   type: String!
 }
 
@@ -149,11 +148,13 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 	return new Promise((resolve, reject) => {
 		// use yoga for the graphql server
 		const yoga = createYoga({
+			landingPage: false,
+			graphqlEndpoint: '/',
 			schema: createSchema({
 				typeDefs,
 				resolvers: {
 					Query: {
-						getConfig: async () => {
+						config: async () => {
 							const config = getConfig()
 
 							return {
@@ -238,7 +239,7 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 								),
 							}
 						},
-						getPluginConfig: (_: any, { name }: { name: string }) => {
+						pluginConfig: (_: any, { name }: { name: string }) => {
 							// @ts-expect-error
 							return config.configFile.plugins?.[name]
 						},
@@ -255,7 +256,6 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 			if (!address || typeof address === 'string') {
 				reject(new Error('Failed to start server'))
 			} else {
-				console.log(`Config server listening on port ${address.port}`)
 				resolve([server, address.port])
 			}
 		})

@@ -1,6 +1,6 @@
 import { formatErrors, getConfig, loadLocalSchema } from '../lib'
 import type { Config, ConfigFile } from '../lib'
-import { startServer } from '../lib/configServer'
+import { startServer as startConfigServer } from '../lib/configServer'
 import pullSchema from './pullSchema'
 
 export async function generate(
@@ -44,9 +44,7 @@ export async function generate(
 		}
 
 		// before we can start the codegen process we need to start the config server
-		const [server, port] = await startServer(() => config!)
-
-		console.log('server started on', port)
+		const [server, port] = await startConfigServer(() => config!)
 
 		// we're done with the config server
 		server.close()
