@@ -145,7 +145,7 @@ Custom scalar for handling JSON data
 scalar JSON
 `
 
-export function startServer(getConfig: () => Config): Promise<number> {
+export function startServer(getConfig: () => Config): Promise<[http.Server, number]> {
 	return new Promise((resolve, reject) => {
 		// use yoga for the graphql server
 		const yoga = createYoga({
@@ -256,7 +256,7 @@ export function startServer(getConfig: () => Config): Promise<number> {
 				reject(new Error('Failed to start server'))
 			} else {
 				console.log(`Config server listening on port ${address.port}`)
-				resolve(address.port)
+				resolve([server, address.port])
 			}
 		})
 	})
