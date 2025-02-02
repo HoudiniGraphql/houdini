@@ -17,7 +17,6 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "grpc": "proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=src/proto/ ./src/*/*.proto",
         "compile": "scripts build-node",
         "typedefs": "scripts typedefs"
     },
@@ -40,8 +39,6 @@
         "@clack/prompts": "^0.6.3",
         "@graphql-tools/merge": "^9.0.0",
         "@graphql-tools/schema": "^9.0.4",
-        "@grpc/grpc-js": "^1.12.5",
-        "@grpc/proto-loader": "^0.7.13",
         "@kitql/helpers": "^0.8.2",
         "@types/estree": "^1.0.0",
         "@types/fs-extra": "^9.0.13",
@@ -50,12 +47,21 @@
         "@whatwg-node/server": "^0.9.14",
         "ast-types": "^0.16.1",
         "commander": "^9.4.0",
+        "create-houdini": "workspace:^",
         "deepmerge": "^4.2.2",
+        "e2e-kit": "workspace:^",
+        "e2e-react": "workspace:^",
         "estree-walker": "^3.0.1",
         "fs-extra": "^10.1.0",
         "glob": "^11.0.1",
         "graphql": "^15.8.0",
         "graphql-yoga": "^4.0.4",
+        "houdini": "workspace:^",
+        "houdini-adapter-auto": "workspace:^",
+        "houdini-adapter-cloudflare": "workspace:^",
+        "houdini-core": "workspace:^",
+        "houdini-react": "workspace:^",
+        "houdini-svelte": "workspace:^",
         "memfs": "^3.4.7",
         "micromatch": "^4.0.5",
         "minimatch": "^5.1.0",
@@ -69,51 +75,5 @@
     },
     "files": [
         "build"
-    ],
-    "optionalDependencies": {
-        "@houdinigraphql/houdini-darwin-amd64": "1.4.2",
-        "@houdinigraphql/houdini-darwin-arm64": "1.4.2",
-        "@houdinigraphql/houdini-linux-amd64": "1.4.2",
-        "@houdinigraphql/houdini-linux-arm64": "1.4.2",
-        "@houdinigraphql/houdini-windows-amd64": "1.4.2",
-        "@houdinigraphql/houdini-windows-arm64": "1.4.2"
-    },
-    "exports": {
-        "./package.json": "./package.json",
-        "./adapter": {
-            "types": "./build/adapter/index.d.ts",
-            "import": "./build/adapter-esm/index.js",
-            "require": "./build/adapter-cjs/index.js"
-        },
-        ".": {
-            "types": "./build/lib/index.d.ts",
-            "import": "./build/lib-esm/index.js",
-            "require": "./build/lib-cjs/index.js"
-        },
-        "./test": {
-            "types": "./build/test/index.d.ts",
-            "import": "./build/test-esm/index.js",
-            "require": "./build/test-cjs/index.js"
-        },
-        "./vite": {
-            "types": "./build/vite/index.d.ts",
-            "import": "./build/vite-esm/index.js",
-            "require": "./build/vite-cjs/index.js"
-        }
-    },
-    "typesVersions": {
-        "*": {
-            "adapter": [
-                "build/adapter/index.d.ts"
-            ],
-            "test": [
-                "build/test/index.d.ts"
-            ],
-            "vite": [
-                "build/vite/index.d.ts"
-            ]
-        }
-    },
-    "main": "./build/lib-cjs/index.js",
-    "types": "./build/lib/index.d.ts"
+    ]
 }

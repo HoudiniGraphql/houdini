@@ -1,6 +1,6 @@
-import codegen from '../codegen'
-import type { Config, ConfigFile } from '../lib'
 import { formatErrors, getConfig, loadLocalSchema } from '../lib'
+import type { Config, ConfigFile } from '../lib'
+import { startServer } from '../lib/configServer'
 import pullSchema from './pullSchema'
 
 export async function generate(
@@ -43,7 +43,8 @@ export async function generate(
 			await pullSchema(args)
 		}
 
-		await codegen(config)
+		// before we can start the codegen process we need to start the config server
+		startServer(() => config!)
 	} catch (e) {
 		formatErrors(e, function (error) {
 			if (args.verbose && 'stack' in error && error.stack) {

@@ -87,29 +87,3 @@ ${cyan('   Error  :')} ${(e as Error).message}`
 	}
 	return null
 }
-
-export function extractHeadersStr(str: string | undefined) {
-	const regex = /(\w+)=("[^"]*"|[^ ]*)/g
-	const obj: Record<string, string> = {}
-
-	let match
-	while ((match = regex.exec(str ?? '')) !== null) {
-		obj[match[1]] = match[2].replaceAll('"', '')
-	}
-
-	return obj
-}
-
-export function extractHeaders(headers?: string[] | undefined) {
-	if ((headers ?? []).length > 0) {
-		return headers!.reduce((total, header) => {
-			const [key, value] = header.split(/=(.*)/s)
-
-			return {
-				...total,
-				[key]: value.replaceAll('"', ''),
-			}
-		}, {})
-	}
-	return {}
-}
