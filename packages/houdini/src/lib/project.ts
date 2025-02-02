@@ -113,6 +113,10 @@ export async function get_config(
 		if (_config.local_schema) {
 			_config.schema = await load_local_schema(_config)
 		}
+		// if we have a schema path then we need to load it
+		else if (_config.config_file.schemaPath) {
+			_config.schema = await load_schema_file(_config.config_file.schemaPath)
+		}
 
 		// order the list of plugins
 		_config.plugins = await Promise.all(
@@ -223,7 +227,7 @@ function findModule(pkg: string = 'houdini', currentLocation: string) {
 	return locationFound
 }
 
-async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema> {
+async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
 	// if the schema is not a relative path, the config file is out of date
 	if (path.isAbsolute(schemaPath)) {
 		// compute the new value for schema
@@ -283,7 +287,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 const emptySchema = graphql.buildSchema('type Query { hello: String }')
 const defaultDirectives = emptySchema.getDirectives().map((dir) => dir.name)
 
-export function isSecondaryBuild() {
+export function is_secondary_build() {
 	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
 }
 
@@ -296,7 +300,7 @@ export function internal_routes(config: Config): string[] {
 	return routes
 }
 
-export async function buildLocalSchema(config: Config): Promise<void> {
+export async function build_local_schema(config: Config): Promise<void> {
 	// before we build the local schcema, we should check if it already exists
 	// so we dont do it again
 
@@ -343,8 +347,8 @@ export async function buildLocalSchema(config: Config): Promise<void> {
 }
 
 export async function load_local_schema(config: Config): Promise<graphql.GraphQLSchema> {
-	if (!isSecondaryBuild()) {
-		await buildLocalSchema(config)
+	if (!is_secondary_build()) {
+		await build_local_schema(config)
 	}
 
 	// import the schema we just built

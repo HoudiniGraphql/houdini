@@ -1,6 +1,6 @@
 import * as path from '../lib/path'
 import { get_config } from '../lib/project'
-import { pullSchema } from '../lib/schema'
+import { pull_schema } from '../lib/schema'
 
 export default async function (args: { headers: string[]; output?: string }) {
 	const config = await get_config()
@@ -37,5 +37,5 @@ export default async function (args: { headers: string[]; output?: string }) {
 		: config.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 
 	// Write the schema
-	await pullSchema(apiURL, config.config_file.watchSchema?.timeout ?? 30000, targetPath, headers)
+	await pull_schema(apiURL, config.config_file.watchSchema?.timeout ?? 30000, targetPath, headers)
 }

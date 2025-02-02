@@ -3,7 +3,7 @@ import { cyan } from 'kleur'
 import fetch from 'node-fetch'
 import * as fs from 'node:fs/promises'
 
-export async function pullSchema(
+export async function pull_schema(
 	url: string,
 	fetchTimeout: number,
 	schemaPath: string,
