@@ -163,12 +163,14 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 
 								schema: config.schema,
 
-								scalars: Object.fromEntries(
-									Object.entries(config.scalars ?? {}).map(([key, value]) => [
-										key,
-										value.type,
-									])
-								),
+								scalars: !config.scalars
+									? null
+									: Object.fromEntries(
+											Object.entries(config.scalars).map(([key, value]) => [
+												key,
+												value.type,
+											])
+									  ),
 
 								definitionsPath: config.definitionsDirectory,
 
@@ -192,11 +194,13 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 
 								// Record ID configuration
 								defaultKeys: config.defaultKeys,
-								types: Object.fromEntries(
-									Object.entries(config.configFile.types ?? {}).map(
-										([key, value]) => [key, { keys: value.keys }]
-									)
-								),
+								types: !config.configFile.types
+									? null
+									: Object.fromEntries(
+											Object.entries(config.configFile.types).map(
+												([key, value]) => [key, { keys: value.keys }]
+											)
+									  ),
 
 								// Logging configuration
 								logLevel: config.logLevel,
@@ -206,7 +210,7 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 
 								// Schema watching configuration
 								watchSchema: !config.configFile.watchSchema
-									? {}
+									? null
 									: {
 											url: config.configFile.watchSchema.url,
 											headers: config.configFile.watchSchema.headers
@@ -232,11 +236,13 @@ export function startServer(getConfig: () => Config): Promise<[http.Server, numb
 								router: config.configFile.router,
 
 								// Runtime scalar configuration
-								runtimeScalars: Object.fromEntries(
-									Object.entries(config.configFile.runtimeScalars ?? {}).map(
-										([key, value]) => [key, { type: value.type }]
-									)
-								),
+								runtimeScalars: !config.configFile.runtimeScalars
+									? null
+									: Object.fromEntries(
+											Object.entries(config.configFile.runtimeScalars).map(
+												([key, value]) => [key, { type: value.type }]
+											)
+									  ),
 							}
 						},
 						pluginConfig: (_: any, { name }: { name: string }) => {

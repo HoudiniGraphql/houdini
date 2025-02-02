@@ -46,8 +46,10 @@ export async function generate(
 		// before we can start the codegen process we need to start the config server
 		const [server, port] = await startConfigServer(() => config!)
 
+		console.log('config server running on ' + port)
+
 		// we're done with the config server
-		server.close()
+		// server.close()
 	} catch (e) {
 		formatErrors(e, function (error) {
 			if (args.verbose && 'stack' in error && error.stack) {
