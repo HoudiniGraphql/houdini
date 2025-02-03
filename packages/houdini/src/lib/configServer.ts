@@ -15,10 +15,10 @@ type Query {
 }
 
 type Mutation {
-	registerPort(input: RegisterPortInput!): Boolean
+	registerPlugin(input: RegisterPluginInput!): Boolean
 }
 
-input RegisterPortInput {
+input RegisterPluginInput {
 	plugin: String!
 	port: Int!
 }
@@ -210,7 +210,7 @@ export function start_server(
 				typeDefs,
 				resolvers: {
 					Mutation: {
-						registerPort(
+						registerPlugin(
 							_: any,
 							{ input }: { input: { plugin: string; port: number } }
 						) {

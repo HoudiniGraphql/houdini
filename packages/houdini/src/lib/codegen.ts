@@ -30,8 +30,6 @@ export async function pre_codegen(
 		// now we need to wait for the plugin to report back its port
 		const port = await config_server.wait_for_plugin(plugin.name)
 
-		console.log(`plugin ${plugin.name} is running on port ${port}`)
-
 		plugins[plugin.name] = { port, process: child }
 	}
 
