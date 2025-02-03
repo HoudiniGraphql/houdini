@@ -18,20 +18,22 @@ export async function pre_codegen(
 	const config_server = await start_config_server(config, env)
 
 	// start each plugin
-	for (const plugin of config.plugins) {
-		const child = spawn(
-			plugin.executable,
-			['--config', `http://localhost:${config_server.port.toString()}`],
-			{
-				stdio: 'inherit',
-			}
-		)
+	await Promise.all(
+		config.plugins.map(async (plugin) => {
+			const child = spawn(
+				plugin.executable,
+				['--config', `http://localhost:${config_server.port.toString()}`],
+				{
+					stdio: 'inherit',
+				}
+			)
 
-		// now we need to wait for the plugin to report back its port
-		const port = await config_server.wait_for_plugin(plugin.name)
+			// now we need to wait for the plugin to report back its port
+			const port = await config_server.wait_for_plugin(plugin.name)
 
-		plugins[plugin.name] = { port, process: child }
-	}
+			plugins[plugin.name] = { port, process: child }
+		})
+	)
 
 	// to stop each process we need to kill the config server and send a sigterm to each plugin
 	const stop = () => {
