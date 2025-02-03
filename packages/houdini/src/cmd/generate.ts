@@ -1,8 +1,7 @@
-import { run_codegen } from '../lib/codegen'
-import { start_server as start_config_server } from '../lib/configServer'
+import { pre_codegen } from 'src/lib'
+
 import { format_error } from '../lib/error'
 import { get_config, type Config } from '../lib/project'
-import pull_schema from './pullSchema'
 
 export async function generate(
 	args: {
@@ -22,20 +21,16 @@ export async function generate(
 		// grab the config file
 		let config: Config | null = await get_config()
 
-		// we need an object that we'll as the env
+		// we need an object that we'll use as the env
 		const env = {}
 
-		// before we can start the codegen process we need to start the config server
-		const [server, port] = await start_config_server(
-			() => config!,
-			() => env
-		)
+		// initialize the codegen pipe
+		const { ports, stop } = await pre_codegen(config, env)
 
-		// we can now run the codegen process
-		await run_codegen(config, port)
+		console.log(ports)
 
-		// we're done with the config server
-		server.close()
+		// we're done, close everything
+		stop()
 	} catch (e) {
 		format_error(e, function (error) {
 			if (args.verbose && 'stack' in error && error.stack) {

@@ -1326,7 +1326,7 @@ async function pluginPath(plugin_name: string, config_path: string): Promise<str
 		}
 
 		return path.join(pluginDirectory, packageJSON.exports['.'].import)
-	} catch {
+	} catch (e) {
 		const err = new Error(
 			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub.`
 		)

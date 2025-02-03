@@ -7,6 +7,7 @@ import { local_api_dir, temp_dir } from './conventions'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import * as path from './path'
+import { plugin_path } from './plugins'
 
 export type { ConfigFile } from '../runtime/lib/config'
 
@@ -15,7 +16,7 @@ const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
 export type PluginMeta = {
 	name: string
 	options: Record<string, any>
-	filepath: string
+	executable: string
 }
 
 // we need to include some extra meta data along with the config file
@@ -70,7 +71,7 @@ export async function get_config(
 	// wrap the rest of the function so that errors resolve the promise as well
 	try {
 		// look up the current config file
-		const config_file = await readConfigFile(config_path)
+		const config_file = await read_config_file(config_path)
 		_config = {
 			config_file,
 			filepath: config_path,
@@ -123,7 +124,7 @@ export async function get_config(
 			plugins.map(async ([name, options]) => ({
 				name,
 				options,
-				filepath: await plugin_path(name, config_path),
+				executable: await plugin_path(name, config_path),
 			}))
 		)
 
@@ -139,7 +140,7 @@ export async function get_config(
 }
 
 // helper function to load the config file
-async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): Promise<ConfigFile> {
+async function read_config_file(configPath: string = DEFAULT_CONFIG_PATH): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
 	let importPath = path.importPath(configPath)
@@ -154,77 +155,6 @@ async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): Promise
 	// if this is wrapped in a default, use it
 	const config = imported.default || imported
 	return config
-}
-
-async function plugin_path(plugin_name: string, config_path: string): Promise<string> {
-	try {
-		// check if we are in a PnP environment
-		if (process.versions.pnp) {
-			// retrieve the PnP API (Yarn injects the `findPnpApi` into `node:module` builtin module in runtime)
-			const { findPnpApi } = require('node:module')
-
-			// this will traverse the file system to find the closest `.pnp.cjs` file and return the PnP API based on it
-			// normally it will reside at the same level with `houdini.config.js` file, so it is unlikely that traversing the whole file system will happen
-			const pnp = findPnpApi(config_path)
-
-			// this directly returns the ESM export of the corresponding module, thanks to the PnP API
-			// it will throw if the module isn't found in the project's dependencies
-			return pnp.resolveRequest(plugin_name, config_path, { conditions: new Set(['import']) })
-		}
-
-		// otherwise we have to hunt the module down relative to the current path
-		const pluginDirectory = findModule(plugin_name, config_path)
-
-		// load up the package json
-		const packageJsonSrc = await fs.readFile(path.join(pluginDirectory, 'package.json'))
-		if (!packageJsonSrc) {
-			throw new Error('skip')
-		}
-		const packageJSON = JSON.parse(packageJsonSrc)
-
-		// the esm target to import is defined at exports['.'].import
-		if (!packageJSON.exports?.['.']?.import) {
-			throw new Error('')
-		}
-
-		return path.join(pluginDirectory, packageJSON.exports['.'].import)
-	} catch {
-		const err = new Error(
-			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub.`
-		)
-
-		throw err
-	}
-}
-
-function findModule(pkg: string = 'houdini', currentLocation: string) {
-	const pathEndingBy = ['node_modules', pkg]
-
-	// Build the first possible location
-	let locationFound = path.join(currentLocation, ...pathEndingBy)
-
-	// previousLocation is nothing
-	let previousLocation = ''
-	const backFolder: string[] = []
-
-	// if previousLocation !== locationFound that mean that we can go upper
-	// if the directory doesn't exist, let's go upper.
-	while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
-		// save the previous path
-		previousLocation = locationFound
-
-		// add a back folder
-		backFolder.push('../')
-
-		// set the new location
-		locationFound = path.join(currentLocation, ...backFolder, ...pathEndingBy)
-	}
-
-	if (previousLocation === locationFound) {
-		throw new Error('Could not find any node_modules/houdini folder')
-	}
-
-	return locationFound
 }
 
 async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {

@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 
-import type { HoudiniError } from '../../legacy/lib'
+import type { HoudiniError } from '../lib/error'
 import { generate } from './generate'
 import { init } from './init'
 import pullSchema from './pullSchema'

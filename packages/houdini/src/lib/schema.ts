@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import { cyan } from 'kleur'
+import colors from 'kleur'
 import fetch from 'node-fetch'
 import * as fs from 'node:fs/promises'
 
@@ -77,8 +77,8 @@ export async function pull_schema(
 		if (content) {
 			console.warn(
 				`⚠️  Couldn't pull your schema.
-${cyan('   Reponse:')} ${content}
-${cyan('   Error  :')} ${(e as Error).message}`
+${colors.cyan('   Reponse:')} ${content}
+${colors.cyan('   Error  :')} ${(e as Error).message}`
 			)
 		} else {
 			console.warn(`⚠️  Couldn't pull your schema: ${(e as Error).message}`)

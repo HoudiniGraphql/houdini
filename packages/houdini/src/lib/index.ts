@@ -1,3 +1,5 @@
 export * from './project'
 export * from './codegen'
 export * from './configServer'
+export * as path from './path'
+export * as fs from './fs'

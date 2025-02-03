@@ -3,7 +3,7 @@
 import { createSchema, createYoga } from 'graphql-yoga'
 import http from 'node:http'
 
-import { Config, ConfigFile } from './project'
+import { Config } from './project'
 
 const typeDefs = `
 type Query {
@@ -12,6 +12,15 @@ type Query {
 
   """Get configuration for a specific plugin"""
   pluginConfig(name: String!): JSON
+}
+
+type Mutation {
+	registerPort(input: RegisterPortInput!): Boolean
+}
+
+input RegisterPortInput {
+	plugin: String!
+	port: Int!
 }
 
 """
@@ -145,10 +154,54 @@ scalar JSON
 `
 
 export function start_server(
-	get_config: () => Config,
-	env: () => Record<string, string>
-): Promise<[http.Server, number]> {
+	config: Config,
+	env: Record<string, string>
+): Promise<{
+	close: () => void
+	port: number
+	wait_for_plugin: (name: string) => Promise<number>
+}> {
 	return new Promise((resolve, reject) => {
+		// when plugins announce themselves, they provide a port
+		const plugin_ports: Record<string, number> = {}
+		const plugin_waiters: Record<string, Array<(port: number) => void>> = {}
+
+		const wait_for_plugin = (name: string) =>
+			new Promise<number>((resolve, reject) => {
+				// if the plugin is already announced we're done
+				if (name in plugin_ports) {
+					return resolve(plugin_ports[name])
+				}
+
+				// Create a timeout that will reject after 2 seconds
+				const timeout = setTimeout(() => {
+					// Get the waiters array for this plugin
+					const waiters = plugin_waiters[name] || []
+					// Find and remove this specific waiter
+					const index = waiters.findIndex((w) => w === resolver)
+					if (index !== -1) {
+						waiters.splice(index, 1)
+					}
+					// Clean up the waiters array if it's empty
+					if (waiters.length === 0) {
+						delete plugin_waiters[name]
+					}
+					reject(new Error(`Timeout waiting for plugin ${name} to register`))
+				}, 2000)
+
+				// Create a resolver function that clears the timeout
+				const resolver = (port: number) => {
+					clearTimeout(timeout)
+					resolve(port)
+				}
+
+				// Add the waiter to the array of waiters for this plugin
+				if (!plugin_waiters[name]) {
+					plugin_waiters[name] = []
+				}
+				plugin_waiters[name].push(resolver)
+			})
+
 		// use yoga for the graphql server
 		const yoga = createYoga({
 			landingPage: false,
@@ -156,10 +209,25 @@ export function start_server(
 			schema: createSchema({
 				typeDefs,
 				resolvers: {
+					Mutation: {
+						registerPort(
+							_: any,
+							{ input }: { input: { plugin: string; port: number } }
+						) {
+							// save the port in our mapping
+							plugin_ports[input.plugin] = input.port
+
+							// if we have any waiters, resolve all of them
+							const waiters = plugin_waiters[input.plugin]
+							if (waiters?.length > 0) {
+								waiters.forEach((resolver) => resolver(input.port))
+								// Clean up the waiters after resolving
+								delete plugin_waiters[input.plugin]
+							}
+						},
+					},
 					Query: {
 						config: async () => {
-							const config = get_config()
-
 							return {
 								include: config.config_file.include,
 								exclude: config.config_file.exclude,
@@ -221,7 +289,7 @@ export function start_server(
 												? typeof config.config_file.watchSchema.headers ===
 												  'object'
 													? config.config_file.watchSchema.headers
-													: config.config_file.watchSchema.headers(env())
+													: config.config_file.watchSchema.headers(env)
 												: {},
 											interval: config.config_file.watchSchema.interval,
 											timeout: config.config_file.watchSchema.timeout,
@@ -264,7 +332,11 @@ export function start_server(
 			if (!address || typeof address === 'string') {
 				reject(new Error('Failed to start server'))
 			} else {
-				resolve([server, address.port])
+				resolve({
+					close: () => server.close(),
+					port: address.port,
+					wait_for_plugin,
+				})
 			}
 		})
 	})

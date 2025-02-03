@@ -2,7 +2,8 @@ import * as p from '@clack/prompts'
 import { bold, cyan, gray, green, italic } from 'kleur/colors'
 import { execSync } from 'node:child_process'
 
-import { fs, path, pullSchema } from '../../legacy/lib'
+import { fs, path } from '../lib'
+import { pull_schema } from '../lib/schema'
 import type { ConfigFile } from '../runtime/lib/config'
 
 function pCancel(cancelText = 'Operation cancelled.') {
@@ -142,7 +143,7 @@ export async function init(
 
 			// Since we don't have a config file yet, we need to provide the default here.
 			const fetchTimeout = 30000
-			pullSchema_content = await pullSchema(
+			pullSchema_content = await pull_schema(
 				local_url,
 				fetchTimeout,
 				schemaPath,

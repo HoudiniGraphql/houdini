@@ -7,8 +7,8 @@ function getBinaryPath() {
 		'linux-arm64': 'my-package-linux-arm64',
 		'win32-x64': 'my-package-windows-x64',
 		'win32-arm64': 'my-package-windows-arm64',
-		'darwin-x64': 'houdini-darwin-x64',
-		'darwin-arm64': 'houdini-darwin-arm64',
+		'darwin-x64': 'my-package-darwin-x64',
+		'darwin-arm64': 'my-package-darwin-arm64',
 	}
 
 	// Windows binaries end with .exe so we need to special case them.
