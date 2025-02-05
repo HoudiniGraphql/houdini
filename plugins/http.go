@@ -161,8 +161,8 @@ func handleAfterLoad(plugin Plugin) func() error {
 			fmt.Println("static runtime", runtimePath)
 		}
 
-		if _, ok := plugin.(AfterLoad); ok {
-			fmt.Println("after load")
+		if p, ok := plugin.(AfterLoad); ok {
+			return p.AfterLoad()
 		}
 
 		// nothing went wrong

@@ -8,6 +8,7 @@ import {
 	start_server as start_config_server,
 } from './configServer'
 import { db_path } from './conventions'
+import { create_schema } from './database'
 import { type Config } from './project'
 
 export type PluginMap = Record<string, PluginSpec & { process: ChildProcess }>
@@ -16,12 +17,12 @@ export type PluginMap = Record<string, PluginSpec & { process: ChildProcess }>
 // the config server along with each plugin
 export async function codegen_init(
 	config: Config,
-	env: Record<string, string>
+	env: Record<string, string>,
+	mode: string
 ): Promise<{
 	config_server: ConfigServer
 	plugins: PluginMap
 	database_path: string
-	stop: () => void
 }> {
 	const plugins: PluginMap = {}
 
@@ -34,6 +35,7 @@ export async function codegen_init(
 		await fs.remove(db_file)
 	} catch (e) {}
 	const db = new sqlite.DatabaseSync(db_file)
+	db.exec(create_schema)
 	db.close()
 
 	// start each plugin
@@ -54,22 +56,31 @@ export async function codegen_init(
 		})
 	)
 
-	// to cleanup, we need to send a sigterm to each plugin and kill the config server
-	const stop = () => {
-		// stop each plugin
-		for (const [, { process }] of Object.entries(plugins)) {
-			process.kill('SIGTERM')
-		}
+	// load the environment variables from our plugins as assign the values onto the object we gave
+	// the config server
+	Object.assign(env, await config_server.load_env(mode))
 
-		// stop the config server
-		config_server.close()
-	}
+	// TODO: config hook
+
+	// now that we've loaded the environment, we need to invoke the afterLoad hook
+	await config_server.trigger_hook('AfterLoad')
 
 	return {
 		database_path: db_file,
-		config_server,
+		config_server: {
+			...config_server,
+			// to cleanup, we need to send a sigterm to each plugin and kill the config server,
+			close: () => {
+				// stop each plugin
+				for (const [, { process }] of Object.entries(plugins)) {
+					process.kill('SIGTERM')
+				}
+
+				// stop the config server
+				config_server.close()
+			},
+		},
 		plugins,
-		stop,
 	}
 }
 

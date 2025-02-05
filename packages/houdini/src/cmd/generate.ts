@@ -20,9 +20,7 @@ export async function generate(
 	}
 ) {
 	// make sur ethere is always a mode
-	if (!args.mode) {
-		args.mode = 'development'
-	}
+	const mode = args.mode ?? 'development'
 
 	try {
 		// grab the config file
@@ -32,22 +30,12 @@ export async function generate(
 		const env = {}
 
 		// initialize the codegen pipe
-		const { config_server, stop, plugins } = await codegen_init(config, env)
+		const { config_server } = await codegen_init(config, env, mode)
 
-		console.log(plugins)
-
-		// load the environment variables from our plugins as assign the values onto the object we gave
-		// the config server
-		Object.assign(env, await config_server.load_env(args.mode!))
-
-		// TODO: config hook
 		console.log(env)
 
-		// now that we've loaded the environment, we need to invoke the afterLoad hook
-		await config_server.trigger_hook('AfterLoad')
-
 		// we're done, close everything
-		stop()
+		config_server.close()
 
 		process.exit(0)
 	} catch (e) {

@@ -57,9 +57,3 @@ func (p HoudiniCore) Environment(mode string) (map[string]string, error) {
 	// we're done
 	return result, nil
 }
-
-func (p HoudiniCore) AfterLoad() error {
-	// after all of the plugins have loaded we need to write the schema
-	fmt.Println("after load")
-	return nil
-}
