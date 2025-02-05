@@ -1,18 +1,25 @@
 import { type ChildProcess, spawn } from 'child_process'
 
-import { start_server as start_config_server } from './configServer'
-import { Config } from './project'
+import {
+	type ConfigServer,
+	type PluginSpec,
+	start_server as start_config_server,
+} from './configServer'
+import { type Config } from './project'
+
+export type PluginMap = Record<string, PluginSpec & { process: ChildProcess }>
 
 // pre_codegen sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
-export async function pre_codegen(
+export async function codegen_init(
 	config: Config,
 	env: Record<string, string>
 ): Promise<{
-	ports: Record<string, number>
+	config_server: ConfigServer
+	plugins: PluginMap
 	stop: () => void
 }> {
-	const plugins: Record<string, { port: number; process: ChildProcess }> = {}
+	const plugins: PluginMap = {}
 
 	// start the config server
 	const config_server = await start_config_server(config, env)
@@ -30,7 +37,7 @@ export async function pre_codegen(
 					}
 				),
 				// and wait for the plugin to report back its port
-				port: await config_server.wait_for_plugin(plugin.name),
+				...(await config_server.wait_for_plugin(plugin.name)),
 			}
 		})
 	)
@@ -38,7 +45,7 @@ export async function pre_codegen(
 	// to cleanup, we need to send a sigterm to each plugin and kill the config server
 	const stop = () => {
 		// stop each plugin
-		for (const { process } of Object.values(plugins)) {
+		for (const [, { process }] of Object.entries(plugins)) {
 			process.kill('SIGTERM')
 		}
 
@@ -47,7 +54,8 @@ export async function pre_codegen(
 	}
 
 	return {
-		ports: Object.fromEntries(Object.entries(plugins).map(([key, value]) => [key, value.port])),
+		config_server,
+		plugins,
 		stop,
 	}
 }

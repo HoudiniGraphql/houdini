@@ -1,4 +1,5 @@
-import { pre_codegen } from 'src/lib'
+import { codegen_init } from 'src/lib'
+import { sleep } from 'src/lib/sleep'
 
 import { format_error } from '../lib/error'
 import { get_config, type Config } from '../lib/project'
@@ -25,12 +26,14 @@ export async function generate(
 		const env = {}
 
 		// initialize the codegen pipe
-		const { ports, stop } = await pre_codegen(config, env)
+		const { config_server, stop } = await codegen_init(config, env)
 
-		console.log(ports)
+		console.log('env: ', await config_server.load_env())
 
 		// we're done, close everything
 		stop()
+
+		process.exit(0)
 	} catch (e) {
 		format_error(e, function (error) {
 			if (args.verbose && 'stack' in error && error.stack) {

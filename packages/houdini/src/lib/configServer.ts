@@ -18,9 +18,28 @@ type Mutation {
 	registerPlugin(input: RegisterPluginInput!): Boolean
 }
 
+enum PluginHook {
+	Init
+	ExtractDocuments
+	Config
+	AfterLoad
+	Environment
+	Schema
+	BeforeValidate
+	Validate
+	AfterValidate
+	BeforeGenerate
+	Generate
+	AfterGenerate
+	ClientPlugins
+	TransformFile
+}
+
 input RegisterPluginInput {
 	plugin: String!
 	port: Int!
+	order: String!
+	hooks: [PluginHook!]!
 }
 
 """
@@ -153,24 +172,31 @@ Custom scalar for handling JSON data
 scalar JSON
 `
 
-export function start_server(
-	config: Config,
-	env: Record<string, string>
-): Promise<{
+export type PluginSpec = {
+	port: number
+	hooks: Set<string>
+	order: 'before' | 'after' | 'core'
+}
+
+export type ConfigServer = {
 	close: () => void
 	port: number
-	wait_for_plugin: (name: string) => Promise<number>
-}> {
+	wait_for_plugin: (name: string) => Promise<PluginSpec>
+	load_env: () => Promise<Record<string, string>>
+	invoke_hook: (plugin_name: string, hook: string) => Promise<any>
+}
+
+export function start_server(config: Config, env: Record<string, string>): Promise<ConfigServer> {
 	return new Promise((resolve, reject) => {
 		// when plugins announce themselves, they provide a port
-		const plugin_ports: Record<string, number> = {}
-		const plugin_waiters: Record<string, Array<(port: number) => void>> = {}
+		const plugin_specs: Record<string, PluginSpec> = {}
+		const plugin_waiters: Record<string, Array<(spec: PluginSpec) => void>> = {}
 
 		const wait_for_plugin = (name: string) =>
-			new Promise<number>((resolve, reject) => {
+			new Promise<PluginSpec>((resolve, reject) => {
 				// if the plugin is already announced we're done
-				if (name in plugin_ports) {
-					return resolve(plugin_ports[name])
+				if (name in plugin_specs) {
+					return resolve(plugin_specs[name])
 				}
 
 				// Create a timeout that will reject after 2 seconds
@@ -190,9 +216,9 @@ export function start_server(
 				}, 2000)
 
 				// Create a resolver function that clears the timeout
-				const resolver = (port: number) => {
+				const resolver = (spec: PluginSpec) => {
 					clearTimeout(timeout)
-					resolve(port)
+					resolve(spec)
 				}
 
 				// Add the waiter to the array of waiters for this plugin
@@ -201,6 +227,48 @@ export function start_server(
 				}
 				plugin_waiters[name].push(resolver)
 			})
+
+		// a function to invoke the corresponding endpoint in a plugin
+		const invoke_hook = async (name: string, hook: string) => {
+			// make sure the plugin is loaded
+			const { port } = await wait_for_plugin(name)
+
+			// make the request
+			const response = await fetch(`http://localhost:${port}/${hook}`, {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+
+			// if the request failed, throw an error
+			if (!response.ok) {
+				throw new Error(`Failed to call ${name}/${hook}`)
+			}
+
+			// parse the response
+			return await response.json()
+		}
+
+		// a function to call that loads the environment variables from each plugin
+		const load_env = async () => {
+			// to do this we need to look at each plugin that supports the environment hook
+			// and invoke it
+			const env = {}
+
+			// look at each plugin
+			await Promise.all(
+				config.plugins.map(async (plugin) => {
+					// wait for the plugin to load
+					const { hooks } = await wait_for_plugin(plugin.name)
+					if (hooks.has('Environment')) {
+						// we need to hit the corresponding endpoint in the plugin server
+						Object.assign(env, await invoke_hook(plugin.name, 'environment'))
+					}
+				})
+			)
+
+			return env
+		}
 
 		// use yoga for the graphql server
 		const yoga = createYoga({
@@ -212,15 +280,28 @@ export function start_server(
 					Mutation: {
 						registerPlugin(
 							_: any,
-							{ input }: { input: { plugin: string; port: number } }
+							{
+								input,
+							}: {
+								input: {
+									plugin: string
+									port: number
+									hooks: Array<string>
+									order: PluginSpec['order']
+								}
+							}
 						) {
 							// save the port in our mapping
-							plugin_ports[input.plugin] = input.port
+							plugin_specs[input.plugin] = {
+								port: input.port,
+								hooks: new Set(input.hooks),
+								order: input.order,
+							}
 
 							// if we have any waiters, resolve all of them
 							const waiters = plugin_waiters[input.plugin]
 							if (waiters?.length > 0) {
-								waiters.forEach((resolver) => resolver(input.port))
+								waiters.forEach((resolver) => resolver(plugin_specs[input.plugin]))
 								// Clean up the waiters after resolving
 								delete plugin_waiters[input.plugin]
 							}
@@ -336,6 +417,8 @@ export function start_server(
 					close: () => server.close(),
 					port: address.port,
 					wait_for_plugin,
+					load_env,
+					invoke_hook,
 				})
 			}
 		})

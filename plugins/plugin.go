@@ -1,8 +1,9 @@
 package plugins
 
-// all a plugin _must_ provide is a name
+// all a plugin _must_ provide is a name and its order
 type Plugin interface {
 	Name() string
+	Order() PluginOrder
 }
 
 // each hook can be implemented by a plugin by implementing the corresponding method
@@ -15,16 +16,6 @@ const (
 	PluginOrderAfter  = "after"
 )
 
-// Order defines the priority for the hook. The order is before -> core -> after.
-type Order interface {
-	Order() PluginOrder
-}
-
-// Extensions extensions to the list that houdini uses to find valid source files
-type Extensions interface {
-	Extensions() []string
-}
-
 type PackagMode string
 
 const (
@@ -32,164 +23,110 @@ const (
 	PackageModeESM      = "esm"
 )
 
-/**
- * A relative path from the file exporting your plugin to a runtime that will be
- * automatically included with your
- */
+/* A relative path from the file exporting your plugin to a runtime that will be
+ * automatically included with your */
 type IncludeRuntime interface {
-	IncludeRuntime(mode string) string
+	IncludeRuntime() (string, error)
 }
 
-/**
- * A relative path from the file exporting your plugin to a runtime that can be
+/* A relative path from the file exporting your plugin to a runtime that can be
  * added to the project before generating artifacts. This is useful for plugins
- * that want to add third-party documents to the user's application.
- */
+ * that want to add third-party documents to the user's application. */
 type StaticRuntime interface {
-	StaticRuntime(mode string) string
+	StaticRuntime() (string, error)
 }
 
-/**
- * Transform the plugin's runtime while houdini is copying it .
- * You must have passed a value to includeRuntime for this hook to matter.
- */
+/* Transform the plugin's runtime while houdini is copying it .
+ * You must have passed a value to includeRuntime for this hook to matter. */
 type TransformRuntime interface {
-	TransformRuntime(source string) string
+	TransformRuntime(source string) (string, error)
 }
 
-/**
- * The path to a javascript module with an default export that sets configuration values.
- */
+/* The path to a javascript module with an default export that sets configuration values. */
 type Config interface {
-	Config() string
+	Config() (string, error)
 }
 
-/**
- * Add environment variables to the project
- */
+/* Add environment variables to the project */
 type Environment interface {
-	Environment() map[string]string
+	Environment() (map[string]string, error)
 }
 
-/**
- * Invoked after all plugins have loaded and modified config values.
- */
+/* Invoked after all plugins have loaded and modified config values. */
 type AfterLoad interface {
-	AfterLoad()
+	AfterLoad() error
 }
 
-/**
- * Specify a pattern to match files that should be transformed by the plugin.
- */
-type Include interface {
-	Include() string
+/* Extract documents from the project */
+type ExtractDocuments interface {
+	ExtractDocuments(include []string, exclude []string) error
 }
 
-/**
- * Specify a pattern to match files that should not be transformed by the plugin.
- */
-type Exclude interface {
-	Exclude() string
-}
-
-/**
- * Extract documents from the project
- */
-type Extract interface {
-	Extract() []string
-}
-
-/**
- * Can be used to add custom definitions to your project's schema. Definitions (like directives) added
+/* Can be used to add custom definitions to your project's schema. Definitions (like directives) added
  * here are automatically removed from the document before they are sent to the server. Useful
- * in connection with artifactData or artifact_selection to embed data in the artifact.
- */
+ * in connection with artifactData or artifact_selection to embed data in the artifact. */
 type Schema interface {
-	Schema() string
+	Schema() error
 }
 
-/**
- * A hook to transform the documents before they are validated.
- */
+/* A hook to transform the documents before they are validated. */
 type BeforeValidate interface {
-	BeforeValidate()
+	BeforeValidate() error
 }
 
-/**
- * A hook to validate all of the documents in a project.
- */
+/* A hook to validate all of the documents in a project. */
 type Validate interface {
 	Validate() error
 }
 
-/**
- * A hook to transform the documents after they are validated.
- */
+/* A hook to transform the documents after they are validated. */
 type AfterValidate interface {
-	AfterValidate()
+	AfterValidate() error
 }
 
-/**
- * A hook to transform the documents before documents are generated.
- */
+/* A hook to transform the documents before documents are generated. */
 type BeforeGenerate interface {
-	BeforeGenerate()
+	BeforeGenerate() error
 }
 
-/**
- * A hook to embed metadata at the root of the artifact.
- */
+/* A hook to embed metadata at the root of the artifact. */
 type ArtifactData interface {
-	ArtifactData(documentName string) map[string]string
+	ArtifactData(documentName string) (map[string]string, error)
 }
 
-/**
- * A hook to customize the hash generated for your document.
- */
+/* A hook to customize the hash generated for your document. */
 type Hash interface {
-	Hash(documentName string) string
+	Hash(documentName string) (string, error)
 }
 
-/**
- * A hook to customize the return type of the graphql function. If you need to add an import to the file
- * in order to resolve the import, you can use the `ensureImport` utility.
- */
+/* A hook to customize the return type of the graphql function. If you need to add an import to the file
+ * in order to resolve the import, you can use the `ensureImport` utility. */
 type GraphQLTagReturn interface {
-	GraphQLTagReturn(documentName string) string
+	GraphQLTagReturn(documentName string) (string, error)
 }
 
-/**
- * A hook to modify the root `index.js` of the generated runtime.
- */
+/* A hook to modify the root `index.js` of the generated runtime. */
 type IndexFile interface {
-	IndexFile(source string) string
+	IndexFile(source string) (string, error)
 }
 
-/**
- * A hook to generate custom files for every document in a project.
- */
+/* A hook to generate custom files for every document in a project. */
 type Generate interface {
-	Generate() string
+	Generate() (string, error)
 }
 
-/**
- * A hook to modify the generated artifact before it is persisted
- */
+/* A hook to modify the generated artifact before it is persisted */
 type ArtifactEnd interface {
-	ArtifactEnd()
+	ArtifactEnd() error
 }
 
-/**
- * Specify the plugins that should be added to the user's client because
- * of this plugin.
- */
+/* Specify the plugins that should be added to the user's client because
+ * of this plugin. */
 type ClientPlugins interface {
-	ClientPlugins() map[string]string
+	ClientPlugins() (map[string]string, error)
 }
 
-/**
- * A hook to transform the source file to support desired APIs.
- */
+/* A hook to transform the source file to support desired APIs. */
 type TransformFile interface {
-	TransformFile(source string) string
+	TransformFile(filepath string, source string) (string, error)
 }
