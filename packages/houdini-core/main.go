@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"code.houdinigraphql.com/plugins"
 
 	"github.com/joho/godotenv"
@@ -20,15 +22,29 @@ func (p HoudiniCore) Order() plugins.PluginOrder {
 	return plugins.PluginOrderCore
 }
 
-func (p HoudiniCore) Environment() (map[string]string, error) {
-	// we're going to emulate the vite rules laid out here: https://vite.dev/guide/env-and-mode
-	env, _ := godotenv.Read(
+func (p HoudiniCore) Environment(mode string) (map[string]string, error) {
+	// build up the environment variables using the vite rules laid out here: https://vite.dev/guide/env-and-mode
+	result := map[string]string{}
+
+	// process each file and add the variables to the result
+	for _, file := range []string{
 		".env",
 		".env.local",
-	)
-	if env == nil {
-		env = make(map[string]string)
+		fmt.Sprintf(".env.%s", mode),
+		fmt.Sprintf(".env.%s.local", mode),
+	} {
+		env, err := godotenv.Read(file)
+		// if the file doesn't exist then we keep to keep going
+		if err != nil {
+			continue
+		}
+
+		// assign the variables to the result
+		for k, v := range env {
+			result[k] = v
+		}
 	}
 
-	return env, nil
+	// we're done
+	return result, nil
 }

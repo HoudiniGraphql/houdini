@@ -1,174 +1,10 @@
 package plugins
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
-	"io"
-	"log"
-	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
-
-func Run(plugin Plugin) {
-	var configHost = flag.String("config", "", "help message for flag n")
-	flag.Parse()
-
-	hooks := pluginHooks(plugin)
-
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	port := listener.Addr().(*net.TCPAddr).Port
-
-	// create server instance so we can shut it down gracefully
-	srv := &http.Server{}
-
-	// create context that we'll cancel on shutdown signal
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// set up signal handling
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-
-	// channel for server errors
-	serverErr := make(chan error, 1)
-
-	addr := fmt.Sprintf("localhost:%d", port)
-
-	// start server in a goroutine
-	go func() {
-		if err := srv.Serve(listener); err != http.ErrServerClosed {
-			serverErr <- err
-		}
-	}()
-
-	// test connection to ensure server is listening
-	for i := 0; i < 10; i++ {
-		conn, err := net.Dial("tcp", addr)
-		if err == nil {
-			conn.Close()
-			break
-		}
-		// check if server failed
-		select {
-		case err := <-serverErr:
-			log.Fatal("server failed to start:", err)
-			return
-		default:
-			time.Sleep(1 * time.Millisecond)
-			continue
-		}
-	}
-
-	// check one final time for any server startup errors
-	select {
-	case err := <-serverErr:
-		log.Fatal("server failed to start:", err)
-		return
-	default:
-		// server started successfully
-	}
-
-	// wait for shutdown signal or server error
-	notified := false
-	for {
-		select {
-		case <-sigChan:
-			// give outstanding requests a chance to complete
-			shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer shutdownCancel()
-
-			if err := srv.Shutdown(shutdownCtx); err != nil {
-			}
-			return
-		case <-serverErr:
-			return
-		case <-ctx.Done():
-			return
-		default:
-			if notified {
-				continue
-			}
-
-			// notify config server
-			err = notifyConfigServer(*configHost, `
-            mutation($input: RegisterPluginInput!) {
-                registerPlugin(input: $input)
-            }
-        `, map[string]interface{}{
-				"input": map[string]interface{}{
-					"plugin": plugin.Name(),
-					"order":  plugin.Order(),
-					"port":   port,
-					"hooks":  hooks,
-				},
-			})
-			if err != nil {
-				log.Fatal(err)
-				return
-			}
-			notified = true
-		}
-	}
-
-}
-
-func notifyConfigServer(host string, query string, input map[string]any) error {
-	// create a custom HTTP client with timeout
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	// create request payload
-	payload := map[string]any{
-		"query":     query,
-		"variables": input,
-	}
-
-	// marshal payload to JSON
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("marshaling payload: %w", err)
-	}
-
-	// create a new POST request with JSON payload
-	req, err := http.NewRequest(http.MethodPost, host, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
-	}
-
-	// set content type header
-	req.Header.Set("Content-Type", "application/json")
-
-	// send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("sending request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// read and parse response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("reading response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
-	}
-
-	return nil
-}
 
 // the hooks that a plugin defines dictate a set of events that the plugin must repond to
 func pluginHooks(plugin Plugin) []string {
@@ -216,9 +52,9 @@ func pluginHooks(plugin Plugin) []string {
 		hooks["AfterValidate"] = true
 		http.Handle("/afterValidate", EventHook(p.AfterValidate))
 	}
-	if p, ok := plugin.(BeforeGenerate); ok {
+	if _, ok := plugin.(BeforeGenerate); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/beforeGenerate", EventHook(p.BeforeGenerate))
+		http.Handle("/beforeGenerate", EventHook(handleBeforeGenerate(plugin)))
 	}
 	if _, ok := plugin.(Generate); ok {
 		hooks["Generate"] = true
@@ -229,8 +65,8 @@ func pluginHooks(plugin Plugin) []string {
 		http.Handle("/afterGenerate", EventHook(handleAfterGenerate(plugin)))
 	}
 	if _, ok := plugin.(Hash); ok {
-		hooks["AfterGenerate"] = true
-		http.Handle("/afterGenerate", EventHook(handleAfterGenerate(plugin)))
+		hooks["BeforeGenerate"] = true
+		http.Handle("/afterGenerate", EventHook(handleBeforeGenerate(plugin)))
 	}
 	if _, ok := plugin.(GraphQLTagReturn); ok {
 		hooks["AfterGenerate"] = true
@@ -408,6 +244,22 @@ func handleTransformFile(plugin TransformFile) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
 	})
+}
+
+func handleBeforeGenerate(plugin Plugin) func() error {
+	return func() error {
+		// if the plugin defines a runtime to include
+		if _, ok := plugin.(BeforeGenerate); ok {
+			fmt.Println("generate generate")
+		}
+
+		if _, ok := plugin.(Hash); ok {
+			fmt.Println("hash")
+		}
+
+		// nothing went wrong
+		return nil
+	}
 }
 
 func handleAfterGenerate(plugin Plugin) func() error {

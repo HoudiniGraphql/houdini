@@ -182,8 +182,8 @@ export type ConfigServer = {
 	close: () => void
 	port: number
 	wait_for_plugin: (name: string) => Promise<PluginSpec>
-	load_env: () => Promise<Record<string, string>>
-	invoke_hook: (plugin_name: string, hook: string) => Promise<any>
+	load_env: (mode: string) => Promise<Record<string, string>>
+	invoke_hook: (plugin_name: string, hook: string, payload: Record<string, any>) => Promise<any>
 }
 
 export function start_server(config: Config, env: Record<string, string>): Promise<ConfigServer> {
@@ -213,7 +213,7 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 						delete plugin_waiters[name]
 					}
 					reject(new Error(`Timeout waiting for plugin ${name} to register`))
-				}, 2000)
+				}, 10000)
 
 				// Create a resolver function that clears the timeout
 				const resolver = (spec: PluginSpec) => {
@@ -229,15 +229,17 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 			})
 
 		// a function to invoke the corresponding endpoint in a plugin
-		const invoke_hook = async (name: string, hook: string) => {
+		const invoke_hook = async (name: string, hook: string, payload: Record<string, any>) => {
 			// make sure the plugin is loaded
 			const { port } = await wait_for_plugin(name)
 
 			// make the request
 			const response = await fetch(`http://localhost:${port}/${hook}`, {
+				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				body: JSON.stringify(payload),
 			})
 
 			// if the request failed, throw an error
@@ -250,7 +252,7 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 		}
 
 		// a function to call that loads the environment variables from each plugin
-		const load_env = async () => {
+		const load_env = async (mode: string) => {
 			// to do this we need to look at each plugin that supports the environment hook
 			// and invoke it
 			const env = {}
@@ -262,7 +264,7 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 					const { hooks } = await wait_for_plugin(plugin.name)
 					if (hooks.has('Environment')) {
 						// we need to hit the corresponding endpoint in the plugin server
-						Object.assign(env, await invoke_hook(plugin.name, 'environment'))
+						Object.assign(env, await invoke_hook(plugin.name, 'environment', { mode }))
 					}
 				})
 			)

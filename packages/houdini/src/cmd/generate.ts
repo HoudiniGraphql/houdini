@@ -12,12 +12,18 @@ export async function generate(
 		headers: string[]
 		log?: string
 		verbose: boolean
+		mode?: string
 	} = {
 		pullSchema: false,
 		headers: [],
 		verbose: false,
 	}
 ) {
+	// make sur ethere is always a mode
+	if (!args.mode) {
+		args.mode = 'development'
+	}
+
 	try {
 		// grab the config file
 		let config: Config | null = await get_config()
@@ -28,7 +34,9 @@ export async function generate(
 		// initialize the codegen pipe
 		const { config_server, stop } = await codegen_init(config, env)
 
-		console.log('env: ', await config_server.load_env())
+		// load the environment variables from our plugins as assign the values onto the object we gave
+		// the config server
+		Object.assign(env, await config_server.load_env(args.mode!))
 
 		// we're done, close everything
 		stop()

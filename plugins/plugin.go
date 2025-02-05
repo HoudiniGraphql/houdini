@@ -49,7 +49,7 @@ type Config interface {
 
 /* Add environment variables to the project */
 type Environment interface {
-	Environment() (map[string]string, error)
+	Environment(mode string) (map[string]string, error)
 }
 
 /* Invoked after all plugins have loaded and modified config values. */
