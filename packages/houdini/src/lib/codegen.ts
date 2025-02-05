@@ -1,10 +1,13 @@
 import { type ChildProcess, spawn } from 'child_process'
+import sqlite from 'node:sqlite'
 
+import * as fs from '../lib/fs'
 import {
 	type ConfigServer,
 	type PluginSpec,
 	start_server as start_config_server,
 } from './configServer'
+import { db_path } from './conventions'
 import { type Config } from './project'
 
 export type PluginMap = Record<string, PluginSpec & { process: ChildProcess }>
@@ -17,12 +20,21 @@ export async function codegen_init(
 ): Promise<{
 	config_server: ConfigServer
 	plugins: PluginMap
+	database_path: string
 	stop: () => void
 }> {
 	const plugins: PluginMap = {}
 
 	// start the config server
 	const config_server = await start_config_server(config, env)
+
+	// we need to create a fresh database for orchestration
+	const db_file = db_path(config)
+	try {
+		await fs.remove(db_file)
+	} catch (e) {}
+	const db = new sqlite.DatabaseSync(db_file)
+	db.close()
 
 	// start each plugin
 	await Promise.all(
@@ -31,7 +43,7 @@ export async function codegen_init(
 				// kick off the plugin process
 				process: spawn(
 					plugin.executable,
-					['--config', `http://localhost:${config_server.port}`],
+					['--config', `http://localhost:${config_server.port}`, '--database', db_file],
 					{
 						stdio: 'inherit',
 					}
@@ -54,6 +66,7 @@ export async function codegen_init(
 	}
 
 	return {
+		database_path: db_file,
 		config_server,
 		plugins,
 		stop,

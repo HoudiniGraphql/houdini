@@ -57,11 +57,7 @@ export default async function () {
 	} catch (e) {}
 
 	// load the current package.json to grab necessary metadata
-	let packageJSON = (
-		await import(path.join(cwd, 'package.json'), {
-			assert: { type: 'json' },
-		})
-	).default
+	let packageJSON = JSON.parse(await fs.readFile('./package.json'))
 
 	// build each platform
 	await Promise.all(

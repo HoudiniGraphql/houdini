@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"code.houdinigraphql.com/plugins"
 
@@ -9,10 +10,18 @@ import (
 )
 
 func main() {
-	plugins.Run(HoudiniCore{})
+	db, err := plugins.ConnectDB()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+
+	plugins.Run(HoudiniCore{DB: db})
 }
 
-type HoudiniCore struct{}
+type HoudiniCore struct {
+	DB plugins.Database
+}
 
 func (p HoudiniCore) Name() string {
 	return "houdini-core"
@@ -47,4 +56,10 @@ func (p HoudiniCore) Environment(mode string) (map[string]string, error) {
 
 	// we're done
 	return result, nil
+}
+
+func (p HoudiniCore) AfterLoad() error {
+	// after all of the plugins have loaded we need to write the schema
+	fmt.Println("after load")
+	return nil
 }

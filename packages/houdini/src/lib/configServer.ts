@@ -183,7 +183,12 @@ export type ConfigServer = {
 	port: number
 	wait_for_plugin: (name: string) => Promise<PluginSpec>
 	load_env: (mode: string) => Promise<Record<string, string>>
-	invoke_hook: (plugin_name: string, hook: string, payload: Record<string, any>) => Promise<any>
+	trigger_hook: (plugin_name: string, payload?: Record<string, any>) => Promise<any>
+	invoke_plugin_endpoint: (
+		plugin_name: string,
+		hook: string,
+		payload: Record<string, any>
+	) => Promise<any>
 }
 
 export function start_server(config: Config, env: Record<string, string>): Promise<ConfigServer> {
@@ -234,7 +239,7 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 			const { port } = await wait_for_plugin(name)
 
 			// make the request
-			const response = await fetch(`http://localhost:${port}/${hook}`, {
+			const response = await fetch(`http://localhost:${port}/${hook.toLowerCase()}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -244,11 +249,28 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 
 			// if the request failed, throw an error
 			if (!response.ok) {
-				throw new Error(`Failed to call ${name}/${hook}`)
+				if (response.status === 404) {
+					throw new Error(`Plugin ${name} does not support hook ${hook}`)
+				}
+				throw new Error(
+					`Failed to call ${name}/${hook.toLowerCase()}: ${await response.text()}`
+				)
 			}
 
 			// parse the response
-			return await response.json()
+			const text = await response.text()
+			if (text) {
+				return JSON.parse(text)
+			}
+			return text
+		}
+
+		const trigger_hook = async (hook: string, payload: Record<string, any> = {}) => {
+			for (const [name, { hooks }] of Object.entries(plugin_specs)) {
+				if (hooks.has(hook)) {
+					await invoke_hook(name, hook, payload)
+				}
+			}
 		}
 
 		// a function to call that loads the environment variables from each plugin
@@ -420,7 +442,8 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 					port: address.port,
 					wait_for_plugin,
 					load_env,
-					invoke_hook,
+					invoke_plugin_endpoint: invoke_hook,
+					trigger_hook,
 				})
 			}
 		})

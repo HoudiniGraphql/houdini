@@ -15,7 +15,7 @@ func pluginHooks(plugin Plugin) []string {
 	}
 	if _, ok := plugin.(StaticRuntime); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterLoad", EventHook(handleAfterLoad(plugin)))
+		http.Handle("/afterload", EventHook(handleAfterLoad(plugin)))
 	}
 	if _, ok := plugin.(TransformRuntime); ok {
 		hooks["Generate"] = true
@@ -30,11 +30,11 @@ func pluginHooks(plugin Plugin) []string {
 	}
 	if _, ok := plugin.(AfterLoad); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterLoad", EventHook(handleAfterLoad(plugin)))
+		http.Handle("/afterload", EventHook(handleAfterLoad(plugin)))
 	}
 	if p, ok := plugin.(ExtractDocuments); ok {
 		hooks["ExtractDocuments"] = true
-		http.Handle("/extractDocuments", handleExtractDocuments(p))
+		http.Handle("/extractdocuments", handleExtractDocuments(p))
 	}
 	if p, ok := plugin.(Schema); ok {
 		hooks["Schema"] = true
@@ -42,7 +42,7 @@ func pluginHooks(plugin Plugin) []string {
 	}
 	if p, ok := plugin.(BeforeValidate); ok {
 		hooks["BeforeValidate"] = true
-		http.Handle("/beforeValidate", EventHook(p.BeforeValidate))
+		http.Handle("/beforevalidate", EventHook(p.BeforeValidate))
 	}
 	if p, ok := plugin.(Validate); ok {
 		hooks["Validate"] = true
@@ -50,11 +50,11 @@ func pluginHooks(plugin Plugin) []string {
 	}
 	if p, ok := plugin.(AfterValidate); ok {
 		hooks["AfterValidate"] = true
-		http.Handle("/afterValidate", EventHook(p.AfterValidate))
+		http.Handle("/aftervalidate", EventHook(p.AfterValidate))
 	}
 	if _, ok := plugin.(BeforeGenerate); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/beforeGenerate", EventHook(handleBeforeGenerate(plugin)))
+		http.Handle("/beforegenerate", EventHook(handleBeforeGenerate(plugin)))
 	}
 	if _, ok := plugin.(Generate); ok {
 		hooks["Generate"] = true
@@ -62,31 +62,31 @@ func pluginHooks(plugin Plugin) []string {
 	}
 	if _, ok := plugin.(ArtifactData); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/afterGenerate", EventHook(handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", EventHook(handleAfterGenerate(plugin)))
 	}
 	if _, ok := plugin.(Hash); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/afterGenerate", EventHook(handleBeforeGenerate(plugin)))
+		http.Handle("/aftergenerate", EventHook(handleBeforeGenerate(plugin)))
 	}
 	if _, ok := plugin.(GraphQLTagReturn); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/afterGenerate", EventHook(handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", EventHook(handleAfterGenerate(plugin)))
 	}
 	if _, ok := plugin.(IndexFile); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/afterGenerate", EventHook(handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", EventHook(handleAfterGenerate(plugin)))
 	}
 	if _, ok := plugin.(ArtifactEnd); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/afterGenerate", EventHook(handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", EventHook(handleAfterGenerate(plugin)))
 	}
 	if p, ok := plugin.(ClientPlugins); ok {
 		hooks["ClientPlugins"] = true
-		http.Handle("/clientPlugins", JSONHook(p.ClientPlugins))
+		http.Handle("/clientplugins", JSONHook(p.ClientPlugins))
 	}
 	if p, ok := plugin.(TransformFile); ok {
 		hooks["TransformFile"] = true
-		http.Handle("/transformFile", handleTransformFile(p))
+		http.Handle("/transformfile", handleTransformFile(p))
 	}
 
 	// get the unique hooks this plugin cares about

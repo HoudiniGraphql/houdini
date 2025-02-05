@@ -153,6 +153,10 @@ function fallbacks_units_dir(config: Config, which: 'page' | 'layout', base?: st
 	return path.join(units_dir(config, base), 'fallbacks', which)
 }
 
+export function db_path(config: Config) {
+	return path.join(houdini_root(config), 'db.sqlite')
+}
+
 export function units_dir(config: Config, base: string = base_dir(config)) {
 	return path.join(base, 'units')
 }
