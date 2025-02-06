@@ -34,7 +34,7 @@ func pluginHooks(plugin Plugin) []string {
 	}
 	if p, ok := plugin.(ExtractDocuments); ok {
 		hooks["ExtractDocuments"] = true
-		http.Handle("/extractdocuments", handleExtractDocuments(p))
+		http.Handle("/extractdocuments", EventHook(p.ExtractDocuments))
 	}
 	if p, ok := plugin.(AfterExtract); ok {
 		hooks["AfterExtract"] = true
@@ -196,28 +196,6 @@ func handleEnvironment(plugin Environment) http.Handler {
 		// serialize the value as the response
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(value)
-	})
-}
-
-func handleExtractDocuments(plugin ExtractDocuments) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// the include and exclude paramters come as json in the request body
-		payload := struct {
-			Include string `json:"include"`
-			Exclude string `json:"exclude"`
-		}{}
-		err := json.NewDecoder(r.Body).Decode(&payload)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// invoke the extraction logic
-		err = plugin.ExtractDocuments(nil, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 	})
 }
 

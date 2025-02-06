@@ -28,6 +28,7 @@ export type Config = {
 
 export const default_config: ConfigFile = {
 	schemaPath: './.houdini/schema.graphql',
+	include: ['src/**/*'],
 	runtimeDir: '.houdini',
 	cacheBufferSize: 10,
 	defaultKeys: ['id'],

@@ -336,8 +336,16 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 					Query: {
 						config: async () => {
 							return {
-								include: config.config_file.include,
-								exclude: config.config_file.exclude,
+								include: !config.config_file.include
+									? []
+									: Array.isArray(config.config_file.include)
+									? config.config_file.include
+									: [config.config_file.include],
+								exclude: !config.config_file.exclude
+									? []
+									: Array.isArray(config.config_file.exclude)
+									? config.config_file.exclude
+									: [config.config_file.exclude],
 
 								schema: config.schema,
 

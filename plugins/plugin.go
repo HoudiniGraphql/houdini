@@ -59,7 +59,7 @@ type AfterLoad interface {
 
 /* Extract documents from the project */
 type ExtractDocuments interface {
-	ExtractDocuments(include []string, exclude []string) error
+	ExtractDocuments() error
 }
 
 /* AfterExtract is called after all documents have been extracted from the project. */

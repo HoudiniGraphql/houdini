@@ -109,7 +109,9 @@ func Run(plugin Plugin) {
 			}
 
 			// notify config server
-			err = notifyConfigServer(configHost, `
+			_, err = QueryConfigServer[struct {
+				RegisterPlugin bool `json:"registerPlugin"`
+			}](`
             mutation($input: RegisterPluginInput!) {
                 registerPlugin(input: $input)
             }
@@ -131,9 +133,9 @@ func Run(plugin Plugin) {
 
 }
 
-func notifyConfigServer(host string, query string, input map[string]any) error {
+func QueryConfigServer[Response any](query string, input map[string]any) (*Response, error) {
 	if configHost == "" {
-		return nil
+		return nil, nil
 	}
 
 	// create a custom HTTP client with timeout
@@ -150,13 +152,13 @@ func notifyConfigServer(host string, query string, input map[string]any) error {
 	// marshal payload to JSON
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("marshaling payload: %w", err)
+		return nil, fmt.Errorf("marshaling payload: %w", err)
 	}
 
 	// create a new POST request with JSON payload
-	req, err := http.NewRequest(http.MethodPost, host, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, configHost, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return fmt.Errorf("creating request: %w", err)
+		return nil, fmt.Errorf("creating request: %w", err)
 	}
 
 	// set content type header
@@ -165,19 +167,27 @@ func notifyConfigServer(host string, query string, input map[string]any) error {
 	// send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("sending request: %w", err)
+		return nil, fmt.Errorf("sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// read and parse response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("reading response: %w", err)
+		return nil, fmt.Errorf("reading response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
+		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
 	}
 
-	return nil
+	// parse response
+	response := struct {
+		Data Response `json:"data"`
+	}{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("unmarshaling response: %w", err)
+	}
+
+	return &response.Data, nil
 }
