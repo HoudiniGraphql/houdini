@@ -21,10 +21,16 @@ export type PluginMeta = {
 export type Config = {
 	config_file: ConfigFile
 	filepath: string
-	local_schema: string
 	plugins: PluginMeta[]
 	root_dir: string
-	schema?: GraphQLSchema
+	schema: GraphQLSchema
+}
+
+export const default_config: ConfigFile = {
+	schemaPath: './.houdini/schema.graphql',
+	runtimeDir: '.houdini',
+	cacheBufferSize: 10,
+	defaultKeys: ['id'],
 }
 
 // a place to store the current configuration
@@ -90,16 +96,35 @@ export async function get_config({
 	try {
 		// look up the current config file
 		const config_file = await read_config_file(config_path)
+		if (!config_file.schemaPath) {
+			throw new HoudiniError({
+				message: `Config file must include a 'schemaPath' field`,
+			})
+		}
+
+		const root_dir = path.dirname(
+			config_file.projectDir ? path.join(process.cwd(), config_file.projectDir) : config_path
+		)
+
+		// if there is a local schema then we need to ignore the schema check
+		let local_schema = ''
+		try {
+			for (const child of await fs.readdir(local_api_dir(_config, root_dir))) {
+				if (path.parse(child).name === '+schema') {
+					local_schema = path.join(local_api_dir(_config, root_dir), child)
+					break
+				}
+			}
+		} catch {}
+
 		_config = {
+			root_dir,
 			config_file,
 			filepath: config_path,
-			local_schema: '',
+			schema: local_schema
+				? await load_local_schema(local_schema)
+				: await load_schema_file(config_file.schemaPath),
 			plugins: [],
-			root_dir: path.dirname(
-				config_file.projectDir
-					? path.join(process.cwd(), config_file.projectDir)
-					: config_path
-			),
 		}
 
 		// we need to process the plugins before we instantiate the config object
@@ -116,25 +141,6 @@ export async function get_config({
 		// if the environment variable is defined, add it to the list
 		if (process.env.HOUDINI_CODEGEN_PLUGIN) {
 			plugins.push([process.env.HOUDINI_CODEGEN_PLUGIN, {}])
-		}
-
-		// if there is a local schema then we need to ignore the schema check
-		try {
-			for (const child of await fs.readdir(local_api_dir(_config))) {
-				if (path.parse(child).name === '+schema') {
-					_config.local_schema = path.join(local_api_dir(_config), child)
-					break
-				}
-			}
-		} catch {}
-
-		// if we have a local schema, then we should just build it if we haven't
-		if (_config.local_schema) {
-			_config.schema = await load_local_schema(_config)
-		}
-		// if we have a schema path then we need to load it
-		else if (_config.config_file.schemaPath) {
-			_config.schema = await load_schema_file(_config.config_file.schemaPath)
 		}
 
 		// order the list of plugins
@@ -172,7 +178,10 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 
 	// if this is wrapped in a default, use it
 	const config = imported.default || imported
-	return config
+	return {
+		...default_config,
+		...config,
+	}
 }
 
 async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
@@ -244,10 +253,10 @@ export function internal_routes(config: Config): string[] {
 	return routes
 }
 
-export async function load_local_schema(config: Config): Promise<graphql.GraphQLSchema> {
+export async function load_local_schema(schema_path: string): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
-		const { default: schema } = await import(config.local_schema)
+		const { default: schema } = await import(schema_path)
 
 		return schema
 	} catch (e) {

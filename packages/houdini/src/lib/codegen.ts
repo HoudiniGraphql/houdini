@@ -38,9 +38,7 @@ export async function codegen_init(
 	db.exec(create_schema)
 
 	// import the project's schema into the database
-	if (config.schema) {
-		import_graphql_schema(db, config.schema)
-	}
+	import_graphql_schema(db, config.schema)
 
 	// start each plugin
 	await Promise.all(
@@ -140,4 +138,10 @@ export async function codegen_init(
 	}
 }
 
-export async function codegen(config: Config, plugin_ports: Record<string, number>) {}
+export async function codegen(config_server: ConfigServer) {
+	// the first step is to extract documents from the project
+	await config_server.trigger_hook('ExtractDocuments', {
+		include: config_server.config.config_file.include,
+		exclude: config_server.config.config_file.exclude,
+	})
+}

@@ -2,6 +2,13 @@ import * as graphql from 'graphql'
 import sqlite from 'node:sqlite'
 
 export const create_schema = `
+-- A table of original document contents (to be populated by plugins)
+CREATE TABLE rawDocuments (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	filepath TEXT NOT NULL,
+	source TEXT NOT NULL
+);
+
 -- Schema Definition Tables
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,

@@ -21,6 +21,7 @@ type Mutation {
 enum PluginHook {
 	Init
 	ExtractDocuments
+	AfterExtract
 	Config
 	AfterLoad
 	Environment
@@ -179,6 +180,7 @@ export type PluginSpec = {
 }
 
 export type ConfigServer = {
+	config: Config
 	close: () => void
 	port: number
 	wait_for_plugin: (name: string) => Promise<PluginSpec>
@@ -438,6 +440,7 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 				reject(new Error('Failed to start server'))
 			} else {
 				resolve({
+					config,
 					close: () => server.close(),
 					port: address.port,
 					wait_for_plugin,

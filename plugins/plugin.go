@@ -62,6 +62,11 @@ type ExtractDocuments interface {
 	ExtractDocuments(include []string, exclude []string) error
 }
 
+/* AfterExtract is called after all documents have been extracted from the project. */
+type AfterExtract interface {
+	AfterExtract() error
+}
+
 /* Can be used to add custom definitions to your project's schema. Definitions (like directives) added
  * here are automatically removed from the document before they are sent to the server. Useful
  * in connection with artifactData or artifact_selection to embed data in the artifact. */

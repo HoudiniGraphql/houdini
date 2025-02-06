@@ -17,12 +17,12 @@ export function server_adapter_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'server.js')
 }
 
-export function src_dir(config: Config) {
-	return path.join(config.root_dir, 'src')
+export function src_dir(config: Config, base: string = config?.root_dir) {
+	return path.join(base, 'src')
 }
 
 export function local_api_dir(config: Config, base?: string) {
-	return path.join(src_dir(config), 'api')
+	return path.join(src_dir(config, base), 'api')
 }
 
 export function adapter_config_path(config: Config, base?: string) {

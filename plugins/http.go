@@ -36,6 +36,10 @@ func pluginHooks(plugin Plugin) []string {
 		hooks["ExtractDocuments"] = true
 		http.Handle("/extractdocuments", handleExtractDocuments(p))
 	}
+	if p, ok := plugin.(AfterExtract); ok {
+		hooks["AfterExtract"] = true
+		http.Handle("/afterextract", EventHook(p.AfterExtract))
+	}
 	if p, ok := plugin.(Schema); ok {
 		hooks["Schema"] = true
 		http.Handle("/schema", EventHook(p.Schema))
