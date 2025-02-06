@@ -69,8 +69,7 @@ CREATE TABLE directives (
 CREATE TABLE directive_arguments (
     parent TEXT NOT NULL,
     name TEXT NOT NULL,
-    value_type TEXT NOT NULL,
-    value TEXT NOT NULL,
+    type TEXT NOT NULL,
     default_value TEXT,
     FOREIGN KEY (parent) REFERENCES directives(name),
     PRIMARY KEY (parent, name),
@@ -134,7 +133,6 @@ CREATE TABLE selection_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value_type TEXT NOT NULL,
     value TEXT NOT NULL,
     FOREIGN KEY (parent) REFERENCES selection_directives(id)
 );
@@ -185,6 +183,9 @@ CREATE INDEX idx_enum_values_parent ON enum_values(parent);
 export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.GraphQLSchema) => {
 	// prepare the statements we need
 	const insert_type = db.prepare('INSERT INTO types (name, kind) VALUES (?, ?)')
+	const insert_input_type_field = db.prepare(
+		'INSERT INTO input_fields (id, parent, name, type, default_value) VALUES (?, ?, ?, ?, ?)'
+	)
 	const insert_type_field = db.prepare(
 		'INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)'
 	)
@@ -195,11 +196,31 @@ export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.G
 		'INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)'
 	)
 	const insert_enum_value = db.prepare('INSERT INTO enum_values (parent, value) VALUES (?, ?)')
+	const insert_field_argument = db.prepare(
+		'INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)'
+	)
+	const insert_directive = db.prepare('INSERT INTO directives (name) VALUES (?)')
+	const insert_directive_location = db.prepare(
+		'INSERT INTO directive_locations (directive, location) VALUES (?, ?)'
+	)
+	const insert_directive_argument = db.prepare(
+		'INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)'
+	)
 
 	// we need to register the types before we can add the implementors for interfaces and unions
 	const interfaces: Array<string> = []
 	const unions: Array<string> = []
 
+	// first we need to add scalars to the database
+	for (const schemaType of Object.values(schema.getTypeMap())) {
+		// load the scalars
+		if (schemaType instanceof graphql.GraphQLScalarType) {
+			// insert the type
+			insert_type.run(schemaType.name, 'SCALAR')
+		}
+	}
+
+	// process each type in the schema
 	for (const schemaType of Object.values(schema.getTypeMap())) {
 		// load the named types
 		if (schemaType instanceof graphql.GraphQLObjectType) {
@@ -214,13 +235,31 @@ export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.G
 					field.name,
 					field.type.toString()
 				)
-			}
-		}
 
-		// load the scalars
-		else if (schemaType instanceof graphql.GraphQLScalarType) {
+				// we need to add the arguments for the field
+				for (const arg of field.args) {
+					insert_field_argument.run(
+						`${schemaType.name}.${field.name}`,
+						arg.name,
+						arg.type.toString(),
+						arg.defaultValue?.toString() ?? null
+					)
+				}
+			}
+		} else if (schemaType instanceof graphql.GraphQLInputObjectType) {
 			// insert the type
-			insert_type.run(schemaType.name, 'SCALAR')
+			insert_type.run(schemaType.name, 'OBJECT')
+
+			// insert the fields
+			for (const field of Object.values(schemaType.getFields())) {
+				insert_input_type_field.run(
+					`${schemaType.name}.${field.name}`,
+					schemaType.name,
+					field.name,
+					field.type.toString(),
+					field.defaultValue?.toString() ?? null
+				)
+			}
 		}
 
 		// load the interfaces
@@ -278,6 +317,26 @@ export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.G
 			schema.getType(union)! as graphql.GraphQLUnionType
 		)) {
 			insert_union_member.run(union, implementor.name)
+		}
+	}
+
+	// add the directives
+	for (const directive of schema.getDirectives()) {
+		insert_directive.run(directive.name)
+
+		// add the locations
+		for (const location of directive.locations) {
+			insert_directive_location.run(directive.name, location)
+		}
+
+		// add the arguments
+		for (const arg of directive.args) {
+			insert_directive_argument.run(
+				directive.name,
+				arg.name,
+				arg.type.toString(),
+				arg.defaultValue?.toString() ?? null
+			)
 		}
 	}
 }
