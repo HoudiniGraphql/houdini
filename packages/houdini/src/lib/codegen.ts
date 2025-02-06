@@ -52,6 +52,8 @@ export async function codegen_init(
 					['--config', `http://localhost:${config_server.port}`, '--database', db_file],
 					{
 						stdio: 'inherit',
+						// create a new process group
+						detached: true,
 					}
 				),
 				// and wait for the plugin to report back its port
@@ -74,14 +76,61 @@ export async function codegen_init(
 		config_server: {
 			...config_server,
 			// to cleanup, we need to send a sigterm to each plugin and kill the config server,
-			close: () => {
+			close: async () => {
 				// close our connection to the database
 				db.close()
 
-				// stop each plugin
-				for (const [, { process }] of Object.entries(plugins)) {
-					process.kill('SIGTERM')
-				}
+				// stop each plugin with proper cleanup
+				await Promise.all(
+					Object.entries(plugins).map(async ([, plugin]) => {
+						if (plugin.process.pid) {
+							// on windows, use taskkill to ensure the process tree is terminated
+							if (process.platform === 'win32') {
+								try {
+									spawn('taskkill', [
+										'/pid',
+										plugin.process.pid.toString(),
+										'/f',
+										'/t',
+									])
+								} catch (err) {
+									// ignore errors if process is already gone
+								}
+							} else {
+								// on unix-like systems, kill the process group
+								try {
+									// kill the entire process group
+									process.kill(-plugin.process.pid, 'SIGINT')
+
+									// wait for the process to actually terminate
+									await new Promise<void>((resolve, reject) => {
+										plugin.process.once('exit', () => {
+											console.log('process exited')
+											resolve()
+										})
+
+										// fallback timeout after 5 seconds
+										const timeout = setTimeout(() => {
+											try {
+												process.kill(-plugin.process.pid!, 'SIGKILL')
+											} catch (err) {
+												// ignore errors if process is already gone
+											}
+											resolve()
+										}, 5000)
+
+										// cleanup timeout if process exits
+										plugin.process.once('exit', () => {
+											clearTimeout(timeout)
+										})
+									})
+								} catch (err) {
+									console.log('Error killing process:', err)
+								}
+							}
+						}
+					})
+				)
 
 				// stop the config server
 				config_server.close()
