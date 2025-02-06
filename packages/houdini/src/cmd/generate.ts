@@ -40,9 +40,9 @@ export async function generate(
 		process.exit(0)
 	} catch (e) {
 		format_error(e, function (error) {
-			if (args.verbose && 'stack' in error && error.stack) {
-				console.error(error.stack.split('\n').slice(1).join('\n'))
-			}
+			// if (args.verbose && 'stack' in error && error.stack) {
+			console.error(error.stack?.split('\n').slice(1).join('\n'))
+			// }
 		})
 
 		process.exit(1)

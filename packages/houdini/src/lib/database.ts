@@ -1,3 +1,6 @@
+import * as graphql from 'graphql'
+import sqlite from 'node:sqlite'
+
 export const create_schema = `
 -- Schema Definition Tables
 CREATE TABLE types (
@@ -7,23 +10,13 @@ CREATE TABLE types (
     description TEXT
 );
 
-CREATE TABLE type_modifiers (
-    id INTEGER PRIMARY KEY,
-    parent_id INTEGER,
-    base_type_name TEXT,
-    is_non_null BOOLEAN NOT NULL DEFAULT FALSE,
-    is_list BOOLEAN NOT NULL DEFAULT TRUE,
-    FOREIGN KEY (parent_id) REFERENCES type_modifiers(id)
-);
-
 CREATE TABLE type_fields (
     id INTEGER PRIMARY KEY,
     type_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    type_modifier_id INTEGER NOT NULL,
+    type_ref TEXT NOT NULL,
     description TEXT,
     FOREIGN KEY (type_id) REFERENCES types(id),
-    FOREIGN KEY (type_modifier_id) REFERENCES type_modifiers(id),
     UNIQUE (type_id, name)
 );
 
@@ -31,11 +24,10 @@ CREATE TABLE field_argument_definitions (
     id INTEGER PRIMARY KEY,
     field_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    type_modifier_id INTEGER NOT NULL,
+    type_ref TEXT NOT NULL,
     default_value TEXT,
     description TEXT,
     FOREIGN KEY (field_id) REFERENCES type_fields(id),
-    FOREIGN KEY (type_modifier_id) REFERENCES type_modifiers(id),
     UNIQUE (field_id, name)
 );
 
@@ -43,11 +35,10 @@ CREATE TABLE input_fields (
     id INTEGER PRIMARY KEY,
     type_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    type_modifier_id INTEGER NOT NULL,
+    type_ref TEXT NOT NULL,
     default_value TEXT,
     description TEXT,
     FOREIGN KEY (type_id) REFERENCES types(id),
-    FOREIGN KEY (type_modifier_id) REFERENCES type_modifiers(id),
     UNIQUE (type_id, name)
 );
 
@@ -76,37 +67,7 @@ CREATE TABLE union_member_types (
     PRIMARY KEY (union_type_id, member_type_id)
 );
 
-
--- Type system indices
-CREATE INDEX idx_types_name ON types(name);
-
-CREATE INDEX idx_type_modifiers_parent ON type_modifiers(parent_id);
-CREATE INDEX idx_type_modifiers_base_type ON type_modifiers(base_type_name);
-
-CREATE INDEX idx_type_fields_type ON type_fields(type_id);
-CREATE INDEX idx_type_fields_type_modifier ON type_fields(type_modifier_id);
-CREATE INDEX idx_type_fields_name ON type_fields(name);
-CREATE INDEX idx_type_fields_type_name ON type_fields(type_id, name);
-
-CREATE INDEX idx_field_arg_defs_field ON field_argument_definitions(field_id);
-CREATE INDEX idx_field_arg_defs_name ON field_argument_definitions(name);
-CREATE INDEX idx_field_arg_defs_type_modifier ON field_argument_definitions(type_modifier_id);
-
-CREATE INDEX idx_input_fields_type ON input_fields(type_id);
-CREATE INDEX idx_input_fields_name ON input_fields(name);
-CREATE INDEX idx_input_fields_type_modifier ON input_fields(type_modifier_id);
-
-CREATE INDEX idx_enum_values_type ON enum_values(type_id);
-CREATE INDEX idx_enum_values_name ON enum_values(name);
-
-CREATE INDEX idx_implemented_interfaces_type ON implemented_interfaces(type_id);
-CREATE INDEX idx_implemented_interfaces_interface ON implemented_interfaces(interface_type_id);
-
-CREATE INDEX idx_union_members_union ON union_member_types(union_type_id);
-CREATE INDEX idx_union_members_member ON union_member_types(member_type_id);
-
 -- Document Tables
-
 CREATE TABLE documents (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL
@@ -114,15 +75,19 @@ CREATE TABLE documents (
 
 CREATE TABLE selections (
     id INTEGER PRIMARY KEY,
-    document_id INTEGER NOT NULL,
-    parent_id INTEGER,
     field_name TEXT NOT NULL,
-    type_id INTEGER NOT NULL,
     alias TEXT,
-    path_index INTEGER NOT NULL,
+    path_index INTEGER NOT NULL
+);
+
+CREATE TABLE selection_refs (
+    parent_id INTEGER,
+    child_id INTEGER NOT NULL,
+    document_id INTEGER NOT NULL,
+    FOREIGN KEY (parent_id) REFERENCES selections(id),
+    FOREIGN KEY (child_id) REFERENCES selections(id),
     FOREIGN KEY (document_id) REFERENCES documents(id),
-    FOREIGN KEY (parent_id) REFERENCES selections(id)
-    FOREIGN KEY (type_id) REFERENCES types(id)
+    PRIMARY KEY (child_id, document_id)
 );
 
 CREATE TABLE field_arguments (
@@ -150,12 +115,39 @@ CREATE TABLE directive_arguments (
     FOREIGN KEY (directive_id) REFERENCES directives(id)
 );
 
+-- Indices
+CREATE INDEX idx_types_name ON types(name);
+
+CREATE INDEX idx_type_fields_type ON type_fields(type_id);
+CREATE INDEX idx_type_fields_name ON type_fields(name);
+CREATE INDEX idx_type_fields_type_name ON type_fields(type_id, name);
+CREATE INDEX idx_type_fields_type_ref ON type_fields(type_ref);
+
+CREATE INDEX idx_field_arg_defs_field ON field_argument_definitions(field_id);
+CREATE INDEX idx_field_arg_defs_name ON field_argument_definitions(name);
+CREATE INDEX idx_field_arg_defs_type_ref ON field_argument_definitions(type_ref);
+
+CREATE INDEX idx_input_fields_type ON input_fields(type_id);
+CREATE INDEX idx_input_fields_name ON input_fields(name);
+CREATE INDEX idx_input_fields_type_ref ON input_fields(type_ref);
+
+CREATE INDEX idx_enum_values_type ON enum_values(type_id);
+CREATE INDEX idx_enum_values_name ON enum_values(name);
+
+CREATE INDEX idx_implemented_interfaces_type ON implemented_interfaces(type_id);
+CREATE INDEX idx_implemented_interfaces_interface ON implemented_interfaces(interface_type_id);
+
+CREATE INDEX idx_union_members_union ON union_member_types(union_type_id);
+CREATE INDEX idx_union_members_member ON union_member_types(member_type_id);
+
 CREATE INDEX idx_documents_name ON documents(name);
 
-CREATE INDEX idx_selections_document ON selections(document_id);
-CREATE INDEX idx_selections_parent ON selections(parent_id);
 CREATE INDEX idx_selections_field_name ON selections(field_name);
-CREATE INDEX idx_selections_hierarchy ON selections(document_id, parent_id, path_index);
+
+CREATE INDEX idx_selection_refs_parent ON selection_refs(parent_id);
+CREATE INDEX idx_selection_refs_child ON selection_refs(child_id);
+CREATE INDEX idx_selection_refs_document ON selection_refs(document_id);
+CREATE INDEX idx_selection_refs_hierarchy ON selection_refs(document_id, parent_id);
 
 CREATE INDEX idx_field_arguments_selection ON field_arguments(selection_id);
 CREATE INDEX idx_field_arguments_name ON field_arguments(name);
@@ -167,10 +159,12 @@ CREATE INDEX idx_directive_arguments_directive ON directive_arguments(directive_
 CREATE INDEX idx_directive_arguments_name ON directive_arguments(name);
 `
 
+export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.GraphQLSchema) => {}
+
 // Query to Load a Selection Tree
 //
 // WITH RECURSIVE selection_tree AS (
-//     -- Base case: get root selection
+//     -- Base case: get root selections for document
 //     SELECT
 //         s.id,
 //         s.field_name,
@@ -179,52 +173,34 @@ CREATE INDEX idx_directive_arguments_name ON directive_arguments(name);
 //         0 as depth,
 //         s.field_name as path
 //     FROM selections s
-//     WHERE s.id = ? -- your starting selection id
+//     JOIN selection_refs sr ON s.id = sr.child_id
+//     WHERE sr.document_id = ? AND sr.parent_id IS NULL
 
 //     UNION ALL
 
 //     -- Recursive case: get all children
 //     SELECT
-//         child.id,
-//         child.field_name,
-//         child.alias,
-//         child.path_index,
+//         s.id,
+//         s.field_name,
+//         s.alias,
+//         s.path_index,
 //         st.depth + 1,
-//         st.path || '.' || child.field_name
-//     FROM selections child
-//     JOIN selection_tree st ON child.parent_id = st.id
+//         st.path || '.' || s.field_name
+//     FROM selections s
+//     JOIN selection_refs sr ON s.id = sr.child_id
+//     JOIN selection_tree st ON sr.parent_id = st.id
+//     WHERE sr.document_id = ?  -- Same document_id as base case
 // )
-
-// Recursive Query to Load Type Modifier Tree
-// type_modifier_tree AS (
-//     -- Base case: get leaf type modifier
-//     SELECT
-//         tm.id,
-//         tm.parent_id,
-//         tm.base_type_name,
-//         tm.is_non_null,
-//         1 as level,
-//         CASE
-//             WHEN tm.is_non_null THEN base_type_name || '!'
-//             ELSE base_type_name
-//         END as full_type
-//     FROM type_modifiers tm
-//     WHERE tm.id = ? -- your starting type_modifier_id
-//     AND tm.base_type_name IS NOT NULL -- leaf node
-
-//     UNION ALL
-
-//     -- Recursive case: wrap in list modifiers
-//     SELECT
-//         tm.id,
-//         tm.parent_id,
-//         tm.base_type_name,
-//         tm.is_non_null,
-//         tmt.level + 1,
-//         CASE
-//             WHEN tm.is_non_null THEN '[' || tmt.full_type || ']!'
-//             ELSE '[' || tmt.full_type || ']'
-//         END
-//     FROM type_modifiers tm
-//     JOIN type_modifier_tree tmt ON tm.id = tmt.parent_id
-// )
+// SELECT
+//     st.*,
+//     tf.name as field_name,
+//     t.name as type_name,
+//     tm.id as type_modifier_id,
+//     tm.base_type_name,
+//     tm.is_non_null,
+//     tm.parent_id as next_modifier
+// FROM selection_tree st
+// LEFT JOIN type_fields tf ON st.field_name = tf.name
+// LEFT JOIN types t ON tf.type_id = t.id
+// LEFT JOIN type_modifiers tm ON tf.type_modifier_id = tm.id
+// ORDER BY st.depth, st.path_index;

@@ -1,6 +1,8 @@
+// @ts-ignore
 /// <references types="houdini-react">
-/** @type {import('houdini').ConfigFile} */
-const config = {
+import type { ConfigFile } from 'houdini'
+
+const config: ConfigFile = {
 	runtimeDir: '.houdini',
 	defaultPartial: true,
 	scalars: {

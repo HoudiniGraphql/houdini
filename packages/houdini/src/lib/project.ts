@@ -11,8 +11,6 @@ import { plugin_path } from './plugins'
 
 export type { ConfigFile } from '../runtime/lib/config'
 
-const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
-
 export type PluginMeta = {
 	name: string
 	options: Record<string, any>
@@ -23,7 +21,7 @@ export type PluginMeta = {
 export type Config = {
 	config_file: ConfigFile
 	filepath: string
-	local_schema: boolean
+	local_schema: string
 	plugins: PluginMeta[]
 	root_dir: string
 	schema?: GraphQLSchema
@@ -37,17 +35,17 @@ let _config: Config
 let pending_config_promises: Promise<Config> | null = null
 
 // get the project's current configuration
-export async function get_config(
-	{
-		config_path = DEFAULT_CONFIG_PATH,
-		force_reload,
-		schema,
-	}: {
-		config_path: string
-		force_reload?: boolean
-		schema?: GraphQLSchema
-	} = { config_path: DEFAULT_CONFIG_PATH }
-): Promise<Config> {
+export async function get_config({
+	force_reload,
+	schema,
+	config_path: _config_path,
+}: {
+	config_path?: string
+	force_reload?: boolean
+	schema?: GraphQLSchema
+} = {}): Promise<Config> {
+	let config_path = _config_path ?? ''
+
 	// if we force a reload, we will bypass this part
 	if (!force_reload) {
 		if (_config) {
@@ -59,6 +57,26 @@ export async function get_config(
 			return await pending_config_promises
 		}
 	}
+
+	// we need to figure out the config path
+	if (!config_path) {
+		config_path = path.resolve(process.cwd(), 'houdini.config.js')
+		// the config file could also be defined as typescript
+		try {
+			await fs.stat(config_path)
+		} catch {
+			config_path = path.resolve(process.cwd(), 'houdini.config.ts')
+			try {
+				await fs.stat(config_path)
+			} catch {
+				throw new HoudiniError({
+					message: `Could not find a config file`,
+				})
+			}
+		}
+	}
+
+	config_path = config_path!
 
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
@@ -75,7 +93,7 @@ export async function get_config(
 		_config = {
 			config_file,
 			filepath: config_path,
-			local_schema: false,
+			local_schema: '',
 			plugins: [],
 			root_dir: path.dirname(
 				config_file.projectDir
@@ -104,7 +122,7 @@ export async function get_config(
 		try {
 			for (const child of await fs.readdir(local_api_dir(_config))) {
 				if (path.parse(child).name === '+schema') {
-					_config.local_schema = true
+					_config.local_schema = path.join(local_api_dir(_config), child)
 					break
 				}
 			}
@@ -140,7 +158,7 @@ export async function get_config(
 }
 
 // helper function to load the config file
-async function read_config_file(configPath: string = DEFAULT_CONFIG_PATH): Promise<ConfigFile> {
+async function read_config_file(configPath: string): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
 	let importPath = path.importPath(configPath)
@@ -217,10 +235,6 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 const emptySchema = graphql.buildSchema('type Query { hello: String }')
 const defaultDirectives = emptySchema.getDirectives().map((dir) => dir.name)
 
-export function is_secondary_build() {
-	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
-}
-
 export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
 	if (config.config_file.router?.auth && 'redirect' in config.config_file.router.auth) {
@@ -230,62 +244,10 @@ export function internal_routes(config: Config): string[] {
 	return routes
 }
 
-export async function build_local_schema(config: Config): Promise<void> {
-	// before we build the local schcema, we should check if it already exists
-	// so we dont do it again
-
-	// load the current version of vite
-	const { build } = await import('vite')
-
-	const schema = path.join(local_api_dir(config), '+schema')
-	const outDir = temp_dir(config, 'schema')
-
-	process.env.HOUDINI_SECONDARY_BUILD = 'true'
-
-	try {
-		await fs.remove(path.join(outDir, 'assets', 'schema.js'))
-	} catch {}
-
-	try {
-		await fs.mkdir(outDir)
-	} catch {}
-
-	// build the schema somewhere we can import from
-	await build({
-		logLevel: 'silent',
-		build: {
-			outDir,
-			rollupOptions: {
-				input: {
-					schema,
-				},
-				output: {
-					entryFileNames: '[name].js',
-				},
-			},
-			ssr: true,
-			lib: {
-				entry: {
-					schema,
-				},
-				formats: ['es'],
-			},
-		},
-	})
-
-	process.env.HOUDINI_SECONDARY_BUILD = 'false'
-}
-
 export async function load_local_schema(config: Config): Promise<graphql.GraphQLSchema> {
-	if (!is_secondary_build()) {
-		await build_local_schema(config)
-	}
-
 	// import the schema we just built
 	try {
-		const { default: schema } = await import(
-			path.join(temp_dir(config, 'schema'), `schema.js?${Date.now().valueOf()}}`)
-		)
+		const { default: schema } = await import(config.local_schema)
 
 		return schema
 	} catch (e) {

@@ -8,7 +8,7 @@ import {
 	start_server as start_config_server,
 } from './configServer'
 import { db_path } from './conventions'
-import { create_schema } from './database'
+import { create_schema, import_graphql_schema } from './database'
 import { type Config } from './project'
 
 export type PluginMap = Record<string, PluginSpec & { process: ChildProcess }>
@@ -36,6 +36,12 @@ export async function codegen_init(
 	} catch (e) {}
 	const db = new sqlite.DatabaseSync(db_file)
 	db.exec(create_schema)
+
+	// import the project's schema into the database
+	if (config.schema) {
+		import_graphql_schema(db, config.schema)
+	}
+
 	db.close()
 
 	// start each plugin
