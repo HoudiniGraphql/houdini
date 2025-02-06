@@ -42,8 +42,6 @@ export async function codegen_init(
 		import_graphql_schema(db, config.schema)
 	}
 
-	db.close()
-
 	// start each plugin
 	await Promise.all(
 		config.plugins.map(async (plugin) => {
@@ -77,6 +75,9 @@ export async function codegen_init(
 			...config_server,
 			// to cleanup, we need to send a sigterm to each plugin and kill the config server,
 			close: () => {
+				// close our connection to the database
+				db.close()
+
 				// stop each plugin
 				for (const [, { process }] of Object.entries(plugins)) {
 					process.kill('SIGTERM')

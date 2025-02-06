@@ -4,81 +4,140 @@ import sqlite from 'node:sqlite'
 export const create_schema = `
 -- Schema Definition Tables
 CREATE TABLE types (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
-    description TEXT
 );
 
 CREATE TABLE type_fields (
-    id INTEGER PRIMARY KEY,
-    type_id INTEGER NOT NULL,
+    id TEXT PRIMARY KEY, -- will be something like User.name so we don't have to look up the generated id
+    parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
-    type_ref TEXT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (type_id) REFERENCES types(id),
-    UNIQUE (type_id, name)
+    type TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES types(name),
+    UNIQUE (parent, name)
 );
 
 CREATE TABLE field_argument_definitions (
-    id INTEGER PRIMARY KEY,
-    field_id INTEGER NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    field TEXT NOT NULL,
     name TEXT NOT NULL,
-    type_ref TEXT NOT NULL,
+    type TEXT NOT NULL,
     default_value TEXT,
-    description TEXT,
-    FOREIGN KEY (field_id) REFERENCES type_fields(id),
-    UNIQUE (field_id, name)
+    FOREIGN KEY (field) REFERENCES type_fields(id),
+    UNIQUE (field, name)
 );
 
 CREATE TABLE input_fields (
-    id INTEGER PRIMARY KEY,
-    type_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    type_ref TEXT NOT NULL,
     default_value TEXT,
-    description TEXT,
-    FOREIGN KEY (type_id) REFERENCES types(id),
-    UNIQUE (type_id, name)
+    id TEXT PRIMARY KEY, -- will be something like User.name so we don't have to look up the generated id
+    parent TEXT NOT NULL,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES types(name),
+    UNIQUE (parent, name)
 );
 
 CREATE TABLE enum_values (
-    id INTEGER PRIMARY KEY,
-    type_id INTEGER NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent TEXT NOT NULL,
     name TEXT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (type_id) REFERENCES types(id),
-    UNIQUE (type_id, name)
+    FOREIGN KEY (parent) REFERENCES types(name),
+    UNIQUE (parent, name)
 );
 
 CREATE TABLE implemented_interfaces (
-    type_id INTEGER NOT NULL,
-    interface_type_id INTEGER NOT NULL,
-    FOREIGN KEY (type_id) REFERENCES types(id),
-    FOREIGN KEY (interface_type_id) REFERENCES types(id),
-    PRIMARY KEY (type_id, interface_type_id)
+    parent TEXT NOT NULL,
+    interface_type TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES types(name),
+    FOREIGN KEY (interface_type) REFERENCES types(name),
+    PRIMARY KEY (parent, interface_type)
 );
 
 CREATE TABLE union_member_types (
-    union_type_id INTEGER NOT NULL,
-    member_type_id INTEGER NOT NULL,
-    FOREIGN KEY (union_type_id) REFERENCES types(id),
-    FOREIGN KEY (member_type_id) REFERENCES types(id),
-    PRIMARY KEY (union_type_id, member_type_id)
+    parent TEXT NOT NULL,
+    member_type TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES types(name),
+    FOREIGN KEY (member_type) REFERENCES types(name),
+    PRIMARY KEY (parent, member_type),
+    UNIQUE (parent, member_type)
+);
+
+CREATE TABLE directives (
+    name TEXT NOT NULL UNIQUE PRIMARY KEY
+);
+
+CREATE TABLE directive_arguments (
+    parent TEXT NOT NULL,
+    name TEXT NOT NULL,
+    value_type TEXT NOT NULL,
+    value TEXT NOT NULL,
+    default_value TEXT,
+    FOREIGN KEY (parent) REFERENCES directives(name),
+    PRIMARY KEY (parent, name),
+    UNIQUE (parent, name),
+);
+
+CREATE TABLE directive_locations (
+    directive TEXT NOT NULL,
+    location TEXT NOT NULL CHECK (location IN ('QUERY', 'MUTATION', 'SUBSCRIPTION', 'FIELD', 'FRAGMENT_DEFINITION', 'FRAGMENT_SPREAD', 'INLINE_FRAGMENT', 'SCHEMA', 'SCALAR', 'OBJECT', 'FIELD_DEFINITION', 'ARGUMENT_DEFINITION', 'INTERFACE', 'UNION', 'ENUM', 'ENUM_VALUE', 'INPUT_OBJECT', 'INPUT_FIELD_DEFINITION')),
+    FOREIGN KEY (directive) REFERENCES directives(name),
+    PRIMARY KEY (directive, location)
 );
 
 -- Document Tables
+CREATE TABLE operations (
+    name TEXT UNIQUE PRIMARY KEY NOT NULL,
+    operation_type TEXT NOT NULL CHECK (operation_type IN ('query', 'mutation', 'subscription')),
+    document_id INTEGER NOT NULL,
+    FOREIGN KEY (document_id) REFERENCES documents(id)
+);
+
+CREATE TABLE operation_variables (
+    operation TEXT NOT NULL,
+    name TEXT PRIMARY KEY NOT NULL,
+    type TEXT NOT NULL,
+    default_value TEXT,
+    FOREIGN KEY (operation) REFERENCES operations(name)
+);
+
+CREATE TABLE fragments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type_condition TEXT NOT NULL,
+    document_id INTEGER NOT NULL,
+    FOREIGN KEY (document_id) REFERENCES documents(id),
+    FOREIGN KEY (type_condition) REFERENCES types(name)
+);
+
+-- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE documents (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL
 );
 
 CREATE TABLE selections (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     field_name TEXT NOT NULL,
     alias TEXT,
     path_index INTEGER NOT NULL
 );
+
+CREATE TABLE selection_directives (
+    selection_id INTEGER NOT NULL,
+    directive TEXT NOT NULL,
+    FOREIGN KEY (selection_id) REFERENCES selections(id),
+    FOREIGN KEY (directive) REFERENCES directives(name),
+    PRIMARY KEY (selection_id, directive)
+);
+
+CREATE TABLE selection_directive_arguments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    value_type TEXT NOT NULL,
+    value TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES selection_directives(id),
+)
 
 CREATE TABLE selection_refs (
     parent_id INTEGER,
@@ -87,11 +146,10 @@ CREATE TABLE selection_refs (
     FOREIGN KEY (parent_id) REFERENCES selections(id),
     FOREIGN KEY (child_id) REFERENCES selections(id),
     FOREIGN KEY (document_id) REFERENCES documents(id),
-    PRIMARY KEY (child_id, document_id)
 );
 
 CREATE TABLE field_arguments (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     value_type TEXT NOT NULL,
@@ -99,67 +157,51 @@ CREATE TABLE field_arguments (
     FOREIGN KEY (selection_id) REFERENCES selections(id)
 );
 
-CREATE TABLE directives (
-    id INTEGER PRIMARY KEY,
-    selection_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    FOREIGN KEY (selection_id) REFERENCES selections(id)
-);
-
-CREATE TABLE directive_arguments (
-    id INTEGER PRIMARY KEY,
-    directive_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    value_type TEXT NOT NULL,
-    value TEXT NOT NULL,
-    FOREIGN KEY (directive_id) REFERENCES directives(id)
-);
-
--- Indices
-CREATE INDEX idx_types_name ON types(name);
-
-CREATE INDEX idx_type_fields_type ON type_fields(type_id);
-CREATE INDEX idx_type_fields_name ON type_fields(name);
-CREATE INDEX idx_type_fields_type_name ON type_fields(type_id, name);
-CREATE INDEX idx_type_fields_type_ref ON type_fields(type_ref);
-
-CREATE INDEX idx_field_arg_defs_field ON field_argument_definitions(field_id);
-CREATE INDEX idx_field_arg_defs_name ON field_argument_definitions(name);
-CREATE INDEX idx_field_arg_defs_type_ref ON field_argument_definitions(type_ref);
-
-CREATE INDEX idx_input_fields_type ON input_fields(type_id);
-CREATE INDEX idx_input_fields_name ON input_fields(name);
-CREATE INDEX idx_input_fields_type_ref ON input_fields(type_ref);
-
-CREATE INDEX idx_enum_values_type ON enum_values(type_id);
-CREATE INDEX idx_enum_values_name ON enum_values(name);
-
-CREATE INDEX idx_implemented_interfaces_type ON implemented_interfaces(type_id);
-CREATE INDEX idx_implemented_interfaces_interface ON implemented_interfaces(interface_type_id);
-
-CREATE INDEX idx_union_members_union ON union_member_types(union_type_id);
-CREATE INDEX idx_union_members_member ON union_member_types(member_type_id);
-
-CREATE INDEX idx_documents_name ON documents(name);
-
-CREATE INDEX idx_selections_field_name ON selections(field_name);
-
-CREATE INDEX idx_selection_refs_parent ON selection_refs(parent_id);
-CREATE INDEX idx_selection_refs_child ON selection_refs(child_id);
+-- Selection traversal indices
+CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
+CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
 CREATE INDEX idx_selection_refs_document ON selection_refs(document_id);
-CREATE INDEX idx_selection_refs_hierarchy ON selection_refs(document_id, parent_id);
 
+-- Operation and Fragment lookup indices
+CREATE INDEX idx_operations_document ON operations(document_id);
+CREATE INDEX idx_fragments_document ON fragments(document_id);
+CREATE INDEX idx_fragments_name ON fragments(name);
+
+-- Field lookups
+CREATE INDEX idx_type_fields_parent ON type_fields(parent);
+CREATE INDEX idx_input_fields_parent ON input_fields(parent);
+
+-- Selection metadata lookups
+CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);
 CREATE INDEX idx_field_arguments_selection ON field_arguments(selection_id);
-CREATE INDEX idx_field_arguments_name ON field_arguments(name);
+CREATE INDEX idx_selection_directive_args_parent ON selection_directive_arguments(parent);
 
-CREATE INDEX idx_directives_selection ON directives(selection_id);
-CREATE INDEX idx_directives_name ON directives(name);
-
-CREATE INDEX idx_directive_arguments_directive ON directive_arguments(directive_id);
-CREATE INDEX idx_directive_arguments_name ON directive_arguments(name);
+-- Type system lookups
+CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent);
+CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
+CREATE INDEX idx_enum_values_parent ON enum_values(parent);
 `
 
-export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.GraphQLSchema) => {}
+export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.GraphQLSchema) => {
+	// prepare the statements we need
+	const insert_type = db.prepare('INSERT INTO types (name, kind) VALUES (?, ?)')
+
+	// load the types
+	for (const namedType of Object.values(schema.getTypeMap())) {
+		if (namedType instanceof graphql.GraphQLObjectType) {
+			// insert the type
+			insert_type.run(namedType.name, 'OBJECT')
+			const type_id = db.prepare('SELECT id FROM types WHERE name = ?').get(namedType.name).id
+
+			// insert the fields
+			for (const field of Object.values(namedType.getFields())) {
+				db.prepare(
+					'INSERT INTO type_fields (type_id, name, type_ref) VALUES (?, ?, ?)'
+				).run(type_id, field.name, field.type.toString())
+			}
+		}
+	}
+}
 
 // Query to Load a Selection Tree
 //
