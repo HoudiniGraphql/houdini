@@ -5,7 +5,7 @@ export const create_schema = `
 -- Schema Definition Tables
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
-    kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
+    kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT'))
 );
 
 CREATE TABLE type_fields (
@@ -40,9 +40,9 @@ CREATE TABLE input_fields (
 CREATE TABLE enum_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent TEXT NOT NULL,
-    name TEXT NOT NULL,
+    value TEXT NOT NULL,
     FOREIGN KEY (parent) REFERENCES types(name),
-    UNIQUE (parent, name)
+    UNIQUE (parent, value)
 );
 
 CREATE TABLE implemented_interfaces (
@@ -74,7 +74,7 @@ CREATE TABLE directive_arguments (
     default_value TEXT,
     FOREIGN KEY (parent) REFERENCES directives(name),
     PRIMARY KEY (parent, name),
-    UNIQUE (parent, name),
+    UNIQUE (parent, name)
 );
 
 CREATE TABLE directive_locations (
@@ -123,11 +123,11 @@ CREATE TABLE selections (
 );
 
 CREATE TABLE selection_directives (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     directive TEXT NOT NULL,
     FOREIGN KEY (selection_id) REFERENCES selections(id),
-    FOREIGN KEY (directive) REFERENCES directives(name),
-    PRIMARY KEY (selection_id, directive)
+    FOREIGN KEY (directive) REFERENCES directives(name)
 );
 
 CREATE TABLE selection_directive_arguments (
@@ -136,8 +136,8 @@ CREATE TABLE selection_directive_arguments (
     name TEXT NOT NULL,
     value_type TEXT NOT NULL,
     value TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES selection_directives(id),
-)
+    FOREIGN KEY (parent) REFERENCES selection_directives(id)
+);
 
 CREATE TABLE selection_refs (
     parent_id INTEGER,
@@ -145,7 +145,7 @@ CREATE TABLE selection_refs (
     document_id INTEGER NOT NULL,
     FOREIGN KEY (parent_id) REFERENCES selections(id),
     FOREIGN KEY (child_id) REFERENCES selections(id),
-    FOREIGN KEY (document_id) REFERENCES documents(id),
+    FOREIGN KEY (document_id) REFERENCES documents(id)
 );
 
 CREATE TABLE field_arguments (
@@ -185,20 +185,99 @@ CREATE INDEX idx_enum_values_parent ON enum_values(parent);
 export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.GraphQLSchema) => {
 	// prepare the statements we need
 	const insert_type = db.prepare('INSERT INTO types (name, kind) VALUES (?, ?)')
+	const insert_type_field = db.prepare(
+		'INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)'
+	)
+	const insert_interface_implementor = db.prepare(
+		'INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)'
+	)
+	const insert_union_member = db.prepare(
+		'INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)'
+	)
+	const insert_enum_value = db.prepare('INSERT INTO enum_values (parent, value) VALUES (?, ?)')
 
-	// load the types
-	for (const namedType of Object.values(schema.getTypeMap())) {
-		if (namedType instanceof graphql.GraphQLObjectType) {
+	// we need to register the types before we can add the implementors for interfaces and unions
+	const interfaces: Array<string> = []
+	const unions: Array<string> = []
+
+	for (const schemaType of Object.values(schema.getTypeMap())) {
+		// load the named types
+		if (schemaType instanceof graphql.GraphQLObjectType) {
 			// insert the type
-			insert_type.run(namedType.name, 'OBJECT')
-			const type_id = db.prepare('SELECT id FROM types WHERE name = ?').get(namedType.name).id
+			insert_type.run(schemaType.name, 'OBJECT')
 
 			// insert the fields
-			for (const field of Object.values(namedType.getFields())) {
-				db.prepare(
-					'INSERT INTO type_fields (type_id, name, type_ref) VALUES (?, ?, ?)'
-				).run(type_id, field.name, field.type.toString())
+			for (const field of Object.values(schemaType.getFields())) {
+				insert_type_field.run(
+					`${schemaType.name}.${field.name}`,
+					schemaType.name,
+					field.name,
+					field.type.toString()
+				)
 			}
+		}
+
+		// load the scalars
+		else if (schemaType instanceof graphql.GraphQLScalarType) {
+			// insert the type
+			insert_type.run(schemaType.name, 'SCALAR')
+		}
+
+		// load the interfaces
+		else if (schemaType instanceof graphql.GraphQLInterfaceType) {
+			// insert the type
+			insert_type.run(schemaType.name, 'INTERFACE')
+
+			// insert the fields
+			for (const field of Object.values(schemaType.getFields())) {
+				insert_type_field.run(
+					`${schemaType.name}.${field.name}`,
+					schemaType.name,
+					field.name,
+					field.type.toString()
+				)
+			}
+
+			// add the interface to the list of interfaces
+			interfaces.push(schemaType.name)
+		}
+
+		// load the unions
+		else if (schemaType instanceof graphql.GraphQLUnionType) {
+			// insert the type
+			insert_type.run(schemaType.name, 'UNION')
+
+			// and remember it for later to add the members
+			unions.push(schemaType.name)
+		}
+
+		// load the enums
+		else if (schemaType instanceof graphql.GraphQLEnumType) {
+			// insert the type
+			insert_type.run(schemaType.name, 'ENUM')
+
+			// insert the values
+			for (const value of schemaType.getValues()) {
+				insert_enum_value.run(schemaType.name, value.name)
+			}
+		}
+	}
+
+	for (const iface of interfaces) {
+		// add any implemented interfaces
+		for (const implementor of schema.getPossibleTypes(
+			schema.getType(iface)! as graphql.GraphQLInterfaceType
+		)) {
+			insert_interface_implementor.run(iface, implementor.name)
+		}
+	}
+
+	for (const union of unions) {
+		// add any implemented interfaces
+		for (const implementor of schema.getPossibleTypes(
+			schema.getType(union)! as graphql.GraphQLUnionType
+		)) {
+			insert_union_member.run(union, implementor.name)
 		}
 	}
 }
