@@ -1,6 +1,7 @@
 package glob
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -29,7 +30,7 @@ func createTestFiles(t *testing.T, fs afero.Fs, root string, paths map[string]bo
 func collectVisitedFiles(t *testing.T, walker *Walker, fs afero.Fs, root string) map[string]bool {
 	t.Helper()
 	visited := make(map[string]bool)
-	err := walker.Walk(fs, root, func(path string) error {
+	err := walker.WalkAfero(context.Background(), fs, root, func(path string) error {
 		// Get the path relative to the root.
 		rel, err := filepath.Rel(root, path)
 		if err != nil {

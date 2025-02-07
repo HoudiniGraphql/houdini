@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"code.houdinigraphql.com/packages/houdini-core/glob"
 	"code.houdinigraphql.com/plugins"
-	"github.com/spf13/afero"
 )
 
 func (p HoudiniCore) ExtractDocuments() error {
@@ -41,7 +41,7 @@ func (p HoudiniCore) ExtractDocuments() error {
 	}
 
 	// walk down the project directory and find all of the files that we care about
-	err = matcher.Walk(afero.NewOsFs(), result.Config.ProjectRoot, func(filepath string) error {
+	err = matcher.Walk(context.Background(), result.Config.ProjectRoot, func(filepath string) error {
 		fmt.Println(filepath)
 		return nil
 	})
