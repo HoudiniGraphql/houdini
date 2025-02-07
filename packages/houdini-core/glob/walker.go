@@ -61,7 +61,7 @@ func (w *Walker) WalkAfero(ctx context.Context, fs afero.Fs, root string, onFile
 	defer cancel()
 
 	// workCh carries directory paths to process
-	workCh := make(chan string)
+	workCh := make(chan string, 100)
 
 	// taskWG tracks the number of directories pending processing
 	var taskWG sync.WaitGroup
@@ -121,7 +121,10 @@ func (w *Walker) WalkAfero(ctx context.Context, fs afero.Fs, root string, onFile
 						taskWG.Add(1)
 						select {
 						case workCh <- fullPath:
+							// Successfully enqueued, nothing more to do.
 						case <-ctx.Done():
+							// The context was canceled, so we need to balance the Add(1)
+							taskWG.Done()
 						}
 					} else {
 						// for files: if the exclude tree matches, skip;

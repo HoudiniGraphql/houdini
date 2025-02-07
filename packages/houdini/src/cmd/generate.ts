@@ -19,8 +19,26 @@ export async function generate(
 		verbose: false,
 	}
 ) {
-	// make sur ethere is always a mode
+	// make sure there is always a mode
 	const mode = args.mode ?? 'development'
+
+	let config_server: any | null = null
+
+	// Function to handle graceful shutdown
+	const handleShutdown = async () => {
+		try {
+			if (config_server) {
+				config_server.close()
+			}
+			process.exit(0)
+		} catch (error) {
+			process.exit(1)
+		}
+	}
+
+	// Set up signal handlers
+	process.on('SIGINT', handleShutdown)
+	process.on('SIGTERM', handleShutdown)
 
 	try {
 		// grab the config file
@@ -30,21 +48,30 @@ export async function generate(
 		const env = {}
 
 		// initialize the codegen pipe
-		const { config_server } = await codegen_init(config, env, mode)
+		const result = await codegen_init(config, env, mode)
+		config_server = result.config_server
 
 		// kick off the codegen pipeline
 		await codegen(config_server)
 
 		// we're done, close everything
 		config_server.close()
-
 		process.exit(0)
 	} catch (e) {
 		format_error(e, function (error) {
-			// if (args.verbose && 'stack' in error && error.stack) {
-			console.error(error.stack?.split('\n').slice(1).join('\n'))
-			// }
+			if (args.verbose && 'stack' in error && error.stack) {
+				console.error(error.stack?.split('\n').slice(1).join('\n'))
+			}
 		})
+
+		// Attempt to close config_server if it exists
+		try {
+			if (config_server) {
+				config_server.close()
+			}
+		} catch (closeError) {
+			console.error('Error closing config_server:', closeError)
+		}
 
 		process.exit(1)
 	}
