@@ -21,13 +21,14 @@ var (
 	databasePath string = ""
 )
 
-func init() {
+func ParseFlags() {
 	flag.StringVar(&configHost, "config", "", "")
 	flag.StringVar(&databasePath, "database", "", "")
 	flag.Parse()
 }
 
 func Run(plugin Plugin) {
+
 	hooks := pluginHooks(plugin)
 
 	listener, err := net.Listen("tcp", ":0")

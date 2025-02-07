@@ -140,8 +140,5 @@ export async function codegen_init(
 
 export async function codegen(config_server: ConfigServer) {
 	// the first step is to extract documents from the project
-	await config_server.trigger_hook('ExtractDocuments', {
-		include: config_server.config.config_file.include,
-		exclude: config_server.config.config_file.exclude,
-	})
+	await config_server.trigger_hook('ExtractDocuments')
 }
