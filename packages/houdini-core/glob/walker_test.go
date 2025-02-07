@@ -3,6 +3,7 @@ package glob
 import (
 	"context"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -27,23 +28,22 @@ func createTestFiles(t *testing.T, fs afero.Fs, root string, paths map[string]bo
 
 // collectVisitedFiles runs walker.Walk on the given afero.Fs and collects the relative file
 // paths for which the onFile callback is called.
-func collectVisitedFiles(t *testing.T, walker *Walker, fs afero.Fs, root string) map[string]bool {
-	t.Helper()
-	visited := make(map[string]bool)
-	err := walker.WalkAfero(context.Background(), fs, root, func(path string) error {
-		// Get the path relative to the root.
-		rel, err := filepath.Rel(root, path)
+func collectVisitedFiles(t *testing.T, walker *Walker, fs afero.Fs, root string) *sync.Map {
+	files := &sync.Map{}
+
+	err := walker.WalkAfero(context.Background(), fs, root, func(fullPath string) error {
+		rel, err := filepath.Rel(root, fullPath)
 		if err != nil {
 			return err
 		}
-		// Normalize to forward slashes.
-		visited[filepath.ToSlash(rel)] = true
+		files.Store(rel, true)
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("walker.Walk error: %v", err)
+		t.Fatal(err)
 	}
-	return visited
+
+	return files
 }
 
 // TestWalker_FileMatching verifies that files are included or excluded
@@ -346,8 +346,8 @@ func TestWalker_FileMatching(t *testing.T) {
 
 			visited := collectVisitedFiles(t, walker, memFs, root)
 			for path, expected := range tt.paths {
-				if got := visited[path]; got != expected {
-					t.Errorf("file %q: got visited=%v, expected %v", path, got, expected)
+				if _, ok := visited.Load(path); ok != expected {
+					t.Errorf("file %q: got visited=%v, expected %v", path, ok, expected)
 				}
 			}
 		})

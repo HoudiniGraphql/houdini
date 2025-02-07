@@ -362,13 +362,6 @@ func compileTokenMatcher(token string) (tokenMatcher, error) {
 		var suffixMatcher tokenMatcher
 		if suffixPart == "" {
 			suffixMatcher = literalMatcher("")
-		} else if strings.ContainsAny(suffixPart, "*?[") {
-			reStr := "^" + globToRegex(suffixPart) + "$"
-			re, err := regexp.Compile(reStr)
-			if err != nil {
-				return nil, err
-			}
-			suffixMatcher = regexMatcher{pattern: suffixPart, re: re}
 		} else {
 			suffixMatcher = literalMatcher(suffixPart)
 		}
