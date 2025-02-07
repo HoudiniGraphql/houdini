@@ -1,6 +1,7 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { buildPackage, build } from './buildNode.js'
 
@@ -124,7 +125,7 @@ export default async function () {
 		const scriptPath = path.join(buildDir, packageJSON.name, script)
 
 		let scriptContents = await fs.readFile(
-			path.join(path.dirname(new URL(import.meta.url).pathname), 'templates', script),
+			path.join(path.dirname(fileURLToPath(import.meta.url)), 'templates', script),
 			'utf8'
 		)
 		// apply the package specifics to the install script template
