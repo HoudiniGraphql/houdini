@@ -31,12 +31,8 @@ func createTestFiles(t *testing.T, fs afero.Fs, root string, paths map[string]bo
 func collectVisitedFiles(t *testing.T, walker *Walker, fs afero.Fs, root string) *sync.Map {
 	files := &sync.Map{}
 
-	err := walker.WalkAfero(context.Background(), fs, root, func(fullPath string) error {
-		rel, err := filepath.Rel(root, fullPath)
-		if err != nil {
-			return err
-		}
-		files.Store(rel, true)
+	err := walker.WalkAfero(context.Background(), fs, root, func(relPath string) error {
+		files.Store(relPath, true)
 		return nil
 	})
 	if err != nil {
@@ -229,7 +225,6 @@ func TestWalker_FileMatching(t *testing.T) {
 				"src/foo.test.spec.js": false,
 			},
 		},
-
 		{
 			name:     "include everything with **",
 			includes: []string{"**"},
@@ -325,6 +320,21 @@ func TestWalker_FileMatching(t *testing.T) {
 				"dir/b.txt":           true,
 				"dir/secret.txt":      false,
 				"dir/secret_data.txt": false,
+			},
+		},
+		{
+			name:     "brace expansion in the middle of path",
+			includes: []string{"src/{components,routes}/**/*.{ts,tsx,gql}"},
+			excludes: []string{},
+			paths: map[string]bool{
+				"src/components/foo.ts":  true,
+				"src/components/bar.tsx": true,
+				"src/components/baz.gql": true,
+				"src/routes/home.ts":     true,
+				"src/routes/api.gql":     true,
+				"src/routes/bar.jsx":     false, // wrong extension
+				"src/utils/foo.ts":       false, // wrong directory
+				"src/components/foo.js":  false, // wrong extension
 			},
 		},
 	}

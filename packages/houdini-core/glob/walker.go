@@ -130,7 +130,7 @@ func (w *Walker) WalkAfero(ctx context.Context, fs afero.Fs, root string, onFile
 							continue
 						}
 						if matchHelper(w.includeTree, tokens) {
-							if err := onFile(fullPath); err != nil {
+							if err := onFile(rel); err != nil {
 								setErr(err)
 							}
 						}
@@ -482,27 +482,28 @@ func matchHelper(tree *patternTree, tokens []string) bool {
 // brace expansion helper
 // -----------------------------------------------------------------------------
 
-// expandBraces performs recursive brace expansion.
-// for example, "src/**/*.{ts,tsx}" expands to
-//
-//	[]string{"src/**/*.ts", "src/**/*.tsx"}
+// expandBraces expands brace expressions within a path pattern recursively.
+// Example: "src/{components,routes}/**/*.{ts,tsx,gql}"
+// Expands to: ["src/components/**/*.{ts,tsx,gql}", "src/routes/**/*.{ts,tsx,gql}"]
 func expandBraces(pattern string) []string {
 	start := strings.Index(pattern, "{")
 	if start == -1 {
-		return []string{pattern}
+		return []string{pattern} // No braces, return as is
 	}
 	end := strings.Index(pattern[start:], "}")
 	if end == -1 {
-		return []string{pattern}
+		return []string{pattern} // Unmatched brace, return as is
 	}
 	end += start
-	prefix := pattern[:start]
-	suffix := pattern[end+1:]
+
+	prefix := pattern[:start] // Part before '{'
+	suffix := pattern[end+1:] // Part after '}'
 	options := pattern[start+1 : end]
+
 	var results []string
 	for _, opt := range strings.Split(options, ",") {
 		expanded := prefix + opt + suffix
-		results = append(results, expandBraces(expanded)...)
+		results = append(results, expandBraces(expanded)...) // Recursively expand
 	}
 	return results
 }
