@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/glob"
 	"code.houdinigraphql.com/plugins"
@@ -51,4 +53,35 @@ func (p HoudiniCore) ExtractDocuments() error {
 
 	// we're done
 	return nil
+}
+
+// extractGraphQLStrings searches for all instances of a call to `graphql(` ... `)`
+// and returns a slice containing the captured GraphQL query/mutation strings.
+// It also unescapes any embedded backticks (i.e. replaces "\`" with "`").
+func extractGraphQLStrings(content string) ([]string, error) {
+	matches := graphqlRegex.FindAllStringSubmatch(content, -1)
+	var result []string
+	for _, m := range matches {
+		// m[0] is the full match, m[1] is the captured GraphQL string.
+		if len(m) > 1 {
+			extracted := m[1]
+			// Unescape any embedded backticks.
+			extracted = strings.ReplaceAll(extracted, "\\`", "`")
+			result = append(result, extracted)
+		}
+	}
+	return result, nil
+}
+
+// graphqlRegex is a package-level variable that holds the compiled regex.
+var graphqlRegex *regexp.Regexp
+
+// init compiles the regex pattern once when the package is initialized.
+func init() {
+	pattern := "(?s)graphql\\s*\\(\\s*`((?:\\\\`|[^`])*)`\\s*\\)"
+	var err error
+	graphqlRegex, err = regexp.Compile(pattern)
+	if err != nil {
+		panic("Failed to compile graphql regex: " + err.Error())
+	}
 }
