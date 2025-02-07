@@ -75,15 +75,15 @@ export async function codegen_init(
 			...config_server,
 			// to cleanup, we need to send a sigterm to each plugin and kill the config server,
 			close: async () => {
-				// close our connection to the database
+				// Close our connection to the database
 				db.close()
 
-				// stop each plugin with proper cleanup
+				// Stop each plugin with proper cleanup
 				await Promise.all(
 					Object.entries(plugins).map(async ([, plugin]) => {
 						if (plugin.process.pid) {
-							// on windows, use taskkill to ensure the process tree is terminated
 							if (process.platform === 'win32') {
+								// On Windows, use taskkill to ensure the process tree is terminated.
 								try {
 									spawn('taskkill', [
 										'/pid',
@@ -92,45 +92,47 @@ export async function codegen_init(
 										'/t',
 									])
 								} catch (err) {
-									// ignore errors if process is already gone
+									// Ignore errors if the process is already gone
 								}
 							} else {
-								// on unix-like systems, kill the process group
+								// On Unix-like systems, send SIGINT to the process group
 								try {
-									// kill the entire process group
+									// The child was spawned with detached: true so that it is its own process group.
 									process.kill(-plugin.process.pid, 'SIGINT')
-
-									// wait for the process to actually terminate
-									await new Promise<void>((resolve, reject) => {
-										plugin.process.once('exit', () => {
-											console.log('process exited')
-											resolve()
-										})
-
-										// fallback timeout after 5 seconds
-										const timeout = setTimeout(() => {
-											try {
-												process.kill(-plugin.process.pid!, 'SIGKILL')
-											} catch (err) {
-												// ignore errors if process is already gone
-											}
-											resolve()
-										}, 5000)
-
-										// cleanup timeout if process exits
-										plugin.process.once('exit', () => {
-											clearTimeout(timeout)
-										})
-									})
 								} catch (err) {
-									console.log('Error killing process:', err)
+									console.error('Error sending SIGINT:', err)
 								}
+
+								// Wait for the process to exit, or force-kill it after a timeout.
+								await new Promise<void>((resolve) => {
+									let exited = false
+
+									// When the process exits, resolve the promise.
+									const onExit = () => {
+										if (!exited) {
+											exited = true
+											clearTimeout(timeout)
+											resolve()
+										}
+									}
+									plugin.process.once('exit', onExit)
+
+									// Fallback: if the process does not exit after 5 seconds, send SIGKILL.
+									const timeout = setTimeout(() => {
+										try {
+											process.kill(-plugin.process.pid!, 'SIGKILL')
+										} catch (err) {
+											// Ignore errors if process is already gone.
+										}
+										onExit()
+									}, 5000)
+								})
 							}
 						}
 					})
 				)
 
-				// stop the config server
+				// Stop the config server.
 				config_server.close()
 			},
 		},

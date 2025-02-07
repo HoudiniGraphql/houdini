@@ -520,6 +520,9 @@ importers:
       recast:
         specifier: ^0.23.1
         version: 0.23.1
+      treekill:
+        specifier: ^1.0.0
+        version: 1.0.0
       vite-plugin-watch-and-run:
         specifier: ^1.7.0
         version: 1.7.0
@@ -7182,6 +7185,11 @@ packages:
   tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
+
+  treekill@1.0.0:
+    resolution: {integrity: sha512-yRk5h+uZ6oFKQWf88pzuOSujKvpU8wqo9nuxCMUvWU55sC6A9J0EzjmEwpTjHydhBhBDDZKgA6992aIEWTxDkw==}
+    engines: {node: '>= 0.10.0'}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   trim-newlines@3.0.1:
     resolution: {integrity: sha512-c1PTsA3tYrIsLGkJkzHF+w9F2EyxfXGo4UyJc4pFL++FMjnq0HJS69T3M7d//gKrFKwy429bouPescbjecU+Zw==}
@@ -15319,6 +15327,8 @@ snapshots:
       punycode: 2.3.0
 
   tree-kill@1.2.2: {}
+
+  treekill@1.0.0: {}
 
   trim-newlines@3.0.1: {}
 
