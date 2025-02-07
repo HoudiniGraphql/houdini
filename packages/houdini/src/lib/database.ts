@@ -3,7 +3,7 @@ import sqlite from 'node:sqlite'
 
 export const create_schema = `
 -- A table of original document contents (to be populated by plugins)
-CREATE TABLE rawDocuments (
+CREATE TABLE raw_documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	filepath TEXT NOT NULL,
 	source TEXT NOT NULL
