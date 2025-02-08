@@ -14,6 +14,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/glob"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
+	"golang.org/x/sync/errgroup"
 )
 
 func (p HoudiniCore) ExtractDocuments() error {
@@ -35,109 +36,117 @@ func (p HoudiniCore) ExtractDocuments() error {
 		return err
 	}
 
-	// build a glob matcher that we can use to find all of the files
-	matcher := glob.NewWalker()
-
-	// add the include patterns
+	// build a glob walker that we can use to find all of the files
+	walker := glob.NewWalker()
 	for _, include := range result.Config.Include {
-		matcher.AddInclude(include)
+		walker.AddInclude(include)
 	}
-
-	// and the exclude patterns
 	for _, exclude := range result.Config.Exclude {
-		matcher.AddExclude(exclude)
+		walker.AddExclude(exclude)
 	}
 
-	// set up a channel to receive discovered file paths.
-	filePathsCh := make(chan string, 100) // buffered channel to reduce blocking
-
-	// start the file walk in a goroutine.
-	go func() {
-		// walk blocks until it finishes.
-		err := matcher.Walk(context.Background(), result.Config.ProjectRoot, func(fp string) error {
-			// send the file path on the channel.
-			filePathsCh <- fp
-			return nil
-		})
-		if err != nil {
-			// TODO: handle error
-		}
-		close(filePathsCh) // signal that no more file paths will be sent.
-	}()
-
-	// now we can consume the file paths and extract the documents using a pool of goroutines.
-
-	// we'll send the results over this channel
+	// channels for file paths and discovered documents
+	filePathsCh := make(chan string, 100)
 	resultsCh := make(chan DiscoveredDocument, 100)
 
-	// start the goroutine pool to process the files.
-	var parseWG sync.WaitGroup
+	// create a cancellable context and an errgroup
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// we have a few goroutines that will be running to process the files so we'll
+	// wrap them in an errgroup to make sure we can cancel them all if something goes wrong
+	g, ctx := errgroup.WithContext(ctx)
+
+	// file walker goroutine
+	g.Go(func() error {
+		// start the walk; each file path found is sent into filePathsCh.
+		err := walker.Walk(ctx, result.Config.ProjectRoot, func(fp string) error {
+			// in case the context is canceled, stop early.
+			select {
+			case filePathsCh <- fp:
+				return nil
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		})
+		// whether or not there was an error, close the channel
+		// to signal that no more file paths will be sent.
+		close(filePathsCh)
+		return err
+	})
+
+	// file processing workers
+	var procWG sync.WaitGroup
 	for i := 0; i < runtime.NumCPU(); i++ {
-		parseWG.Add(1)
+		procWG.Add(1)
 		go func() {
-			defer parseWG.Done()
-			for fp := range filePathsCh {
-				// Open the file, parse it, run regex, etc.
-				err := processFile(afero.NewOsFs(), fp, resultsCh)
-				if err != nil {
-					// Handle error (or log and continue)
-					continue
+			defer procWG.Done()
+			// read from filePathsCh until it is closed.
+			for {
+				select {
+				case fp, ok := <-filePathsCh:
+					if !ok {
+						return // channel closed
+					}
+					// process the file
+					if err := processFile(afero.NewOsFs(), fp, resultsCh); err != nil {
+						// if there's an error, just log it and continue with the next file.
+						log.Printf("failed to process file %s: %v", fp, err)
+					}
+				case <-ctx.Done():
+					return
 				}
 			}
 		}()
 	}
 
-	// in a separate goroutine we'll consume documents as they are discovered and write them to the database
-	writeCh := make(chan bool, 1)
-	go func() {
-		// build a connection to the database
+	// database writer goroutine
+	g.Go(func() error {
+		// build a connection to the database.
 		conn, err := plugins.ConnectDB()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return fmt.Errorf("failed to connect to db: %w", err)
 		}
 
-		// prepare the insert statement
+		// prepare the insert statement.
 		statement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
 		if err != nil {
-			fmt.Println(err)
-			return
+			return fmt.Errorf("failed to prepare statement: %w", err)
 		}
 		defer statement.Finalize()
 
-		// when a document is discovered, write it to the database
+		// consume discovered documents from resultsCh and write them to the database.
 		for doc := range resultsCh {
 			// reset the statement before reuse.
 			if err := statement.Reset(); err != nil {
-				log.Fatalf("failed to reset statement: %v", err)
-				continue
+				return fmt.Errorf("failed to reset statement: %w", err)
 			}
 
-			// bind the parameters
+			// bind the parameters.
 			statement.BindText(1, doc.FilePath)
 			statement.BindText(2, doc.Content)
 
-			// Execute the statement. Note that statement.Step will return sqlite.Done when
-			// the statement has been fully executed.
-			_, err := statement.Step()
-			if err != nil {
-				log.Fatalf("failed to execute insert: %v", err)
-				continue
+			// execute the statement.
+			if _, err := statement.Step(); err != nil {
+				return fmt.Errorf("failed to execute insert: %w", err)
 			}
 		}
+		return nil
+	})
 
-		// notify the parent thread we're done
-		writeCh <- true
+	// once all file-processing workers are done, close the results channel. this will signal the gourotine above to finish
+	go func() {
+		procWG.Wait()
+		close(resultsCh)
 	}()
 
-	// wait for the processing pool to finish
-	parseWG.Wait()
-	// close the results channel
-	close(resultsCh)
-	// wait for us to finish writing the documents to the database
-	<-writeCh
+	// wait for the error group's goroutines (walker and writer) to finish.
+	// any error returned will be propagated here.
+	if err := g.Wait(); err != nil {
+		return err
+	}
 
-	// we're done
+	// if we got here, everything completed successfully.
 	return nil
 }
 
@@ -245,8 +254,7 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 	return nil
 }
 
-// graphqlRegex is a package-level variable that holds the compiled regex.
-// It matches: the literal "graphql", optional whitespace, an opening parenthesis,
+// graphqlRegex holds the compiled regex. It matches: the literal "graphql", optional whitespace, an opening parenthesis,
 // optional whitespace, a backtick, then captures everything until the next unescaped backtick,
 // then optional whitespace and a closing parenthesis.
 var graphqlRegex = regexp.MustCompile("(?s)graphql\\(\\s*`((?:(?:\\\\`)|[^`])*?)`\\s*\\)")
