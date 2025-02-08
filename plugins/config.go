@@ -7,7 +7,7 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-type PluginConfig struct {
+type ProjectConfig struct {
 	Include                         []string
 	Exclude                         []string
 	DefinitionsPath                 string
@@ -27,25 +27,25 @@ type PluginConfig struct {
 	RuntimeDir                      string
 }
 
-func (db Database) PluginConfig() (PluginConfig, error) {
+func (db Database) ProjectConfig() (ProjectConfig, error) {
 	// if we've already loaded the config use it
 	if db._config != nil {
 		return *db._config, nil
 	}
 
 	// otherwise load it from the database
-	err := db.ReloadConfig()
+	err := db.ReloadProjectConfig()
 	if err != nil {
-		return PluginConfig{}, err
+		return ProjectConfig{}, err
 	}
 
 	// this has been loaded by now
 	return *db._config, nil
 }
 
-func (db *Database) ReloadConfig() error {
+func (db *Database) ReloadProjectConfig() error {
 	// build up a config object
-	config := PluginConfig{}
+	config := ProjectConfig{}
 
 	// load the config from the database
 	err := sqlitex.Execute(db.Conn, `SELECT

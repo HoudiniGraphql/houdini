@@ -18,7 +18,8 @@ import (
 )
 
 func (p HoudiniCore) ExtractDocuments() error {
-	config, err := p.DB.PluginConfig()
+	// load the project config
+	config, err := p.DB.ProjectConfig()
 	if err != nil {
 		return err
 	}

@@ -24,15 +24,15 @@ var (
 func ParseFlags() {
 	flag.StringVar(&databasePath, "database", "", "")
 	flag.Parse()
-}
 
-func Run(plugin Plugin) {
 	// make sure a database path is provided
 	if databasePath == "" {
 		flag.Usage()
 		log.Fatal("database path is required")
 	}
+}
 
+func Run(plugin Plugin) {
 	// connect to the database
 	db, err := ConnectDB()
 	if err != nil {
