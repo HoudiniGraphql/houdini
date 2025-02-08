@@ -111,31 +111,6 @@ export async function codegen_init(
 									// The child was spawned with detached: true so that it is its own process group.
 									process.kill(-plugin.process.pid, 'SIGINT')
 								} catch (err) {}
-
-								// Wait for the process to exit, or force-kill it after a timeout.
-								await new Promise<void>((resolve) => {
-									let exited = false
-
-									// When the process exits, resolve the promise.
-									const onExit = () => {
-										if (!exited) {
-											exited = true
-											clearTimeout(timeout)
-											resolve()
-										}
-									}
-									plugin.process.once('exit', onExit)
-
-									// Fallback: if the process does not exit after 5 seconds, send SIGKILL.
-									const timeout = setTimeout(() => {
-										try {
-											process.kill(-plugin.process.pid!, 'SIGKILL')
-										} catch (err) {
-											// Ignore errors if process is already gone.
-										}
-										onExit()
-									}, 5000)
-								})
 							}
 						}
 					})

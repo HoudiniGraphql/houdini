@@ -54,7 +54,7 @@ export async function generate(
 		await codegen(config_server)
 
 		// we're done, close everything
-		await config_server.close()
+		config_server.close()
 		process.exit(0)
 	} catch (e) {
 		format_error(e, function (error) {
