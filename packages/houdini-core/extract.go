@@ -41,7 +41,6 @@ func (p HoudiniCore) ExtractDocuments() error {
 		},
 	})
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
