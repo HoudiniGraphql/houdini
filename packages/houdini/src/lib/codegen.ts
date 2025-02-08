@@ -64,7 +64,10 @@ export async function codegen_init(
 
 			plugins[plugin.name] = {
 				// kick off the plugin process
-				process: spawn(executable, args, { stdio: 'inherit' }),
+				process: spawn(executable, args, {
+					stdio: 'inherit',
+					detached: process.platform !== 'win32',
+				}),
 				// and wait for the plugin to report back its port
 				...(await config_server.wait_for_plugin(plugin.name)),
 			}

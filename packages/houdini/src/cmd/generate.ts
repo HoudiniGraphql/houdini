@@ -52,9 +52,10 @@ export async function generate(
 
 		// kick off the codegen pipeline
 		await codegen(config_server)
+		console.log('finished codegen')
 
 		// we're done, close everything
-		config_server.close()
+		await config_server.close()
 		process.exit(0)
 	} catch (e) {
 		format_error(e, function (error) {
