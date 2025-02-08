@@ -1,4 +1,5 @@
-import { type ChildProcess, spawn } from 'child_process'
+import { type ChildProcess, spawn } from 'node:child_process'
+import path from 'node:path'
 import sqlite from 'node:sqlite'
 
 import * as fs from '../lib/fs'
@@ -24,6 +25,9 @@ export async function codegen_init(
 	plugins: PluginMap
 	database_path: string
 }> {
+	// We need the root dir before we get to the exciting stuff
+	await fs.mkdirpSync(config.root_dir)
+
 	const plugins: PluginMap = {}
 
 	// start the config server
@@ -43,15 +47,24 @@ export async function codegen_init(
 	// start each plugin
 	await Promise.all(
 		config.plugins.map(async (plugin) => {
+			let executable = plugin.executable
+			const args = [
+				'--config',
+				`http://localhost:${config_server.port}`,
+				'--database',
+				db_file,
+			]
+
+			// Run the plugin through a node shim if it's a javascript plugin
+			const jsExtensions = ['.js', '.mjs', '.cjs']
+			if (jsExtensions.includes(path.extname(plugin.executable))) {
+				executable = 'node'
+				args.unshift(plugin.executable)
+			}
+
 			plugins[plugin.name] = {
 				// kick off the plugin process
-				process: spawn(
-					plugin.executable,
-					['--config', `http://localhost:${config_server.port}`, '--database', db_file],
-					{
-						stdio: 'inherit',
-					}
-				),
+				process: spawn(executable, args, { stdio: 'inherit' }),
 				// and wait for the plugin to report back its port
 				...(await config_server.wait_for_plugin(plugin.name)),
 			}

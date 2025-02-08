@@ -1,5 +1,4 @@
-import { codegen, codegen_init } from 'src/lib'
-import { sleep } from 'src/lib/sleep'
+import { codegen, codegen_init, type ConfigServer } from 'src/lib'
 
 import { format_error } from '../lib/error'
 import { get_config, type Config } from '../lib/project'
@@ -22,13 +21,13 @@ export async function generate(
 	// make sure there is always a mode
 	const mode = args.mode ?? 'development'
 
-	let config_server: any | null = null
+	let config_server: ConfigServer | null = null
 
 	// Function to handle graceful shutdown
 	const handleShutdown = async () => {
 		try {
 			if (config_server) {
-				config_server.close()
+				await config_server.close()
 			}
 			process.exit(0)
 		} catch (error) {
@@ -55,7 +54,7 @@ export async function generate(
 		await codegen(config_server)
 
 		// we're done, close everything
-		config_server.close()
+		await config_server.close()
 		process.exit(0)
 	} catch (e) {
 		format_error(e, function (error) {
@@ -67,7 +66,7 @@ export async function generate(
 		// Attempt to close config_server if it exists
 		try {
 			if (config_server) {
-				config_server.close()
+				await config_server.close()
 			}
 		} catch (closeError) {
 			console.error('Error closing config_server:', closeError)

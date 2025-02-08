@@ -1,9 +1,10 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-import { GraphQLSchema } from 'graphql'
 import * as graphql from 'graphql'
+import { GraphQLSchema } from 'graphql'
+import { pathToFileURL } from 'node:url'
 
 import type { ConfigFile } from '../runtime/lib/config'
-import { local_api_dir, temp_dir } from './conventions'
+import { local_api_dir } from './conventions'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import * as path from './path'
@@ -257,7 +258,7 @@ export function internal_routes(config: Config): string[] {
 export async function load_local_schema(schema_path: string): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
-		const { default: schema } = await import(schema_path)
+		const { default: schema } = await import(pathToFileURL(schema_path).toString())
 
 		return schema
 	} catch (e) {

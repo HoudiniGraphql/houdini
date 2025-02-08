@@ -2,8 +2,9 @@
 // plugins
 import { createSchema, createYoga } from 'graphql-yoga'
 import http from 'node:http'
+import { promisify } from 'node:util'
 
-import { Config } from './project'
+import type { Config } from './project'
 
 const typeDefs = `
 type Query {
@@ -181,7 +182,7 @@ export type PluginSpec = {
 
 export type ConfigServer = {
 	config: Config
-	close: () => void
+	close: () => Promise<void>
 	port: number
 	wait_for_plugin: (name: string) => Promise<PluginSpec>
 	load_env: (mode: string) => Promise<Record<string, string>>
@@ -449,7 +450,7 @@ export function start_server(config: Config, env: Record<string, string>): Promi
 			} else {
 				resolve({
 					config,
-					close: () => server.close(),
+					close: promisify(() => server.close()),
 					port: address.port,
 					wait_for_plugin,
 					load_env,
