@@ -6,7 +6,7 @@ export const create_schema = `
 CREATE TABLE raw_documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	filepath TEXT NOT NULL,
-	source TEXT NOT NULL
+	content TEXT NOT NULL
 );
 
 -- Schema Definition Tables

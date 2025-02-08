@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
+	"log"
 	"regexp"
 	"runtime"
 	"strings"
@@ -85,6 +87,56 @@ func (p HoudiniCore) ExtractDocuments() error {
 		}()
 	}
 
+	// in a separate goroutine we'll consume documents as they are discovered and write them to the database
+	writeCh := make(chan bool, 1)
+	go func() {
+		// build a connection to the database
+		conn, err := plugins.ConnectDB()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		// prepare the insert statement
+		statement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer statement.Finalize()
+
+		// when a document is discovered, write it to the database
+		for doc := range resultsCh {
+			// reset the statement before reuse.
+			if err := statement.Reset(); err != nil {
+				log.Fatalf("failed to reset statement: %v", err)
+				continue
+			}
+
+			// bind the parameters
+			statement.BindText(1, doc.FilePath)
+			statement.BindText(2, doc.Content)
+
+			// Execute the statement. Note that statement.Step will return sqlite.Done when
+			// the statement has been fully executed.
+			_, err := statement.Step()
+			if err != nil {
+				log.Fatalf("failed to execute insert: %v", err)
+				continue
+			}
+		}
+
+		// notify the parent thread we're done
+		writeCh <- true
+	}()
+
+	// wait for the processing pool to finish
+	parseWG.Wait()
+	// close the results channel
+	close(resultsCh)
+	// wait for us to finish writing the documents to the database
+	<-writeCh
+
 	// we're done
 	return nil
 }
@@ -98,6 +150,24 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 		return err
 	}
 	defer f.Close()
+
+	// if the file is a graphql file we can just use the contents directly
+	if strings.HasSuffix(fp, ".graphql") || strings.HasSuffix(fp, ".gql") {
+		// read the full file
+		content, err := io.ReadAll(f)
+		if err != nil {
+			return err
+		}
+
+		// write the content to the channel
+		ch <- DiscoveredDocument{
+			FilePath: fp,
+			Content:  string(content),
+		}
+
+		// we're done
+		return nil
+	}
 
 	const chunkSize = 4096
 	var buffer []byte
