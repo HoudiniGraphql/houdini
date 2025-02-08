@@ -1,4 +1,4 @@
-import { codegen, codegen_init, type ConfigServer } from 'src/lib'
+import { codegen, codegen_init } from 'src/lib'
 
 import { format_error } from '../lib/error'
 import { get_config, type Config } from '../lib/project'
@@ -21,55 +21,46 @@ export async function generate(
 	// make sure there is always a mode
 	const mode = args.mode ?? 'development'
 
-	let config_server: ConfigServer | null = null
-
-	// Function to handle graceful shutdown
-	const handleShutdown = async () => {
-		try {
-			if (config_server) {
-				await config_server.close()
-			}
-			process.exit(0)
-		} catch (error) {
-			process.exit(1)
-		}
-	}
-
-	// Set up signal handlers
-	process.on('SIGINT', handleShutdown)
-	process.on('SIGTERM', handleShutdown)
+	// until we've initialized the pipeline, there's nothing to do on close
+	let on_close = () => {}
 
 	try {
 		// grab the config file
 		let config: Config | null = await get_config()
 
-		// we need an object that we'll use as the env
-		const env = {}
-
 		// initialize the codegen pipe
-		const result = await codegen_init(config, env, mode)
-		config_server = result.config_server
+		const { trigger_hook, close } = await codegen_init(config, mode)
+
+		// Function to handle graceful shutdown
+		on_close = async () => {
+			try {
+				close()
+				process.exit(0)
+			} catch (error) {
+				process.exit(1)
+			}
+		}
+
+		// Set up signal handlers
+		process.on('SIGINT', on_close)
+		process.on('SIGTERM', on_close)
 
 		// kick off the codegen pipeline
-		await codegen(config_server)
+		await codegen(trigger_hook)
 
 		// we're done, close everything
-		await config_server.close()
-		process.exit(0)
+		on_close()
 	} catch (e) {
+		// if something goes wrong, format the error
 		format_error(e, function (error) {
-			if (args.verbose && 'stack' in error && error.stack) {
-				console.error(error.stack?.split('\n').slice(1).join('\n'))
-			}
+			console.error(error.stack?.split('\n').slice(1).join('\n'))
 		})
 
-		// Attempt to close config_server if it exists
+		// attempt to close any plugins
 		try {
-			if (config_server) {
-				await config_server.close()
-			}
+			on_close()
 		} catch (closeError) {
-			console.error('Error closing config_server:', closeError)
+			console.error('Error closing plugins:', closeError)
 		}
 
 		process.exit(1)

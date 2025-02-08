@@ -1,37 +1,37 @@
+import { plugin } from 'legacy/lib'
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
 import sqlite from 'node:sqlite'
 
 import * as fs from '../lib/fs'
-import {
-	type ConfigServer,
-	type PluginSpec,
-	start_server as start_config_server,
-} from './configServer'
 import { db_path } from './conventions'
-import { create_schema, import_graphql_schema } from './database'
+import { create_schema, write_config, import_graphql_schema } from './database'
 import { type Config } from './project'
 
-export type PluginMap = Record<string, PluginSpec & { process: ChildProcess }>
+export type PluginSpec = {
+	name: string
+	port: number
+	hooks: Set<string>
+	order: 'before' | 'after' | 'core'
+}
 
 // pre_codegen sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
 export async function codegen_init(
 	config: Config,
-	env: Record<string, string>,
 	mode: string
 ): Promise<{
-	config_server: ConfigServer
-	plugins: PluginMap
+	close: () => Promise<void>
+	trigger_hook: (name: string) => Promise<void>
 	database_path: string
 }> {
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(config.root_dir)
 
-	const plugins: PluginMap = {}
+	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
 
-	// start the config server
-	const config_server = await start_config_server(config, env)
+	// when plugins announce themselves, they provide a port
+	const plugin_specs: Record<string, PluginSpec> = {}
 
 	// we need to create a fresh database for orchestration
 	const db_file = db_path(config)
@@ -44,16 +44,54 @@ export async function codegen_init(
 	// import the project's schema into the database
 	import_graphql_schema(db, config.schema)
 
+	// we need a function that waits for a plugin to register itself
+	const wait_for_plugin = (name: string) =>
+		new Promise<PluginSpec>((resolve, reject) => {
+			const find_plugin = db.prepare('SELECT * FROM plugins WHERE name = ?')
+
+			// waiting for a plugin means polling the database until we see the plugin announce itself
+			const interval = setInterval(() => {
+				const row = find_plugin.get(name) as
+					| { name: string; port: number; hooks: string; plugin_order: string }
+					| undefined
+				if (row) {
+					// we found the plugin, stop polling
+					clearInterval(interval)
+
+					// create the plugin spec
+					const spec: PluginSpec = {
+						name: row.name,
+						port: row.port,
+						hooks: new Set(row.hooks.split(',')),
+						order: row.plugin_order as 'before' | 'after' | 'core',
+					}
+
+					// store the spec
+					plugin_specs[name] = spec
+
+					// resolve the promise
+					resolver(spec)
+				}
+			}, 10)
+
+			// Create a timeout that will reject after 2 seconds
+			const timeout = setTimeout(() => {
+				clearInterval(interval)
+				reject(new Error(`Timeout waiting for plugin ${name} to register`))
+			}, 2000)
+
+			// Create a resolver function that clears the timeout
+			const resolver = (spec: PluginSpec) => {
+				clearTimeout(timeout)
+				resolve(spec)
+			}
+		})
+
 	// start each plugin
 	await Promise.all(
 		config.plugins.map(async (plugin) => {
 			let executable = plugin.executable
-			const args = [
-				'--config',
-				`http://localhost:${config_server.port}`,
-				'--database',
-				db_file,
-			]
+			const args = ['--database', db_file]
 
 			// Run the plugin through a node shim if it's a javascript plugin
 			const jsExtensions = ['.js', '.mjs', '.cjs']
@@ -68,66 +106,98 @@ export async function codegen_init(
 					stdio: 'inherit',
 					detached: process.platform !== 'win32',
 				}),
+
 				// and wait for the plugin to report back its port
-				...(await config_server.wait_for_plugin(plugin.name)),
+				...(await wait_for_plugin(plugin.name)),
 			}
 		})
 	)
 
-	// load the environment variables from our plugins as assign the values onto the object we gave
-	// the config server
-	Object.assign(env, await config_server.load_env(mode))
+	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}) => {
+		const { port } = plugin_specs[name]
 
-	// TODO: config hook
+		// make the request
+		const response = await fetch(`http://localhost:${port}/${hook.toLowerCase()}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(payload),
+		})
+
+		// if the request failed, throw an error
+		if (!response.ok) {
+			if (response.status === 404) {
+				throw new Error(`Plugin ${name} does not support hook ${hook}`)
+			}
+			throw new Error(
+				`Failed to call ${name}/${hook.toLowerCase()}: ${await response.text()}`
+			)
+		}
+
+		// look at the response headers, and if the content type is application/json, parse the body
+		const contentType = response.headers.get('content-type')
+		if (contentType && contentType.includes('application/json')) {
+			return await response.json()
+		}
+		return await response.text()
+	}
+
+	const trigger_hook = async (hook: string, payload: Record<string, any> = {}) => {
+		for (const [name, { hooks }] of Object.entries(plugin_specs)) {
+			if (hooks.has(hook) && plugin_specs[name]) {
+				await invoke_hook(name, hook, payload)
+			}
+		}
+	}
+
+	// write the current config values to the database
+	await write_config(db, config, invoke_hook, plugin_specs, mode)
+
+	// now we should load the config hook so other plugins can set their defaults
+	await trigger_hook('Config')
 
 	// now that we've loaded the environment, we need to invoke the afterLoad hook
-	await config_server.trigger_hook('AfterLoad')
+	await trigger_hook('AfterLoad')
 
 	return {
 		database_path: db_file,
-		config_server: {
-			...config_server,
-			// to cleanup, we need to send a sigterm to each plugin and kill the config server,
-			close: async () => {
-				// Close our connection to the database
-				db.close()
+		trigger_hook,
+		close: async () => {
+			// Close our connection to the database
+			db.close()
 
-				// Stop each plugin with proper cleanup
-				await Promise.all(
-					Object.entries(plugins).map(async ([, plugin]) => {
-						if (plugin.process.pid) {
-							if (process.platform === 'win32') {
-								// On Windows, use taskkill to ensure the process tree is terminated.
-								try {
-									spawn('taskkill', [
-										'/pid',
-										plugin.process.pid.toString(),
-										'/f',
-										'/t',
-									])
-								} catch (err) {
-									// Ignore errors if the process is already gone
-								}
-							} else {
-								// On Unix-like systems, send SIGINT to the process group
-								try {
-									// The child was spawned with detached: true so that it is its own process group.
-									process.kill(-plugin.process.pid, 'SIGINT')
-								} catch (err) {}
+			// Stop each plugin with proper cleanup
+			await Promise.all(
+				Object.entries(plugins).map(async ([, plugin]) => {
+					if (plugin.process.pid) {
+						if (process.platform === 'win32') {
+							// On Windows, use taskkill to ensure the process tree is terminated.
+							try {
+								spawn('taskkill', [
+									'/pid',
+									plugin.process.pid.toString(),
+									'/f',
+									'/t',
+								])
+							} catch (err) {
+								// Ignore errors if the process is already gone
 							}
+						} else {
+							// On Unix-like systems, send SIGINT to the process group
+							try {
+								// The child was spawned with detached: true so that it is its own process group.
+								process.kill(-plugin.process.pid, 'SIGINT')
+							} catch (err) {}
 						}
-					})
-				)
-
-				// Stop the config server.
-				config_server.close()
-			},
+					}
+				})
+			)
 		},
-		plugins,
 	}
 }
 
-export async function codegen(config_server: ConfigServer) {
+export async function codegen(trigger_hook: (hook: string) => Promise<void>) {
 	// the first step is to extract documents from the project
-	await config_server.trigger_hook('ExtractDocuments')
+	await trigger_hook('ExtractDocuments')
 }

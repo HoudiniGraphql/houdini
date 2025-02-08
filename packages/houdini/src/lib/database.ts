@@ -1,7 +1,74 @@
 import * as graphql from 'graphql'
 import sqlite from 'node:sqlite'
 
+import { PluginSpec } from './codegen'
+import { Config, default_config } from './project'
+
 export const create_schema = `
+-- A table of plugins that have been started
+CREATE TABLE plugins (
+	name TEXT NOT NULL PRIMARY KEY UNIQUE,
+	port INTEGER NOT NULL,
+	hooks TEXT NOT NULL,
+	plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
+	config JSON
+);
+
+-- Watch Schema Config
+CREATE TABLE watch_schema_config (
+    url TEXT NOT NULL,
+    headers JSON,
+    interval INTEGER,
+	timeout INTEGER
+);
+
+-- Router Config
+CREATE TABLE router_config (
+	api_endpoint TEXT,
+	redirect TEXT UNIQUE,
+	session_keys TEXT NOT NULL UNIQUE,
+	url TEXT,
+	mutation TEXT UNIQUE
+);
+
+-- Runtime Scalar Definition
+CREATE TABLE runtime_scalar_definitions (
+	name TEXT NOT NULL PRIMARY KEY UNIQUE,
+    type TEXT NOT NULL
+);
+
+-- Static Config (main config table)
+CREATE TABLE config (
+    include JSON NOT NULL,
+    exclude JSON NOT NULL,
+    definitions_path TEXT,
+    cache_buffer_size INTEGER,
+    default_cache_policy TEXT,
+    default_partial BOOLEAN,
+    default_lifetime INTEGER,
+    default_list_position TEXT CHECK (default_list_position IN ('APPEND', 'PREPEND')),
+    default_list_target TEXT CHECK (default_list_target IN ('ALL', 'NULL')),
+    default_paginate_mode TEXT CHECK (default_paginate_mode IN ('INFINITE', 'SINGLE_PAGE')),
+    suppress_pagination_deduplication BOOLEAN,
+    log_level TEXT CHECK (log_level IN ('QUIET', 'FULL', 'SUMMARY', 'SHORT_SUMMARY')),
+    default_fragment_masking TEXT CHECK (default_fragment_masking IN ('ENABLE', 'DISABLE')),
+    default_keys TEXT, -- Comma-separated keys
+    persisted_queries_path TEXT,
+    project_root TEXT,
+    runtime_dir TEXT
+);
+
+CREATE TABLE scalar_config (
+	name TEXT NOT NULL PRIMARY KEY UNIQUE,
+	type TEXT NOT NULL
+);
+
+-- Types configuration
+CREATE TABLE type_configs (
+	name TEXT NOT NULL,
+	keys TEXT NOT NULL
+);
+
 -- A table of original document contents (to be populated by plugins)
 CREATE TABLE raw_documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -345,6 +412,166 @@ export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.G
 				arg.defaultValue?.toString() ?? null
 			)
 		}
+	}
+}
+
+export async function write_config(
+	db: sqlite.DatabaseSync,
+	config: Config,
+	invoke_hook: (
+		plugin: string,
+		hook: string,
+		args: Record<string, any>
+	) => Promise<Record<string, any>>,
+	plugins: Record<string, PluginSpec>,
+	mode: string
+) {
+	// in order to know our configuration values, we need to load the current environment
+	// to do this we need to look at each plugin that supports the environment hook
+	// and invoke it
+	const env = {}
+
+	// look at each plugin
+	await Promise.all(
+		Object.values(plugins).map(async (plugin) => {
+			// if the plugin supports the environment hook
+			if (plugin.hooks.has('Environment')) {
+				// we need to hit the corresponding endpoint in the plugin server
+				Object.assign(env, await invoke_hook(plugin.name, 'environment', { mode }))
+			}
+		})
+	)
+
+	// now that we have the environment, we can write our config values to the database
+	const config_file = {
+		...default_config,
+		...config.config_file,
+	}
+
+	// write the config to the database
+	db.prepare(
+		`
+		INSERT INTO config (
+			include,
+			exclude,
+			definitions_path,
+			cache_buffer_size,
+			default_cache_policy,
+			default_partial,
+			default_lifetime,
+			default_list_position,
+			default_list_target,
+			default_paginate_mode,
+			suppress_pagination_deduplication,
+			log_level,
+			default_fragment_masking,
+			default_keys,
+			persisted_queries_path,
+			project_root,
+			runtime_dir
+		) VALUES (
+			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+		)
+	`
+	).run(
+		JSON.stringify(
+			typeof config_file.include === 'string'
+				? [config_file.include]
+				: config_file.include ?? []
+		),
+		JSON.stringify(
+			typeof config_file.exclude === 'string'
+				? [config_file.exclude]
+				: config_file.exclude ?? []
+		),
+		config_file.definitionsPath ?? '',
+		config_file.cacheBufferSize ?? null,
+		config_file.defaultCachePolicy ?? null,
+		config_file.defaultPartial ? 1 : 0,
+		config_file.defaultLifetime ?? null,
+		config_file.defaultListPosition ?? null,
+		config_file.defaultListTarget ?? null,
+		config_file.defaultPaginateMode ?? null,
+		config_file.supressPaginationDeduplication ? 1 : 0,
+		config_file.logLevel ?? null,
+		config_file.defaultFragmentMasking ?? null,
+		config_file.defaultKeys?.join('?? null,') ?? null,
+		config_file.persistedQueriesPath ?? null,
+		config.root_dir ?? null,
+		config_file.runtimeDir ?? null
+	)
+
+	// write the scalar definitions
+	let insert = db.prepare('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)')
+	for (const [name, { type }] of Object.entries(config.config_file.scalars ?? {})) {
+		insert.run(name, type)
+	}
+
+	// write router config
+	if (config.config_file.router) {
+		let session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
+		let api_endpoint: string | null = null
+		let url: string | null = null
+		let mutation: string | null = null
+		let redirect: string | null = null
+
+		if (config.config_file.router.auth) {
+			if ('mutation' in config.config_file.router.auth) {
+				mutation = config.config_file.router.auth.mutation
+			} else {
+				redirect = config.config_file.router.auth.redirect
+			}
+			url = config.config_file.router.auth.url ?? null
+		}
+
+		db.prepare(
+			`INSERT INTO router_config (
+				redirect,
+				session_keys,
+				url,
+				mutation,
+				redirect,
+				api_endpoint
+			) VALUES (?, ?, ?, ?, ?, ?)`
+		).run(redirect, session_keys, url, mutation, redirect, api_endpoint)
+	}
+
+	// add watch_schema_config
+	if (config.config_file.watchSchema) {
+		const url =
+			typeof config.config_file.watchSchema.url === 'string'
+				? config.config_file.watchSchema.url
+				: config.config_file.watchSchema.url(env)
+		const headers = !config.config_file.watchSchema.headers
+			? {}
+			: typeof config.config_file.watchSchema.headers === 'function'
+			? typeof config.config_file.watchSchema.headers(env)
+			: typeof config.config_file.watchSchema.headers
+		db.prepare(
+			`INSERT INTO watch_schema_config (
+				url,
+				headers,
+				interval,
+				timeout
+			) VALUES (?, ?, ?, ?)`
+		).run(
+			url,
+			JSON.stringify(headers),
+			config.config_file.watchSchema.interval ?? null,
+			config.config_file.watchSchema.timeout ?? null
+		)
+	}
+
+	// write the scalar configs
+	insert = db.prepare('INSERT INTO scalar_config (name, type) VALUES (?, ?)')
+	for (const [name, { type }] of Object.entries(config.config_file.scalars ?? {})) {
+		insert.run(name, type)
+	}
+
+	// write the type configs
+	insert = db.prepare('INSERT INTO type_configs (name, keys) VALUES (?, ?)')
+	for (const [name, { keys }] of Object.entries(config.config_file.types ?? {})) {
+		insert.run(name, (keys || config_file.defaultKeys || []).join(','))
 	}
 }
 

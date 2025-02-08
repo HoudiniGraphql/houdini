@@ -1,19 +1,19 @@
 package plugins
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 var (
@@ -22,12 +22,22 @@ var (
 )
 
 func ParseFlags() {
-	flag.StringVar(&configHost, "config", "", "")
 	flag.StringVar(&databasePath, "database", "", "")
 	flag.Parse()
 }
 
 func Run(plugin Plugin) {
+	// make sure a database path is provided
+	if databasePath == "" {
+		flag.Usage()
+		log.Fatal("database path is required")
+	}
+
+	// connect to the database
+	db, err := ConnectDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	hooks := pluginHooks(plugin)
 
@@ -105,90 +115,27 @@ func Run(plugin Plugin) {
 		case <-ctx.Done():
 			return
 		default:
+			// only notify once
 			if notified {
 				continue
 			}
+			notified = true
 
-			// notify config server
-			_, err = QueryConfigServer[struct {
-				RegisterPlugin bool `json:"registerPlugin"`
-			}](`
-            mutation($input: RegisterPluginInput!) {
-                registerPlugin(input: $input)
-            }
-        `, map[string]interface{}{
-				"input": map[string]interface{}{
-					"plugin": plugin.Name(),
-					"order":  plugin.Order(),
-					"port":   port,
-					"hooks":  hooks,
+			// register plugin with database
+			err = sqlitex.ExecuteTransient(db.Conn,
+				`INSERT INTO plugins (name, hooks, port, plugin_order) VALUES (?, ?, ?, ?)`,
+				&sqlitex.ExecOptions{
+					Args: []interface{}{
+						plugin.Name(),
+						strings.Join(hooks, ","),
+						port,
+						plugin.Order(),
+					},
 				},
-			})
+			)
 			if err != nil {
 				log.Fatal(err)
-				return
 			}
-			notified = true
 		}
 	}
-
-}
-
-func QueryConfigServer[Response any](query string, input map[string]any) (*Response, error) {
-	if configHost == "" {
-		return nil, nil
-	}
-
-	// create a custom HTTP client with timeout
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	// create request payload
-	payload := map[string]any{
-		"query":     query,
-		"variables": input,
-	}
-
-	// marshal payload to JSON
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("marshaling payload: %w", err)
-	}
-
-	// create a new POST request with JSON payload
-	req, err := http.NewRequest(http.MethodPost, configHost, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
-	}
-
-	// set content type header
-	req.Header.Set("Content-Type", "application/json")
-
-	// send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("sending request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// read and parse response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, body)
-	}
-
-	// parse response
-	response := struct {
-		Data Response `json:"data"`
-	}{}
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("unmarshaling response: %w", err)
-	}
-
-	return &response.Data, nil
 }

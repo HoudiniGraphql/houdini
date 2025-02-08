@@ -99,9 +99,19 @@ if (!platformSpecificPackageName) {
 	throw new Error('Platform not supported!')
 }
 
+// once we've confirmed the required package is installed we want to overwrite the bin entry of our package.json
+// to point to the correct binary
+function overwriteBinary() {
+	const packageJsonPath = path.join(__dirname, 'package.json')
+	const packageJson = require(packageJsonPath)
+	packageJson.bin = path.join('..', platformSpecificPackageName, 'bin', binaryName)
+	fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+}
+
 // Skip downloading the binary if it was already installed via optionalDependencies
 if (!isPlatformSpecificPackageInstalled()) {
 	console.log('Platform specific package not found. Will manually download binary.')
-	downloadBinaryFromNpm()
+	downloadBinaryFromNpm().then(overwriteBinary)
 } else {
+	overwriteBinary()
 }
