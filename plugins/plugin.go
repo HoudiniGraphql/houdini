@@ -16,6 +16,11 @@ func (p *Plugin[PluginConfig]) SetDatabase(db Database[PluginConfig]) {
 	p.DB = db
 }
 
+// ConnectDB returns a new database connection.
+func (p *Plugin[PluginConfig]) ConnectDB() (Database[PluginConfig], error) {
+	return ConnectDB[PluginConfig]()
+}
+
 // each hook can be implemented by a plugin by implementing the corresponding method
 
 type PluginOrder string

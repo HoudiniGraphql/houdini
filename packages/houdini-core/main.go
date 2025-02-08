@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"code.houdinigraphql.com/plugins"
 
@@ -10,7 +11,11 @@ import (
 
 func main() {
 	// run the plugin
-	plugins.Run(&HoudiniCore{})
+	err := plugins.Run(&HoudiniCore{})
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 type HoudiniCore struct {

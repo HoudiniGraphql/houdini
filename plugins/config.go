@@ -2,7 +2,6 @@ package plugins
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -135,7 +134,6 @@ func (db *Database[PluginConfig]) ReloadPluginConfig() error {
 		Args: []interface{}{_pluginName},
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			result := stmt.ColumnText(0)
-			fmt.Println("result", result)
 			// Allocate a new PluginConfig if it is nil.
 			if db._pluginConfig == nil {
 				db._pluginConfig = new(PluginConfig)

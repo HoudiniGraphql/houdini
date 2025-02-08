@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"code.houdinigraphql.com/packages/houdini-core/glob"
-	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 )
@@ -91,7 +90,7 @@ func (p *HoudiniCore) ExtractDocuments() error {
 	// database writer goroutine
 	g.Go(func() error {
 		// build a connection to the database.
-		conn, err := plugins.ConnectDB[PluginConfig]()
+		conn, err := p.ConnectDB()
 		if err != nil {
 			return fmt.Errorf("failed to connect to db: %w", err)
 		}

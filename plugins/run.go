@@ -32,13 +32,13 @@ func ParseFlags() {
 	}
 }
 
-func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) {
+func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	ParseFlags()
 
 	// connect to the database
 	db, err := ConnectDB[PluginConfig]()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	_pluginName = plugin.Name()
@@ -50,7 +50,7 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) {
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	port := listener.Addr().(*net.TCPAddr).Port
@@ -69,41 +69,12 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) {
 	// channel for server errors
 	serverErr := make(chan error, 1)
 
-	addr := fmt.Sprintf("localhost:%d", port)
-
 	// start server in a goroutine
 	go func() {
 		if err := srv.Serve(listener); err != http.ErrServerClosed {
 			serverErr <- err
 		}
 	}()
-
-	// test connection to ensure server is listening
-	for i := 0; i < 10; i++ {
-		conn, err := net.Dial("tcp", addr)
-		if err == nil {
-			conn.Close()
-			break
-		}
-		// check if server failed
-		select {
-		case err := <-serverErr:
-			log.Fatal("server failed to start:", err)
-			return
-		default:
-			time.Sleep(1 * time.Millisecond)
-			continue
-		}
-	}
-
-	// check one final time for any server startup errors
-	select {
-	case err := <-serverErr:
-		log.Fatal("server failed to start:", err)
-		return
-	default:
-		// server started successfully
-	}
 
 	// wait for shutdown signal or server error
 	notified := false
@@ -115,12 +86,15 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) {
 			defer shutdownCancel()
 
 			if err := srv.Shutdown(shutdownCtx); err != nil {
+				return fmt.Errorf("server shutdown failed: %w", err)
 			}
-			return
-		case <-serverErr:
-			return
+
+			// nothing went wrong
+			return nil
+		case err := <-serverErr:
+			return err
 		case <-ctx.Done():
-			return
+			return nil
 		default:
 			// only notify once
 			if notified {
