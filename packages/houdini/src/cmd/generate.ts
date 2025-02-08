@@ -52,7 +52,6 @@ export async function generate(
 
 		// kick off the codegen pipeline
 		await codegen(config_server)
-		console.log('finished codegen')
 
 		// we're done, close everything
 		await config_server.close()

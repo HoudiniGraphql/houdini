@@ -107,6 +107,7 @@ func (p HoudiniCore) ExtractDocuments() error {
 		if err != nil {
 			return fmt.Errorf("failed to connect to db: %w", err)
 		}
+		defer conn.Close()
 
 		// prepare the insert statement.
 		statement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
