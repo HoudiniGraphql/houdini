@@ -1,18 +1,18 @@
 package plugins
 
 // all a plugin _must_ provide is a name and its order
-type HoudiniPlugin interface {
+type HoudiniPlugin[PluginConfig any] interface {
 	Name() string
 	Order() PluginOrder
-	SetDatabase(Database)
+	SetDatabase(Database[PluginConfig])
 }
 
-type Plugin struct {
-	DB Database
+type Plugin[PluginConfig any] struct {
+	DB Database[PluginConfig]
 }
 
 // SetDatabase is a helper that lets Run() inject the database into the plugin.
-func (p *Plugin) SetDatabase(db Database) {
+func (p *Plugin[PluginConfig]) SetDatabase(db Database[PluginConfig]) {
 	p.DB = db
 }
 

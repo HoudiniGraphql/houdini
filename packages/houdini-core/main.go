@@ -14,8 +14,10 @@ func main() {
 }
 
 type HoudiniCore struct {
-	plugins.Plugin
+	plugins.Plugin[PluginConfig]
 }
+
+type PluginConfig = any
 
 func (p *HoudiniCore) Name() string {
 	return "houdini-core"

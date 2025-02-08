@@ -4,27 +4,28 @@ import (
 	"zombiezen.com/go/sqlite"
 )
 
-type Database struct {
+var _pluginName string
+
+type Database[PluginConfig any] struct {
 	_config       *ProjectConfig
-	_pluginConfig string
-	_pluginName   string
+	_pluginConfig *PluginConfig
 	*sqlite.Conn
 }
 
-func ConnectDB() (Database, error) {
+func ConnectDB[PluginConfig any]() (Database[PluginConfig], error) {
 	conn, err := sqlite.OpenConn(databasePath, sqlite.OpenReadWrite)
 	if err != nil {
-		return Database{}, err
+		return Database[PluginConfig]{}, err
 	}
 
-	return Database{Conn: conn}, nil
+	return Database[PluginConfig]{Conn: conn}, nil
 }
 
-func InMemoryDB() (Database, error) {
+func InMemoryDB[PluginConfig any]() (Database[PluginConfig], error) {
 	conn, err := sqlite.OpenConn(":memory:", sqlite.OpenReadWrite)
 	if err != nil {
-		return Database{}, err
+		return Database[PluginConfig]{}, err
 	}
 
-	return Database{Conn: conn}, nil
+	return Database[PluginConfig]{Conn: conn}, nil
 }

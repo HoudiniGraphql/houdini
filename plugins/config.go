@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -27,7 +28,7 @@ type ProjectConfig struct {
 	RuntimeDir                      string
 }
 
-func (db Database) ProjectConfig() (ProjectConfig, error) {
+func (db Database[PluginConfig]) ProjectConfig() (ProjectConfig, error) {
 	// if we've already loaded the config use it
 	if db._config != nil {
 		return *db._config, nil
@@ -43,7 +44,7 @@ func (db Database) ProjectConfig() (ProjectConfig, error) {
 	return *db._config, nil
 }
 
-func (db *Database) ReloadProjectConfig() error {
+func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	// build up a config object
 	config := ProjectConfig{}
 
@@ -108,4 +109,43 @@ func (db *Database) ReloadProjectConfig() error {
 	db._config = &config
 
 	return nil
+}
+
+func (db Database[PluginConfig]) PluginConfig() (result PluginConfig, err error) {
+	// if we've already loaded the config use it
+	if db._pluginConfig != nil {
+		result = *db._pluginConfig
+		return
+	}
+
+	// otherwise load it from the database
+	err = db.ReloadPluginConfig()
+	if err != nil {
+		return
+	}
+
+	// this has been loaded by now
+	result = *db._pluginConfig
+	return
+}
+
+func (db *Database[PluginConfig]) ReloadPluginConfig() error {
+	// look for the plugin entry with the correct name and marshal it into the pluginConfig field
+	return sqlitex.Execute(db.Conn, `SELECT config FROM plugins WHERE name = ?`, &sqlitex.ExecOptions{
+		Args: []interface{}{_pluginName},
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			result := stmt.ColumnText(0)
+			fmt.Println("result", result)
+			// Allocate a new PluginConfig if it is nil.
+			if db._pluginConfig == nil {
+				db._pluginConfig = new(PluginConfig)
+			}
+			// Now unmarshal into the allocated value.
+			err := json.Unmarshal([]byte(result), db._pluginConfig)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	})
 }

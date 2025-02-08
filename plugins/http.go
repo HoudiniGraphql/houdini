@@ -7,7 +7,7 @@ import (
 )
 
 // the hooks that a plugin defines dictate a set of events that the plugin must repond to
-func pluginHooks(plugin HoudiniPlugin) []string {
+func pluginHooks[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) []string {
 	hooks := map[string]bool{}
 	if _, ok := plugin.(IncludeRuntime); ok {
 		hooks["Generate"] = true
@@ -133,7 +133,7 @@ func EventHook(hook func() error) http.Handler {
 
 }
 
-func handleGenerate(plugin HoudiniPlugin) func() error {
+func handleGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func() error {
 	return func() error {
 		// if the plugin defines a runtime to include
 		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
@@ -149,7 +149,7 @@ func handleGenerate(plugin HoudiniPlugin) func() error {
 	}
 }
 
-func handleAfterLoad(plugin HoudiniPlugin) func() error {
+func handleAfterLoad[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func() error {
 	return func() error {
 		// if the plugin defines a runtime to include
 		if staticRuntime, ok := plugin.(StaticRuntime); ok {
@@ -228,7 +228,7 @@ func handleTransformFile(plugin TransformFile) http.Handler {
 	})
 }
 
-func handleBeforeGenerate(plugin HoudiniPlugin) func() error {
+func handleBeforeGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func() error {
 	return func() error {
 		// if the plugin defines a runtime to include
 		if _, ok := plugin.(BeforeGenerate); ok {
@@ -244,7 +244,7 @@ func handleBeforeGenerate(plugin HoudiniPlugin) func() error {
 	}
 }
 
-func handleAfterGenerate(plugin HoudiniPlugin) func() error {
+func handleAfterGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func() error {
 	return func() error {
 		// if the plugin defines a runtime to include
 		if _, ok := plugin.(ArtifactData); ok {
