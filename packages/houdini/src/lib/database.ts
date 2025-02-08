@@ -51,8 +51,8 @@ CREATE TABLE config (
     default_paginate_mode TEXT CHECK (default_paginate_mode IN ('INFINITE', 'SINGLE_PAGE')),
     suppress_pagination_deduplication BOOLEAN,
     log_level TEXT CHECK (log_level IN ('QUIET', 'FULL', 'SUMMARY', 'SHORT_SUMMARY')),
-    default_fragment_masking TEXT CHECK (default_fragment_masking IN ('ENABLE', 'DISABLE')),
-    default_keys TEXT, -- Comma-separated keys
+    default_fragment_masking BOOLEAN,
+    default_keys JSON,
     persisted_queries_path TEXT,
     project_root TEXT,
     runtime_dir TEXT
@@ -494,8 +494,8 @@ export async function write_config(
 		config_file.defaultPaginateMode ?? null,
 		config_file.supressPaginationDeduplication ? 1 : 0,
 		config_file.logLevel ?? null,
-		config_file.defaultFragmentMasking ?? null,
-		config_file.defaultKeys?.join('?? null,') ?? null,
+		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
+		JSON.stringify(config_file.defaultKeys ?? []),
 		config_file.persistedQueriesPath ?? null,
 		config.root_dir ?? null,
 		config_file.runtimeDir ?? null

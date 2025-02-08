@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -16,40 +15,20 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 func (p HoudiniCore) ExtractDocuments() error {
-	// load the include, exclude, and project root from the config
-	var include, exclude []string
-	var projectRoot string
-	err := sqlitex.Execute(p.DB.Conn, "SELECT include, exclude, project_root FROM config ", &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			err := json.Unmarshal([]byte(stmt.ColumnText(0)), &include)
-			if err != nil {
-				return err
-			}
-			err = json.Unmarshal([]byte(stmt.ColumnText(1)), &exclude)
-			if err != nil {
-				return err
-			}
-			projectRoot = stmt.ColumnText(2)
-
-			// nothing went wrong
-			return nil
-		},
-	})
+	config, err := p.DB.PluginConfig()
 	if err != nil {
 		return err
 	}
 
 	// build a glob walker that we can use to find all of the files
 	walker := glob.NewWalker()
-	for _, pattern := range include {
+	for _, pattern := range config.Include {
 		walker.AddInclude(pattern)
 	}
-	for _, pattern := range exclude {
+	for _, pattern := range config.Exclude {
 		walker.AddExclude(pattern)
 	}
 
@@ -68,7 +47,7 @@ func (p HoudiniCore) ExtractDocuments() error {
 	// file walker goroutine
 	g.Go(func() error {
 		// start the walk; each file path found is sent into filePathsCh.
-		err := walker.Walk(ctx, projectRoot, func(fp string) error {
+		err := walker.Walk(ctx, config.ProjectRoot, func(fp string) error {
 			// in case the context is canceled, stop early.
 			select {
 			case filePathsCh <- fp:
