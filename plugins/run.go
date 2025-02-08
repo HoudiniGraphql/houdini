@@ -32,12 +32,17 @@ func ParseFlags() {
 	}
 }
 
-func Run(plugin Plugin) {
+func Run(plugin HoudiniPlugin) {
+	ParseFlags()
+
 	// connect to the database
 	db, err := ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// If the plugin supports injection, set its DB.
+	plugin.SetDatabase(db)
 
 	hooks := pluginHooks(plugin)
 

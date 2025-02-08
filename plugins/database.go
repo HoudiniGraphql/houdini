@@ -5,7 +5,9 @@ import (
 )
 
 type Database struct {
-	_config *ProjectConfig
+	_config       *ProjectConfig
+	_pluginConfig string
+	_pluginName   string
 	*sqlite.Conn
 }
 

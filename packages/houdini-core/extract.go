@@ -17,7 +17,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (p HoudiniCore) ExtractDocuments() error {
+func (p *HoudiniCore) ExtractDocuments() error {
 	// load the project config
 	config, err := p.DB.ProjectConfig()
 	if err != nil {

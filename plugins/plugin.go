@@ -1,9 +1,19 @@
 package plugins
 
 // all a plugin _must_ provide is a name and its order
-type Plugin interface {
+type HoudiniPlugin interface {
 	Name() string
 	Order() PluginOrder
+	SetDatabase(Database)
+}
+
+type Plugin struct {
+	DB Database
+}
+
+// SetDatabase is a helper that lets Run() inject the database into the plugin.
+func (p *Plugin) SetDatabase(db Database) {
+	p.DB = db
 }
 
 // each hook can be implemented by a plugin by implementing the corresponding method

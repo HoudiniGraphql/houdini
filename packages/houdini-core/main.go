@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"code.houdinigraphql.com/plugins"
 
@@ -10,33 +9,23 @@ import (
 )
 
 func main() {
-	// parse the command line arguments
-	plugins.ParseFlags()
-
-	// connect to the database
-	db, err := plugins.ConnectDB()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer db.Close()
-
 	// run the plugin
-	plugins.Run(HoudiniCore{DB: db})
+	plugins.Run(&HoudiniCore{})
 }
 
 type HoudiniCore struct {
-	DB plugins.Database
+	plugins.Plugin
 }
 
-func (p HoudiniCore) Name() string {
+func (p *HoudiniCore) Name() string {
 	return "houdini-core"
 }
 
-func (p HoudiniCore) Order() plugins.PluginOrder {
+func (p *HoudiniCore) Order() plugins.PluginOrder {
 	return plugins.PluginOrderCore
 }
 
-func (p HoudiniCore) Environment(mode string) (map[string]string, error) {
+func (p *HoudiniCore) Environment(mode string) (map[string]string, error) {
 	// build up the environment variables using the vite rules laid out here: https://vite.dev/guide/env-and-mode
 	result := map[string]string{}
 
