@@ -17,7 +17,7 @@ export type PluginSpec = {
 
 // pre_codegen sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
-export async function codegen_init(
+export async function codegen_setup(
 	config: Config,
 	mode: string
 ): Promise<{
@@ -52,11 +52,22 @@ export async function codegen_init(
 			// waiting for a plugin means polling the database until we see the plugin announce itself
 			const interval = setInterval(() => {
 				const row = find_plugin.get(name) as
-					| { name: string; port: number; hooks: string; plugin_order: string }
+					| {
+							name: string
+							port: number
+							hooks: string
+							plugin_order: string
+					  }
 					| undefined
 				if (row) {
 					// we found the plugin, stop polling
 					clearInterval(interval)
+
+					// update the plugin spec with the user provided config
+					db.prepare('UPDATE plugins set config = ? where name = ?').run(
+						JSON.stringify(config.plugins.find((p) => p.name === name)?.config ?? {}),
+						name
+					)
 
 					// create the plugin spec
 					const spec: PluginSpec = {

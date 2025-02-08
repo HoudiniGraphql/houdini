@@ -14,7 +14,7 @@ export type { ConfigFile } from '../runtime/lib/config'
 
 export type PluginMeta = {
 	name: string
-	options: Record<string, any>
+	config: Record<string, any>
 	executable: string
 }
 
@@ -45,12 +45,10 @@ let pending_config_promises: Promise<Config> | null = null
 // get the project's current configuration
 export async function get_config({
 	force_reload,
-	schema,
 	config_path: _config_path,
 }: {
 	config_path?: string
 	force_reload?: boolean
-	schema?: GraphQLSchema
 } = {}): Promise<Config> {
 	let config_path = _config_path ?? ''
 
@@ -147,9 +145,9 @@ export async function get_config({
 
 		// order the list of plugins
 		_config.plugins = await Promise.all(
-			plugins.map(async ([name, options]) => ({
+			plugins.map(async ([name, config]) => ({
 				name,
-				options,
+				config,
 				executable: await plugin_path(name, config_path),
 			}))
 		)
