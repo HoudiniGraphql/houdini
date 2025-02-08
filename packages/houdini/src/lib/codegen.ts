@@ -50,8 +50,6 @@ export async function codegen_init(
 					['--config', `http://localhost:${config_server.port}`, '--database', db_file],
 					{
 						stdio: 'inherit',
-						// create a new process group
-						detached: true,
 					}
 				),
 				// and wait for the plugin to report back its port
@@ -99,9 +97,7 @@ export async function codegen_init(
 								try {
 									// The child was spawned with detached: true so that it is its own process group.
 									process.kill(-plugin.process.pid, 'SIGINT')
-								} catch (err) {
-									console.error('Error sending SIGINT:', err)
-								}
+								} catch (err) {}
 
 								// Wait for the process to exit, or force-kill it after a timeout.
 								await new Promise<void>((resolve) => {
