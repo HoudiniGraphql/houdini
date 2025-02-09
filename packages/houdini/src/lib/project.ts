@@ -122,7 +122,7 @@ export async function get_config({
 			config_file,
 			filepath: config_path,
 			schema: local_schema
-				? await load_local_schema(local_schema)
+				? await load_local_schema(config_file, local_schema)
 				: await load_schema_file(config_file.schemaPath),
 			plugins: [],
 		}
@@ -253,10 +253,17 @@ export function internal_routes(config: Config): string[] {
 	return routes
 }
 
-export async function load_local_schema(schema_path: string): Promise<graphql.GraphQLSchema> {
+export async function load_local_schema(
+	config: ConfigFile,
+	schema_path: string
+): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
 		const { default: schema } = await import(pathToFileURL(schema_path).toString())
+
+		// now that we have the schema, let's write it to disk so the core plugin
+		// can import it
+		await fs.writeFile(config.schemaPath!, graphql.printSchema(schema))
 
 		return schema
 	} catch (e) {

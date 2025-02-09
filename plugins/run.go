@@ -46,7 +46,15 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	// If the plugin supports injection, set its DB.
 	plugin.SetDatabase(db)
 
-	hooks := pluginHooks(plugin)
+	// load both of the config values
+	db.ReloadPluginConfig()
+	db.ReloadProjectConfig()
+
+	// create context that we'll cancel on shutdown signal
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hooks := pluginHooks(ctx, plugin)
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -57,10 +65,6 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 
 	// create server instance so we can shut it down gracefully
 	srv := &http.Server{}
-
-	// create context that we'll cancel on shutdown signal
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	// set up signal handling
 	sigChan := make(chan os.Signal, 1)

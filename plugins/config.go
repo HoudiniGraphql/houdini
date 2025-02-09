@@ -10,6 +10,7 @@ import (
 type ProjectConfig struct {
 	Include                         []string
 	Exclude                         []string
+	SchemaPath                      string
 	DefinitionsPath                 string
 	CacheBufferSize                 int
 	DefaultCachePolicy              string
@@ -65,8 +66,9 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 		default_keys,
 		persisted_queries_path,
 		project_root,
-		runtime_dir
-	FROM config`, &sqlitex.ExecOptions{
+		runtime_dir,
+		schema_path
+	FROM config LIMIT 1`, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			err := json.Unmarshal([]byte(stmt.ColumnText(0)), &config.Include)
 			if err != nil {
@@ -95,6 +97,7 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 			config.PersistedQueriesPath = stmt.ColumnText(14)
 			config.ProjectRoot = stmt.ColumnText(15)
 			config.RuntimeDir = stmt.ColumnText(16)
+			config.SchemaPath = stmt.ColumnText(17)
 
 			// nothing went wrong
 			return nil

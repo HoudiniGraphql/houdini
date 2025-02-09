@@ -5,13 +5,12 @@ import { PluginSpec } from './codegen'
 import { Config, default_config } from './project'
 
 export const create_schema = `
--- A table of plugins that have been started
 CREATE TABLE plugins (
-	name TEXT NOT NULL PRIMARY KEY UNIQUE,
-	port INTEGER NOT NULL,
-	hooks TEXT NOT NULL,
-	plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
-	config JSON
+    name TEXT NOT NULL PRIMARY KEY UNIQUE,
+    port INTEGER NOT NULL,
+    hooks TEXT NOT NULL,
+    plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
+    config JSON
 );
 
 -- Watch Schema Config
@@ -19,21 +18,21 @@ CREATE TABLE watch_schema_config (
     url TEXT NOT NULL,
     headers JSON,
     interval INTEGER,
-	timeout INTEGER
+    timeout INTEGER
 );
 
 -- Router Config
 CREATE TABLE router_config (
-	api_endpoint TEXT,
-	redirect TEXT UNIQUE,
-	session_keys TEXT NOT NULL UNIQUE,
-	url TEXT,
-	mutation TEXT UNIQUE
+    api_endpoint TEXT,
+    redirect TEXT UNIQUE,
+    session_keys TEXT NOT NULL UNIQUE,
+    url TEXT,
+    mutation TEXT UNIQUE
 );
 
 -- Runtime Scalar Definition
 CREATE TABLE runtime_scalar_definitions (
-	name TEXT NOT NULL PRIMARY KEY UNIQUE,
+    name TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL
 );
 
@@ -41,6 +40,7 @@ CREATE TABLE runtime_scalar_definitions (
 CREATE TABLE config (
     include JSON NOT NULL,
     exclude JSON NOT NULL,
+    schema_path TEXT NOT NULL,
     definitions_path TEXT,
     cache_buffer_size INTEGER,
     default_cache_policy TEXT,
@@ -59,24 +59,27 @@ CREATE TABLE config (
 );
 
 CREATE TABLE scalar_config (
-	name TEXT NOT NULL PRIMARY KEY UNIQUE,
-	type TEXT NOT NULL
+    name TEXT NOT NULL PRIMARY KEY UNIQUE,
+    type TEXT NOT NULL
 );
 
 -- Types configuration
 CREATE TABLE type_configs (
-	name TEXT NOT NULL,
-	keys TEXT NOT NULL
+    name TEXT NOT NULL,
+    keys TEXT NOT NULL
 );
 
 -- A table of original document contents (to be populated by plugins)
 CREATE TABLE raw_documents (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	filepath TEXT NOT NULL,
-	content TEXT NOT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filepath TEXT NOT NULL,
+    content TEXT NOT NULL
 );
 
+-----------------------------------------------------------
 -- Schema Definition Tables
+-----------------------------------------------------------
+
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT'))
@@ -87,7 +90,7 @@ CREATE TABLE type_fields (
     parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
     type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name),
+    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, name)
 );
 
@@ -107,7 +110,7 @@ CREATE TABLE input_fields (
     parent TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name),
+    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, name)
 );
 
@@ -115,23 +118,23 @@ CREATE TABLE enum_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent TEXT NOT NULL,
     value TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name),
+    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, value)
 );
 
 CREATE TABLE implemented_interfaces (
     parent TEXT NOT NULL,
     interface_type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name),
-    FOREIGN KEY (interface_type) REFERENCES types(name),
+    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (interface_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     PRIMARY KEY (parent, interface_type)
 );
 
 CREATE TABLE union_member_types (
     parent TEXT NOT NULL,
     member_type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name),
-    FOREIGN KEY (member_type) REFERENCES types(name),
+    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (member_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     PRIMARY KEY (parent, member_type),
     UNIQUE (parent, member_type)
 );
@@ -157,7 +160,10 @@ CREATE TABLE directive_locations (
     PRIMARY KEY (directive, location)
 );
 
+-----------------------------------------------------------
 -- Document Tables
+-----------------------------------------------------------
+
 CREATE TABLE operations (
     name TEXT UNIQUE PRIMARY KEY NOT NULL,
     operation_type TEXT NOT NULL CHECK (operation_type IN ('query', 'mutation', 'subscription')),
@@ -179,7 +185,7 @@ CREATE TABLE fragments (
     type_condition TEXT NOT NULL,
     document_id INTEGER NOT NULL,
     FOREIGN KEY (document_id) REFERENCES documents(id),
-    FOREIGN KEY (type_condition) REFERENCES types(name)
+    FOREIGN KEY (type_condition) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used
@@ -229,6 +235,10 @@ CREATE TABLE field_arguments (
     FOREIGN KEY (selection_id) REFERENCES selections(id)
 );
 
+-----------------------------------------------------------
+-- Indices
+-----------------------------------------------------------
+
 -- Selection traversal indices
 CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
@@ -253,167 +263,6 @@ CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent)
 CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
 `
-
-export const import_graphql_schema = (db: sqlite.DatabaseSync, schema: graphql.GraphQLSchema) => {
-	// prepare the statements we need
-	const insert_type = db.prepare('INSERT INTO types (name, kind) VALUES (?, ?)')
-	const insert_input_type_field = db.prepare(
-		'INSERT INTO input_fields (id, parent, name, type, default_value) VALUES (?, ?, ?, ?, ?)'
-	)
-	const insert_type_field = db.prepare(
-		'INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)'
-	)
-	const insert_interface_implementor = db.prepare(
-		'INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)'
-	)
-	const insert_union_member = db.prepare(
-		'INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)'
-	)
-	const insert_enum_value = db.prepare('INSERT INTO enum_values (parent, value) VALUES (?, ?)')
-	const insert_field_argument = db.prepare(
-		'INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)'
-	)
-	const insert_directive = db.prepare('INSERT INTO directives (name) VALUES (?)')
-	const insert_directive_location = db.prepare(
-		'INSERT INTO directive_locations (directive, location) VALUES (?, ?)'
-	)
-	const insert_directive_argument = db.prepare(
-		'INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)'
-	)
-
-	// we need to register the types before we can add the implementors for interfaces and unions
-	const interfaces: Array<string> = []
-	const unions: Array<string> = []
-
-	// first we need to add scalars to the database
-	for (const schemaType of Object.values(schema.getTypeMap())) {
-		// load the scalars
-		if (schemaType instanceof graphql.GraphQLScalarType) {
-			// insert the type
-			insert_type.run(schemaType.name, 'SCALAR')
-		}
-	}
-
-	// process each type in the schema
-	for (const schemaType of Object.values(schema.getTypeMap())) {
-		// load the named types
-		if (schemaType instanceof graphql.GraphQLObjectType) {
-			// insert the type
-			insert_type.run(schemaType.name, 'OBJECT')
-
-			// insert the fields
-			for (const field of Object.values(schemaType.getFields())) {
-				insert_type_field.run(
-					`${schemaType.name}.${field.name}`,
-					schemaType.name,
-					field.name,
-					field.type.toString()
-				)
-
-				// we need to add the arguments for the field
-				for (const arg of field.args) {
-					insert_field_argument.run(
-						`${schemaType.name}.${field.name}`,
-						arg.name,
-						arg.type.toString(),
-						arg.defaultValue?.toString() ?? null
-					)
-				}
-			}
-		} else if (schemaType instanceof graphql.GraphQLInputObjectType) {
-			// insert the type
-			insert_type.run(schemaType.name, 'OBJECT')
-
-			// insert the fields
-			for (const field of Object.values(schemaType.getFields())) {
-				insert_input_type_field.run(
-					`${schemaType.name}.${field.name}`,
-					schemaType.name,
-					field.name,
-					field.type.toString(),
-					field.defaultValue?.toString() ?? null
-				)
-			}
-		}
-
-		// load the interfaces
-		else if (schemaType instanceof graphql.GraphQLInterfaceType) {
-			// insert the type
-			insert_type.run(schemaType.name, 'INTERFACE')
-
-			// insert the fields
-			for (const field of Object.values(schemaType.getFields())) {
-				insert_type_field.run(
-					`${schemaType.name}.${field.name}`,
-					schemaType.name,
-					field.name,
-					field.type.toString()
-				)
-			}
-
-			// add the interface to the list of interfaces
-			interfaces.push(schemaType.name)
-		}
-
-		// load the unions
-		else if (schemaType instanceof graphql.GraphQLUnionType) {
-			// insert the type
-			insert_type.run(schemaType.name, 'UNION')
-
-			// and remember it for later to add the members
-			unions.push(schemaType.name)
-		}
-
-		// load the enums
-		else if (schemaType instanceof graphql.GraphQLEnumType) {
-			// insert the type
-			insert_type.run(schemaType.name, 'ENUM')
-
-			// insert the values
-			for (const value of schemaType.getValues()) {
-				insert_enum_value.run(schemaType.name, value.name)
-			}
-		}
-	}
-
-	for (const iface of interfaces) {
-		// add any implemented interfaces
-		for (const implementor of schema.getPossibleTypes(
-			schema.getType(iface)! as graphql.GraphQLInterfaceType
-		)) {
-			insert_interface_implementor.run(iface, implementor.name)
-		}
-	}
-
-	for (const union of unions) {
-		// add any implemented interfaces
-		for (const implementor of schema.getPossibleTypes(
-			schema.getType(union)! as graphql.GraphQLUnionType
-		)) {
-			insert_union_member.run(union, implementor.name)
-		}
-	}
-
-	// add the directives
-	for (const directive of schema.getDirectives()) {
-		insert_directive.run(directive.name)
-
-		// add the locations
-		for (const location of directive.locations) {
-			insert_directive_location.run(directive.name, location)
-		}
-
-		// add the arguments
-		for (const arg of directive.args) {
-			insert_directive_argument.run(
-				directive.name,
-				arg.name,
-				arg.type.toString(),
-				arg.defaultValue?.toString() ?? null
-			)
-		}
-	}
-}
 
 export async function write_config(
 	db: sqlite.DatabaseSync,
@@ -454,6 +303,7 @@ export async function write_config(
 		INSERT INTO config (
 			include,
 			exclude,
+			schema_path,
 			definitions_path,
 			cache_buffer_size,
 			default_cache_policy,
@@ -470,7 +320,7 @@ export async function write_config(
 			project_root,
 			runtime_dir
 		) VALUES (
-			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 		)
 	`
 	).run(
@@ -484,6 +334,7 @@ export async function write_config(
 				? [config_file.exclude]
 				: config_file.exclude ?? []
 		),
+		config_file.schemaPath!,
 		config_file.definitionsPath ?? '',
 		config_file.cacheBufferSize ?? null,
 		config_file.defaultCachePolicy ?? null,

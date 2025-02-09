@@ -1,11 +1,10 @@
-import { plugin } from 'legacy/lib'
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
 import sqlite from 'node:sqlite'
 
 import * as fs from '../lib/fs'
 import { db_path } from './conventions'
-import { create_schema, write_config, import_graphql_schema } from './database'
+import { create_schema, write_config } from './database'
 import { type Config } from './project'
 
 export type PluginSpec = {
@@ -40,9 +39,6 @@ export async function codegen_setup(
 	} catch (e) {}
 	const db = new sqlite.DatabaseSync(db_file)
 	db.exec(create_schema)
-
-	// import the project's schema into the database
-	import_graphql_schema(db, config.schema)
 
 	// we need a function that waits for a plugin to register itself
 	const wait_for_plugin = (name: string) =>
@@ -99,6 +95,7 @@ export async function codegen_setup(
 		})
 
 	// start each plugin
+	console.time('Start Plugins')
 	await Promise.all(
 		config.plugins.map(async (plugin) => {
 			let executable = plugin.executable
@@ -111,6 +108,7 @@ export async function codegen_setup(
 				args.unshift(plugin.executable)
 			}
 
+			console.time(`Spawn ${plugin.name}`)
 			plugins[plugin.name] = {
 				// kick off the plugin process
 				process: spawn(executable, args, {
@@ -121,8 +119,10 @@ export async function codegen_setup(
 				// and wait for the plugin to report back its port
 				...(await wait_for_plugin(plugin.name)),
 			}
+			console.timeEnd(`Spawn ${plugin.name}`)
 		})
 	)
+	console.timeEnd('Start Plugins')
 
 	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}) => {
 		const { port } = plugin_specs[name]
@@ -145,7 +145,6 @@ export async function codegen_setup(
 				`Failed to call ${name}/${hook.toLowerCase()}: ${await response.text()}`
 			)
 		}
-
 		// look at the response headers, and if the content type is application/json, parse the body
 		const contentType = response.headers.get('content-type')
 		if (contentType && contentType.includes('application/json')) {
@@ -155,11 +154,13 @@ export async function codegen_setup(
 	}
 
 	const trigger_hook = async (hook: string, payload: Record<string, any> = {}) => {
+		console.time(hook)
 		for (const [name, { hooks }] of Object.entries(plugin_specs)) {
 			if (hooks.has(hook) && plugin_specs[name]) {
 				await invoke_hook(name, hook, payload)
 			}
 		}
+		console.timeEnd(hook)
 	}
 
 	// write the current config values to the database
@@ -170,6 +171,9 @@ export async function codegen_setup(
 
 	// now that we've loaded the environment, we need to invoke the afterLoad hook
 	await trigger_hook('AfterLoad')
+
+	// add any plugin-specifics to our schema
+	await trigger_hook('Schema')
 
 	return {
 		database_path: db_file,
@@ -211,4 +215,5 @@ export async function codegen_setup(
 export async function codegen(trigger_hook: (hook: string) => Promise<void>) {
 	// the first step is to extract documents from the project
 	await trigger_hook('ExtractDocuments')
+	await trigger_hook('AfterExtract')
 }

@@ -51,7 +51,7 @@ func (w *Walker) AddExclude(pattern string) error {
 	return nil
 }
 
-// WalkAfero traverses the filesystem using afero.Walk starting at root.
+// WalkAfero traverses the filesystem in parallel starting at root.
 // for each file, it splits the relative path into tokens and
 // calls onFile if the path matches the include tree and does not match the exclude tree.
 // if a directory matches the exclude tree, its subtree is skipped.

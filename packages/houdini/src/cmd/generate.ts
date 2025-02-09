@@ -62,7 +62,6 @@ export async function generate(
 		} catch (closeError) {
 			console.error('Error closing plugins:', closeError)
 		}
-
 		process.exit(1)
 	}
 }

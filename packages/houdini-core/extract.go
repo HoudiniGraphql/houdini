@@ -16,7 +16,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (p *HoudiniCore) ExtractDocuments() error {
+// ExtractDocuments is responsible for walking down the project directory structure and
+// extracting the raw graphql documents from the files. These files will be parsed in a
+// later step to allow for other plugins to find additional documents we don't know about
+func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// load the project config
 	config, err := p.DB.ProjectConfig()
 	if err != nil {
