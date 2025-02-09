@@ -1,6 +1,7 @@
 import * as p from '@clack/prompts'
 import { bold, cyan, gray, green, italic } from 'kleur/colors'
 import { execSync } from 'node:child_process'
+import * as recast from 'recast'
 
 import type { HoudiniFrameworkInfo } from '../lib'
 import {
@@ -252,7 +253,7 @@ export async function init(
 
 	// Framework specific files
 	if (frameworkInfo.framework === 'svelte') {
-		await svelteKitConfig(targetPath, typescript)
+		await svelteMainJs(targetPath, typescript)
 	} else if (frameworkInfo.framework === 'kit') {
 		await svelteConfig(targetPath, typescript)
 	}
@@ -401,19 +402,17 @@ export default new HoudiniClient({
 /******************************/
 /*  Framework specific files  */
 /******************************/
-async function svelteKitConfig(targetPath: string, typescript: boolean) {
-	const svelteMainJsPath = path.join(targetPath, 'src', typescript ? 'main.ts' : 'main.js')
+async function svelteMainJs(targetPath: string, typescript: boolean) {
+	const mainFile = typescript ? 'main.ts' : 'main.js'
+	const svelteMainJsPath = path.join(targetPath, 'src', mainFile)
 
-	const newContent = `import client from "./client";
-import './app.css'
-import App from './App.svelte'
+	const mainContents = await fs.readFile(svelteMainJsPath)
 
-const app = new App({
-	target: document.getElementById('app')
-})
+	if (!mainContents) {
+		throw new Error(`Failed to update ${mainFile} - cannot read`)
+	}
 
-export default app
-`
+	const newContent = `import client from "./client";\n` + mainContents
 
 	await fs.writeFile(svelteMainJsPath, newContent)
 }
@@ -421,43 +420,68 @@ export default app
 async function svelteConfig(targetPath: string, typescript: boolean) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 
-	const newContentTs = `import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
-	// for more information about preprocessors
-	preprocess: vitePreprocess(),
-
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: '.houdini/'
-		}
+	const contents = await fs.readFile(svelteConfigPath)
+	if (!contents) {
+		throw new Error('Failed to patch svelte config: cannot open file')
 	}
-};
 
-export default config;
-`
+	const ast = recast.parse(contents)
+	recast.visit(ast, {
+		visitProperty(path) {
+			if (
+				path.node.key.type === 'Identifier' &&
+				path.node.key.name === 'kit' &&
+				path.node.value.type === 'ObjectExpression'
+			) {
+				const houdiniAlias: recast.types.namedTypes.Property = {
+					type: 'Property',
+					key: { type: 'Identifier', name: '$houdini' },
+					value: { type: 'StringLiteral', value: '.houdini/' },
+					kind: 'init',
+				}
 
-	const newContentJs = `import adapter from '@sveltejs/adapter-auto';
+				let aliasProperty = path.node.value.properties.find(
+					(p) =>
+						p.type === 'Property' &&
+						p.key.type === 'Identifier' &&
+						p.key.name === 'alias'
+				)
 
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: '.houdini/'
-		}
-	}
-};
-
-export default config;
-`
+				if (
+					aliasProperty &&
+					aliasProperty.type === 'Property' &&
+					aliasProperty.value.type === 'ObjectExpression'
+				) {
+					// Overwrite the alias if it exists. if not, create it.
+					const existingAlias = aliasProperty.value.properties.find(
+						(x) =>
+							x.type === 'Property' &&
+							x.key.type === 'Identifier' &&
+							x.key.name === '$houdini'
+					) as recast.types.namedTypes.Property | null
+					if (existingAlias) {
+						existingAlias.value = houdiniAlias.value
+					} else {
+						aliasProperty.value.properties.push(houdiniAlias)
+					}
+				} else {
+					path.node.value.properties.push({
+						type: 'Property',
+						key: { type: 'Identifier', name: 'alias' },
+						value: {
+							type: 'ObjectExpression',
+							properties: [houdiniAlias],
+						},
+						kind: 'init',
+					})
+				}
+			}
+			return false
+		},
+	})
 
 	// write the svelte config file
-	await fs.writeFile(svelteConfigPath, typescript ? newContentTs : newContentJs)
+	await fs.writeFile(svelteConfigPath, recast.print(ast).code)
 }
 
 /******************************/
@@ -497,37 +521,144 @@ async function viteConfig(
 ) {
 	const viteConfigPath = path.join(targetPath, typescript ? 'vite.config.ts' : 'vite.config.js')
 
-	let content = 'NO_CONTENT_THIS_SHOULD_NEVER_BE_SEEN'
-	if (frameworkInfo.framework === 'svelte') {
-		content = `import { svelte } from '@sveltejs/vite-plugin-svelte'
-import houdini from 'houdini/vite'
-import * as path from 'path'
-import { defineConfig } from 'vite'
-
-export default defineConfig({
-	plugins: [houdini(), svelte()],
-
-	resolve: {
-		alias: {
-			$houdini: '.houdini/',
-		},
-	},
-})
-	`
-	} else if (frameworkInfo.framework === 'kit') {
-		content = `import { sveltekit } from '@sveltejs/kit/vite'
-import houdini from 'houdini/vite'
-import { defineConfig } from 'vite'
-
-export default defineConfig({
-	plugins: [houdini(), sveltekit()]
-});
-`
-	} else {
-		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
+	let contents = await fs.readFile(viteConfigPath)
+	if (!contents) {
+		throw new Error('Failed to patch vite config: cannot open file')
 	}
 
-	await fs.writeFile(viteConfigPath, content)
+	const ast = recast.parse(contents)
+
+	const houdiniImport: recast.types.namedTypes.ImportDeclaration = {
+		type: 'ImportDeclaration',
+		specifiers: [
+			{
+				type: 'ImportDefaultSpecifier',
+				local: { type: 'Identifier', name: 'houdini' },
+			},
+		],
+		source: { type: 'Literal', value: 'houdini/vite' },
+	}
+	ast.program.body.unshift(houdiniImport)
+
+	// Add the `houdini` plugin to the AST
+	recast.visit(ast, {
+		visitProperty(path) {
+			if (path.node.key.type === 'Identifier' && path.node.key.name === 'plugins') {
+				if (path.node.value.type === 'ArrayExpression') {
+					path.node.value.elements.unshift({
+						type: 'CallExpression',
+						callee: {
+							type: 'Identifier',
+							name: 'houdini',
+						},
+						arguments: [],
+					})
+				}
+			}
+			return false
+		},
+	})
+
+	if (frameworkInfo.framework === 'svelte') {
+		const houdiniAliasProperty: recast.types.namedTypes.Property = {
+			type: 'Property',
+			key: { type: 'Identifier', name: '$houdini' },
+			value: { type: 'StringLiteral', value: '.houdini/' },
+			kind: 'init',
+		}
+
+		const aliasValue: recast.types.namedTypes.ObjectExpression = {
+			type: 'ObjectExpression',
+			properties: [houdiniAliasProperty],
+		}
+
+		const resolveValue: recast.types.namedTypes.ObjectExpression = {
+			type: 'ObjectExpression',
+			properties: [
+				{
+					type: 'Property',
+					key: { type: 'Identifier', name: 'alias' },
+					value: aliasValue,
+					kind: 'init',
+				},
+			],
+		}
+
+		// Add `$houdini` alias to `resolve.alias`
+		recast.visit(ast, {
+			visitCallExpression(path) {
+				const config = path.node.arguments[0]
+				if (!config || config.type !== 'ObjectExpression') {
+					throw new Error(
+						"Failed to patch vite config: Couldn't update `defineConfig` param - not an object"
+					)
+				}
+
+				// Find the `resolve` object in the config
+				const resolveProperty = config.properties.find(
+					(x) =>
+						x.type === 'Property' &&
+						x.key.type === 'Identifier' &&
+						x.key.name === 'resolve'
+				) as recast.types.namedTypes.Property | null
+				if (!resolveProperty) {
+					config.properties.push({
+						type: 'Property',
+						key: { type: 'Identifier', name: 'resolve' },
+						value: resolveValue,
+						kind: 'init',
+					})
+				} else {
+					if (resolveProperty.value.type !== 'ObjectExpression') {
+						throw new Error(
+							"Failed to patch vite config: Couldn't update `resolve` field - not an object"
+						)
+					}
+
+					// Find the `alias` object in the `resolve` object
+					const aliasProperty = resolveProperty.value.properties.find(
+						(x) =>
+							x.type === 'Property' &&
+							x.key.type === 'Identifier' &&
+							x.key.name === 'alias'
+					) as recast.types.namedTypes.Property | null
+					if (!aliasProperty) {
+						resolveProperty.value.properties.push({
+							type: 'Property',
+							key: { type: 'Identifier', name: 'alias' },
+							value: aliasValue,
+							kind: 'init',
+						})
+					} else {
+						if (aliasProperty.value.type !== 'ObjectExpression') {
+							throw new Error(
+								"Failed to patch vite config: Couldn't update `alias` field - not an object"
+							)
+						}
+
+						// Make sure the `$houdini` alias is correct
+						const houdiniAlias = aliasProperty.value.properties.find(
+							(x) =>
+								x.type === 'Property' &&
+								x.key.type === 'Identifier' &&
+								x.key.name === '$houdini'
+						) as recast.types.namedTypes.Property | null
+						if (!houdiniAlias) {
+							// Add the alias if it doesn't exist yet.
+							aliasProperty.value.properties.push(houdiniAliasProperty)
+						} else {
+							houdiniAlias.value = houdiniAliasProperty.value
+						}
+					}
+				}
+				return false
+			},
+		})
+	}
+
+	contents = recast.print(ast).code
+
+	await fs.writeFile(viteConfigPath, recast.print(ast).code)
 }
 
 async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
