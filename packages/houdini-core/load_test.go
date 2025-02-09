@@ -131,7 +131,7 @@ var tests = []testCase{
 						Children: []expectedSelection{
 							{
 								FieldName: "User",
-								Alias:     strPtr("User"), // updated expected alias
+								Alias:     nil,
 								PathIndex: 0,
 								Kind:      "inline_fragment",
 								Children: []expectedSelection{
@@ -390,7 +390,7 @@ var tests = []testCase{
 						Children: []expectedSelection{
 							{
 								FieldName: "User",
-								Alias:     strPtr("User"), // updated expected alias
+								Alias:     nil,
 								PathIndex: 0,
 								Kind:      "inline_fragment",
 								Children: []expectedSelection{
@@ -403,7 +403,7 @@ var tests = []testCase{
 											{FieldName: "bio", Alias: strPtr("bio"), PathIndex: 0, Kind: "field"},
 											{
 												FieldName: "Profile",
-												Alias:     strPtr("Profile"), // updated expected alias
+												Alias:     nil,
 												PathIndex: 1,
 												Kind:      "inline_fragment",
 												Children: []expectedSelection{
@@ -452,9 +452,9 @@ var tests = []testCase{
 						Children: []expectedSelection{
 							{
 								FieldName: "UserFields",
-								Alias:     strPtr("UserFields"), // updated expected alias
+								Alias:     nil,
 								PathIndex: 0,
-								Kind:      "fragment_spread",
+								Kind:      "fragment",
 							},
 						},
 					},
@@ -692,7 +692,7 @@ var tests = []testCase{
 						Children: []expectedSelection{
 							{
 								FieldName: "Node",
-								Alias:     strPtr("Node"), // updated expected alias
+								Alias:     nil,
 								PathIndex: 0,
 								Kind:      "inline_fragment",
 								Children: []expectedSelection{
@@ -747,6 +747,205 @@ var tests = []testCase{
 								PathIndex: 1,
 								Kind:      "field",
 							},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "fragment with directive",
+		rawQuery: `
+			fragment TestFragmentDirective on User @deprecated(reason: "old fragment") {
+				id
+				email
+			}
+		`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:          "TestFragmentDirective",
+				RawDocument:   1,
+				Kind:          "fragment",
+				TypeCondition: strPtr("User"),
+				Directives: []expectedDirective{
+					{
+						Name: "deprecated",
+						Arguments: []expectedDirectiveArgument{
+							{Name: "reason", Value: "\"old fragment\""},
+						},
+					},
+				},
+				Selections: []expectedSelection{
+					{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+					{FieldName: "email", Alias: strPtr("email"), PathIndex: 1, Kind: "field"},
+				},
+			},
+		},
+	},
+	{
+		name: "cyclic fragment spreads",
+		rawQuery: `
+			query TestCycle {
+				user {
+					...A
+				}
+			}
+			fragment A on User {
+				...B
+				name
+			}
+			fragment B on User {
+				...A
+				id
+			}
+		`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestCycle",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{
+								FieldName: "A",
+								Alias:     nil,
+								PathIndex: 0,
+								Kind:      "fragment",
+							},
+						},
+					},
+				},
+			},
+			{
+				Name:          "A",
+				RawDocument:   1,
+				Kind:          "fragment",
+				TypeCondition: strPtr("User"),
+				Selections: []expectedSelection{
+					{
+						FieldName: "B",
+						Alias:     nil,
+						PathIndex: 0,
+						Kind:      "fragment",
+					},
+					{
+						FieldName: "name",
+						Alias:     strPtr("name"),
+						PathIndex: 1,
+						Kind:      "field",
+					},
+				},
+			},
+			{
+				Name:          "B",
+				RawDocument:   1,
+				Kind:          "fragment",
+				TypeCondition: strPtr("User"),
+				Selections: []expectedSelection{
+					{
+						FieldName: "A",
+						Alias:     nil,
+						PathIndex: 0,
+						Kind:      "fragment",
+					},
+					{
+						FieldName: "id",
+						Alias:     strPtr("id"),
+						PathIndex: 1,
+						Kind:      "field",
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "complex default variable",
+		rawQuery: `
+			query TestComplexDefault($filter: FilterInput = {term: "foo", tags: ["bar", "baz"]}) {
+				search(filter: $filter) {
+					results { id }
+				}
+			}
+		`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestComplexDefault",
+				RawDocument: 1,
+				Kind:        "query",
+				Variables: []operationVariableRow{
+					{
+						Document:     "TestComplexDefault",
+						VarName:      "filter",
+						Type:         "FilterInput",
+						DefaultValue: strPtr("{term:\"foo\",tags:[\"bar\",\"baz\"]}"),
+					},
+				},
+				Selections: []expectedSelection{
+					{
+						FieldName: "search",
+						Alias:     strPtr("search"),
+						PathIndex: 0,
+						Kind:      "field",
+						Arguments: []expectedArgument{
+							{Name: "filter", Value: "$filter"},
+						},
+						Children: []expectedSelection{
+							{
+								FieldName: "results",
+								Alias:     strPtr("results"),
+								PathIndex: 0,
+								Kind:      "field",
+								Children: []expectedSelection{
+									{
+										FieldName: "id",
+										Alias:     strPtr("id"),
+										PathIndex: 0,
+										Kind:      "field",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "empty inline fragment",
+		rawQuery: `
+			query TestEmptyInline {
+				user(id: "123") {
+					... on User { }
+				}
+			}
+		`,
+		expectError: true,
+	},
+	{
+		name: "multiple operation-level directives",
+		rawQuery: `
+			query TestOpDirectives @directive1 @directive2(arg:"value") {
+				user { id }
+			}
+		`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestOpDirectives",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 						},
 					},
 				},
@@ -846,7 +1045,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						sortTree(actualTree)
 						sortExpectedSelections(expDoc.Selections)
 						if err := compareExpected(expDoc.Selections, actualTree); err != nil {
-							t.Errorf("selection tree mismatch for document %s: %v \n found selection: %+v", expDoc.Name, err, actualTree)
+							t.Errorf("selection tree mismatch for document %s: %v", expDoc.Name, err)
 						}
 					}
 				}
@@ -872,6 +1071,7 @@ type expectedDocument struct {
 	TypeCondition *string
 	Variables     []operationVariableRow
 	Selections    []expectedSelection
+	Directives    []expectedDirective
 }
 
 type operationVariableRow struct {
@@ -900,7 +1100,7 @@ type expectedSelection struct {
 	FieldName  string
 	Alias      *string
 	PathIndex  int
-	Kind       string // "field", "fragment_spread", "inline_fragment", etc.
+	Kind       string // "field", "fragment", "inline_fragment", etc.
 	Arguments  []expectedArgument
 	Directives []expectedDirective
 	Children   []expectedSelection
@@ -997,9 +1197,6 @@ ORDER BY s.id`
 			alias = &a
 		}
 		kind := stmt.ColumnText(4)
-		if docKind != "fragment" && kind == "fragment" {
-			kind = "fragment_spread"
-		}
 		filteredSelections[id] = dbSelection{
 			ID:        id,
 			FieldName: stmt.ColumnText(1),
@@ -1100,7 +1297,7 @@ CREATE TABLE documents (
 CREATE TABLE selections (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	field_name TEXT NOT NULL,
-	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment', 'fragment_spread')),
+	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment', 'fragment')),
 	alias TEXT,
 	path_index INTEGER NOT NULL
 );
@@ -1237,20 +1434,14 @@ func buildExpectedFromDB(selections map[int]dbSelection, rel map[int][]int, root
 	var result []expectedSelection
 	for _, id := range rootIDs {
 		sel := selections[id]
-		alias := sel.Alias
-		// if alias is nil, default to field_name
-		if alias == nil {
-			alias = &sel.FieldName
-		}
-		children := buildExpectedFromDB(selections, rel, rel[sel.ID])
 		result = append(result, expectedSelection{
 			FieldName:  sel.FieldName,
-			Alias:      alias,
+			Alias:      sel.Alias,
 			PathIndex:  sel.PathIndex,
 			Kind:       sel.Kind,
 			Arguments:  nil,
 			Directives: nil,
-			Children:   children,
+			Children:   buildExpectedFromDB(selections, rel, rel[sel.ID]),
 		})
 	}
 	return result
