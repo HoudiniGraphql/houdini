@@ -44,7 +44,11 @@ export async function codegen_setup(
 		await fs.remove(`${db_file}-wal`)
 	} catch (e) {}
 	const db = new sqlite.DatabaseSync(db_file)
-	db.exec('PRAGMA journal_mode=WAL')
+	db.exec('PRAGMA journal_mode = WAL')
+	db.exec('PRAGMA synchronous = off')
+	db.exec('PRAGMA cache_size = 10000')
+	db.exec('PRAGMA temp_store = memory')
+	db.exec('PRAGMA busy_timeout = 5000')
 	db.exec(create_schema)
 
 	// we need a function that waits for a plugin to register itself

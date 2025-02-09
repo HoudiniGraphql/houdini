@@ -195,8 +195,8 @@ CREATE TABLE selection_directives (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     directive TEXT NOT NULL,
-    FOREIGN KEY (selection_id) REFERENCES selections(id),
-    FOREIGN KEY (directive) REFERENCES directives(name)
+    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_directive_arguments (
@@ -204,16 +204,16 @@ CREATE TABLE selection_directive_arguments (
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
     value TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES selection_directives(id)
+    FOREIGN KEY (parent) REFERENCES selection_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
     document TEXT NOT NULL,
-    FOREIGN KEY (parent_id) REFERENCES selections(id),
-    FOREIGN KEY (child_id) REFERENCES selections(id),
-    FOREIGN KEY (document) REFERENCES documents(name)
+    FOREIGN KEY (parent_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (child_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_arguments (
@@ -221,7 +221,7 @@ CREATE TABLE selection_arguments (
     selection_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     value TEXT NOT NULL,
-    FOREIGN KEY (selection_id) REFERENCES selections(id)
+    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 -----------------------------------------------------------
