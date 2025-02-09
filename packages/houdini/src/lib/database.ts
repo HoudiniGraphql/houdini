@@ -280,6 +280,7 @@ export async function write_config(
 	// and invoke it
 	const env = {}
 
+	console.time('Environment')
 	// look at each plugin
 	await Promise.all(
 		Object.values(plugins).map(async (plugin) => {
@@ -290,6 +291,7 @@ export async function write_config(
 			}
 		})
 	)
+	console.timeEnd('Environment')
 
 	// now that we have the environment, we can write our config values to the database
 	const config_file = {
