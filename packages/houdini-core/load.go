@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"runtime"
 
@@ -121,6 +122,216 @@ type InsertStatements struct {
 	InsertSelectionDirectiveArgument *sqlite.Stmt
 }
 
+// loadPendingQuery parses the graphql query and inserts the ast into the database.
+// it handles both operations and fragment definitions.
+func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements InsertStatements) error {
+	// parse the query.
+	parsed, err := parser.ParseQuery(&ast.Source{
+		Input: query.Query,
+	})
+	if err != nil {
+		return err
+	}
+
+	// process operations.
+	for _, operation := range parsed.Operations {
+		// all operations must have a name
+		if operation.Name == "" {
+			return fmt.Errorf("operations must have a name")
+		}
+
+		// insert the operation into the "documents" table.
+		// for operations, we set type_condition to null.
+		statements.InsertDocument.BindText(1, operation.Name)
+		statements.InsertDocument.BindInt64(2, int64(query.ID))
+		statements.InsertDocument.BindText(3, string(operation.Operation))
+		statements.InsertDocument.BindNull(4)
+		if err := db.ExecStatement(statements.InsertDocument); err != nil {
+			return err
+		}
+
+		// insert any variable definitions.
+		for _, variable := range operation.VariableDefinitions {
+			statements.InsertDocumentVariable.BindText(1, operation.Name)
+			statements.InsertDocumentVariable.BindText(2, variable.Variable)
+			statements.InsertDocumentVariable.BindText(3, variable.Type.String())
+			if variable.DefaultValue != nil {
+				statements.InsertDocumentVariable.BindText(4, variable.DefaultValue.String())
+			} else {
+				statements.InsertDocumentVariable.BindNull(4)
+			}
+			if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
+				return err
+			}
+		}
+
+		// walk the selection set for the operation.
+		for i, sel := range operation.SelectionSet {
+			// add each selection to the database.
+			if err := processSelection(db, statements, operation.Name, nil, sel, int64(i)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// process fragment definitions.
+	for _, fragment := range parsed.Fragments {
+		// insert the fragment into "documents".
+		statements.InsertDocument.BindText(1, fragment.Name)
+		statements.InsertDocument.BindInt64(2, int64(query.ID))
+		statements.InsertDocument.BindText(3, "fragment")
+		statements.InsertDocument.BindText(4, fragment.TypeCondition)
+		if err := db.ExecStatement(statements.InsertDocument); err != nil {
+			return err
+		}
+
+		// walk the fragment's selection set.
+		for i, sel := range fragment.SelectionSet {
+			// add each selection to the database.
+			if err := processSelection(db, statements, fragment.Name, nil, sel, int64(i)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// processSelection walks down a selection set and  inserts a row into "selections"
+// along with its arguments, directives, directive arguments, and any child selections.
+func processSelection(db plugins.Database[PluginConfig], statements InsertStatements, documentName string, parent *int64, sel ast.Selection, fieldIndex int64) error {
+	// we need to keep track of the id we create for this selection
+	var selectionID int64
+
+	// check on the type of the selection
+	switch s := sel.(type) {
+
+	case *ast.Field:
+		// insert the field row.
+		statements.InsertSelection.BindText(1, s.Name)
+		if s.Alias != "" {
+			statements.InsertSelection.BindText(2, s.Alias)
+		} else {
+			statements.InsertSelection.BindNull(2)
+		}
+		statements.InsertSelection.BindInt64(3, fieldIndex)
+		statements.InsertSelection.BindText(4, "field")
+		if err := db.ExecStatement(statements.InsertSelection); err != nil {
+			return err
+		}
+		selectionID = db.Conn.LastInsertRowID()
+
+		// handle any field arguments.
+		for _, arg := range s.Arguments {
+			statements.InsertSelectionArgument.BindInt64(1, selectionID)
+			statements.InsertSelectionArgument.BindText(2, arg.Name)
+			statements.InsertSelectionArgument.BindText(3, arg.Value.String())
+			if err := db.ExecStatement(statements.InsertSelectionArgument); err != nil {
+				return err
+			}
+		}
+
+		// insert any directives on the field.
+		err := processDirectives(db, statements, selectionID, s.Directives)
+		if err != nil {
+			return err
+		}
+
+		// walk down any nested selections
+		for i, child := range s.SelectionSet {
+			err := processSelection(db, statements, documentName, &selectionID, child, int64(i))
+			if err != nil {
+				return err
+			}
+		}
+
+	case *ast.InlineFragment:
+		fragType := s.TypeCondition
+		if fragType == "" {
+			fragType = "inline_fragment"
+		}
+		statements.InsertSelection.BindText(1, fragType)
+		statements.InsertSelection.BindNull(2)
+		statements.InsertSelection.BindInt64(3, fieldIndex)
+		statements.InsertSelection.BindText(4, "inline_fragment")
+		if err := db.ExecStatement(statements.InsertSelection); err != nil {
+			return err
+		}
+		selectionID = db.Conn.LastInsertRowID()
+
+		// walk down any nested selections
+		for i, child := range s.SelectionSet {
+			err := processSelection(db, statements, documentName, &selectionID, child, int64(i))
+			if err != nil {
+				return err
+			}
+		}
+
+		// process directives
+		err := processDirectives(db, statements, selectionID, s.Directives)
+		if err != nil {
+			return err
+		}
+
+	case *ast.FragmentSpread:
+		statements.InsertSelection.BindText(1, s.Name)
+		statements.InsertSelection.BindNull(2)
+		statements.InsertSelection.BindInt64(3, fieldIndex)
+		statements.InsertSelection.BindText(4, "fragment")
+		if err := db.ExecStatement(statements.InsertSelection); err != nil {
+			return err
+		}
+		selectionID = db.Conn.LastInsertRowID()
+
+		// process any directives on the fragment spread.
+		err := processDirectives(db, statements, selectionID, s.Directives)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unsupported selection type: %T", sel)
+	}
+
+	// if we get this far, we need to associate the selection with its parent
+	if parent != nil {
+		statements.InsertSelectionRef.BindInt64(1, *parent)
+	} else {
+		statements.InsertSelectionRef.BindNull(1)
+	}
+	statements.InsertSelectionRef.BindInt64(2, selectionID)
+	statements.InsertSelectionRef.BindText(3, documentName)
+	if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
+		return err
+	}
+
+	// nothing went wrong
+	return nil
+}
+
+func processDirectives(db plugins.Database[PluginConfig], statements InsertStatements, selectionID int64, directives []*ast.Directive) error {
+	for _, directive := range directives {
+		// insert the directive row
+		statements.InsertSelectionDirective.BindInt64(1, selectionID)
+		statements.InsertSelectionDirective.BindText(2, directive.Name)
+		if err := db.ExecStatement(statements.InsertSelectionDirective); err != nil {
+			return err
+		}
+		dirID := db.Conn.LastInsertRowID()
+
+		// and the arguments to the directive
+		for _, dArg := range directive.Arguments {
+			statements.InsertSelectionDirectiveArgument.BindInt64(1, dirID)
+			statements.InsertSelectionDirectiveArgument.BindText(2, dArg.Name)
+			statements.InsertSelectionDirectiveArgument.BindText(3, dArg.Value.String())
+			if err := db.ExecStatement(statements.InsertSelectionDirectiveArgument); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func prepareInsertStatements(db plugins.Database[PluginConfig]) (InsertStatements, func()) {
 	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
 	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
@@ -149,230 +360,4 @@ func prepareInsertStatements(db plugins.Database[PluginConfig]) (InsertStatement
 		InsertSelectionDirective:         insertSelectionDirective,
 		InsertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
 	}, finalize
-}
-
-// loadPendingQuery parses the graphql query and inserts the ast into the database.
-// it handles both operations and fragment definitions.
-func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements InsertStatements) error {
-	// parse the query.
-	parsed, err := parser.ParseQuery(&ast.Source{
-		Input: query.Query,
-	})
-	if err != nil {
-		return err
-	}
-
-	// process operations.
-	for _, operation := range parsed.Operations {
-		// insert the operation into the "documents" table.
-		// for operations, we set type_condition to null.
-		statements.InsertDocument.BindText(1, operation.Name)
-		statements.InsertDocument.BindInt64(2, int64(query.ID))
-		statements.InsertDocument.BindText(3, string(operation.Operation))
-		statements.InsertDocument.BindNull(4)
-		if err := db.ExecStatement(statements.InsertDocument); err != nil {
-			return err
-		}
-
-		// insert any variable definitions.
-		for _, variable := range operation.VariableDefinitions {
-			statements.InsertDocumentVariable.BindText(1, operation.Name)
-			statements.InsertDocumentVariable.BindText(2, variable.Variable)
-			statements.InsertDocumentVariable.BindText(3, variable.Type.String())
-			if variable.DefaultValue != nil {
-				statements.InsertDocumentVariable.BindText(4, variable.DefaultValue.String())
-			} else {
-				statements.InsertDocumentVariable.BindNull(4)
-			}
-			if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
-				return err
-			}
-		}
-
-		// walk the selection set for the operation.
-		for i, sel := range operation.SelectionSet {
-			if _, err := processSelection(sel, operation.Name, i, statements, db); err != nil {
-				return err
-			}
-		}
-	}
-
-	// process fragment definitions.
-	for _, fragment := range parsed.Fragments {
-		// insert the fragment into "documents".
-		statements.InsertDocument.BindText(1, fragment.Name)
-		statements.InsertDocument.BindInt64(2, int64(query.ID))
-		// for fragments, the kind is "fragment".
-		statements.InsertDocument.BindText(3, "fragment")
-		if fragment.TypeCondition != "" {
-			statements.InsertDocument.BindText(4, fragment.TypeCondition)
-		} else {
-			statements.InsertDocument.BindNull(4)
-		}
-		if err := db.ExecStatement(statements.InsertDocument); err != nil {
-			return err
-		}
-
-		// walk the fragment's selection set.
-		for i, sel := range fragment.SelectionSet {
-			if _, err := processSelection(sel, fragment.Name, i, statements, db); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// processselection recursively processes a selection (field, inline fragment, or fragment spread).
-// it inserts a row into "selections" (now with a "kind" column) and then its arguments,
-// directives, directive arguments, and any child selections.
-func processSelection(sel ast.Selection, documentName string, index int, statements InsertStatements, db plugins.Database[PluginConfig]) (int64, error) {
-	switch s := sel.(type) {
-
-	// --- case 1. field ---
-	case *ast.Field:
-		// bind parameters for a field: name, alias, path_index, and kind ("field").
-		statements.InsertSelection.BindText(1, s.Name)
-		if s.Alias != "" {
-			statements.InsertSelection.BindText(2, s.Alias)
-		} else {
-			statements.InsertSelection.BindNull(2)
-		}
-		statements.InsertSelection.BindInt64(3, int64(index))
-		statements.InsertSelection.BindText(4, "field")
-		if err := db.ExecStatement(statements.InsertSelection); err != nil {
-			return 0, err
-		}
-		selectionID := db.Conn.LastInsertRowID()
-
-		// insert field arguments.
-		for _, arg := range s.Arguments {
-			statements.InsertSelectionArgument.BindInt64(1, selectionID)
-			statements.InsertSelectionArgument.BindText(2, arg.Name)
-			statements.InsertSelectionArgument.BindText(3, arg.Value.String())
-			if err := db.ExecStatement(statements.InsertSelectionArgument); err != nil {
-				return 0, err
-			}
-		}
-
-		// insert any directives on the field.
-		for _, directive := range s.Directives {
-			statements.InsertSelectionDirective.BindInt64(1, selectionID)
-			statements.InsertSelectionDirective.BindText(2, directive.Name)
-			if err := db.ExecStatement(statements.InsertSelectionDirective); err != nil {
-				return 0, err
-			}
-			dirID := db.Conn.LastInsertRowID()
-			for _, dArg := range directive.Arguments {
-				statements.InsertSelectionDirectiveArgument.BindInt64(1, dirID)
-				statements.InsertSelectionDirectiveArgument.BindText(2, dArg.Name)
-				statements.InsertSelectionDirectiveArgument.BindText(3, dArg.Value.String())
-				if err := db.ExecStatement(statements.InsertSelectionDirectiveArgument); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-		// process nested selections.
-		for i, child := range s.SelectionSet {
-			childID, err := processSelection(child, documentName, i, statements, db)
-			if err != nil {
-				return 0, err
-			}
-			statements.InsertSelectionRef.BindInt64(1, selectionID)
-			statements.InsertSelectionRef.BindInt64(2, childID)
-			statements.InsertSelectionRef.BindText(3, documentName)
-			if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
-				return 0, err
-			}
-		}
-		return selectionID, nil
-
-	// --- case 2. inline fragment ---
-	case *ast.InlineFragment:
-		// use the type condition if available; otherwise, default to "inline_fragment".
-		fragType := s.TypeCondition
-		if fragType == "" {
-			fragType = "inline_fragment"
-		}
-		// bind parameters: field_name (type condition), alias (null), path_index, and kind ("inline_fragment").
-		statements.InsertSelection.BindText(1, fragType)
-		statements.InsertSelection.BindNull(2)
-		statements.InsertSelection.BindInt64(3, int64(index))
-		statements.InsertSelection.BindText(4, "inline_fragment")
-		if err := db.ExecStatement(statements.InsertSelection); err != nil {
-			return 0, err
-		}
-		selectionID := db.Conn.LastInsertRowID()
-
-		// process directives on the inline fragment.
-		for _, directive := range s.Directives {
-			statements.InsertSelectionDirective.BindInt64(1, selectionID)
-			statements.InsertSelectionDirective.BindText(2, directive.Name)
-			if err := db.ExecStatement(statements.InsertSelectionDirective); err != nil {
-				return 0, err
-			}
-			dirID := db.Conn.LastInsertRowID()
-			for _, dArg := range directive.Arguments {
-				statements.InsertSelectionDirectiveArgument.BindInt64(1, dirID)
-				statements.InsertSelectionDirectiveArgument.BindText(2, dArg.Name)
-				statements.InsertSelectionDirectiveArgument.BindText(3, dArg.Value.String())
-				if err := db.ExecStatement(statements.InsertSelectionDirectiveArgument); err != nil {
-					return 0, err
-				}
-			}
-		}
-
-		// recurse into nested selections.
-		for i, child := range s.SelectionSet {
-			childID, err := processSelection(child, documentName, i, statements, db)
-			if err != nil {
-				return 0, err
-			}
-			statements.InsertSelectionRef.BindInt64(1, selectionID)
-			statements.InsertSelectionRef.BindInt64(2, childID)
-			statements.InsertSelectionRef.BindText(3, documentName)
-			if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
-				return 0, err
-			}
-		}
-		return selectionID, nil
-
-	// --- case 3. fragment spread ---
-	case *ast.FragmentSpread:
-		// for fragment spreads, bind parameters with kind "fragment".
-		// here we use the fragment's name as the field_name and set alias to null.
-		statements.InsertSelection.BindText(1, s.Name)
-		statements.InsertSelection.BindNull(2)
-		statements.InsertSelection.BindInt64(3, int64(index))
-		statements.InsertSelection.BindText(4, "fragment")
-		if err := db.ExecStatement(statements.InsertSelection); err != nil {
-			return 0, err
-		}
-		selectionID := db.Conn.LastInsertRowID()
-
-		// process any directives on the fragment spread.
-		for _, directive := range s.Directives {
-			statements.InsertSelectionDirective.BindInt64(1, selectionID)
-			statements.InsertSelectionDirective.BindText(2, directive.Name)
-			if err := db.ExecStatement(statements.InsertSelectionDirective); err != nil {
-				return 0, err
-			}
-			dirID := db.Conn.LastInsertRowID()
-			for _, dArg := range directive.Arguments {
-				statements.InsertSelectionDirectiveArgument.BindInt64(1, dirID)
-				statements.InsertSelectionDirectiveArgument.BindText(2, dArg.Name)
-				statements.InsertSelectionDirectiveArgument.BindText(3, dArg.Value.String())
-				if err := db.ExecStatement(statements.InsertSelectionDirectiveArgument); err != nil {
-					return 0, err
-				}
-			}
-		}
-		return selectionID, nil
-
-	default:
-		// for unknown selection types, do nothing.
-		return 0, nil
-	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
@@ -10,24 +11,22 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
-	tests := []testCase{
-		{
-			name: "simple query with nested fields and variable",
-			rawQuery: `
-				query TestQuery($id: ID!) {
-					user(id: $id) {
-						id
-						name
-					}
-				}
-			`,
-			expected: expectedDocument{
+var tests = []testCase{
+	{
+		name: "simple query with nested fields and variable",
+		rawQuery: `
+            query TestQuery($id: ID!) {
+                user(id: $id) {
+                    id
+                    name
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
 				Name:        "TestQuery",
 				RawDocument: 1,
 				Kind:        "query",
-				// For fields that have no explicit alias, we expect nil (or adjust if your logic defaults to field name)
-				TypeCondition: nil,
 				Variables: []operationVariableRow{
 					{
 						Document:     "TestQuery",
@@ -38,12 +37,10 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 				Selections: []expectedSelection{
 					{
-						FieldName:  "user",
-						Alias:      strPtr("user"),
-						PathIndex:  0,
-						Kind:       "field",
-						Arguments:  nil, // since the argument is a variable, it’s not extracted as a literal
-						Directives: nil,
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
 						Children: []expectedSelection{
 							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 							{FieldName: "name", Alias: strPtr("name"), PathIndex: 1, Kind: "field"},
@@ -52,42 +49,43 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "fragment definition with no variables",
-			rawQuery: `
-				fragment TestFragment on User {
-					id
-					email
-				}
-			`,
-			expected: expectedDocument{
+	},
+	{
+		name: "fragment definition with no variables",
+		rawQuery: `
+            fragment TestFragment on User {
+                id
+                email
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
 				Name:          "TestFragment",
 				RawDocument:   1,
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
-				Variables:     nil,
 				Selections: []expectedSelection{
 					{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 					{FieldName: "email", Alias: strPtr("email"), PathIndex: 1, Kind: "field"},
 				},
 			},
 		},
-		{
-			name: "query with field arguments",
-			rawQuery: `
-				query TestQueryArgs {
-					user(id: "123", active: true) {
-						id
-						name
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestQueryArgs",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "query with field arguments",
+		rawQuery: `
+            query TestQueryArgs {
+                user(id: "123", active: true) {
+                    id
+                    name
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestQueryArgs",
+				RawDocument: 1,
+				Kind:        "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -98,7 +96,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 							{Name: "id", Value: "\"123\""},
 							{Name: "active", Value: "true"},
 						},
-						Directives: nil,
 						Children: []expectedSelection{
 							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 							{FieldName: "name", Alias: strPtr("name"), PathIndex: 1, Kind: "field"},
@@ -107,41 +104,36 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "query with inline fragment",
-			rawQuery: `
-				query TestQueryInline {
-					user(id: "123") {
-						... on User {
-							id
-							email
-						}
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestQueryInline",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "query with inline fragment",
+		rawQuery: `
+            query TestQueryInline {
+                user(id: "123") {
+                    ... on User {
+                        id
+                        email
+                    }
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestQueryInline",
+				RawDocument: 1,
+				Kind:        "query",
 				Selections: []expectedSelection{
 					{
-						FieldName:  "user",
-						Alias:      strPtr("user"),
-						PathIndex:  0,
-						Kind:       "field",
-						Arguments:  nil,
-						Directives: nil,
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
 						Children: []expectedSelection{
 							{
-								// For inline fragments, your logic uses the type condition as the field name.
-								FieldName:  "User",
-								Alias:      nil,
-								PathIndex:  0,
-								Kind:       "inline_fragment",
-								Arguments:  nil,
-								Directives: nil,
+								FieldName: "User",
+								Alias:     strPtr("User"), // updated expected alias
+								PathIndex: 0,
+								Kind:      "inline_fragment",
 								Children: []expectedSelection{
 									{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 									{FieldName: "email", Alias: strPtr("email"), PathIndex: 1, Kind: "field"},
@@ -152,21 +144,21 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "query with directive",
-			rawQuery: `
-				query TestQueryDirective {
-					user(id: "123") @include(if: true) {
-						id
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestQueryDirective",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "query with directive",
+		rawQuery: `
+            query TestQueryDirective {
+                user(id: "123") @include(if: true) {
+                    id
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestQueryDirective",
+				RawDocument: 1,
+				Kind:        "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -191,28 +183,24 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-
-		{
-			// Tests that explicit aliases are preserved.
-			name: "query with alias fields",
-			rawQuery: `
-				query TestQueryAlias {
-					u: userById(id: "123") {
-						fn: name
-						age
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestQueryAlias",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "query with alias fields",
+		rawQuery: `
+            query TestQueryAlias {
+                u: userById(id: "123") {
+                    fn: name
+                    age
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestQueryAlias",
+				RawDocument: 1,
+				Kind:        "query",
 				Selections: []expectedSelection{
 					{
-						// Even though the field in the query is "userById",
-						// the alias "u" should be used.
 						FieldName: "userById",
 						Alias:     strPtr("u"),
 						PathIndex: 0,
@@ -220,39 +208,31 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						Arguments: []expectedArgument{
 							{Name: "id", Value: "\"123\""},
 						},
-						Directives: nil,
 						Children: []expectedSelection{
-							// For "name" an explicit alias "fn" is provided.
 							{FieldName: "name", Alias: strPtr("fn"), PathIndex: 0, Kind: "field"},
-							// For "age", no alias is given so we expect the same value as the field name.
 							{FieldName: "age", Alias: strPtr("age"), PathIndex: 1, Kind: "field"},
 						},
 					},
 				},
 			},
 		},
-		{
-			// Tests that variable default values are recorded.
-			name: "query with variable default",
-			rawQuery: `
-				query TestQueryDefault($limit: Int = 10) {
-					users(limit: $limit) {
-						id
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestQueryDefault",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
+	},
+	{
+		name: "query with variable default",
+		rawQuery: `
+            query TestQueryDefault($limit: Int = 10) {
+                users(limit: $limit) {
+                    id
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestQueryDefault",
+				RawDocument: 1,
+				Kind:        "query",
 				Variables: []operationVariableRow{
-					{
-						Document:     "TestQueryDefault",
-						VarName:      "limit",
-						Type:         "Int",
-						DefaultValue: strPtr("10"),
-					},
+					{Document: "TestQueryDefault", VarName: "limit", Type: "Int", DefaultValue: strPtr("10")},
 				},
 				Selections: []expectedSelection{
 					{
@@ -260,10 +240,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						Alias:     strPtr("users"),
 						PathIndex: 0,
 						Kind:      "field",
-						// Depending on your extraction logic, arguments using variables
-						// may not be extracted as literal values.
-						Arguments:  nil,
-						Directives: nil,
 						Children: []expectedSelection{
 							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 						},
@@ -271,22 +247,21 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			// Tests that multiple directives on the same field are handled.
-			name: "query with multiple directives",
-			rawQuery: `
-				query TestQueryMultiDirective {
-					user(id: "123") @include(if: true) @deprecated(reason: "old field") {
-						id
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestQueryMultiDirective",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "query with multiple directives",
+		rawQuery: `
+            query TestQueryMultiDirective {
+                user(id: "123") @include(if: true) @deprecated(reason: "old field") {
+                    id
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestQueryMultiDirective",
+				RawDocument: 1,
+				Kind:        "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -317,23 +292,22 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			// Tests a mutation operation.
-			name: "mutation with field arguments",
-			rawQuery: `
-				mutation TestMutation {
-					updateUser(id: "123", name: "NewName") {
-						id
-						name
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestMutation",
-				RawDocument:   1,
-				Kind:          "mutation",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "mutation with field arguments",
+		rawQuery: `
+            mutation TestMutation {
+                updateUser(id: "123", name: "NewName") {
+                    id
+                    name
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestMutation",
+				RawDocument: 1,
+				Kind:        "mutation",
 				Selections: []expectedSelection{
 					{
 						FieldName: "updateUser",
@@ -344,7 +318,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 							{Name: "id", Value: "\"123\""},
 							{Name: "name", Value: "\"NewName\""},
 						},
-						Directives: nil,
 						Children: []expectedSelection{
 							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 							{FieldName: "name", Alias: strPtr("name"), PathIndex: 1, Kind: "field"},
@@ -353,31 +326,28 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			// Tests a subscription operation.
-			name: "subscription query",
-			rawQuery: `
-				subscription TestSubscription {
-					userUpdated {
-						id
-						email
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestSubscription",
-				RawDocument:   1,
-				Kind:          "subscription",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "subscription query",
+		rawQuery: `
+            subscription TestSubscription {
+                userUpdated {
+                    id
+                    email
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestSubscription",
+				RawDocument: 1,
+				Kind:        "subscription",
 				Selections: []expectedSelection{
 					{
-						FieldName:  "userUpdated",
-						Alias:      strPtr("userUpdated"),
-						PathIndex:  0,
-						Kind:       "field",
-						Arguments:  nil,
-						Directives: nil,
+						FieldName: "userUpdated",
+						Alias:     strPtr("userUpdated"),
+						PathIndex: 0,
+						Kind:      "field",
 						Children: []expectedSelection{
 							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
 							{FieldName: "email", Alias: strPtr("email"), PathIndex: 1, Kind: "field"},
@@ -386,29 +356,28 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-		{
-			// Tests deeply nested inline fragments with aliases.
-			name: "query with deeply nested inline fragments",
-			rawQuery: `
-				query TestDeepInline {
-					user(id: "123") {
-						... on User {
-							details: profile {
-								bio
-								... on Profile {
-									picture
-								}
-							}
-						}
-					}
-				}
-			`,
-			expected: expectedDocument{
-				Name:          "TestDeepInline",
-				RawDocument:   1,
-				Kind:          "query",
-				TypeCondition: nil,
-				Variables:     nil,
+	},
+	{
+		name: "query with deeply nested inline fragments",
+		rawQuery: `
+            query TestDeepInline {
+                user(id: "123") {
+                    ... on User {
+                        details: profile {
+                            bio
+                            ... on Profile {
+                                picture
+                            }
+                        }
+                    }
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestDeepInline",
+				RawDocument: 1,
+				Kind:        "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -418,32 +387,25 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						Arguments: []expectedArgument{
 							{Name: "id", Value: "\"123\""},
 						},
-						Directives: nil,
 						Children: []expectedSelection{
 							{
-								FieldName:  "User", // inline fragment uses the type condition as field name
-								Alias:      nil,
-								PathIndex:  0,
-								Kind:       "inline_fragment",
-								Arguments:  nil,
-								Directives: nil,
+								FieldName: "User",
+								Alias:     strPtr("User"), // updated expected alias
+								PathIndex: 0,
+								Kind:      "inline_fragment",
 								Children: []expectedSelection{
 									{
-										FieldName:  "profile",
-										Alias:      strPtr("details"),
-										PathIndex:  0,
-										Kind:       "field",
-										Arguments:  nil,
-										Directives: nil,
+										FieldName: "profile",
+										Alias:     strPtr("details"),
+										PathIndex: 0,
+										Kind:      "field",
 										Children: []expectedSelection{
 											{FieldName: "bio", Alias: strPtr("bio"), PathIndex: 0, Kind: "field"},
 											{
-												FieldName:  "Profile", // inline fragment inside profile
-												Alias:      nil,
-												PathIndex:  1,
-												Kind:       "inline_fragment",
-												Arguments:  nil,
-												Directives: nil,
+												FieldName: "Profile",
+												Alias:     strPtr("Profile"), // updated expected alias
+												PathIndex: 1,
+												Kind:      "inline_fragment",
 												Children: []expectedSelection{
 													{FieldName: "picture", Alias: strPtr("picture"), PathIndex: 0, Kind: "field"},
 												},
@@ -457,23 +419,357 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				},
 			},
 		},
-	}
+	},
+	{
+		name: "named fragment spread",
+		rawQuery: `
+            query TestNamedFragment {
+                user(id: "123") {
+                    ...UserFields
+                }
+            }
+            fragment UserFields on User {
+                id
+                name
+                email
+            }
+        `,
+		// in this scenario the operation and fragment are stored as two separate documents.
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestNamedFragment",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Arguments: []expectedArgument{
+							{Name: "id", Value: "\"123\""},
+						},
+						Children: []expectedSelection{
+							{
+								FieldName: "UserFields",
+								Alias:     strPtr("UserFields"), // updated expected alias
+								PathIndex: 0,
+								Kind:      "fragment_spread",
+							},
+						},
+					},
+				},
+			},
+			{
+				Name:          "UserFields",
+				RawDocument:   1,
+				Kind:          "fragment",
+				TypeCondition: strPtr("User"),
+				Selections: []expectedSelection{
+					{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+					{FieldName: "name", Alias: strPtr("name"), PathIndex: 1, Kind: "field"},
+					{FieldName: "email", Alias: strPtr("email"), PathIndex: 2, Kind: "field"},
+				},
+			},
+		},
+	},
+	{
+		name: "multiple operations in single document",
+		rawQuery: `
+            query FirstOperation {
+                user { id }
+            }
+            query SecondOperation {
+                user { name }
+            }
+        `,
+		// both operations are stored as separate documents.
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "FirstOperation",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+			{
+				Name:        "SecondOperation",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "name", Alias: strPtr("name"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "anonymous operation",
+		rawQuery: `
+            {
+                user { id }
+            }
+        `,
+		// anonymous operations are not allowed so this should produce an error.
+		expectError: true,
+	},
+	{
+		name: "complex field arguments",
+		rawQuery: `
+            query TestComplexArgs {
+                search(filter: {term: "foo", tags: ["bar", "baz"]}) {
+                    results { id }
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestComplexArgs",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "search",
+						Alias:     strPtr("search"),
+						PathIndex: 0,
+						Kind:      "field",
+						Arguments: []expectedArgument{
+							// the nested object is normalized as a string.
+							{Name: "filter", Value: "{term:\"foo\",tags:[\"bar\",\"baz\"]}"},
+						},
+						Children: []expectedSelection{
+							{
+								FieldName: "results",
+								Alias:     strPtr("results"),
+								PathIndex: 0,
+								Kind:      "field",
+								Children: []expectedSelection{
+									{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "variables in directives",
+		rawQuery: `
+            query TestVariableDirective($show: Boolean!) {
+                user(id: "123") @include(if: $show) {
+                    id
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestVariableDirective",
+				RawDocument: 1,
+				Kind:        "query",
+				Variables: []operationVariableRow{
+					{Document: "TestVariableDirective", VarName: "show", Type: "Boolean!", DefaultValue: nil},
+				},
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Arguments: []expectedArgument{
+							{Name: "id", Value: "\"123\""},
+						},
+						Directives: []expectedDirective{
+							{
+								Name: "include",
+								Arguments: []expectedDirectiveArgument{
+									{Name: "if", Value: "$show"},
+								},
+							},
+						},
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "introspection fields",
+		rawQuery: `
+            query TestIntrospection {
+                user {
+                    __typename
+                    id
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestIntrospection",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "__typename", Alias: strPtr("__typename"), PathIndex: 0, Kind: "field"},
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 1, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "operation-level directives",
+		rawQuery: `
+            query TestOpDirective @cacheControl(maxAge: 60) {
+                user { id }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestOpDirective",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "interface inline fragment",
+		rawQuery: `
+            query TestInterface {
+                search {
+                    ... on Node {
+                        id
+                    }
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestInterface",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "search",
+						Alias:     strPtr("search"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{
+								FieldName: "Node",
+								Alias:     strPtr("Node"), // updated expected alias
+								PathIndex: 0,
+								Kind:      "inline_fragment",
+								Children: []expectedSelection{
+									{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "deprecated field",
+		rawQuery: `
+            query TestDeprecated {
+                user {
+                    oldField @deprecated(reason: "Use newField")
+                    newField
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestDeprecated",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{
+								FieldName: "oldField",
+								Alias:     strPtr("oldField"),
+								PathIndex: 0,
+								Kind:      "field",
+								Directives: []expectedDirective{
+									{
+										Name: "deprecated",
+										Arguments: []expectedDirectiveArgument{
+											{Name: "reason", Value: "\"Use newField\""},
+										},
+									},
+								},
+							},
+							{
+								FieldName: "newField",
+								Alias:     strPtr("newField"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+}
 
+func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// create in-memory db
+			// create an in-memory db.
 			db, err := plugins.InMemoryDB[PluginConfig]()
-			defer db.Close()
-
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
+			defer db.Close()
 
 			if err := executeSchema(db.Conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
 
-			// insert raw document (assume id becomes 1)
+			// insert the raw document (assume id becomes 1).
 			insertRaw, err := db.Conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
@@ -484,75 +780,285 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				t.Fatalf("failed to insert raw document: %v", err)
 			}
 
-			// instantiate houdinicore and set database
 			hc := &HoudiniCore{}
 			hc.SetDatabase(db)
 
-			// prepare insert statements
 			statements, finalize := prepareInsertStatements(db)
 			defer finalize()
 
-			// create pending query (id 1 from raw_documents)
 			pending := PendingQuery{
 				Query: tc.rawQuery,
 				ID:    1,
 			}
 
-			// call loadPendingQuery
-			if err := hc.loadPendingQuery(pending, db, statements); err != nil {
+			err = hc.loadPendingQuery(pending, db, statements)
+			if tc.expectError {
+				if err == nil {
+					t.Fatalf("expected an error for test %q but got none", tc.name)
+				}
+				// stop further checks when error is expected.
+				return
+			} else if err != nil {
 				t.Fatalf("loadPendingQuery returned error: %v", err)
 			}
 
-			// verify documents table
+			// fetch documents and compare with expectedDocs.
 			docs := fetchDocuments(t, db)
-			if len(docs) != 1 {
-				t.Errorf("expected 1 document, got %d", len(docs))
-			} else {
-				actual := docs[0]
-				exp := tc.expected
-				if actual.Name != exp.Name ||
-					actual.RawDocument != exp.RawDocument ||
-					actual.Kind != exp.Kind ||
-					!strEqual(actual.TypeCondition, exp.TypeCondition) {
-					t.Errorf("document mismatch: expected %+v, got %+v", exp, actual)
+			if len(docs) != len(tc.expectedDocs) {
+				t.Errorf("expected %d documents, got %d", len(tc.expectedDocs), len(docs))
+			}
+			for _, expDoc := range tc.expectedDocs {
+				var found bool
+				for _, actual := range docs {
+					if actual.Name == expDoc.Name {
+						found = true
+						if actual.RawDocument != expDoc.RawDocument ||
+							actual.Kind != expDoc.Kind ||
+							!strEqual(actual.TypeCondition, expDoc.TypeCondition) {
+							t.Errorf("document mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
+						}
+						// if operation, check operation variables.
+						if expDoc.Kind == "query" || expDoc.Kind == "mutation" || expDoc.Kind == "subscription" {
+							vars := fetchOperationVariables(t, db)
+							if len(vars) != len(expDoc.Variables) {
+								t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
+							}
+							for i, expectedVar := range expDoc.Variables {
+								if i >= len(vars) {
+									break
+								}
+								actualVar := vars[i]
+								if actualVar.Document != expectedVar.Document ||
+									actualVar.VarName != expectedVar.VarName ||
+									actualVar.Type != expectedVar.Type ||
+									!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
+									t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
+								}
+							}
+						}
+
+						// build and compare the selection tree.
+						selectionsMap, rel, roots, err := buildSelectionTree(db, expDoc.Name)
+						if err != nil {
+							t.Fatalf("failed to build selection tree for document %s: %v", expDoc.Name, err)
+						}
+						actualTree := buildExpectedFromDB(selectionsMap, rel, roots)
+						sortTree(actualTree)
+						sortExpectedSelections(expDoc.Selections)
+						if err := compareExpected(expDoc.Selections, actualTree); err != nil {
+							t.Errorf("selection tree mismatch for document %s: %v \n found selection: %+v", expDoc.Name, err, actualTree)
+						}
+					}
+				}
+				if !found {
+					t.Errorf("expected document %s not found", expDoc.Name)
 				}
 			}
 
-			// verify operation_variables table
-			vars := fetchOperationVariables(t, db)
-			if len(vars) != len(tc.expected.Variables) {
-				t.Errorf("expected %d operation variables, got %d", len(tc.expected.Variables), len(vars))
-			}
-			for i, expectedVar := range tc.expected.Variables {
-				if i >= len(vars) {
-					break
-				}
-				actualVar := vars[i]
-				if actualVar.Document != expectedVar.Document ||
-					actualVar.VarName != expectedVar.VarName ||
-					actualVar.Type != expectedVar.Type ||
-					!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
-					t.Errorf("operation variable row %d mismatch: expected %+v, got %+v", i, expectedVar, actualVar)
-				}
-			}
-
-			// verify nested selection tree via selection_refs
-			selectionsMap, rel, roots, err := buildSelectionTree(db, tc.expected.Name)
-			if err != nil {
-				t.Fatalf("failed to build selection tree: %v", err)
-			}
-			actualTree := buildExpectedFromDB(selectionsMap, rel, roots)
-			if err := compareExpected(tc.expected.Selections, actualTree); err != nil {
-				t.Errorf("selection tree mismatch: %v", err)
-			}
-
-			// additionally, verify field arguments and directives for selections that expect them
+			// verify that selection details (arguments, directives) are correct.
 			dbSels := fetchSelections(t, db)
-			verifySelectionTreeDirectives(tc.expected.Selections, dbSels, db, t)
+			for _, expDoc := range tc.expectedDocs {
+				verifySelectionTreeDirectives(expDoc.Selections, dbSels, db, t)
+			}
 		})
 	}
 }
 
+// expectedDocument represents an operation or fragment definition.
+type expectedDocument struct {
+	Name          string
+	RawDocument   int
+	Kind          string // "query", "mutation", "subscription", or "fragment"
+	TypeCondition *string
+	Variables     []operationVariableRow
+	Selections    []expectedSelection
+}
+
+type operationVariableRow struct {
+	Document     string
+	VarName      string
+	Type         string
+	DefaultValue *string
+}
+
+type expectedArgument struct {
+	Name  string
+	Value string
+}
+
+type expectedDirectiveArgument struct {
+	Name  string
+	Value string
+}
+
+type expectedDirective struct {
+	Name      string
+	Arguments []expectedDirectiveArgument
+}
+
+type expectedSelection struct {
+	FieldName  string
+	Alias      *string
+	PathIndex  int
+	Kind       string // "field", "fragment_spread", "inline_fragment", etc.
+	Arguments  []expectedArgument
+	Directives []expectedDirective
+	Children   []expectedSelection
+}
+
+type documentRow struct {
+	Name          string
+	RawDocument   int
+	Kind          string
+	TypeCondition *string
+}
+
+type dbSelection struct {
+	ID        int
+	FieldName string
+	Alias     *string
+	PathIndex int
+	Kind      string
+}
+
+// testCase defines a test scenario.
+type testCase struct {
+	name         string
+	rawQuery     string
+	expectedDocs []expectedDocument
+	expectError  bool
+}
+
+// sortExpectedSelections recursively sorts the expected selection slice.
+func sortExpectedSelections(sels []expectedSelection) {
+	sort.Slice(sels, func(i, j int) bool {
+		return sels[i].PathIndex < sels[j].PathIndex
+	})
+	for i := range sels {
+		sortExpectedSelections(sels[i].Children)
+	}
+}
+
+// sortTree sorts the expected selection tree.
+func sortTree(tree []expectedSelection) {
+	sortExpectedSelections(tree)
+}
+
+// buildSelectionTree builds the selection tree for a given document.
+// it returns a mapping of selection id to dbSelection, a parent-to-children map, and a slice of root selection ids.
+func buildSelectionTree(db plugins.Database[PluginConfig], document string) (map[int]dbSelection, map[int][]int, []int, error) {
+	// look up the document kind.
+	var docKind string
+	{
+		stmt, err := db.Conn.Prepare("SELECT kind FROM documents WHERE name = ?")
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		stmt.BindText(1, document)
+		ok, err := stmt.Step()
+		if err != nil {
+			stmt.Finalize()
+			return nil, nil, nil, err
+		}
+		if !ok {
+			stmt.Finalize()
+			return nil, nil, nil, fmt.Errorf("document %s not found", document)
+		}
+		docKind = stmt.ColumnText(0)
+		stmt.Finalize()
+	}
+
+	// step 1. restrict to only those selections that have a matching selection_refs row.
+	query := `SELECT s.id, s.field_name, s.alias, s.path_index, s.kind
+FROM selections s
+JOIN selection_refs sr ON s.id = sr.child_id
+WHERE sr.document = ?
+ORDER BY s.id`
+	stmt, err := db.Conn.Prepare(query)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	stmt.BindText(1, document)
+	filteredSelections := make(map[int]dbSelection)
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			stmt.Finalize()
+			return nil, nil, nil, err
+		}
+		if !ok {
+			break
+		}
+		id := int(stmt.ColumnInt(0))
+		var alias *string
+		// alias is at column index 2.
+		if stmt.ColumnType(2) == sqlite.TypeText {
+			a := stmt.ColumnText(2)
+			alias = &a
+		}
+		kind := stmt.ColumnText(4)
+		if docKind != "fragment" && kind == "fragment" {
+			kind = "fragment_spread"
+		}
+		filteredSelections[id] = dbSelection{
+			ID:        id,
+			FieldName: stmt.ColumnText(1),
+			Alias:     alias,
+			PathIndex: int(stmt.ColumnInt(3)),
+			Kind:      kind,
+		}
+	}
+	stmt.Finalize()
+
+	// step 2. build the parent-to-children mapping for the given document.
+	parentToChildren := make(map[int][]int)
+	childIDs := make(map[int]struct{})
+	stmt, err = db.Conn.Prepare("SELECT parent_id, child_id FROM selection_refs WHERE document = ?")
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	stmt.BindText(1, document)
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			stmt.Finalize()
+			return nil, nil, nil, err
+		}
+		if !ok {
+			break
+		}
+		// if parent_id is null then this row indicates a top-level selection; do not add mapping.
+		if stmt.ColumnType(0) == sqlite.TypeNull {
+			continue
+		}
+		parentID := int(stmt.ColumnInt(0))
+		childID := int(stmt.ColumnInt(1))
+		if _, ok := filteredSelections[childID]; ok {
+			parentToChildren[parentID] = append(parentToChildren[parentID], childID)
+			childIDs[childID] = struct{}{}
+		}
+	}
+	stmt.Finalize()
+
+	// step 3. determine the roots.
+	roots := make([]int, 0)
+	for id := range filteredSelections {
+		if _, isChild := childIDs[id]; !isChild {
+			roots = append(roots, id)
+		}
+	}
+
+	// step 4. for fragment documents, flatten a dummy wrapper if present.
+	if docKind == "fragment" && len(roots) == 1 {
+		if rootSel, ok := filteredSelections[roots[0]]; ok && rootSel.FieldName == document {
+			roots = parentToChildren[rootSel.ID]
+		}
+	}
+
+	return filteredSelections, parentToChildren, roots, nil
+}
+
+// executeSchema creates the database schema.
 func executeSchema(db *sqlite.Conn) error {
 	statements := strings.Split(schema, ";")
 	for _, stmt := range statements {
@@ -568,7 +1074,6 @@ func executeSchema(db *sqlite.Conn) error {
 }
 
 const schema = `
--- A table of original document contents (to be populated by plugins)
 CREATE TABLE raw_documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	filepath TEXT NOT NULL,
@@ -584,7 +1089,6 @@ CREATE TABLE operation_variables (
 	FOREIGN KEY (document) REFERENCES documents(name)
 );
 
--- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE documents (
 	name TEXT NOT NULL PRIMARY KEY,
 	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
@@ -596,7 +1100,7 @@ CREATE TABLE documents (
 CREATE TABLE selections (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	field_name TEXT NOT NULL,
-	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
+	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment', 'fragment_spread')),
 	alias TEXT,
 	path_index INTEGER NOT NULL
 );
@@ -605,8 +1109,7 @@ CREATE TABLE selection_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	selection_id INTEGER NOT NULL,
 	directive TEXT NOT NULL,
-	FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
+	FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_directive_arguments (
@@ -634,174 +1137,6 @@ CREATE TABLE selection_arguments (
 	FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
 );
 `
-
-// ---------------------
-// helper types and functions
-// ---------------------
-
-// fetchSelectionArgumentsForSelection queries selection_arguments for a given selection id.
-func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.Database[PluginConfig], selectionID int) []expectedArgument {
-	stmt, err := db.Conn.Prepare("select name, value from selection_arguments where selection_id = ? order by id")
-	if err != nil {
-		t.Fatalf("failed to prepare selection_arguments query: %v", err)
-	}
-	defer stmt.Finalize()
-
-	stmt.BindInt64(1, int64(selectionID))
-	var args []expectedArgument
-	for {
-		ok, err := stmt.Step()
-		if err != nil {
-			t.Fatalf("error stepping selection_arguments query: %v", err)
-		}
-		if !ok {
-			break
-		}
-		args = append(args, expectedArgument{
-			Name:  stmt.ColumnText(0),
-			Value: stmt.ColumnText(1),
-		})
-	}
-	return args
-}
-
-// fetchSelectionDirectivesForSelection queries selection_directives (and its arguments) for a given selection id.
-func fetchSelectionDirectivesForSelection(t *testing.T, db plugins.Database[PluginConfig], selectionID int) []expectedDirective {
-	stmt, err := db.Conn.Prepare("select id, directive from selection_directives where selection_id = ? order by id")
-	if err != nil {
-		t.Fatalf("failed to prepare selection_directives query: %v", err)
-	}
-	defer stmt.Finalize()
-
-	stmt.BindInt64(1, int64(selectionID))
-	var directives []expectedDirective
-	for {
-		ok, err := stmt.Step()
-		if err != nil {
-			t.Fatalf("error stepping selection_directives query: %v", err)
-		}
-		if !ok {
-			break
-		}
-		dirID := int(stmt.ColumnInt(0))
-		dirName := stmt.ColumnText(1)
-
-		// now fetch directive arguments for this directive
-		argStmt, err := db.Conn.Prepare("select name, value from selection_directive_arguments where parent = ? order by id")
-		if err != nil {
-			t.Fatalf("failed to prepare selection_directive_arguments query: %v", err)
-		}
-		argStmt.BindInt64(1, int64(dirID))
-		var dirArgs []expectedDirectiveArgument
-		for {
-			ok, err := argStmt.Step()
-			if err != nil {
-				t.Fatalf("error stepping selection_directive_arguments query: %v", err)
-			}
-			if !ok {
-				break
-			}
-			dirArgs = append(dirArgs, expectedDirectiveArgument{
-				Name:  argStmt.ColumnText(0),
-				Value: argStmt.ColumnText(1),
-			})
-		}
-		argStmt.Finalize()
-
-		directives = append(directives, expectedDirective{
-			Name:      dirName,
-			Arguments: dirArgs,
-		})
-	}
-	return directives
-}
-
-// verifySelectionDetails checks that the field arguments and directives for a selection (by id)
-// match the expected ones.
-func verifySelectionDetails(t *testing.T, db plugins.Database[PluginConfig], selectionID int, expected expectedSelection) {
-	actualArgs := fetchSelectionArgumentsForSelection(t, db, selectionID)
-	if len(actualArgs) != len(expected.Arguments) {
-		t.Errorf("for selection id %d, expected %d arguments, got %d", selectionID, len(expected.Arguments), len(actualArgs))
-	} else {
-		for i, expArg := range expected.Arguments {
-			actArg := actualArgs[i]
-			if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
-				t.Errorf("for selection id %d argument %d, expected %+v, got %+v", selectionID, i, expArg, actArg)
-			}
-		}
-	}
-
-	actualDirs := fetchSelectionDirectivesForSelection(t, db, selectionID)
-	if len(actualDirs) != len(expected.Directives) {
-		t.Errorf("for selection id %d, expected %d directives, got %d", selectionID, len(expected.Directives), len(actualDirs))
-	} else {
-		for i, expDir := range expected.Directives {
-			actDir := actualDirs[i]
-			if actDir.Name != expDir.Name {
-				t.Errorf("for selection id %d directive %d, expected name %s, got %s", selectionID, i, expDir.Name, actDir.Name)
-			}
-			if len(actDir.Arguments) != len(expDir.Arguments) {
-				t.Errorf("for selection id %d directive %s, expected %d arguments, got %d", selectionID, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
-			} else {
-				for j, expDArg := range expDir.Arguments {
-					actDArg := actDir.Arguments[j]
-					if actDArg.Name != expDArg.Name || actDArg.Value != expDArg.Value {
-						t.Errorf("for selection id %d directive %s argument %d, expected %+v, got %+v", selectionID, expDir.Name, j, expDArg, actDArg)
-					}
-				}
-			}
-		}
-	}
-}
-
-// helper function to find a dbSelection that matches an expectedSelection by field name, path index, kind and alias
-func findDBSelection(expected expectedSelection, dbSelections []dbSelection) (dbSelection, bool) {
-	for _, s := range dbSelections {
-		if s.FieldName == expected.FieldName && s.PathIndex == expected.PathIndex && s.Kind == expected.Kind {
-			if strEqual(s.Alias, expected.Alias) {
-				return s, true
-			}
-		}
-	}
-	return dbSelection{}, false
-}
-
-// recursively verify selection details for every expected selection that has non-empty arguments or directives.
-func verifySelectionTreeDirectives(expectedTree []expectedSelection, dbSelections []dbSelection, db plugins.Database[PluginConfig], t *testing.T) {
-	for _, exp := range expectedTree {
-		if len(exp.Arguments) > 0 || len(exp.Directives) > 0 {
-			if sel, found := findDBSelection(exp, dbSelections); found {
-				verifySelectionDetails(t, db, sel.ID, exp)
-			} else {
-				t.Errorf("could not find db selection matching expected %+v", exp)
-			}
-		}
-		if len(exp.Children) > 0 {
-			verifySelectionTreeDirectives(exp.Children, dbSelections, db, t)
-		}
-	}
-}
-
-//
-// helper functions to verify merged structures (documents, variables, selection tree)
-//
-
-func strPtr(s string) *string {
-	return &s
-}
-
-func strEqual(a, b *string) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil {
-		return *b == ""
-	}
-	if b == nil {
-		return *a == ""
-	}
-	return *a == *b
-}
 
 func fetchDocuments(t *testing.T, db plugins.Database[PluginConfig]) []documentRow {
 	stmt, err := db.Conn.Prepare("select name, raw_document, kind, type_condition from documents order by name")
@@ -897,81 +1232,20 @@ func fetchSelections(t *testing.T, db plugins.Database[PluginConfig]) []dbSelect
 	return rows
 }
 
-// buildSelectionTree reconstructs the selection tree for a given document by reading selections and selection_refs.
-func buildSelectionTree(db plugins.Database[PluginConfig], document string) (map[int]dbSelection, map[int][]int, []int, error) {
-	selections := make(map[int]dbSelection)
-	stmt, err := db.Conn.Prepare("select id, field_name, alias, path_index, kind from selections order by id")
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	for {
-		ok, err := stmt.Step()
-		if err != nil {
-			stmt.Finalize()
-			return nil, nil, nil, err
-		}
-		if !ok {
-			break
-		}
-		id := int(stmt.ColumnInt(0))
-		var alias *string
-		if stmt.ColumnType(2) == sqlite.TypeText {
-			a := stmt.ColumnText(2)
-			alias = &a
-		}
-		selections[id] = dbSelection{
-			ID:        id,
-			FieldName: stmt.ColumnText(1),
-			Alias:     alias,
-			PathIndex: int(stmt.ColumnInt(3)),
-			Kind:      stmt.ColumnText(4),
-		}
-	}
-	stmt.Finalize()
-
-	parentToChildren := make(map[int][]int)
-	childIDs := make(map[int]struct{})
-	stmt, err = db.Conn.Prepare("select parent_id, child_id from selection_refs where document = ?")
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	stmt.BindText(1, document)
-	for {
-		ok, err := stmt.Step()
-		if err != nil {
-			stmt.Finalize()
-			return nil, nil, nil, err
-		}
-		if !ok {
-			break
-		}
-		parentID := int(stmt.ColumnInt(0))
-		childID := int(stmt.ColumnInt(1))
-		parentToChildren[parentID] = append(parentToChildren[parentID], childID)
-		childIDs[childID] = struct{}{}
-	}
-	stmt.Finalize()
-
-	var roots []int
-	for id := range selections {
-		if _, isChild := childIDs[id]; !isChild {
-			roots = append(roots, id)
-		}
-	}
-
-	return selections, parentToChildren, roots, nil
-}
-
 // buildExpectedFromDB converts the db selection tree into a nested expectedSelection structure.
-// note: this reconstruction does not include field arguments or directives.
 func buildExpectedFromDB(selections map[int]dbSelection, rel map[int][]int, rootIDs []int) []expectedSelection {
 	var result []expectedSelection
 	for _, id := range rootIDs {
 		sel := selections[id]
+		alias := sel.Alias
+		// if alias is nil, default to field_name
+		if alias == nil {
+			alias = &sel.FieldName
+		}
 		children := buildExpectedFromDB(selections, rel, rel[sel.ID])
 		result = append(result, expectedSelection{
 			FieldName:  sel.FieldName,
-			Alias:      sel.Alias,
+			Alias:      alias,
 			PathIndex:  sel.PathIndex,
 			Kind:       sel.Kind,
 			Arguments:  nil,
@@ -982,7 +1256,6 @@ func buildExpectedFromDB(selections map[int]dbSelection, rel map[int][]int, root
 	return result
 }
 
-// compareExpected recursively compares two expectedSelection trees.
 func compareExpected(expected, actual []expectedSelection) error {
 	if len(expected) != len(actual) {
 		return fmt.Errorf("expected %d selections, got %d", len(expected), len(actual))
@@ -1001,76 +1274,155 @@ func compareExpected(expected, actual []expectedSelection) error {
 	return nil
 }
 
-//
-// expected types (merged)
-//
+func verifySelectionDetails(t *testing.T, db plugins.Database[PluginConfig], selectionID int, expected expectedSelection) {
+	actualArgs := fetchSelectionArgumentsForSelection(t, db, selectionID)
+	if len(actualArgs) != len(expected.Arguments) {
+		t.Errorf("for selection id %d, expected %d arguments, got %d", selectionID, len(expected.Arguments), len(actualArgs))
+	} else {
+		for i, expArg := range expected.Arguments {
+			actArg := actualArgs[i]
+			if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+				t.Errorf("for selection id %d argument %d, expected %+v, got %+v", selectionID, i, expArg, actArg)
+			}
+		}
+	}
 
-type expectedDocument struct {
-	Name          string
-	RawDocument   int
-	Kind          string
-	TypeCondition *string
-	Variables     []operationVariableRow
-	Selections    []expectedSelection
+	actualDirs := fetchSelectionDirectivesForSelection(t, db, selectionID)
+	if len(actualDirs) != len(expected.Directives) {
+		t.Errorf("for selection id %d, expected %d directives, got %d", selectionID, len(expected.Directives), len(actualDirs))
+	} else {
+		for i, expDir := range expected.Directives {
+			actDir := actualDirs[i]
+			if actDir.Name != expDir.Name {
+				t.Errorf("for selection id %d directive %d, expected name %s, got %s", selectionID, i, expDir.Name, actDir.Name)
+			}
+			if len(actDir.Arguments) != len(expDir.Arguments) {
+				t.Errorf("for selection id %d directive %s, expected %d arguments, got %d", selectionID, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
+			} else {
+				for j, expDArg := range expDir.Arguments {
+					actDArg := actDir.Arguments[j]
+					if actDArg.Name != expDArg.Name || actDArg.Value != expDArg.Value {
+						t.Errorf("for selection id %d directive %s argument %d, expected %+v, got %+v", selectionID, expDir.Name, j, expDArg, actDArg)
+					}
+				}
+			}
+		}
+	}
 }
 
-type operationVariableRow struct {
-	Document     string
-	VarName      string
-	Type         string
-	DefaultValue *string
+func verifySelectionTreeDirectives(expectedTree []expectedSelection, dbSelections []dbSelection, db plugins.Database[PluginConfig], t *testing.T) {
+	for _, exp := range expectedTree {
+		if len(exp.Arguments) > 0 || len(exp.Directives) > 0 {
+			if sel, found := findDBSelection(exp, dbSelections); found {
+				verifySelectionDetails(t, db, sel.ID, exp)
+			} else {
+				t.Errorf("could not find db selection matching expected %+v", exp)
+			}
+		}
+		if len(exp.Children) > 0 {
+			verifySelectionTreeDirectives(exp.Children, dbSelections, db, t)
+		}
+	}
 }
 
-type expectedArgument struct {
-	Name  string
-	Value string
+func findDBSelection(expected expectedSelection, dbSelections []dbSelection) (dbSelection, bool) {
+	for _, s := range dbSelections {
+		effAlias := s.Alias
+		if effAlias == nil {
+			effAlias = &s.FieldName
+		}
+		if s.FieldName == expected.FieldName && s.PathIndex == expected.PathIndex && s.Kind == expected.Kind && strEqual(effAlias, expected.Alias) {
+			return s, true
+		}
+	}
+	return dbSelection{}, false
 }
 
-type expectedDirectiveArgument struct {
-	Name  string
-	Value string
+func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.Database[PluginConfig], selectionID int) []expectedArgument {
+	stmt, err := db.Conn.Prepare("select name, value from selection_arguments where selection_id = ? order by id")
+	if err != nil {
+		t.Fatalf("failed to prepare selection_arguments query: %v", err)
+	}
+	defer stmt.Finalize()
+
+	stmt.BindInt64(1, int64(selectionID))
+	var args []expectedArgument
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			t.Fatalf("error stepping selection_arguments query: %v", err)
+		}
+		if !ok {
+			break
+		}
+		args = append(args, expectedArgument{
+			Name:  stmt.ColumnText(0),
+			Value: stmt.ColumnText(1),
+		})
+	}
+	return args
 }
 
-type expectedDirective struct {
-	Name      string
-	Arguments []expectedDirectiveArgument
+func fetchSelectionDirectivesForSelection(t *testing.T, db plugins.Database[PluginConfig], selectionID int) []expectedDirective {
+	stmt, err := db.Conn.Prepare("select id, directive from selection_directives where selection_id = ? order by id")
+	if err != nil {
+		t.Fatalf("failed to prepare selection_directives query: %v", err)
+	}
+	defer stmt.Finalize()
+
+	stmt.BindInt64(1, int64(selectionID))
+	var directives []expectedDirective
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			t.Fatalf("error stepping selection_directives query: %v", err)
+		}
+		if !ok {
+			break
+		}
+		dirID := int(stmt.ColumnInt(0))
+		dirName := stmt.ColumnText(1)
+		argStmt, err := db.Conn.Prepare("select name, value from selection_directive_arguments where parent = ? order by id")
+		if err != nil {
+			t.Fatalf("failed to prepare selection_directive_arguments query: %v", err)
+		}
+		argStmt.BindInt64(1, int64(dirID))
+		var dirArgs []expectedDirectiveArgument
+		for {
+			ok, err := argStmt.Step()
+			if err != nil {
+				t.Fatalf("error stepping selection_directive_arguments query: %v", err)
+			}
+			if !ok {
+				break
+			}
+			dirArgs = append(dirArgs, expectedDirectiveArgument{
+				Name:  argStmt.ColumnText(0),
+				Value: argStmt.ColumnText(1),
+			})
+		}
+		argStmt.Finalize()
+		directives = append(directives, expectedDirective{
+			Name:      dirName,
+			Arguments: dirArgs,
+		})
+	}
+	return directives
 }
 
-type expectedSelection struct {
-	FieldName  string
-	Alias      *string
-	PathIndex  int
-	Kind       string
-	Arguments  []expectedArgument
-	Directives []expectedDirective
-	Children   []expectedSelection
+func strPtr(s string) *string {
+	return &s
 }
 
-//
-// db helper types
-//
-
-type documentRow struct {
-	Name          string
-	RawDocument   int
-	Kind          string
-	TypeCondition *string
-}
-
-type dbSelection struct {
-	ID        int
-	FieldName string
-	Alias     *string
-	PathIndex int
-	Kind      string
-}
-
-//
-// test case struct
-//
-
-type testCase struct {
-	name     string
-	rawQuery string
-	expected expectedDocument
+func strEqual(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil {
+		return *b == ""
+	}
+	if b == nil {
+		return *a == ""
+	}
+	return *a == *b
 }
