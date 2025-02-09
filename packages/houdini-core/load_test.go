@@ -952,6 +952,63 @@ var tests = []testCase{
 			},
 		},
 	},
+	{
+		name: "inline fragment with directive",
+		rawQuery: `
+			query TestInlineDirectives {
+				user(id: "123") {
+					... on User @include(if: true) {
+						id
+						email
+					}
+				}
+			}
+		`,
+		expectedDocs: []expectedDocument{
+			{
+				// This is the operation document for the query.
+				Name:        "TestInlineDirectives",
+				RawDocument: 1,
+				Kind:        "query",
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Arguments: []expectedArgument{
+							{Name: "id", Value: "\"123\""},
+						},
+						Children: []expectedSelection{
+							{
+								FieldName: "User",
+								Alias:     nil,
+								PathIndex: 0,
+								Kind:      "inline_fragment",
+								Directives: []expectedDirective{
+									{
+										Name: "include",
+										Arguments: []expectedDirectiveArgument{
+											{Name: "if", Value: "true"},
+										},
+									},
+								},
+								Children: []expectedSelection{
+									{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+									{
+										FieldName: "email",
+										Alias:     strPtr("email"),
+										PathIndex: 1,
+										Kind:      "field",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
@@ -1519,9 +1576,6 @@ func verifySelectionTreeDirectives(expectedTree []expectedSelection, dbSelection
 func findDBSelection(expected expectedSelection, dbSelections []dbSelection) (dbSelection, bool) {
 	for _, s := range dbSelections {
 		effAlias := s.Alias
-		if effAlias == nil {
-			effAlias = &s.FieldName
-		}
 		if s.FieldName == expected.FieldName && s.PathIndex == expected.PathIndex && s.Kind == expected.Kind && strEqual(effAlias, expected.Alias) {
 			return s, true
 		}

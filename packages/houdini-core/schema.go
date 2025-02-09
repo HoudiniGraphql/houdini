@@ -28,7 +28,6 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// parse and validate the schema
-	// TODO: error reporting
 	schema, err := gqlparser.LoadSchema(&ast.Source{
 		Input: string(file),
 	})
