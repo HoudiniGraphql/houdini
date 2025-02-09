@@ -55,10 +55,7 @@ func writeSchema[PluginConfig any](db plugins.Database[PluginConfig], schema *as
 		for i, bind := range binds {
 			stmt.BindText(i+1, bind)
 		}
-		if _, err := stmt.Step(); err != nil {
-			return err
-		}
-		return stmt.Reset()
+		return db.ExecStatement(stmt)
 	}
 
 	// Prepare statements. (Check errors and defer closing each statement.)

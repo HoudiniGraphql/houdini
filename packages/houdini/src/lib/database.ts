@@ -164,39 +164,29 @@ CREATE TABLE directive_locations (
 -- Document Tables
 -----------------------------------------------------------
 
-CREATE TABLE operations (
-    name TEXT UNIQUE PRIMARY KEY NOT NULL,
-    operation_type TEXT NOT NULL CHECK (operation_type IN ('query', 'mutation', 'subscription')),
-    document_id INTEGER NOT NULL,
-    FOREIGN KEY (document_id) REFERENCES documents(id)
-);
-
 CREATE TABLE operation_variables (
-    operation TEXT NOT NULL,
-    name TEXT PRIMARY KEY NOT NULL,
+ 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document TEXT NOT NULL,
+    name TEXT NOT NULL,
     type TEXT NOT NULL,
     default_value TEXT,
-    FOREIGN KEY (operation) REFERENCES operations(name)
-);
-
-CREATE TABLE fragments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    type_condition TEXT NOT NULL,
-    document_id INTEGER NOT NULL,
-    FOREIGN KEY (document_id) REFERENCES documents(id),
-    FOREIGN KEY (type_condition) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (document) REFERENCES documents(name)
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE documents (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    name TEXT NOT NULL PRIMARY KEY,
+	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
+	raw_document INTEGER NOT NULL,
+    type_condition TEXT,
+    FOREIGN KEY (type_condition) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     field_name TEXT NOT NULL,
+	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
     path_index INTEGER NOT NULL
 );
@@ -220,17 +210,16 @@ CREATE TABLE selection_directive_arguments (
 CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
-    document_id INTEGER NOT NULL,
+    document TEXT NOT NULL,
     FOREIGN KEY (parent_id) REFERENCES selections(id),
     FOREIGN KEY (child_id) REFERENCES selections(id),
-    FOREIGN KEY (document_id) REFERENCES documents(id)
+    FOREIGN KEY (document) REFERENCES documents(name)
 );
 
-CREATE TABLE field_arguments (
+CREATE TABLE selection_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value_type TEXT NOT NULL,
     value TEXT NOT NULL,
     FOREIGN KEY (selection_id) REFERENCES selections(id)
 );
@@ -242,12 +231,7 @@ CREATE TABLE field_arguments (
 -- Selection traversal indices
 CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
-CREATE INDEX idx_selection_refs_document ON selection_refs(document_id);
-
--- Operation and Fragment lookup indices
-CREATE INDEX idx_operations_document ON operations(document_id);
-CREATE INDEX idx_fragments_document ON fragments(document_id);
-CREATE INDEX idx_fragments_name ON fragments(name);
+CREATE INDEX idx_selection_refs_document ON selection_refs(document);
 
 -- Field lookups
 CREATE INDEX idx_type_fields_parent ON type_fields(parent);
@@ -255,7 +239,7 @@ CREATE INDEX idx_input_fields_parent ON input_fields(parent);
 
 -- Selection metadata lookups
 CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);
-CREATE INDEX idx_field_arguments_selection ON field_arguments(selection_id);
+CREATE INDEX idx_selection_arguments_selection ON selection_arguments(selection_id);
 CREATE INDEX idx_selection_directive_args_parent ON selection_directive_arguments(parent);
 
 -- Type system lookups
@@ -441,7 +425,7 @@ export async function write_config(
 //         s.field_name as path
 //     FROM selections s
 //     JOIN selection_refs sr ON s.id = sr.child_id
-//     WHERE sr.document_id = ? AND sr.parent_id IS NULL
+//     WHERE sr.document = ? AND sr.parent_id IS NULL
 
 //     UNION ALL
 
@@ -456,7 +440,7 @@ export async function write_config(
 //     FROM selections s
 //     JOIN selection_refs sr ON s.id = sr.child_id
 //     JOIN selection_tree st ON sr.parent_id = st.id
-//     WHERE sr.document_id = ?  -- Same document_id as base case
+//     WHERE sr.document = ?  -- Same document as base case
 // )
 // SELECT
 //     st.*,
