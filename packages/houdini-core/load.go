@@ -51,34 +51,13 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 				close(&err)
 			}
 
-			// our prepared statements
-			insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
-			defer insertDocument.Finalize()
-			insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
-			defer insertDocumentVariable.Finalize()
-			insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind) VALUES (?, ?, ?, ?)")
-			defer insertSelection.Finalize()
-			insertSelectionArgument := db.Conn.Prep("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
-			defer insertSelectionArgument.Finalize()
-			insertSelectionRef := db.Conn.Prep("INSERT INTO selection_refs (parent_id, child_id, document) VALUES (?, ?, ?)")
-			defer insertSelectionRef.Finalize()
-			insertSelectionDirective := db.Conn.Prep("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")
-			defer insertSelectionDirective.Finalize()
-			insertSelectionDirectiveArgument := db.Conn.Prep("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
-			defer insertSelectionDirectiveArgument.Finalize()
+			insertStatements, finalize := prepareInsertStatements(db)
+			defer finalize()
 
 			// consume queries until the channel is closed
 			for query := range queries {
 				// load the document into the database
-				err := p.loadPendingQuery(query, db, InsertStatements{
-					InsertDocument:                   insertDocument,
-					InsertDocumentVariable:           insertDocumentVariable,
-					InsertSelection:                  insertSelection,
-					InsertSelectionArgument:          insertSelectionArgument,
-					InsertSelectionRef:               insertSelectionRef,
-					InsertSelectionDirective:         insertSelectionDirective,
-					InsertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
-				})
+				err := p.loadPendingQuery(query, db, insertStatements)
 				if err != nil {
 					commit(err)
 					return err
@@ -140,6 +119,36 @@ type InsertStatements struct {
 	InsertSelectionArgument          *sqlite.Stmt
 	InsertSelectionDirective         *sqlite.Stmt
 	InsertSelectionDirectiveArgument *sqlite.Stmt
+}
+
+func prepareInsertStatements(db plugins.Database[PluginConfig]) (InsertStatements, func()) {
+	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
+	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
+	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind) VALUES (?, ?, ?, ?)")
+	insertSelectionArgument := db.Conn.Prep("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
+	insertSelectionRef := db.Conn.Prep("INSERT INTO selection_refs (parent_id, child_id, document) VALUES (?, ?, ?)")
+	insertSelectionDirective := db.Conn.Prep("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")
+	insertSelectionDirectiveArgument := db.Conn.Prep("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+
+	finalize := func() {
+		insertDocument.Finalize()
+		insertDocumentVariable.Finalize()
+		insertSelection.Finalize()
+		insertSelectionArgument.Finalize()
+		insertSelectionRef.Finalize()
+		insertSelectionDirective.Finalize()
+		insertSelectionDirectiveArgument.Finalize()
+	}
+
+	return InsertStatements{
+		InsertDocument:                   insertDocument,
+		InsertDocumentVariable:           insertDocumentVariable,
+		InsertSelection:                  insertSelection,
+		InsertSelectionArgument:          insertSelectionArgument,
+		InsertSelectionRef:               insertSelectionRef,
+		InsertSelectionDirective:         insertSelectionDirective,
+		InsertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
+	}, finalize
 }
 
 // loadPendingQuery parses the graphql query and inserts the ast into the database.
