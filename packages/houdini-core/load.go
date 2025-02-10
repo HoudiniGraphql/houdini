@@ -48,8 +48,9 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 
 			// each query gets wrapped in its own transaction
 			close := sqlitex.Transaction(db.Conn)
-			commit := func(err error) {
+			commit := func(err error) error {
 				close(&err)
+				return err
 			}
 
 			insertStatements, finalize := prepareDocumentInsertStatements(db)
@@ -60,18 +61,13 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 				// load the document into the database
 				err := p.loadPendingQuery(query, db, insertStatements)
 				if err != nil {
-					commit(err)
-					return err
+					return commit(err)
 				}
 			}
 
-			// if we got this far, we're good to commit the transaction
-			commit(nil)
-
-			// nothing went wrong
-			return nil
+			// if we got this far, we're good to commit the transaction without an error
+			return commit(nil)
 		})
-
 	}
 
 	// consume rows from the database and send them to the workers

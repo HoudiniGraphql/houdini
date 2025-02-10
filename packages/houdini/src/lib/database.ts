@@ -82,7 +82,8 @@ CREATE TABLE raw_documents (
 
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
-    kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT'))
+    kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
+	internal BOOLEAN default false
 );
 
 CREATE TABLE type_fields (
@@ -140,7 +141,9 @@ CREATE TABLE union_member_types (
 );
 
 CREATE TABLE directives (
-    name TEXT NOT NULL UNIQUE PRIMARY KEY
+    name TEXT NOT NULL UNIQUE PRIMARY KEY,
+	internal BOOLEAN default false,
+	description TEXT
 );
 
 CREATE TABLE directive_arguments (

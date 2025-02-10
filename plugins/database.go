@@ -34,7 +34,6 @@ func InMemoryDB[PluginConfig any]() (Database[PluginConfig], error) {
 
 func (db Database[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
 	for i, arg := range args {
-		fmt.Println(statement, "binding", i+1, arg)
 		switch arg.(type) {
 		case string:
 			statement.BindText(i+1, arg.(string))
@@ -44,6 +43,8 @@ func (db Database[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...a
 			statement.BindInt64(i+1, arg.(int64))
 		case nil:
 			statement.BindNull(i + 1)
+		case bool:
+			statement.BindBool(i+1, arg.(bool))
 		default:
 			return fmt.Errorf("unsupported type: %T", arg)
 		}
