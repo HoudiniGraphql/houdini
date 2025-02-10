@@ -42,10 +42,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// prepare the statements we'll use
-	statements, finalize, err := p.prepareSchemaInsertStatements(p.DB)
-	if err != nil {
-		return err
-	}
+	statements, finalize := p.prepareSchemaInsertStatements(p.DB)
 	defer finalize()
 
 	// import the user's schema into the database

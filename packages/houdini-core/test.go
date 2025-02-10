@@ -1,10 +1,28 @@
-import * as graphql from 'graphql'
-import sqlite from 'node:sqlite'
+package main
 
-import { PluginSpec } from './codegen'
-import { Config, default_config } from './project'
+import (
+	"strings"
 
-export const create_schema = `
+	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
+)
+
+// executeSchema creates the database schema.
+func executeSchema(db *sqlite.Conn) error {
+	statements := strings.Split(schema, ";")
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+		if err := sqlitex.ExecuteTransient(db, stmt, nil); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+const schema = `
 CREATE TABLE plugins (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     port INTEGER NOT NULL,
@@ -267,211 +285,3 @@ CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent)
 CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
 `
-
-export async function write_config(
-	db: sqlite.DatabaseSync,
-	config: Config,
-	invoke_hook: (
-		plugin: string,
-		hook: string,
-		args: Record<string, any>
-	) => Promise<Record<string, any>>,
-	plugins: Record<string, PluginSpec>,
-	mode: string
-) {
-	// in order to know our configuration values, we need to load the current environment
-	// to do this we need to look at each plugin that supports the environment hook
-	// and invoke it
-	const env = {}
-
-	console.time('Environment')
-	// look at each plugin
-	await Promise.all(
-		Object.values(plugins).map(async (plugin) => {
-			// if the plugin supports the environment hook
-			if (plugin.hooks.has('Environment')) {
-				// we need to hit the corresponding endpoint in the plugin server
-				Object.assign(env, await invoke_hook(plugin.name, 'environment', { mode }))
-			}
-		})
-	)
-	console.timeEnd('Environment')
-
-	// now that we have the environment, we can write our config values to the database
-	const config_file = {
-		...default_config,
-		...config.config_file,
-	}
-
-	// write the config to the database
-	db.prepare(
-		`
-		INSERT INTO config (
-			include,
-			exclude,
-			schema_path,
-			definitions_path,
-			cache_buffer_size,
-			default_cache_policy,
-			default_partial,
-			default_lifetime,
-			default_list_position,
-			default_list_target,
-			default_paginate_mode,
-			suppress_pagination_deduplication,
-			log_level,
-			default_fragment_masking,
-			default_keys,
-			persisted_queries_path,
-			project_root,
-			runtime_dir
-		) VALUES (
-			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-		)
-	`
-	).run(
-		JSON.stringify(
-			typeof config_file.include === 'string'
-				? [config_file.include]
-				: config_file.include ?? []
-		),
-		JSON.stringify(
-			typeof config_file.exclude === 'string'
-				? [config_file.exclude]
-				: config_file.exclude ?? []
-		),
-		config_file.schemaPath!,
-		config_file.definitionsPath ?? '',
-		config_file.cacheBufferSize ?? null,
-		config_file.defaultCachePolicy ?? null,
-		config_file.defaultPartial ? 1 : 0,
-		config_file.defaultLifetime ?? null,
-		config_file.defaultListPosition ?? null,
-		config_file.defaultListTarget ?? null,
-		config_file.defaultPaginateMode ?? null,
-		config_file.supressPaginationDeduplication ? 1 : 0,
-		config_file.logLevel ?? null,
-		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
-		JSON.stringify(config_file.defaultKeys ?? []),
-		config_file.persistedQueriesPath ?? null,
-		config.root_dir ?? null,
-		config_file.runtimeDir ?? null
-	)
-
-	// write the scalar definitions
-	let insert = db.prepare('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)')
-	for (const [name, { type }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type)
-	}
-
-	// write router config
-	if (config.config_file.router) {
-		let session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		let api_endpoint: string | null = null
-		let url: string | null = null
-		let mutation: string | null = null
-		let redirect: string | null = null
-
-		if (config.config_file.router.auth) {
-			if ('mutation' in config.config_file.router.auth) {
-				mutation = config.config_file.router.auth.mutation
-			} else {
-				redirect = config.config_file.router.auth.redirect
-			}
-			url = config.config_file.router.auth.url ?? null
-		}
-
-		db.prepare(
-			`INSERT INTO router_config (
-				redirect,
-				session_keys,
-				url,
-				mutation,
-				redirect,
-				api_endpoint
-			) VALUES (?, ?, ?, ?, ?, ?)`
-		).run(redirect, session_keys, url, mutation, redirect, api_endpoint)
-	}
-
-	// add watch_schema_config
-	if (config.config_file.watchSchema) {
-		const url =
-			typeof config.config_file.watchSchema.url === 'string'
-				? config.config_file.watchSchema.url
-				: config.config_file.watchSchema.url(env)
-		const headers = !config.config_file.watchSchema.headers
-			? {}
-			: typeof config.config_file.watchSchema.headers === 'function'
-			? typeof config.config_file.watchSchema.headers(env)
-			: typeof config.config_file.watchSchema.headers
-		db.prepare(
-			`INSERT INTO watch_schema_config (
-				url,
-				headers,
-				interval,
-				timeout
-			) VALUES (?, ?, ?, ?)`
-		).run(
-			url,
-			JSON.stringify(headers),
-			config.config_file.watchSchema.interval ?? null,
-			config.config_file.watchSchema.timeout ?? null
-		)
-	}
-
-	// write the scalar configs
-	insert = db.prepare('INSERT INTO scalar_config (name, type) VALUES (?, ?)')
-	for (const [name, { type }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type)
-	}
-
-	// write the type configs
-	insert = db.prepare('INSERT INTO type_configs (name, keys) VALUES (?, ?)')
-	for (const [name, { keys }] of Object.entries(config.config_file.types ?? {})) {
-		insert.run(name, (keys || config_file.defaultKeys || []).join(','))
-	}
-}
-
-// Query to Load a Selection Tree
-//
-// WITH RECURSIVE selection_tree AS (
-//     -- Base case: get root selections for document
-//     SELECT
-//         s.id,
-//         s.field_name,
-//         s.alias,
-//         s.path_index,
-//         0 as depth,
-//         s.field_name as path
-//     FROM selections s
-//     JOIN selection_refs sr ON s.id = sr.child_id
-//     WHERE sr.document = ? AND sr.parent_id IS NULL
-
-//     UNION ALL
-
-//     -- Recursive case: get all children
-//     SELECT
-//         s.id,
-//         s.field_name,
-//         s.alias,
-//         s.path_index,
-//         st.depth + 1,
-//         st.path || '.' || s.field_name
-//     FROM selections s
-//     JOIN selection_refs sr ON s.id = sr.child_id
-//     JOIN selection_tree st ON sr.parent_id = st.id
-//     WHERE sr.document = ?  -- Same document as base case
-// )
-// SELECT
-//     st.*,
-//     tf.name as field_name,
-//     t.name as type_name,
-//     tm.id as type_modifier_id,
-//     tm.base_type_name,
-//     tm.is_non_null,
-//     tm.parent_id as next_modifier
-// FROM selection_tree st
-// LEFT JOIN type_fields tf ON st.field_name = tf.name
-// LEFT JOIN types t ON tf.type_id = t.id
-// LEFT JOIN type_modifiers tm ON tf.type_modifier_id = tm.id
-// ORDER BY st.depth, st.path_index;

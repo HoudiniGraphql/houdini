@@ -125,65 +125,20 @@ type SchemaInsertStatements struct {
 	InsertDirectiveArgument    *sqlite.Stmt
 }
 
-func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginConfig]) (SchemaInsertStatements, func(), error) {
+func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginConfig]) (SchemaInsertStatements, func()) {
 	// Prepare statements. (Check errors and defer closing each statement.)
-	insertTypeStmt, err := db.Prepare("INSERT INTO types (name, kind) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-	insertInternalTypeStmt, err := db.Prepare("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-	insertInputTypeFieldStmt, err := db.Prepare("INSERT INTO input_fields (id, parent, name, type, default_value) VALUES (?, ?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertTypeFieldStmt, err := db.Prepare("INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertInterfaceImplementorStmt, err := db.Prepare("INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertUnionMemberStmt, err := db.Prepare("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertEnumValueStmt, err := db.Prepare("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertFieldArgumentStmt, err := db.Prepare("INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertDirectiveStmt, err := db.Prepare("INSERT INTO directives (name) VALUES (?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertInternalDirectiveStmt, err := db.Prepare("INSERT INTO directives (name, description, internal) VALUES (?, ?, true)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertDirectiveLocationStmt, err := db.Prepare("INSERT INTO directive_locations (directive, location) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertDirectiveArgumentStmt, err := db.Prepare("INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
+	insertTypeStmt := db.Prep("INSERT INTO types (name, kind) VALUES (?, ?)")
+	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")
+	insertInputTypeFieldStmt := db.Prep("INSERT INTO input_fields (id, parent, name, type, default_value) VALUES (?, ?, ?, ?, ?)")
+	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)")
+	insertInterfaceImplementorStmt := db.Prep("INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)")
+	insertUnionMemberStmt := db.Prep("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
+	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
+	insertFieldArgumentStmt := db.Prep("INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)")
+	insertDirectiveStmt := db.Prep("INSERT INTO directives (name) VALUES (?)")
+	insertInternalDirectiveStmt := db.Prep("INSERT INTO directives (name, description, internal) VALUES (?, ?, true)")
+	insertDirectiveLocationStmt := db.Prep("INSERT INTO directive_locations (directive, location) VALUES (?, ?)")
+	insertDirectiveArgumentStmt := db.Prep("INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)")
 
 	finalize := func() {
 		insertTypeStmt.Finalize()
@@ -213,5 +168,5 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 		InsertInternalDirective:    insertInternalDirectiveStmt,
 		InsertDirectiveLocation:    insertDirectiveLocationStmt,
 		InsertDirectiveArgument:    insertDirectiveArgumentStmt,
-	}, finalize, nil
+	}, finalize
 }

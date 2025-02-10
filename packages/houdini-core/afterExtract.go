@@ -28,7 +28,7 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	}
 
 	// now that we've parsed and loaded the extracted queries we need to handle component queries
-	err = p.afterExtract_loadComponentFields(ctx)
+	err = p.afterExtract_componentFields(ctx, p.DB)
 	if err != nil {
 		return err
 	}
@@ -133,6 +133,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		Input: query.Query,
 	})
 	if err != nil {
+		fmt.Println("parsing error", query.Query)
 		return err
 	}
 
@@ -364,13 +365,48 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 }
 
 // we need to look at anything tagged with @componentField and load the metadata into the database
-func (p *HoudiniCore) afterExtract_loadComponentFields(ctx context.Context) error {
+func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugins.Database[PluginConfig]) error {
 	// we need statements to insert schema information
-	_, finalizeSchemaStatements, err := p.prepareSchemaInsertStatements(p.DB)
+	_, finalizeSchemaStatements := p.prepareSchemaInsertStatements(db)
+	defer finalizeSchemaStatements()
+
+	// we need to consider operation directives and selection directives that reference @componentField
+	search, err := db.Prepare(`
+		SELECT
+			type,
+			selection_directive_arguments.value
+		FROM
+			selection_directives
+			JOIN selection_directive_arguments on selection_directives.id = selection_directive_arguments.parent
+			JOIN selections on selection_directives.selection_id = selections.id
+		WHERE directive = ? AND selection_directive_arguments.name = ?
+	`)
 	if err != nil {
 		return err
 	}
-	defer finalizeSchemaStatements()
+	defer search.Finalize()
+
+	// bind the id to the query
+	search.BindText(1, "componentField")
+	search.BindText(2, "name")
+
+	for {
+		// get the next row
+		hasData, err := search.Step()
+		if err != nil {
+			return err
+		}
+
+		// if theres no more data to consume then we're done
+		if !hasData {
+			break
+		}
+
+		// get the results
+		// typ := search.ColumnText(0)
+		// field := search.ColumnText(1)
+
+	}
 
 	// we're done
 	return nil
