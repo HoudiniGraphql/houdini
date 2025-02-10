@@ -1,6 +1,8 @@
 package plugins
 
 import (
+	"fmt"
+
 	"zombiezen.com/go/sqlite"
 )
 
@@ -30,7 +32,23 @@ func InMemoryDB[PluginConfig any]() (Database[PluginConfig], error) {
 	return Database[PluginConfig]{Conn: conn}, nil
 }
 
-func (db Database[PluginConfig]) ExecStatement(statement *sqlite.Stmt) error {
+func (db Database[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
+	for i, arg := range args {
+		fmt.Println(statement, "binding", i+1, arg)
+		switch arg.(type) {
+		case string:
+			statement.BindText(i+1, arg.(string))
+		case int:
+			statement.BindInt64(i+1, int64(arg.(int)))
+		case int64:
+			statement.BindInt64(i+1, arg.(int64))
+		case nil:
+			statement.BindNull(i + 1)
+		default:
+			return fmt.Errorf("unsupported type: %T", arg)
+		}
+	}
+
 	if _, err := statement.Step(); err != nil {
 		return err
 	}

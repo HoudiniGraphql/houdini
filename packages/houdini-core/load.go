@@ -52,7 +52,7 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 				close(&err)
 			}
 
-			insertStatements, finalize := prepareInsertStatements(db)
+			insertStatements, finalize := prepareDocumentInsertStatements(db)
 			defer finalize()
 
 			// consume queries until the channel is closed
@@ -112,19 +112,9 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	return nil
 }
 
-type InsertStatements struct {
-	InsertDocument                   *sqlite.Stmt
-	InsertDocumentVariable           *sqlite.Stmt
-	InsertSelection                  *sqlite.Stmt
-	InsertSelectionRef               *sqlite.Stmt
-	InsertSelectionArgument          *sqlite.Stmt
-	InsertSelectionDirective         *sqlite.Stmt
-	InsertSelectionDirectiveArgument *sqlite.Stmt
-}
-
 // loadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements InsertStatements) error {
+func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements DocumentInsertStatements) error {
 	// parse the query.
 	parsed, err := parser.ParseQuery(&ast.Source{
 		Input: query.Query,
@@ -142,11 +132,13 @@ func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[P
 
 		// insert the operation into the "documents" table.
 		// for operations, we set type_condition to null.
-		statements.InsertDocument.BindText(1, operation.Name)
-		statements.InsertDocument.BindInt64(2, int64(query.ID))
-		statements.InsertDocument.BindText(3, string(operation.Operation))
-		statements.InsertDocument.BindNull(4)
-		if err := db.ExecStatement(statements.InsertDocument); err != nil {
+		if err := db.ExecStatement(
+			statements.InsertDocument,
+			operation.Name,
+			query.ID,
+			string(operation.Operation),
+			nil,
+		); err != nil {
 			return err
 		}
 
@@ -177,11 +169,13 @@ func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[P
 	// process fragment definitions.
 	for _, fragment := range parsed.Fragments {
 		// insert the fragment into "documents".
-		statements.InsertDocument.BindText(1, fragment.Name)
-		statements.InsertDocument.BindInt64(2, int64(query.ID))
-		statements.InsertDocument.BindText(3, "fragment")
-		statements.InsertDocument.BindText(4, fragment.TypeCondition)
-		if err := db.ExecStatement(statements.InsertDocument); err != nil {
+		if err := db.ExecStatement(
+			statements.InsertDocument,
+			fragment.Name,
+			query.ID,
+			"fragment",
+			fragment.TypeCondition,
+		); err != nil {
 			return err
 		}
 
@@ -199,7 +193,7 @@ func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[P
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection(db plugins.Database[PluginConfig], statements InsertStatements, documentName string, parent *int64, sel ast.Selection, fieldIndex int64) error {
+func processSelection(db plugins.Database[PluginConfig], statements DocumentInsertStatements, documentName string, parent *int64, sel ast.Selection, fieldIndex int64) error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -223,10 +217,12 @@ func processSelection(db plugins.Database[PluginConfig], statements InsertStatem
 
 		// handle any field arguments.
 		for _, arg := range s.Arguments {
-			statements.InsertSelectionArgument.BindInt64(1, selectionID)
-			statements.InsertSelectionArgument.BindText(2, arg.Name)
-			statements.InsertSelectionArgument.BindText(3, arg.Value.String())
-			if err := db.ExecStatement(statements.InsertSelectionArgument); err != nil {
+			if err := db.ExecStatement(
+				statements.InsertSelectionArgument,
+				selectionID,
+				arg.Name,
+				arg.Value.String(),
+			); err != nil {
 				return err
 			}
 		}
@@ -250,11 +246,7 @@ func processSelection(db plugins.Database[PluginConfig], statements InsertStatem
 		if fragType == "" {
 			fragType = "inline_fragment"
 		}
-		statements.InsertSelection.BindText(1, fragType)
-		statements.InsertSelection.BindNull(2)
-		statements.InsertSelection.BindInt64(3, fieldIndex)
-		statements.InsertSelection.BindText(4, "inline_fragment")
-		if err := db.ExecStatement(statements.InsertSelection); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment"); err != nil {
 			return err
 		}
 		selectionID = db.Conn.LastInsertRowID()
@@ -274,11 +266,7 @@ func processSelection(db plugins.Database[PluginConfig], statements InsertStatem
 		}
 
 	case *ast.FragmentSpread:
-		statements.InsertSelection.BindText(1, s.Name)
-		statements.InsertSelection.BindNull(2)
-		statements.InsertSelection.BindInt64(3, fieldIndex)
-		statements.InsertSelection.BindText(4, "fragment")
-		if err := db.ExecStatement(statements.InsertSelection); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment"); err != nil {
 			return err
 		}
 		selectionID = db.Conn.LastInsertRowID()
@@ -308,12 +296,10 @@ func processSelection(db plugins.Database[PluginConfig], statements InsertStatem
 	return nil
 }
 
-func processDirectives(db plugins.Database[PluginConfig], statements InsertStatements, selectionID int64, directives []*ast.Directive) error {
+func processDirectives(db plugins.Database[PluginConfig], statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) error {
 	for _, directive := range directives {
 		// insert the directive row
-		statements.InsertSelectionDirective.BindInt64(1, selectionID)
-		statements.InsertSelectionDirective.BindText(2, directive.Name)
-		if err := db.ExecStatement(statements.InsertSelectionDirective); err != nil {
+		if err := db.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name); err != nil {
 			return err
 		}
 		dirID := db.Conn.LastInsertRowID()
@@ -323,7 +309,12 @@ func processDirectives(db plugins.Database[PluginConfig], statements InsertState
 			statements.InsertSelectionDirectiveArgument.BindInt64(1, dirID)
 			statements.InsertSelectionDirectiveArgument.BindText(2, dArg.Name)
 			statements.InsertSelectionDirectiveArgument.BindText(3, dArg.Value.String())
-			if err := db.ExecStatement(statements.InsertSelectionDirectiveArgument); err != nil {
+			if err := db.ExecStatement(
+				statements.InsertSelectionDirectiveArgument,
+				dirID,
+				dArg.Name,
+				dArg.Value.String(),
+			); err != nil {
 				return err
 			}
 		}
@@ -332,7 +323,17 @@ func processDirectives(db plugins.Database[PluginConfig], statements InsertState
 	return nil
 }
 
-func prepareInsertStatements(db plugins.Database[PluginConfig]) (InsertStatements, func()) {
+type DocumentInsertStatements struct {
+	InsertDocument                   *sqlite.Stmt
+	InsertDocumentVariable           *sqlite.Stmt
+	InsertSelection                  *sqlite.Stmt
+	InsertSelectionRef               *sqlite.Stmt
+	InsertSelectionArgument          *sqlite.Stmt
+	InsertSelectionDirective         *sqlite.Stmt
+	InsertSelectionDirectiveArgument *sqlite.Stmt
+}
+
+func prepareDocumentInsertStatements(db plugins.Database[PluginConfig]) (DocumentInsertStatements, func()) {
 	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
 	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
 	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind) VALUES (?, ?, ?, ?)")
@@ -351,7 +352,7 @@ func prepareInsertStatements(db plugins.Database[PluginConfig]) (InsertStatement
 		insertSelectionDirectiveArgument.Finalize()
 	}
 
-	return InsertStatements{
+	return DocumentInsertStatements{
 		InsertDocument:                   insertDocument,
 		InsertDocumentVariable:           insertDocumentVariable,
 		InsertSelection:                  insertSelection,

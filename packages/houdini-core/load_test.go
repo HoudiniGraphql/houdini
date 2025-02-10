@@ -1031,15 +1031,14 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRaw.Finalize()
-			insertRaw.BindText(1, tc.rawQuery)
-			if err := db.ExecStatement(insertRaw); err != nil {
+			if err := db.ExecStatement(insertRaw, tc.rawQuery); err != nil {
 				t.Fatalf("failed to insert raw document: %v", err)
 			}
 
 			hc := &HoudiniCore{}
 			hc.SetDatabase(db)
 
-			statements, finalize := prepareInsertStatements(db)
+			statements, finalize := prepareDocumentInsertStatements(db)
 			defer finalize()
 
 			pending := PendingQuery{
