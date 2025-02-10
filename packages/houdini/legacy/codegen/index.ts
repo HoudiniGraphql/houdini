@@ -97,32 +97,33 @@ export async function runPipeline(config: Config, docs: Document[]) {
 
 				transforms.runtimeScalars,
 
-				...wrapHook(beforeValidate),
-				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
-				// this replaces wrapHook(validate) to group them up
 				validators.plugins,
-				...wrapHook(afterValidate),
+
 				transforms.addFields,
 				transforms.typename,
 				transforms.componentFields,
+
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
 				transforms.list,
+
 				// paginate transform needs to go before fragmentVariables
 				// so that the variable definitions get hashed
 				transforms.paginate,
+
 				transforms.fragmentVariables,
 				transforms.collectDefinitions,
-				...wrapHook(beforeGenerate),
+
 				// generators
 				// this should be the first generator since it is responsible for creating the
 				// selection and preparing the artifact for the other generators
 				generators.artifacts(artifactStats),
 				generators.runtime,
 				generators.indexFile,
+
 				// typescript generator needs to go after the runtime one
 				// so that the imperative cache definitions always survive
 				// this also ensures that we have the artifact generated already
@@ -131,16 +132,6 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				generators.typescript,
 				generators.persistOutput,
 				generators.definitions,
-
-				// these have to go after the artifacts so that plugins can import them
-				...generatePlugins.map(
-					(plugin) => async (config: Config, docs: Document[]) =>
-						await plugin.generate!({
-							config,
-							documents: docs,
-							pluginRoot: config.pluginDirectory(plugin.name),
-						})
-				),
 			],
 			docs
 		)

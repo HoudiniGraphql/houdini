@@ -641,32 +641,7 @@ var tests = []testCase{
 			},
 		},
 	},
-	{
-		name: "operation-level directives",
-		rawQuery: `
-            query TestOpDirective @cacheControl(maxAge: 60) {
-                user { id }
-            }
-        `,
-		expectedDocs: []expectedDocument{
-			{
-				Name:        "TestOpDirective",
-				RawDocument: 1,
-				Kind:        "query",
-				Selections: []expectedSelection{
-					{
-						FieldName: "user",
-						Alias:     strPtr("user"),
-						PathIndex: 0,
-						Kind:      "field",
-						Children: []expectedSelection{
-							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
-						},
-					},
-				},
-			},
-		},
-	},
+
 	{
 		name: "interface inline fragment",
 		rawQuery: `
@@ -927,32 +902,6 @@ var tests = []testCase{
 		expectError: true,
 	},
 	{
-		name: "multiple operation-level directives",
-		rawQuery: `
-			query TestOpDirectives @directive1 @directive2(arg:"value") {
-				user { id }
-			}
-		`,
-		expectedDocs: []expectedDocument{
-			{
-				Name:        "TestOpDirectives",
-				RawDocument: 1,
-				Kind:        "query",
-				Selections: []expectedSelection{
-					{
-						FieldName: "user",
-						Alias:     strPtr("user"),
-						PathIndex: 0,
-						Kind:      "field",
-						Children: []expectedSelection{
-							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
-						},
-					},
-				},
-			},
-		},
-	},
-	{
 		name: "inline fragment with directive",
 		rawQuery: `
 			query TestInlineDirectives {
@@ -1009,6 +958,71 @@ var tests = []testCase{
 			},
 		},
 	},
+	{
+		name: "operation-level directives",
+		rawQuery: `
+				query TestOpDirective @cacheControl(maxAge: 60) {
+					user { id }
+				}
+			`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestOpDirective",
+				RawDocument: 1,
+				Kind:        "query",
+				Directives: []expectedDirective{
+					{
+						Name: "cacheControl",
+						Arguments: []expectedDirectiveArgument{
+							{Name: "maxAge", Value: "60"},
+						},
+					},
+				},
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	}, {
+		name: "multiple operation-level directives",
+		rawQuery: `
+				query TestOpDirectives @directive1 @directive2(arg:"value") {
+					user { id }
+				}
+			`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestOpDirectives",
+				RawDocument: 1,
+				Kind:        "query",
+				Directives: []expectedDirective{
+					{Name: "directive1", Arguments: []expectedDirectiveArgument{}},
+					{Name: "directive2", Arguments: []expectedDirectiveArgument{
+						{Name: "arg", Value: "\"value\""},
+					}},
+				},
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
@@ -1038,7 +1052,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			hc := &HoudiniCore{}
 			hc.SetDatabase(db)
 
-			statements, finalize := prepareDocumentInsertStatements(db)
+			statements, finalize := (&HoudiniCore{}).prepareDocumentInsertStatements(db)
 			defer finalize()
 
 			pending := PendingQuery{
@@ -1046,7 +1060,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				ID:    1,
 			}
 
-			err = hc.loadPendingQuery(pending, db, statements)
+			err = hc.afterExtract_loadPendingQuery(pending, db, statements)
 			if tc.expectError {
 				if err == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)
@@ -1112,9 +1126,33 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 
 			// verify that selection details (arguments, directives) are correct.
 			dbSels := fetchSelections(t, db)
+
 			for _, expDoc := range tc.expectedDocs {
 				verifySelectionTreeDirectives(expDoc.Selections, dbSels, db, t)
+
+				// verify that document-level directives are correct.
+				docDirectives := fetchDocumentDirectives(t, db, expDoc.Name)
+				if len(docDirectives) != len(expDoc.Directives) {
+					t.Errorf("for document %s, expected %d document directives, got %d", expDoc.Name, len(expDoc.Directives), len(docDirectives))
+				} else {
+					for i, expDir := range expDoc.Directives {
+						actDir := docDirectives[i]
+						if actDir.Name != expDir.Name {
+							t.Errorf("document %s, directive %d: expected %s, got %s", expDoc.Name, i, expDir.Name, actDir.Name)
+						}
+						if len(actDir.Arguments) != len(expDir.Arguments) {
+							t.Errorf("document %s, directive %s: expected %d arguments, got %d", expDoc.Name, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
+						}
+						for j, expArg := range expDir.Arguments {
+							actArg := actDir.Arguments[j]
+							if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+								t.Errorf("document %s, directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expDir.Name, j, expArg, actArg)
+							}
+						}
+					}
+				}
 			}
+
 		})
 	}
 }
@@ -1388,6 +1426,21 @@ CREATE TABLE selection_arguments (
 	name TEXT NOT NULL,
 	value TEXT NOT NULL,
 	FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE document_directives (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	document TEXT NOT NULL,
+	directive TEXT NOT NULL,
+	FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE document_directive_arguments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 `
 
@@ -1669,4 +1722,53 @@ func strEqual(a, b *string) bool {
 		return *a == ""
 	}
 	return *a == *b
+}
+
+func fetchDocumentDirectives(t *testing.T, db plugins.Database[PluginConfig], document string) []expectedDirective {
+	stmt, err := db.Conn.Prepare("SELECT id, directive FROM document_directives WHERE document = ? ORDER BY id")
+	if err != nil {
+		t.Fatalf("failed to prepare document_directives query: %v", err)
+	}
+	defer stmt.Finalize()
+
+	stmt.BindText(1, document)
+
+	var directives []expectedDirective
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			t.Fatalf("error stepping document_directives query: %v", err)
+		}
+		if !ok {
+			break
+		}
+		id := int(stmt.ColumnInt(0))
+		dirName := stmt.ColumnText(1)
+
+		argStmt, err := db.Conn.Prepare("SELECT name, value FROM document_directive_arguments WHERE parent = ? ORDER BY id")
+		if err != nil {
+			t.Fatalf("failed to prepare document_directives_argument query: %v", err)
+		}
+		argStmt.BindInt64(1, int64(id))
+		var args []expectedDirectiveArgument
+		for {
+			ok, err := argStmt.Step()
+			if err != nil {
+				t.Fatalf("error stepping document_directives_argument query: %v", err)
+			}
+			if !ok {
+				break
+			}
+			args = append(args, expectedDirectiveArgument{
+				Name:  argStmt.ColumnText(0),
+				Value: argStmt.ColumnText(1),
+			})
+		}
+		argStmt.Finalize()
+		directives = append(directives, expectedDirective{
+			Name:      dirName,
+			Arguments: args,
+		})
+	}
+	return directives
 }

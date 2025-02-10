@@ -91,6 +91,7 @@ CREATE TABLE type_fields (
     parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+	internal BOOLEAN default false,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, name)
 );
@@ -208,6 +209,22 @@ CREATE TABLE selection_directive_arguments (
     name TEXT NOT NULL,
     value TEXT NOT NULL,
     FOREIGN KEY (parent) REFERENCES selection_directives(id) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE document_directives (
+	id INTEGER PRIMARY KEY AUTOINCREMENT
+	document TEXT NOT NULL,
+	directive TEXT NOT NULL,
+	FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED,
+);
+
+CREATE TABLE document_directive_arguments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_refs (

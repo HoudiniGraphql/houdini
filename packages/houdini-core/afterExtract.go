@@ -10,7 +10,6 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
 	"golang.org/x/sync/errgroup"
-	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
@@ -22,6 +21,23 @@ type PendingQuery struct {
 // AfterExtract is called after all of the plugins have added their documents to the project.
 // We'll use this plugin to parse each document and load it into the database.
 func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
+	// the first thing we have to do is load the extracted queries
+	err := p.afterExtract_loadDocuments(ctx)
+	if err != nil {
+		return err
+	}
+
+	// now that we've parsed and loaded the extracted queries we need to handle component queries
+	err = p.afterExtract_loadComponentFields(ctx)
+	if err != nil {
+		return err
+	}
+
+	// we're done
+	return nil
+}
+
+func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	// we want to process the documents in parallel so we'll pull down from the database
 	// in one goroutine and then pass it a pool of workers who will parse the documents
 	// and insert them into the database
@@ -53,13 +69,14 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 				return err
 			}
 
-			insertStatements, finalize := prepareDocumentInsertStatements(db)
+			// prepare the statements we'll use to insert the document into the database
+			insertStatements, finalize := p.prepareDocumentInsertStatements(db)
 			defer finalize()
 
 			// consume queries until the channel is closed
 			for query := range queries {
 				// load the document into the database
-				err := p.loadPendingQuery(query, db, insertStatements)
+				err := p.afterExtract_loadPendingQuery(query, db, insertStatements)
 				if err != nil {
 					return commit(err)
 				}
@@ -108,9 +125,9 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	return nil
 }
 
-// loadPendingQuery parses the graphql query and inserts the ast into the database.
+// afterExtract_loadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements DocumentInsertStatements) error {
+func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements DocumentInsertStatements) error {
 	// parse the query.
 	parsed, err := parser.ParseQuery(&ast.Source{
 		Input: query.Query,
@@ -160,6 +177,19 @@ func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[P
 				return err
 			}
 		}
+
+		// add document-level directives for the operation.
+		for _, directive := range operation.Directives {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, operation.Name, directive.Name); err != nil {
+				return err
+			}
+			docDirID := db.Conn.LastInsertRowID()
+			for _, arg := range directive.Arguments {
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	// process fragment definitions.
@@ -181,6 +211,20 @@ func (p *HoudiniCore) loadPendingQuery(query PendingQuery, db plugins.Database[P
 			if err := processSelection(db, statements, fragment.Name, nil, sel, int64(i)); err != nil {
 				return err
 			}
+		}
+
+		// add document-level directives for the operation.
+		for _, directive := range fragment.Directives {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, fragment.Name, directive.Name); err != nil {
+				return err
+			}
+			docDirID := db.Conn.LastInsertRowID()
+			for _, arg := range directive.Arguments {
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
+					return err
+				}
+			}
+
 		}
 	}
 
@@ -319,42 +363,15 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 	return nil
 }
 
-type DocumentInsertStatements struct {
-	InsertDocument                   *sqlite.Stmt
-	InsertDocumentVariable           *sqlite.Stmt
-	InsertSelection                  *sqlite.Stmt
-	InsertSelectionRef               *sqlite.Stmt
-	InsertSelectionArgument          *sqlite.Stmt
-	InsertSelectionDirective         *sqlite.Stmt
-	InsertSelectionDirectiveArgument *sqlite.Stmt
-}
-
-func prepareDocumentInsertStatements(db plugins.Database[PluginConfig]) (DocumentInsertStatements, func()) {
-	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
-	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
-	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind) VALUES (?, ?, ?, ?)")
-	insertSelectionArgument := db.Conn.Prep("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
-	insertSelectionRef := db.Conn.Prep("INSERT INTO selection_refs (parent_id, child_id, document) VALUES (?, ?, ?)")
-	insertSelectionDirective := db.Conn.Prep("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")
-	insertSelectionDirectiveArgument := db.Conn.Prep("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
-
-	finalize := func() {
-		insertDocument.Finalize()
-		insertDocumentVariable.Finalize()
-		insertSelection.Finalize()
-		insertSelectionArgument.Finalize()
-		insertSelectionRef.Finalize()
-		insertSelectionDirective.Finalize()
-		insertSelectionDirectiveArgument.Finalize()
+// we need to look at anything tagged with @componentField and load the metadata into the database
+func (p *HoudiniCore) afterExtract_loadComponentFields(ctx context.Context) error {
+	// we need statements to insert schema information
+	_, finalizeSchemaStatements, err := p.prepareSchemaInsertStatements(p.DB)
+	if err != nil {
+		return err
 	}
+	defer finalizeSchemaStatements()
 
-	return DocumentInsertStatements{
-		InsertDocument:                   insertDocument,
-		InsertDocumentVariable:           insertDocumentVariable,
-		InsertSelection:                  insertSelection,
-		InsertSelectionArgument:          insertSelectionArgument,
-		InsertSelectionRef:               insertSelectionRef,
-		InsertSelectionDirective:         insertSelectionDirective,
-		InsertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
-	}, finalize
+	// we're done
+	return nil
 }

@@ -9,7 +9,6 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
@@ -43,7 +42,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// prepare the statements we'll use
-	statements, finalize, err := prepareSchemaInsertStatements(p.DB)
+	statements, finalize, err := p.prepareSchemaInsertStatements(p.DB)
 	if err != nil {
 		return err
 	}
@@ -460,110 +459,4 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 
 	// we're done
 	return nil
-}
-
-type SchemaInsertStatements struct {
-	InsertType                 *sqlite.Stmt
-	InsertInternalType         *sqlite.Stmt
-	InsertTypeField            *sqlite.Stmt
-	InsertInputTypeField       *sqlite.Stmt
-	InsertInterfaceImplementor *sqlite.Stmt
-	InsertUnionMember          *sqlite.Stmt
-	InsertEnumValue            *sqlite.Stmt
-	InsertFieldArgument        *sqlite.Stmt
-	InsertDirective            *sqlite.Stmt
-	InsertInternalDirective    *sqlite.Stmt
-	InsertDirectiveLocation    *sqlite.Stmt
-	InsertDirectiveArgument    *sqlite.Stmt
-}
-
-func prepareSchemaInsertStatements[PluginConfig any](db plugins.Database[PluginConfig]) (SchemaInsertStatements, func(), error) {
-	// Prepare statements. (Check errors and defer closing each statement.)
-	insertTypeStmt, err := db.Prepare("INSERT INTO types (name, kind) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-	insertInternalTypeStmt, err := db.Prepare("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-	insertInputTypeFieldStmt, err := db.Prepare("INSERT INTO input_fields (id, parent, name, type, default_value) VALUES (?, ?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertTypeFieldStmt, err := db.Prepare("INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertInterfaceImplementorStmt, err := db.Prepare("INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertUnionMemberStmt, err := db.Prepare("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertEnumValueStmt, err := db.Prepare("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertFieldArgumentStmt, err := db.Prepare("INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertDirectiveStmt, err := db.Prepare("INSERT INTO directives (name) VALUES (?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertInternalDirectiveStmt, err := db.Prepare("INSERT INTO directives (name, description, internal) VALUES (?, ?, true)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertDirectiveLocationStmt, err := db.Prepare("INSERT INTO directive_locations (directive, location) VALUES (?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	insertDirectiveArgumentStmt, err := db.Prepare("INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return SchemaInsertStatements{}, func() {}, err
-	}
-
-	finalize := func() {
-		insertTypeStmt.Finalize()
-		insertInputTypeFieldStmt.Finalize()
-		insertTypeFieldStmt.Finalize()
-		insertInterfaceImplementorStmt.Finalize()
-		insertUnionMemberStmt.Finalize()
-		insertEnumValueStmt.Finalize()
-		insertFieldArgumentStmt.Finalize()
-		insertDirectiveStmt.Finalize()
-		insertDirectiveLocationStmt.Finalize()
-		insertDirectiveArgumentStmt.Finalize()
-		insertInternalDirectiveStmt.Finalize()
-		insertInternalTypeStmt.Finalize()
-	}
-
-	return SchemaInsertStatements{
-		InsertType:                 insertTypeStmt,
-		InsertInternalType:         insertInternalTypeStmt,
-		InsertInputTypeField:       insertInputTypeFieldStmt,
-		InsertTypeField:            insertTypeFieldStmt,
-		InsertInterfaceImplementor: insertInterfaceImplementorStmt,
-		InsertUnionMember:          insertUnionMemberStmt,
-		InsertEnumValue:            insertEnumValueStmt,
-		InsertFieldArgument:        insertFieldArgumentStmt,
-		InsertDirective:            insertDirectiveStmt,
-		InsertInternalDirective:    insertInternalDirectiveStmt,
-		InsertDirectiveLocation:    insertDirectiveLocationStmt,
-		InsertDirectiveArgument:    insertDirectiveArgumentStmt,
-	}, finalize, nil
 }
