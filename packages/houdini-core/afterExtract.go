@@ -61,6 +61,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
+			defer db.Close()
 
 			// each query gets wrapped in its own transaction
 			close := sqlitex.Transaction(db.Conn)

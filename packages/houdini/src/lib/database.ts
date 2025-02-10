@@ -77,6 +77,15 @@ CREATE TABLE raw_documents (
 	component_field_prop TEXT
 );
 
+-- @componentField has some extra meta data associated with it that can pop up at different times. In order to
+-- make querying this table easier, we'll give it a separate table
+CREATE TABLE component_fields (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	document INTEGER NOT NULL,
+	prop TEXT,
+	FOREIGN KEY (document) REFERENCES raw_documents(id)
+);
+
 -----------------------------------------------------------
 -- Schema Definition Tables
 -----------------------------------------------------------

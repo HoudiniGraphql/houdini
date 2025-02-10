@@ -99,33 +99,34 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		}
 		defer conn.Close()
 
-		// prepare the insert statement.
-		statement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, component_field_prop) VALUES (?, ?, ?)")
+		// prepare the insert statements.
+		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
 		if err != nil {
 			return fmt.Errorf("failed to prepare statement: %w", err)
 		}
-		defer statement.Finalize()
+		defer insertRawStatement.Finalize()
+		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop) VALUES (?, ?)")
+		if err != nil {
+			return fmt.Errorf("failed to prepare statement: %w", err)
+		}
+		defer insertComponentField.Finalize()
 
 		// consume discovered documents from resultsCh and write them to the database.
 		for doc := range resultsCh {
-			// reset the statement before reuse.
-			if err := statement.Reset(); err != nil {
-				return fmt.Errorf("failed to reset statement: %w", err)
+			err := conn.ExecStatement(insertRawStatement, doc.FilePath, doc.Content)
+			if err != nil {
+				return fmt.Errorf("failed to insert raw document: %v", err)
 			}
+			documentID := conn.LastInsertRowID()
 
-			// bind the parameters.
-			statement.BindText(1, doc.FilePath)
-			statement.BindText(2, doc.Content)
+			// if the document has a component field prop, let's register it now as well.
 			if doc.Prop != "" {
-				statement.BindText(3, doc.Prop)
-			} else {
-				statement.BindNull(3)
+				err = conn.ExecStatement(insertComponentField, documentID, doc.Prop)
+				if err != nil {
+					return fmt.Errorf("failed to insert component field: %v", err)
+				}
 			}
 
-			// execute the statement.
-			if _, err := statement.Step(); err != nil {
-				return fmt.Errorf("failed to execute insert: %w", err)
-			}
 		}
 		return nil
 	})
