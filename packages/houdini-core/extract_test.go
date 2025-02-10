@@ -9,9 +9,10 @@ import (
 
 func TestProcessFile(t *testing.T) {
 	tests := []struct {
-		name     string
-		content  string
-		expected []string
+		name                    string
+		content                 string
+		expected                []string
+		expectedComponentFields []expectedComponentField
 	}{
 		{
 			name: "Single GraphQL with whitespace",
@@ -176,6 +177,79 @@ func TestProcessFile(t *testing.T) {
 				"query Query2 { b }",
 			},
 		},
+		{
+			name: "Component field as type parameter",
+			content: `
+type Props = {
+	user: GraphQL<` + "`" + `{
+        ... on User
+			@componentField(field: "CF_A_UserAvatar")
+			@arguments(size: { type: "Int" })
+		{
+            avatarURL(size: $size)
+        }
+    }` + "`" + `>
+}
+
+export default function CF_A_UserAvatar({ user }: Props) {
+	return (
+		<>
+			<img src={user?.avatarURL} width={100} />
+		</>
+	)
+}
+			`,
+			expectedComponentFields: []expectedComponentField{
+				{
+					Prop: "user",
+					Query: `{
+        ... on User
+			@componentField(field: "CF_A_UserAvatar")
+			@arguments(size: { type: "Int" })
+		{
+            avatarURL(size: $size)
+        }
+    }`,
+				},
+			},
+		},
+		{
+			name: "Component field spanning buffer",
+			content: func() string {
+				// Create a filler so that the start of the component field appears near the end of the first chunk.
+				// Our chunkSize is 4096 so using 4080 bytes here means that the component field will begin
+				// in the first chunk and finish in the next.
+				filler := strings.Repeat("A", 4080)
+				// Define the component field block.
+				// Note that we use string concatenation to insert a literal backtick.
+				block := `
+		type Props = {
+			user: GraphQL<` + "`" + `{
+				... on User
+					@componentField(field: "CF_Spanning")
+					@arguments(size: { type: "Int" })
+				{
+					avatarURL(size: $size)
+				}
+			}` + "`" + `>
+		}
+		`
+				return filler + block
+			}(),
+			expectedComponentFields: []expectedComponentField{
+				{
+					Prop: "user",
+					Query: `{
+				... on User
+					@componentField(field: "CF_Spanning")
+					@arguments(size: { type: "Int" })
+				{
+					avatarURL(size: $size)
+				}
+			}`,
+				},
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -200,14 +274,31 @@ func TestProcessFile(t *testing.T) {
 				docs = append(docs, doc)
 			}
 
-			if len(docs) != len(tc.expected) {
-				t.Fatalf("expected %d document(s), got %d", len(tc.expected), len(docs))
+			if len(tc.expected) > 0 {
+				if len(docs) != len(tc.expected) {
+					t.Fatalf("expected %d document(s), got %+v", len(tc.expected), docs)
+				}
+
+				for i, exp := range tc.expected {
+					if docs[i].Content != exp {
+						t.Errorf("document %d: expected %q, got %q", i, exp, docs[i].Content)
+					}
+				}
 			}
 
-			for i, exp := range tc.expected {
-				if docs[i].Content != exp {
-					t.Errorf("document %d: expected %q, got %q", i, exp, docs[i].Content)
+			if len(tc.expectedComponentFields) > 0 {
+				for i, exp := range tc.expectedComponentFields {
+					if len(docs) <= i {
+						t.Fatalf("not enough documents were found. Needed at least %d, got %d", i+1, len(docs))
+					}
+					if docs[i].Content != exp.Query {
+						t.Errorf("document %d: expected %q, got %q", i, exp, docs[i].Content)
+					}
+					if docs[i].Prop != exp.Prop {
+						t.Errorf("document %d: expected %q, got %q", i, exp, docs[i].Content)
+					}
 				}
+
 			}
 
 			if err := fs.Remove(filePath); err != nil {
@@ -215,4 +306,9 @@ func TestProcessFile(t *testing.T) {
 			}
 		})
 	}
+}
+
+type expectedComponentField struct {
+	Prop  string
+	Query string
 }

@@ -100,7 +100,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		defer conn.Close()
 
 		// prepare the insert statement.
-		statement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
+		statement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, component_field_prop) VALUES (?, ?, ?)")
 		if err != nil {
 			return fmt.Errorf("failed to prepare statement: %w", err)
 		}
@@ -116,6 +116,11 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 			// bind the parameters.
 			statement.BindText(1, doc.FilePath)
 			statement.BindText(2, doc.Content)
+			if doc.Prop != "" {
+				statement.BindText(3, doc.Prop)
+			} else {
+				statement.BindNull(3)
+			}
 
 			// execute the statement.
 			if _, err := statement.Step(); err != nil {
@@ -151,21 +156,16 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 	}
 	defer f.Close()
 
-	// if the file is a graphql file we can just use the contents directly
+	// If the file is a .graphql/.gql file, read it entirely.
 	if strings.HasSuffix(fp, ".graphql") || strings.HasSuffix(fp, ".gql") {
-		// read the full file
 		content, err := io.ReadAll(f)
 		if err != nil {
 			return err
 		}
-
-		// write the content to the channel
 		ch <- DiscoveredDocument{
 			FilePath: fp,
 			Content:  string(content),
 		}
-
-		// we're done
 		return nil
 	}
 
@@ -180,20 +180,16 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 			// Append the newly read data.
 			buffer = append(buffer, chunk[:n]...)
 			text := string(buffer)
-
-			// Find all matches.
-			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
 			lastCompleteMatchEnd := 0
 
-			// Process each match if it is complete.
+			// Look for matches of graphql( ... )
+			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
 			for _, m := range matches {
-				// m[0] and m[1] are the overall match bounds.
-				// m[2] and m[3] are the bounds for the capture group.
-				// Only process matches that are complete.
+				// Only process matches that are complete (i.e. the match ends before the end of our current text).
 				if m[1] < len(text) {
 					if len(m) >= 4 {
 						extracted := text[m[2]:m[3]]
-						// Replace any escaped backticks with a literal backtick.
+						// Replace any escaped backticks with literal backticks.
 						extracted = strings.ReplaceAll(extracted, "\\`", "`")
 						ch <- DiscoveredDocument{
 							FilePath: fp,
@@ -206,17 +202,44 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 				}
 			}
 
-			// trim the buffer. if there is a complete match, we can discard everything the end of the last match
+			// Look for component field matches: e.g. "user: GraphQL<` ... `>"
+			compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
+			for _, m := range compMatches {
+				if m[1] < len(text) {
+					// Expecting at least 3 captured groups:
+					// m[0]: full match, m[2]/m[3]: property name, m[4]/m[5]: GraphQL content.
+					if len(m) >= 6 {
+						prop := text[m[2]:m[3]]
+						extracted := text[m[4]:m[5]]
+						extracted = strings.ReplaceAll(extracted, "\\`", "`")
+						ch <- DiscoveredDocument{
+							FilePath: fp,
+							Content:  extracted,
+							Prop:     prop,
+						}
+					}
+					if m[1] > lastCompleteMatchEnd {
+						lastCompleteMatchEnd = m[1]
+					}
+				}
+			}
+
+			// Trim the buffer:
+			// If we found a complete match, drop everything up to its end.
+			// Otherwise, if there is a partial match (a starting keyword), keep from there.
 			if lastCompleteMatchEnd > 0 {
 				buffer = buffer[lastCompleteMatchEnd:]
 			} else {
-				// no complete match found; look if there is a partial to start the next chunk
-				idx := strings.LastIndex(text, "graphql(")
-				if idx != -1 {
-					buffer = buffer[idx:]
-				} else {
-					// there is no partial match, no reason to keep the buffer
+				idx1 := strings.LastIndex(text, "graphql(")
+				idx2 := strings.LastIndex(text, "GraphQL<")
+				if idx1 == -1 && idx2 == -1 {
 					buffer = nil
+				} else {
+					idx := idx1
+					if idx2 > idx {
+						idx = idx2
+					}
+					buffer = buffer[idx:]
 				}
 			}
 		}
@@ -236,6 +259,19 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 						}
 					}
 				}
+				compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
+				for _, m := range compMatches {
+					if len(m) >= 6 {
+						prop := text[m[2]:m[3]]
+						extracted := text[m[4]:m[5]]
+						extracted = strings.ReplaceAll(extracted, "\\`", "`")
+						ch <- DiscoveredDocument{
+							FilePath: fp,
+							Content:  extracted,
+							Prop:     prop,
+						}
+					}
+				}
 				break
 			}
 			return err
@@ -245,13 +281,24 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 	return nil
 }
 
-// graphqlRegex holds the compiled regex. It matches: the literal "graphql", optional whitespace, an opening parenthesis,
-// optional whitespace, a backtick, then captures everything until the next unescaped backtick,
-// then optional whitespace and a closing parenthesis.
-var graphqlRegex = regexp.MustCompile("(?s)graphql\\(\\s*`((?:(?:\\\\`)|[^`])*?)`\\s*\\)")
+// There are two separate regexes we are concerned about:
+// - The first is just an invocation of the graphql() function that contains the string inside ie graphql(`query MyQuery { user }`).
+// - The second is a component field as a prop definition in a typescript field definition ie "user: GraphQL<`query MyQuery { user }`>"
+// in order to make this easier to maintain we're going to define 3 patterns that we can use to build the final regexes
+
+// Define the subpattern that matches documents within backticks.
+var queryRegex = "\\s*`((?:(?:\\\\`)|[^`])*?)`\\s*"
+
+// Create a regex to match the entire GraphQL block, using queryRegex's pattern.
+var graphqlRegex = regexp.MustCompile(fmt.Sprintf("(?s)graphql\\(%s\\)", queryRegex))
+
+// Create a regex to capture the property name (e.g. "user") and the GraphQL content.
+var componentFieldRegex = regexp.MustCompile(fmt.Sprintf(`(?s)(\w+)\s*:\s*GraphQL<\s*%s\s*>`, queryRegex))
 
 // DiscoveredDocument holds the file path and the extracted GraphQL query.
 type DiscoveredDocument struct {
 	FilePath string
 	Content  string
+	// if we run into a component field we need to record the prop during extraction
+	Prop string
 }

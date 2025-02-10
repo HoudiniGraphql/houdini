@@ -73,7 +73,8 @@ CREATE TABLE type_configs (
 CREATE TABLE raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT NOT NULL,
-    content TEXT NOT NULL
+    content TEXT NOT NULL,
+	component_field_prop TEXT
 );
 
 -----------------------------------------------------------
