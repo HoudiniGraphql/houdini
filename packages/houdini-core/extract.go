@@ -105,7 +105,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 			return fmt.Errorf("failed to prepare statement: %w", err)
 		}
 		defer insertRawStatement.Finalize()
-		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop) VALUES (?, ?)")
+		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop, inline) VALUES (?, ?, true)")
 		if err != nil {
 			return fmt.Errorf("failed to prepare statement: %w", err)
 		}
@@ -126,8 +126,9 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 					return fmt.Errorf("failed to insert component field: %v", err)
 				}
 			}
-
 		}
+
+		// we're done
 		return nil
 	})
 

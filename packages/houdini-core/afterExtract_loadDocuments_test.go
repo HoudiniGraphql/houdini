@@ -837,43 +837,53 @@ var tests = []testCase{
 		},
 	},
 	{
-		name: "query with root inline fragment",
+		name: "component fields",
 		rawQuery: `{
 			... on User @componentField(field: "Avatar") {
 				avatar
 			}
 		}`,
+		inlineComponentField:     true,
+		inlineComponentFieldProp: strPtr("user"),
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestComplexDefault",
-				RawDocument: 1,
-				Kind:        "query",
+				Name:          componentFieldFragmentName("User", "Avatar"),
+				RawDocument:   1,
+				Kind:          "fragment",
+				TypeCondition: strPtr("User"),
 				Selections: []expectedSelection{
 					{
-						FieldName: "User",
-						Alias:     nil,
+						FieldName: "avatar",
+						Alias:     strPtr("avatar"),
 						PathIndex: 0,
-						Kind:      "inline_fragment",
-						Children: []expectedSelection{
-							{
-								FieldName: "avatar",
-								Alias:     strPtr("avatar"),
-								PathIndex: 0,
-								Kind:      "field",
-							},
-						},
-						Directives: []expectedDirective{
-							{
-								Name: "componentField",
-								Arguments: []expectedDirectiveArgument{
-									{Name: "field", Value: "\"Avatar\""},
-								},
-							},
+						Kind:      "field",
+					},
+				},
+				Directives: []expectedDirective{
+					{
+						Name: "componentField",
+						Arguments: []expectedDirectiveArgument{
+							{Name: "field", Value: "\"Avatar\""},
+							{Name: "prop", Value: "\"user\""},
 						},
 					},
 				},
 			},
 		},
+	},
+	{
+		name: "component fields with multiple selections",
+		rawQuery: `{
+			... on User @componentField(field: "Avatar") {
+				avatar
+			}
+			... on User @componentField(field: "Avatar2") {
+				avatar
+			}
+		}`,
+		inlineComponentField:     true,
+		inlineComponentFieldProp: strPtr("user"),
+		expectError:              true,
 	},
 	{
 		name: "complex default variable",
@@ -1093,8 +1103,10 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			defer finalize()
 
 			pending := PendingQuery{
-				Query: tc.rawQuery,
-				ID:    1,
+				Query:                    tc.rawQuery,
+				ID:                       1,
+				InlineComponentField:     tc.inlineComponentField,
+				InlineComponentFieldProp: tc.inlineComponentFieldProp,
 			}
 
 			err = hc.afterExtract_loadPendingQuery(pending, db, statements)
@@ -1254,10 +1266,12 @@ type dbSelection struct {
 
 // testCase defines a test scenario.
 type testCase struct {
-	name         string
-	rawQuery     string
-	expectedDocs []expectedDocument
-	expectError  bool
+	name                     string
+	rawQuery                 string
+	inlineComponentField     bool
+	inlineComponentFieldProp *string
+	expectedDocs             []expectedDocument
+	expectError              bool
 }
 
 // sortExpectedSelections recursively sorts the expected selection slice.

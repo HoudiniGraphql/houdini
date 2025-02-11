@@ -54,6 +54,14 @@ CREATE TABLE runtime_scalar_definitions (
     type TEXT NOT NULL
 );
 
+CREATE TABLE component_fields (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	document INTEGER NOT NULL,
+	prop TEXT,
+	inline BOOLEAN default false,
+	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
+);
+
 -- Static Config (main config table)
 CREATE TABLE config (
     include JSON NOT NULL,

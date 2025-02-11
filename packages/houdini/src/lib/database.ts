@@ -83,7 +83,8 @@ CREATE TABLE component_fields (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	document INTEGER NOT NULL,
 	prop TEXT,
-	FOREIGN KEY (document) REFERENCES raw_documents(id)
+	inline BOOLEAN default false,
+	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 -----------------------------------------------------------

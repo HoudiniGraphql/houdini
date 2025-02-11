@@ -37,7 +37,12 @@ func TestComponentFields(t *testing.T) {
 	defer finalize()
 
 	// load the query into the database as a pending query
-	err = plugin.afterExtract_loadPendingQuery(PendingQuery{ID: 1, Query: query}, db, statements)
+	err = plugin.afterExtract_loadPendingQuery(PendingQuery{
+		ID:                       1,
+		Query:                    query,
+		InlineComponentField:     true,
+		InlineComponentFieldProp: strPtr("user"),
+	}, db, statements)
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process

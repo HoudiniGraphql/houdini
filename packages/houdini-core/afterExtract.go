@@ -14,8 +14,10 @@ import (
 )
 
 type PendingQuery struct {
-	Query string
-	ID    int
+	Query                    string
+	ID                       int
+	InlineComponentField     bool
+	InlineComponentFieldProp *string
 }
 
 // AfterExtract is called after all of the plugins have added their documents to the project.
@@ -43,7 +45,16 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	// and insert them into the database
 
 	// prepare the query we'll use to look for documents
-	search, err := p.DB.Conn.Prepare("SELECT id, content FROM raw_documents")
+	search, err := p.DB.Conn.Prepare(`
+		SELECT
+			raw_documents.id,
+			content,
+  			(component_fields.document IS NOT NULL) AS inline_component_field,
+			component_fields.prop
+		FROM raw_documents
+			JOIN component_fields ON raw_documents.id = component_fields.document
+		WHERE inline = true
+	`)
 	if err != nil {
 		return err
 	}
@@ -101,12 +112,21 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			break
 		}
 
+		// build up the pending query
+		query := PendingQuery{
+			ID:                   search.ColumnInt(0),
+			Query:                search.ColumnText(1),
+			InlineComponentField: search.ColumnBool(2),
+		}
+
+		if !search.ColumnIsNull(3) {
+			prop := search.ColumnText(3)
+			query.InlineComponentFieldProp = &prop
+		}
+
 		select {
 		// send the query to the workers
-		case queries <- PendingQuery{
-			ID:    search.ColumnInt(0),
-			Query: search.ColumnText(1),
-		}:
+		case queries <- query:
 			continue
 		// if the context is cancelled, exit the loop.
 		case <-ctx.Done():
@@ -134,15 +154,101 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		Input: query.Query,
 	})
 	if err != nil {
-		fmt.Println("parsing error", query.Query)
 		return err
 	}
 
 	// process operations.
 	for _, operation := range parsed.Operations {
 		// all operations must have a name
-		if operation.Name == "" {
+		if operation.Name == "" && !query.InlineComponentField {
 			return fmt.Errorf("operations must have a name")
+		}
+
+		// if the operation is an inline component field and we don't have a prop then we need to bail
+		if query.InlineComponentField && query.InlineComponentFieldProp == nil {
+			return fmt.Errorf("Could not detect component field prop")
+		}
+
+		// if the operation is an inline component field then we need to actually treat it as a fragment
+		// so let's grab the information we need and then add a fragment definition to the document
+		if query.InlineComponentField {
+			// the new document we are going to use is based on the inline query holding the selection
+			// so make sure there is only one child and its an inline fragment
+			if len(operation.SelectionSet) != 1 {
+				return fmt.Errorf("componentFields must have one child found %d", len(operation.SelectionSet))
+			}
+			inlineFragment, ok := operation.SelectionSet[0].(*ast.InlineFragment)
+			if !ok {
+				return fmt.Errorf("componentFields must have an inline fragment")
+			}
+
+			// there needs to be a type condition on the inline fragment
+			fragmentType := inlineFragment.TypeCondition
+			if fragmentType == "" {
+				return fmt.Errorf("componentFields inline fragments must have a type condition")
+			}
+
+			// the inline fragment must be decorated with @componentField
+			hasDirective := false
+			var field string
+			for _, directive := range inlineFragment.Directives {
+				if directive.Name != "componentField" {
+					continue
+				}
+
+				hasDirective = true
+				var prop string
+
+				// look for the two argument values
+				for _, arg := range directive.Arguments {
+					if arg.Name == "prop" {
+						if arg.Value.Kind != ast.StringValue {
+							return fmt.Errorf("componentField prop argument must be a string")
+						}
+						prop = arg.Value.Raw
+						continue
+					} else if arg.Name == "field" {
+						if arg.Value.Kind != ast.StringValue {
+							return fmt.Errorf("componentField field argument must be a string")
+						}
+						field = arg.Value.Raw
+						continue
+					}
+				}
+
+				// if the directive doesn't have a prop specified then we should use what we have in the database
+				if prop == "" {
+					directive.Arguments = append(directive.Arguments, &ast.Argument{
+						Name: "prop",
+						Value: &ast.Value{
+							Raw:  *query.InlineComponentFieldProp,
+							Kind: ast.StringValue,
+						},
+					})
+
+					prop = *query.InlineComponentFieldProp
+				}
+
+				if field == "" {
+					return fmt.Errorf("couldn't determine the field for component field")
+				}
+			}
+
+			// if we got this far without finding the directive then we have a problem
+			if !hasDirective {
+				return fmt.Errorf("componentFields must have @componentField directive")
+			}
+
+			// add a fragment definition to the document
+			parsed.Fragments = append(parsed.Fragments, &ast.FragmentDefinition{
+				TypeCondition: inlineFragment.TypeCondition,
+				Name:          componentFieldFragmentName(fragmentType, field),
+				Directives:    inlineFragment.Directives,
+				SelectionSet:  inlineFragment.SelectionSet,
+			})
+
+			// don't process the query (its really a fragment)
+			continue
 		}
 
 		// insert the operation into the "documents" table.
@@ -375,11 +481,13 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 	search, err := db.Prepare(`
 		SELECT
 			type,
+			raw_document,
 			selection_directive_arguments.value
 		FROM
 			selection_directives
 			JOIN selection_directive_arguments on selection_directives.id = selection_directive_arguments.parent
 			JOIN selections on selection_directives.selection_id = selections.id
+			JOIN documents on selections.document = documents.id
 		WHERE directive = ? AND selection_directive_arguments.name = ?
 	`)
 	if err != nil {
@@ -411,4 +519,8 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 
 	// we're done
 	return nil
+}
+
+func componentFieldFragmentName(typ string, field string) string {
+	return fmt.Sprintf("__componentField__%s_%s", typ, field)
 }
