@@ -1,5 +1,12 @@
 # houdini-svelte
 
+## 2.1.5
+
+### Patch Changes
+
+-   Updated dependencies [[`faf0a5cb`](https://github.com/HoudiniGraphql/houdini/commit/faf0a5cb0f3cd5936923bf981a6022875b3ec1cb)]:
+    -   houdini@1.5.1
+
 ## 2.1.4
 
 ### Patch Changes
