@@ -14,6 +14,14 @@ type Database[PluginConfig any] struct {
 	*sqlite.Conn
 }
 
+func (db *Database[PluginConfig]) SetProjectConfig(config ProjectConfig) {
+	db._config = &config
+}
+
+func (db *Database[PluginConfig]) SetPluginConfig(config PluginConfig) {
+	db._pluginConfig = &config
+}
+
 func ConnectDB[PluginConfig any]() (Database[PluginConfig], error) {
 	conn, err := sqlite.OpenConn(databasePath, sqlite.OpenWAL, sqlite.OpenReadWrite)
 	if err != nil {

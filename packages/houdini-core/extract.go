@@ -50,7 +50,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// file walker goroutine
 	g.Go(func() error {
 		// start the walk; each file path found is sent into filePathsCh.
-		err := walker.Walk(ctx, config.ProjectRoot, func(fp string) error {
+		err := walker.Walk(ctx, p.fs, config.ProjectRoot, func(fp string) error {
 			// in case the context is canceled, stop early.
 			select {
 			case filePathsCh <- fp:
@@ -79,7 +79,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 						return // channel closed
 					}
 					// process the file
-					if err := processFile(afero.NewOsFs(), fp, resultsCh); err != nil {
+					if err := processFile(p.fs, fp, resultsCh); err != nil {
 						// if there's an error, just log it and continue with the next file.
 						log.Printf("failed to process file %s: %v", fp, err)
 					}

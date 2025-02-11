@@ -102,8 +102,11 @@ CREATE TABLE type_fields (
     parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+	type_modifiers TEXT,
+    default_value TEXT,
 	internal BOOLEAN default false,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, name)
 );
 
@@ -115,16 +118,6 @@ CREATE TABLE field_argument_definitions (
     default_value TEXT,
     FOREIGN KEY (field) REFERENCES type_fields(id),
     UNIQUE (field, name)
-);
-
-CREATE TABLE input_fields (
-    default_value TEXT,
-    id TEXT PRIMARY KEY, -- will be something like User.name so we don't have to look up the generated id
-    parent TEXT NOT NULL,
-    name TEXT NOT NULL,
-    type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    UNIQUE (parent, name)
 );
 
 CREATE TABLE enum_values (
@@ -266,7 +259,6 @@ CREATE INDEX idx_selection_refs_document ON selection_refs(document);
 
 -- Field lookups
 CREATE INDEX idx_type_fields_parent ON type_fields(parent);
-CREATE INDEX idx_input_fields_parent ON input_fields(parent);
 
 -- Selection metadata lookups
 CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);

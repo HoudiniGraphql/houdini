@@ -8,11 +8,14 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"github.com/joho/godotenv"
+	"github.com/spf13/afero"
 )
 
 func main() {
 	// run the plugin
-	err := plugins.Run(&HoudiniCore{})
+	err := plugins.Run(&HoudiniCore{
+		fs: afero.NewOsFs(),
+	})
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -21,6 +24,7 @@ func main() {
 
 type HoudiniCore struct {
 	plugins.Plugin[PluginConfig]
+	fs                       afero.Fs
 	documentInsertStatements DocumentInsertStatements
 	schemaInsertStatements   SchemaInsertStatements
 }
@@ -29,6 +33,10 @@ type PluginConfig = any
 
 func (p *HoudiniCore) Name() string {
 	return "houdini-core"
+}
+
+func (p *HoudiniCore) SetFs(fs afero.Fs) {
+	p.fs = fs
 }
 
 func (p *HoudiniCore) Order() plugins.PluginOrder {
@@ -114,7 +122,6 @@ type SchemaInsertStatements struct {
 	InsertType                 *sqlite.Stmt
 	InsertInternalType         *sqlite.Stmt
 	InsertTypeField            *sqlite.Stmt
-	InsertInputTypeField       *sqlite.Stmt
 	InsertInterfaceImplementor *sqlite.Stmt
 	InsertUnionMember          *sqlite.Stmt
 	InsertEnumValue            *sqlite.Stmt
@@ -129,8 +136,7 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 	// Prepare statements. (Check errors and defer closing each statement.)
 	insertTypeStmt := db.Prep("INSERT INTO types (name, kind) VALUES (?, ?)")
 	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")
-	insertInputTypeFieldStmt := db.Prep("INSERT INTO input_fields (id, parent, name, type, default_value) VALUES (?, ?, ?, ?, ?)")
-	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type) VALUES (?, ?, ?, ?)")
+	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value) VALUES (?, ?, ?, ?, ?, ?)")
 	insertInterfaceImplementorStmt := db.Prep("INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)")
 	insertUnionMemberStmt := db.Prep("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
 	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
@@ -142,7 +148,6 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 
 	finalize := func() {
 		insertTypeStmt.Finalize()
-		insertInputTypeFieldStmt.Finalize()
 		insertTypeFieldStmt.Finalize()
 		insertInterfaceImplementorStmt.Finalize()
 		insertUnionMemberStmt.Finalize()
@@ -158,7 +163,6 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 	return SchemaInsertStatements{
 		InsertType:                 insertTypeStmt,
 		InsertInternalType:         insertInternalTypeStmt,
-		InsertInputTypeField:       insertInputTypeFieldStmt,
 		InsertTypeField:            insertTypeFieldStmt,
 		InsertInterfaceImplementor: insertInterfaceImplementorStmt,
 		InsertUnionMember:          insertUnionMemberStmt,

@@ -31,7 +31,7 @@ func createTestFiles(t *testing.T, fs afero.Fs, root string, paths map[string]bo
 func collectVisitedFiles(t *testing.T, walker *Walker, fs afero.Fs, root string) *sync.Map {
 	files := &sync.Map{}
 
-	err := walker.WalkAfero(context.Background(), fs, root, func(relPath string) error {
+	err := walker.Walk(context.Background(), fs, root, func(relPath string) error {
 		files.Store(relPath, true)
 		return nil
 	})

@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 	"path"
+	"regexp"
 
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2"
@@ -21,14 +22,19 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// read the schema file
-	file, err := os.ReadFile(path.Join(config.ProjectRoot, config.SchemaPath))
+	file, err := p.fs.Open(path.Join(config.ProjectRoot, config.SchemaPath))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	fileContents, err := io.ReadAll(file)
 	if err != nil {
 		return err
 	}
 
 	// parse and validate the schema
 	schema, err := gqlparser.LoadSchema(&ast.Source{
-		Input: string(file),
+		Input: string(fileContents),
 	})
 	if err != nil {
 		return err
@@ -104,8 +110,10 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 		case ast.Object:
 			// insert fields and their arguments
 			for _, field := range typ.Fields {
+				fieldTypeName, fieldTypeModifiers := parseFieldType(field.Type.String())
+
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, field.Type.String())
+				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "")
 				if err != nil {
 					return fmt.Errorf("error inserting field %s for object %s: %w", field.Name, typ.Name, err)
 				}
@@ -120,8 +128,9 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 		case ast.InputObject:
 			// insert input object fields
 			for _, field := range typ.Fields {
+				fieldTypeName, fieldTypeModifiers := parseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertInputTypeField, fieldID, typ.Name, field.Name, field.Type.String(), "")
+				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, field.DefaultValue.String())
 				if err != nil {
 					return fmt.Errorf("error inserting input field %s for %s: %w", field.Name, typ.Name, err)
 				}
@@ -130,8 +139,9 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 		case ast.Interface:
 			// insert interface fields
 			for _, field := range typ.Fields {
+				fieldTypeName, fieldTypeModifiers := parseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, field.Type.String())
+				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "")
 				if err != nil {
 					return fmt.Errorf("error inserting interface field %s for %s: %w", field.Name, typ.Name, err)
 				}
@@ -456,4 +466,40 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 
 	// we're done
 	return nil
+}
+
+// parseFieldType parses a GraphQL type string into a base type
+// and a “modifier” string. It assumes that the base type is a run
+// of word characters (letters, digits, underscore) and that everything
+// following the base type is the “wrapper” (for example, for list and non‑null markers).
+//
+// Examples:
+//
+//	"User"         -> ("User", "")
+//	"User!"        -> ("User", "!")
+//	"[User]"       -> ("User", "]")
+//	"[User]!"      -> ("User", "]!")
+//	"[User!]!"     -> ("User", "!]!")
+//	"[[User]]"     -> ("User", "]]")
+//
+// If you prefer that for list types the inner non‑null marker (the "!" immediately
+// following the base) be dropped (so that "[User!]!" returns ("User", "!]!"))
+// you could post‑process the modifier when the original string starts with "[".
+// For example:
+//
+//	base, mod := parseFieldType(s)
+//	if len(s) > 0 && s[0] == '[' && len(mod) > 0 && mod[0] == '!' {
+//	    mod = mod[1:]
+//	}
+func parseFieldType(s string) (base, modifier string) {
+	// This regex skips any leading [, ], or ! characters, then captures
+	// the first run of word characters (the base type), and then captures
+	// everything that follows as the modifier.
+	re := regexp.MustCompile(`^(?:[\[\]!]*)(\w+)(.*)$`)
+	matches := re.FindStringSubmatch(s)
+	if len(matches) < 3 {
+		// If no match is found, return the input as the base with an empty modifier.
+		return s, ""
+	}
+	return matches[1], matches[2]
 }
