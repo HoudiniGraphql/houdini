@@ -10,6 +10,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
 	"golang.org/x/sync/errgroup"
+	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
@@ -159,6 +160,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		return err
 	}
 
+	// look up the type of the field from the database
+	searchTypeStatement, err := db.Prepare(`SELECT type FROM type_fields WHERE id = ?`)
+	if err != nil {
+		return err
+	}
+	defer searchTypeStatement.Finalize()
+
 	// process operations.
 	for _, operation := range parsed.Operations {
 		// all operations must have a name
@@ -292,7 +300,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// walk the selection set for the operation.
 		for i, sel := range operation.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, statements, operation.Name, nil, operationType, sel, int64(i)); err != nil {
+			if err := processSelection(db, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
 				return err
 			}
 		}
@@ -327,7 +335,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// walk the fragment's selection set.
 		for i, sel := range fragment.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, statements, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
+			if err := processSelection(db, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
 				return err
 			}
 		}
@@ -352,7 +360,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection(db plugins.Database[PluginConfig], statements DocumentInsertStatements, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) error {
+func processSelection(db plugins.Database[PluginConfig], statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -375,18 +383,16 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 		}
 		selectionID = db.Conn.LastInsertRowID()
 
-		// look up the type of the field from the database
-		search, err := db.Prepare(`SELECT type FROM type_fields WHERE id = ?`)
+		searchTypeStatement.BindText(1, fmt.Sprintf("%s.%s", parentType, s.Name))
+		_, err := searchTypeStatement.Step()
 		if err != nil {
 			return err
 		}
-		search.BindText(1, fmt.Sprintf("%s.%s", parentType, s.Name))
-		_, err = search.Step()
+		fieldType := searchTypeStatement.ColumnText(0)
+		err = searchTypeStatement.Reset()
 		if err != nil {
 			return err
 		}
-		fieldType := search.ColumnText(0)
-		search.Finalize()
 
 		// handle any field arguments.
 		for _, arg := range s.Arguments {
@@ -408,7 +414,7 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, statements, documentName, &selectionID, fieldType, child, int64(i))
+			err := processSelection(db, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -426,7 +432,7 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, statements, documentName, &selectionID, fragType, child, int64(i))
+			err := processSelection(db, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
 			if err != nil {
 				return err
 			}
