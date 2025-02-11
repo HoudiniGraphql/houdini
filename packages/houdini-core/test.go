@@ -59,6 +59,7 @@ CREATE TABLE component_fields (
 	document INTEGER NOT NULL,
 	prop TEXT,
 	inline BOOLEAN default false,
+    fragment_name TEXT,
 	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 

@@ -49,11 +49,13 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 		SELECT
 			raw_documents.id,
 			content,
-  			(component_fields.document IS NOT NULL) AS inline_component_field,
+			(component_fields.document IS NOT NULL) AS inline_component_field,
 			component_fields.prop
 		FROM raw_documents
-			JOIN component_fields ON raw_documents.id = component_fields.document
-		WHERE inline = true
+			LEFT JOIN component_fields ON
+				raw_documents.id = component_fields.document
+				AND component_fields.inline = true
+
 	`)
 	if err != nil {
 		return err
@@ -495,52 +497,17 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 }
 
 // we need to look at anything tagged with @componentField and load the metadata into the database
+// this includes:
+// - populate prop, fields, etc for non-inline component fields
+// - adding internal fields to the type definitions
+// - replacing any references to the field with a fragment spread to the component field fragment
 func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugins.Database[PluginConfig]) error {
 	// we need statements to insert schema information
 	_, finalizeSchemaStatements := p.prepareSchemaInsertStatements(db)
 	defer finalizeSchemaStatements()
 
-	// we need to consider operation directives and selection directives that reference @componentField
-	search, err := db.Prepare(`
-		SELECT
-			selections.type,
-			raw_document,
-			selection_directive_arguments.value
-		FROM
-			selection_directives
-			JOIN selection_directive_arguments on selection_directives.id = selection_directive_arguments.parent
-			JOIN selections on selection_directives.selection_id = selections.id
-			JOIN selection_refs on selection_refs.child_id = selections.id
-			JOIN documents on selection_refs.document = documents.name
-		WHERE directive = ? AND selection_directive_arguments.name = ?
-	`)
-	if err != nil {
-		return err
-	}
-	defer search.Finalize()
-
-	// bind the id to the query
-	search.BindText(1, "componentField")
-	search.BindText(2, "name")
-
-	for {
-		// get the next row
-		hasData, err := search.Step()
-		if err != nil {
-			return err
-		}
-
-		// if theres no more data to consume then we're done
-		if !hasData {
-			break
-		}
-
-		// get the results
-		// typ := search.ColumnText(0)
-		// field := search.ColumnText(1)
-
-	}
-
+	// we need to look at every @componentField directive (which should only only be on fragment definitions at this point)
+	// and look at the prop and field values
 	// we're done
 	return nil
 }
