@@ -278,10 +278,19 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			}
 		}
 
+		// TODO: support custom operation types
+		// figure out the name of the root type for the operation.
+		operationType := "Query"
+		if operation.Operation == ast.Mutation {
+			operationType = "Mutation"
+		} else if operation.Operation == ast.Subscription {
+			operationType = "Subscription"
+		}
+
 		// walk the selection set for the operation.
 		for i, sel := range operation.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, statements, operation.Name, nil, sel, int64(i)); err != nil {
+			if err := processSelection(db, statements, operation.Name, nil, operationType, sel, int64(i)); err != nil {
 				return err
 			}
 		}
@@ -316,7 +325,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// walk the fragment's selection set.
 		for i, sel := range fragment.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, statements, fragment.Name, nil, sel, int64(i)); err != nil {
+			if err := processSelection(db, statements, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
 				return err
 			}
 		}
@@ -341,7 +350,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection(db plugins.Database[PluginConfig], statements DocumentInsertStatements, documentName string, parent *int64, sel ast.Selection, fieldIndex int64) error {
+func processSelection(db plugins.Database[PluginConfig], statements DocumentInsertStatements, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -358,10 +367,24 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 		}
 		statements.InsertSelection.BindInt64(3, fieldIndex)
 		statements.InsertSelection.BindText(4, "field")
+		statements.InsertSelection.BindText(5, fmt.Sprintf("%s.%s", parentType, s.Name))
 		if err := db.ExecStatement(statements.InsertSelection); err != nil {
 			return err
 		}
 		selectionID = db.Conn.LastInsertRowID()
+
+		// look up the type of the field from the database
+		search, err := db.Prepare(`SELECT type FROM type_fields WHERE id = ?`)
+		if err != nil {
+			return err
+		}
+		search.BindText(1, fmt.Sprintf("%s.%s", parentType, s.Name))
+		_, err = search.Step()
+		if err != nil {
+			return err
+		}
+		fieldType := search.ColumnText(0)
+		search.Finalize()
 
 		// handle any field arguments.
 		for _, arg := range s.Arguments {
@@ -376,14 +399,14 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 		}
 
 		// insert any directives on the field.
-		err := processDirectives(db, statements, selectionID, s.Directives)
+		err = processDirectives(db, statements, selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, statements, documentName, &selectionID, child, int64(i))
+			err := processSelection(db, statements, documentName, &selectionID, fieldType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -394,14 +417,14 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 		if fragType == "" {
 			fragType = "inline_fragment"
 		}
-		if err := db.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment"); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment", nil); err != nil {
 			return err
 		}
 		selectionID = db.Conn.LastInsertRowID()
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, statements, documentName, &selectionID, child, int64(i))
+			err := processSelection(db, statements, documentName, &selectionID, fragType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -414,7 +437,7 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 		}
 
 	case *ast.FragmentSpread:
-		if err := db.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment"); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment", nil); err != nil {
 			return err
 		}
 		selectionID = db.Conn.LastInsertRowID()
@@ -480,14 +503,15 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 	// we need to consider operation directives and selection directives that reference @componentField
 	search, err := db.Prepare(`
 		SELECT
-			type,
+			selections.type,
 			raw_document,
 			selection_directive_arguments.value
 		FROM
 			selection_directives
 			JOIN selection_directive_arguments on selection_directives.id = selection_directive_arguments.parent
 			JOIN selections on selection_directives.selection_id = selections.id
-			JOIN documents on selections.document = documents.id
+			JOIN selection_refs on selection_refs.child_id = selections.id
+			JOIN documents on selection_refs.document = documents.name
 		WHERE directive = ? AND selection_directive_arguments.name = ?
 	`)
 	if err != nil {

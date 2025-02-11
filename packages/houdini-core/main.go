@@ -85,7 +85,7 @@ type DocumentInsertStatements struct {
 func (p *HoudiniCore) prepareDocumentInsertStatements(db plugins.Database[PluginConfig]) (DocumentInsertStatements, func()) {
 	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
 	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
-	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind) VALUES (?, ?, ?, ?)")
+	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind, type) VALUES (?, ?, ?, ?, ?)")
 	insertSelectionArgument := db.Conn.Prep("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
 	insertSelectionRef := db.Conn.Prep("INSERT INTO selection_refs (parent_id, child_id, document) VALUES (?, ?, ?)")
 	insertSelectionDirective := db.Conn.Prep("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")

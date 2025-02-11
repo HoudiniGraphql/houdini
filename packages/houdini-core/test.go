@@ -212,7 +212,9 @@ CREATE TABLE selections (
     field_name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
-    path_index INTEGER NOT NULL
+    type TEXT, -- should be something like User.Avatar
+    path_index INTEGER NOT NULL,
+    FOREIGN KEY (type) REFERENCES type_fields(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_directives (

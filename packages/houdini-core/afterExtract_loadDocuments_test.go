@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
@@ -1085,6 +1086,52 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			if err := executeSchema(db.Conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
+
+			// ─── POPULATE THE SCHEMA ─────────────────────────────────────────────
+			// Insert rows into "type_fields" so that the lookup in processSelection
+			// (i.e. SELECT type FROM type_fields WHERE id = ?)
+			// finds the correct types.
+			// (The types here are arbitrary as long as they allow subsequent lookups to succeed.)
+			typeFields := []struct {
+				id  string
+				typ string
+			}{
+				{"Query.user", "User"},
+				{"Query.userById", "User"},
+				{"Query.users", "User"},
+				{"Query.search", "SearchResult"},
+				{"Mutation.updateUser", "User"},
+				{"Subscription.userUpdated", "User"},
+				{"User.id", "ID"},
+				{"User.name", "String"},
+				{"User.email", "String"},
+				{"User.age", "Int"},
+				{"User.profile", "Profile"},
+				{"User.oldField", "String"},
+				{"User.newField", "String"},
+				{"User.__typename", "String"},
+				{"User.avatar", "Avatar"},
+				{"Profile.bio", "String"},
+				{"Profile.picture", "String"},
+				{"SearchResult.results", "Result"},
+				{"Result.id", "ID"},
+				{"Node.id", "ID"},
+			}
+
+			insertTypeField, err := db.Conn.Prepare("INSERT INTO type_fields (id, type, parent, name) VALUES (?, ?, ?, ?)")
+			if err != nil {
+				t.Fatalf("failed to prepare type_fields insert: %v", err)
+			}
+			defer insertTypeField.Finalize()
+
+			for _, tf := range typeFields {
+				typeParams := strings.Split(tf.id, ".")
+				if err := db.ExecStatement(insertTypeField, tf.id, tf.typ, typeParams[0], typeParams[1]); err != nil {
+					t.Fatalf("failed to insert type_field %s: %v", tf.id, err)
+				}
+			}
+
+			// ─────────────────────────────────────────────────────────────────────
 
 			// insert the raw document (assume id becomes 1).
 			insertRaw, err := db.Conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
