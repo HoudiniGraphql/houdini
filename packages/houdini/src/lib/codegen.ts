@@ -227,4 +227,10 @@ export async function codegen(trigger_hook: (hook: string) => Promise<void>) {
 	// the first step is to extract documents from the project
 	await trigger_hook('ExtractDocuments')
 	await trigger_hook('AfterExtract')
+	await trigger_hook('BeforeValidate')
+	// TODO: this should happen in parallel
+	await trigger_hook('Validate')
+	await trigger_hook('AfterValidate')
+	await trigger_hook('BeforeGenerate')
+	await trigger_hook('Generate')
 }

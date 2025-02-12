@@ -97,16 +97,17 @@ export async function runPipeline(config: Config, docs: Document[]) {
 
 				// transforms.runtimeScalars,
 
-				...wrapHook(beforeValidate),
+				// ...wrapHook(beforeValidate),
 
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				// this replaces wrapHook(validate) to group them up
+
 				validators.plugins,
 
-				...wrapHook(afterValidate),
+				// ...wrapHook(afterValidate),
 
 				transforms.addFields,
 				transforms.typename,
@@ -119,7 +120,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				transforms.paginate,
 				transforms.fragmentVariables,
 				transforms.collectDefinitions,
-				...wrapHook(beforeGenerate),
+
+				// ...wrapHook(beforeGenerate),
 
 				// generators
 				// this should be the first generator since it is responsible for creating the
@@ -137,14 +139,14 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				generators.definitions,
 
 				// these have to go after the artifacts so that plugins can import them
-				...generatePlugins.map(
-					(plugin) => async (config: Config, docs: Document[]) =>
-						await plugin.generate!({
-							config,
-							documents: docs,
-							pluginRoot: config.pluginDirectory(plugin.name),
-						})
-				),
+				// ...generatePlugins.map(
+				// 	(plugin) => async (config: Config, docs: Document[]) =>
+				// 		await plugin.generate!({
+				// 			config,
+				// 			documents: docs,
+				// 			pluginRoot: config.pluginDirectory(plugin.name),
+				// 		})
+				// ),
 			],
 			docs
 		)
