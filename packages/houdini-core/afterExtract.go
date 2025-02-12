@@ -34,20 +34,29 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 		return err
 	}
 
+	// the next steps can be done in parallel
+	var wg errgroup.Group
+
 	// now that we've parsed and loaded the extracted queries we need to handle component queries
-	err = p.afterExtract_componentFields(p.DB)
-	if err != nil {
-		return err
-	}
+	wg.Go(func() error {
+		db, err := p.ConnectDB()
+		if err != nil {
+			return err
+		}
+		return p.afterExtract_componentFields(db)
+	})
 
 	// runtime scalars need to be replaced with their static equivalents
-	err = p.afterExtract_runtimeScalars(p.DB)
-	if err != nil {
-		return err
-	}
+	wg.Go(func() error {
+		db, err := p.ConnectDB()
+		if err != nil {
+			return err
+		}
+		return p.afterExtract_runtimeScalars(db)
+	})
 
 	// we're done
-	return nil
+	return wg.Wait()
 }
 
 func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
