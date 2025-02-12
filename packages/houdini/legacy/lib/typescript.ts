@@ -225,7 +225,6 @@ export function scalarPropertyValue(
 }
 
 export async function writeTsConfig(config: Config) {
-	await fs.mkdirp(config.rootDir)
 	await fs.writeFile(
 		path.join(config.rootDir, 'tsconfig.json'),
 		JSON.stringify(

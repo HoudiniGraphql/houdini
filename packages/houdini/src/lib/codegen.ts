@@ -3,7 +3,7 @@ import path from 'node:path'
 import sqlite from 'node:sqlite'
 
 import * as fs from '../lib/fs'
-import { db_path } from './conventions'
+import { db_path, houdini_root } from './conventions'
 import { create_schema, write_config } from './database'
 import { type Config } from './project'
 
@@ -25,7 +25,7 @@ export async function codegen_setup(
 	database_path: string
 }> {
 	// We need the root dir before we get to the exciting stuff
-	await fs.mkdirpSync(config.root_dir)
+	await fs.mkdirpSync(houdini_root(config))
 
 	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
 

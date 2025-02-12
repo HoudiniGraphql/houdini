@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"strconv"
 
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -44,6 +45,8 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	// we want to process the documents in parallel so we'll pull down from the database
 	// in one goroutine and then pass it a pool of workers who will parse the documents
 	// and insert them into the database
+
+	// TODO: benchmark this approach compared to splitting the full result into chunks and processing them in parallel
 
 	// prepare the query we'll use to look for documents
 	search, err := p.DB.Conn.Prepare(`
@@ -506,7 +509,8 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 // this includes:
 // - populate prop, fields, etc for non-inline component fields
 // - adding internal fields to the type definitions
-// - replacing any references to the field with a fragment spread to the component field fragment
+// note: we'll hold on doing the actual injection of fragments til after we've validated
+// everything to ensure that error messages make sense
 func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugins.Database[PluginConfig]) error {
 	// we need statements to insert schema information
 	_, finalizeSchemaStatements := p.prepareSchemaInsertStatements(db)
@@ -514,6 +518,107 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 
 	// we need to look at every @componentField directive (which should only only be on fragment definitions at this point)
 	// and look at the prop and field values
+
+	type ComponentFieldData struct {
+		RawDocumentID int
+		Type          string
+		Prop          string
+		Field         string
+	}
+	documentInfo := map[int]*ComponentFieldData{}
+
+	search, err := db.Conn.Prepare(`
+		SELECT
+			documents.raw_document, documents.type_condition, document_directive_arguments.name, document_directive_arguments.value
+		FROM
+			document_directives
+			JOIN documents on document_directives.document = documents.name
+			JOIN document_directive_arguments on document_directive_arguments.parent = document_directives.id
+		WHERE
+			document_directives.directive = ?
+	`)
+	if err != nil {
+		return err
+	}
+	defer search.Finalize()
+	search.BindText(1, "componentField")
+
+	// step through every result
+	for {
+		hasData, err := search.Step()
+		if err != nil {
+			return err
+		}
+		if !hasData {
+			break
+		}
+
+		// if this is the first time we see this document, we need to create a new entry
+		rawDocumentID := search.ColumnInt(0)
+		document, ok := documentInfo[rawDocumentID]
+		if !ok {
+			document = &ComponentFieldData{}
+			documentInfo[rawDocumentID] = document
+		}
+
+		// pull out the information
+		document.Type = search.ColumnText(1)
+		document.RawDocumentID = rawDocumentID
+
+		// strip the quotes
+		unquoted, err := strconv.Unquote(search.ColumnText(3))
+		if err != nil {
+			return err
+		}
+
+		switch search.ColumnText(2) {
+		case "prop":
+			document.Prop = unquoted
+		case "field":
+			document.Field = unquoted
+		}
+	}
+
+	// a statement to insert component fields information as an upsert (so we don't override existing discovered inline fields)
+	insertComponentField, err := db.Prepare(`
+		INSERT INTO component_fields
+			(document, prop, field, type, inline)
+		VALUES
+			(?, ?, ?, ?, false)
+		ON CONFLICT(document) DO UPDATE SET
+  			prop = excluded.prop,
+  			field = excluded.field,
+  			type = excluded.type
+	`)
+	if err != nil {
+		return err
+	}
+	defer insertComponentField.Finalize()
+
+	// a statement to insert internal fields into the type definitions
+	insertInternalField, err := db.Prepare(`
+		INSERT INTO type_fields (id, parent, name, type, internal) VALUES (?, ?, ?, ?, true)
+	`)
+	if err != nil {
+		return err
+	}
+	defer insertInternalField.Finalize()
+
+	// process the data we've collected
+	for _, data := range documentInfo {
+		// make sure that we have the component field information loaded
+		err = db.ExecStatement(insertComponentField, data.RawDocumentID, data.Prop, data.Field, data.Type)
+		if err != nil {
+			return err
+		}
+
+		// add the internal field to the type
+		err = db.ExecStatement(insertInternalField, fmt.Sprintf("%s.%s", data.Type, data.Field), data.Type, data.Field, "Component")
+		if err != nil {
+			return err
+		}
+	}
+
 	// we're done
 	return nil
 }
