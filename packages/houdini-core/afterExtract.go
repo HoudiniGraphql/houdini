@@ -35,13 +35,13 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	}
 
 	// now that we've parsed and loaded the extracted queries we need to handle component queries
-	err = p.afterExtract_componentFields(ctx, p.DB)
+	err = p.afterExtract_componentFields(p.DB)
 	if err != nil {
 		return err
 	}
 
 	// runtime scalars need to be replaced with their static equivalents
-	err = p.afterExtract_runtimeScalars(ctx, p.DB)
+	err = p.afterExtract_runtimeScalars(p.DB)
 	if err != nil {
 		return err
 	}
@@ -536,7 +536,7 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 // - adding internal fields to the type definitions
 // note: we'll hold on doing the actual injection of fragments til after we've validated
 // everything to ensure that error messages make sense
-func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugins.Database[PluginConfig]) error {
+func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginConfig]) error {
 	// we need statements to insert schema information
 	_, finalizeSchemaStatements := p.prepareSchemaInsertStatements(db)
 	defer finalizeSchemaStatements()
@@ -649,7 +649,7 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 }
 
 // we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
-func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, db plugins.Database[PluginConfig]) error {
+func (p *HoudiniCore) afterExtract_runtimeScalars(db plugins.Database[PluginConfig]) error {
 	// load the project configuration
 	projectConfig, err := db.ProjectConfig()
 	if err != nil {

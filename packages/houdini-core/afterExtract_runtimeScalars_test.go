@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
@@ -47,7 +46,7 @@ func TestRuntimeScalars(t *testing.T) {
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process
-	err = plugin.afterExtract_runtimeScalars(context.Background(), db)
+	err = plugin.afterExtract_runtimeScalars(db)
 	require.Nil(t, err)
 
 	// to check that the query was extracted correctly we need to look up the query

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
@@ -46,7 +45,7 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process
-	err = plugin.afterExtract_componentFields(context.Background(), db)
+	err = plugin.afterExtract_componentFields(db)
 	require.Nil(t, err)
 
 	// there should be an entry for User.Avatar in the type fields table
