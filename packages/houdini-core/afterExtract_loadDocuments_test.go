@@ -28,10 +28,11 @@ var tests = []testCase{
 				Kind:        "query",
 				Variables: []operationVariableRow{
 					{
-						Document:     "TestQuery",
-						VarName:      "id",
-						Type:         "ID!",
-						DefaultValue: nil,
+						Document:      "TestQuery",
+						VarName:       "id",
+						Type:          "ID",
+						TypeModifiers: "!",
+						DefaultValue:  nil,
 					},
 				},
 				Selections: []expectedSelection{
@@ -583,7 +584,7 @@ var tests = []testCase{
 				RawDocument: 1,
 				Kind:        "query",
 				Variables: []operationVariableRow{
-					{Document: "TestVariableDirective", VarName: "show", Type: "Boolean!", DefaultValue: nil},
+					{Document: "TestVariableDirective", VarName: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
 				},
 				Selections: []expectedSelection{
 					{
@@ -1039,7 +1040,50 @@ var tests = []testCase{
 				},
 			},
 		},
-	}, {
+	},
+	{
+		name: "operation-argument directives",
+		rawQuery: `
+				query TestOpDirective($arg: String @cacheControl(maxAge: 60)) {
+					user { id }
+				}
+			`,
+		expectedDocs: []expectedDocument{
+			{
+				Name:        "TestOpDirective",
+				RawDocument: 1,
+				Kind:        "query",
+				Variables: []operationVariableRow{
+					{
+						Document:     "TestOpDirective",
+						VarName:      "arg",
+						Type:         "String",
+						DefaultValue: nil,
+						Directives: []expectedDirective{
+							{
+								Name: "cacheControl",
+								Arguments: []expectedDirectiveArgument{
+									{Name: "maxAge", Value: "60"},
+								},
+							},
+						},
+					},
+				},
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
 		name: "multiple operation-level directives",
 		rawQuery: `
 				query TestOpDirectives @directive1 @directive2(arg:"value") {
@@ -1182,9 +1226,9 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 							!strEqual(actual.TypeCondition, expDoc.TypeCondition) {
 							t.Errorf("document mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
 						}
-						// if operation, check operation variables.
+						// If the document is an operation, check its operation variables.
 						if expDoc.Kind == "query" || expDoc.Kind == "mutation" || expDoc.Kind == "subscription" {
-							vars := fetchOperationVariables(t, db)
+							vars := findOperationVariables(t, db)
 							if len(vars) != len(expDoc.Variables) {
 								t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
 							}
@@ -1199,10 +1243,31 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 									!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
 									t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
 								}
+								// Now verify any directives attached to the operation variable.
+								if len(expectedVar.Directives) != len(actualVar.Directives) {
+									t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.VarName, len(expectedVar.Directives), len(actualVar.Directives))
+								} else {
+									for j, expDir := range expectedVar.Directives {
+										actDir := actualVar.Directives[j]
+										if actDir.Name != expDir.Name {
+											t.Errorf("for document %s, operation variable %s directive %d mismatch: expected %s, got %s", expDoc.Name, expectedVar.VarName, j, expDir.Name, actDir.Name)
+										}
+										if len(expDir.Arguments) != len(actDir.Arguments) {
+											t.Errorf("for document %s, operation variable %s directive %s expected %d arguments, got %d", expDoc.Name, expectedVar.VarName, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
+										} else {
+											for k, expArg := range expDir.Arguments {
+												actArg := actDir.Arguments[k]
+												if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+													t.Errorf("for document %s, operation variable %s directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.VarName, expDir.Name, k, expArg, actArg)
+												}
+											}
+										}
+									}
+								}
 							}
 						}
 
-						// build and compare the selection tree.
+						// Build and compare the selection tree.
 						selectionsMap, rel, roots, err := buildSelectionTree(db, expDoc.Name)
 						if err != nil {
 							t.Fatalf("failed to build selection tree for document %s: %v", expDoc.Name, err)
@@ -1212,6 +1277,29 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						sortExpectedSelections(expDoc.Selections)
 						if err := compareExpected(expDoc.Selections, actualTree); err != nil {
 							t.Errorf("selection tree mismatch for document %s: %v", expDoc.Name, err)
+						}
+
+						// Finally, verify that the document-level directives match.
+						docDirectives := fetchDocumentDirectives(t, db, expDoc.Name)
+						if len(docDirectives) != len(expDoc.Directives) {
+							t.Errorf("for document %s, expected %d document directives, got %d", expDoc.Name, len(expDoc.Directives), len(docDirectives))
+						} else {
+							for i, expDir := range expDoc.Directives {
+								actDir := docDirectives[i]
+								if actDir.Name != expDir.Name {
+									t.Errorf("document %s, directive %d: expected %s, got %s", expDoc.Name, i, expDir.Name, actDir.Name)
+								}
+								if len(actDir.Arguments) != len(expDir.Arguments) {
+									t.Errorf("document %s, directive %s: expected %d arguments, got %d", expDoc.Name, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
+								} else {
+									for j, expArg := range expDir.Arguments {
+										actArg := actDir.Arguments[j]
+										if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+											t.Errorf("document %s, directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expDir.Name, j, expArg, actArg)
+										}
+									}
+								}
+							}
 						}
 					}
 				}
@@ -1265,10 +1353,12 @@ type expectedDocument struct {
 }
 
 type operationVariableRow struct {
-	Document     string
-	VarName      string
-	Type         string
-	DefaultValue *string
+	Document      string
+	VarName       string
+	Type          string
+	TypeModifiers string
+	DefaultValue  *string
+	Directives    []expectedDirective
 }
 
 type expectedArgument struct {
@@ -1478,14 +1568,20 @@ func fetchDocuments(t *testing.T, db plugins.Database[PluginConfig]) []documentR
 	return rows
 }
 
-func fetchOperationVariables(t *testing.T, db plugins.Database[PluginConfig]) []operationVariableRow {
-	stmt, err := db.Conn.Prepare("select document, name, type, default_value from operation_variables order by name")
+// findOperationVariables returns all operation variables along with any attached directives.
+func findOperationVariables(t *testing.T, db plugins.Database[PluginConfig]) []operationVariableRow {
+	// Note: we now select the id as well so that we can look up directives.
+	stmt, err := db.Conn.Prepare(`
+		SELECT id, document, name, type, default_value, type_modifiers
+		FROM operation_variables
+		ORDER BY name
+	`)
 	if err != nil {
 		t.Fatalf("failed to prepare operation_variables query: %v", err)
 	}
 	defer stmt.Finalize()
 
-	var rows []operationVariableRow
+	var variables []operationVariableRow
 	for {
 		ok, err := stmt.Step()
 		if err != nil {
@@ -1494,19 +1590,111 @@ func fetchOperationVariables(t *testing.T, db plugins.Database[PluginConfig]) []
 		if !ok {
 			break
 		}
-		var dv *string
-		if stmt.ColumnType(3) == sqlite.TypeText {
-			s := stmt.ColumnText(3)
-			dv = &s
+
+		// Read the default value (if any)
+		var defaultValue *string
+		if stmt.ColumnType(4) == sqlite.TypeText {
+			s := stmt.ColumnText(4)
+			defaultValue = &s
 		}
-		rows = append(rows, operationVariableRow{
-			Document:     stmt.ColumnText(0),
-			VarName:      stmt.ColumnText(1),
-			Type:         stmt.ColumnText(2),
-			DefaultValue: dv,
+
+		// Grab the id for later lookup of directives.
+		varID := int(stmt.ColumnInt(0))
+		opVar := operationVariableRow{
+			Document:      stmt.ColumnText(1),
+			VarName:       stmt.ColumnText(2),
+			Type:          stmt.ColumnText(3),
+			TypeModifiers: stmt.ColumnText(4),
+			DefaultValue:  defaultValue,
+		}
+
+		// Look up any directives attached to this variable.
+		directives := findOperationVariableDirectives(t, db, varID)
+		if err != nil {
+			t.Fatalf("failed to lookup directives for variable %s: %v", opVar.VarName, err)
+		}
+		opVar.Directives = directives
+
+		variables = append(variables, opVar)
+	}
+	return variables
+}
+
+// findOperationVariableDirectives looks up all directives for a given operation variable.
+func findOperationVariableDirectives(t *testing.T, db plugins.Database[PluginConfig], variableID int) []expectedDirective {
+	stmt, err := db.Conn.Prepare(`
+		SELECT id, directive
+		FROM operation_variable_directives
+		WHERE parent = ?
+		ORDER BY id
+	`)
+	if err != nil {
+		t.Fatalf("failed to prepare operation_variable_directives query: %v", err)
+	}
+	defer stmt.Finalize()
+
+	// Bind the operation variable id.
+	stmt.BindInt64(1, int64(variableID))
+
+	var directives []expectedDirective
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			t.Fatalf("error stepping operation_variable_directives query: %v", err)
+		}
+		if !ok {
+			break
+		}
+
+		// Get the id and name of the directive.
+		dirID := int(stmt.ColumnInt(0))
+		dirName := stmt.ColumnText(1)
+
+		// Now look up any arguments for this directive.
+		args, err := findOperationVariableDirectiveArguments(db, dirID)
+		if err != nil {
+			t.Fatalf("failed to fetch arguments for directive %s: %v", dirName, err)
+		}
+
+		directives = append(directives, expectedDirective{
+			Name:      dirName,
+			Arguments: args,
 		})
 	}
-	return rows
+	return directives
+}
+
+// findOperationVariableDirectiveArguments retrieves all arguments for a given variable directive.
+func findOperationVariableDirectiveArguments(db plugins.Database[PluginConfig], directiveID int) ([]expectedDirectiveArgument, error) {
+	stmt, err := db.Conn.Prepare(`
+		SELECT name, value
+		FROM operation_variable_directive_arguments
+		WHERE parent = ?
+		ORDER BY id
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare operation_variable_directive_arguments query: %v", err)
+	}
+	defer stmt.Finalize()
+
+	stmt.BindInt64(1, int64(directiveID))
+
+	var args []expectedDirectiveArgument
+	for {
+		ok, err := stmt.Step()
+		if err != nil {
+			return nil, fmt.Errorf("error stepping operation_variable_directive_arguments query: %v", err)
+		}
+		if !ok {
+			break
+		}
+
+		args = append(args, expectedDirectiveArgument{
+			Name:  stmt.ColumnText(0),
+			Value: stmt.ColumnText(1),
+		})
+	}
+	return args, nil
 }
 
 func fetchSelections(t *testing.T, db plugins.Database[PluginConfig]) []dbSelection {

@@ -195,26 +195,26 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 	var err error
 
 	// Add the ComponentFields scalar
-	err = db.ExecStatement(statements.InsertInternalType, "Component", "SCALAR")
+	err = db.ExecStatement(statements.InsertInternalType, componentScalar, "SCALAR")
 	if err != nil {
 		return err
 	}
 
 	// @list(name: String!) on FIELD_DEFINITION
-	err = db.ExecStatement(statements.InsertInternalDirective, "list", "@list is used to mark a field for "+
+	err = db.ExecStatement(statements.InsertInternalDirective, listDirective, "@list is used to mark a field for "+
 		"the runtime as a place to add or remove entities in mutations")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "list", "FIELD_DEFINITION")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, listDirective, "FIELD_DEFINITION")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "list", "name", "String!", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, listDirective, "name", "String!", nil)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "list", "connection", "Boolean", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, listDirective, "connection", "Boolean", nil)
 	if err != nil {
 		return err
 	}
@@ -232,39 +232,39 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 	}
 
 	// @paginate(name: String!, mode: PaginateMode) on FIELD
-	err = db.ExecStatement(statements.InsertInternalDirective, "paginate", "@paginate is used to to mark a field for pagination.")
+	err = db.ExecStatement(statements.InsertInternalDirective, paginationDirective, "@paginate is used to to mark a field for pagination.", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "paginate", "FIELD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, paginationDirective, "FIELD")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "paginate", "name", "String!", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, paginationDirective, "name", "String!", nil)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "paginate", "mode", "PaginateMode", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, paginationDirective, "mode", "PaginateMode", nil)
 	if err != nil {
 		return err
 	}
 
 	// @prepend on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "prepend", "@prepend is used to tell the runtime to add the result to the end of the list")
+	err = db.ExecStatement(statements.InsertInternalDirective, prependDirective, "@prepend is used to tell the runtime to add the result to the end of the list", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "prepend", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, prependDirective, "FRAGMENT_SPREAD")
 	if err != nil {
 		return err
 	}
 
 	// @append on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "append", "@append is used to tell the runtime to add the result to the start of the list")
+	err = db.ExecStatement(statements.InsertInternalDirective, appendDirective, "@append is used to tell the runtime to add the result to the start of the list", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "append", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, appendDirective, "FRAGMENT_SPREAD")
 	if err != nil {
 		return err
 	}
@@ -282,7 +282,7 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 	}
 
 	// @dedupe(cancelFirst: Boolean, match: DedupeMatchMode) on QUERY and MUTATION
-	err = db.ExecStatement(statements.InsertInternalDirective, "dedupe", `@dedupe is used to prevent an operation from running more than once at the same time.
+	err = db.ExecStatement(statements.InsertInternalDirective, dedupeDirective, `@dedupe is used to prevent an operation from running more than once at the same time. true
 	If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
 	If match is set to Operation, then a request will be deduplicated any time there is a request with the same operation.
 	If it's set to Variables then the request will only be deduplicated if the variables match. If match is set to None,
@@ -290,84 +290,84 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "dedupe", "QUERY")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, dedupeDirective, "QUERY")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "dedupe", "MUTATION")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, dedupeDirective, "MUTATION")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "dedupe", "cancelFirst", "Boolean", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, dedupeDirective, "cancelFirst", "Boolean", nil)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "dedupe", "match", "DedupeMatchMode", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, dedupeDirective, "match", "DedupeMatchMode", nil)
 	if err != nil {
 		return err
 	}
 
 	// @optimisticKey on FIELD
-	err = db.ExecStatement(statements.InsertInternalDirective, "optimisticKey", "@optimisticKey is used to tell the runtime to use the value of the field as the key for optimistic updates.")
+	err = db.ExecStatement(statements.InsertInternalDirective, optimisticKeyDirective, "@optimisticKey is used to tell the runtime to use the value of the field as the key for optimistic updates.", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "optimisticKey", "FIELD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, optimisticKeyDirective, "FIELD")
 	if err != nil {
 		return err
 	}
 
 	// @allLists on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "allLists", "@allLists is used to tell the runtime to add the result to all lists in the cache.")
+	err = db.ExecStatement(statements.InsertInternalDirective, allListsDirective, "@allLists is used to tell the runtime to add the result to all lists in the cache.", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "allLists", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, allListsDirective, "FRAGMENT_SPREAD")
 
 	// @parentID(value: ID!) on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "parentID", "@parentID is used to provide a parentID without specifying position or in situations where it doesn't make sense (eg when deleting a node.)")
+	err = db.ExecStatement(statements.InsertInternalDirective, parentIDDirective, "@parentID is used to provide a parentID without specifying position or in situations where it doesn't make sense (eg when deleting a node.)", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "parentID", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, parentIDDirective, "FRAGMENT_SPREAD")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "parentID", "value", "ID!", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, parentIDDirective, "value", "ID!", nil)
 	if err != nil {
 		return err
 	}
 
 	// @when on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "when", "@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)")
+	err = db.ExecStatement(statements.InsertInternalDirective, whenDirective, "@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "when", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, whenDirective, "FRAGMENT_SPREAD")
 
 	// @when_not on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "when_not", "@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)")
+	err = db.ExecStatement(statements.InsertInternalDirective, whenNotDirective, "@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "when_not", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, whenNotDirective, "FRAGMENT_SPREAD")
 
 	// @arguments on FRAGMENT_DEFINITION
-	err = db.ExecStatement(statements.InsertInternalDirective, "arguments", "@arguments is used to define the arguments of a fragment.")
+	err = db.ExecStatement(statements.InsertInternalDirective, argumentsDirective, "@arguments is used to define the arguments of a fragment.", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "arguments", "FRAGMENT_DEFINITION")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, argumentsDirective, "FRAGMENT_DEFINITION")
 	if err != nil {
 		return err
 	}
 
 	// @with on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "with", "@with  is used to provide arguments to fragments that have been marked with @arguments")
+	err = db.ExecStatement(statements.InsertInternalDirective, withDirective, "@with  is used to provide arguments to fragments that have been marked with @arguments", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "with", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, withDirective, "FRAGMENT_SPREAD")
 	if err != nil {
 		return err
 	}
@@ -385,83 +385,98 @@ func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], st
 	}
 
 	// @cache(policy: CachePolicy, partial: Boolean) on QUERY
-	err = db.ExecStatement(statements.InsertInternalDirective, "cache", "@cache is is used to specify cache rules for a query")
+	err = db.ExecStatement(statements.InsertInternalDirective, cacheDirective, "@cache is is used to specify cache rules for a query", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "cache", "QUERY")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, cacheDirective, "QUERY")
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "cache", "policy", "CachePolicy", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, cacheDirective, "policy", "CachePolicy", nil)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "cache", "partial", "Boolean", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, cacheDirective, "partial", "Boolean", nil)
 	if err != nil {
 		return err
 	}
 
 	// @mask_enable on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "mask_enable", "@mask_enable is used to to enable masking on fragment (overwriting the global conf)")
+	err = db.ExecStatement(statements.InsertInternalDirective, enableMaskDirective, "@mask_enable is used to to enable masking on fragment (overwriting the global conf)", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "mask_enable", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, enableMaskDirective, "FRAGMENT_SPREAD")
 	if err != nil {
 		return err
 	}
 
 	// @mask_disable on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "mask_disable", "@mask_disable is used to to disable masking on fragment (overwriting the global conf)")
+	err = db.ExecStatement(statements.InsertInternalDirective, disableMaskDirective, "@mask_disable is used to to disable masking on fragment (overwriting the global conf)", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "mask_disable", "FRAGMENT_SPREAD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, disableMaskDirective, "FRAGMENT_SPREAD")
 	if err != nil {
 		return err
 	}
 
 	// @loading(count: Int, cascade: Boolean) on QUERY | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, "loading", "@loading is used to shape the value of your documents while they are loading")
+	err = db.ExecStatement(statements.InsertInternalDirective, loadingDirective, "@loading is used to shape the value of your documents while they are loading", true)
 	if err != nil {
 		return err
 	}
 	for _, loc := range []string{"FRAGMENT_SPREAD", "QUERY", "FIELD", "FRAGMENT_DEFINITION"} {
-		err = db.ExecStatement(statements.InsertDirectiveLocation, "loading", loc)
+		err = db.ExecStatement(statements.InsertDirectiveLocation, loadingDirective, loc)
 		if err != nil {
 			return err
 		}
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "loading", "count", "Int", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, loadingDirective, "count", "Int", nil)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, "loading", "cascade", "Boolean", nil)
+	err = db.ExecStatement(statements.InsertDirectiveArgument, loadingDirective, "cascade", "Boolean", nil)
 	if err != nil {
 		return err
 	}
 
 	// @required on FIELD
-	err = db.ExecStatement(statements.InsertInternalDirective, "required", "@required makes a nullable field always non-null by making the parent null when the field is")
+	err = db.ExecStatement(statements.InsertInternalDirective, requiredDirective, "@required makes a nullable field always non-null by making the parent null when the field is", true)
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, "required", "FIELD")
+	err = db.ExecStatement(statements.InsertDirectiveLocation, requiredDirective, "FIELD")
 	if err != nil {
 		return err
 	}
 
 	// @componentField on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
-	err = db.ExecStatement(statements.InsertInternalDirective, "componentField", "@componentField is used to mark a field as a component field")
+	err = db.ExecStatement(statements.InsertInternalDirective, componentFieldDirective, "@componentField is used to mark a field as a component field", true)
 	if err != nil {
 		return err
 	}
 	for _, loc := range []string{"FRAGMENT_DEFINITION", "INLINE_FRAGMENT", "FIELD_DEFINITION"} {
-		err = db.ExecStatement(statements.InsertDirectiveLocation, "componentField", loc)
+		err = db.ExecStatement(statements.InsertDirectiveLocation, componentFieldDirective, loc)
 		if err != nil {
 			return err
 		}
+	}
+
+	// we need a directive to register runtime scalars but it shouldn't end up in the generated schema
+	// @runtimeScalar(name: String!) on QUERY
+	err = db.ExecStatement(statements.InsertInternalDirective, runtimeScalarDirective, "@runtimeScalar is used to register a scalar with the runtime", false)
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, runtimeScalarDirective, "QUERY")
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, runtimeScalarDirective, "type", "String!", nil)
+	if err != nil {
+		return err
 	}
 
 	// we're done

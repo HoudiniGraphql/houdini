@@ -91,20 +91,23 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		await run(
 			config,
 			[
-				validators.componentFields,
+				// validators.componentFields,
 
-				transforms.internalSchema,
+				// transforms.internalSchema,
 
-				transforms.runtimeScalars,
+				// transforms.runtimeScalars,
 
 				...wrapHook(beforeValidate),
+
 				// validators
 				validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				// this replaces wrapHook(validate) to group them up
 				validators.plugins,
+
 				...wrapHook(afterValidate),
+
 				transforms.addFields,
 				transforms.typename,
 				transforms.componentFields,
@@ -117,6 +120,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				transforms.fragmentVariables,
 				transforms.collectDefinitions,
 				...wrapHook(beforeGenerate),
+
 				// generators
 				// this should be the first generator since it is responsible for creating the
 				// selection and preparing the artifact for the other generators

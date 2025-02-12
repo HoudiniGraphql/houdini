@@ -25,6 +25,9 @@ type PendingQuery struct {
 // AfterExtract is called after all of the plugins have added their documents to the project.
 // We'll use this plugin to parse each document and load it into the database.
 func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
+	// TODO: parallelize these as much as possible. most of them query the database in series with a worker pool
+	// we should benchmark this against pulling from the database in chunks and processing in parallel
+
 	// the first thing we have to do is load the extracted queries
 	err := p.afterExtract_loadDocuments(ctx)
 	if err != nil {
@@ -33,6 +36,12 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 
 	// now that we've parsed and loaded the extracted queries we need to handle component queries
 	err = p.afterExtract_componentFields(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
+	// runtime scalars need to be replaced with their static equivalents
+	err = p.afterExtract_runtimeScalars(ctx, p.DB)
 	if err != nil {
 		return err
 	}
@@ -46,8 +55,6 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	// in one goroutine and then pass it a pool of workers who will parse the documents
 	// and insert them into the database
 
-	// TODO: benchmark this approach compared to splitting the full result into chunks and processing them in parallel
-
 	// prepare the query we'll use to look for documents
 	search, err := p.DB.Conn.Prepare(`
 		SELECT
@@ -59,7 +66,6 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			LEFT JOIN component_fields ON
 				raw_documents.id = component_fields.document
 				AND component_fields.inline = true
-
 	`)
 	if err != nil {
 		return err
@@ -205,7 +211,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			hasDirective := false
 			var field string
 			for _, directive := range inlineFragment.Directives {
-				if directive.Name != "componentField" {
+				if directive.Name != componentFieldDirective {
 					continue
 				}
 
@@ -278,16 +284,35 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 
 		// insert any variable definitions.
 		for _, variable := range operation.VariableDefinitions {
+			// parse the type of the variable.
+			variableType, typeModifiers := parseFieldType(variable.Type.String())
+
 			statements.InsertDocumentVariable.BindText(1, operation.Name)
 			statements.InsertDocumentVariable.BindText(2, variable.Variable)
-			statements.InsertDocumentVariable.BindText(3, variable.Type.String())
+			statements.InsertDocumentVariable.BindText(3, variableType)
+			statements.InsertDocumentVariable.BindText(4, typeModifiers)
 			if variable.DefaultValue != nil {
-				statements.InsertDocumentVariable.BindText(4, variable.DefaultValue.String())
+				statements.InsertDocumentVariable.BindText(5, variable.DefaultValue.String())
 			} else {
-				statements.InsertDocumentVariable.BindNull(4)
+				statements.InsertDocumentVariable.BindNull(5)
 			}
 			if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
 				return err
+			}
+
+			variableID := db.Conn.LastInsertRowID()
+
+			// insert any directives on the variable.
+			for _, directive := range variable.Directives {
+				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name); err != nil {
+					return err
+				}
+				varDirID := db.Conn.LastInsertRowID()
+				for _, arg := range directive.Arguments {
+					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, varDirID, arg.Name, arg.Value.String()); err != nil {
+						return err
+					}
+				}
 			}
 		}
 
@@ -541,7 +566,7 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 		return err
 	}
 	defer search.Finalize()
-	search.BindText(1, "componentField")
+	search.BindText(1, componentFieldDirective)
 
 	// step through every result
 	for {
@@ -623,6 +648,97 @@ func (p *HoudiniCore) afterExtract_componentFields(ctx context.Context, db plugi
 	return nil
 }
 
-func componentFieldFragmentName(typ string, field string) string {
-	return fmt.Sprintf("__componentField__%s_%s", typ, field)
+// we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
+func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, db plugins.Database[PluginConfig]) error {
+	// load the project configuration
+	projectConfig, err := db.ProjectConfig()
+	if err != nil {
+		return err
+	}
+
+	// wrap the operations in a transaction
+	close := sqlitex.Transaction(db.Conn)
+	commit := func(err error) error {
+		close(&err)
+		return err
+	}
+
+	// we need a list of all the runtime scalars
+	runtimeScalars := ""
+	for scalar := range projectConfig.RuntimeScalars {
+		runtimeScalars += `'` + scalar + `',`
+	}
+	if runtimeScalars == "" {
+		runtimeScalars = ","
+	}
+
+	// we need to look at every operation variable that has a runtime scalar for its type
+	search, err := db.Conn.Prepare(fmt.Sprintf(`
+		SELECT
+			operation_variables.id,
+			operation_variables.type
+		FROM operation_variables WHERE type in (%s)
+	`, runtimeScalars[:len(runtimeScalars)-1]))
+	if err != nil {
+		return commit(err)
+	}
+	defer search.Finalize()
+
+	// and a query to update the type of the variable
+	updateType, err := db.Prepare(`
+		UPDATE operation_variables SET type = ? WHERE id = ?
+	`)
+	if err != nil {
+		return commit(err)
+	}
+	defer updateType.Finalize()
+
+	// and some statements to insert the runtime scalar directives
+	insertDocumentVariableDirective, err := db.Conn.Prepare("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
+	if err != nil {
+		return commit(err)
+	}
+	defer insertDocumentVariableDirective.Finalize()
+	// and scalar directive arguments
+	insertDocumentVariableDirectiveArgument, err := db.Conn.Prepare("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	if err != nil {
+		return commit(err)
+	}
+	defer insertDocumentVariableDirectiveArgument.Finalize()
+
+	for {
+		hasData, err := search.Step()
+		if err != nil {
+			return commit(err)
+		}
+		if !hasData {
+			break
+		}
+
+		// pull the query results out
+		variablesID := search.ColumnInt(0)
+		variableType := search.ColumnText(1)
+
+		// we need to update the type of the variable
+		err = db.ExecStatement(updateType, projectConfig.RuntimeScalars[variableType], variablesID)
+		if err != nil {
+			return commit(err)
+		}
+
+		// we also need to add a directive to the variable
+		err = db.ExecStatement(insertDocumentVariableDirective, variablesID, runtimeScalarDirective)
+		if err != nil {
+			return commit(err)
+		}
+		directiveID := db.Conn.LastInsertRowID()
+
+		// and the arguments to the directive
+		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, directiveID, "type", variableType)
+		if err != nil {
+			return commit(err)
+		}
+	}
+
+	// we're done (commit the transaction)
+	return commit(nil)
 }

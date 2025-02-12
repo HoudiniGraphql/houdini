@@ -71,20 +71,22 @@ func (p *HoudiniCore) Environment(mode string) (map[string]string, error) {
 }
 
 type DocumentInsertStatements struct {
-	InsertDocument                   *sqlite.Stmt
-	InsertDocumentVariable           *sqlite.Stmt
-	InsertSelection                  *sqlite.Stmt
-	InsertSelectionRef               *sqlite.Stmt
-	InsertSelectionArgument          *sqlite.Stmt
-	InsertSelectionDirective         *sqlite.Stmt
-	InsertSelectionDirectiveArgument *sqlite.Stmt
-	InsertDocumentDirective          *sqlite.Stmt
-	InsertDocumentDirectiveArgument  *sqlite.Stmt
+	InsertDocument                          *sqlite.Stmt
+	InsertDocumentVariable                  *sqlite.Stmt
+	InsertDocumentVariableDirective         *sqlite.Stmt
+	InsertDocumentVariableDirectiveArgument *sqlite.Stmt
+	InsertSelection                         *sqlite.Stmt
+	InsertSelectionRef                      *sqlite.Stmt
+	InsertSelectionArgument                 *sqlite.Stmt
+	InsertSelectionDirective                *sqlite.Stmt
+	InsertSelectionDirectiveArgument        *sqlite.Stmt
+	InsertDocumentDirective                 *sqlite.Stmt
+	InsertDocumentDirectiveArgument         *sqlite.Stmt
 }
 
 func (p *HoudiniCore) prepareDocumentInsertStatements(db plugins.Database[PluginConfig]) (DocumentInsertStatements, func()) {
 	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
-	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, default_value) VALUES (?, ?, ?, ?)")
+	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, type_modifiers, default_value) VALUES (?, ?, ?, ?, ?)")
 	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind, type) VALUES (?, ?, ?, ?, ?)")
 	insertSelectionArgument := db.Conn.Prep("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
 	insertSelectionRef := db.Conn.Prep("INSERT INTO selection_refs (parent_id, child_id, document) VALUES (?, ?, ?)")
@@ -92,6 +94,8 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(db plugins.Database[Plugin
 	insertSelectionDirectiveArgument := db.Conn.Prep("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
 	insertDocumentDirective := db.Conn.Prep("INSERT INTO document_directives (document, directive) VALUES (?, ?)")
 	insertDocumentDirectiveArgument := db.Conn.Prep("INSERT INTO document_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertDocumentVariableDirective := db.Conn.Prep("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
+	insertDocumentVariableDirectiveArgument := db.Conn.Prep("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
 
 	finalize := func() {
 		insertDocument.Finalize()
@@ -103,18 +107,22 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(db plugins.Database[Plugin
 		insertSelectionDirectiveArgument.Finalize()
 		insertDocumentDirective.Finalize()
 		insertDocumentDirectiveArgument.Finalize()
+		insertDocumentVariableDirective.Finalize()
+		insertDocumentVariableDirectiveArgument.Finalize()
 	}
 
 	return DocumentInsertStatements{
-		InsertDocument:                   insertDocument,
-		InsertDocumentVariable:           insertDocumentVariable,
-		InsertSelection:                  insertSelection,
-		InsertSelectionArgument:          insertSelectionArgument,
-		InsertSelectionRef:               insertSelectionRef,
-		InsertSelectionDirective:         insertSelectionDirective,
-		InsertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
-		InsertDocumentDirective:          insertDocumentDirective,
-		InsertDocumentDirectiveArgument:  insertDocumentDirectiveArgument,
+		InsertDocument:                          insertDocument,
+		InsertDocumentVariable:                  insertDocumentVariable,
+		InsertDocumentVariableDirective:         insertDocumentVariableDirective,
+		InsertDocumentVariableDirectiveArgument: insertDocumentVariableDirectiveArgument,
+		InsertSelection:                         insertSelection,
+		InsertSelectionArgument:                 insertSelectionArgument,
+		InsertSelectionRef:                      insertSelectionRef,
+		InsertSelectionDirective:                insertSelectionDirective,
+		InsertSelectionDirectiveArgument:        insertSelectionDirectiveArgument,
+		InsertDocumentDirective:                 insertDocumentDirective,
+		InsertDocumentDirectiveArgument:         insertDocumentDirectiveArgument,
 	}, finalize
 }
 
@@ -142,7 +150,7 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
 	insertFieldArgumentStmt := db.Prep("INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)")
 	insertDirectiveStmt := db.Prep("INSERT INTO directives (name) VALUES (?)")
-	insertInternalDirectiveStmt := db.Prep("INSERT INTO directives (name, description, internal) VALUES (?, ?, true)")
+	insertInternalDirectiveStmt := db.Prep("INSERT INTO directives (name, description, internal, visible) VALUES (?, ?, true, ?)")
 	insertDirectiveLocationStmt := db.Prep("INSERT INTO directive_locations (directive, location) VALUES (?, ?)")
 	insertDirectiveArgumentStmt := db.Prep("INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)")
 

@@ -152,6 +152,7 @@ CREATE TABLE union_member_types (
 CREATE TABLE directives (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
 	internal BOOLEAN default false,
+	visible BOOLEAN default true,
 	description TEXT
 );
 
@@ -181,8 +182,25 @@ CREATE TABLE operation_variables (
     document TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+    type_modifiers TEXT,
     default_value TEXT,
     FOREIGN KEY (document) REFERENCES documents(name)
+);
+
+CREATE TABLE operation_variable_directives (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	parent INTEGER NOT NULL,
+	directive TEXT NOT NULL,
+	FOREIGN KEY (parent) REFERENCES operation_variables(id) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE operation_variable_directive_arguments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    FOREIGN KEY (parent) REFERENCES operation_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used

@@ -26,6 +26,7 @@ type ProjectConfig struct {
 	PersistedQueriesPath            string
 	ProjectRoot                     string
 	RuntimeDir                      string
+	RuntimeScalars                  map[string]string
 }
 
 func (db Database[PluginConfig]) ProjectConfig() (ProjectConfig, error) {
@@ -46,7 +47,9 @@ func (db Database[PluginConfig]) ProjectConfig() (ProjectConfig, error) {
 
 func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	// build up a config object
-	config := ProjectConfig{}
+	config := ProjectConfig{
+		RuntimeScalars: make(map[string]string),
+	}
 
 	// load the config from the database
 	err := sqlitex.Execute(db.Conn, `SELECT
@@ -105,6 +108,22 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	})
 	if err != nil {
 		return err
+	}
+
+	// load runtime scalar information
+	search, err := db.Conn.Prepare(`SELECT name, type FROM runtime_scalar_definitions`)
+	if err != nil {
+		return err
+	}
+	for {
+		hasRow, err := search.Step()
+		if err != nil {
+			return err
+		}
+		if !hasRow {
+			break
+		}
+		config.RuntimeScalars[search.ColumnText(0)] = search.ColumnText(1)
 	}
 
 	// store the config we loaded
