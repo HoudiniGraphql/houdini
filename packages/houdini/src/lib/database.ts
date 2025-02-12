@@ -293,6 +293,11 @@ CREATE INDEX idx_selection_directive_args_parent ON selection_directive_argument
 CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent);
 CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
+CREATE INDEX idx_operation_variables_document ON operation_variables(document);
+CREATE INDEX idx_op_var_directives_parent ON operation_variable_directives(parent);
+CREATE INDEX idx_op_var_dir_args_parent ON operation_variable_directive_arguments(parent);
+CREATE INDEX idx_document_directives_document ON document_directives(document);
+CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
 `
 
 export async function write_config(
