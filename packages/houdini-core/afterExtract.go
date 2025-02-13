@@ -141,11 +141,10 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			}
 
 			// if we encountered any error, we need to rollback the transaction
-			if txErr != nil {
-				return commit(txErr)
-			}
-			// if we got this far, we're good to commit the transaction without an error
-			return commit(nil)
+			commit(txErr)
+
+			// we're done
+			return nil
 		})
 	}
 
@@ -193,6 +192,11 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	// wait for all workers to finish processing.
 	if err := wg.Wait(); err != nil {
 		return err
+	}
+
+	// propagate any errors we encountered
+	if errs.Len() > 0 {
+		return errs
 	}
 
 	// we're done
