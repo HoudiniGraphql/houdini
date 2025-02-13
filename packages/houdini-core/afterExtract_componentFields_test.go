@@ -45,8 +45,9 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process
-	err = plugin.afterExtract_componentFields(db)
-	require.Nil(t, err)
+	errs := &plugins.ErrorList{}
+	plugin.afterExtract_componentFields(db, errs)
+	require.Equal(t, 0, errs.Len())
 
 	// there should be an entry for User.Avatar in the type fields table
 	search, err := db.Prepare("SELECT parent, name, type, internal FROM type_fields where id = ?")

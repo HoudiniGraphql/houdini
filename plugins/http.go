@@ -108,7 +108,7 @@ func JSONHook[T any](ctx context.Context, hook func(ctx context.Context) (T, err
 		// call the function
 		data, err := hook(ctx)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 
@@ -124,7 +124,7 @@ func EventHook(ctx context.Context, hook func(ctx context.Context) error) http.H
 		// call the function
 		err := hook(ctx)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 
@@ -183,14 +183,14 @@ func handleEnvironment(ctx context.Context, plugin Environment) http.Handler {
 		}{}
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 
 		// invoke the extraction logic
 		value, err := plugin.Environment(ctx, payload.Mode)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 
@@ -209,14 +209,14 @@ func handleTransformFile(ctx context.Context, plugin TransformFile) http.Handler
 		}{}
 		err := json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 
 		// invoke the extraction logic
 		updated, err := plugin.TransformFile(ctx, payload.Filename, payload.Source)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			handleError(w, err)
 			return
 		}
 
@@ -271,4 +271,26 @@ func handleAfterGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) f
 		// nothing went wrong
 		return nil
 	}
+}
+
+func handleError(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+
+	// if the error is a list of plugin errors then we should serialize the full list
+	if pluginErr, ok := err.(*ErrorList); ok {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(pluginErr)
+		return
+	}
+
+	// the error could just be a single error
+	if pluginErr, ok := err.(*Error); ok {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(pluginErr)
+		return
+	}
+
+	// otherwise we should just serialize the error message
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
 }

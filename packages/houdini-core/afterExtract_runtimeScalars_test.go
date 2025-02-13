@@ -44,9 +44,10 @@ func TestRuntimeScalars(t *testing.T) {
 	}, db, statements)
 	require.Nil(t, err)
 
-	// now trigger the component fields portion of the process
-	err = plugin.afterExtract_runtimeScalars(db)
-	require.Nil(t, err)
+	// now trigger the component fields portion of the proces
+	errs := &plugins.ErrorList{}
+	plugin.afterExtract_runtimeScalars(db, errs)
+	require.Equal(t, 0, errs.Len())
 
 	// to check that the query was extracted correctly we need to look up the query
 	// we just created along with its inputs and any directives

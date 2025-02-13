@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"runtime"
 	"strconv"
 
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vektah/gqlparser/v2/parser"
 	"golang.org/x/sync/errgroup"
 	"zombiezen.com/go/sqlite"
@@ -16,6 +16,7 @@ import (
 )
 
 type PendingQuery struct {
+	Filepath                 string
 	ColumnOffset             int
 	RowOffset                int
 	Query                    string
@@ -39,13 +40,15 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	// the next steps can be done in parallel
 	var wg errgroup.Group
 
+	errs := &plugins.ErrorList{}
 	// now that we've parsed and loaded the extracted queries we need to handle component queries
 	wg.Go(func() error {
 		db, err := p.ConnectDB()
 		if err != nil {
 			return err
 		}
-		return p.afterExtract_componentFields(db)
+		p.afterExtract_componentFields(db, errs)
+		return nil
 	})
 
 	// runtime scalars need to be replaced with their static equivalents
@@ -54,17 +57,32 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		return p.afterExtract_runtimeScalars(db)
+		p.afterExtract_runtimeScalars(db, errs)
+		return nil
 	})
 
 	// we're done
-	return wg.Wait()
+	err = wg.Wait()
+	if err != nil {
+		return err
+	}
+
+	// if we have any errors collected, return them
+	if errs.Len() > 0 {
+		return errs
+	}
+
+	// we're done
+	return nil
 }
 
 func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	// we want to process the documents in parallel so we'll pull down from the database
 	// in one goroutine and then pass it a pool of workers who will parse the documents
 	// and insert them into the database
+
+	// collect all errors we encounter
+	errs := &plugins.ErrorList{}
 
 	// prepare the query we'll use to look for documents
 	search, err := p.DB.Conn.Prepare(`
@@ -74,7 +92,8 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			(component_fields.document IS NOT NULL) AS inline_component_field,
 			component_fields.prop,
 			raw_documents.offset_column,
-			raw_documents.offset_line
+			raw_documents.offset_line,
+			raw_documents.filepath
 		FROM raw_documents
 			LEFT JOIN component_fields ON
 				raw_documents.id = component_fields.document
@@ -110,15 +129,21 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			insertStatements, finalize := p.prepareDocumentInsertStatements(db)
 			defer finalize()
 
+			var txErr error
 			// consume queries until the channel is closed
 			for query := range queries {
 				// load the document into the database
 				err := p.afterExtract_loadPendingQuery(query, db, insertStatements)
 				if err != nil {
-					return commit(err)
+					txErr = err
+					errs.Append(*err)
 				}
 			}
 
+			// if we encountered any error, we need to rollback the transaction
+			if txErr != nil {
+				return commit(txErr)
+			}
 			// if we got this far, we're good to commit the transaction without an error
 			return commit(nil)
 		})
@@ -144,6 +169,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			InlineComponentField: search.ColumnBool(2),
 			ColumnOffset:         search.ColumnInt(4),
 			RowOffset:            search.ColumnInt(5),
+			Filepath:             search.ColumnText(6),
 		}
 
 		if !search.ColumnIsNull(3) {
@@ -166,7 +192,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 
 	// wait for all workers to finish processing.
 	if err := wg.Wait(); err != nil {
-		log.Fatalf("processing terminated with error: %v", err)
+		return err
 	}
 
 	// we're done
@@ -175,19 +201,34 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 
 // afterExtract_loadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements DocumentInsertStatements) error {
+func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugins.Database[PluginConfig], statements DocumentInsertStatements) *plugins.Error {
 	// parse the query.
 	parsed, err := parser.ParseQuery(&ast.Source{
 		Input: query.Query,
 	})
 	if err != nil {
-		return err
+		pluginErr := &plugins.Error{
+			Filepath: query.Filepath,
+			Message:  fmt.Sprintf("failed to parse query: %v", err),
+			Position: &ast.Position{
+				Line:   query.RowOffset,
+				Column: query.ColumnOffset,
+			},
+		}
+		if gqlErr, ok := err.(*gqlerror.Error); ok {
+			pluginErr.Position = &ast.Position{
+				Line:   gqlErr.Locations[0].Line + query.RowOffset,
+				Column: gqlErr.Locations[0].Column + query.ColumnOffset,
+			}
+		}
+		return pluginErr
 	}
 
 	// look up the type of the field from the database
 	searchTypeStatement, err := db.Prepare(`SELECT type FROM type_fields WHERE id = ?`)
 	if err != nil {
-		return err
+		pluginError := plugins.WrapError(err)
+		return &pluginError
 	}
 	defer searchTypeStatement.Finalize()
 
@@ -195,12 +236,26 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 	for _, operation := range parsed.Operations {
 		// all operations must have a name
 		if operation.Name == "" && !query.InlineComponentField {
-			return fmt.Errorf("operations must have a name")
+			return &plugins.Error{
+				Message:  "operations must have a name",
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset + operation.Position.Line,
+					Column: query.ColumnOffset + operation.Position.Column,
+				},
+			}
 		}
 
 		// if the operation is an inline component field and we don't have a prop then we need to bail
 		if query.InlineComponentField && query.InlineComponentFieldProp == nil {
-			return fmt.Errorf("Could not detect component field prop")
+			return &plugins.Error{
+				Message:  "could not detect component field prop",
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset,
+					Column: query.ColumnOffset,
+				},
+			}
 		}
 
 		// if the operation is an inline component field then we need to actually treat it as a fragment
@@ -209,17 +264,44 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			// the new document we are going to use is based on the inline query holding the selection
 			// so make sure there is only one child and its an inline fragment
 			if len(operation.SelectionSet) != 1 {
-				return fmt.Errorf("componentFields must have one child found %d", len(operation.SelectionSet))
+				return &plugins.Error{
+					Message:  fmt.Sprintf("componentFields must have one child found %d", len(operation.SelectionSet)),
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset,
+						Column: query.ColumnOffset,
+					},
+				}
 			}
 			inlineFragment, ok := operation.SelectionSet[0].(*ast.InlineFragment)
 			if !ok {
-				return fmt.Errorf("componentFields must have an inline fragment")
+				return &plugins.Error{
+					Message:  "componentFields must have an inline fragment",
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset,
+						Column: query.ColumnOffset,
+					},
+				}
 			}
 
 			// there needs to be a type condition on the inline fragment
 			fragmentType := inlineFragment.TypeCondition
 			if fragmentType == "" {
-				return fmt.Errorf("componentFields inline fragments must have a type condition")
+				line := query.RowOffset
+				column := query.ColumnOffset
+				if position := inlineFragment.Position; position != nil {
+					line += position.Line
+					column += position.Column
+				}
+				return &plugins.Error{
+					Message:  "componentFields inline fragments must have a type condition",
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   line,
+						Column: column,
+					},
+				}
 			}
 
 			// the inline fragment must be decorated with @componentField
@@ -237,13 +319,27 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 				for _, arg := range directive.Arguments {
 					if arg.Name == "prop" {
 						if arg.Value.Kind != ast.StringValue {
-							return fmt.Errorf("componentField prop argument must be a string")
+							return &plugins.Error{
+								Message:  "componentFields must have an inline fragment",
+								Filepath: query.Filepath,
+								Position: &ast.Position{
+									Line:   arg.Position.Line + query.RowOffset,
+									Column: arg.Position.Column + query.ColumnOffset,
+								},
+							}
 						}
 						prop = arg.Value.Raw
 						continue
 					} else if arg.Name == "field" {
 						if arg.Value.Kind != ast.StringValue {
-							return fmt.Errorf("componentField field argument must be a string")
+							return &plugins.Error{
+								Message:  "componentField field argument must be a string",
+								Filepath: query.Filepath,
+								Position: &ast.Position{
+									Line:   arg.Position.Line + query.RowOffset,
+									Column: arg.Position.Column + query.ColumnOffset,
+								},
+							}
 						}
 						field = arg.Value.Raw
 						continue
@@ -264,13 +360,27 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 				}
 
 				if field == "" {
-					return fmt.Errorf("couldn't determine the field for component field")
+					return &plugins.Error{
+						Message:  "couldn't determine the field for component field",
+						Filepath: query.Filepath,
+						Position: &ast.Position{
+							Line:   inlineFragment.Position.Line + query.RowOffset,
+							Column: inlineFragment.Position.Column + query.ColumnOffset,
+						},
+					}
 				}
 			}
 
 			// if we got this far without finding the directive then we have a problem
 			if !hasDirective {
-				return fmt.Errorf("componentFields must have @componentField directive")
+				return &plugins.Error{
+					Message:  "componentFields must have @componentField directive",
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   inlineFragment.Position.Line + query.RowOffset,
+						Column: inlineFragment.Position.Column + query.ColumnOffset,
+					},
+				}
 			}
 
 			// add a fragment definition to the document
@@ -294,7 +404,15 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			string(operation.Operation),
 			nil,
 		); err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not insert fragment for component field",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset,
+					Column: query.ColumnOffset,
+				},
+			}
 		}
 
 		// insert any variable definitions.
@@ -312,7 +430,15 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 				statements.InsertDocumentVariable.BindNull(5)
 			}
 			if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
-				return err
+				return &plugins.Error{
+					Message:  "could not associate document variable",
+					Detail:   err.Error(),
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset,
+						Column: query.ColumnOffset,
+					},
+				}
 			}
 
 			variableID := db.Conn.LastInsertRowID()
@@ -320,12 +446,28 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			// insert any directives on the variable.
 			for _, directive := range variable.Directives {
 				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name); err != nil {
-					return err
+					return &plugins.Error{
+						Message:  "could not associate document variable directive",
+						Detail:   err.Error(),
+						Filepath: query.Filepath,
+						Position: &ast.Position{
+							Line:   query.RowOffset,
+							Column: query.ColumnOffset,
+						},
+					}
 				}
 				varDirID := db.Conn.LastInsertRowID()
 				for _, arg := range directive.Arguments {
 					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, varDirID, arg.Name, arg.Value.String()); err != nil {
-						return err
+						return &plugins.Error{
+							Message:  "could not insert document variable argument",
+							Detail:   err.Error(),
+							Filepath: query.Filepath,
+							Position: &ast.Position{
+								Line:   query.RowOffset,
+								Column: query.ColumnOffset,
+							},
+						}
 					}
 				}
 			}
@@ -351,12 +493,28 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// add document-level directives for the operation.
 		for _, directive := range operation.Directives {
 			if err := db.ExecStatement(statements.InsertDocumentDirective, operation.Name, directive.Name); err != nil {
-				return err
+				return &plugins.Error{
+					Message:  "could not insert document directive",
+					Detail:   err.Error(),
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset + directive.Position.Line,
+						Column: query.ColumnOffset + directive.Position.Column,
+					},
+				}
 			}
 			docDirID := db.Conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
 				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
-					return err
+					return &plugins.Error{
+						Message:  "could not associate document variable directive argument",
+						Detail:   err.Error(),
+						Filepath: query.Filepath,
+						Position: &ast.Position{
+							Line:   query.RowOffset + arg.Position.Line,
+							Column: query.ColumnOffset + arg.Position.Column,
+						},
+					}
 				}
 			}
 		}
@@ -372,7 +530,15 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			"fragment",
 			fragment.TypeCondition,
 		); err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not insert fragment",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset + fragment.Position.Line,
+					Column: query.ColumnOffset + fragment.Position.Column,
+				},
+			}
 		}
 
 		// walk the fragment's selection set.
@@ -386,12 +552,28 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// add document-level directives for the operation.
 		for _, directive := range fragment.Directives {
 			if err := db.ExecStatement(statements.InsertDocumentDirective, fragment.Name, directive.Name); err != nil {
-				return err
+				return &plugins.Error{
+					Message:  "could not insert document directive",
+					Detail:   err.Error(),
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset + directive.Position.Line,
+						Column: query.ColumnOffset + directive.Position.Column,
+					},
+				}
 			}
 			docDirID := db.Conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
 				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
-					return err
+					return &plugins.Error{
+						Message:  "could not associate document directive argument",
+						Detail:   err.Error(),
+						Filepath: query.Filepath,
+						Position: &ast.Position{
+							Line:   query.RowOffset + arg.Position.Line,
+							Column: query.ColumnOffset + arg.Position.Column,
+						},
+					}
 				}
 			}
 
@@ -403,7 +585,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection(db plugins.Database[PluginConfig], query PendingQuery, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) error {
+func processSelection(db plugins.Database[PluginConfig], query PendingQuery, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -422,19 +604,43 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 		statements.InsertSelection.BindText(4, "field")
 		statements.InsertSelection.BindText(5, fmt.Sprintf("%s.%s", parentType, s.Name))
 		if err := db.ExecStatement(statements.InsertSelection); err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not add selection to database",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset + s.Position.Line,
+					Column: query.ColumnOffset + s.Position.Column,
+				},
+			}
 		}
 		selectionID = db.Conn.LastInsertRowID()
 
 		searchTypeStatement.BindText(1, fmt.Sprintf("%s.%s", parentType, s.Name))
 		_, err := searchTypeStatement.Step()
 		if err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not find type for field",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset,
+					Column: query.ColumnOffset,
+				},
+			}
 		}
 		fieldType := searchTypeStatement.ColumnText(0)
 		err = searchTypeStatement.Reset()
 		if err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not find type for field",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset,
+					Column: query.ColumnOffset,
+				},
+			}
 		}
 
 		// handle any field arguments.
@@ -445,14 +651,22 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 				arg.Name,
 				arg.Value.String(),
 			); err != nil {
-				return err
+				return &plugins.Error{
+					Message:  "could not add selection argument to database",
+					Detail:   err.Error(),
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset + arg.Position.Line,
+						Column: query.ColumnOffset + arg.Position.Column,
+					},
+				}
 			}
 		}
 
 		// insert any directives on the field.
-		err = processDirectives(db, statements, selectionID, s.Directives)
-		if err != nil {
-			return err
+		pluginError := processDirectives(db, query, statements, selectionID, s.Directives)
+		if pluginError != nil {
+			return pluginError
 		}
 
 		// walk down any nested selections
@@ -469,7 +683,15 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 			fragType = "inline_fragment"
 		}
 		if err := db.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment", nil); err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "Could not store inline fragment in database",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset + s.Position.Line,
+					Column: query.ColumnOffset + s.Position.Column,
+				},
+			}
 		}
 		selectionID = db.Conn.LastInsertRowID()
 
@@ -482,24 +704,39 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 		}
 
 		// process directives
-		err := processDirectives(db, statements, selectionID, s.Directives)
+		err := processDirectives(db, query, statements, selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
 
 	case *ast.FragmentSpread:
 		if err := db.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment", nil); err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not store fragment spread in database",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset + s.Position.Line,
+					Column: query.ColumnOffset + s.Position.Column,
+				},
+			}
 		}
 		selectionID = db.Conn.LastInsertRowID()
 
 		// process any directives on the fragment spread.
-		err := processDirectives(db, statements, selectionID, s.Directives)
+		err := processDirectives(db, query, statements, selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
 	default:
-		return fmt.Errorf("unsupported selection type: %T", sel)
+		return &plugins.Error{
+			Message:  fmt.Sprintf("unsupported selection type: %T", sel),
+			Filepath: query.Filepath,
+			Position: &ast.Position{
+				Line:   query.RowOffset + s.GetPosition().Line,
+				Column: query.ColumnOffset + s.GetPosition().Column,
+			},
+		}
 	}
 
 	// if we get this far, we need to associate the selection with its parent
@@ -520,18 +757,34 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 		statements.InsertSelectionRef.BindNull(5)
 	}
 	if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
-		return err
+		return &plugins.Error{
+			Message:  "could not store selection ref",
+			Detail:   err.Error(),
+			Filepath: query.Filepath,
+			Position: &ast.Position{
+				Line:   query.RowOffset,
+				Column: query.ColumnOffset,
+			},
+		}
 	}
 
 	// nothing went wrong
 	return nil
 }
 
-func processDirectives(db plugins.Database[PluginConfig], statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) error {
+func processDirectives(db plugins.Database[PluginConfig], query PendingQuery, statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
 	for _, directive := range directives {
 		// insert the directive row
 		if err := db.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name); err != nil {
-			return err
+			return &plugins.Error{
+				Message:  "could not store selection directive in database",
+				Detail:   err.Error(),
+				Filepath: query.Filepath,
+				Position: &ast.Position{
+					Line:   query.RowOffset + directive.Position.Line,
+					Column: query.ColumnOffset + directive.Position.Column,
+				},
+			}
 		}
 		dirID := db.Conn.LastInsertRowID()
 
@@ -546,7 +799,15 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 				dArg.Name,
 				dArg.Value.String(),
 			); err != nil {
-				return err
+				return &plugins.Error{
+					Message:  "could not store selection directive argument in database",
+					Detail:   err.Error(),
+					Filepath: query.Filepath,
+					Position: &ast.Position{
+						Line:   query.RowOffset + dArg.Position.Line,
+						Column: query.ColumnOffset + dArg.Position.Column,
+					},
+				}
 			}
 		}
 	}
@@ -560,7 +821,7 @@ func processDirectives(db plugins.Database[PluginConfig], statements DocumentIns
 // - adding internal fields to the type definitions
 // note: we'll hold on doing the actual injection of fragments til after we've validated
 // everything to ensure that error messages make sense
-func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginConfig]) error {
+func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginConfig], errs *plugins.ErrorList) {
 	// we need statements to insert schema information
 	_, finalizeSchemaStatements := p.prepareSchemaInsertStatements(db)
 	defer finalizeSchemaStatements()
@@ -578,16 +839,21 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
 
 	search, err := db.Conn.Prepare(`
 		SELECT
-			documents.raw_document, documents.type_condition, document_directive_arguments.name, document_directive_arguments.value
+			documents.raw_document,
+			documents.type_condition,
+			document_directive_arguments.name,
+			document_directive_arguments.value
 		FROM
 			document_directives
 			JOIN documents on document_directives.document = documents.name
 			JOIN document_directive_arguments on document_directive_arguments.parent = document_directives.id
+
 		WHERE
 			document_directives.directive = ?
 	`)
 	if err != nil {
-		return err
+		errs.Append(plugins.WrapError(err))
+		return
 	}
 	defer search.Finalize()
 	search.BindText(1, componentFieldDirective)
@@ -596,7 +862,8 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
 	for {
 		hasData, err := search.Step()
 		if err != nil {
-			return err
+			errs.Append(plugins.WrapError(err))
+			return
 		}
 		if !hasData {
 			break
@@ -617,7 +884,8 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
 		// strip the quotes
 		unquoted, err := strconv.Unquote(search.ColumnText(3))
 		if err != nil {
-			return err
+			errs.Append(plugins.WrapError(err))
+			continue
 		}
 
 		switch search.ColumnText(2) {
@@ -640,7 +908,8 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
   			type = excluded.type
 	`)
 	if err != nil {
-		return err
+		errs.Append(plugins.WrapError(err))
+		return
 	}
 	defer insertComponentField.Finalize()
 
@@ -649,7 +918,12 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
 		INSERT INTO type_fields (id, parent, name, type, internal) VALUES (?, ?, ?, ?, true)
 	`)
 	if err != nil {
-		return err
+		errs.Append(plugins.Error{
+			Message: "could not prepare statement to insert internal fields",
+			Detail:  err.Error(),
+		})
+		errs.Append(plugins.WrapError(err))
+		return
 	}
 	defer insertInternalField.Finalize()
 
@@ -658,26 +932,29 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
 		// make sure that we have the component field information loaded
 		err = db.ExecStatement(insertComponentField, data.RawDocumentID, data.Prop, data.Field, data.Type)
 		if err != nil {
-			return err
+			errs.Append(plugins.WrapError(err))
+			continue
 		}
 
 		// add the internal field to the type
 		err = db.ExecStatement(insertInternalField, fmt.Sprintf("%s.%s", data.Type, data.Field), data.Type, data.Field, "Component")
 		if err != nil {
-			return err
+			errs.Append(plugins.WrapError(err))
+			continue
 		}
 	}
 
 	// we're done
-	return nil
+	return
 }
 
 // we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
-func (p *HoudiniCore) afterExtract_runtimeScalars(db plugins.Database[PluginConfig]) error {
+func (p *HoudiniCore) afterExtract_runtimeScalars(db plugins.Database[PluginConfig], errs *plugins.ErrorList) {
 	// load the project configuration
 	projectConfig, err := db.ProjectConfig()
 	if err != nil {
-		return err
+		errs.Append(plugins.WrapError(err))
+		return
 	}
 
 	// wrap the operations in a transaction
@@ -704,7 +981,9 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(db plugins.Database[PluginConf
 		FROM operation_variables WHERE type in (%s)
 	`, runtimeScalars[:len(runtimeScalars)-1]))
 	if err != nil {
-		return commit(err)
+		errs.Append(plugins.WrapError(err))
+		commit(err)
+		return
 	}
 	defer search.Finalize()
 
@@ -713,27 +992,35 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(db plugins.Database[PluginConf
 		UPDATE operation_variables SET type = ? WHERE id = ?
 	`)
 	if err != nil {
-		return commit(err)
+		errs.Append(plugins.WrapError(err))
+		commit(err)
+		return
 	}
 	defer updateType.Finalize()
 
 	// and some statements to insert the runtime scalar directives
 	insertDocumentVariableDirective, err := db.Conn.Prepare("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
 	if err != nil {
-		return commit(err)
+		errs.Append(plugins.WrapError(err))
+		commit(err)
+		return
 	}
 	defer insertDocumentVariableDirective.Finalize()
 	// and scalar directive arguments
 	insertDocumentVariableDirectiveArgument, err := db.Conn.Prepare("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
 	if err != nil {
-		return commit(err)
+		errs.Append(plugins.WrapError(err))
+		commit(err)
+		return
 	}
 	defer insertDocumentVariableDirectiveArgument.Finalize()
 
 	for {
 		hasData, err := search.Step()
 		if err != nil {
-			return commit(err)
+			errs.Append(plugins.WrapError(err))
+			commit(err)
+			return
 		}
 		if !hasData {
 			break
@@ -746,23 +1033,29 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(db plugins.Database[PluginConf
 		// we need to update the type of the variable
 		err = db.ExecStatement(updateType, projectConfig.RuntimeScalars[variableType], variablesID)
 		if err != nil {
-			return commit(err)
+			errs.Append(plugins.WrapError(err))
+			commit(err)
+			return
 		}
 
 		// we also need to add a directive to the variable
 		err = db.ExecStatement(insertDocumentVariableDirective, variablesID, runtimeScalarDirective)
 		if err != nil {
-			return commit(err)
+			errs.Append(plugins.WrapError(err))
+			commit(err)
+			return
 		}
 		directiveID := db.Conn.LastInsertRowID()
 
 		// and the arguments to the directive
 		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, directiveID, "type", variableType)
 		if err != nil {
-			return commit(err)
+			errs.Append(plugins.WrapError(err))
+			commit(err)
+			return
 		}
 	}
 
 	// we're done (commit the transaction)
-	return commit(nil)
+	commit(nil)
 }

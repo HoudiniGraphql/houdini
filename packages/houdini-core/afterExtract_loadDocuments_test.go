@@ -1200,14 +1200,14 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				InlineComponentFieldProp: tc.inlineComponentFieldProp,
 			}
 
-			err = hc.afterExtract_loadPendingQuery(pending, db, statements)
+			pendingErr := hc.afterExtract_loadPendingQuery(pending, db, statements)
 			if tc.expectError {
-				if err == nil {
+				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)
 				}
 				// stop further checks when error is expected.
 				return
-			} else if err != nil {
+			} else if pendingErr != nil {
 				t.Fatalf("loadPendingQuery returned error: %v", err)
 			}
 
