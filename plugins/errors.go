@@ -7,6 +7,12 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+func WrapError(err error) Error {
+	return Error{
+		Message: err.Error(),
+	}
+}
+
 type Error struct {
 	Message  string        `json:"message"`
 	Detail   string        `json:"detail"`
@@ -16,6 +22,11 @@ type Error struct {
 
 func (e Error) Error() string {
 	return e.Message
+}
+
+func (e Error) WithPrefix(prefix string) Error {
+	e.Message = prefix + ": " + e.Message
+	return e
 }
 
 type ErrorList struct {

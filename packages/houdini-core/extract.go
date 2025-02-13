@@ -5,13 +5,13 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"regexp"
 	"runtime"
 	"strings"
 	"sync"
 
 	"code.houdinigraphql.com/packages/houdini-core/glob"
+	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 )
@@ -47,6 +47,9 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// wrap them in an errgroup to make sure we can cancel them all if something goes wrong
 	g, ctx := errgroup.WithContext(ctx)
 
+	// a slice to collect errors while extracting
+	errs := &plugins.ErrorList{}
+
 	// file walker goroutine
 	g.Go(func() error {
 		// start the walk; each file path found is sent into filePathsCh.
@@ -62,7 +65,14 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		// whether or not there was an error, close the channel
 		// to signal that no more file paths will be sent.
 		close(filePathsCh)
-		return err
+
+		// collect the error
+		if err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("encountered error while looking for documents: %v", err)))
+		}
+
+		// we're done
+		return nil
 	})
 
 	// file processing workers
@@ -80,8 +90,11 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 					}
 					// process the file
 					if err := processFile(p.fs, fp, resultsCh); err != nil {
-						// if there's an error, just log it and continue with the next file.
-						log.Printf("failed to process file %s: %v", fp, err)
+						errs.Append(plugins.Error{
+							Message:  "Error processing file",
+							Detail:   err.Error(),
+							Filepath: fp,
+						})
 					}
 				case <-ctx.Done():
 					return
@@ -95,19 +108,22 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		// build a connection to the database.
 		conn, err := p.ConnectDB()
 		if err != nil {
-			return fmt.Errorf("failed to connect to db: %w", err)
+			errs.Append(plugins.WrapError(fmt.Errorf("failed to connect to db: %w", err)))
+			return nil
 		}
 		defer conn.Close()
 
 		// prepare the insert statements.
 		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
 		if err != nil {
-			return fmt.Errorf("failed to prepare statement: %w", err)
+			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
+			return nil
 		}
 		defer insertRawStatement.Finalize()
 		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop, inline) VALUES (?, ?, true)")
 		if err != nil {
-			return fmt.Errorf("failed to prepare statement: %w", err)
+			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
+			return nil
 		}
 		defer insertComponentField.Finalize()
 
@@ -115,7 +131,8 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		for doc := range resultsCh {
 			err := conn.ExecStatement(insertRawStatement, doc.FilePath, doc.Content)
 			if err != nil {
-				return fmt.Errorf("failed to insert raw document: %v", err)
+				errs.Append(plugins.WrapError(fmt.Errorf("failed to insert raw document: %v", err)))
+				return nil
 			}
 			documentID := conn.LastInsertRowID()
 
@@ -123,7 +140,8 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 			if doc.Prop != "" {
 				err = conn.ExecStatement(insertComponentField, documentID, doc.Prop)
 				if err != nil {
-					return fmt.Errorf("failed to insert component field: %v", err)
+					errs.Append(plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)))
+					return nil
 				}
 			}
 		}
@@ -151,10 +169,11 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 // processFile reads the file (using the provided afero.Fs) in fixed-size chunks to avoid holding
 // onto the full file in memory whenever possible. If a complete match is found, it sends the
 // extracted document on the provided channel.
-func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
+func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Error {
 	f, err := fs.Open(fp)
 	if err != nil {
-		return err
+		pluginError := plugins.WrapError(fmt.Errorf("failed to open file: %w", err))
+		return &pluginError
 	}
 	defer f.Close()
 
@@ -162,7 +181,8 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 	if strings.HasSuffix(fp, ".graphql") || strings.HasSuffix(fp, ".gql") {
 		content, err := io.ReadAll(f)
 		if err != nil {
-			return err
+			pluginError := plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
+			return &pluginError
 		}
 		ch <- DiscoveredDocument{
 			FilePath: fp,
@@ -247,36 +267,39 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) error {
 		}
 
 		if err != nil {
-			if err == io.EOF {
-				// Process any remaining text.
-				text := string(buffer)
-				matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
-				for _, m := range matches {
-					if len(m) >= 4 {
-						extracted := text[m[2]:m[3]]
-						extracted = strings.ReplaceAll(extracted, "\\`", "`")
-						ch <- DiscoveredDocument{
-							FilePath: fp,
-							Content:  extracted,
-						}
-					}
-				}
-				compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
-				for _, m := range compMatches {
-					if len(m) >= 6 {
-						prop := text[m[2]:m[3]]
-						extracted := text[m[4]:m[5]]
-						extracted = strings.ReplaceAll(extracted, "\\`", "`")
-						ch <- DiscoveredDocument{
-							FilePath: fp,
-							Content:  extracted,
-							Prop:     prop,
-						}
-					}
-				}
-				break
+			// if the error does not indicate EOF, return it.
+			if err != io.EOF {
+				pluginError := plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
+				return &pluginError
 			}
-			return err
+
+			// we encountered the end of the file so process any remaining text
+			text := string(buffer)
+			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
+			for _, m := range matches {
+				if len(m) >= 4 {
+					extracted := text[m[2]:m[3]]
+					extracted = strings.ReplaceAll(extracted, "\\`", "`")
+					ch <- DiscoveredDocument{
+						FilePath: fp,
+						Content:  extracted,
+					}
+				}
+			}
+			compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
+			for _, m := range compMatches {
+				if len(m) >= 6 {
+					prop := text[m[2]:m[3]]
+					extracted := text[m[4]:m[5]]
+					extracted = strings.ReplaceAll(extracted, "\\`", "`")
+					ch <- DiscoveredDocument{
+						FilePath: fp,
+						Content:  extracted,
+						Prop:     prop,
+					}
+				}
+			}
+			break
 		}
 	}
 
