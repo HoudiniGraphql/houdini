@@ -504,6 +504,15 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 	}
 	statements.InsertSelectionRef.BindInt64(2, selectionID)
 	statements.InsertSelectionRef.BindText(3, documentName)
+
+	// we want to save the selection location in the document
+	if position := sel.GetPosition(); position != nil {
+		statements.InsertSelectionRef.BindInt64(4, int64(position.Line))
+		statements.InsertSelectionRef.BindInt64(5, int64(position.Column))
+	} else {
+		statements.InsertSelectionRef.BindNull(4)
+		statements.InsertSelectionRef.BindNull(5)
+	}
 	if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
 		return err
 	}

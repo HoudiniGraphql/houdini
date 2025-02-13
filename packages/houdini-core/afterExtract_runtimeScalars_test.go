@@ -35,8 +35,7 @@ func TestRuntimeScalars(t *testing.T) {
 	require.Nil(t, err)
 
 	// prepare the statements we'll need to insert the document into the database
-	statements, finalize := (&HoudiniCore{}).prepareDocumentInsertStatements(db)
-	defer finalize()
+	statements, _ := (&HoudiniCore{}).prepareDocumentInsertStatements(db)
 
 	// load the query into the database as a pending query
 	err = plugin.afterExtract_loadPendingQuery(PendingQuery{

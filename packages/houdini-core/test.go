@@ -276,6 +276,8 @@ CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
     document TEXT NOT NULL,
+	row INTEGER NOT NULL,
+	column INTEGER NOT NULL,
     FOREIGN KEY (parent_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (child_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED

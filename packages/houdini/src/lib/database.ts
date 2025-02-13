@@ -73,7 +73,7 @@ CREATE TABLE type_configs (
 CREATE TABLE raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT NOT NULL,
-    content TEXT NOT NULL,
+    content TEXT NOT NULL
 );
 
 -- @componentField has some extra meta data associated with it that can pop up at different times. In order to
@@ -85,7 +85,7 @@ CREATE TABLE component_fields (
     field TEXT,
 	type TEXT,
 	inline BOOLEAN default false,
-	UNIQUE (document)
+	UNIQUE (document),
 	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
 );
@@ -259,6 +259,8 @@ CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
     document TEXT NOT NULL,
+	row INTEGER,
+	column INTEGER,
     FOREIGN KEY (parent_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (child_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
