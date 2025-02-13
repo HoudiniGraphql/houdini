@@ -1,5 +1,11 @@
 # houdini
 
+## 1.5.1
+
+### Patch Changes
+
+-   [#1433](https://github.com/HoudiniGraphql/houdini/pull/1433) [`faf0a5cb`](https://github.com/HoudiniGraphql/houdini/commit/faf0a5cb0f3cd5936923bf981a6022875b3ec1cb) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Update init script to only update the necessary fields
+
 ## 1.5.0
 
 ### Minor Changes
