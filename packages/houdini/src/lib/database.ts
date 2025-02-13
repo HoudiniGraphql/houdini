@@ -73,6 +73,8 @@ CREATE TABLE type_configs (
 CREATE TABLE raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT NOT NULL,
+    offset_line INTEGER,
+    offset_column INTEGER,
     content TEXT NOT NULL
 );
 

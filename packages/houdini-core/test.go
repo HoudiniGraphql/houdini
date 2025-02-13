@@ -101,6 +101,8 @@ CREATE TABLE type_configs (
 -- A table of original document contents (to be populated by plugins)
 CREATE TABLE raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    offset_line INTEGER,
+    offset_column INTEGER,
     filepath TEXT NOT NULL,
     content TEXT NOT NULL
 );

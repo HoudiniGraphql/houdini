@@ -16,6 +16,8 @@ import (
 )
 
 type PendingQuery struct {
+	ColumnOffset             int
+	RowOffset                int
 	Query                    string
 	ID                       int
 	InlineComponentField     bool
@@ -70,7 +72,9 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			raw_documents.id,
 			content,
 			(component_fields.document IS NOT NULL) AS inline_component_field,
-			component_fields.prop
+			component_fields.prop,
+			raw_documents.offset_column,
+			raw_documents.offset_line
 		FROM raw_documents
 			LEFT JOIN component_fields ON
 				raw_documents.id = component_fields.document
@@ -138,6 +142,8 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			ID:                   search.ColumnInt(0),
 			Query:                search.ColumnText(1),
 			InlineComponentField: search.ColumnBool(2),
+			ColumnOffset:         search.ColumnInt(4),
+			RowOffset:            search.ColumnInt(5),
 		}
 
 		if !search.ColumnIsNull(3) {
@@ -337,7 +343,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// walk the selection set for the operation.
 		for i, sel := range operation.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
+			if err := processSelection(db, query, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
 				return err
 			}
 		}
@@ -372,7 +378,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// walk the fragment's selection set.
 		for i, sel := range fragment.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
+			if err := processSelection(db, query, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
 				return err
 			}
 		}
@@ -397,7 +403,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection(db plugins.Database[PluginConfig], statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) error {
+func processSelection(db plugins.Database[PluginConfig], query PendingQuery, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -451,7 +457,7 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
+			err := processSelection(db, query, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -469,7 +475,7 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
+			err := processSelection(db, query, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -507,8 +513,8 @@ func processSelection(db plugins.Database[PluginConfig], statements DocumentInse
 
 	// we want to save the selection location in the document
 	if position := sel.GetPosition(); position != nil {
-		statements.InsertSelectionRef.BindInt64(4, int64(position.Line))
-		statements.InsertSelectionRef.BindInt64(5, int64(position.Column))
+		statements.InsertSelectionRef.BindInt64(4, int64(position.Line+query.RowOffset))
+		statements.InsertSelectionRef.BindInt64(5, int64(position.Column+query.ColumnOffset))
 	} else {
 		statements.InsertSelectionRef.BindNull(4)
 		statements.InsertSelectionRef.BindNull(5)

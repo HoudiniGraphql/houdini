@@ -90,11 +90,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 					}
 					// process the file
 					if err := processFile(p.fs, fp, resultsCh); err != nil {
-						errs.Append(plugins.Error{
-							Message:  "Error processing file",
-							Detail:   err.Error(),
-							Filepath: fp,
-						})
+						errs.Append(*err)
 					}
 				case <-ctx.Done():
 					return
@@ -114,7 +110,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		defer conn.Close()
 
 		// prepare the insert statements.
-		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content) VALUES (?, ?)")
+		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, offset_column, offset_line) VALUES (?, ?, ?, ?)")
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
 			return nil
@@ -129,7 +125,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 
 		// consume discovered documents from resultsCh and write them to the database.
 		for doc := range resultsCh {
-			err := conn.ExecStatement(insertRawStatement, doc.FilePath, doc.Content)
+			err := conn.ExecStatement(insertRawStatement, doc.FilePath, doc.Content, doc.OffsetColumn, doc.OffsetRow)
 			if err != nil {
 				errs.Append(plugins.WrapError(fmt.Errorf("failed to insert raw document: %v", err)))
 				return nil
@@ -162,6 +158,11 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 		return err
 	}
 
+	// if there were any errors during the extraction process, return them.
+	if errs.Len() > 0 {
+		return errs
+	}
+
 	// if we got here, everything completed successfully.
 	return nil
 }
@@ -177,7 +178,7 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 	}
 	defer f.Close()
 
-	// If the file is a .graphql/.gql file, read it entirely.
+	// For .graphql/.gql files, read it entirely.
 	if strings.HasSuffix(fp, ".graphql") || strings.HasSuffix(fp, ".gql") {
 		content, err := io.ReadAll(f)
 		if err != nil {
@@ -185,8 +186,10 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 			return &pluginError
 		}
 		ch <- DiscoveredDocument{
-			FilePath: fp,
-			Content:  string(content),
+			FilePath:     fp,
+			Content:      string(content),
+			OffsetRow:    0,
+			OffsetColumn: 0,
 		}
 		return nil
 	}
@@ -195,10 +198,46 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 	var buffer []byte
 	reader := bufio.NewReader(f)
 
+	// absoluteOffset tracks the total bytes read so far.
+	absoluteOffset := 0
+	// newlinePositions stores the absolute positions of each '\n' encountered.
+	var newlinePositions []int
+
+	// Use an incremental pointer to avoid scanning the entire newlinePositions slice every time.
+	// Since file reading and regex matching produce offsets in increasing order, we can maintain:
+	// - lastNewlineIndex: the index in newlinePositions that was used for the previous match.
+	// - currentLine: the number of newlines encountered up to that index.
+	lastNewlineIndex := 0
+	currentLine := 0
+
+	// getLineAndColumn computes the 0-indexed line and column for an absolute byte offset.
+	// It increments from the last position instead of performing a full binary search.
+	getLineAndColumn := func(absPos int) (line, col int) {
+		// Process any new newlines that occur before absPos.
+		for lastNewlineIndex < len(newlinePositions) && newlinePositions[lastNewlineIndex] < absPos {
+			currentLine++
+			lastNewlineIndex++
+		}
+		if lastNewlineIndex == 0 {
+			// No newline has been seen before absPos.
+			return 0, absPos
+		}
+		// The column is the difference between absPos and the last newline.
+		return currentLine, absPos - newlinePositions[lastNewlineIndex-1] - 1
+	}
+
 	for {
 		chunk := make([]byte, chunkSize)
 		n, err := reader.Read(chunk)
 		if n > 0 {
+			// Update newlinePositions for this chunk.
+			for i := 0; i < n; i++ {
+				if chunk[i] == '\n' {
+					newlinePositions = append(newlinePositions, absoluteOffset+i)
+				}
+			}
+			absoluteOffset += n
+
 			// Append the newly read data.
 			buffer = append(buffer, chunk[:n]...)
 			text := string(buffer)
@@ -207,15 +246,20 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 			// Look for matches of graphql( ... )
 			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
 			for _, m := range matches {
-				// Only process matches that are complete (i.e. the match ends before the end of our current text).
+				// Process only complete matches.
 				if m[1] < len(text) {
 					if len(m) >= 4 {
 						extracted := text[m[2]:m[3]]
-						// Replace any escaped backticks with literal backticks.
+						// Replace escaped backticks.
 						extracted = strings.ReplaceAll(extracted, "\\`", "`")
+						// Compute absolute offset for the start of the GraphQL content.
+						absPos := (absoluteOffset - len(buffer)) + m[2]
+						row, col := getLineAndColumn(absPos)
 						ch <- DiscoveredDocument{
-							FilePath: fp,
-							Content:  extracted,
+							FilePath:     fp,
+							Content:      extracted,
+							OffsetRow:    row,
+							OffsetColumn: col,
 						}
 					}
 					if m[1] > lastCompleteMatchEnd {
@@ -228,16 +272,18 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 			compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
 			for _, m := range compMatches {
 				if m[1] < len(text) {
-					// Expecting at least 3 captured groups:
-					// m[0]: full match, m[2]/m[3]: property name, m[4]/m[5]: GraphQL content.
 					if len(m) >= 6 {
 						prop := text[m[2]:m[3]]
 						extracted := text[m[4]:m[5]]
 						extracted = strings.ReplaceAll(extracted, "\\`", "`")
+						absPos := (absoluteOffset - len(buffer)) + m[4]
+						row, col := getLineAndColumn(absPos)
 						ch <- DiscoveredDocument{
-							FilePath: fp,
-							Content:  extracted,
-							Prop:     prop,
+							FilePath:     fp,
+							Content:      extracted,
+							Prop:         prop,
+							OffsetRow:    row,
+							OffsetColumn: col,
 						}
 					}
 					if m[1] > lastCompleteMatchEnd {
@@ -246,9 +292,7 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 				}
 			}
 
-			// Trim the buffer:
-			// If we found a complete match, drop everything up to its end.
-			// Otherwise, if there is a partial match (a starting keyword), keep from there.
+			// Trim the buffer: remove data that has already been processed.
 			if lastCompleteMatchEnd > 0 {
 				buffer = buffer[lastCompleteMatchEnd:]
 			} else {
@@ -267,22 +311,24 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 		}
 
 		if err != nil {
-			// if the error does not indicate EOF, return it.
 			if err != io.EOF {
 				pluginError := plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
 				return &pluginError
 			}
-
-			// we encountered the end of the file so process any remaining text
+			// Process any remaining text at the end of the file.
 			text := string(buffer)
 			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
 			for _, m := range matches {
 				if len(m) >= 4 {
 					extracted := text[m[2]:m[3]]
 					extracted = strings.ReplaceAll(extracted, "\\`", "`")
+					absPos := (absoluteOffset - len(buffer)) + m[2]
+					row, col := getLineAndColumn(absPos)
 					ch <- DiscoveredDocument{
-						FilePath: fp,
-						Content:  extracted,
+						FilePath:     fp,
+						Content:      extracted,
+						OffsetRow:    row,
+						OffsetColumn: col,
 					}
 				}
 			}
@@ -292,10 +338,14 @@ func processFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 					prop := text[m[2]:m[3]]
 					extracted := text[m[4]:m[5]]
 					extracted = strings.ReplaceAll(extracted, "\\`", "`")
+					absPos := (absoluteOffset - len(buffer)) + m[4]
+					row, col := getLineAndColumn(absPos)
 					ch <- DiscoveredDocument{
-						FilePath: fp,
-						Content:  extracted,
-						Prop:     prop,
+						FilePath:     fp,
+						Content:      extracted,
+						Prop:         prop,
+						OffsetRow:    row,
+						OffsetColumn: col,
 					}
 				}
 			}
@@ -325,5 +375,7 @@ type DiscoveredDocument struct {
 	FilePath string
 	Content  string
 	// if we run into a component field we need to record the prop during extraction
-	Prop string
+	Prop         string
+	OffsetColumn int
+	OffsetRow    int
 }
