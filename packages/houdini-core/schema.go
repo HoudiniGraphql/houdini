@@ -113,7 +113,7 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 				fieldTypeName, fieldTypeModifiers := parseFieldType(field.Type.String())
 
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "")
+				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "", field.Description)
 				if err != nil {
 					return fmt.Errorf("error inserting field %s for object %s: %w", field.Name, typ.Name, err)
 				}
@@ -130,7 +130,7 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 			for _, field := range typ.Fields {
 				fieldTypeName, fieldTypeModifiers := parseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, field.DefaultValue.String())
+				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, field.DefaultValue.String(), field.Description)
 				if err != nil {
 					return fmt.Errorf("error inserting input field %s for %s: %w", field.Name, typ.Name, err)
 				}
@@ -141,7 +141,7 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 			for _, field := range typ.Fields {
 				fieldTypeName, fieldTypeModifiers := parseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "")
+				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "", field.Description)
 				if err != nil {
 					return fmt.Errorf("error inserting interface field %s for %s: %w", field.Name, typ.Name, err)
 				}

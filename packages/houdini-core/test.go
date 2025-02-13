@@ -122,6 +122,7 @@ CREATE TABLE type_fields (
     type TEXT NOT NULL,
 	type_modifiers TEXT,
     default_value TEXT,
+    description TEXT,
 	internal BOOLEAN default false,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,

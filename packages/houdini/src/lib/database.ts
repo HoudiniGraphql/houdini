@@ -74,7 +74,6 @@ CREATE TABLE raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT NOT NULL,
     content TEXT NOT NULL,
-	component_field_prop TEXT
 );
 
 -- @componentField has some extra meta data associated with it that can pop up at different times. In order to
@@ -108,6 +107,7 @@ CREATE TABLE type_fields (
     type TEXT NOT NULL,
 	type_modifiers TEXT,
     default_value TEXT,
+	description TEXT,
 	internal BOOLEAN default false,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
@@ -204,7 +204,6 @@ CREATE TABLE operation_variable_directive_arguments (
     FOREIGN KEY (parent) REFERENCES operation_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
--- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE documents (
     name TEXT NOT NULL PRIMARY KEY,
 	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),

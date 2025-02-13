@@ -144,7 +144,7 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 	// Prepare statements. (Check errors and defer closing each statement.)
 	insertTypeStmt := db.Prep("INSERT INTO types (name, kind) VALUES (?, ?)")
 	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")
-	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value) VALUES (?, ?, ?, ?, ?, ?)")
+	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value, description) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	insertInterfaceImplementorStmt := db.Prep("INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)")
 	insertUnionMemberStmt := db.Prep("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
 	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
