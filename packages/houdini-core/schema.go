@@ -168,7 +168,7 @@ func writeProjectSchema[PluginConfig any](db plugins.Database[PluginConfig], sch
 
 	// process directives
 	for _, directive := range schema.Directives {
-		err := db.ExecStatement(statements.InsertDirective, directive.Name)
+		err := db.ExecStatement(statements.InsertDirective, directive.Name, directive.IsRepeatable)
 		if err != nil {
 			return fmt.Errorf("error inserting directive %s: %w", directive.Name, err)
 		}

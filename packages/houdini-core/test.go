@@ -168,6 +168,7 @@ CREATE TABLE directives (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
 	internal BOOLEAN default false,
     visible BOOLEAN default true,
+    repeatable BOOLEAN default false,
 	description TEXT
 );
 

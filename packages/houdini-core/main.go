@@ -149,7 +149,7 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginCo
 	insertUnionMemberStmt := db.Prep("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
 	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
 	insertFieldArgumentStmt := db.Prep("INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)")
-	insertDirectiveStmt := db.Prep("INSERT INTO directives (name) VALUES (?)")
+	insertDirectiveStmt := db.Prep("INSERT INTO directives (name, repeatable) VALUES (?, ?)")
 	insertInternalDirectiveStmt := db.Prep("INSERT INTO directives (name, description, internal, visible) VALUES (?, ?, true, ?)")
 	insertDirectiveLocationStmt := db.Prep("INSERT INTO directive_locations (directive, location) VALUES (?, ?)")
 	insertDirectiveArgumentStmt := db.Prep("INSERT INTO directive_arguments (parent, name, type, default_value) VALUES (?, ?, ?, ?)")
