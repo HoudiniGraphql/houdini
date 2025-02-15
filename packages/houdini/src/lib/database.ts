@@ -281,6 +281,8 @@ CREATE TABLE selection_arguments (
 -- Indices
 -----------------------------------------------------------
 
+CREATE INDEX idx_documents_kind ON documents(kind);
+
 -- Selection traversal indices
 CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
@@ -298,6 +300,7 @@ CREATE INDEX idx_selection_directive_args_parent ON selection_directive_argument
 CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent);
 CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
+
 `
 
 export async function write_config(

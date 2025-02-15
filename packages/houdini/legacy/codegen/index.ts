@@ -91,7 +91,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		await run(
 			config,
 			[
-				// validators.componentFields,
+				validators.componentFields,
 
 				// transforms.internalSchema,
 

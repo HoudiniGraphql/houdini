@@ -40,6 +40,15 @@ func InMemoryDB[PluginConfig any]() (Database[PluginConfig], error) {
 	return Database[PluginConfig]{Conn: conn}, nil
 }
 
+func InMemorySharedDB[PluginConfig any]() (Database[PluginConfig], error) {
+	conn, err := sqlite.OpenConn("file:memdb1", sqlite.OpenWAL, sqlite.OpenMemory, sqlite.OpenReadWrite, sqlite.OpenSharedCache)
+	if err != nil {
+		return Database[PluginConfig]{}, err
+	}
+
+	return Database[PluginConfig]{Conn: conn}, nil
+}
+
 func (db Database[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
 	for i, arg := range args {
 		switch arg.(type) {

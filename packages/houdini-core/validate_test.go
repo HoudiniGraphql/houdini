@@ -8,7 +8,6 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
-	"zombiezen.com/go/sqlite"
 )
 
 func TestValidate(t *testing.T) {
@@ -67,7 +66,7 @@ func TestValidate(t *testing.T) {
 		 * These tests validate the default validation rules that are specified by the spec
 		 */
 		{
-			Title: "SingleFieldSubscriptionsRule: Subscription with more than one root field.",
+			Title: "Subscription with more than one root field.",
 			Pass:  false,
 			Documents: []string{
 				`subscription TestSub {
@@ -358,21 +357,14 @@ func TestValidate(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Title, func(t *testing.T) {
 			// create and wire up a database we can test against
-			db, err := plugins.InMemoryDB[PluginConfig]()
+			db, err := plugins.InMemorySharedDB[PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
 			plugin := &HoudiniCore{
-				fs: afero.NewMemMapFs(),
-				databaseConnection: func() (plugins.Database[PluginConfig], error) {
-					conn, err := sqlite.OpenConn("file:memdb1?mode=memory&cache=shared", sqlite.OpenWAL, sqlite.OpenReadWrite)
-					if err != nil {
-						return plugins.Database[PluginConfig]{}, err
-					}
-
-					return plugins.Database[PluginConfig]{Conn: conn}, nil
-				},
+				fs:                 afero.NewMemMapFs(),
+				databaseConnection: plugins.InMemorySharedDB[PluginConfig],
 			}
 			plugin.SetDatabase(db)
 			db.SetProjectConfig(projectConfig)

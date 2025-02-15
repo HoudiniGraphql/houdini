@@ -237,11 +237,10 @@ export async function codegen_setup(
 export async function codegen(
 	trigger_hook: (hook: string, parallel_safe: boolean) => Promise<void>
 ) {
-	// the first step is to extract documents from the project
+	// step through every hook in the pipeline
 	await trigger_hook('ExtractDocuments', false)
 	await trigger_hook('AfterExtract', false)
 	await trigger_hook('BeforeValidate', false)
-	// TODO: this should happen in parallel
 	await trigger_hook('Validate', true)
 	await trigger_hook('AfterValidate', false)
 	await trigger_hook('BeforeGenerate', false)
