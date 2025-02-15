@@ -14,14 +14,14 @@ export type PluginSpec = {
 	order: 'before' | 'after' | 'core'
 }
 
-// pre_codegen sets up the codegen pipe before we start generating files. this primarily means starting
+// codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
 export async function codegen_setup(
 	config: Config,
 	mode: string
 ): Promise<{
 	close: () => Promise<void>
-	trigger_hook: (name: string) => Promise<void>
+	trigger_hook: (name: string, parallel_safe: boolean) => Promise<void>
 	database_path: string
 }> {
 	// We need the root dir before we get to the exciting stuff
@@ -164,10 +164,21 @@ export async function codegen_setup(
 		return await response.text()
 	}
 
-	const trigger_hook = async (hook: string, payload: Record<string, any> = {}) => {
+	const trigger_hook = async (
+		hook: string,
+		parallel_safe: boolean,
+		payload: Record<string, any> = {}
+	) => {
 		console.time(hook)
-		for (const [name, { hooks }] of Object.entries(plugin_specs)) {
-			if (hooks.has(hook) && plugin_specs[name]) {
+		// look for all of the plugins that have registered for this hook
+		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) => hooks.has(hook))
+
+		// if the hook is parallel safe, we can run all of the plugins in parallel
+		if (parallel_safe) {
+			await Promise.all(plugins.map(([plugin]) => invoke_hook(plugin, hook, payload)))
+		} else {
+			// if the hook isn't parallel safe, we need to run the plugins in order
+			for (const [name] of plugins) {
 				await invoke_hook(name, hook, payload)
 			}
 		}
@@ -178,13 +189,13 @@ export async function codegen_setup(
 	await write_config(db, config, invoke_hook, plugin_specs, mode)
 
 	// now we should load the config hook so other plugins can set their defaults
-	await trigger_hook('Config')
+	await trigger_hook('Config', false)
 
 	// now that we've loaded the environment, we need to invoke the afterLoad hook
-	await trigger_hook('AfterLoad')
+	await trigger_hook('AfterLoad', false)
 
 	// add any plugin-specifics to our schema
-	await trigger_hook('Schema')
+	await trigger_hook('Schema', false)
 
 	return {
 		database_path: db_file,
@@ -223,14 +234,16 @@ export async function codegen_setup(
 	}
 }
 
-export async function codegen(trigger_hook: (hook: string) => Promise<void>) {
+export async function codegen(
+	trigger_hook: (hook: string, parallel_safe: boolean) => Promise<void>
+) {
 	// the first step is to extract documents from the project
-	await trigger_hook('ExtractDocuments')
-	await trigger_hook('AfterExtract')
-	await trigger_hook('BeforeValidate')
+	await trigger_hook('ExtractDocuments', false)
+	await trigger_hook('AfterExtract', false)
+	await trigger_hook('BeforeValidate', false)
 	// TODO: this should happen in parallel
-	await trigger_hook('Validate')
-	await trigger_hook('AfterValidate')
-	await trigger_hook('BeforeGenerate')
-	await trigger_hook('Generate')
+	await trigger_hook('Validate', true)
+	await trigger_hook('AfterValidate', false)
+	await trigger_hook('BeforeGenerate', false)
+	await trigger_hook('Generate', false)
 }
