@@ -28,8 +28,7 @@ type PendingQuery struct {
 // AfterExtract is called after all of the plugins have added their documents to the project.
 // We'll use this plugin to parse each document and load it into the database.
 func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
-	// TODO: parallelize these as much as possible. most of them query the database in series with a worker pool
-	// we should benchmark this against pulling from the database in chunks and processing in parallel
+	// sqlite only allows for one write at a time so there's no point in parallelizing this
 
 	// the first thing we have to do is load the extracted queries
 	err := p.afterExtract_loadDocuments(ctx)
@@ -37,35 +36,13 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 		return err
 	}
 
-	// the next steps can be done in parallel
-	var wg errgroup.Group
-
 	errs := &plugins.ErrorList{}
-	// now that we've parsed and loaded the extracted queries we need to handle component queries
-	wg.Go(func() error {
-		db, err := p.ConnectDB()
-		if err != nil {
-			return err
-		}
-		p.afterExtract_componentFields(db, errs)
-		return nil
-	})
 
-	// runtime scalars need to be replaced with their static equivalents
-	wg.Go(func() error {
-		db, err := p.ConnectDB()
-		if err != nil {
-			return err
-		}
-		p.afterExtract_runtimeScalars(db, errs)
-		return nil
-	})
+	// write component field information to the database
+	p.afterExtract_componentFields(p.DB, errs)
 
-	// we're done
-	err = wg.Wait()
-	if err != nil {
-		return err
-	}
+	// and replace runtime scalars with their schema-valid equivalents
+	p.afterExtract_runtimeScalars(p.DB, errs)
 
 	// if we have any errors collected, return them
 	if errs.Len() > 0 {
