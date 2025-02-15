@@ -88,13 +88,18 @@ func TestSchema(t *testing.T) {
 			}
 
 			// Instantiate an in-memory database and set the project config.
-			db, _ := plugins.InMemoryDB[PluginConfig]()
+			db, _ := plugins.NewPoolInMemory[PluginConfig]()
+			defer db.Close()
 			db.SetProjectConfig(plugins.ProjectConfig{
 				ProjectRoot: "/project",
 				SchemaPath:  "schema.graphql",
 			})
 
-			err := executeSchema(db.Conn)
+			conn, err := db.Take(context.Background())
+			require.Nil(t, err)
+
+			err = executeSchema(conn)
+			db.Put(conn)
 			require.Nil(t, err)
 
 			// Create the HoudiniCore instance and set its DB.
@@ -171,9 +176,14 @@ type expectedType struct {
 
 // queryTypes returns a map from type name to true for all types in the
 // "types" table that were imported as user types (i.e. not internal).
-func queryTypes(db plugins.Database[PluginConfig]) (map[string]bool, error) {
+func queryTypes(db plugins.DatabasePool[PluginConfig]) (map[string]bool, error) {
 	typesMap := make(map[string]bool)
-	stmt, err := db.Conn.Prepare("SELECT name FROM types WHERE internal = false")
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Put(conn)
+	stmt, err := conn.Prepare("SELECT name FROM types WHERE internal = false")
 	if err != nil {
 		return nil, err
 	}
@@ -193,9 +203,15 @@ func queryTypes(db plugins.Database[PluginConfig]) (map[string]bool, error) {
 
 // queryTypeFields returns a map from a parent type name to a slice of expectedField
 // (populated from the "type_fields" table for user types).
-func queryTypeFields(db plugins.Database[PluginConfig]) (map[string][]expectedField, error) {
+func queryTypeFields(db plugins.DatabasePool[PluginConfig]) (map[string][]expectedField, error) {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Put(conn)
+
 	fieldsMap := make(map[string][]expectedField)
-	stmt, err := db.Conn.Prepare("SELECT parent, name, type, type_modifiers FROM type_fields WHERE internal = false")
+	stmt, err := conn.Prepare("SELECT parent, name, type, type_modifiers FROM type_fields WHERE internal = false")
 	if err != nil {
 		return nil, err
 	}

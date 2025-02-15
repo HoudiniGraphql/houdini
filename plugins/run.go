@@ -35,11 +35,16 @@ func ParseFlags() {
 func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	ParseFlags()
 
+	// create context that we'll cancel on shutdown signal
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// connect to the database
-	db, err := ConnectDB[PluginConfig]()
+	db, err := NewPool[PluginConfig]()
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 
 	_pluginName = plugin.Name()
 
@@ -47,12 +52,8 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	plugin.SetDatabase(db)
 
 	// load both of the config values
-	db.ReloadPluginConfig()
-	db.ReloadProjectConfig()
-
-	// create context that we'll cancel on shutdown signal
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	db.ReloadPluginConfig(ctx)
+	db.ReloadProjectConfig(ctx)
 
 	hooks := pluginHooks(ctx, plugin)
 
@@ -107,7 +108,11 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 			notified = true
 
 			// register plugin with database
-			err = sqlitex.ExecuteTransient(db.Conn,
+			conn, err := db.Take(ctx)
+			if err != nil {
+				return err
+			}
+			err = sqlitex.ExecuteTransient(conn,
 				`INSERT INTO plugins (name, hooks, port, plugin_order) VALUES (?, ?, ?, ?)`,
 				&sqlitex.ExecOptions{
 					Args: []interface{}{
@@ -118,6 +123,7 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 					},
 				},
 			)
+			db.Put(conn)
 			if err != nil {
 				log.Fatal(err)
 			}

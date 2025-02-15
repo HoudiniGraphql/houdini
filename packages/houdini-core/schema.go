@@ -16,10 +16,17 @@ import (
 // The core plugin is responsible for parsing the users schrma file and loading it into the database
 func (p *HoudiniCore) Schema(ctx context.Context) error {
 	// the first thing we have to do is import the schema from the database
-	config, err := p.DB.ProjectConfig()
+	config, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
 		return err
 	}
+
+	// grab a connection to the database for this
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		return err
+	}
+	defer p.DB.Put(conn)
 
 	// read the schema file
 	schemaPath := path.Join(config.ProjectRoot, config.SchemaPath)
@@ -54,14 +61,14 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// all of the schema operations are done in a transaction
-	close := sqlitex.Transaction(p.DB.Conn)
+	close := sqlitex.Transaction(conn)
 	commit := func(err error) error {
 		close(&err)
 		return err
 	}
 
 	// prepare the statements we'll use
-	statements, finalize := p.prepareSchemaInsertStatements(p.DB)
+	statements, finalize := p.prepareSchemaInsertStatements(conn)
 	defer finalize()
 
 	// import the user's schema into the database
@@ -85,7 +92,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	return commit(nil)
 }
 
-func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database[PluginConfig], schema *ast.Schema, statements SchemaInsertStatements, errors *plugins.ErrorList) {
+func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.DatabasePool[PluginConfig], schema *ast.Schema, statements SchemaInsertStatements, errors *plugins.ErrorList) {
 	// in a single pass over all types, insert the type and any associated details.
 	// the type references are deferrable foreign keys, so we can insert them in any order
 	for _, typ := range schema.Types {
@@ -275,7 +282,7 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 }
 
 // write the houdini internal schema bits
-func writeInternalSchema[PluginConfig any](db plugins.Database[PluginConfig], statements SchemaInsertStatements) error {
+func writeInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig], statements SchemaInsertStatements) error {
 	var err error
 
 	// Add the ComponentFields scalar

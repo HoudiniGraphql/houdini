@@ -6,21 +6,16 @@ import "context"
 type HoudiniPlugin[PluginConfig any] interface {
 	Name() string
 	Order() PluginOrder
-	SetDatabase(Database[PluginConfig])
+	SetDatabase(DatabasePool[PluginConfig])
 }
 
 type Plugin[PluginConfig any] struct {
-	DB Database[PluginConfig]
+	DB DatabasePool[PluginConfig]
 }
 
 // SetDatabase is a helper that lets Run() inject the database into the plugin.
-func (p *Plugin[PluginConfig]) SetDatabase(db Database[PluginConfig]) {
+func (p *Plugin[PluginConfig]) SetDatabase(db DatabasePool[PluginConfig]) {
 	p.DB = db
-}
-
-// ConnectDB returns a new database connection.
-func (p *Plugin[PluginConfig]) ConnectDB() (Database[PluginConfig], error) {
-	return ConnectDB[PluginConfig]()
 }
 
 // each hook can be implemented by a plugin by implementing the corresponding method

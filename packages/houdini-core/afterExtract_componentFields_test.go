@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
@@ -19,7 +20,7 @@ func TestComponentFields(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.InMemoryDB[PluginConfig]()
+	db, err := plugins.NewPoolInMemory[PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}
@@ -27,13 +28,13 @@ func TestComponentFields(t *testing.T) {
 	plugin := &HoudiniCore{}
 	plugin.SetDatabase(db)
 
-	// write the schema to the database
-	err = executeSchema(db.Conn)
+	conn, err := db.Take(context.Background())
 	require.Nil(t, err)
 
-	// prepare the statements we'll need to insert the document into the database
-	statements, finalize := (&HoudiniCore{}).prepareDocumentInsertStatements(db)
-	defer finalize()
+	// write the schema to the database
+	err = executeSchema(conn)
+	require.Nil(t, err)
+	db.Put(conn)
 
 	// load the query into the database as a pending query
 	err = plugin.afterExtract_loadPendingQuery(PendingQuery{
@@ -41,16 +42,16 @@ func TestComponentFields(t *testing.T) {
 		Query:                    query,
 		InlineComponentField:     true,
 		InlineComponentFieldProp: strPtr("user"),
-	}, db, statements)
+	})
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process
 	errs := &plugins.ErrorList{}
-	plugin.afterExtract_componentFields(db, errs)
+	plugin.afterExtract_componentFields(conn, errs)
 	require.Equal(t, 0, errs.Len())
 
 	// there should be an entry for User.Avatar in the type fields table
-	search, err := db.Prepare("SELECT parent, name, type, internal FROM type_fields where id = ?")
+	search, err := conn.Prepare("SELECT parent, name, type, internal FROM type_fields where id = ?")
 	require.Nil(t, err)
 	defer search.Finalize()
 

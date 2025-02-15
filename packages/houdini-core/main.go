@@ -15,9 +15,6 @@ func main() {
 	// run the plugin
 	err := plugins.Run(&HoudiniCore{
 		fs: afero.NewOsFs(),
-		databaseConnection: func() (plugins.Database[PluginConfig], error) {
-			return plugins.ConnectDB[PluginConfig]()
-		},
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -27,10 +24,7 @@ func main() {
 
 type HoudiniCore struct {
 	plugins.Plugin[PluginConfig]
-	fs                       afero.Fs
-	documentInsertStatements DocumentInsertStatements
-	schemaInsertStatements   SchemaInsertStatements
-	databaseConnection       func() (plugins.Database[PluginConfig], error)
+	fs afero.Fs
 }
 
 type PluginConfig = any
@@ -88,18 +82,51 @@ type DocumentInsertStatements struct {
 	InsertDocumentDirectiveArgument         *sqlite.Stmt
 }
 
-func (p *HoudiniCore) prepareDocumentInsertStatements(db plugins.Database[PluginConfig]) (DocumentInsertStatements, func()) {
-	insertDocument := db.Conn.Prep("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
-	insertDocumentVariable := db.Conn.Prep("INSERT INTO operation_variables (document, name, type, type_modifiers, default_value) VALUES (?, ?, ?, ?, ?)")
-	insertSelection := db.Conn.Prep("INSERT INTO selections (field_name, alias, path_index, kind, type) VALUES (?, ?, ?, ?, ?)")
-	insertSelectionArgument := db.Conn.Prep("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
-	insertSelectionRef := db.Conn.Prep("INSERT INTO selection_refs (parent_id, child_id, document, row, column) VALUES (?, ?, ?, ?, ?)")
-	insertSelectionDirective := db.Conn.Prep("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")
-	insertSelectionDirectiveArgument := db.Conn.Prep("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
-	insertDocumentDirective := db.Conn.Prep("INSERT INTO document_directives (document, directive) VALUES (?, ?)")
-	insertDocumentDirectiveArgument := db.Conn.Prep("INSERT INTO document_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
-	insertDocumentVariableDirective := db.Conn.Prep("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
-	insertDocumentVariableDirectiveArgument := db.Conn.Prep("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatements, error, func()) {
+	insertDocument, err := conn.Prepare("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertDocumentVariable, err := conn.Prepare("INSERT INTO operation_variables (document, name, type, type_modifiers, default_value) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, path_index, kind, type) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertSelectionDirective, err := conn.Prepare("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertSelectionDirectiveArgument, err := conn.Prepare("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertDocumentDirective, err := conn.Prepare("INSERT INTO document_directives (document, directive) VALUES (?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertDocumentDirectiveArgument, err := conn.Prepare("INSERT INTO document_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
 
 	finalize := func() {
 		insertDocument.Finalize()
@@ -127,7 +154,7 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(db plugins.Database[Plugin
 		InsertSelectionDirectiveArgument:        insertSelectionDirectiveArgument,
 		InsertDocumentDirective:                 insertDocumentDirective,
 		InsertDocumentDirectiveArgument:         insertDocumentDirectiveArgument,
-	}, finalize
+	}, nil, finalize
 }
 
 type SchemaInsertStatements struct {
@@ -144,7 +171,7 @@ type SchemaInsertStatements struct {
 	InsertDirectiveArgument    *sqlite.Stmt
 }
 
-func (p *HoudiniCore) prepareSchemaInsertStatements(db plugins.Database[PluginConfig]) (SchemaInsertStatements, func()) {
+func (p *HoudiniCore) prepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, func()) {
 	// Prepare statements. (Check errors and defer closing each statement.)
 	insertTypeStmt := db.Prep("INSERT INTO types (name, kind) VALUES (?, ?)")
 	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")

@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -31,14 +32,14 @@ type ProjectConfig struct {
 	TypeConfig                      map[string]TypeConfig
 }
 
-func (db Database[PluginConfig]) ProjectConfig() (ProjectConfig, error) {
+func (db DatabasePool[PluginConfig]) ProjectConfig(ctx context.Context) (ProjectConfig, error) {
 	// if we've already loaded the config use it
 	if db._config != nil {
 		return *db._config, nil
 	}
 
 	// otherwise load it from the database
-	err := db.ReloadProjectConfig()
+	err := db.ReloadProjectConfig(ctx)
 	if err != nil {
 		return ProjectConfig{}, err
 	}
@@ -47,15 +48,20 @@ func (db Database[PluginConfig]) ProjectConfig() (ProjectConfig, error) {
 	return *db._config, nil
 }
 
-func (db *Database[PluginConfig]) ReloadProjectConfig() error {
+func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) error {
 	// build up a config object
 	config := ProjectConfig{
 		RuntimeScalars: make(map[string]string),
 		TypeConfig:     make(map[string]TypeConfig),
 	}
 
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return err
+	}
+	defer db.Put(conn)
 	// load the config from the database
-	err := sqlitex.Execute(db.Conn, `SELECT
+	err = sqlitex.Execute(conn, `SELECT
 		include,
 		exclude,
 		definitions_path,
@@ -114,7 +120,7 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	}
 
 	// load runtime scalar information
-	search, err := db.Conn.Prepare(`SELECT name, type FROM runtime_scalar_definitions`)
+	search, err := conn.Prepare(`SELECT name, type FROM runtime_scalar_definitions`)
 	if err != nil {
 		return err
 	}
@@ -130,7 +136,7 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	}
 
 	// load type config information
-	typeConfigSearch, err := db.Conn.Prepare(`SELECT name, keys FROM type_configs`)
+	typeConfigSearch, err := conn.Prepare(`SELECT name, keys FROM type_configs`)
 	if err != nil {
 		return err
 	}
@@ -154,7 +160,7 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	return nil
 }
 
-func (db Database[PluginConfig]) PluginConfig() (result PluginConfig, err error) {
+func (db DatabasePool[PluginConfig]) PluginConfig(ctx context.Context) (result PluginConfig, err error) {
 	// if we've already loaded the config use it
 	if db._pluginConfig != nil {
 		result = *db._pluginConfig
@@ -162,7 +168,7 @@ func (db Database[PluginConfig]) PluginConfig() (result PluginConfig, err error)
 	}
 
 	// otherwise load it from the database
-	err = db.ReloadPluginConfig()
+	err = db.ReloadPluginConfig(ctx)
 	if err != nil {
 		return
 	}
@@ -172,9 +178,15 @@ func (db Database[PluginConfig]) PluginConfig() (result PluginConfig, err error)
 	return
 }
 
-func (db *Database[PluginConfig]) ReloadPluginConfig() error {
+func (db *DatabasePool[PluginConfig]) ReloadPluginConfig(ctx context.Context) error {
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return err
+	}
+	defer db.Put(conn)
+
 	// look for the plugin entry with the correct name and marshal it into the pluginConfig field
-	return sqlitex.Execute(db.Conn, `SELECT config FROM plugins WHERE name = ?`, &sqlitex.ExecOptions{
+	return sqlitex.Execute(conn, `SELECT config FROM plugins WHERE name = ?`, &sqlitex.ExecOptions{
 		Args: []interface{}{_pluginName},
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			result := stmt.ColumnText(0)

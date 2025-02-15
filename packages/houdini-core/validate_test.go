@@ -357,31 +357,34 @@ func TestValidate(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Title, func(t *testing.T) {
 			// create and wire up a database we can test against
-			db, err := plugins.InMemorySharedDB[PluginConfig]()
+			db, err := plugins.NewPoolInMemory[PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
 			plugin := &HoudiniCore{
-				fs:                 afero.NewMemMapFs(),
-				databaseConnection: plugins.InMemorySharedDB[PluginConfig],
+				fs: afero.NewMemMapFs(),
 			}
 			plugin.SetDatabase(db)
 			db.SetProjectConfig(projectConfig)
 
+			ctx := context.Background()
+
+			conn, err := db.Take(ctx)
+			require.Nil(t, err)
 			// write the internal schema to the database
-			err = executeSchema(db.Conn)
+			err = executeSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.
 			afero.WriteFile(plugin.fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
 			// wire up the plugin
-			err = plugin.Schema(context.Background())
+			err = plugin.Schema(ctx)
 			require.Nil(t, err)
 
 			// write the raw documents to the database
-			insertRaw, err := db.Conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
+			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
@@ -391,9 +394,10 @@ func TestValidate(t *testing.T) {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}
+			db.Put(conn)
 
 			// run the validation
-			err = plugin.Validate(context.Background())
+			err = plugin.Validate(ctx)
 			if test.Pass {
 				require.Nil(t, err)
 			} else {

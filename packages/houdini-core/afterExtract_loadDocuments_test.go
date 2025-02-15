@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
+	"github.com/stretchr/testify/require"
 	"zombiezen.com/go/sqlite"
 )
 
@@ -1097,15 +1099,18 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// create an in-memory db.
-			db, err := plugins.InMemoryDB[PluginConfig]()
+			db, err := plugins.NewPoolInMemory[PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
+			conn, err := db.Take(context.Background())
+			require.Nil(t, err)
 
-			if err := executeSchema(db.Conn); err != nil {
+			if err := executeSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
+			db.Put(conn)
 
 			// ─── POPULATE THE SCHEMA ─────────────────────────────────────────────
 			// Insert rows into "type_fields" so that the lookup in processSelection
@@ -1138,7 +1143,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				{"Node.id", "ID"},
 			}
 
-			insertTypeField, err := db.Conn.Prepare("INSERT INTO type_fields (id, type, parent, name) VALUES (?, ?, ?, ?)")
+			insertTypeField, err := conn.Prepare("INSERT INTO type_fields (id, type, parent, name) VALUES (?, ?, ?, ?)")
 			if err != nil {
 				t.Fatalf("failed to prepare type_fields insert: %v", err)
 			}
@@ -1154,7 +1159,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			// ─────────────────────────────────────────────────────────────────────
 
 			// insert the raw document (assume id becomes 1).
-			insertRaw, err := db.Conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
+			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
@@ -1166,9 +1171,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			hc := &HoudiniCore{}
 			hc.SetDatabase(db)
 
-			statements, finalize := (&HoudiniCore{}).prepareDocumentInsertStatements(db)
-			defer finalize()
-
 			pending := PendingQuery{
 				Query:                    tc.rawQuery,
 				ID:                       1,
@@ -1176,7 +1178,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				InlineComponentFieldProp: tc.inlineComponentFieldProp,
 			}
 
-			pendingErr := hc.afterExtract_loadPendingQuery(pending, db, statements)
+			pendingErr := hc.afterExtract_loadPendingQuery(pending)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)
@@ -1184,7 +1186,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				// stop further checks when error is expected.
 				return
 			} else if pendingErr != nil {
-				t.Fatalf("loadPendingQuery returned error: %v", err)
+				t.Fatalf("loadPendingQuery returned error: %v", pendingErr)
 			}
 
 			// fetch documents and compare with expectedDocs.
@@ -1394,8 +1396,14 @@ func sortTree(tree []expectedSelection) {
 
 // buildSelectionTree builds the selection tree for a given document.
 // it returns a mapping of selection id to dbSelection, a parent-to-children map, and a slice of root selection ids.
-func buildSelectionTree(db plugins.Database[PluginConfig], document int64) (map[int]dbSelection, map[int][]int, []int, error) {
-	stmt, err := db.Conn.Prepare("SELECT kind FROM documents WHERE id = ?")
+func buildSelectionTree(db plugins.DatabasePool[PluginConfig], document int64) (map[int]dbSelection, map[int][]int, []int, error) {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare("SELECT kind FROM documents WHERE id = ?")
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1417,7 +1425,7 @@ FROM selections s
 JOIN selection_refs sr ON s.id = sr.child_id
 WHERE sr.document = ?
 ORDER BY s.id`
-	stmt, err = db.Conn.Prepare(query)
+	stmt, err = conn.Prepare(query)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1453,7 +1461,7 @@ ORDER BY s.id`
 	// step 2. build the parent-to-children mapping for the given document.
 	parentToChildren := make(map[int][]int)
 	childIDs := make(map[int]struct{})
-	stmt, err = db.Conn.Prepare("SELECT parent_id, child_id FROM selection_refs WHERE document = ?")
+	stmt, err = conn.Prepare("SELECT parent_id, child_id FROM selection_refs WHERE document = ?")
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1491,8 +1499,14 @@ ORDER BY s.id`
 	return filteredSelections, parentToChildren, roots, nil
 }
 
-func fetchDocuments(t *testing.T, db plugins.Database[PluginConfig]) []documentRow {
-	stmt, err := db.Conn.Prepare("select name, raw_document, kind, type_condition, id from documents order by name")
+func fetchDocuments(t *testing.T, db plugins.DatabasePool[PluginConfig]) []documentRow {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare("select name, raw_document, kind, type_condition, id from documents order by name")
 	if err != nil {
 		t.Fatalf("failed to prepare documents query: %v", err)
 	}
@@ -1524,9 +1538,15 @@ func fetchDocuments(t *testing.T, db plugins.Database[PluginConfig]) []documentR
 }
 
 // findOperationVariables returns all operation variables along with any attached directives.
-func findOperationVariables(t *testing.T, db plugins.Database[PluginConfig]) []operationVariableRow {
+func findOperationVariables(t *testing.T, db plugins.DatabasePool[PluginConfig]) []operationVariableRow {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
 	// Note: we now select the id as well so that we can look up directives.
-	stmt, err := db.Conn.Prepare(`
+	stmt, err := conn.Prepare(`
 		SELECT id, document, name, type, default_value, type_modifiers
 		FROM operation_variables
 		ORDER BY name
@@ -1576,8 +1596,14 @@ func findOperationVariables(t *testing.T, db plugins.Database[PluginConfig]) []o
 }
 
 // findOperationVariableDirectives looks up all directives for a given operation variable.
-func findOperationVariableDirectives(t *testing.T, db plugins.Database[PluginConfig], variableID int) []expectedDirective {
-	stmt, err := db.Conn.Prepare(`
+func findOperationVariableDirectives(t *testing.T, db plugins.DatabasePool[PluginConfig], variableID int) []expectedDirective {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare(`
 		SELECT id, directive
 		FROM operation_variable_directives
 		WHERE parent = ?
@@ -1620,8 +1646,14 @@ func findOperationVariableDirectives(t *testing.T, db plugins.Database[PluginCon
 }
 
 // findOperationVariableDirectiveArguments retrieves all arguments for a given variable directive.
-func findOperationVariableDirectiveArguments(db plugins.Database[PluginConfig], directiveID int) ([]expectedDirectiveArgument, error) {
-	stmt, err := db.Conn.Prepare(`
+func findOperationVariableDirectiveArguments(db plugins.DatabasePool[PluginConfig], directiveID int) ([]expectedDirectiveArgument, error) {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare(`
 		SELECT name, value
 		FROM operation_variable_directive_arguments
 		WHERE parent = ?
@@ -1652,8 +1684,14 @@ func findOperationVariableDirectiveArguments(db plugins.Database[PluginConfig], 
 	return args, nil
 }
 
-func fetchSelections(t *testing.T, db plugins.Database[PluginConfig]) []dbSelection {
-	stmt, err := db.Conn.Prepare("select id, field_name, alias, path_index, kind from selections order by id")
+func fetchSelections(t *testing.T, db plugins.DatabasePool[PluginConfig]) []dbSelection {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare("select id, field_name, alias, path_index, kind from selections order by id")
 	if err != nil {
 		t.Fatalf("failed to prepare selections query: %v", err)
 	}
@@ -1720,7 +1758,7 @@ func compareExpected(expected, actual []expectedSelection) error {
 	return nil
 }
 
-func verifySelectionDetails(t *testing.T, db plugins.Database[PluginConfig], selectionID int, expected expectedSelection) {
+func verifySelectionDetails(t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int, expected expectedSelection) {
 	actualArgs := fetchSelectionArgumentsForSelection(t, db, selectionID)
 	if len(actualArgs) != len(expected.Arguments) {
 		t.Errorf("for selection id %d, expected %d arguments, got %d", selectionID, len(expected.Arguments), len(actualArgs))
@@ -1756,7 +1794,7 @@ func verifySelectionDetails(t *testing.T, db plugins.Database[PluginConfig], sel
 	}
 }
 
-func verifySelectionTreeDirectives(expectedTree []expectedSelection, dbSelections []dbSelection, db plugins.Database[PluginConfig], t *testing.T) {
+func verifySelectionTreeDirectives(expectedTree []expectedSelection, dbSelections []dbSelection, db plugins.DatabasePool[PluginConfig], t *testing.T) {
 	for _, exp := range expectedTree {
 		if len(exp.Arguments) > 0 || len(exp.Directives) > 0 {
 			if sel, found := findDBSelection(exp, dbSelections); found {
@@ -1781,8 +1819,14 @@ func findDBSelection(expected expectedSelection, dbSelections []dbSelection) (db
 	return dbSelection{}, false
 }
 
-func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.Database[PluginConfig], selectionID int) []expectedArgument {
-	stmt, err := db.Conn.Prepare("select name, value from selection_arguments where selection_id = ? order by id")
+func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int) []expectedArgument {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare("select name, value from selection_arguments where selection_id = ? order by id")
 	if err != nil {
 		t.Fatalf("failed to prepare selection_arguments query: %v", err)
 	}
@@ -1806,8 +1850,14 @@ func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.Database[Plugi
 	return args
 }
 
-func fetchSelectionDirectivesForSelection(t *testing.T, db plugins.Database[PluginConfig], selectionID int) []expectedDirective {
-	stmt, err := db.Conn.Prepare("select id, directive from selection_directives where selection_id = ? order by id")
+func fetchSelectionDirectivesForSelection(t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int) []expectedDirective {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare("select id, directive from selection_directives where selection_id = ? order by id")
 	if err != nil {
 		t.Fatalf("failed to prepare selection_directives query: %v", err)
 	}
@@ -1825,7 +1875,7 @@ func fetchSelectionDirectivesForSelection(t *testing.T, db plugins.Database[Plug
 		}
 		dirID := int(stmt.ColumnInt(0))
 		dirName := stmt.ColumnText(1)
-		argStmt, err := db.Conn.Prepare("select name, value from selection_directive_arguments where parent = ? order by id")
+		argStmt, err := conn.Prepare("select name, value from selection_directive_arguments where parent = ? order by id")
 		if err != nil {
 			t.Fatalf("failed to prepare selection_directive_arguments query: %v", err)
 		}
@@ -1870,8 +1920,14 @@ func strEqual(a, b *string) bool {
 	return *a == *b
 }
 
-func fetchDocumentDirectives(t *testing.T, db plugins.Database[PluginConfig], document int64) []expectedDirective {
-	stmt, err := db.Conn.Prepare("SELECT id, directive FROM document_directives WHERE document = ? ORDER BY id")
+func fetchDocumentDirectives(t *testing.T, db plugins.DatabasePool[PluginConfig], document int64) []expectedDirective {
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		return nil
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare("SELECT id, directive FROM document_directives WHERE document = ? ORDER BY id")
 	if err != nil {
 		t.Fatalf("failed to prepare document_directives query: %v", err)
 	}
@@ -1891,7 +1947,7 @@ func fetchDocumentDirectives(t *testing.T, db plugins.Database[PluginConfig], do
 		id := int(stmt.ColumnInt(0))
 		dirName := stmt.ColumnText(1)
 
-		argStmt, err := db.Conn.Prepare("SELECT name, value FROM document_directive_arguments WHERE parent = ? ORDER BY id")
+		argStmt, err := conn.Prepare("SELECT name, value FROM document_directive_arguments WHERE parent = ? ORDER BY id")
 		if err != nil {
 			t.Fatalf("failed to prepare document_directives_argument query: %v", err)
 		}

@@ -21,7 +21,7 @@ import (
 // later step to allow for other plugins to find additional documents we don't know about
 func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// load the project config
-	config, err := p.DB.ProjectConfig()
+	config, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
 		return err
 	}
@@ -102,12 +102,12 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// database writer goroutine
 	g.Go(func() error {
 		// build a connection to the database.
-		conn, err := p.databaseConnection()
+		conn, err := p.DB.Take(ctx)
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to connect to db: %w", err)))
 			return nil
 		}
-		defer conn.Close()
+		defer p.DB.Put(conn)
 
 		// prepare the insert statements.
 		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, offset_column, offset_line) VALUES (?, ?, ?, ?)")
@@ -125,7 +125,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 
 		// consume discovered documents from resultsCh and write them to the database.
 		for doc := range resultsCh {
-			err := conn.ExecStatement(insertRawStatement, doc.FilePath, doc.Content, doc.OffsetColumn, doc.OffsetRow)
+			err := p.DB.ExecStatement(insertRawStatement, doc.FilePath, doc.Content, doc.OffsetColumn, doc.OffsetRow)
 			if err != nil {
 				errs.Append(plugins.WrapError(fmt.Errorf("failed to insert raw document: %v", err)))
 				return nil
@@ -134,7 +134,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 
 			// if the document has a component field prop, let's register it now as well.
 			if doc.Prop != "" {
-				err = conn.ExecStatement(insertComponentField, documentID, doc.Prop)
+				err = p.DB.ExecStatement(insertComponentField, documentID, doc.Prop)
 				if err != nil {
 					errs.Append(plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)))
 					return nil

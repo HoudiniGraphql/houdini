@@ -4,52 +4,48 @@ import (
 	"fmt"
 
 	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 var _pluginName string
 
-type Database[PluginConfig any] struct {
+type DatabasePool[PluginConfig any] struct {
 	_config       *ProjectConfig
 	_pluginConfig *PluginConfig
-	*sqlite.Conn
+	*sqlitex.Pool
 }
 
-func (db *Database[PluginConfig]) SetProjectConfig(config ProjectConfig) {
+func (db *DatabasePool[PluginConfig]) SetProjectConfig(config ProjectConfig) {
 	db._config = &config
 }
 
-func (db *Database[PluginConfig]) SetPluginConfig(config PluginConfig) {
+func (db *DatabasePool[PluginConfig]) SetPluginConfig(config PluginConfig) {
 	db._pluginConfig = &config
 }
 
-func ConnectDB[PluginConfig any]() (Database[PluginConfig], error) {
-	conn, err := sqlite.OpenConn(databasePath, sqlite.OpenWAL, sqlite.OpenReadWrite)
+func NewPool[PluginConfig any]() (DatabasePool[PluginConfig], error) {
+	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
+		Flags: sqlite.OpenWAL | sqlite.OpenReadWrite,
+	})
 	if err != nil {
-		return Database[PluginConfig]{}, err
+		return DatabasePool[PluginConfig]{}, err
 	}
 
-	return Database[PluginConfig]{Conn: conn}, nil
+	return DatabasePool[PluginConfig]{Pool: pool}, nil
 }
 
-func InMemoryDB[PluginConfig any]() (Database[PluginConfig], error) {
-	conn, err := sqlite.OpenConn(":memory:", sqlite.OpenWAL, sqlite.OpenReadWrite)
+func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
+	pool, err := sqlitex.NewPool("file:shared?mode=memory&cache=shared", sqlitex.PoolOptions{
+		Flags: sqlite.OpenWAL | sqlite.OpenReadWrite | sqlite.OpenMemory | sqlite.OpenURI,
+	})
 	if err != nil {
-		return Database[PluginConfig]{}, err
+		return DatabasePool[PluginConfig]{}, err
 	}
 
-	return Database[PluginConfig]{Conn: conn}, nil
+	return DatabasePool[PluginConfig]{Pool: pool}, nil
 }
 
-func InMemorySharedDB[PluginConfig any]() (Database[PluginConfig], error) {
-	conn, err := sqlite.OpenConn("file:memdb1", sqlite.OpenWAL, sqlite.OpenMemory, sqlite.OpenReadWrite, sqlite.OpenSharedCache)
-	if err != nil {
-		return Database[PluginConfig]{}, err
-	}
-
-	return Database[PluginConfig]{Conn: conn}, nil
-}
-
-func (db Database[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
+func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
 	for i, arg := range args {
 		switch arg.(type) {
 		case string:

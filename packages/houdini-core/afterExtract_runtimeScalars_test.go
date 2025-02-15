@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
@@ -17,7 +18,7 @@ func TestRuntimeScalars(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.InMemoryDB[PluginConfig]()
+	db, err := plugins.NewPoolInMemory[PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}
@@ -30,28 +31,29 @@ func TestRuntimeScalars(t *testing.T) {
 	plugin := &HoudiniCore{}
 	plugin.SetDatabase(db)
 
-	// write the schema to the database
-	err = executeSchema(db.Conn)
+	conn, err := db.Take(context.Background())
 	require.Nil(t, err)
 
-	// prepare the statements we'll need to insert the document into the database
-	statements, _ := (&HoudiniCore{}).prepareDocumentInsertStatements(db)
+	// write the schema to the database
+	err = executeSchema(conn)
+	db.Put(conn)
+	require.Nil(t, err)
 
 	// load the query into the database as a pending query
 	err = plugin.afterExtract_loadPendingQuery(PendingQuery{
 		ID:    1,
 		Query: query,
-	}, db, statements)
+	})
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the proces
 	errs := &plugins.ErrorList{}
-	plugin.afterExtract_runtimeScalars(db, errs)
+	plugin.afterExtract_runtimeScalars(context.Background(), conn, errs)
 	require.Equal(t, 0, errs.Len())
 
 	// to check that the query was extracted correctly we need to look up the query
 	// we just created along with its inputs and any directives
-	queryRow, err := db.Prepare(`
+	queryRow, err := conn.Prepare(`
 		SELECT
 			documents.name,
 			operation_variable_directive_arguments.name,
