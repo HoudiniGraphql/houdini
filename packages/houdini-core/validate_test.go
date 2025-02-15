@@ -67,12 +67,21 @@ func TestValidate(t *testing.T) {
 		 * These tests validate the default validation rules that are specified by the spec
 		 */
 		{
-			Title: "Subscription with more than one root field.",
+			Title: "Subscription with more than one root field (negative)",
 			Pass:  false,
 			Documents: []string{
 				`subscription TestSub {
 					newMessage
 					anotherMessage
+				}`,
+			},
+		},
+		{
+			Title: "Subscription with more than one root field (positive)",
+			Pass:  true,
+			Documents: []string{
+				`subscription TestSub {
+					newMessage
 				}`,
 			},
 		},
