@@ -111,6 +111,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	// there's no close here because we don't want to hold up the connection while we wait for the workers
 
 	// prepare the query we'll use to look for documents
 	search, err := conn.Prepare(`
@@ -169,7 +170,8 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			break
 		}
 	}
-	// we're done with the connection
+
+	// we're done with the connection (close before we wait for the workers)
 	p.DB.Put(conn)
 
 	// signal workers that no more queries are coming.
@@ -212,18 +214,20 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 	})
 	if err != nil {
 		pluginErr := &plugins.Error{
-			Filepath: query.Filepath,
-			Message:  fmt.Sprintf("failed to parse query: %v", err),
-			Position: &ast.Position{
-				Line:   query.RowOffset,
-				Column: query.ColumnOffset,
+			Message: fmt.Sprintf("failed to parse query: %v", err),
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: query.Filepath,
+					Line:     query.RowOffset,
+					Column:   query.ColumnOffset,
+				},
 			},
 		}
 
 		// if the error encodes a specific location, add it to the returned value
 		if gqlErr, ok := err.(*gqlerror.Error); ok {
-			pluginErr.Position.Line += gqlErr.Locations[0].Line
-			pluginErr.Position.Column += gqlErr.Locations[0].Line
+			pluginErr.Locations[0].Line += gqlErr.Locations[0].Line
+			pluginErr.Locations[0].Column += gqlErr.Locations[0].Line
 		}
 
 		return pluginErr
@@ -241,11 +245,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		// all operations must have a name
 		if operation.Name == "" && !query.InlineComponentField {
 			return &plugins.Error{
-				Message:  "operations must have a name",
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset + operation.Position.Line,
-					Column: query.ColumnOffset + operation.Position.Column,
+				Message: "operations must have a name",
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + operation.Position.Line,
+						Column:   query.ColumnOffset + operation.Position.Column,
+					},
 				},
 			}
 		}
@@ -253,11 +259,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		// if the operation is an inline component field and we don't have a prop then we need to bail
 		if query.InlineComponentField && query.InlineComponentFieldProp == nil {
 			return &plugins.Error{
-				Message:  "could not detect component field prop",
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset,
-					Column: query.ColumnOffset,
+				Message: "could not detect component field prop",
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + operation.Position.Line,
+						Column:   query.ColumnOffset + operation.Position.Column,
+					},
 				},
 			}
 		}
@@ -269,22 +277,26 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			// so make sure there is only one child and its an inline fragment
 			if len(operation.SelectionSet) != 1 {
 				return &plugins.Error{
-					Message:  fmt.Sprintf("componentFields must have one child found %d", len(operation.SelectionSet)),
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset,
-						Column: query.ColumnOffset,
+					Message: fmt.Sprintf("componentFields must have one child found %d", len(operation.SelectionSet)),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + operation.Position.Line,
+							Column:   query.ColumnOffset + operation.Position.Column,
+						},
 					},
 				}
 			}
 			inlineFragment, ok := operation.SelectionSet[0].(*ast.InlineFragment)
 			if !ok {
 				return &plugins.Error{
-					Message:  "componentFields must have an inline fragment",
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset,
-						Column: query.ColumnOffset,
+					Message: "componentFields must have an inline fragment",
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + operation.Position.Line,
+							Column:   query.ColumnOffset + operation.Position.Column,
+						},
 					},
 				}
 			}
@@ -299,11 +311,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 					column += position.Column
 				}
 				return &plugins.Error{
-					Message:  "componentFields inline fragments must have a type condition",
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   line,
-						Column: column,
+					Message: "componentFields inline fragments must have a type condition",
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + line,
+							Column:   query.ColumnOffset + column,
+						},
 					},
 				}
 			}
@@ -324,11 +338,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 					if arg.Name == "prop" {
 						if arg.Value.Kind != ast.StringValue {
 							return &plugins.Error{
-								Message:  "componentFields must have an inline fragment",
-								Filepath: query.Filepath,
-								Position: &ast.Position{
-									Line:   arg.Position.Line + query.RowOffset,
-									Column: arg.Position.Column + query.ColumnOffset,
+								Message: "componentFields must have an inline fragment",
+								Locations: []*plugins.ErrorLocation{
+									{
+										Filepath: query.Filepath,
+										Line:     query.RowOffset + arg.Position.Line,
+										Column:   query.ColumnOffset + arg.Position.Column,
+									},
 								},
 							}
 						}
@@ -337,11 +353,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 					} else if arg.Name == "field" {
 						if arg.Value.Kind != ast.StringValue {
 							return &plugins.Error{
-								Message:  "componentField field argument must be a string",
-								Filepath: query.Filepath,
-								Position: &ast.Position{
-									Line:   arg.Position.Line + query.RowOffset,
-									Column: arg.Position.Column + query.ColumnOffset,
+								Message: "componentField field argument must be a string",
+								Locations: []*plugins.ErrorLocation{
+									{
+										Filepath: query.Filepath,
+										Line:     query.RowOffset + arg.Position.Line,
+										Column:   query.ColumnOffset + arg.Position.Column,
+									},
 								},
 							}
 						}
@@ -365,11 +383,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 				if field == "" {
 					return &plugins.Error{
-						Message:  "couldn't determine the field for component field",
-						Filepath: query.Filepath,
-						Position: &ast.Position{
-							Line:   inlineFragment.Position.Line + query.RowOffset,
-							Column: inlineFragment.Position.Column + query.ColumnOffset,
+						Message: "couldn't determine the field for component field",
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + inlineFragment.Position.Line,
+								Column:   query.ColumnOffset + inlineFragment.Position.Column,
+							},
 						},
 					}
 				}
@@ -378,11 +398,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			// if we got this far without finding the directive then we have a problem
 			if !hasDirective {
 				return &plugins.Error{
-					Message:  "componentFields must have @componentField directive",
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   inlineFragment.Position.Line + query.RowOffset,
-						Column: inlineFragment.Position.Column + query.ColumnOffset,
+					Message: "componentFields must have @componentField directive",
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + inlineFragment.Position.Line,
+							Column:   query.ColumnOffset + inlineFragment.Position.Column,
+						},
 					},
 				}
 			}
@@ -409,12 +431,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			nil,
 		); err != nil {
 			return &plugins.Error{
-				Message:  "could not insert document",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset,
-					Column: query.ColumnOffset,
+				Message: "could not insert document",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + operation.Position.Line,
+						Column:   query.ColumnOffset + operation.Position.Column,
+					},
 				},
 			}
 		}
@@ -436,12 +460,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			}
 			if err := p.DB.ExecStatement(statements.InsertDocumentVariable); err != nil {
 				return &plugins.Error{
-					Message:  "could not associate document variable",
-					Detail:   err.Error(),
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset,
-						Column: query.ColumnOffset,
+					Message: "could not associate document variable",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + operation.Position.Line,
+							Column:   query.ColumnOffset + operation.Position.Column,
+						},
 					},
 				}
 			}
@@ -452,12 +478,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			for _, directive := range variable.Directives {
 				if err := p.DB.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name); err != nil {
 					return &plugins.Error{
-						Message:  "could not associate document variable directive",
-						Detail:   err.Error(),
-						Filepath: query.Filepath,
-						Position: &ast.Position{
-							Line:   query.RowOffset,
-							Column: query.ColumnOffset,
+						Message: "could not associate document variable directive",
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + operation.Position.Line,
+								Column:   query.ColumnOffset + operation.Position.Column,
+							},
 						},
 					}
 				}
@@ -465,12 +493,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 				for _, arg := range directive.Arguments {
 					if err := p.DB.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, varDirID, arg.Name, arg.Value.String()); err != nil {
 						return &plugins.Error{
-							Message:  "could not insert document variable argument",
-							Detail:   err.Error(),
-							Filepath: query.Filepath,
-							Position: &ast.Position{
-								Line:   query.RowOffset,
-								Column: query.ColumnOffset,
+							Message: "could not insert document variable argument",
+							Detail:  err.Error(),
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + operation.Position.Line,
+									Column:   query.ColumnOffset + operation.Position.Column,
+								},
 							},
 						}
 					}
@@ -499,12 +529,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		for _, directive := range operation.Directives {
 			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name); err != nil {
 				return &plugins.Error{
-					Message:  "could not insert document directive",
-					Detail:   err.Error(),
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset + directive.Position.Line,
-						Column: query.ColumnOffset + directive.Position.Column,
+					Message: "could not insert document directive",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + directive.Position.Line,
+							Column:   query.ColumnOffset + directive.Position.Column,
+						},
 					},
 				}
 			}
@@ -512,12 +544,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			for _, arg := range directive.Arguments {
 				if err := p.DB.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
 					return &plugins.Error{
-						Message:  "could not associate document variable directive argument",
-						Detail:   err.Error(),
-						Filepath: query.Filepath,
-						Position: &ast.Position{
-							Line:   query.RowOffset + arg.Position.Line,
-							Column: query.ColumnOffset + arg.Position.Column,
+						Message: "could not associate document variable directive argument",
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + arg.Position.Line,
+								Column:   query.ColumnOffset + arg.Position.Column,
+							},
 						},
 					}
 				}
@@ -536,12 +570,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			fragment.TypeCondition,
 		); err != nil {
 			return &plugins.Error{
-				Message:  "could not insert fragment",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset + fragment.Position.Line,
-					Column: query.ColumnOffset + fragment.Position.Column,
+				Message: "could not insert fragment",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + fragment.Position.Line,
+						Column:   query.ColumnOffset + fragment.Position.Column,
+					},
 				},
 			}
 		}
@@ -560,12 +596,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		for _, directive := range fragment.Directives {
 			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name); err != nil {
 				return &plugins.Error{
-					Message:  "could not insert document directive",
-					Detail:   err.Error(),
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset + directive.Position.Line,
-						Column: query.ColumnOffset + directive.Position.Column,
+					Message: "could not insert document directive",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + directive.Position.Line,
+							Column:   query.ColumnOffset + directive.Position.Column,
+						},
 					},
 				}
 			}
@@ -573,12 +611,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			for _, arg := range directive.Arguments {
 				if err := p.DB.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
 					return &plugins.Error{
-						Message:  "could not associate document directive argument",
-						Detail:   err.Error(),
-						Filepath: query.Filepath,
-						Position: &ast.Position{
-							Line:   query.RowOffset + arg.Position.Line,
-							Column: query.ColumnOffset + arg.Position.Column,
+						Message: "could not associate document directive argument",
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + arg.Position.Line,
+								Column:   query.ColumnOffset + arg.Position.Column,
+							},
 						},
 					}
 				}
@@ -612,12 +652,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		statements.InsertSelection.BindText(5, fmt.Sprintf("%s.%s", parentType, s.Name))
 		if err := p.DB.ExecStatement(statements.InsertSelection); err != nil {
 			return &plugins.Error{
-				Message:  "could not add selection to database",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset + s.Position.Line,
-					Column: query.ColumnOffset + s.Position.Column,
+				Message: "could not add selection to database",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + s.Position.Line,
+						Column:   query.ColumnOffset + s.Position.Column,
+					},
 				},
 			}
 		}
@@ -627,12 +669,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		_, err := searchTypeStatement.Step()
 		if err != nil {
 			return &plugins.Error{
-				Message:  "could not find type for field",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset,
-					Column: query.ColumnOffset,
+				Message: "could not find type for field",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + s.Position.Line,
+						Column:   query.ColumnOffset + s.Position.Column,
+					},
 				},
 			}
 		}
@@ -640,12 +684,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		err = searchTypeStatement.Reset()
 		if err != nil {
 			return &plugins.Error{
-				Message:  "could not find type for field",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset,
-					Column: query.ColumnOffset,
+				Message: "could not find type for field",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + s.Position.Line,
+						Column:   query.ColumnOffset + s.Position.Column,
+					},
 				},
 			}
 		}
@@ -659,12 +705,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 				arg.Value.String(),
 			); err != nil {
 				return &plugins.Error{
-					Message:  "could not add selection argument to database",
-					Detail:   err.Error(),
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset + arg.Position.Line,
-						Column: query.ColumnOffset + arg.Position.Column,
+					Message: "could not add selection argument to database",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + arg.Position.Line,
+							Column:   query.ColumnOffset + arg.Position.Column,
+						},
 					},
 				}
 			}
@@ -691,12 +739,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		}
 		if err := p.DB.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment", nil); err != nil {
 			return &plugins.Error{
-				Message:  "Could not store inline fragment in database",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset + s.Position.Line,
-					Column: query.ColumnOffset + s.Position.Column,
+				Message: "Could not store inline fragment in database",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + s.Position.Line,
+						Column:   query.ColumnOffset + s.Position.Column,
+					},
 				},
 			}
 		}
@@ -719,12 +769,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 	case *ast.FragmentSpread:
 		if err := p.DB.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment", nil); err != nil {
 			return &plugins.Error{
-				Message:  "could not store fragment spread in database",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset + s.Position.Line,
-					Column: query.ColumnOffset + s.Position.Column,
+				Message: "could not store fragment spread in database",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + s.Position.Line,
+						Column:   query.ColumnOffset + s.Position.Column,
+					},
 				},
 			}
 		}
@@ -737,11 +789,13 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		}
 	default:
 		return &plugins.Error{
-			Message:  fmt.Sprintf("unsupported selection type: %T", sel),
-			Filepath: query.Filepath,
-			Position: &ast.Position{
-				Line:   query.RowOffset + s.GetPosition().Line,
-				Column: query.ColumnOffset + s.GetPosition().Column,
+			Message: fmt.Sprintf("unsupported selection type: %T", sel),
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: query.Filepath,
+					Line:     query.RowOffset + s.GetPosition().Line,
+					Column:   query.ColumnOffset + s.GetPosition().Column,
+				},
 			},
 		}
 	}
@@ -755,22 +809,28 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 	statements.InsertSelectionRef.BindInt64(2, selectionID)
 	statements.InsertSelectionRef.BindInt64(3, documentID)
 
+	line := query.RowOffset
+	column := query.ColumnOffset
 	// we want to save the selection location in the document
 	if position := sel.GetPosition(); position != nil {
-		statements.InsertSelectionRef.BindInt64(4, int64(position.Line+query.RowOffset))
-		statements.InsertSelectionRef.BindInt64(5, int64(position.Column+query.ColumnOffset))
+		line = position.Line + query.RowOffset
+		column = position.Column + query.ColumnOffset
+		statements.InsertSelectionRef.BindInt64(4, int64(line))
+		statements.InsertSelectionRef.BindInt64(5, int64(column))
 	} else {
 		statements.InsertSelectionRef.BindNull(4)
 		statements.InsertSelectionRef.BindNull(5)
 	}
 	if err := p.DB.ExecStatement(statements.InsertSelectionRef); err != nil {
 		return &plugins.Error{
-			Message:  "could not store selection ref",
-			Detail:   err.Error(),
-			Filepath: query.Filepath,
-			Position: &ast.Position{
-				Line:   query.RowOffset,
-				Column: query.ColumnOffset,
+			Message: "could not store selection ref",
+			Detail:  err.Error(),
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: query.Filepath,
+					Line:     line,
+					Column:   column,
+				},
 			},
 		}
 	}
@@ -784,12 +844,14 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 		// insert the directive row
 		if err := p.DB.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name); err != nil {
 			return &plugins.Error{
-				Message:  "could not store selection directive in database",
-				Detail:   err.Error(),
-				Filepath: query.Filepath,
-				Position: &ast.Position{
-					Line:   query.RowOffset + directive.Position.Line,
-					Column: query.ColumnOffset + directive.Position.Column,
+				Message: "could not store selection directive in database",
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: query.Filepath,
+						Line:     query.RowOffset + directive.Position.Line,
+						Column:   query.ColumnOffset + directive.Position.Column,
+					},
 				},
 			}
 		}
@@ -807,12 +869,14 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 				dArg.Value.String(),
 			); err != nil {
 				return &plugins.Error{
-					Message:  "could not store selection directive argument in database",
-					Detail:   err.Error(),
-					Filepath: query.Filepath,
-					Position: &ast.Position{
-						Line:   query.RowOffset + dArg.Position.Line,
-						Column: query.ColumnOffset + dArg.Position.Column,
+					Message: "could not store selection directive argument in database",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + dArg.Position.Line,
+							Column:   query.ColumnOffset + dArg.Position.Column,
+						},
 					},
 				}
 			}

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"sync"
 
 	"code.houdinigraphql.com/plugins"
@@ -61,82 +63,89 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 type RuleFunc = func(context.Context, *plugins.ErrorList)
 
 func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.Context, errs *plugins.ErrorList) {
-	/*
-		// create a thread-safe connection for this check
-		db, err := p.databaseConnection()
+	// create a thread-safe connection for this check
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "could not open connection to database",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer p.DB.Put(conn)
+
+	// we need a query that will return all of the subscriptions that have more than 1 root field
+	query, err := conn.Prepare(`
+		SELECT
+			raw_documents.filepath,
+			json_group_array(
+				json_object('line', refs.row, 'column', refs.column)
+			)
+		FROM documents
+			JOIN selection_refs refs ON refs.document = documents.id
+			JOIN selections  ON selections.id = refs.child_id
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+		WHERE documents.kind = 'subscription'
+			AND refs.parent_id IS NULL
+			AND selections.kind = 'field'
+		GROUP BY documents.id, documents.name HAVING COUNT(*) > 1
+	`)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "could not validate subscriptions with multiple root fields",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer query.Finalize()
+
+	// execute the query and check the results
+	for {
+		// make sure that ctx isn't cancelled
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		// get the next row
+		hasData, err := query.Step()
 		if err != nil {
 			errs.Append(plugins.Error{
-				Message: "could not open connection to database",
+				Message: "could not check for subscriptions with multiple root fields",
 				Detail:  err.Error(),
 			})
-			return
+			break
 		}
 
-		// we need a query that will return all of the subscriptions that have more than 1 root field
-		query, err := db.Prepare(`
-			SELECT
-				d.id AS subscription_id,
-				d.name AS subscription_name,
-				json_group_array(
-					json_object('line', sr.row, 'column', sr.column)
-				) AS root_fields
-			FROM documents d
-				JOIN selection_refs sr ON sr.document = d.id
-				JOIN selections s ON s.id = sr.child_id
-			WHERE d.kind = 'subscription'
-				AND sr.parent_id IS NULL
-				AND s.kind = 'field'
-			GROUP BY d.id, d.name HAVING COUNT(*) > 1;
-		`)
+		// if theres no more data to consume then we're done
+		if !hasData {
+			break
+		}
+
+		// pull out the results
+		filepath := query.ColumnText(0)
+		locationsRaw := query.ColumnText(1)
+
+		// build up the list of locations
+		locations := []*plugins.ErrorLocation{}
+		err = json.Unmarshal([]byte(locationsRaw), &locations)
 		if err != nil {
-			errs.Append(plugins.Error{
-				Message: "could not validate subscriptions with multiple root fields",
-				Detail:  err.Error(),
-			})
-			return
+			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations: %v. %v", err, locationsRaw)))
+			continue
 		}
-		defer query.Finalize()
-
-		// execute the query and check the results
-		for {
-			// make sure that ctx isn't cancelled
-			select {
-			case <-ctx.Done():
-				fmt.Println("cancelled")
-				return
-			default:
-			}
-
-			// get the next row
-			hasData, err := query.Step()
-			if err != nil {
-				errs.Append(plugins.Error{
-					Message: "could not validate subscriptions with multiple root fields",
-					Detail:  err.Error(),
-				})
-				break
-			}
-
-			fmt.Println(hasData)
-
-			// if theres no more data to consume then we're done
-			if !hasData {
-				break
-			}
-
-			// pull out the results
-			documentName := query.ColumnText(1)
-			rootFields := query.ColumnText(2)
-			locations := query.ColumnText(3)
-
-			fmt.Println(documentName, rootFields, locations)
-
-			// we found a subscription with multiple root fields
-			errs.Append(plugins.Error{
-				Message: "subscriptions can only have a single root field",
-			})
+		for _, loc := range locations {
+			loc.Filepath = filepath
 		}
-	*/
+
+		// we found a subscription with multiple root fields
+		errs.Append(plugins.Error{
+			Message:   "subscriptions can only have a single root field",
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	}
+
 }
 
 func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs *plugins.ErrorList) {

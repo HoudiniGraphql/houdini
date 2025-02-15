@@ -3,8 +3,6 @@ package plugins
 import (
 	"strings"
 	"sync"
-
-	"github.com/vektah/gqlparser/v2/ast"
 )
 
 func WrapError(err error) Error {
@@ -14,11 +12,23 @@ func WrapError(err error) Error {
 }
 
 type Error struct {
-	Message  string        `json:"message"`
-	Detail   string        `json:"detail"`
-	Filepath string        `json:"filepath"`
-	Position *ast.Position `json:"position"`
+	Message   string           `json:"message"`
+	Detail    string           `json:"detail"`
+	Locations []*ErrorLocation `json:"position"`
+	Kind      ErrorKind        `json:"kind"`
 }
+
+type ErrorLocation struct {
+	Filepath string `json:"filepath"`
+	Line     int    `json:"line"`
+	Column   int    `json:"column"`
+}
+
+type ErrorKind string
+
+const (
+	ErrorKindValidation ErrorKind = "validation"
+)
 
 func (e Error) Error() string {
 	return e.Message

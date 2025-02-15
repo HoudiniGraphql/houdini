@@ -33,18 +33,26 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	file, err := p.fs.Open(schemaPath)
 	if err != nil {
 		return plugins.Error{
-			Message:  "could not open schema file",
-			Detail:   err.Error(),
-			Filepath: schemaPath,
+			Message: "could not open schema file",
+			Detail:  err.Error(),
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: schemaPath,
+				},
+			},
 		}
 	}
 	defer file.Close()
 	fileContents, err := io.ReadAll(file)
 	if err != nil {
 		return plugins.Error{
-			Message:  "could not read schema file",
-			Detail:   err.Error(),
-			Filepath: schemaPath,
+			Message: "could not read schema file",
+			Detail:  err.Error(),
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: schemaPath,
+				},
+			},
 		}
 	}
 
@@ -54,9 +62,13 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	})
 	if err != nil {
 		return plugins.Error{
-			Message:  "encountered error parsing schema file",
-			Detail:   err.Error(),
-			Filepath: schemaPath,
+			Message: "encountered error parsing schema file",
+			Detail:  err.Error(),
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: schemaPath,
+				},
+			},
 		}
 	}
 
@@ -119,10 +131,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		err := db.ExecStatement(statements.InsertType, typ.Name, kind)
 		if err != nil {
 			errors.Append(plugins.Error{
-				Message:  fmt.Sprintf("could not register type %s", typ.Name),
-				Detail:   err.Error(),
-				Filepath: schemaPath,
-				Position: typ.Position,
+				Message: fmt.Sprintf("could not register type %s", typ.Name),
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: schemaPath,
+						Line:     typ.Position.Line,
+						Column:   typ.Position.Column,
+					},
+				},
 			})
 			continue
 		}
@@ -135,10 +152,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				err = db.ExecStatement(statements.InsertEnumValue, typ.Name, value.Name)
 				if err != nil {
 					errors.Append(plugins.Error{
-						Message:  fmt.Sprintf("error inserting enum value %s for %s", value.Name, typ.Name),
-						Detail:   err.Error(),
-						Filepath: schemaPath,
-						Position: typ.Position,
+						Message: fmt.Sprintf("error inserting enum value %s for %s", value.Name, typ.Name),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: schemaPath,
+								Line:     typ.Position.Line,
+								Column:   typ.Position.Column,
+							},
+						},
 					})
 					continue
 				}
@@ -153,10 +175,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "", field.Description)
 				if err != nil {
 					errors.Append(plugins.Error{
-						Message:  fmt.Sprintf("error registering field %s for object %s", field.Name, typ.Name),
-						Detail:   err.Error(),
-						Filepath: schemaPath,
-						Position: field.Position,
+						Message: fmt.Sprintf("error registering field %s for object %s", field.Name, typ.Name),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: schemaPath,
+								Line:     field.Position.Line,
+								Column:   field.Position.Column,
+							},
+						},
 					})
 					continue
 				}
@@ -164,10 +191,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 					err = db.ExecStatement(statements.InsertFieldArgument, fieldID, arg.Name, arg.Type.String(), "")
 					if err != nil {
 						errors.Append(plugins.Error{
-							Message:  fmt.Sprintf("error inserting field argument %s for %s", arg.Name, fieldID),
-							Detail:   err.Error(),
-							Filepath: schemaPath,
-							Position: arg.Position,
+							Message: fmt.Sprintf("error inserting field argument %s for %s", arg.Name, fieldID),
+							Detail:  err.Error(),
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: schemaPath,
+									Line:     arg.Position.Line,
+									Column:   arg.Position.Column,
+								},
+							},
 						})
 						continue
 					}
@@ -182,10 +214,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, field.DefaultValue.String(), field.Description)
 				if err != nil {
 					errors.Append(plugins.Error{
-						Message:  fmt.Sprintf("error inserting input field %s for %s", field.Name, typ.Name),
-						Detail:   err.Error(),
-						Filepath: schemaPath,
-						Position: field.Position,
+						Message: fmt.Sprintf("error inserting input field %s for %s", field.Name, typ.Name),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: schemaPath,
+								Line:     field.Position.Line,
+								Column:   field.Position.Column,
+							},
+						},
 					})
 					continue
 				}
@@ -199,10 +236,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "", field.Description)
 				if err != nil {
 					errors.Append(plugins.Error{
-						Message:  fmt.Sprintf("error inserting interface field %s for %s", field.Name, typ.Name),
-						Detail:   err.Error(),
-						Filepath: schemaPath,
-						Position: field.Position,
+						Message: fmt.Sprintf("error inserting interface field %s for %s", field.Name, typ.Name),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: schemaPath,
+								Line:     field.Position.Line,
+								Column:   field.Position.Column,
+							},
+						},
 					})
 					continue
 				}
@@ -213,10 +255,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				err = db.ExecStatement(statements.InsertInterfaceImplementor, typ.Name, impl.Name)
 				if err != nil {
 					errors.Append(plugins.Error{
-						Message:  fmt.Sprintf("error linking interface %s with implementor %s", typ.Name, impl.Name),
-						Detail:   err.Error(),
-						Filepath: schemaPath,
-						Position: impl.Position,
+						Message: fmt.Sprintf("error linking interface %s with implementor %s", typ.Name, impl.Name),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: schemaPath,
+								Line:     impl.Position.Line,
+								Column:   impl.Position.Column,
+							},
+						},
 					})
 					continue
 				}
@@ -228,10 +275,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				err = db.ExecStatement(statements.InsertUnionMember, typ.Name, member.Name)
 				if err != nil {
 					errors.Append(plugins.Error{
-						Message:  fmt.Sprintf("error linking union %s with member %s", typ.Name, member.Name),
-						Detail:   err.Error(),
-						Filepath: schemaPath,
-						Position: member.Position,
+						Message: fmt.Sprintf("error linking union %s with member %s", typ.Name, member.Name),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: schemaPath,
+								Line:     member.Position.Line,
+								Column:   member.Position.Column,
+							},
+						},
 					})
 					continue
 				}
@@ -244,10 +296,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		err := db.ExecStatement(statements.InsertDirective, directive.Name, directive.IsRepeatable)
 		if err != nil {
 			errors.Append(plugins.Error{
-				Message:  fmt.Sprintf("error inserting directive %s", directive.Name),
-				Detail:   err.Error(),
-				Filepath: schemaPath,
-				Position: directive.Position,
+				Message: fmt.Sprintf("error inserting directive %s", directive.Name),
+				Detail:  err.Error(),
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: schemaPath,
+						Line:     directive.Position.Line,
+						Column:   directive.Position.Column,
+					},
+				},
 			})
 			continue
 		}
@@ -255,10 +312,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			err = db.ExecStatement(statements.InsertDirectiveLocation, directive.Name, string(location))
 			if err != nil {
 				errors.Append(plugins.Error{
-					Message:  fmt.Sprintf("error inserting directive location %s for %s", location, directive.Name),
-					Detail:   err.Error(),
-					Filepath: schemaPath,
-					Position: directive.Position,
+					Message: fmt.Sprintf("error inserting directive location %s for %s", location, directive.Name),
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: schemaPath,
+							Line:     directive.Position.Line,
+							Column:   directive.Position.Column,
+						},
+					},
 				})
 				continue
 			}
@@ -267,10 +329,15 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			err = db.ExecStatement(statements.InsertDirectiveArgument, directive.Name, arg.Name, arg.Type.String(), "")
 			if err != nil {
 				errors.Append(plugins.Error{
-					Message:  fmt.Sprintf("error inserting directive argument %s for %s", arg.Name, directive.Name),
-					Detail:   err.Error(),
-					Filepath: schemaPath,
-					Position: arg.Position,
+					Message: fmt.Sprintf("error inserting directive argument %s for %s", arg.Name, directive.Name),
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: schemaPath,
+							Line:     arg.Position.Line,
+							Column:   arg.Position.Column,
+						},
+					},
 				})
 				continue
 			}

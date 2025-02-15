@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"testing"
 
@@ -384,7 +385,7 @@ func TestValidate(t *testing.T) {
 			require.Nil(t, err)
 
 			// write the raw documents to the database
-			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
+			insertRaw, err := conn.Prepare(`insert into raw_documents (content, filepath) values (?, 'foo')`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
@@ -394,6 +395,11 @@ func TestValidate(t *testing.T) {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}
+
+			// load the raw documents into the database
+			err = plugin.afterExtract_loadDocuments(ctx)
+			require.Nil(t, err)
+			// we're done with the database connection for now
 			db.Put(conn)
 
 			// run the validation
@@ -402,6 +408,15 @@ func TestValidate(t *testing.T) {
 				require.Nil(t, err)
 			} else {
 				require.NotNil(t, err)
+
+				// make sure that the error has a validation kind
+				if validationErr, ok := err.(*plugins.ErrorList); ok {
+					// make sure we received a validation error
+					err := validationErr.GetItems()[0]
+					require.Equal(t, plugins.ErrorKindValidation, err.Kind, fmt.Sprintf("%s: %s", err.Message, err.Detail))
+				} else {
+					t.Fatal("did not receive error list")
+				}
 			}
 		})
 	}
