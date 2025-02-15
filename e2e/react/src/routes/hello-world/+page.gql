@@ -1,3 +1,3 @@
-query HelloWorld {
+query OptimisticKeyTest {
 	hello
 }

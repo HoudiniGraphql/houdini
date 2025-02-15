@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"encoding/json"
+	"strings"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -27,6 +28,7 @@ type ProjectConfig struct {
 	ProjectRoot                     string
 	RuntimeDir                      string
 	RuntimeScalars                  map[string]string
+	TypeConfig                      map[string]TypeConfig
 }
 
 func (db Database[PluginConfig]) ProjectConfig() (ProjectConfig, error) {
@@ -49,6 +51,7 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 	// build up a config object
 	config := ProjectConfig{
 		RuntimeScalars: make(map[string]string),
+		TypeConfig:     make(map[string]TypeConfig),
 	}
 
 	// load the config from the database
@@ -126,6 +129,25 @@ func (db *Database[PluginConfig]) ReloadProjectConfig() error {
 		config.RuntimeScalars[search.ColumnText(0)] = search.ColumnText(1)
 	}
 
+	// load type config information
+	typeConfigSearch, err := db.Conn.Prepare(`SELECT name, keys FROM type_configs`)
+	if err != nil {
+		return err
+	}
+	for {
+		hasRow, err := typeConfigSearch.Step()
+		if err != nil {
+			return err
+		}
+		if !hasRow {
+			break
+		}
+
+		config.TypeConfig[typeConfigSearch.ColumnText(0)] = TypeConfig{
+			Keys: strings.Split(typeConfigSearch.ColumnText(1), ","),
+		}
+	}
+
 	// store the config we loaded
 	db._config = &config
 
@@ -168,4 +190,8 @@ func (db *Database[PluginConfig]) ReloadPluginConfig() error {
 			return nil
 		},
 	})
+}
+
+type TypeConfig struct {
+	Keys []string
 }

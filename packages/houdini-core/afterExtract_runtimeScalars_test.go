@@ -57,7 +57,7 @@ func TestRuntimeScalars(t *testing.T) {
 			operation_variable_directive_arguments.name,
 			operation_variable_directive_arguments.value
 		FROM documents
-			JOIN operation_variables ON documents.name = operation_variables.document
+			JOIN operation_variables ON documents.id = operation_variables.document
 			JOIN operation_variable_directives ON operation_variables.id = operation_variable_directives.parent
 			JOIN operation_variable_directive_arguments ON operation_variable_directives.id = operation_variable_directive_arguments.parent
 		WHERE documents.name = ?

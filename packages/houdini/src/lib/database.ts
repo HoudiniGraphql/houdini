@@ -5,6 +5,7 @@ import { PluginSpec } from './codegen'
 import { Config, default_config } from './project'
 
 export const create_schema = `
+
 CREATE TABLE plugins (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     port INTEGER NOT NULL,
@@ -34,6 +35,17 @@ CREATE TABLE router_config (
 CREATE TABLE runtime_scalar_definitions (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL
+);
+
+CREATE TABLE component_fields (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	document INTEGER NOT NULL,
+    type TEXT,
+	prop TEXT,
+    field TEXT,
+	inline BOOLEAN default false,
+	UNIQUE (document),
+	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 -- Static Config (main config table)
@@ -72,24 +84,10 @@ CREATE TABLE type_configs (
 -- A table of original document contents (to be populated by plugins)
 CREATE TABLE raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    filepath TEXT NOT NULL,
     offset_line INTEGER,
     offset_column INTEGER,
+    filepath TEXT NOT NULL,
     content TEXT NOT NULL
-);
-
--- @componentField has some extra meta data associated with it that can pop up at different times. In order to
--- make querying this table easier, we'll give it a separate table
-CREATE TABLE component_fields (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	document INTEGER NOT NULL,
-	prop TEXT,
-    field TEXT,
-	type TEXT,
-	inline BOOLEAN default false,
-	UNIQUE (document),
-	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 -----------------------------------------------------------
@@ -109,7 +107,7 @@ CREATE TABLE type_fields (
     type TEXT NOT NULL,
 	type_modifiers TEXT,
     default_value TEXT,
-	description TEXT,
+    description TEXT,
 	internal BOOLEAN default false,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
@@ -125,6 +123,7 @@ CREATE TABLE field_argument_definitions (
     FOREIGN KEY (field) REFERENCES type_fields(id),
     UNIQUE (field, name)
 );
+
 
 CREATE TABLE enum_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,8 +153,8 @@ CREATE TABLE union_member_types (
 CREATE TABLE directives (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
 	internal BOOLEAN default false,
-	visible BOOLEAN default true,
-	repeatable BOOLEAN default false,
+    visible BOOLEAN default true,
+    repeatable BOOLEAN default false,
 	description TEXT
 );
 
@@ -176,20 +175,6 @@ CREATE TABLE directive_locations (
     PRIMARY KEY (directive, location)
 );
 
------------------------------------------------------------
--- Document Tables
------------------------------------------------------------
-
-CREATE TABLE operation_variables (
- 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-    document TEXT NOT NULL,
-    name TEXT NOT NULL,
-    type TEXT NOT NULL,
-    type_modifiers TEXT,
-    default_value TEXT,
-    FOREIGN KEY (document) REFERENCES documents(name)
-);
-
 CREATE TABLE operation_variable_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	parent INTEGER NOT NULL,
@@ -206,8 +191,24 @@ CREATE TABLE operation_variable_directive_arguments (
     FOREIGN KEY (parent) REFERENCES operation_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
+-----------------------------------------------------------
+-- Document Tables
+-----------------------------------------------------------
+
+CREATE TABLE operation_variables (
+ 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+    document TEXT NOT NULL,
+    name INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    type_modifiers TEXT,
+    default_value TEXT,
+    FOREIGN KEY (document) REFERENCES documents(id)
+);
+
+-- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE documents (
-    name TEXT NOT NULL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
 	raw_document INTEGER NOT NULL,
     type_condition TEXT,
@@ -220,7 +221,7 @@ CREATE TABLE selections (
     field_name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
-	type TEXT,
+    type TEXT, -- should be something like User.Avatar
     path_index INTEGER NOT NULL,
     FOREIGN KEY (type) REFERENCES type_fields(id) DEFERRABLE INITIALLY DEFERRED
 );
@@ -243,9 +244,9 @@ CREATE TABLE selection_directive_arguments (
 
 CREATE TABLE document_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	document TEXT NOT NULL,
+	document int NOT NULL,
 	directive TEXT NOT NULL,
-	FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -260,12 +261,12 @@ CREATE TABLE document_directive_arguments (
 CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
-    document TEXT NOT NULL,
-	row INTEGER,
-	column INTEGER,
+    document INTEGER NOT NULL,
+	row INTEGER NOT NULL,
+	column INTEGER NOT NULL,
     FOREIGN KEY (parent_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (child_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_arguments (
@@ -297,11 +298,6 @@ CREATE INDEX idx_selection_directive_args_parent ON selection_directive_argument
 CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent);
 CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
-CREATE INDEX idx_operation_variables_document ON operation_variables(document);
-CREATE INDEX idx_op_var_directives_parent ON operation_variable_directives(parent);
-CREATE INDEX idx_op_var_dir_args_parent ON operation_variable_directive_arguments(parent);
-CREATE INDEX idx_document_directives_document ON document_directives(document);
-CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
 `
 
 export async function write_config(

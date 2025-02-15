@@ -112,7 +112,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	for i := 0; i < runtime.NumCPU(); i++ {
 		wg.Go(func() error {
 			// for now, we'll establish a database connection for each query so we can manage our prepared statements
-			db, err := p.ConnectDB()
+			db, err := p.databaseConnection()
 			if err != nil {
 				return err
 			}
@@ -219,12 +219,13 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 				Column: query.ColumnOffset,
 			},
 		}
+
+		// if the error encodes a specific location, add it to the returned value
 		if gqlErr, ok := err.(*gqlerror.Error); ok {
-			pluginErr.Position = &ast.Position{
-				Line:   gqlErr.Locations[0].Line + query.RowOffset,
-				Column: gqlErr.Locations[0].Column + query.ColumnOffset,
-			}
+			pluginErr.Position.Line += gqlErr.Locations[0].Line
+			pluginErr.Position.Column += gqlErr.Locations[0].Line
 		}
+
 		return pluginErr
 	}
 
@@ -409,7 +410,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			nil,
 		); err != nil {
 			return &plugins.Error{
-				Message:  "could not insert fragment for component field",
+				Message:  "could not insert document",
 				Detail:   err.Error(),
 				Filepath: query.Filepath,
 				Position: &ast.Position{
@@ -418,13 +419,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 				},
 			}
 		}
+		operationID := db.LastInsertRowID()
 
 		// insert any variable definitions.
 		for _, variable := range operation.VariableDefinitions {
 			// parse the type of the variable.
 			variableType, typeModifiers := parseFieldType(variable.Type.String())
 
-			statements.InsertDocumentVariable.BindText(1, operation.Name)
+			statements.InsertDocumentVariable.BindInt64(1, operationID)
 			statements.InsertDocumentVariable.BindText(2, variable.Variable)
 			statements.InsertDocumentVariable.BindText(3, variableType)
 			statements.InsertDocumentVariable.BindText(4, typeModifiers)
@@ -489,14 +491,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 		// walk the selection set for the operation.
 		for i, sel := range operation.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, query, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
+			if err := processSelection(db, query, operationID, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
 				return err
 			}
 		}
 
 		// add document-level directives for the operation.
 		for _, directive := range operation.Directives {
-			if err := db.ExecStatement(statements.InsertDocumentDirective, operation.Name, directive.Name); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name); err != nil {
 				return &plugins.Error{
 					Message:  "could not insert document directive",
 					Detail:   err.Error(),
@@ -545,17 +547,19 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 			}
 		}
 
+		fragmentID := db.LastInsertRowID()
+
 		// walk the fragment's selection set.
 		for i, sel := range fragment.SelectionSet {
 			// add each selection to the database.
-			if err := processSelection(db, query, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
+			if err := processSelection(db, query, fragmentID, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
 				return err
 			}
 		}
 
 		// add document-level directives for the operation.
 		for _, directive := range fragment.Directives {
-			if err := db.ExecStatement(statements.InsertDocumentDirective, fragment.Name, directive.Name); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name); err != nil {
 				return &plugins.Error{
 					Message:  "could not insert document directive",
 					Detail:   err.Error(),
@@ -589,7 +593,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery, db plugi
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection(db plugins.Database[PluginConfig], query PendingQuery, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
+func processSelection(db plugins.Database[PluginConfig], query PendingQuery, documentID int64, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -675,7 +679,7 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, query, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
+			err := processSelection(db, query, documentID, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -701,7 +705,7 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(db, query, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
+			err := processSelection(db, query, documentID, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -750,7 +754,7 @@ func processSelection(db plugins.Database[PluginConfig], query PendingQuery, sta
 		statements.InsertSelectionRef.BindNull(1)
 	}
 	statements.InsertSelectionRef.BindInt64(2, selectionID)
-	statements.InsertSelectionRef.BindText(3, documentName)
+	statements.InsertSelectionRef.BindInt64(3, documentID)
 
 	// we want to save the selection location in the document
 	if position := sel.GetPosition(); position != nil {
@@ -849,9 +853,8 @@ func (p *HoudiniCore) afterExtract_componentFields(db plugins.Database[PluginCon
 			document_directive_arguments.value
 		FROM
 			document_directives
-			JOIN documents on document_directives.document = documents.name
-			JOIN document_directive_arguments on document_directive_arguments.parent = document_directives.id
-
+				JOIN documents on document_directives.document = documents.id
+				JOIN document_directive_arguments on document_directive_arguments.parent = document_directives.id
 		WHERE
 			document_directives.directive = ?
 	`)

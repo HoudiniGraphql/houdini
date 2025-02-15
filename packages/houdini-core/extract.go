@@ -102,7 +102,7 @@ func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// database writer goroutine
 	g.Go(func() error {
 		// build a connection to the database.
-		conn, err := p.ConnectDB()
+		conn, err := p.databaseConnection()
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to connect to db: %w", err)))
 			return nil

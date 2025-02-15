@@ -15,6 +15,9 @@ func main() {
 	// run the plugin
 	err := plugins.Run(&HoudiniCore{
 		fs: afero.NewOsFs(),
+		databaseConnection: func() (plugins.Database[PluginConfig], error) {
+			return plugins.ConnectDB[PluginConfig]()
+		},
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -27,6 +30,7 @@ type HoudiniCore struct {
 	fs                       afero.Fs
 	documentInsertStatements DocumentInsertStatements
 	schemaInsertStatements   SchemaInsertStatements
+	databaseConnection       func() (plugins.Database[PluginConfig], error)
 }
 
 type PluginConfig = any

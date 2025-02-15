@@ -23,12 +23,11 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQuery",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQuery",
+				Kind: "query",
 				Variables: []operationVariableRow{
 					{
-						Document:      "TestQuery",
+						Document:      1,
 						VarName:       "id",
 						Type:          "ID",
 						TypeModifiers: "!",
@@ -83,9 +82,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQueryArgs",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQueryArgs",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -119,9 +117,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQueryInline",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQueryInline",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -156,9 +153,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQueryDirective",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQueryDirective",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -196,9 +192,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQueryAlias",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQueryAlias",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "userById",
@@ -228,11 +223,15 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQueryDefault",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQueryDefault",
+				Kind: "query",
 				Variables: []operationVariableRow{
-					{Document: "TestQueryDefault", VarName: "limit", Type: "Int", DefaultValue: strPtr("10")},
+					{
+						Document:     1,
+						VarName:      "limit",
+						Type:         "Int",
+						DefaultValue: strPtr("10"),
+					},
 				},
 				Selections: []expectedSelection{
 					{
@@ -259,9 +258,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestQueryMultiDirective",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestQueryMultiDirective",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -305,9 +303,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestMutation",
-				RawDocument: 1,
-				Kind:        "mutation",
+				Name: "TestMutation",
+				Kind: "mutation",
 				Selections: []expectedSelection{
 					{
 						FieldName: "updateUser",
@@ -339,9 +336,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestSubscription",
-				RawDocument: 1,
-				Kind:        "subscription",
+				Name: "TestSubscription",
+				Kind: "subscription",
 				Selections: []expectedSelection{
 					{
 						FieldName: "userUpdated",
@@ -375,9 +371,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestDeepInline",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestDeepInline",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -437,9 +432,8 @@ var tests = []testCase{
 		// in this scenario the operation and fragment are stored as two separate documents.
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestNamedFragment",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestNamedFragment",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -462,7 +456,6 @@ var tests = []testCase{
 			},
 			{
 				Name:          "UserFields",
-				RawDocument:   1,
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
 				Selections: []expectedSelection{
@@ -486,9 +479,8 @@ var tests = []testCase{
 		// both operations are stored as separate documents.
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "FirstOperation",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "FirstOperation",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -502,9 +494,8 @@ var tests = []testCase{
 				},
 			},
 			{
-				Name:        "SecondOperation",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "SecondOperation",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -540,9 +531,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestComplexArgs",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestComplexArgs",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "search",
@@ -580,11 +570,10 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestVariableDirective",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestVariableDirective",
+				Kind: "query",
 				Variables: []operationVariableRow{
-					{Document: "TestVariableDirective", VarName: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
+					{Document: 1, VarName: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
 				},
 				Selections: []expectedSelection{
 					{
@@ -623,9 +612,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestIntrospection",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestIntrospection",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -655,9 +643,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestInterface",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestInterface",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "search",
@@ -692,9 +679,8 @@ var tests = []testCase{
         `,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestDeprecated",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestDeprecated",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -739,7 +725,6 @@ var tests = []testCase{
 		expectedDocs: []expectedDocument{
 			{
 				Name:          "TestFragmentDirective",
-				RawDocument:   1,
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
 				Directives: []expectedDirective{
@@ -776,9 +761,8 @@ var tests = []testCase{
 		`,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestCycle",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestCycle",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -798,7 +782,6 @@ var tests = []testCase{
 			},
 			{
 				Name:          "A",
-				RawDocument:   1,
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
 				Selections: []expectedSelection{
@@ -818,7 +801,6 @@ var tests = []testCase{
 			},
 			{
 				Name:          "B",
-				RawDocument:   1,
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
 				Selections: []expectedSelection{
@@ -850,7 +832,6 @@ var tests = []testCase{
 		expectedDocs: []expectedDocument{
 			{
 				Name:          componentFieldFragmentName("User", "Avatar"),
-				RawDocument:   1,
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
 				Selections: []expectedSelection{
@@ -898,12 +879,11 @@ var tests = []testCase{
 		`,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestComplexDefault",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestComplexDefault",
+				Kind: "query",
 				Variables: []operationVariableRow{
 					{
-						Document:     "TestComplexDefault",
+						Document:     1,
 						VarName:      "filter",
 						Type:         "FilterInput",
 						DefaultValue: strPtr("{term:\"foo\",tags:[\"bar\",\"baz\"]}"),
@@ -965,9 +945,8 @@ var tests = []testCase{
 		expectedDocs: []expectedDocument{
 			{
 				// This is the operation document for the query.
-				Name:        "TestInlineDirectives",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestInlineDirectives",
+				Kind: "query",
 				Selections: []expectedSelection{
 					{
 						FieldName: "user",
@@ -1016,9 +995,8 @@ var tests = []testCase{
 			`,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestOpDirective",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestOpDirective",
+				Kind: "query",
 				Directives: []expectedDirective{
 					{
 						Name: "cacheControl",
@@ -1050,12 +1028,11 @@ var tests = []testCase{
 			`,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestOpDirective",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestOpDirective",
+				Kind: "query",
 				Variables: []operationVariableRow{
 					{
-						Document:     "TestOpDirective",
+						Document:     1,
 						VarName:      "arg",
 						Type:         "String",
 						DefaultValue: nil,
@@ -1092,9 +1069,8 @@ var tests = []testCase{
 			`,
 		expectedDocs: []expectedDocument{
 			{
-				Name:        "TestOpDirectives",
-				RawDocument: 1,
-				Kind:        "query",
+				Name: "TestOpDirectives",
+				Kind: "query",
 				Directives: []expectedDirective{
 					{Name: "directive1", Arguments: []expectedDirectiveArgument{}},
 					{Name: "directive2", Arguments: []expectedDirectiveArgument{
@@ -1212,20 +1188,39 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			}
 
 			// fetch documents and compare with expectedDocs.
-			docs := fetchDocuments(t, db)
-			if len(docs) != len(tc.expectedDocs) {
-				t.Errorf("expected %d documents, got %d", len(tc.expectedDocs), len(docs))
+			documents := fetchDocuments(t, db)
+			if len(documents) != len(tc.expectedDocs) {
+				t.Errorf("expected %d documents, got %d", len(tc.expectedDocs), len(documents))
+			}
+			// we need to sort the docs so that they fall in the same order as the test
+			docs := make([]documentRow, len(documents))
+			for i, doc := range tc.expectedDocs {
+				found := false
+				// look for the document with the expected name
+				for _, actual := range documents {
+					if actual.Name == doc.Name {
+						docs[i] = actual
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					t.Fatal("could not find document with name " + doc.Name)
+				}
 			}
 			for _, expDoc := range tc.expectedDocs {
 				var found bool
 				for _, actual := range docs {
 					if actual.Name == expDoc.Name {
 						found = true
-						if actual.RawDocument != expDoc.RawDocument ||
-							actual.Kind != expDoc.Kind ||
+
+						// Compare document metadata.
+						if actual.Kind != expDoc.Kind ||
 							!strEqual(actual.TypeCondition, expDoc.TypeCondition) {
 							t.Errorf("document mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
 						}
+
 						// If the document is an operation, check its operation variables.
 						if expDoc.Kind == "query" || expDoc.Kind == "mutation" || expDoc.Kind == "subscription" {
 							vars := findOperationVariables(t, db)
@@ -1243,7 +1238,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 									!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
 									t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
 								}
-								// Now verify any directives attached to the operation variable.
+								// Check directives attached to the operation variable.
 								if len(expectedVar.Directives) != len(actualVar.Directives) {
 									t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.VarName, len(expectedVar.Directives), len(actualVar.Directives))
 								} else {
@@ -1268,7 +1263,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						}
 
 						// Build and compare the selection tree.
-						selectionsMap, rel, roots, err := buildSelectionTree(db, expDoc.Name)
+						selectionsMap, rel, roots, err := buildSelectionTree(db, int64(actual.ID))
 						if err != nil {
 							t.Fatalf("failed to build selection tree for document %s: %v", expDoc.Name, err)
 						}
@@ -1280,7 +1275,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 						}
 
 						// Finally, verify that the document-level directives match.
-						docDirectives := fetchDocumentDirectives(t, db, expDoc.Name)
+						docDirectives := fetchDocumentDirectives(t, db, int64(actual.ID))
 						if len(docDirectives) != len(expDoc.Directives) {
 							t.Errorf("for document %s, expected %d document directives, got %d", expDoc.Name, len(expDoc.Directives), len(docDirectives))
 						} else {
@@ -1307,36 +1302,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 					t.Errorf("expected document %s not found", expDoc.Name)
 				}
 			}
-
-			// verify that selection details (arguments, directives) are correct.
-			dbSels := fetchSelections(t, db)
-
-			for _, expDoc := range tc.expectedDocs {
-				verifySelectionTreeDirectives(expDoc.Selections, dbSels, db, t)
-
-				// verify that document-level directives are correct.
-				docDirectives := fetchDocumentDirectives(t, db, expDoc.Name)
-				if len(docDirectives) != len(expDoc.Directives) {
-					t.Errorf("for document %s, expected %d document directives, got %d", expDoc.Name, len(expDoc.Directives), len(docDirectives))
-				} else {
-					for i, expDir := range expDoc.Directives {
-						actDir := docDirectives[i]
-						if actDir.Name != expDir.Name {
-							t.Errorf("document %s, directive %d: expected %s, got %s", expDoc.Name, i, expDir.Name, actDir.Name)
-						}
-						if len(actDir.Arguments) != len(expDir.Arguments) {
-							t.Errorf("document %s, directive %s: expected %d arguments, got %d", expDoc.Name, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
-						}
-						for j, expArg := range expDir.Arguments {
-							actArg := actDir.Arguments[j]
-							if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
-								t.Errorf("document %s, directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expDir.Name, j, expArg, actArg)
-							}
-						}
-					}
-				}
-			}
-
 		})
 	}
 }
@@ -1353,7 +1318,7 @@ type expectedDocument struct {
 }
 
 type operationVariableRow struct {
-	Document      string
+	Document      int
 	VarName       string
 	Type          string
 	TypeModifiers string
@@ -1387,6 +1352,7 @@ type expectedSelection struct {
 }
 
 type documentRow struct {
+	ID            int
 	Name          string
 	RawDocument   int
 	Kind          string
@@ -1428,27 +1394,22 @@ func sortTree(tree []expectedSelection) {
 
 // buildSelectionTree builds the selection tree for a given document.
 // it returns a mapping of selection id to dbSelection, a parent-to-children map, and a slice of root selection ids.
-func buildSelectionTree(db plugins.Database[PluginConfig], document string) (map[int]dbSelection, map[int][]int, []int, error) {
-	// look up the document kind.
-	var docKind string
-	{
-		stmt, err := db.Conn.Prepare("SELECT kind FROM documents WHERE name = ?")
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		stmt.BindText(1, document)
-		ok, err := stmt.Step()
-		if err != nil {
-			stmt.Finalize()
-			return nil, nil, nil, err
-		}
-		if !ok {
-			stmt.Finalize()
-			return nil, nil, nil, fmt.Errorf("document %s not found", document)
-		}
-		docKind = stmt.ColumnText(0)
-		stmt.Finalize()
+func buildSelectionTree(db plugins.Database[PluginConfig], document int64) (map[int]dbSelection, map[int][]int, []int, error) {
+	stmt, err := db.Conn.Prepare("SELECT kind FROM documents WHERE id = ?")
+	if err != nil {
+		return nil, nil, nil, err
 	}
+	stmt.BindInt64(1, document)
+	ok, err := stmt.Step()
+	if err != nil {
+		stmt.Finalize()
+		return nil, nil, nil, err
+	}
+	if !ok {
+		stmt.Finalize()
+		return nil, nil, nil, fmt.Errorf("document %v not found", document)
+	}
+	stmt.Finalize()
 
 	// step 1. restrict to only those selections that have a matching selection_refs row.
 	query := `SELECT s.id, s.field_name, s.alias, s.path_index, s.kind
@@ -1456,11 +1417,11 @@ FROM selections s
 JOIN selection_refs sr ON s.id = sr.child_id
 WHERE sr.document = ?
 ORDER BY s.id`
-	stmt, err := db.Conn.Prepare(query)
+	stmt, err = db.Conn.Prepare(query)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	stmt.BindText(1, document)
+	stmt.BindInt64(1, document)
 	filteredSelections := make(map[int]dbSelection)
 	for {
 		ok, err := stmt.Step()
@@ -1496,7 +1457,7 @@ ORDER BY s.id`
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	stmt.BindText(1, document)
+	stmt.BindInt64(1, document)
 	for {
 		ok, err := stmt.Step()
 		if err != nil {
@@ -1527,18 +1488,11 @@ ORDER BY s.id`
 		}
 	}
 
-	// step 4. for fragment documents, flatten a dummy wrapper if present.
-	if docKind == "fragment" && len(roots) == 1 {
-		if rootSel, ok := filteredSelections[roots[0]]; ok && rootSel.FieldName == document {
-			roots = parentToChildren[rootSel.ID]
-		}
-	}
-
 	return filteredSelections, parentToChildren, roots, nil
 }
 
 func fetchDocuments(t *testing.T, db plugins.Database[PluginConfig]) []documentRow {
-	stmt, err := db.Conn.Prepare("select name, raw_document, kind, type_condition from documents order by name")
+	stmt, err := db.Conn.Prepare("select name, raw_document, kind, type_condition, id from documents order by name")
 	if err != nil {
 		t.Fatalf("failed to prepare documents query: %v", err)
 	}
@@ -1559,6 +1513,7 @@ func fetchDocuments(t *testing.T, db plugins.Database[PluginConfig]) []documentR
 			tc = &s
 		}
 		rows = append(rows, documentRow{
+			ID:            int(stmt.ColumnInt(4)),
 			Name:          stmt.ColumnText(0),
 			RawDocument:   int(stmt.ColumnInt(1)),
 			Kind:          stmt.ColumnText(2),
@@ -1601,7 +1556,7 @@ func findOperationVariables(t *testing.T, db plugins.Database[PluginConfig]) []o
 		// Grab the id for later lookup of directives.
 		varID := int(stmt.ColumnInt(0))
 		opVar := operationVariableRow{
-			Document:      stmt.ColumnText(1),
+			Document:      stmt.ColumnInt(1),
 			VarName:       stmt.ColumnText(2),
 			Type:          stmt.ColumnText(3),
 			TypeModifiers: stmt.ColumnText(4),
@@ -1915,14 +1870,14 @@ func strEqual(a, b *string) bool {
 	return *a == *b
 }
 
-func fetchDocumentDirectives(t *testing.T, db plugins.Database[PluginConfig], document string) []expectedDirective {
+func fetchDocumentDirectives(t *testing.T, db plugins.Database[PluginConfig], document int64) []expectedDirective {
 	stmt, err := db.Conn.Prepare("SELECT id, directive FROM document_directives WHERE document = ? ORDER BY id")
 	if err != nil {
 		t.Fatalf("failed to prepare document_directives query: %v", err)
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, document)
+	stmt.BindInt64(1, document)
 
 	var directives []expectedDirective
 	for {

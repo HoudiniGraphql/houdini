@@ -215,16 +215,17 @@ CREATE TABLE operation_variable_directive_arguments (
 CREATE TABLE operation_variables (
  	id INTEGER PRIMARY KEY AUTOINCREMENT,
     document TEXT NOT NULL,
-    name TEXT NOT NULL,
+    name INTEGER NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
     default_value TEXT,
-    FOREIGN KEY (document) REFERENCES documents(name)
+    FOREIGN KEY (document) REFERENCES documents(id)
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE documents (
-    name TEXT NOT NULL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
 	raw_document INTEGER NOT NULL,
     type_condition TEXT,
@@ -260,9 +261,9 @@ CREATE TABLE selection_directive_arguments (
 
 CREATE TABLE document_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	document TEXT NOT NULL,
+	document int NOT NULL,
 	directive TEXT NOT NULL,
-	FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -277,12 +278,12 @@ CREATE TABLE document_directive_arguments (
 CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
-    document TEXT NOT NULL,
+    document INTEGER NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
     FOREIGN KEY (parent_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (child_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (document) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_arguments (

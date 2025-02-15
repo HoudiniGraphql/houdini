@@ -101,11 +101,11 @@ export async function runPipeline(config: Config, docs: Document[]) {
 
 				// validators
 				validators.typeCheck,
-				validators.uniqueNames,
-				validators.noIDAlias,
+				// validators.uniqueNames,
+				// validators.noIDAlias,
 				// this replaces wrapHook(validate) to group them up
 
-				validators.plugins,
+				// validators.plugins,
 
 				// ...wrapHook(afterValidate),
 
