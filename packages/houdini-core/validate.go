@@ -145,11 +145,85 @@ func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.C
 			Locations: locations,
 		})
 	}
-
 }
 
 func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs *plugins.ErrorList) {
+	// create a thread-safe connection for this check.
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "could not open connection to database",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer p.DB.Put(conn)
 
+	// prepare a query that returns duplicate document names along with the locations
+	query, err := conn.Prepare(`
+		SELECT
+			documents.name,
+			json_group_array(
+				json_object(
+					'filepath', raw_documents.filepath,
+					'line', raw_documents.offset_line,
+					'column', raw_documents.offset_column
+				)
+			) as locations
+		FROM documents
+		JOIN raw_documents ON raw_documents.id = documents.raw_document
+		GROUP BY documents.name
+		HAVING COUNT(*) > 1
+	`)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "could not validate duplicate document names",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer query.Finalize()
+
+	// execute the query and process each row.
+	for {
+		// check if the context has been cancelled.
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		hasData, err := query.Step()
+		if err != nil {
+			errs.Append(plugins.Error{
+				Message: "could not check for duplicate document names",
+				Detail:  err.Error(),
+			})
+			break
+		}
+		if !hasData {
+			break
+		}
+
+		// extract the duplicate name and the JSON-encoded error locations.
+		docName := query.ColumnText(0)
+		locationsRaw := query.ColumnText(1)
+
+		// parse the JSON to build the list of error locations.
+		locations := []*plugins.ErrorLocation{}
+		err = json.Unmarshal([]byte(locationsRaw), &locations)
+		if err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for document '%s': %v. Raw: %s", docName, err, locationsRaw)))
+			continue
+		}
+
+		// append an error indicating that duplicate document names are not allowed.
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("duplicate document name: %s", docName),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	}
 }
 
 func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *plugins.ErrorList) {
