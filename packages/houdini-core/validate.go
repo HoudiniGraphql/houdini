@@ -587,21 +587,6 @@ func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plu
 }
 
 func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plugins.ErrorList) {
-	// This subquery maps each selection to its document.
-	// We assume that variable references occur in operations,
-	// so we restrict to documents of kind 'query', 'mutation', or 'subscription'.
-	subquery := `
-		SELECT child_id, document
-		FROM selection_refs
-		GROUP BY child_id
-	`
-
-	// The main query:
-	// - Start from selection_arguments (variable references)
-	// - Join to selections and then join to the subquery to get the document id
-	// - Join to documents and raw_documents to get file path and location info
-	// - LEFT JOIN operation_variables (the defined variables for that document) on matching document and variable name.
-	// - Filter for references starting with '$' and for which there is no definition (opv.name IS NULL)
 	query := `
 		SELECT
 			sargs.value,
@@ -611,8 +596,8 @@ func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plu
 			) AS locations
 		FROM selection_arguments sargs
 			JOIN selections s ON sargs.selection_id = s.id
-			JOIN (` + subquery + `) AS sd ON s.id = sd.child_id
-			JOIN documents d ON d.id = sd.document
+			JOIN selection_refs sr ON s.id = sr.child_id
+			JOIN documents d ON sr.document = d.id
 			JOIN raw_documents r ON r.id = d.raw_document
 			LEFT JOIN operation_variables opv
 				ON opv.document = d.id
@@ -637,7 +622,7 @@ func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plu
 			return
 		}
 
-		// Assign the file path from the raw document to every location.
+		// Ensure every location gets the file path from the raw document.
 		for _, loc := range locations {
 			loc.Filepath = filepath
 		}
