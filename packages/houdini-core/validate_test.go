@@ -126,7 +126,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Scalar field used with a sub-selection.",
+			Title: "Scalar field with a sub-selection.",
 			Pass:  false,
 			Documents: []string{
 				`query Test {

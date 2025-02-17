@@ -382,7 +382,7 @@ func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plug
 			JOIN documents ON operation_variables.document = documents.id
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 			JOIN types ON operation_variables.type = types.name
-		WHERE types.kind != 'INPUT'
+		WHERE types.kind in ('OBJECT', 'INTERFACE', 'UNION')
 	`)
 	if err != nil {
 		errs.Append(plugins.Error{Message: "could not prepare outputTypeAsInput query", Detail: err.Error()})
@@ -424,6 +424,63 @@ func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plug
 }
 
 func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *plugins.ErrorList) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not open connection (scalarWithSelection)", Detail: err.Error()})
+		return
+	}
+	defer p.DB.Put(conn)
+
+	query, err := conn.Prepare(`
+		SELECT
+			selections.alias,
+			raw_documents.filepath,
+			selection_refs.row,
+			selection_refs.column
+		FROM selection_refs
+			JOIN documents ON selection_refs.document = documents.id
+			JOIN raw_documents on documents.raw_document = raw_documents.id
+			JOIN selections on selection_refs.parent_id = selections.id
+			JOIN type_fields on selections.type = type_fields.id
+			JOIN types on type_fields.type = types.name
+		WHERE types.kind = 'SCALAR'
+	`)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not prepare scalarWithSelection query", Detail: err.Error()})
+		return
+	}
+	defer query.Finalize()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		hasData, err := query.Step()
+		if err != nil {
+			errs.Append(plugins.Error{Message: "error checking for selections with selections", Detail: err.Error()})
+			break
+		}
+		if !hasData {
+			break
+		}
+		alias := query.ColumnText(0)
+		filepath := query.ColumnText(1)
+		line := query.ColumnInt(2)
+		column := query.ColumnInt(3)
+
+		errs.Append(plugins.Error{
+			Message: fmt.Sprintf("'%s' cannot have a selection (its a scalar)", alias),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath,
+					Line:   line,
+					Column: column,
+				},
+			},
+		})
+	}
 
 }
 
