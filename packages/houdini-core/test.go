@@ -150,21 +150,12 @@ CREATE TABLE enum_values (
     UNIQUE (parent, value)
 );
 
-CREATE TABLE implemented_interfaces (
-    parent TEXT NOT NULL,
-    interface_type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (interface_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    PRIMARY KEY (parent, interface_type)
-);
-
-CREATE TABLE union_member_types (
-    parent TEXT NOT NULL,
-    member_type TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (member_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    PRIMARY KEY (parent, member_type),
-    UNIQUE (parent, member_type)
+CREATE TABLE possible_types (
+    type TEXT NOT NULL,
+    member TEXT NOT NULL,
+    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (member) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    PRIMARY KEY (type, member)
 );
 
 CREATE TABLE directives (
@@ -312,7 +303,7 @@ CREATE INDEX idx_selection_arguments_selection ON selection_arguments(selection_
 CREATE INDEX idx_selection_directive_args_parent ON selection_directive_arguments(parent);
 
 -- Type system lookups
-CREATE INDEX idx_implemented_interfaces_parent ON implemented_interfaces(parent);
-CREATE INDEX idx_union_member_types_parent ON union_member_types(parent);
+CREATE INDEX idx_possible_types_type ON possible_types(type);
+CREATE INDEX idx_possible_types_member ON possible_types(member);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
 `

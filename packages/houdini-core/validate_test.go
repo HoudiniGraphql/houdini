@@ -34,7 +34,8 @@ func TestValidate(t *testing.T) {
 			update(input: InputType!): String
 		}
 
-		type User {
+		type User implements Node {
+			id: ID!
 			firstName: String
 		}
 
@@ -45,6 +46,12 @@ func TestValidate(t *testing.T) {
 		input InputType {
 			field: String
 		}
+
+		interface Node {
+			id: ID!
+		}
+
+		union Entity = User | Ghost
 	`
 
 	projectConfig := plugins.ProjectConfig{
@@ -163,7 +170,51 @@ func TestValidate(t *testing.T) {
 				`fragment frag on Cat {
 					name
 				}`,
-				`query {
+				`query A {
+					user(name:"foo") {
+						...frag
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on a compatible object type.",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on User {
+					firstName
+				}`,
+				`query A {
+					user(name:"foo") {
+						...frag
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on a compatible union type.",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on Entity {
+					... on User {
+							firstName
+					}
+				}`,
+				`query A {
+					user(name:"foo") {
+						...frag
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on a compatible interface type.",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on Node {
+					id
+				}`,
+				`query A {
 					user(name:"foo") {
 						...frag
 					}

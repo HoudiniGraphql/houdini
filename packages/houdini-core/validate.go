@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"code.houdinigraphql.com/plugins"
@@ -280,11 +281,130 @@ func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *pl
 }
 
 func (p *HoudiniCore) validate_unknownField(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+		SELECT
+			alias,
+			selections.type,
+			json_group_array(
+				json_object(
+					'line', refs.row,
+					'column', refs.column,
+					'filepath', raw_documents.filepath
+				)
+			) AS locations
+		FROM selections selections
+			LEFT JOIN type_fields type_fields ON selections.type = type_fields.id
+			JOIN selection_refs refs ON refs.child_id = selections.id
+			JOIN documents ON refs.document = documents.id
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+		WHERE selections.kind = 'field' AND type_fields.id IS NULL
+		GROUP BY selections.id
+	`
 
+	p.runValidationQuery(ctx, query, "error checking for selections with selections", errs, func(row *sqlite.Stmt) {
+		alias := row.ColumnText(0)
+		fieldType := strings.Split(row.ColumnText(1), ".")[0]
+
+		// parse the locations into something we can use
+		locations := []*plugins.ErrorLocation{}
+		err := json.Unmarshal([]byte(row.ColumnText(2)), &locations)
+		if err != nil {
+			errs.Append(plugins.Error{
+				Message: "could not unmarshal locations",
+				Detail:  err.Error(),
+			})
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("'%s' does not exist on %s", alias, fieldType),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
 }
 
 func (p *HoudiniCore) validate_incompatibleFragmentSpread(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+	SELECT
+		childSel.id AS fragmentSpreadId,
+		parentTF.type AS parentFieldType,
+		fragDoc.type_condition AS fragmentTypeCondition,
+		-- Use the row and column from selection_refs for the error location.
+		json_group_array(
+		  json_object('line', refs.row, 'column', refs.column, 'filepath', raw_documents.filepath)
+		) AS locations,
+		-- LEFT JOIN possible_types on the fragment's declared type condition.
+		COALESCE(json_group_array(possible_types.member), json('[]')) AS possible_types
+	FROM selection_refs AS refs
+		-- The fragment spread selection (child)
+		JOIN selections AS childSel ON refs.child_id = childSel.id
+		-- Join to fragment definition (documents) to get its declared type condition.
+		JOIN documents AS fragDoc
+			ON fragDoc.name = childSel.field_name
+		   AND fragDoc.kind = 'fragment'
+		-- The parent selection that contains the fragment spread.
+		JOIN selections AS parentSel ON refs.parent_id = parentSel.id
+		-- Resolve the parent's field type.
+		JOIN type_fields AS parentTF ON parentSel.type = parentTF.id
+		-- Get the document in which the fragment spread is used.
+		JOIN documents AS doc ON doc.id = refs.document
+		JOIN raw_documents ON raw_documents.id = doc.raw_document
+		-- LEFT JOIN possible_types using the fragment's type condition.
+		LEFT JOIN possible_types ON possible_types.type = fragDoc.type_condition
+	WHERE childSel.kind = 'fragment'
+	GROUP BY childSel.id
+	`
 
+	p.runValidationQuery(ctx, query, "error checking incompatible fragment spreads", errs, func(row *sqlite.Stmt) {
+		fragSpreadID := row.ColumnText(0)
+		parentFieldType := row.ColumnText(1)
+		fragTypeCondition := row.ColumnText(2)
+		locationsRaw := row.ColumnText(3)
+		possibleTypesRaw := row.ColumnText(4)
+
+		// Unmarshal the aggregated locations.
+		locations := []*plugins.ErrorLocation{}
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: "could not unmarshal locations for fragment spread",
+				Detail:  err.Error(),
+			})
+			return
+		}
+		// (The file path is already included via the JSON object.)
+
+		// Unmarshal possible types.
+		possibleTypes := []string{}
+		if err := json.Unmarshal([]byte(possibleTypesRaw), &possibleTypes); err != nil {
+			errs.Append(plugins.Error{
+				Message: "could not unmarshal possible types for fragment spread",
+				Detail:  err.Error(),
+			})
+			return
+		}
+
+		// Check compatibility:
+		// A fragment spread is considered compatible if:
+		//  - The fragment's declared type condition exactly equals the parent's resolved type, OR
+		//  - The parent's resolved type appears in the list of possible types (i.e. the fragment type is an interface/union).
+		compatible := (fragTypeCondition == parentFieldType)
+		if !compatible && len(possibleTypes) > 0 {
+			for _, pt := range possibleTypes {
+				if pt == parentFieldType {
+					compatible = true
+					break
+				}
+			}
+		}
+
+		if !compatible {
+			errs.Append(plugins.Error{
+				Message:   fmt.Sprintf("Fragment spread '%s' is incompatible: parent's type '%s' is not compatible with fragment type condition '%s'", fragSpreadID, parentFieldType, fragTypeCondition),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: locations,
+			})
+		}
+	})
 }
 
 func (p *HoudiniCore) validate_fragmentCycles(ctx context.Context, errs *plugins.ErrorList) {

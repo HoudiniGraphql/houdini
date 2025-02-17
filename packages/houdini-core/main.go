@@ -158,17 +158,16 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 }
 
 type SchemaInsertStatements struct {
-	InsertType                 *sqlite.Stmt
-	InsertInternalType         *sqlite.Stmt
-	InsertTypeField            *sqlite.Stmt
-	InsertInterfaceImplementor *sqlite.Stmt
-	InsertUnionMember          *sqlite.Stmt
-	InsertEnumValue            *sqlite.Stmt
-	InsertFieldArgument        *sqlite.Stmt
-	InsertDirective            *sqlite.Stmt
-	InsertInternalDirective    *sqlite.Stmt
-	InsertDirectiveLocation    *sqlite.Stmt
-	InsertDirectiveArgument    *sqlite.Stmt
+	InsertType              *sqlite.Stmt
+	InsertInternalType      *sqlite.Stmt
+	InsertTypeField         *sqlite.Stmt
+	InsertPossibelType      *sqlite.Stmt
+	InsertEnumValue         *sqlite.Stmt
+	InsertFieldArgument     *sqlite.Stmt
+	InsertDirective         *sqlite.Stmt
+	InsertInternalDirective *sqlite.Stmt
+	InsertDirectiveLocation *sqlite.Stmt
+	InsertDirectiveArgument *sqlite.Stmt
 }
 
 func (p *HoudiniCore) prepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, func()) {
@@ -176,8 +175,7 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInse
 	insertTypeStmt := db.Prep("INSERT INTO types (name, kind) VALUES (?, ?)")
 	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES (?, ?, true)")
 	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value, description) VALUES (?, ?, ?, ?, ?, ?, ?)")
-	insertInterfaceImplementorStmt := db.Prep("INSERT INTO implemented_interfaces (parent, interface_type) VALUES (?, ?)")
-	insertUnionMemberStmt := db.Prep("INSERT INTO union_member_types (parent, member_type) VALUES (?, ?)")
+	insertPossibleTypeStmt := db.Prep("INSERT INTO possible_types (type, member) VALUES (?, ?)")
 	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES (?, ?)")
 	insertFieldArgumentStmt := db.Prep("INSERT INTO field_argument_definitions (field, name, type, default_value) VALUES (?, ?, ?, ?)")
 	insertDirectiveStmt := db.Prep("INSERT INTO directives (name, repeatable) VALUES (?, ?)")
@@ -188,8 +186,7 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInse
 	finalize := func() {
 		insertTypeStmt.Finalize()
 		insertTypeFieldStmt.Finalize()
-		insertInterfaceImplementorStmt.Finalize()
-		insertUnionMemberStmt.Finalize()
+		insertPossibleTypeStmt.Finalize()
 		insertEnumValueStmt.Finalize()
 		insertFieldArgumentStmt.Finalize()
 		insertDirectiveStmt.Finalize()
@@ -200,16 +197,15 @@ func (p *HoudiniCore) prepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInse
 	}
 
 	return SchemaInsertStatements{
-		InsertType:                 insertTypeStmt,
-		InsertInternalType:         insertInternalTypeStmt,
-		InsertTypeField:            insertTypeFieldStmt,
-		InsertInterfaceImplementor: insertInterfaceImplementorStmt,
-		InsertUnionMember:          insertUnionMemberStmt,
-		InsertEnumValue:            insertEnumValueStmt,
-		InsertFieldArgument:        insertFieldArgumentStmt,
-		InsertDirective:            insertDirectiveStmt,
-		InsertInternalDirective:    insertInternalDirectiveStmt,
-		InsertDirectiveLocation:    insertDirectiveLocationStmt,
-		InsertDirectiveArgument:    insertDirectiveArgumentStmt,
+		InsertType:              insertTypeStmt,
+		InsertInternalType:      insertInternalTypeStmt,
+		InsertTypeField:         insertTypeFieldStmt,
+		InsertPossibelType:      insertPossibleTypeStmt,
+		InsertEnumValue:         insertEnumValueStmt,
+		InsertFieldArgument:     insertFieldArgumentStmt,
+		InsertDirective:         insertDirectiveStmt,
+		InsertInternalDirective: insertInternalDirectiveStmt,
+		InsertDirectiveLocation: insertDirectiveLocationStmt,
+		InsertDirectiveArgument: insertDirectiveArgumentStmt,
 	}, finalize
 }

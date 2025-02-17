@@ -252,7 +252,7 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 			// add the interface implementors
 			for _, impl := range schema.GetPossibleTypes(typ) {
-				err = db.ExecStatement(statements.InsertInterfaceImplementor, typ.Name, impl.Name)
+				err = db.ExecStatement(statements.InsertPossibelType, typ.Name, impl.Name)
 				if err != nil {
 					errors.Append(plugins.Error{
 						Message: fmt.Sprintf("error linking interface %s with implementor %s", typ.Name, impl.Name),
@@ -272,7 +272,7 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		case ast.Union:
 			// implement the union members in a deferred pass
 			for _, member := range schema.GetPossibleTypes(typ) {
-				err = db.ExecStatement(statements.InsertUnionMember, typ.Name, member.Name)
+				err = db.ExecStatement(statements.InsertPossibelType, typ.Name, member.Name)
 				if err != nil {
 					errors.Append(plugins.Error{
 						Message: fmt.Sprintf("error linking union %s with member %s", typ.Name, member.Name),
