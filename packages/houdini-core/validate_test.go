@@ -37,6 +37,7 @@ func TestValidate(t *testing.T) {
 		type User implements Node {
 			id: ID!
 			firstName: String
+			lastName: String
 		}
 
 		type Cat {
@@ -138,8 +139,8 @@ func TestValidate(t *testing.T) {
 			Title: "Using a scalar as a variable type",
 			Pass:  true,
 			Documents: []string{
-				`query Test($name: String) {
-					user(arg: $name)
+				`query Test($name: String!) {
+					user(name: $name)
 				}`,
 			},
 		},
@@ -354,6 +355,17 @@ func TestValidate(t *testing.T) {
 			Title: "Variable used in a position with an incompatible type",
 			Pass:  false,
 			Documents: []string{
+				`query Test($var: String) {
+					user(name: $var) {
+						firstName
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Variable used in a position with a compatible type",
+			Pass:  true,
+			Documents: []string{
 				`query Test($var: String!) {
 					user(name: $var) {
 						firstName
@@ -388,7 +400,7 @@ func TestValidate(t *testing.T) {
 			Title: "Duplicate keys in an input object",
 			Pass:  false,
 			Documents: []string{
-				`mutation Test($input: InputType!) {
+				`mutation Test {
 					update(input: { field: "value", field: "another value" })
 				}`,
 			},
@@ -401,7 +413,7 @@ func TestValidate(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`query QueryA {
-					user {
+					user(name:"foo") {
 						id: firstName
 					}
 				}`,
@@ -412,12 +424,12 @@ func TestValidate(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`query QueryA {
-					user {
+					user(name:"foo") {
 						id: firstName
 					}
 				}`,
 				`query QueryB {
-					user {
+					user(name:"foo") {
 						id: firstName
 					}
 				}`,

@@ -36,7 +36,6 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_wrongTypesToArg,
 		p.validate_missingRequiredArgument,
 		p.validate_fieldArgumentIncompatibleType,
-		p.validate_nonRequiredArgPassedToRequiredField,
 		p.validate_conflictingSelections,
 		p.validate_duplicateKeysInInputObject,
 		p.validate_noKeyAlias,
@@ -918,44 +917,41 @@ func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, err
 	})
 }
 func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context, errs *plugins.ErrorList) {
-	// This query retrieves, for each field argument variable usage:
-	// - selection_id: the field in which the argument is used.
-	// - argName: the name of the argument.
-	// - expectedType and expectedModifiers: from the field argument definition.
-	// - providedTypeRaw and providedModifiers: from the variable definition.
-	// - File path and location info for error reporting.
-	// - varUsage: the raw variable usage (e.g. "$a").
-	// We join through selection_refs to get the owning document.
-	// Finally, we add a HAVING clause that filters for incompatibility.
+	// This query retrieves each field argument variable usage along with:
+	//   - The expected type and modifiers (from the field argument definition).
+	//   - The provided type and modifiers (from the operation variable definition).
+	//   - File path and location info.
+	// We join through selection_refs (since selections don’t directly store a document id).
+	// Then we add a HAVING clause that filters for rows that are incompatible.
 	query := `
-		SELECT
-			sa.selection_id,
-			fad.name AS argName,
-			fad.type AS expectedType,
-			COALESCE(fad.type_modifiers, '') AS expectedModifiers,
-			opv.type AS providedTypeRaw,
-			COALESCE(opv.type_modifiers, '') AS providedModifiers,
-			rd.filepath,
-			json_group_array(
-			json_object('line', rd.offset_line, 'column', rd.offset_column)
-			) AS locations,
-			sa.value AS varUsage
-		FROM selection_arguments sa
-			JOIN selections s ON sa.selection_id = s.id
-			JOIN type_fields tf ON s.type = tf.id
-			JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sa.name
-			JOIN selection_refs sr ON sr.child_id = s.id
-			JOIN documents d ON d.id = sr.document
-			JOIN raw_documents rd ON rd.id = d.raw_document
-			JOIN operation_variables opv ON d.id = opv.document AND opv.name = substr(sa.value, 2)
-		GROUP BY sa.selection_id, fad.name
-		HAVING NOT (
-			fad.type = opv.type
-			AND (
-				(COALESCE(fad.type_modifiers, '') = '!' AND COALESCE(opv.type_modifiers, '') = '!')
-				OR (COALESCE(fad.type_modifiers, '') = '' AND COALESCE(opv.type_modifiers, '') IN ('','!'))
-			)
-		)
+	SELECT
+		sa.selection_id,
+		fad.name AS argName,
+		fad.type AS expectedType,
+		COALESCE(fad.type_modifiers, '') AS expectedModifiers,
+		opv.type AS providedTypeRaw,
+		COALESCE(opv.type_modifiers, '') AS providedModifiers,
+		rd.filepath,
+		json_group_array(
+		json_object('line', rd.offset_line, 'column', rd.offset_column)
+		) AS locations,
+		sa.value AS varUsage
+	FROM selection_arguments sa
+		JOIN selections s ON sa.selection_id = s.id
+		JOIN type_fields tf ON s.type = tf.id
+		JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sa.name
+		JOIN selection_refs sr ON sr.child_id = s.id
+		JOIN documents d ON d.id = sr.document
+		JOIN raw_documents rd ON rd.id = d.raw_document
+		JOIN operation_variables opv ON d.id = opv.document AND opv.name = substr(sa.value, 2)
+	GROUP BY sa.selection_id, fad.name
+	HAVING NOT (
+		  fad.type = opv.type
+		  AND (
+			   (COALESCE(fad.type_modifiers, '') = '!' AND COALESCE(opv.type_modifiers, '') = '!')
+			   OR (COALESCE(fad.type_modifiers, '') = '' AND COALESCE(opv.type_modifiers, '') IN ('','!'))
+		  )
+	)
 	`
 
 	p.runValidationQuery(ctx, query, "error checking field argument incompatible type", errs, func(row *sqlite.Stmt) {
@@ -979,8 +975,6 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 			loc.Filepath = filepath
 		}
 
-		// Because the SQL filter returns only rows that fail our compatibility check,
-		// we can now report an error directly.
 		errs.Append(plugins.Error{
 			Message: fmt.Sprintf(
 				"Variable used for argument '%s' is incompatible: expected type '%s%s' but got '%s%s'",
@@ -991,19 +985,106 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 	})
 }
 
-func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugins.ErrorList) {
-
-}
-
 func (p *HoudiniCore) validate_missingRequiredArgument(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+	SELECT
+		fad.name AS argName,
+		rd.filepath,
+		json_group_array(
+			json_object('line', rd.offset_line, 'column', rd.offset_column)
+		) AS locations
+	FROM selections s
+	  JOIN type_fields tf ON s.type = tf.id
+	  JOIN field_argument_definitions fad ON fad.field = tf.id
+	  LEFT JOIN selection_arguments sa ON sa.selection_id = s.id AND sa.name = fad.name
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE fad.type_modifiers LIKE '%!'
+	  AND sa.id IS NULL
+	  AND d.kind IN ('query', 'mutation', 'subscription')
+	GROUP BY s.id, fad.name
+	`
 
-}
+	p.runValidationQuery(ctx, query, "error checking for missing required arguments", errs, func(row *sqlite.Stmt) {
+		argName := row.ColumnText(0)
+		filepath := row.ColumnText(1)
+		locationsRaw := row.ColumnText(2)
 
-func (p *HoudiniCore) validate_nonRequiredArgPassedToRequiredField(ctx context.Context, errs *plugins.ErrorList) {
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for missing required argument '%s'", argName),
+				Detail:  err.Error(),
+			})
+			return
+		}
 
+		// Assign the file path from the raw document to each location.
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Missing required argument '%s'", argName),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
 }
 
 func (p *HoudiniCore) validate_conflictingSelections(ctx context.Context, errs *plugins.ErrorList) {
+	// This query detects conflicting selections by grouping by the parent selection id (from selection_refs)
+	// and the alias (from selections). If more than one distinct field type is used for the same alias,
+	// we consider that a conflict.
+	query := `
+		SELECT
+			sr.parent_id AS parentSelectionID,
+			s.alias,
+			json_group_array(s.field_name) AS conflictingFields,
+			json_group_array(s.type) AS types,
+			rd.filepath,
+			json_group_array(
+				json_object('line', sr.row, 'column', sr.column)
+			) AS locations
+		FROM selection_refs sr
+			JOIN selections s ON sr.child_id = s.id
+			JOIN documents d ON sr.document = d.id
+			JOIN raw_documents rd ON rd.id = d.raw_document
+		WHERE s.alias IS NOT NULL
+		GROUP BY sr.parent_id, s.alias
+		HAVING COUNT(DISTINCT s.type) > 1
+	`
+
+	p.runValidationQuery(ctx, query, "error checking for conflicting selections", errs, func(row *sqlite.Stmt) {
+		parentSelectionID := row.ColumnText(0)
+		alias := row.ColumnText(1)
+		conflictingFields := row.ColumnText(2)
+		types := row.ColumnText(3)
+		filepath := row.ColumnText(4)
+		locationsRaw := row.ColumnText(5)
+
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for conflicting selections with alias '%s'", alias),
+				Detail:  err.Error(),
+			})
+			return
+		}
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Conflicting selections for alias '%s': fields %s have differing types %s (parent selection %s)", alias, conflictingFields, types, parentSelectionID),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
+}
+
+func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugins.ErrorList) {
 
 }
 
