@@ -46,6 +46,7 @@ func TestValidate(t *testing.T) {
 
 		input InputType {
 			field: String
+			list: [InputType]
 		}
 
 		interface Node {
@@ -319,26 +320,6 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Providing an argument value of the wrong type",
-			Pass:  false,
-			Documents: []string{
-				`query Test{
-					user(name: 1) {
-						firstName
-					}
-				}`,
-			},
-		},
-		{
-			Title: "Providing a nested argument value of the wrong type",
-			Pass:  false,
-			Documents: []string{
-				`mutation Test {
-					update(input: { field: 1 })
-				}`,
-			},
-		},
-		{
 			Title: "Duplicate keys in an input object",
 			Pass:  false,
 			Documents: []string{
@@ -411,6 +392,35 @@ func TestValidate(t *testing.T) {
 						name: firstName
 						name: lastName
 					}
+				}`,
+			},
+		},
+		{
+			Title: "Providing an argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+					user(name: 1) {
+						firstName
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Providing a nested argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+					update(input: { field: 1 })
+				}`,
+			},
+		},
+		{
+			Title: "Providing a deeply nested argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+					update(input: { list: [{ field: 2 }] })
 				}`,
 			},
 		},

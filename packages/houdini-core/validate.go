@@ -33,7 +33,8 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_unknownDirective,
 		p.validate_repeatingNonRepeatable,
 		p.validate_duplicateArgumentInField,
-		p.validate_wrongTypesToArg,
+		p.validate_wrongTypesToStructuredArg,
+		p.validate_wrongTypesToScalarArg,
 		p.validate_missingRequiredArgument,
 		p.validate_fieldArgumentIncompatibleType,
 		p.validate_conflictingSelections,
@@ -1130,11 +1131,340 @@ func (p *HoudiniCore) validate_duplicateKeysInInputObject(ctx context.Context, e
 	})
 }
 
-func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.ErrorList) {
+func (p *HoudiniCore) validate_wrongTypesToScalarArg(ctx context.Context, errs *plugins.ErrorList) {
+	// SQL query for top-level scalar arguments.
+	// This query joins the argument value with its corresponding field argument definition.
+	// It retrieves:
+	//   - The argument name and expected type (from fad.type)
+	//   - The provided literal (av.raw) and its kind (av.kind)
+	//   - The file path and location info for error reporting.
+	queryStr := `
+	SELECT
+	  sargs.selection_id,
+	  fad.name AS argName,
+	  fad.type AS expectedType,
+	  av.raw AS providedLiteral,
+	  av.kind AS providedKind,
+	  rd.filepath,
+	  json_group_array(
+	    json_object('line', rd.offset_line, 'column', rd.offset_column)
+	  ) AS locations
+	FROM selection_arguments sargs
+	  JOIN selections s ON sargs.selection_id = s.id
+	  JOIN type_fields tf ON s.type = tf.id
+	  JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sargs.name
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  JOIN argument_values av ON av.id = sargs.value
+	WHERE av.kind NOT IN ('Object', 'Variable')
+	GROUP BY sargs.selection_id, fad.name, av.raw, av.kind
+	HAVING fad.type <> av.kind
+	`
 
+	// Run the query.
+	p.runValidationQuery(ctx, queryStr, "error checking argument types", errs, func(row *sqlite.Stmt) {
+		argName := row.ColumnText(1)
+		expectedType := row.ColumnText(2)
+		providedLiteral := row.ColumnText(3)
+		providedKind := row.ColumnText(4)
+		filepath := row.ColumnText(5)
+		locationsRaw := row.ColumnText(6)
+
+		// Unmarshal the aggregated locations.
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("Could not unmarshal locations for argument '%s'", argName),
+				Detail:  err.Error(),
+			})
+			return
+		}
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Argument '%s' expects type '%s' but provided literal of type '%s' (value: %s)", argName, expectedType, providedKind, providedLiteral),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
 }
 
-func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugins.ErrorList) {
+// InputTypeDefinition and InputFieldDefinition as before:
+type InputTypeDefinition struct {
+	Name   string
+	Fields map[string]*InputFieldDefinition
+}
+
+type InputFieldDefinition struct {
+	Name         string
+	ExpectedType string // e.g. "String", "Int", etc.
+	Required     bool   // if true, the field is required (e.g. modifier "!")
+	// If the field is an input object, InputDef holds its definition.
+	InputDef *InputTypeDefinition
+}
+
+// loadAllInputTypes queries the database once to load all input types and their fields.
+func (p *HoudiniCore) loadAllInputTypes(ctx context.Context) (map[string]*InputTypeDefinition, error) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer p.DB.Put(conn)
+
+	// Query all types with kind 'INPUT' or 'INPUT_OBJECT'
+	typesQuery := `SELECT name FROM types WHERE kind IN ('INPUT','INPUT_OBJECT')`
+	typesStmt, err := conn.Prepare(typesQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare types query: %w", err)
+	}
+	defer typesStmt.Finalize()
+
+	inputTypes := make(map[string]*InputTypeDefinition)
+	for {
+		hasData, err := typesStmt.Step()
+		if err != nil {
+			return nil, fmt.Errorf("error stepping types query: %w", err)
+		}
+		if !hasData {
+			break
+		}
+		typeName := typesStmt.ColumnText(0)
+		inputTypes[typeName] = &InputTypeDefinition{
+			Name:   typeName,
+			Fields: make(map[string]*InputFieldDefinition),
+		}
+	}
+
+	// Query all type_fields where the parent is an input type.
+	fieldsQuery := `SELECT parent, name, type, type_modifiers FROM type_fields WHERE parent IN (
+		SELECT name FROM types WHERE kind IN ('INPUT','INPUT_OBJECT')
+	)`
+	fieldsStmt, err := conn.Prepare(fieldsQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare fields query: %w", err)
+	}
+	defer fieldsStmt.Finalize()
+
+	for {
+		hasData, err := fieldsStmt.Step()
+		if err != nil {
+			return nil, fmt.Errorf("error stepping fields query: %w", err)
+		}
+		if !hasData {
+			break
+		}
+		parent := fieldsStmt.ColumnText(0)
+		fieldName := fieldsStmt.ColumnText(1)
+		fieldType := fieldsStmt.ColumnText(2)
+		modifiers := fieldsStmt.ColumnText(3)
+
+		fieldDef := &InputFieldDefinition{
+			Name:         fieldName,
+			ExpectedType: fieldType,
+			Required:     strings.Contains(modifiers, "!"),
+		}
+		// For now, we don't set InputDef for nested input objects; we can do that in a second pass.
+		if parentDef, ok := inputTypes[parent]; ok {
+			parentDef.Fields[fieldName] = fieldDef
+		}
+	}
+
+	// Second pass: For each field whose ExpectedType is itself an input type,
+	// set its InputDef pointer by looking it up in our cache.
+	for _, inputType := range inputTypes {
+		for _, fieldDef := range inputType.Fields {
+			if nested, ok := inputTypes[fieldDef.ExpectedType]; ok {
+				fieldDef.InputDef = nested
+			}
+		}
+	}
+
+	return inputTypes, nil
+}
+
+// validateNestedInput recursively validates that the provided input (as an interface{})
+// conforms to the expected input type definition. The 'path' parameter is used for error messages.
+func validateNestedInput(provided interface{}, def *InputTypeDefinition, path string) []*plugins.Error {
+	var errs []*plugins.Error
+
+	// The provided input should be a map (JSON object)
+	providedMap, ok := provided.(map[string]interface{})
+	if !ok {
+		errs = append(errs, &plugins.Error{
+			Message: fmt.Sprintf("Value at '%s' should be an object", path),
+			Kind:    plugins.ErrorKindValidation,
+		})
+		return errs
+	}
+
+	// Check for each expected field.
+	for fieldName, fieldDef := range def.Fields {
+		currentPath := path
+		if currentPath != "" {
+			currentPath += "."
+		}
+		currentPath += fieldName
+
+		value, exists := providedMap[fieldName]
+		if !exists {
+			if fieldDef.Required {
+				errs = append(errs, &plugins.Error{
+					Message: fmt.Sprintf("Missing required field '%s'", currentPath),
+					Kind:    plugins.ErrorKindValidation,
+				})
+			}
+			continue
+		}
+
+		// If the field is an input object, validate recursively.
+		if fieldDef.InputDef != nil {
+			nestedErrs := validateNestedInput(value, fieldDef.InputDef, currentPath)
+			errs = append(errs, nestedErrs...)
+		} else {
+			// Otherwise, check scalar types.
+			switch fieldDef.ExpectedType {
+			case "String", "ID":
+				if _, ok := value.(string); !ok {
+					errs = append(errs, &plugins.Error{
+						Message: fmt.Sprintf("Field '%s' should be a String", currentPath),
+						Kind:    plugins.ErrorKindValidation,
+					})
+				}
+			case "Int":
+				// JSON numbers are decoded as float64.
+				if num, ok := value.(float64); !ok || num != float64(int(num)) {
+					errs = append(errs, &plugins.Error{
+						Message: fmt.Sprintf("Field '%s' should be an Int", currentPath),
+						Kind:    plugins.ErrorKindValidation,
+					})
+				}
+			case "Float":
+				if _, ok := value.(float64); !ok {
+					errs = append(errs, &plugins.Error{
+						Message: fmt.Sprintf("Field '%s' should be a Float", currentPath),
+						Kind:    plugins.ErrorKindValidation,
+					})
+				}
+			case "Boolean":
+				if _, ok := value.(bool); !ok {
+					errs = append(errs, &plugins.Error{
+						Message: fmt.Sprintf("Field '%s' should be a Boolean", currentPath),
+						Kind:    plugins.ErrorKindValidation,
+					})
+				}
+			// Add additional scalar type checks (Boolean, Float, etc.) as needed.
+			default:
+				// For custom scalars, you might add custom logic here.
+			}
+		}
+	}
+
+	// Optionally, warn about extra fields not defined in the schema.
+	for key := range providedMap {
+		if _, ok := def.Fields[key]; !ok {
+			currentPath := path
+			if currentPath != "" {
+				currentPath += "."
+			}
+			currentPath += key
+			errs = append(errs, &plugins.Error{
+				Message: fmt.Sprintf("Field '%s' is not defined on input type '%s'", currentPath, def.Name),
+				Kind:    plugins.ErrorKindValidation,
+			})
+		}
+	}
+
+	return errs
+}
+func (p *HoudiniCore) validate_wrongTypesToStructuredArg(ctx context.Context, errs *plugins.ErrorList) {
+	// Load the full input type definitions once.
+	inputTypes, err := p.loadAllInputTypes(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("failed to load input type definitions: %s", err.Error()),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: nil,
+		})
+		return
+	}
+
+	// Query for structured arguments (object literals)
+	queryObj := `
+	SELECT
+	  sargs.selection_id,
+	  fad.name AS argName,
+	  fad.type AS expectedInputType,
+	  av.raw AS providedJSON,
+	  rd.filepath,
+	  json_group_array(
+	    json_object('line', rd.offset_line, 'column', rd.offset_column)
+	  ) AS locations
+	FROM selection_arguments sargs
+	  JOIN selections s ON sargs.selection_id = s.id
+	  JOIN type_fields tf ON s.type = tf.id
+	  JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sargs.name
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  JOIN argument_values av ON av.id = sargs.value
+	WHERE av.kind = 'Object'
+	GROUP BY sargs.selection_id, fad.name, av.raw
+	`
+
+	p.runValidationQuery(ctx, queryObj, "error checking structured argument", errs, func(row *sqlite.Stmt) {
+		argName := row.ColumnText(1)
+		expectedTypeName := row.ColumnText(2)
+		providedJSON := row.ColumnText(3)
+		filepath := row.ColumnText(4)
+		locationsRaw := row.ColumnText(5)
+
+		// Unmarshal the provided JSON into a generic map.
+		var providedInput map[string]interface{}
+		if err := json.Unmarshal([]byte(providedJSON), &providedInput); err != nil {
+			errs.Append(plugins.Error{
+				Message:   fmt.Sprintf("Could not unmarshal JSON for argument '%s'", argName),
+				Detail:    err.Error(),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{{Filepath: filepath}},
+			})
+			return
+		}
+
+		expectedDef, found := inputTypes[expectedTypeName]
+		if !found {
+			errs.Append(plugins.Error{
+				Message:   fmt.Sprintf("Input type '%s' is not defined in the schema", expectedTypeName),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{{Filepath: filepath}},
+			})
+			return
+		}
+
+		// Validate the provided input recursively.
+		nestedErrs := validateNestedInput(providedInput, expectedDef, "")
+		if len(nestedErrs) > 0 {
+			var locations []*plugins.ErrorLocation
+			if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+				locations = []*plugins.ErrorLocation{{Filepath: filepath}}
+			} else {
+				for _, loc := range locations {
+					loc.Filepath = filepath
+				}
+			}
+			for _, e := range nestedErrs {
+				// Attach location information.
+				e.Locations = append(e.Locations, locations...)
+				errs.Append(*e)
+			}
+		}
+	})
+}
+
+func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.ErrorList) {
+
 }
 
 // runValidationQuery wraps the common steps for executing a query.
