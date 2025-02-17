@@ -126,6 +126,15 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
+			Title: "Using a scalar as a variable type.",
+			Pass:  true,
+			Documents: []string{
+				`query Test($name: String) {
+					user(arg: $name)
+				}`,
+			},
+		},
+		{
 			Title: "Scalar field with a sub-selection.",
 			Pass:  false,
 			Documents: []string{

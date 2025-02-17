@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"code.houdinigraphql.com/plugins"
+	"zombiezen.com/go/sqlite"
 )
 
 func (p *HoudiniCore) Validate(ctx context.Context) error {
@@ -63,19 +64,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 type RuleFunc = func(context.Context, *plugins.ErrorList)
 
 func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.Context, errs *plugins.ErrorList) {
-	// create a thread-safe connection for this check
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.Error{
-			Message: "could not open connection to database",
-			Detail:  err.Error(),
-		})
-		return
-	}
-	defer p.DB.Put(conn)
-
-	// we need a query that will return all of the subscriptions that have more than 1 root field
-	query, err := conn.Prepare(`
+	queryStr := `
 		SELECT
 			raw_documents.filepath,
 			json_group_array(
@@ -89,78 +78,30 @@ func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.C
 			AND refs.parent_id IS NULL
 			AND selections.kind = 'field'
 		GROUP BY documents.id, documents.name HAVING COUNT(*) > 1
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{
-			Message: "could not validate subscriptions with multiple root fields",
-			Detail:  err.Error(),
-		})
-		return
-	}
-	defer query.Finalize()
+	`
+	p.runValidationQuery(ctx, queryStr, "could not validate subscriptions with multiple root fields", errs, func(q *sqlite.Stmt) {
+		filepath := q.ColumnText(0)
+		locationsRaw := q.ColumnText(1)
 
-	// execute the query and check the results
-	for {
-		// make sure that ctx isn't cancelled
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		// get the next row
-		hasData, err := query.Step()
-		if err != nil {
-			errs.Append(plugins.Error{
-				Message: "could not check for subscriptions with multiple root fields",
-				Detail:  err.Error(),
-			})
-			break
-		}
-
-		// if theres no more data to consume then we're done
-		if !hasData {
-			break
-		}
-
-		// pull out the results
-		filepath := query.ColumnText(0)
-		locationsRaw := query.ColumnText(1)
-
-		// build up the list of locations
 		locations := []*plugins.ErrorLocation{}
-		err = json.Unmarshal([]byte(locationsRaw), &locations)
-		if err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations: %v. %v", err, locationsRaw)))
-			continue
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations: %v. Raw: %s", err, locationsRaw)))
+			return
 		}
+		// Set the file path for each location.
 		for _, loc := range locations {
 			loc.Filepath = filepath
 		}
-
-		// we found a subscription with multiple root fields
 		errs.Append(plugins.Error{
 			Message:   "subscriptions can only have a single root field",
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
-	}
+	})
 }
 
 func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs *plugins.ErrorList) {
-	// create a thread-safe connection for this check.
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.Error{
-			Message: "could not open connection to database",
-			Detail:  err.Error(),
-		})
-		return
-	}
-	defer p.DB.Put(conn)
-
-	// prepare a query that returns duplicate document names along with the locations
-	query, err := conn.Prepare(`
+	queryStr := `
 		SELECT
 			documents.name,
 			json_group_array(
@@ -174,69 +115,26 @@ func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs 
 		JOIN raw_documents ON raw_documents.id = documents.raw_document
 		GROUP BY documents.name
 		HAVING COUNT(*) > 1
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{
-			Message: "could not validate duplicate document names",
-			Detail:  err.Error(),
-		})
-		return
-	}
-	defer query.Finalize()
+	`
+	p.runValidationQuery(ctx, queryStr, "could not validate duplicate document names", errs, func(q *sqlite.Stmt) {
+		docName := q.ColumnText(0)
+		locationsRaw := q.ColumnText(1)
 
-	// execute the query and process each row.
-	for {
-		// check if the context has been cancelled.
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		hasData, err := query.Step()
-		if err != nil {
-			errs.Append(plugins.Error{
-				Message: "could not check for duplicate document names",
-				Detail:  err.Error(),
-			})
-			break
-		}
-		if !hasData {
-			break
-		}
-
-		// extract the duplicate name and the JSON-encoded error locations.
-		docName := query.ColumnText(0)
-		locationsRaw := query.ColumnText(1)
-
-		// parse the JSON to build the list of error locations.
 		locations := []*plugins.ErrorLocation{}
-		err = json.Unmarshal([]byte(locationsRaw), &locations)
-		if err != nil {
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for document '%s': %v. Raw: %s", docName, err, locationsRaw)))
-			continue
+			return
 		}
-
-		// append an error indicating that duplicate document names are not allowed.
 		errs.Append(plugins.Error{
 			Message:   fmt.Sprintf("duplicate document name: %s", docName),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
-	}
+	})
 }
 
 func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *plugins.ErrorList) {
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not open connection (fragmentUnknownType)", Detail: err.Error()})
-		return
-	}
-	defer p.DB.Put(conn)
-
-	// For fragments (documents.kind = 'fragment') join with types on type_condition.
-	// If no matching type is found, then the fragment references an unknown type.
-	query, err := conn.Prepare(`
+	queryStr := `
 		SELECT
 			documents.name,
 			documents.type_condition,
@@ -250,39 +148,17 @@ func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *pl
 		WHERE documents.kind = 'fragment'
 			AND types.name IS NULL
 		GROUP BY documents.id
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not prepare fragmentUnknownType query", Detail: err.Error()})
-		return
-	}
-	defer query.Finalize()
-
-	for {
-		// check context cancellation
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		hasData, err := query.Step()
-		if err != nil {
-			errs.Append(plugins.Error{Message: "error checking fragment unknown type", Detail: err.Error()})
-			break
-		}
-		if !hasData {
-			break
-		}
-
+	`
+	p.runValidationQuery(ctx, queryStr, "could not validate fragment type condition", errs, func(query *sqlite.Stmt) {
 		fragName := query.ColumnText(0)
 		typeCond := query.ColumnText(1)
 		filepath := query.ColumnText(2)
 		locationsRaw := query.ColumnText(3)
 
 		var locations []*plugins.ErrorLocation
-		if err = json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for fragment '%s': %v. Raw: %s", fragName, err, locationsRaw)))
-			continue
+			return
 		}
 		// set file path for each location
 		for _, loc := range locations {
@@ -294,19 +170,11 @@ func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *pl
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
-	}
+	})
 }
 
 func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugins.ErrorList) {
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not open connection (fragmentOnScalar)", Detail: err.Error()})
-		return
-	}
-	defer p.DB.Put(conn)
-
-	// Join fragments with types; if the type_condition exists and its kind is SCALAR, error.
-	query, err := conn.Prepare(`
+	queryStr := `
 		SELECT
 			documents.name,
 			documents.type_condition,
@@ -320,36 +188,17 @@ func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugi
 		WHERE documents.kind = 'fragment'
 		  AND types.kind = 'SCALAR'
 		GROUP BY documents.id
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not prepare fragmentOnScalar query", Detail: err.Error()})
-		return
-	}
-	defer query.Finalize()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-		hasData, err := query.Step()
-		if err != nil {
-			errs.Append(plugins.Error{Message: "error checking fragment on scalar", Detail: err.Error()})
-			break
-		}
-		if !hasData {
-			break
-		}
-		fragName := query.ColumnText(0)
-		typeCond := query.ColumnText(1)
-		filepath := query.ColumnText(2)
-		locationsRaw := query.ColumnText(3)
+	`
+	p.runValidationQuery(ctx, queryStr, "could not validate fragment on scalars", errs, func(row *sqlite.Stmt) {
+		fragName := row.ColumnText(0)
+		typeCond := row.ColumnText(1)
+		filepath := row.ColumnText(2)
+		locationsRaw := row.ColumnText(3)
 
 		var locations []*plugins.ErrorLocation
-		if err = json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for fragment '%s': %v. Raw: %s", fragName, err, locationsRaw)))
-			continue
+			return
 		}
 		for _, loc := range locations {
 			loc.Filepath = filepath
@@ -359,19 +208,11 @@ func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugi
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
-	}
+	})
 }
 
 func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plugins.ErrorList) {
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not open connection (outputTypeAsInput)", Detail: err.Error()})
-		return
-	}
-	defer p.DB.Put(conn)
-
-	// Operation variables must be input types. Join with types and error if kind is OBJECT, INTERFACE, or UNION.
-	query, err := conn.Prepare(`
+	queryStr := `
 		SELECT
 			operation_variables.name,
 			operation_variables.type,
@@ -383,32 +224,13 @@ func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plug
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 			JOIN types ON operation_variables.type = types.name
 		WHERE types.kind in ('OBJECT', 'INTERFACE', 'UNION')
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not prepare outputTypeAsInput query", Detail: err.Error()})
-		return
-	}
-	defer query.Finalize()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-		hasData, err := query.Step()
-		if err != nil {
-			errs.Append(plugins.Error{Message: "error checking variable output type", Detail: err.Error()})
-			break
-		}
-		if !hasData {
-			break
-		}
-		varName := query.ColumnText(0)
-		varType := query.ColumnText(1)
-		filepath := query.ColumnText(2)
-		line := query.ColumnInt(3)
-		column := query.ColumnInt(4)
+	`
+	p.runValidationQuery(ctx, queryStr, "could not validate operation variable types", errs, func(row *sqlite.Stmt) {
+		varName := row.ColumnText(0)
+		varType := row.ColumnText(1)
+		filepath := row.ColumnText(2)
+		line := row.ColumnInt(3)
+		column := row.ColumnInt(4)
 
 		errs.Append(plugins.Error{
 			Message: fmt.Sprintf("Variable '$%s' uses output type '%s' (must be an input type)", varName, varType),
@@ -420,18 +242,11 @@ func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plug
 				},
 			},
 		})
-	}
+	})
 }
 
 func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *plugins.ErrorList) {
-	conn, err := p.DB.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not open connection (scalarWithSelection)", Detail: err.Error()})
-		return
-	}
-	defer p.DB.Put(conn)
-
-	query, err := conn.Prepare(`
+	queryStr := `
 		SELECT
 			selections.alias,
 			raw_documents.filepath,
@@ -444,31 +259,12 @@ func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *pl
 			JOIN type_fields on selections.type = type_fields.id
 			JOIN types on type_fields.type = types.name
 		WHERE types.kind = 'SCALAR'
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{Message: "could not prepare scalarWithSelection query", Detail: err.Error()})
-		return
-	}
-	defer query.Finalize()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-		hasData, err := query.Step()
-		if err != nil {
-			errs.Append(plugins.Error{Message: "error checking for selections with selections", Detail: err.Error()})
-			break
-		}
-		if !hasData {
-			break
-		}
-		alias := query.ColumnText(0)
-		filepath := query.ColumnText(1)
-		line := query.ColumnInt(2)
-		column := query.ColumnInt(3)
+	`
+	p.runValidationQuery(ctx, queryStr, "error checking for selections with selections", errs, func(row *sqlite.Stmt) {
+		alias := row.ColumnText(0)
+		filepath := row.ColumnText(1)
+		line := row.ColumnInt(2)
+		column := row.ColumnInt(3)
 
 		errs.Append(plugins.Error{
 			Message: fmt.Sprintf("'%s' cannot have a selection (its a scalar)", alias),
@@ -480,8 +276,7 @@ func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *pl
 				},
 			},
 		})
-	}
-
+	})
 }
 
 func (p *HoudiniCore) validate_unknownField(ctx context.Context, errs *plugins.ErrorList) {
@@ -546,4 +341,49 @@ func (p *HoudiniCore) validate_duplicateKeysInInputObject(ctx context.Context, e
 
 func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.ErrorList) {
 
+}
+
+// runValidationQuery wraps the common steps for executing a query.
+// It obtains the connection, prepares the query, iterates over rows, and calls the rowHandler callback for each row.
+func (p *HoudiniCore) runValidationQuery(ctx context.Context, queryStr, prepErrMsg string, errs *plugins.ErrorList, rowHandler func(q *sqlite.Stmt)) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "could not open connection to database",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer p.DB.Put(conn)
+
+	query, err := conn.Prepare(queryStr)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: prepErrMsg,
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer query.Finalize()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		hasData, err := query.Step()
+		if err != nil {
+			errs.Append(plugins.Error{
+				Message: "query step error",
+				Detail:  err.Error(),
+			})
+			break
+		}
+		if !hasData {
+			break
+		}
+		rowHandler(query)
+	}
 }
