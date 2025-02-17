@@ -275,12 +275,11 @@ func handleAfterGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) f
 
 func handleError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
-	fmt.Println(err)
 
 	// if the error is a list of plugin errors then we should serialize the full list
 	if pluginErr, ok := err.(*ErrorList); ok {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(pluginErr)
+		json.NewEncoder(w).Encode(pluginErr.GetItems())
 		return
 	}
 

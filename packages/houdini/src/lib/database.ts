@@ -395,7 +395,7 @@ export async function write_config(
 
 	// write the scalar definitions
 	let insert = db.prepare('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)')
-	for (const [name, { type }] of Object.entries(config.config_file.scalars ?? {})) {
+	for (const [name, { type }] of Object.entries(config.config_file.runtimeScalars ?? {})) {
 		insert.run(name, type)
 	}
 

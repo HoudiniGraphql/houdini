@@ -974,7 +974,6 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 	`
 
 	p.runValidationQuery(ctx, query, "error checking field argument incompatible type", errs, func(row *sqlite.Stmt) {
-		selectionID := row.ColumnText(0)
 		argName := row.ColumnText(1)
 		expectedType := row.ColumnText(2)
 		expectedModifiers := row.ColumnText(3)
@@ -999,8 +998,8 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 		// we can now report an error directly.
 		errs.Append(plugins.Error{
 			Message: fmt.Sprintf(
-				"Variable used for argument '%s' on selection '%s' is incompatible: expected type '%s%s' but got '%s%s'",
-				argName, selectionID, expectedType, expectedModifiers, providedTypeRaw, providedModifiers),
+				"Variable used for argument '%s' is incompatible: expected type '%s%s' but got '%s%s'",
+				argName, expectedType, expectedModifiers, providedTypeRaw, providedModifiers),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
