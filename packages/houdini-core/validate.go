@@ -540,15 +540,169 @@ func (p *HoudiniCore) validate_fragmentCycles(ctx context.Context, errs *plugins
 }
 
 func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+		SELECT
+			documents.name AS documentName,
+			operation_variables.name AS variableName,
+			raw_documents.filepath,
+			json_group_array(
+				json_object(
+					'line', raw_documents.offset_line,
+					'column', raw_documents.offset_column
+				)
+			) AS locations
+		FROM operation_variables
+		JOIN documents ON operation_variables.document = documents.id
+		JOIN raw_documents ON raw_documents.id = documents.raw_document
+		GROUP BY documents.id, operation_variables.name
+		HAVING COUNT(*) > 1
+	`
 
+	p.runValidationQuery(ctx, query, "error checking for duplicate variables", errs, func(row *sqlite.Stmt) {
+		docName := row.ColumnText(0)
+		varName := row.ColumnText(1)
+		filepath := row.ColumnText(2)
+		locationsRaw := row.ColumnText(3)
+
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for duplicate variable '%s'", varName),
+				Detail:  err.Error(),
+			})
+			return
+		}
+
+		// Set the file path for each location.
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Variable '$%s' is defined more than once in document '%s'", varName, docName),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
 }
 
 func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plugins.ErrorList) {
+	// This subquery maps each selection to its document.
+	// We assume that variable references occur in operations,
+	// so we restrict to documents of kind 'query', 'mutation', or 'subscription'.
+	subquery := `
+		SELECT child_id, document
+		FROM selection_refs
+		GROUP BY child_id
+	`
 
+	// The main query:
+	// - Start from selection_arguments (variable references)
+	// - Join to selections and then join to the subquery to get the document id
+	// - Join to documents and raw_documents to get file path and location info
+	// - LEFT JOIN operation_variables (the defined variables for that document) on matching document and variable name.
+	// - Filter for references starting with '$' and for which there is no definition (opv.name IS NULL)
+	query := `
+		SELECT
+			sargs.value,
+			r.filepath,
+			json_group_array(
+				json_object('line', r.offset_line, 'column', r.offset_column)
+			) AS locations
+		FROM selection_arguments sargs
+			JOIN selections s ON sargs.selection_id = s.id
+			JOIN (` + subquery + `) AS sd ON s.id = sd.child_id
+			JOIN documents d ON d.id = sd.document
+			JOIN raw_documents r ON r.id = d.raw_document
+			LEFT JOIN operation_variables opv
+				ON opv.document = d.id
+				AND ('$' || opv.name) = sargs.value
+		WHERE sargs.value LIKE '$%'
+			AND d.kind IN ('query', 'mutation', 'subscription')
+			AND opv.name IS NULL
+		GROUP BY d.id, sargs.value
+	`
+
+	p.runValidationQuery(ctx, query, "error checking for undefined variables", errs, func(row *sqlite.Stmt) {
+		varUsage := row.ColumnText(0)
+		filepath := row.ColumnText(1)
+		locationsRaw := row.ColumnText(2)
+
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for undefined variable '%s'", varUsage),
+				Detail:  err.Error(),
+			})
+			return
+		}
+
+		// Assign the file path from the raw document to every location.
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Variable '%s' is used but not defined", varUsage),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
 }
 
 func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+	SELECT
+		opv.name,
+		d.name AS documentName,
+		r.filepath,
+		COALESCE(
+		  json_group_array(
+		    json_object('line', refs.row, 'column', refs.column)
+		  ),
+		  json('[]')
+		) AS locations
+	FROM operation_variables opv
+	JOIN documents d ON opv.document = d.id
+	JOIN raw_documents r ON r.id = d.raw_document
+	-- Join selection_refs by matching the document in which a selection is used.
+	LEFT JOIN selection_refs refs ON refs.document = d.id
+	-- Join to selection_arguments where the selection (referenced by refs.child_id)
+	-- uses the variable (prefixed with '$').
+	LEFT JOIN selection_arguments sargs
+	  ON sargs.selection_id = refs.child_id
+	     AND sargs.value = ('$' || opv.name)
+	WHERE d.kind IN ('query', 'mutation', 'subscription')
+	GROUP BY opv.id
+	HAVING COUNT(sargs.value) = 0
+	`
 
+	p.runValidationQuery(ctx, query, "error checking for unused variables", errs, func(row *sqlite.Stmt) {
+		varName := row.ColumnText(0)
+		docName := row.ColumnText(1)
+		filepath := row.ColumnText(2)
+		locationsRaw := row.ColumnText(3)
+
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for unused variable '%s'", varName),
+				Detail:  err.Error(),
+			})
+			return
+		}
+
+		// Set the file path from the raw document for each location.
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Variable '$%s' is defined in document '%s' but never used", varName, docName),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
 }
 
 func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugins.ErrorList) {
