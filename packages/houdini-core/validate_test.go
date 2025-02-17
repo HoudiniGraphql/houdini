@@ -330,6 +330,24 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
+			Title: "Providing an argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+					update(input: { field: 1 })
+				}`,
+			},
+		},
+		{
+			Title: "Duplicate keys in an input object",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+					update(input: { field: "value", field: "another value" })
+				}`,
+			},
+		},
+		{
 			Title: "Missing a required argument",
 			Pass:  false,
 			Documents: []string{
@@ -393,15 +411,6 @@ func TestValidate(t *testing.T) {
 						name: firstName
 						name: lastName
 					}
-				}`,
-			},
-		},
-		{
-			Title: "Duplicate keys in an input object",
-			Pass:  false,
-			Documents: []string{
-				`mutation Test {
-					update(input: { field: "value", field: "another value" })
 				}`,
 			},
 		},
