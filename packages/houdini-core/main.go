@@ -76,6 +76,8 @@ type DocumentInsertStatements struct {
 	InsertSelection                         *sqlite.Stmt
 	InsertSelectionRef                      *sqlite.Stmt
 	InsertSelectionArgument                 *sqlite.Stmt
+	InsertArgumentValue                     *sqlite.Stmt
+	InsertArgumentValueChild                *sqlite.Stmt
 	InsertSelectionDirective                *sqlite.Stmt
 	InsertSelectionDirectiveArgument        *sqlite.Stmt
 	InsertDocumentDirective                 *sqlite.Stmt
@@ -95,7 +97,15 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value) VALUES (?, ?, ?)")
+	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value, row, column) VALUES (?, ?, ?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertArgumentValue, err := conn.Prepare("INSERT INTO argument_values (kind, raw, row, column) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertArgumentValueChildren, err := conn.Prepare("INSERT INTO argument_value_children (name, parent, value, row, column) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
@@ -140,6 +150,8 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 		insertDocumentDirectiveArgument.Finalize()
 		insertDocumentVariableDirective.Finalize()
 		insertDocumentVariableDirectiveArgument.Finalize()
+		insertArgumentValue.Finalize()
+		insertArgumentValueChildren.Finalize()
 	}
 
 	return DocumentInsertStatements{
@@ -149,6 +161,8 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 		InsertDocumentVariableDirectiveArgument: insertDocumentVariableDirectiveArgument,
 		InsertSelection:                         insertSelection,
 		InsertSelectionArgument:                 insertSelectionArgument,
+		InsertArgumentValue:                     insertArgumentValue,
+		InsertArgumentValueChild:                insertArgumentValueChildren,
 		InsertSelectionRef:                      insertSelectionRef,
 		InsertSelectionDirective:                insertSelectionDirective,
 		InsertSelectionDirectiveArgument:        insertSelectionDirectiveArgument,

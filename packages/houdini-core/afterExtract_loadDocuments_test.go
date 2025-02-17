@@ -1333,6 +1333,17 @@ type expectedArgument struct {
 	Value string
 }
 
+type expectArgumentValue struct {
+	Kind     string
+	Raw      string
+	Children []expectArgumentValueChild
+}
+
+type expectArgumentValueChild struct {
+	Name  string
+	Value expectArgumentValue
+}
+
 type expectedDirectiveArgument struct {
 	Name  string
 	Value string

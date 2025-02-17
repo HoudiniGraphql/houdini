@@ -698,13 +698,31 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 			}
 		}
 
-		// handle any field arguments.
+		// Process each argument for a field.
 		for _, arg := range s.Arguments {
+			// Use the new function to recursively process the argument value
+			// and get its normalized ID.
+			argValueID, err := p.processArgumentValue(conn, arg.Value, statements)
+			if err != nil {
+				return &plugins.Error{
+					Message: "could not process argument value",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + arg.Position.Line,
+							Column:   query.ColumnOffset + arg.Position.Column,
+						},
+					},
+				}
+			}
+
+			// Insert the argument record that links the argument name to the processed value.
 			if err := p.DB.ExecStatement(
 				statements.InsertSelectionArgument,
 				selectionID,
 				arg.Name,
-				arg.Value.String(),
+				argValueID,
 			); err != nil {
 				return &plugins.Error{
 					Message: "could not add selection argument to database",
@@ -861,17 +879,31 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 
 		// and the arguments to the directive
 		for _, dArg := range directive.Arguments {
-			statements.InsertSelectionDirectiveArgument.BindInt64(1, dirID)
-			statements.InsertSelectionDirectiveArgument.BindText(2, dArg.Name)
-			statements.InsertSelectionDirectiveArgument.BindText(3, dArg.Value.String())
+			// Process the directive argument's value.
+			argValueID, err := p.processArgumentValue(conn, dArg.Value, statements)
+			if err != nil {
+				return &plugins.Error{
+					Message: "could not process directive argument value",
+					Detail:  err.Error(),
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + dArg.Position.Line,
+							Column:   query.ColumnOffset + dArg.Position.Column,
+						},
+					},
+				}
+			}
+
+			// Insert the directive argument record.
 			if err := p.DB.ExecStatement(
 				statements.InsertSelectionDirectiveArgument,
 				dirID,
 				dArg.Name,
-				dArg.Value.String(),
+				argValueID,
 			); err != nil {
 				return &plugins.Error{
-					Message: "could not store selection directive argument in database",
+					Message: "could not insert directive argument",
 					Detail:  err.Error(),
 					Locations: []*plugins.ErrorLocation{
 						{
@@ -883,6 +915,7 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 				}
 			}
 		}
+
 	}
 
 	return nil
@@ -1134,4 +1167,84 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, conn *sql
 
 	// we're done (commit the transaction)
 	commit(nil)
+}
+
+// processArgumentValue inserts a parsed AST argument value into the database.
+// It returns the database id of the inserted argument value so that parent/child
+// relationships can be recorded. If the value is a List or Object, it will
+// recursively process its children and insert rows into the argument_value_children table.
+func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, statements DocumentInsertStatements) (int64, *plugins.Error) {
+	// Determine the kind string based on the AST value kind.
+	var kindStr string
+	switch value.Kind {
+	case ast.Variable:
+		kindStr = "Variable"
+	case ast.IntValue:
+		kindStr = "Int"
+	case ast.FloatValue:
+		kindStr = "Float"
+	case ast.StringValue:
+		kindStr = "String"
+	case ast.BlockValue:
+		kindStr = "Block"
+	case ast.BooleanValue:
+		kindStr = "Boolean"
+	case ast.NullValue:
+		kindStr = "Null"
+	case ast.EnumValue:
+		kindStr = "Enum"
+	case ast.ListValue:
+		kindStr = "List"
+	case ast.ObjectValue:
+		kindStr = "Object"
+	default:
+		return 0, &plugins.Error{Message: fmt.Sprintf("unsupported argument value kind: %d", value.Kind)}
+	}
+
+	// Insert the value itself into the argument_values table.
+	err := p.DB.ExecStatement(statements.InsertArgumentValue, kindStr, value.Raw, value.Position.Line, value.Position.Column)
+	if err != nil {
+		wrapped := plugins.WrapError(err)
+		return 0, &wrapped
+	}
+
+	// Get the id of the inserted value.
+	parentID := conn.LastInsertRowID()
+
+	// If the value is a List or Object, process its children.
+	if kindStr == "List" || kindStr == "Object" {
+		// value.Children is now a slice of ChildValue structs.
+		for _, child := range value.Children {
+			// Recursively process the child value.
+			childID, err := p.processArgumentValue(conn, child.Value, statements)
+			if err != nil {
+				return 0, err
+			}
+
+			// For object children, use the provided field name.
+			// For list items, the parser may leave Name empty.
+			var nameParam interface{}
+			if child.Name == "" {
+				nameParam = nil
+			} else {
+				nameParam = child.Name
+			}
+
+			// Insert the relationship into argument_value_children.
+			execErr := p.DB.ExecStatement(
+				statements.InsertArgumentValueChild,
+				nameParam,
+				parentID,
+				childID,
+				child.Position.Line,
+				child.Position.Column,
+			)
+			if execErr != nil {
+				wrapped := plugins.WrapError(execErr)
+				return 0, &wrapped
+			}
+		}
+	}
+
+	return parentID, nil
 }
