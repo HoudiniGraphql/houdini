@@ -106,7 +106,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Fragment references an unknown type.",
+			Title: "Fragment references an unknown type",
 			Pass:  false,
 			Documents: []string{
 				`fragment invalidFragment on NonExistentType {
@@ -115,7 +115,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Fragment defined on a scalar type.",
+			Title: "Fragment defined on a scalar type",
 			Pass:  false,
 			Documents: []string{
 				`fragment scalarFragment on String {
@@ -124,7 +124,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Using an output type (object type) as a variable type.",
+			Title: "Using an output type (object type) as a variable type",
 			Pass:  false,
 			Documents: []string{
 				`query Test($name: Query) {
@@ -133,7 +133,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Using a scalar as a variable type.",
+			Title: "Using a scalar as a variable type",
 			Pass:  true,
 			Documents: []string{
 				`query Test($name: String) {
@@ -142,7 +142,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Scalar field with a sub-selection.",
+			Title: "Scalar field with a sub-selection",
 			Pass:  false,
 			Documents: []string{
 				`query Test {
@@ -153,7 +153,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Querying a field that doesn't exist on the type.",
+			Title: "Querying a field that doesn't exist on the type",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -164,7 +164,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Spreading a fragment on an incompatible type.",
+			Title: "Spreading a fragment on an incompatible type",
 			Pass:  false,
 			Documents: []string{
 				`fragment frag on Cat {
@@ -178,7 +178,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Spreading a fragment on a compatible object type.",
+			Title: "Spreading a fragment on a compatible object type",
 			Pass:  true,
 			Documents: []string{
 				`fragment frag on User {
@@ -192,7 +192,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Spreading a fragment on a compatible union type.",
+			Title: "Spreading a fragment on a compatible union type",
 			Pass:  true,
 			Documents: []string{
 				`fragment frag on Entity {
@@ -208,7 +208,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Spreading a fragment on a compatible interface type.",
+			Title: "Spreading a fragment on a compatible interface type",
 			Pass:  true,
 			Documents: []string{
 				`fragment frag on Node {
@@ -222,7 +222,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Fragments that reference each other in a cycle.",
+			Title: "Fragment cycles",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -241,7 +241,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Defining the same variable twice.",
+			Title: "Defining the same variable twice",
 			Pass:  false,
 			Documents: []string{
 				`query Test($a: String, $a: String) {
@@ -252,7 +252,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Using an undefined variable.",
+			Title: "Using an undefined variable",
 			Pass:  false,
 			Documents: []string{
 				`query Test {
@@ -263,7 +263,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Variable defined but never used.",
+			Title: "Variable defined but never used",
 			Pass:  false,
 			Documents: []string{
 				`query Test($unused: String) {
@@ -274,7 +274,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Using an unknown directive.",
+			Title: "Using an unknown directive",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -285,7 +285,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Repeating the same non-repeatable directive on a field.",
+			Title: "Repeating the same non-repeatable directive on a field",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -296,7 +296,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Repeating a repeatable directive on a field.",
+			Title: "Repeating a repeatable directive on a field",
 			Pass:  true,
 			Documents: []string{
 				`query Test{
@@ -307,7 +307,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Duplicating an argument in a field.",
+			Title: "Duplicating an argument in a field",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -316,7 +316,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Providing an argument value of the wrong type.",
+			Title: "Providing an argument value of the wrong type",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -327,7 +327,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Missing a required argument.",
+			Title: "Missing a required argument",
 			Pass:  false,
 			Documents: []string{
 				`query Test {
@@ -349,7 +349,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Variable used in a position with an incompatible type.",
+			Title: "Variable used in a position with an incompatible type",
 			Pass:  false,
 			Documents: []string{
 				`query Test($var: String!) {
@@ -371,7 +371,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Conflicting field selections that cannot be merged.",
+			Title: "Conflicting field selections that cannot be merged",
 			Pass:  false,
 			Documents: []string{
 				`query Test{
@@ -383,7 +383,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Duplicate keys in an input object.",
+			Title: "Duplicate keys in an input object",
 			Pass:  false,
 			Documents: []string{
 				`mutation Test($input: InputType!) {

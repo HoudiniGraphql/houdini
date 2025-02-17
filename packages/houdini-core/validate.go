@@ -408,7 +408,135 @@ func (p *HoudiniCore) validate_incompatibleFragmentSpread(ctx context.Context, e
 }
 
 func (p *HoudiniCore) validate_fragmentCycles(ctx context.Context, errs *plugins.ErrorList) {
+	// a structure to hold a fragment dependency
+	type edge struct {
+		source   string                 // The container fragment definition name.
+		target   string                 // The fragment that is referenced.
+		location *plugins.ErrorLocation // Location of the fragment spread usage.
+	}
 
+	// SQL query to retrieve all edges where a fragment definition (container) uses a fragment spread.
+	// We assume that a fragment definition is stored in the documents table with kind 'fragment'
+	// and that fragment spreads in a fragment are recorded in selections (with kind 'fragment'),
+	// where the field name of the selection is the referenced fragment's name.
+	query := `
+		SELECT
+			containerDoc.name AS source,
+			childFragDoc.name AS target,
+			json_object(
+				'line', refs.row,
+				'column', refs.column,
+				'filepath', raw_documents.filepath
+			) AS location
+		FROM selection_refs AS refs
+		-- The container document is the one in which the fragment spread is used.
+		JOIN documents AS containerDoc ON refs.document = containerDoc.id AND containerDoc.kind = 'fragment'
+		-- The fragment spread selection (child) in the container.
+		JOIN selections AS childSel ON refs.child_id = childSel.id AND childSel.kind = 'fragment'
+		-- Look up the referenced fragment's definition.
+		JOIN documents AS childFragDoc ON childFragDoc.name = childSel.field_name AND childFragDoc.kind = 'fragment'
+		-- Retrieve the location from the container's raw document.
+		JOIN raw_documents ON raw_documents.id = (SELECT raw_document FROM documents WHERE id = refs.document LIMIT 1)
+	`
+
+	// accumulate the edges
+	var edges []edge
+
+	// run the query using our helper
+	p.runValidationQuery(ctx, query, "error fetching fragment dependency edges", errs, func(row *sqlite.Stmt) {
+		source := row.ColumnText(0)
+		target := row.ColumnText(1)
+		locJSON := row.ColumnText(2)
+		var loc plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locJSON), &loc); err != nil {
+			// If we cannot unmarshal location data, skip this edge.
+			errs.Append(plugins.Error{
+				Message: "could not unmarshal location for fragment dependency edge",
+				Detail:  err.Error(),
+			})
+			return
+		}
+		edges = append(edges, edge{
+			source:   source,
+			target:   target,
+			location: &loc,
+		})
+	})
+
+	// build a dependency graph as a map from fragment name to its outgoing edges.
+	graph := make(map[string][]edge)
+	for _, e := range edges {
+		graph[e.source] = append(graph[e.source], e)
+		// ensure every target appears as a node (even if it has no outgoing edges).
+		if _, ok := graph[e.target]; !ok {
+			graph[e.target] = []edge{}
+		}
+	}
+
+	// now perform a DFS on the graph to detect cycles. we'll record cycles as a slice of fragment names along with one representative location.
+	var cycles []struct {
+		cycle    []string
+		location *plugins.ErrorLocation
+	}
+
+	visited := make(map[string]bool)
+	onStack := make(map[string]bool)
+
+	// DFS function that carries the current path.
+	var dfs func(node string, path []string)
+	dfs = func(node string, path []string) {
+		visited[node] = true
+		onStack[node] = true
+		path = append(path, node)
+
+		for _, e := range graph[node] {
+			child := e.target
+			// if we haven't seen the child yet, keep going
+			if !visited[child] {
+				dfs(child, path)
+			} else if onStack[child] {
+				// if we have seen the child, we found a cycle!
+				var cycle []string
+
+				// find the index where child first appeared in path.
+				for i, frag := range path {
+					if frag == child {
+						cycle = append(cycle, path[i:]...)
+						break
+					}
+				}
+
+				// only record non-empty cycles.
+				if len(cycle) > 0 {
+					cycles = append(cycles, struct {
+						cycle    []string
+						location *plugins.ErrorLocation
+					}{
+						cycle:    cycle,
+						location: e.location, // Use the location on the edge that closed the cycle.
+					})
+				}
+			}
+		}
+		onStack[node] = false
+	}
+
+	// run DFS from every node.
+	for node := range graph {
+		if !visited[node] {
+			dfs(node, []string{})
+		}
+	}
+
+	// report an error for each detected cycle.
+	for _, c := range cycles {
+		cycleStr := strings.Join(c.cycle, " -> ") + " -> " + c.cycle[0]
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Fragment cycle detected: %s", cycleStr),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{c.location},
+		})
+	}
 }
 
 func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plugins.ErrorList) {
