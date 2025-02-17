@@ -87,7 +87,7 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariable, err := conn.Prepare("INSERT INTO operation_variables (document, name, type, type_modifiers, default_value) VALUES (?, ?, ?, ?, ?)")
+	insertDocumentVariable, err := conn.Prepare("INSERT INTO operation_variables (document, name, type, type_modifiers, default_value, row, column) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}

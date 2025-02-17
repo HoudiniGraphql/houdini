@@ -195,6 +195,8 @@ CREATE TABLE operation_variables (
     type TEXT NOT NULL,
     type_modifiers TEXT,
     default_value TEXT,
+    row INTEGER NOT NULL,
+    column INTEGER NOT NULL,
     FOREIGN KEY (document) REFERENCES documents(id)
 );
 

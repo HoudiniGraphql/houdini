@@ -458,6 +458,8 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			} else {
 				statements.InsertDocumentVariable.BindNull(5)
 			}
+			statements.InsertDocumentVariable.BindInt64(6, int64(variable.Position.Line))
+			statements.InsertDocumentVariable.BindInt64(7, int64(variable.Position.Column))
 			if err := p.DB.ExecStatement(statements.InsertDocumentVariable); err != nil {
 				return &plugins.Error{
 					Message: "could not associate document variable",
@@ -1046,8 +1048,10 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, conn *sql
 	// we need to look at every operation variable that has a runtime scalar for its type
 	search, err := conn.Prepare(fmt.Sprintf(`
 		SELECT
-			operation_variables.id,
-			operation_variables.type
+			id,
+			type,
+			row,
+			column
 		FROM operation_variables WHERE type in (%s)
 	`, runtimeScalars[:len(runtimeScalars)-1]))
 	if err != nil {
@@ -1069,7 +1073,7 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, conn *sql
 	defer updateType.Finalize()
 
 	// and some statements to insert the runtime scalar directives
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)
@@ -1099,6 +1103,8 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, conn *sql
 		// pull the query results out
 		variablesID := search.ColumnInt(0)
 		variableType := search.ColumnText(1)
+		row := search.ColumnInt(2)
+		column := search.ColumnInt(3)
 
 		// we need to update the type of the variable
 		err = p.DB.ExecStatement(updateType, projectConfig.RuntimeScalars[variableType], variablesID)
@@ -1109,7 +1115,7 @@ func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, conn *sql
 		}
 
 		// we also need to add a directive to the variable
-		err = p.DB.ExecStatement(insertDocumentVariableDirective, variablesID, runtimeScalarDirective)
+		err = p.DB.ExecStatement(insertDocumentVariableDirective, variablesID, runtimeScalarDirective, row, column)
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			commit(err)
