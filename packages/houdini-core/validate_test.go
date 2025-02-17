@@ -44,7 +44,6 @@ func TestValidate(t *testing.T) {
 
 		input InputType {
 			field: String
-			field: String
 		}
 	`
 
@@ -375,8 +374,8 @@ func TestValidate(t *testing.T) {
 			plugin := &HoudiniCore{
 				fs: afero.NewMemMapFs(),
 			}
-			plugin.SetDatabase(db)
 			db.SetProjectConfig(projectConfig)
+			plugin.SetDatabase(db)
 
 			ctx := context.Background()
 

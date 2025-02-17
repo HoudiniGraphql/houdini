@@ -227,15 +227,200 @@ func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs 
 }
 
 func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *plugins.ErrorList) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not open connection (fragmentUnknownType)", Detail: err.Error()})
+		return
+	}
+	defer p.DB.Put(conn)
 
+	// For fragments (documents.kind = 'fragment') join with types on type_condition.
+	// If no matching type is found, then the fragment references an unknown type.
+	query, err := conn.Prepare(`
+		SELECT
+			documents.name,
+			documents.type_condition,
+			raw_documents.filepath,
+			json_group_array(
+				json_object('line', raw_documents.offset_line, 'column', raw_documents.offset_column)
+			)
+		FROM documents
+		JOIN raw_documents ON raw_documents.id = documents.raw_document
+			LEFT JOIN types ON documents.type_condition = types.name
+		WHERE documents.kind = 'fragment'
+			AND types.name IS NULL
+		GROUP BY documents.id
+	`)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not prepare fragmentUnknownType query", Detail: err.Error()})
+		return
+	}
+	defer query.Finalize()
+
+	for {
+		// check context cancellation
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		hasData, err := query.Step()
+		if err != nil {
+			errs.Append(plugins.Error{Message: "error checking fragment unknown type", Detail: err.Error()})
+			break
+		}
+		if !hasData {
+			break
+		}
+
+		fragName := query.ColumnText(0)
+		typeCond := query.ColumnText(1)
+		filepath := query.ColumnText(2)
+		locationsRaw := query.ColumnText(3)
+
+		var locations []*plugins.ErrorLocation
+		if err = json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for fragment '%s': %v. Raw: %s", fragName, err, locationsRaw)))
+			continue
+		}
+		// set file path for each location
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Fragment '%s' references an unknown type '%s'", fragName, typeCond),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	}
 }
 
 func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugins.ErrorList) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not open connection (fragmentOnScalar)", Detail: err.Error()})
+		return
+	}
+	defer p.DB.Put(conn)
 
+	// Join fragments with types; if the type_condition exists and its kind is SCALAR, error.
+	query, err := conn.Prepare(`
+		SELECT
+			documents.name,
+			documents.type_condition,
+			raw_documents.filepath,
+			json_group_array(
+				json_object('line', raw_documents.offset_line, 'column', raw_documents.offset_column)
+			)
+		FROM documents
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+			JOIN types ON documents.type_condition = types.name
+		WHERE documents.kind = 'fragment'
+		  AND types.kind = 'SCALAR'
+		GROUP BY documents.id
+	`)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not prepare fragmentOnScalar query", Detail: err.Error()})
+		return
+	}
+	defer query.Finalize()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		hasData, err := query.Step()
+		if err != nil {
+			errs.Append(plugins.Error{Message: "error checking fragment on scalar", Detail: err.Error()})
+			break
+		}
+		if !hasData {
+			break
+		}
+		fragName := query.ColumnText(0)
+		typeCond := query.ColumnText(1)
+		filepath := query.ColumnText(2)
+		locationsRaw := query.ColumnText(3)
+
+		var locations []*plugins.ErrorLocation
+		if err = json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for fragment '%s': %v. Raw: %s", fragName, err, locationsRaw)))
+			continue
+		}
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Fragment '%s' is defined on a scalar type '%s'", fragName, typeCond),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	}
 }
 
 func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plugins.ErrorList) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not open connection (outputTypeAsInput)", Detail: err.Error()})
+		return
+	}
+	defer p.DB.Put(conn)
 
+	// Operation variables must be input types. Join with types and error if kind is OBJECT, INTERFACE, or UNION.
+	query, err := conn.Prepare(`
+		SELECT
+			operation_variables.name,
+			operation_variables.type,
+			raw_documents.filepath,
+			raw_documents.offset_line,
+			raw_documents.offset_column
+		FROM operation_variables
+			JOIN documents ON operation_variables.document = documents.id
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+			JOIN types ON operation_variables.type = types.name
+		WHERE types.kind != 'INPUT'
+	`)
+	if err != nil {
+		errs.Append(plugins.Error{Message: "could not prepare outputTypeAsInput query", Detail: err.Error()})
+		return
+	}
+	defer query.Finalize()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		hasData, err := query.Step()
+		if err != nil {
+			errs.Append(plugins.Error{Message: "error checking variable output type", Detail: err.Error()})
+			break
+		}
+		if !hasData {
+			break
+		}
+		varName := query.ColumnText(0)
+		varType := query.ColumnText(1)
+		filepath := query.ColumnText(2)
+		line := query.ColumnInt(3)
+		column := query.ColumnInt(4)
+
+		errs.Append(plugins.Error{
+			Message: fmt.Sprintf("Variable '$%s' uses output type '%s' (must be an input type)", varName, varType),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath,
+					Line:   line,
+					Column: column,
+				},
+			},
+		})
+	}
 }
 
 func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *plugins.ErrorList) {
