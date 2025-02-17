@@ -278,7 +278,7 @@ func TestValidate(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`query Test{
-					user(name:"foo" @unknown {
+					user(name:"foo") @unknown {
 						firstName
 					}
 				}`,

@@ -103,7 +103,7 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionDirective, err := conn.Prepare("INSERT INTO selection_directives (selection_id, directive) VALUES (?, ?)")
+	insertSelectionDirective, err := conn.Prepare("INSERT INTO selection_directives (selection_id, directive, row, column) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
@@ -111,7 +111,7 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentDirective, err := conn.Prepare("INSERT INTO document_directives (document, directive) VALUES (?, ?)")
+	insertDocumentDirective, err := conn.Prepare("INSERT INTO document_directives (document, directive, row, column) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
@@ -119,7 +119,7 @@ func (p *HoudiniCore) prepareDocumentInsertStatements(conn *sqlite.Conn) (Docume
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive) VALUES (?, ?)")
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}

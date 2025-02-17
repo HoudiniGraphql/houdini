@@ -187,6 +187,8 @@ CREATE TABLE operation_variable_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	parent INTEGER NOT NULL,
 	directive TEXT NOT NULL,
+    row INTEGER NOT NULL,
+    column INTEGER NOT NULL,
 	FOREIGN KEY (parent) REFERENCES operation_variables(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
@@ -238,6 +240,8 @@ CREATE TABLE selection_directives (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     directive TEXT NOT NULL,
+    row INTEGER NOT NULL,
+    column INTEGER NOT NULL,
     FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
@@ -254,6 +258,8 @@ CREATE TABLE document_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	document int NOT NULL,
 	directive TEXT NOT NULL,
+	row INTEGER NOT NULL,
+	column INTEGER NOT NULL,
 	FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );

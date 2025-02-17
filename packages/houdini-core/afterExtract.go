@@ -476,7 +476,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 			// insert any directives on the variable.
 			for _, directive := range variable.Directives {
-				if err := p.DB.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name); err != nil {
+				if err := p.DB.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document variable directive",
 						Detail:  err.Error(),
@@ -527,7 +527,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 		// add document-level directives for the operation.
 		for _, directive := range operation.Directives {
-			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name); err != nil {
+			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 				return &plugins.Error{
 					Message: "could not insert document directive",
 					Detail:  err.Error(),
@@ -594,7 +594,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 		// add document-level directives for the operation.
 		for _, directive := range fragment.Directives {
-			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name); err != nil {
+			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 				return &plugins.Error{
 					Message: "could not insert document directive",
 					Detail:  err.Error(),
@@ -842,7 +842,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
 	for _, directive := range directives {
 		// insert the directive row
-		if err := p.DB.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name); err != nil {
+		if err := p.DB.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 			return &plugins.Error{
 				Message: "could not store selection directive in database",
 				Detail:  err.Error(),

@@ -663,18 +663,18 @@ func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugin
 		  json('[]')
 		) AS locations
 	FROM operation_variables opv
-	JOIN documents d ON opv.document = d.id
-	JOIN raw_documents r ON r.id = d.raw_document
-	-- Join selection_refs by matching the document in which a selection is used.
-	LEFT JOIN selection_refs refs ON refs.document = d.id
-	-- Join to selection_arguments where the selection (referenced by refs.child_id)
-	-- uses the variable (prefixed with '$').
-	LEFT JOIN selection_arguments sargs
-	  ON sargs.selection_id = refs.child_id
-	     AND sargs.value = ('$' || opv.name)
+		JOIN documents d ON opv.document = d.id
+		JOIN raw_documents r ON r.id = d.raw_document
+		-- Join selection_refs by matching the document in which a selection is used.
+		LEFT JOIN selection_refs refs ON refs.document = d.id
+		-- Join to selection_arguments where the selection (referenced by refs.child_id)
+		-- uses the variable (prefixed with '$').
+		LEFT JOIN selection_arguments sargs
+		ON sargs.selection_id = refs.child_id
+			AND sargs.value = ('$' || opv.name)
 	WHERE d.kind IN ('query', 'mutation', 'subscription')
 	GROUP BY opv.id
-	HAVING COUNT(sargs.value) = 0
+		HAVING COUNT(sargs.value) = 0
 	`
 
 	p.runValidationQuery(ctx, query, "error checking for unused variables", errs, func(row *sqlite.Stmt) {
@@ -706,7 +706,132 @@ func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugin
 }
 
 func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugins.ErrorList) {
+	// unknownDirectiveUsage holds a single usage of a directive that was not defined.
+	type unknownDirectiveUsage struct {
+		directive  string
+		documentID string
+		filepath   string
+		location   *plugins.ErrorLocation
+	}
+	var usages []unknownDirectiveUsage
 
+	// Open a connection.
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "could not open connection (unknownDirective)",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer p.DB.Put(conn)
+
+	// Query for unknown directives in selection_directives.
+	querySelection := `
+	SELECT
+		sd.directive,
+		d.id AS documentID,
+		rd.filepath,
+		sd.row,
+		sd.column
+	FROM selection_directives sd
+		JOIN selections s ON s.id = sd.selection_id
+		JOIN selection_refs sr ON sr.child_id = s.id
+		JOIN documents d ON d.id = sr.document
+		JOIN raw_documents rd ON rd.id = d.raw_document
+		LEFT JOIN directives dir ON sd.directive = dir.name
+	WHERE dir.name IS NULL
+	GROUP BY sd.directive, d.id, sd.row, sd.column
+	`
+	stmtSel, err := conn.Prepare(querySelection)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "error preparing unknown directive query (selection_directives)",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer stmtSel.Finalize()
+
+	for {
+		hasData, err := stmtSel.Step()
+		if err != nil {
+			errs.Append(plugins.Error{
+				Message: "error stepping through unknown directive query (selection_directives)",
+				Detail:  err.Error(),
+			})
+			break
+		}
+		if !hasData {
+			break
+		}
+		usages = append(usages, unknownDirectiveUsage{
+			directive:  stmtSel.ColumnText(0),
+			documentID: stmtSel.ColumnText(1),
+			filepath:   stmtSel.ColumnText(2),
+			location: &plugins.ErrorLocation{
+				Line:   int(stmtSel.ColumnInt(3)),
+				Column: int(stmtSel.ColumnInt(4)),
+			},
+		})
+	}
+
+	// Query for unknown directives in document_directives.
+	queryDocument := `
+		SELECT
+			dd.directive,
+			d.id AS documentID,
+			rd.filepath,
+			dd.row,
+			dd.column
+		FROM document_directives dd
+			JOIN documents d ON d.id = dd.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			LEFT JOIN directives dir ON dd.directive = dir.name
+		WHERE dir.name IS NULL
+		GROUP BY dd.directive, d.id
+	`
+	stmtDoc, err := conn.Prepare(queryDocument)
+	if err != nil {
+		errs.Append(plugins.Error{
+			Message: "error preparing unknown directive query (document_directives)",
+			Detail:  err.Error(),
+		})
+		return
+	}
+	defer stmtDoc.Finalize()
+
+	for {
+		hasData, err := stmtDoc.Step()
+		if err != nil {
+			errs.Append(plugins.Error{
+				Message: "error stepping through unknown directive query (document_directives)",
+				Detail:  err.Error(),
+			})
+			break
+		}
+		if !hasData {
+			break
+		}
+		usages = append(usages, unknownDirectiveUsage{
+			directive:  stmtDoc.ColumnText(0),
+			documentID: stmtDoc.ColumnText(1),
+			filepath:   stmtDoc.ColumnText(2),
+			location: &plugins.ErrorLocation{
+				Line:   int(stmtDoc.ColumnInt(3)), // will be 0
+				Column: int(stmtDoc.ColumnInt(4)), // will be 0
+			},
+		})
+	}
+
+	// Report errors for each usage.
+	for _, usage := range usages {
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Unknown directive '@%s' used in document '%s'", usage.directive, usage.documentID),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{usage.location},
+		})
+	}
 }
 
 func (p *HoudiniCore) validate_repeatingNonRepeatable(ctx context.Context, errs *plugins.ErrorList) {
