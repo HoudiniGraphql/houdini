@@ -236,7 +236,9 @@ CREATE TABLE selection_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value TEXT NOT NULL,
+    value INTEGER NOT NULL,
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (parent) REFERENCES selection_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -273,9 +275,33 @@ CREATE TABLE selection_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value TEXT NOT NULL,
+    value INTEGER NOT NULL,
+	row INTEGER NOT NULL,
+	column INTEGER NOT NULL,
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
 );
+
+
+CREATE TABLE argument_values (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL CHECK (kind IN ('Variable', 'Int', 'Float', 'String', 'Block', 'Boolean', 'Null', 'Enum', 'List', 'Object')),
+    raw TEXT NOT NULL,
+    row INTEGER NOT NULL,
+    column INTEGER NOT NULL
+);
+
+CREATE TABLE argument_value_children (
+    name TEXT,
+    parent INTEGER NOT NULL,
+    value INTEGER NOT NULL,
+    row INTEGER NOT NULL,
+    column INTEGER NOT NULL,
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
+);
+
 
 -----------------------------------------------------------
 -- Indices

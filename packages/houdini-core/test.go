@@ -271,8 +271,9 @@ CREATE TABLE document_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED
+    value INTEGER NOT NULL,
+    FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE selection_refs (
@@ -293,8 +294,8 @@ CREATE TABLE selection_arguments (
     value INTEGER NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-    
-    FOREIGN KEY (value) REFERENCES selection_argument_values(id) DEFERRABLE INITIALLY DEFERRED
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -311,7 +312,9 @@ CREATE TABLE argument_value_children (
     parent INTEGER NOT NULL,
     value INTEGER NOT NULL,
     row INTEGER NOT NULL,
-    column INTEGER NOT NULL
+    column INTEGER NOT NULL,
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 

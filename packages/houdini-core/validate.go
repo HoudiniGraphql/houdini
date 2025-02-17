@@ -587,24 +587,25 @@ func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plu
 
 func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plugins.ErrorList) {
 	query := `
-		SELECT
-			sargs.value,
-			r.filepath,
-			json_group_array(
-				json_object('line', r.offset_line, 'column', r.offset_column)
-			) AS locations
-		FROM selection_arguments sargs
-			JOIN selections s ON sargs.selection_id = s.id
-			JOIN selection_refs sr ON s.id = sr.child_id
-			JOIN documents d ON sr.document = d.id
-			JOIN raw_documents r ON r.id = d.raw_document
-			LEFT JOIN operation_variables opv
-				ON opv.document = d.id
-				AND ('$' || opv.name) = sargs.value
-		WHERE sargs.value LIKE '$%'
-			AND d.kind IN ('query', 'mutation', 'subscription')
-			AND opv.name IS NULL
-		GROUP BY d.id, sargs.value
+	SELECT
+		av.raw AS varUsage,
+		r.filepath,
+		json_group_array(
+			json_object('line', r.offset_line, 'column', r.offset_column)
+		) AS locations
+	FROM selection_arguments sargs
+		JOIN selections s ON sargs.selection_id = s.id
+		JOIN selection_refs sr ON s.id = sr.child_id
+		JOIN documents d ON sr.document = d.id
+		JOIN raw_documents r ON r.id = d.raw_document
+		JOIN argument_values av ON av.id = sargs.value
+		LEFT JOIN operation_variables opv
+			ON opv.document = d.id
+			AND opv.name = av.raw
+	WHERE av.kind = 'Variable'
+		AND d.kind IN ('query', 'mutation', 'subscription')
+		AND opv.name IS NULL
+	GROUP BY d.id, av.raw
 	`
 
 	p.runValidationQuery(ctx, query, "error checking for undefined variables", errs, func(row *sqlite.Stmt) {
@@ -621,13 +622,13 @@ func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plu
 			return
 		}
 
-		// Ensure every location gets the file path from the raw document.
+		// Set the file path from the raw document for each location.
 		for _, loc := range locations {
 			loc.Filepath = filepath
 		}
 
 		errs.Append(plugins.Error{
-			Message:   fmt.Sprintf("Variable '%s' is used but not defined", varUsage),
+			Message:   fmt.Sprintf("Variable '$%s' is used but not defined", varUsage),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -636,29 +637,28 @@ func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plu
 
 func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugins.ErrorList) {
 	query := `
-	SELECT
-		opv.name,
-		d.name AS documentName,
-		r.filepath,
-		COALESCE(
-		  json_group_array(
-		    json_object('line', refs.row, 'column', refs.column)
-		  ),
-		  json('[]')
-		) AS locations
-	FROM operation_variables opv
-		JOIN documents d ON opv.document = d.id
-		JOIN raw_documents r ON r.id = d.raw_document
-		-- Join selection_refs by matching the document in which a selection is used.
-		LEFT JOIN selection_refs refs ON refs.document = d.id
-		-- Join to selection_arguments where the selection (referenced by refs.child_id)
-		-- uses the variable (prefixed with '$').
-		LEFT JOIN selection_arguments sargs
-		ON sargs.selection_id = refs.child_id
-			AND sargs.value = ('$' || opv.name)
-	WHERE d.kind IN ('query', 'mutation', 'subscription')
-	GROUP BY opv.id
-		HAVING COUNT(sargs.value) = 0
+		SELECT
+			opv.name,
+			d.name AS documentName,
+			r.filepath,
+			COALESCE(
+			json_group_array(
+				json_object('line', refs.row, 'column', refs.column)
+			),
+			json('[]')
+			) AS locations
+		FROM operation_variables opv
+			JOIN documents d ON opv.document = d.id
+			JOIN raw_documents r ON r.id = d.raw_document
+			LEFT JOIN selection_refs refs ON refs.document = d.id
+			LEFT JOIN selection_arguments sargs ON sargs.selection_id = refs.child_id
+			LEFT JOIN argument_values av
+			ON av.id = sargs.value
+				AND av.kind = 'Variable'
+				AND av.raw = opv.name
+		WHERE d.kind IN ('query', 'mutation', 'subscription')
+		GROUP BY opv.id
+		HAVING COUNT(av.id) = 0
 	`
 
 	p.runValidationQuery(ctx, query, "error checking for unused variables", errs, func(row *sqlite.Stmt) {
@@ -920,9 +920,10 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 	// This query retrieves each field argument variable usage along with:
 	//   - The expected type and modifiers (from the field argument definition).
 	//   - The provided type and modifiers (from the operation variable definition).
-	//   - File path and location info.
-	// We join through selection_refs (since selections don’t directly store a document id).
-	// Then we add a HAVING clause that filters for rows that are incompatible.
+	// We join through selection_refs (since selections don’t directly store a document id)
+	// and use the normalized argument value (argument_values) for variable references.
+	// A row is returned when the expected type (including non-null modifier) does not match
+	// the provided variable type.
 	query := `
 	SELECT
 		sa.selection_id,
@@ -933,9 +934,9 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 		COALESCE(opv.type_modifiers, '') AS providedModifiers,
 		rd.filepath,
 		json_group_array(
-		json_object('line', rd.offset_line, 'column', rd.offset_column)
+			json_object('line', rd.offset_line, 'column', rd.offset_column)
 		) AS locations,
-		sa.value AS varUsage
+		av.raw AS varUsage
 	FROM selection_arguments sa
 		JOIN selections s ON sa.selection_id = s.id
 		JOIN type_fields tf ON s.type = tf.id
@@ -943,7 +944,8 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 		JOIN selection_refs sr ON sr.child_id = s.id
 		JOIN documents d ON d.id = sr.document
 		JOIN raw_documents rd ON rd.id = d.raw_document
-		JOIN operation_variables opv ON d.id = opv.document AND opv.name = substr(sa.value, 2)
+		JOIN argument_values av ON av.id = sa.value
+		JOIN operation_variables opv ON d.id = opv.document AND opv.name = av.raw
 	GROUP BY sa.selection_id, fad.name
 	HAVING NOT (
 		  fad.type = opv.type
@@ -1084,16 +1086,55 @@ func (p *HoudiniCore) validate_conflictingSelections(ctx context.Context, errs *
 	})
 }
 
-func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugins.ErrorList) {
-
-}
-
 func (p *HoudiniCore) validate_duplicateKeysInInputObject(ctx context.Context, errs *plugins.ErrorList) {
-
+	query := `
+		SELECT
+			av.id AS parentID,
+			av.row AS parentRow,
+			av.column AS parentColumn,
+			av2.name AS keyName,
+			COUNT(*) AS keyCount,
+			rd.filepath
+		FROM argument_values av
+			JOIN argument_value_children av2 ON av2.parent = av.id
+			JOIN raw_documents rd ON rd.id = (
+				SELECT raw_document FROM documents WHERE id = (
+					SELECT document FROM selection_refs WHERE child_id IN (
+						SELECT id FROM selections WHERE id IN (
+							SELECT selection_id FROM selection_arguments WHERE value = av.id LIMIT 1
+						)
+					) LIMIT 1
+				) LIMIT 1
+			)
+		WHERE av.kind = 'Object'
+		  AND av2.name IS NOT NULL
+		GROUP BY av.id, av2.name
+		HAVING COUNT(*) > 1
+		`
+	p.runValidationQuery(ctx, query, "error checking for duplicate keys in an argument object", errs, func(row *sqlite.Stmt) {
+		parentRow := row.ColumnInt(1)
+		parentCol := row.ColumnInt(2)
+		keyName := row.ColumnText(3)
+		keyCount := row.ColumnInt(4)
+		filepath := row.ColumnText(5)
+		location := &plugins.ErrorLocation{
+			Filepath: filepath,
+			Line:     int(parentRow),
+			Column:   int(parentCol),
+		}
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Duplicate key '%s' appears %d times in an input object", keyName, keyCount),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{location},
+		})
+	})
 }
 
 func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.ErrorList) {
 
+}
+
+func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugins.ErrorList) {
 }
 
 // runValidationQuery wraps the common steps for executing a query.

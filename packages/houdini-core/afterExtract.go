@@ -723,6 +723,8 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 				selectionID,
 				arg.Name,
 				argValueID,
+				arg.Value.Position.Line,
+				arg.Value.Position.Column,
 			); err != nil {
 				return &plugins.Error{
 					Message: "could not add selection argument to database",
@@ -1230,14 +1232,21 @@ func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, 
 				nameParam = child.Name
 			}
 
+			line := value.Position.Line
+			column := value.Position.Column
+			if child.Position != nil {
+				line = child.Position.Line
+				column = child.Position.Column
+			}
+
 			// Insert the relationship into argument_value_children.
 			execErr := p.DB.ExecStatement(
 				statements.InsertArgumentValueChild,
 				nameParam,
 				parentID,
 				childID,
-				child.Position.Line,
-				child.Position.Column,
+				line,
+				column,
 			)
 			if execErr != nil {
 				wrapped := plugins.WrapError(execErr)

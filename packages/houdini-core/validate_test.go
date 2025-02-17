@@ -330,7 +330,7 @@ func TestValidate(t *testing.T) {
 			},
 		},
 		{
-			Title: "Providing an argument value of the wrong type",
+			Title: "Providing a nested argument value of the wrong type",
 			Pass:  false,
 			Documents: []string{
 				`mutation Test {
