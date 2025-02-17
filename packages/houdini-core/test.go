@@ -136,6 +136,7 @@ CREATE TABLE field_argument_definitions (
     field TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+    type_modifiers TEXT,
     default_value TEXT,
     FOREIGN KEY (field) REFERENCES type_fields(id),
     UNIQUE (field, name)

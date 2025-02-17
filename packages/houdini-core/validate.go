@@ -835,11 +835,195 @@ func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugi
 }
 
 func (p *HoudiniCore) validate_repeatingNonRepeatable(ctx context.Context, errs *plugins.ErrorList) {
+	// This query finds fields where a non-repeatable directive is applied more than once.
+	// We join selection_directives (alias sd) to selections (s), then to selection_refs (sr)
+	// to obtain the document where the selection appears. That document (d) and its raw document (rd)
+	// provide the file path and location information.
+	// Finally, we join to the directives table (d2) to filter for non-repeatable directives.
+	query := `
+	SELECT
+		sd.selection_id,
+		sd.directive,
+		d.id AS documentID,
+		rd.filepath,
+		json_group_array(
+			json_object('line', sr.row, 'column', sr.column)
+		) AS locations
+	FROM selection_directives sd
+		JOIN selections s ON s.id = sd.selection_id
+		JOIN selection_refs sr ON sr.child_id = s.id
+		JOIN documents d ON d.id = sr.document
+		JOIN raw_documents rd ON rd.id = d.raw_document
+		JOIN directives d2 ON sd.directive = d2.name
+	WHERE d2.repeatable = 0
+	GROUP BY sd.selection_id, sd.directive
+	HAVING COUNT(*) > 1
+	`
 
+	p.runValidationQuery(ctx, query, "error checking for repeating non-repeatable directives", errs, func(row *sqlite.Stmt) {
+		selectionID := row.ColumnText(0)
+		directive := row.ColumnText(1)
+		documentID := row.ColumnText(2)
+		filepath := row.ColumnText(3)
+		locationsRaw := row.ColumnText(4)
+
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for directive '@%s'", directive),
+				Detail:  err.Error(),
+			})
+			return
+		}
+
+		// Assign the file path from the raw document to every location.
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Non-repeatable directive '@%s' is used more than once on selection %s in document %s", directive, selectionID, documentID),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
+	})
+}
+func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, errs *plugins.ErrorList) {
+	// This query finds cases where the same argument is provided more than once on a field.
+	// We join selection_arguments (sargs) with selections (s), then via selection_refs (sr)
+	// to determine the document (d) and its raw document (rd) for file path and location info.
+	// We group by the selection id and argument name.
+	query := `
+	SELECT
+	  sargs.selection_id,
+	  sargs.name,
+	  MIN(d.id) AS documentID,
+	  MIN(rd.filepath) AS filepath,
+	  MIN(sr.row) AS row,
+	  MIN(sr.column) AS column,
+	  COUNT(DISTINCT sargs.id) AS argCount
+	FROM selection_arguments sargs
+	  JOIN selections s ON sargs.selection_id = s.id
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	GROUP BY sargs.selection_id, sargs.name
+	HAVING COUNT(DISTINCT sargs.id) > 1
+	`
+
+	p.runValidationQuery(ctx, query, "error checking for duplicate arguments on a field", errs, func(row *sqlite.Stmt) {
+		selectionID := row.ColumnText(0)
+		argName := row.ColumnText(1)
+		filepath := row.ColumnText(2)
+		rowNum := row.ColumnInt(4)
+		colNum := row.ColumnInt(5)
+
+		// Create a single error location from the representative row/column.
+		loc := &plugins.ErrorLocation{
+			Filepath: filepath,
+			Line:     int(rowNum),
+			Column:   int(colNum),
+		}
+
+		errs.Append(plugins.Error{
+			Message:   fmt.Sprintf("Argument '%s' is duplicated on selection '%s'", argName, selectionID),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{loc},
+		})
+	})
 }
 
-func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, errs *plugins.ErrorList) {
+func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context, errs *plugins.ErrorList) {
+	// Now we pull the expected type modifiers directly from field_argument_definitions.
+	query := `
+		SELECT
+			sa.selection_id,
+			fad.name AS argName,
+			fad.type AS expectedType,
+			COALESCE(fad.type_modifiers, '') AS expectedModifiers,
+			opv.type AS providedTypeRaw,
+			COALESCE(opv.type_modifiers, '') AS providedModifiers,
+			rd.filepath,
+			json_group_array(
+			json_object('line', rd.offset_line, 'column', rd.offset_column)
+			) AS locations
+		FROM selection_arguments sa
+			JOIN selections s ON sa.selection_id = s.id
+			JOIN type_fields tf ON s.type = tf.id
+			JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sa.name
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN operation_variables opv ON d.id = opv.document AND opv.name = substr(sa.value, 2)
+		GROUP BY selection_id, fad.name
+	`
 
+	// isTypeCompatible returns true if the provided type (with modifiers)
+	// is acceptable for the expected type (with modifiers).
+	isTypeCompatible := func(expectedType, expectedModifiers, providedType, providedModifiers string) bool {
+		expectedType = strings.TrimSpace(expectedType)
+		expectedModifiers = strings.TrimSpace(expectedModifiers)
+		providedType = strings.TrimSpace(providedType)
+		providedModifiers = strings.TrimSpace(providedModifiers)
+
+		// The base types must match.
+		if expectedType != providedType {
+			return false
+		}
+		// If the modifiers match exactly, they are compatible.
+		if expectedModifiers == providedModifiers {
+			return true
+		}
+		// Allow a non-null provided value (ending with "!") to satisfy a nullable expected type.
+		if strings.HasSuffix(providedModifiers, "!") && !strings.HasSuffix(expectedModifiers, "!") {
+			return true
+		}
+		return false
+	}
+
+	p.runValidationQuery(ctx, query, "error checking field argument incompatible type", errs, func(row *sqlite.Stmt) {
+		selectionID := row.ColumnText(0)
+		argName := row.ColumnText(1)
+		expectedType := row.ColumnText(2)
+		expectedModifiers := row.ColumnText(3)
+		providedTypeRaw := row.ColumnText(4)
+		providedModifiers := row.ColumnText(5)
+		filepath := row.ColumnText(6)
+		locationsRaw := row.ColumnText(7)
+
+		var locations []*plugins.ErrorLocation
+		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("could not unmarshal locations for argument '%s'", argName),
+				Detail:  err.Error(),
+			})
+			return
+		}
+		for _, loc := range locations {
+			loc.Filepath = filepath
+		}
+
+		// Evaluate the provided type in Go. Here we use a switch to handle various cases.
+		var providedType string
+		switch {
+		case strings.HasSuffix(providedTypeRaw, "!"):
+			providedType = strings.TrimSpace(strings.TrimSuffix(providedTypeRaw, "!"))
+			// providedModifiers is already fetched from opv.type_modifiers (or empty)
+		default:
+			providedType = strings.TrimSpace(providedTypeRaw)
+		}
+
+		// Check compatibility: expected vs. provided.
+		if !isTypeCompatible(expectedType, expectedModifiers, providedType, providedModifiers) {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf(
+					"Variable used for argument '%s' on selection '%s' is incompatible: expected type '%s%s' but got '%s%s'",
+					argName, selectionID, expectedType, expectedModifiers, providedType, providedModifiers),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: locations,
+			})
+		}
+	})
 }
 
 func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugins.ErrorList) {
@@ -847,10 +1031,6 @@ func (p *HoudiniCore) validate_wrongTypesToArg(ctx context.Context, errs *plugin
 }
 
 func (p *HoudiniCore) validate_missingRequiredArgument(ctx context.Context, errs *plugins.ErrorList) {
-
-}
-
-func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context, errs *plugins.ErrorList) {
 
 }
 

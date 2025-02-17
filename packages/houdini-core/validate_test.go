@@ -52,6 +52,8 @@ func TestValidate(t *testing.T) {
 		}
 
 		union Entity = User | Ghost
+
+		directive @repeatable repeatable on FIELD
 	`
 
 	projectConfig := plugins.ProjectConfig{
@@ -288,8 +290,8 @@ func TestValidate(t *testing.T) {
 			Title: "Repeating the same non-repeatable directive on a field",
 			Pass:  false,
 			Documents: []string{
-				`query Test{
-					user(name:"foo" @include(if: true) @include(if: false) {
+				`query Test {
+					user(name:"foo") @include(if: true) @include(if: false) {
 						firstName
 					}
 				}`,

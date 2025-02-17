@@ -188,7 +188,9 @@ func writeProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 					continue
 				}
 				for _, arg := range field.Arguments {
-					err = db.ExecStatement(statements.InsertFieldArgument, fieldID, arg.Name, arg.Type.String(), "")
+
+					variableType, typeModifiers := parseFieldType(arg.Type.String())
+					err = db.ExecStatement(statements.InsertFieldArgument, fieldID, arg.Name, variableType, "", typeModifiers)
 					if err != nil {
 						errors.Append(plugins.Error{
 							Message: fmt.Sprintf("error inserting field argument %s for %s", arg.Name, fieldID),
