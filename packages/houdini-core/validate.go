@@ -932,9 +932,16 @@ func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, err
 		})
 	})
 }
-
 func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context, errs *plugins.ErrorList) {
-	// Now we pull the expected type modifiers directly from field_argument_definitions.
+	// This query retrieves, for each field argument variable usage:
+	// - selection_id: the field in which the argument is used.
+	// - argName: the name of the argument.
+	// - expectedType and expectedModifiers: from the field argument definition.
+	// - providedTypeRaw and providedModifiers: from the variable definition.
+	// - File path and location info for error reporting.
+	// - varUsage: the raw variable usage (e.g. "$a").
+	// We join through selection_refs to get the owning document.
+	// Finally, we add a HAVING clause that filters for incompatibility.
 	query := `
 		SELECT
 			sa.selection_id,
@@ -946,7 +953,8 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 			rd.filepath,
 			json_group_array(
 			json_object('line', rd.offset_line, 'column', rd.offset_column)
-			) AS locations
+			) AS locations,
+			sa.value AS varUsage
 		FROM selection_arguments sa
 			JOIN selections s ON sa.selection_id = s.id
 			JOIN type_fields tf ON s.type = tf.id
@@ -955,31 +963,15 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 			JOIN documents d ON d.id = sr.document
 			JOIN raw_documents rd ON rd.id = d.raw_document
 			JOIN operation_variables opv ON d.id = opv.document AND opv.name = substr(sa.value, 2)
-		GROUP BY selection_id, fad.name
+		GROUP BY sa.selection_id, fad.name
+		HAVING NOT (
+			fad.type = opv.type
+			AND (
+				(COALESCE(fad.type_modifiers, '') = '!' AND COALESCE(opv.type_modifiers, '') = '!')
+				OR (COALESCE(fad.type_modifiers, '') = '' AND COALESCE(opv.type_modifiers, '') IN ('','!'))
+			)
+		)
 	`
-
-	// isTypeCompatible returns true if the provided type (with modifiers)
-	// is acceptable for the expected type (with modifiers).
-	isTypeCompatible := func(expectedType, expectedModifiers, providedType, providedModifiers string) bool {
-		expectedType = strings.TrimSpace(expectedType)
-		expectedModifiers = strings.TrimSpace(expectedModifiers)
-		providedType = strings.TrimSpace(providedType)
-		providedModifiers = strings.TrimSpace(providedModifiers)
-
-		// The base types must match.
-		if expectedType != providedType {
-			return false
-		}
-		// If the modifiers match exactly, they are compatible.
-		if expectedModifiers == providedModifiers {
-			return true
-		}
-		// Allow a non-null provided value (ending with "!") to satisfy a nullable expected type.
-		if strings.HasSuffix(providedModifiers, "!") && !strings.HasSuffix(expectedModifiers, "!") {
-			return true
-		}
-		return false
-	}
 
 	p.runValidationQuery(ctx, query, "error checking field argument incompatible type", errs, func(row *sqlite.Stmt) {
 		selectionID := row.ColumnText(0)
@@ -1003,26 +995,15 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 			loc.Filepath = filepath
 		}
 
-		// Evaluate the provided type in Go. Here we use a switch to handle various cases.
-		var providedType string
-		switch {
-		case strings.HasSuffix(providedTypeRaw, "!"):
-			providedType = strings.TrimSpace(strings.TrimSuffix(providedTypeRaw, "!"))
-			// providedModifiers is already fetched from opv.type_modifiers (or empty)
-		default:
-			providedType = strings.TrimSpace(providedTypeRaw)
-		}
-
-		// Check compatibility: expected vs. provided.
-		if !isTypeCompatible(expectedType, expectedModifiers, providedType, providedModifiers) {
-			errs.Append(plugins.Error{
-				Message: fmt.Sprintf(
-					"Variable used for argument '%s' on selection '%s' is incompatible: expected type '%s%s' but got '%s%s'",
-					argName, selectionID, expectedType, expectedModifiers, providedType, providedModifiers),
-				Kind:      plugins.ErrorKindValidation,
-				Locations: locations,
-			})
-		}
+		// Because the SQL filter returns only rows that fail our compatibility check,
+		// we can now report an error directly.
+		errs.Append(plugins.Error{
+			Message: fmt.Sprintf(
+				"Variable used for argument '%s' on selection '%s' is incompatible: expected type '%s%s' but got '%s%s'",
+				argName, selectionID, expectedType, expectedModifiers, providedTypeRaw, providedModifiers),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: locations,
+		})
 	})
 }
 
