@@ -61,11 +61,6 @@ func TestValidate(t *testing.T) {
 	projectConfig := plugins.ProjectConfig{
 		ProjectRoot: "/project",
 		SchemaPath:  "schema.graphql",
-		TypeConfig: map[string]plugins.TypeConfig{
-			"Ghost": {
-				Keys: []string{"aka", "name"},
-			},
-		},
 	}
 
 	var tests = []struct {
@@ -433,36 +428,6 @@ func TestValidate(t *testing.T) {
 				}`,
 			},
 		},
-		/*
-		 * Houdini-specific validation rules
-		 */
-		{
-			Title: "No 'id' aliases",
-			Pass:  false,
-			Documents: []string{
-				`query QueryA {
-					user(name:"foo") {
-						id: firstName
-					}
-				}`,
-			},
-		},
-		{
-			Title: "No aliases for keys",
-			Pass:  false,
-			Documents: []string{
-				`query QueryA {
-					user(name:"foo") {
-						id: firstName
-					}
-				}`,
-				`query QueryB {
-					user(name:"foo") {
-						id: firstName
-					}
-				}`,
-			},
-		},
 	}
 
 	for _, test := range tests {
@@ -506,24 +471,6 @@ func TestValidate(t *testing.T) {
 				if err := db.ExecStatement(insertRaw, doc); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
-			}
-
-			insertDefaultKeys, err := conn.Prepare(`insert into config (default_keys, include, exclude, schema_path) values (?, '*', '*', '*')`)
-			if err != nil {
-				t.Fatalf("failed to prepare raw_documents insert: %v", err)
-			}
-			err = db.ExecStatement(insertDefaultKeys, `["id"]`)
-			if err != nil {
-				t.Fatalf("failed insert default keys: %v", err)
-			}
-
-			insertTypeKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ('Ghost', '["aka", "name"]')`)
-			if err != nil {
-				t.Fatalf("failed to prepare raw_documents insert: %v", err)
-			}
-			err = db.ExecStatement(insertTypeKeys)
-			if err != nil {
-				t.Fatalf("failed insert default keys: %v", err)
 			}
 
 			// load the raw documents into the database
