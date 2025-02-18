@@ -5,7 +5,6 @@ import { PluginSpec } from './codegen'
 import { Config, default_config } from './project'
 
 export const create_schema = `
-
 CREATE TABLE plugins (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     port INTEGER NOT NULL,
@@ -310,9 +309,18 @@ CREATE TABLE argument_value_children (
 CREATE INDEX idx_documents_kind ON documents(kind);
 
 -- Selection traversal indices
+CREATE INDEX idx_documents_type_condition ON documents(type_condition);
+CREATE INDEX idx_documents_raw_document ON documents(raw_document);
 CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
 CREATE INDEX idx_selection_refs_document ON selection_refs(document);
+CREATE INDEX idx_operation_variable_directives_parent ON operation_variable_directives(parent);
+CREATE INDEX idx_operation_variable_directives_directive ON operation_variable_directives(directive);
+CREATE INDEX idx_operation_variable_directive_arguments_parent ON operation_variable_directive_arguments(parent);
+CREATE INDEX idx_selections_type ON selections(type);
+CREATE INDEX idx_document_directives_document ON document_directives(document);
+CREATE INDEX idx_document_directives_directive ON document_directives(directive);
+CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
 
 -- Field lookups
 CREATE INDEX idx_type_fields_parent ON type_fields(parent);
