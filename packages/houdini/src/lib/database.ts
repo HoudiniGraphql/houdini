@@ -1,4 +1,3 @@
-import * as graphql from 'graphql'
 import sqlite from 'node:sqlite'
 
 import { PluginSpec } from './codegen'
