@@ -31,7 +31,7 @@ func TestValidate(t *testing.T) {
 		}
 
 		type Mutation {
-			update(input: InputType!): String
+			update(input: InputType, list: [InputType]): String
 		}
 
 		type User implements Node {
@@ -420,7 +420,16 @@ func TestValidate(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`mutation Test {
-					update(input: { list: [{ field: 2 }] })
+					update(list: [{ field: 2 }])
+				}`,
+			},
+		},
+		{
+			Title: "Providing multiple deeply nested argument values with one wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+					update(list: [{ field: 2 }, { field: "String"}])
 				}`,
 			},
 		},
@@ -497,6 +506,24 @@ func TestValidate(t *testing.T) {
 				if err := db.ExecStatement(insertRaw, doc); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
+			}
+
+			insertDefaultKeys, err := conn.Prepare(`insert into config (default_keys, include, exclude, schema_path) values (?, '*', '*', '*')`)
+			if err != nil {
+				t.Fatalf("failed to prepare raw_documents insert: %v", err)
+			}
+			err = db.ExecStatement(insertDefaultKeys, `["id"]`)
+			if err != nil {
+				t.Fatalf("failed insert default keys: %v", err)
+			}
+
+			insertTypeKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ('Ghost', '["aka", "name"]')`)
+			if err != nil {
+				t.Fatalf("failed to prepare raw_documents insert: %v", err)
+			}
+			err = db.ExecStatement(insertTypeKeys)
+			if err != nil {
+				t.Fatalf("failed insert default keys: %v", err)
 			}
 
 			// load the raw documents into the database

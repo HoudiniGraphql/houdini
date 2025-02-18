@@ -78,7 +78,7 @@ CREATE TABLE scalar_config (
 -- Types configuration
 CREATE TABLE type_configs (
     name TEXT NOT NULL,
-    keys TEXT NOT NULL
+    keys JSON NOT NULL
 );
 
 -- A table of original document contents (to be populated by plugins)
@@ -489,7 +489,7 @@ export async function write_config(
 	// write the type configs
 	insert = db.prepare('INSERT INTO type_configs (name, keys) VALUES (?, ?)')
 	for (const [name, { keys }] of Object.entries(config.config_file.types ?? {})) {
-		insert.run(name, (keys || config_file.defaultKeys || []).join(','))
+		insert.run(name, JSON.stringify(keys || config_file.defaultKeys || []))
 	}
 }
 

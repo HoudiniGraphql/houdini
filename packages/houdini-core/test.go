@@ -95,7 +95,7 @@ CREATE TABLE scalar_config (
 -- Types configuration
 CREATE TABLE type_configs (
     name TEXT NOT NULL,
-    keys TEXT NOT NULL
+    keys JSON NOT NULL
 );
 
 -- A table of original document contents (to be populated by plugins)
