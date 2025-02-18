@@ -121,8 +121,6 @@ func TestValidate_Houdini(t *testing.T) {
 			// wire up the plugin
 			err = plugin.Schema(ctx)
 			require.Nil(t, err)
-			// we're done with the database connection for now
-			db.Put(conn)
 
 			// write the raw documents to the database
 			insertRaw, err := conn.Prepare(`insert into raw_documents (content, filepath) values (?, 'foo')`)
@@ -157,6 +155,12 @@ func TestValidate_Houdini(t *testing.T) {
 			// load the raw documents into the database
 			err = plugin.afterExtract_loadDocuments(ctx)
 			require.Nil(t, err)
+			// we're done with the database connection for now
+			db.Put(conn)
+
+			errs := &plugins.ErrorList{}
+			plugin.afterExtract_componentFields(conn, errs)
+			require.Equal(t, 0, errs.Len(), errs.GetItems())
 
 			// run the validation
 			err = plugin.Validate(ctx)

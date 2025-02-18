@@ -58,11 +58,6 @@ func TestValidate(t *testing.T) {
 		directive @repeatable repeatable on FIELD
 	`
 
-	projectConfig := plugins.ProjectConfig{
-		ProjectRoot: "/project",
-		SchemaPath:  "schema.graphql",
-	}
-
 	var tests = []struct {
 		Title     string
 		Documents []string
@@ -441,7 +436,10 @@ func TestValidate(t *testing.T) {
 			plugin := &HoudiniCore{
 				fs: afero.NewMemMapFs(),
 			}
-			db.SetProjectConfig(projectConfig)
+			db.SetProjectConfig(plugins.ProjectConfig{
+				ProjectRoot: "/project",
+				SchemaPath:  "schema.graphql",
+			})
 			plugin.SetDatabase(db)
 
 			ctx := context.Background()
