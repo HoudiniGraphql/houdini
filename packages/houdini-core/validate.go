@@ -36,6 +36,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_fieldArgumentIncompatibleType,
 		p.validate_conflictingSelections,
 		p.validate_duplicateKeysInInputObject,
+		// Houdini-specific validation rules
 		p.validate_noKeyAlias,
 	}
 

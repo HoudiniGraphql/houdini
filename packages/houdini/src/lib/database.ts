@@ -306,8 +306,6 @@ CREATE TABLE argument_value_children (
 -----------------------------------------------------------
 
 CREATE INDEX idx_documents_kind ON documents(kind);
-
--- Selection traversal indices
 CREATE INDEX idx_documents_type_condition ON documents(type_condition);
 CREATE INDEX idx_documents_raw_document ON documents(raw_document);
 CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
@@ -320,17 +318,11 @@ CREATE INDEX idx_selections_type ON selections(type);
 CREATE INDEX idx_document_directives_document ON document_directives(document);
 CREATE INDEX idx_document_directives_directive ON document_directives(directive);
 CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
-
--- Field lookups
 CREATE INDEX idx_type_fields_parent ON type_fields(parent);
 CREATE INDEX idx_selections_alias ON selections(alias);
-
--- Selection metadata lookups
 CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);
 CREATE INDEX idx_selection_arguments_selection ON selection_arguments(selection_id);
 CREATE INDEX idx_selection_directive_args_parent ON selection_directive_arguments(parent);
-
--- Type system lookups
 CREATE INDEX idx_possible_types_type ON possible_types(type);
 CREATE INDEX idx_possible_types_member ON possible_types(member);
 CREATE INDEX idx_enum_values_parent ON enum_values(parent);
