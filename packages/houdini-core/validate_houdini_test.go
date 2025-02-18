@@ -15,66 +15,106 @@ func TestValidate_Houdini(t *testing.T) {
 	// the local schema we'll test against``
 	schema := `
 		type Query {
-			user(name: String!) : User
-			rootScalar: String
-			ghost: Ghost
-		}
-
-		type Ghost {
-			aka: String!
-			name: String!
-			age: Int!
-		}
-
-		type Subscription {
-			newMessage: String
-			anotherMessage: String
+			user : User
+			users: [User!]!
+			nodes(ids: [ID!]!): [Node!]!
+			entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
+			node(id: ID!): Node
+			ghost: Ghost!
 		}
 
 		type Mutation {
-			update(input: InputType, list: [InputType]): String
+			addFriend: AddFriendOutput!
+			deleteUser(id: String!): DeleteUserOutput!
+			updateGhost: Ghost!
 		}
 
 		type User implements Node {
 			id: ID!
-			firstName: String
-			lastName: String
+			firstName: String!
+			friends: [User!]!
+			friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
+			friendsByOffset(offset: Int, limit: Int): [User!]!
+			believers(first: Int, after: String, last: Int, before: String): UserConnection!
 		}
 
-		type Cat {
+		type Ghost implements Entity{
+			aka: String!
 			name: String!
 		}
 
-		input InputType {
-			field: String
-			list: [InputType]
+		type Legend implements Entity{
+			aka: String!
+			name: String!
+			believers(first: Int, after: String, last: Int, before: String): UserConnection!
+		}
+
+		type AddFriendOutput {
+			friend: User!
+		}
+
+		type DeleteUserOutput {
+			userID: ID!
+		}
+
+		type UserConnection {
+			edges: [UserEdge!]!
+			pageInfo: PageInfo!
+		}
+
+		type UserEdge {
+			cursor: String!
+			node: User!
+		}
+
+		type PageInfo {
+			hasNextPage: Boolean!
+			hasPreviousPage: Boolean!
+			startCursor: String
+			endCursor: String
 		}
 
 		interface Node {
 			id: ID!
 		}
 
-		union Entity = User | Ghost
+		interface Entity {
+			name: String!
+			aka: String!
+		}
 
-		directive @repeatable repeatable on FIELD
+		type EntityConnection {
+			edges: [EntityEdge!]!
+			pageInfo: PageInfo!
+		}
+
+		type EntityEdge {
+			cursor: String!
+			node: User!
+		}
+
 	`
 
 	projectConfig := plugins.ProjectConfig{
 		ProjectRoot: "/project",
 		SchemaPath:  "schema.graphql",
+		RuntimeScalars: map[string]string{
+			"ViewerIDFromSession": "ID",
+		},
 	}
 
 	var tests = []struct {
 		Title     string
 		Documents []string
 		Pass      bool
+		Config    func(config *plugins.ProjectConfig)
 	}{
 		{
 			Title: "No aliases for default keys",
 			Pass:  false,
 			Documents: []string{
 				`query QueryA {
-					user(name:"foo") {
+					user {
 						id: firstName
 					}
 				}`,
@@ -89,6 +129,860 @@ func TestValidate_Houdini(t *testing.T) {
 						aka: age
 					}
 				}`,
+			},
+		},
+		{
+			Title: "allows documents spread across multiple sources",
+			Pass:  true,
+			Documents: []string{
+				`query QueryA {
+					user {
+						...FragmentA
+					}
+				}`,
+				`query QueryB {
+					user {
+						...FragmentA
+					}
+				}`,
+				`fragment FragmentA on User {
+					firstName
+				}`,
+			},
+		},
+		{
+			Title: "@list on query",
+			Pass:  true,
+			Documents: []string{
+				`query TestQuery {
+					user {
+						friends @list(name: "Friends") {
+							id
+						}
+					}
+				}`,
+				`mutation MutationM {
+					addFriend {
+						friend {
+							...Friends_insert
+						}
+					}
+				}`,
+			},
+		},
+		{
+			Title: "no @parentID @allLists on _insert, but defaultListTarget",
+			Pass:  true,
+			Documents: []string{
+				`query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+				}`,
+				`mutation MutationM1 {
+					addFriend {
+						friend {
+							...Friends_insert
+						}
+					}
+				}`,
+			},
+			Config: func(config *plugins.ProjectConfig) {
+				config.DefaultListTarget = "all"
+			},
+		},
+		{
+			Title: "@parentID @allLists on _insert",
+			Pass:  false,
+			Documents: []string{
+				`query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+				}`,
+				`mutation MutationM1 {
+					addFriend {
+						...Friends_insert @parentID(value: "1") @allLists
+					}
+				}`,
+			},
+		},
+		{
+			Title: "@mask_enable @mask_disable on fragment",
+			Pass:  false,
+			Documents: []string{
+				`fragment FooA on Query {
+					users(stringValue: $name) { id }
+				}`,
+				`query TestQuery {
+					...FooA @mask_enable @mask_disable
+				}`,
+			},
+		},
+		{
+			Title: "@list name must be unique",
+			Pass:  false,
+			Documents: []string{
+				`
+                query TestQuery1 {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            	`,
+				`
+				query TestQuery2 {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+				}
+            	`,
+			},
+		},
+		{
+			Title: "@list with parentID as variable on query",
+			Pass:  true,
+			Documents: []string{
+				`query TestQuery {
+					user {
+						friends {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}
+        		}`,
+				`mutation MutationM1($parentID: ID!) {
+					addFriend {
+						...Friends_insert @prepend @parentID(value: $parentID)
+					}
+				}`,
+			},
+		},
+		{
+			Title: "@list without parentID on fragment",
+			Pass:  false,
+			Documents: []string{
+				`fragment FragmentA on User {
+					friends @list(name: "Friends") {
+						firstName
+					}
+                }`,
+				`mutation Mutation1 {
+					addFriend {
+						...Friends_insert
+					}
+                }`,
+			},
+		},
+		{
+			Title: "@list prepend on query no id",
+			Pass:  false,
+			Documents: []string{
+				`
+					query UserFriends {
+						user {
+							friends {
+								friends @list(name: "Friends") {
+									id
+								}
+							}
+						}
+					}
+				`,
+				`
+					mutation Mutation1 {
+						addFriend {
+							...Friends_insert @prepend
+						}
+					}
+            	`,
+			},
+		},
+		{
+			Title: "@list append on query no id",
+			Pass:  false,
+			Documents: []string{
+				`
+					query UserFriends {
+						user {
+							friends {
+								friends @list(name: "Friends") {
+									id
+								}
+							}
+						}
+					}
+            	`,
+				`
+					mutation Mutation1 {
+						addFriend {
+							...Friends_insert @append
+						}
+					}
+            	`,
+			},
+		},
+		{
+			Title: "@list no directive on query",
+			Pass:  false,
+			Documents: []string{
+				`
+					query UserFriends {
+						user {
+							friends {
+								friends @list(name: "Friends") {
+									id
+								}
+							}
+						}
+					}
+            	`,
+				`
+					mutation Mutation1 {
+						addFriend {
+							...Friends_insert
+						}
+					}
+            	`,
+			},
+		},
+		{
+			Title: "Unknown fragments",
+			Pass:  false,
+			Documents: []string{
+				`
+					query Foo {
+						user {
+							...UserFragment
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "unknown list fragments",
+			Pass:  false,
+			Documents: []string{
+				`
+					mutation Foo {
+						addFriend {
+							...UserFragment_insert @parentID(value: "2")
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "known list directives",
+			Pass:  true,
+			Documents: []string{
+				`
+				query UserFriends {
+					user {
+						friends @list(name: "Friends") {
+							id
+						}
+					}
+				}
+				`,
+				`
+				mutation Bar {
+					deleteUser(id: "2") {
+						userID @User_delete
+					}
+				}
+				`,
+			},
+		},
+		{
+			Title: "known connection directives",
+			Pass:  true,
+			Documents: []string{
+				`
+				query UserFriends {
+					user {
+						friendsByCursor @list(name: "Friends") {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				}
+				`,
+				`
+				mutation Bar {
+					deleteUser(id: "2") {
+						userID @User_delete
+					}
+				}
+				`,
+			},
+		},
+		{
+			Title: "unknown list directives",
+			Pass:  false,
+			Documents: []string{
+				`
+					mutation Foo {
+						deleteUser(id: "2") {
+							userID @Foo_delete
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "missing fragment arguments",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment Foo on Query @arguments(name: { type: "String!" }) {
+						users(stringValue: $name) { id }
+					}
+				`,
+				`
+					query Query1 {
+						...Foo
+					}
+				`,
+			},
+		},
+		{
+			Title: "invalid argument",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment Foo on Query @arguments(name: { type: "String" }) {
+						users(stringValue: $name) { id }
+					}
+				`,
+				`
+					query Query1 {
+						...Foo @with(bar: "blah", name: "bar")
+					}
+				`,
+			},
+		},
+		{
+			Title: "unused fragment arguments",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment Foo1 on Query @arguments(name: { type: "String!" }) {
+						users(stringValue: "hello") { id }
+					}
+				`,
+			},
+		},
+		{
+			Title: "applied fragment arguments",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment Foo on Query @arguments(name: { type: "String" }) {
+						users(stringValue: $name) { id }
+					}
+				`,
+				`
+					query Query2 {
+						...Foo @with(name: true)
+					}
+				`,
+			},
+		},
+		{
+			Title: "fragment argument definition default",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment FooA on Query @arguments(name: { type: "String", default: true}) {
+						users(stringValue: $name) { id }
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate offset happy path",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						friendsByOffset(limit: 10) @paginate {
+							id
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "list of strings passed to fragment argument type argument (woof)",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment NodePaginatedA on Query @arguments(
+						ids: { type: [String] }
+					) {
+						nodes(ids: $ids) {
+							id
+						}
+					}
+				`,
+				`
+					query QueryWithFragmentA {
+						...Fragment @with(ids: ["A"])
+					}
+				`,
+			},
+		},
+		{
+			Title: "must pass list to list fragment arguments",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment Fragment on Query @arguments(
+						ids: { type: "[String]" }
+					) {
+						nodes(ids: $ids) {
+							id
+						}
+					}
+				`,
+				`
+					query QueryWithFragmentA {
+						...Fragment @with(ids: "A")
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate cursor happy path",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						friendsByCursor(first: 10) @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "cursor pagination requires first",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserCursorPaginatedA on User {
+						friendsByCursor @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate cursor can't go both ways",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						friendsByCursor(first: 10, last: 10) @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate can show up in a document with required args",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {
+						friendsByCursor(first: 10, after: $foo) @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "offset pagination requires limit",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						friendsByOffset @paginate {
+							id
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "multiple @paginate",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						friendsByOffset(limit: 10) @paginate {
+							id
+						}
+						friendsByCursor(first: 10) @paginate {
+							edges {
+								node {
+									id
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate can fall on an interface if every constituent has a custom key",
+			Pass:  true,
+			// name needs to be passed to validate the id field
+			Documents: []string{
+				`
+					query QueryA {
+						entitiesByCursor(first: 10) @paginate(name: "GhostA") {
+							edges {
+								node {
+									... on Ghost {
+										name
+									}
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate can't fall under lists",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						friends {
+							friendsByOffset(limit: 10) @paginate {
+								id
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate can't be in a fragment containing a non Node or configured type",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on Legend {
+						believers (first: 10) @paginate {
+							edges {
+								node {
+									name
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate can fall on a fragment of a Node",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on User {
+						believersInConnection (first: 10) @paginate {
+							edges {
+								node {
+									name
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate can fall on a fragment of a configured type",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment GhostPaginatedA on User {
+						friendsByCursor (first: 10) @paginate {
+							edges {
+								node {
+									name
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "unreachable @loading",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment LoadingDirectiveA on User {
+						friendsByCursor {
+							edges {
+								node @loading {
+									name
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "floating @loading with global flag",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment LoadingDirectiveA on User @loading {
+						friendsByCursor {
+							edges {
+								node @loading {
+									name
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@required may not be used on query arguments",
+			Pass:  false,
+			Documents: []string{
+				`
+					query QueryA($id: ID! @required) {
+						node(id: $id) {
+							... on User {
+								name
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@loading happy path",
+			Pass:  true,
+			Documents: []string{
+				`
+					fragment LoadingDirectiveA on User {
+						friendsConnection @loading {
+							edges @loading {
+								node @loading {
+									name
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@loading floating on fragment spread",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserInfo on User {
+						id
+					}
+				`,
+				`
+					query A {
+						user  {
+							...UserInfo @loading
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@loading must fall on inline fragment",
+			Pass:  false,
+			Documents: []string{
+				`
+					query A {
+						node @loading {
+							... on User {
+								firstName @loading
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@optimisticKey on single key",
+			Pass:  true,
+			Documents: []string{
+				`
+					mutation B {
+						addFriend  {
+							friend {
+								id @optimisticKey
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@optimisticKey on non-key",
+			Pass:  false,
+			Documents: []string{
+				`
+					mutation B {
+						addFriend  {
+							friend {
+								firstName @optimisticKey
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@optimisticKey on multiple key - missing",
+			Pass:  false,
+			Documents: []string{
+				`
+					mutation A {
+						updateGhost  {
+							aka @optimisticKey
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@optimisticKey on multiple key - found",
+			Pass:  true,
+			Documents: []string{
+				`
+					mutation A {
+						updateGhost  {
+							aka @optimisticKey
+							name @optimisticKey
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@optimisticKey on non-mutation",
+			Pass:  false,
+			Documents: []string{
+				`
+					query A {
+						ghost  {
+							aka @optimisticKey
+							name @optimisticKey
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@optimisticKey on object type",
+			Pass:  false,
+			Documents: []string{
+				`
+					mutation A {
+						updateGhost @optimisticKey {
+							aka
+							name
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@required may not be used on non-nullable fields",
+			Pass:  false,
+			Documents: []string{
+				`
+					query QueryA {
+						user {
+							firstName @required
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@loading on inline fragment",
+			Pass:  true,
+			Documents: []string{
+				`
+					query A {
+						node @loading {
+							... on User @loading {
+								firstName @loading
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "runtime scalars",
+			Pass:  true,
+			Documents: []string{
+				`
+					query A($id: ViewerIDFromSession!) {
+						node(id: $id) {
+							id
+						}
+					}
+				`,
 			},
 		},
 	}
@@ -138,18 +1032,34 @@ func TestValidate_Houdini(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
+			defer insertDefaultKeys.Finalize()
 			err = db.ExecStatement(insertDefaultKeys, `["id"]`)
 			if err != nil {
 				t.Fatalf("failed insert default keys: %v", err)
 			}
 
-			insertTypeKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ('Ghost', '["aka", "name"]')`)
+			insertTypeKeys, err := conn.Prepare(`insert into type_configs (name, keys) values (?, '["aka", "name"]')`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
-			err = db.ExecStatement(insertTypeKeys)
+			defer insertTypeKeys.Finalize()
+			err = db.ExecStatement(insertTypeKeys, "Ghost")
 			if err != nil {
 				t.Fatalf("failed insert default keys: %v", err)
+			}
+			err = db.ExecStatement(insertTypeKeys, "Legend")
+			if err != nil {
+				t.Fatalf("failed insert default keys: %v", err)
+			}
+
+			insertRuntimeScalar, err := conn.Prepare(`insert into runtime_scalar_definitions (name, type) values (?, ?)`)
+			if err != nil {
+				t.Fatalf("failed to prepare raw_documents insert: %v", err)
+			}
+			defer insertRuntimeScalar.Finalize()
+			err = db.ExecStatement(insertRuntimeScalar, "ViewerIDFromSession", "ID")
+			if err != nil {
+				t.Fatalf("failed insert runtime scalar: %v", err)
 			}
 
 			// load the raw documents into the database

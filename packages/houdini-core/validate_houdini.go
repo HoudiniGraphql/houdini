@@ -73,3 +73,47 @@ func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.Err
 		})
 	})
 }
+
+func (p *HoudiniCore) validate_uniqueNames(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_lists(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_maskDirective(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_nodeDirective(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_knownArguments(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_fragmentArguments(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_paginateArgs(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_noUnusedFragmentArguments(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugins.ErrorList) {
+
+}
+
+func (p *HoudiniCore) validate_optimisticKeys(ctx context.Context, errs *plugins.ErrorList) {
+
+}

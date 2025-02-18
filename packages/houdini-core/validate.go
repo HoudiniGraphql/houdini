@@ -38,6 +38,17 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_duplicateKeysInInputObject,
 		// Houdini-specific validation rules
 		p.validate_noKeyAlias,
+		p.validate_uniqueNames,
+		p.validate_lists,
+		p.validate_requiredDirective,
+		p.validate_maskDirective,
+		p.validate_nodeDirective,
+		p.validate_knownArguments,
+		p.validate_fragmentArguments,
+		p.validate_paginateArgs,
+		p.validate_noUnusedFragmentArguments,
+		p.validate_loadingDirective,
+		p.validate_optimisticKeys,
 	}
 
 	// run all of the rules concurrently
