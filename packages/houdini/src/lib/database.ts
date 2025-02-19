@@ -58,7 +58,7 @@ CREATE TABLE config (
     default_lifetime INTEGER,
     default_list_position TEXT CHECK (default_list_position IN ('APPEND', 'PREPEND')),
     default_list_target TEXT CHECK (default_list_target IN ('ALL', 'NULL')),
-    default_paginate_mode TEXT CHECK (default_paginate_mode IN ('INFINITE', 'SINGLE_PAGE')),
+    default_paginate_mode TEXT CHECK (default_paginate_mode IN ('Infinite', 'SinglePage')),
     suppress_pagination_deduplication BOOLEAN,
     log_level TEXT CHECK (log_level IN ('QUIET', 'FULL', 'SUMMARY', 'SHORT_SUMMARY')),
     default_fragment_masking BOOLEAN,
@@ -76,7 +76,8 @@ CREATE TABLE scalar_config (
 -- Types configuration
 CREATE TABLE type_configs (
     name TEXT NOT NULL,
-    keys JSON NOT NULL
+    keys JSON NOT NULL,
+	resolve_query TEXT
 );
 
 -- A table of original document contents (to be populated by plugins)
@@ -332,6 +333,9 @@ CREATE INDEX idx_argument_value_children_parent ON argument_value_children(paren
 CREATE INDEX idx_argument_values_kind_raw ON argument_values(kind, raw);
 CREATE INDEX idx_operation_variables_document_name ON operation_variables(document, name);
 CREATE INDEX idx_selection_arguments_value ON selection_arguments(value);
+CREATE INDEX idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
+CREATE INDEX idx_selection_directives_directive ON selection_directives(directive);
+
 `
 
 export async function write_config(
@@ -492,9 +496,13 @@ export async function write_config(
 	}
 
 	// write the type configs
-	insert = db.prepare('INSERT INTO type_configs (name, keys) VALUES (?, ?)')
-	for (const [name, { keys }] of Object.entries(config.config_file.types ?? {})) {
-		insert.run(name, JSON.stringify(keys || config_file.defaultKeys || []))
+	insert = db.prepare('INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)')
+	for (const [name, { keys, resolve }] of Object.entries(config.config_file.types ?? {})) {
+		insert.run(
+			name,
+			JSON.stringify(keys || config_file.defaultKeys || []),
+			resolve?.queryField || null
+		)
 	}
 }
 

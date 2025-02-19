@@ -42,6 +42,7 @@ func TestValidate_Houdini(t *testing.T) {
 		type Ghost implements Entity{
 			aka: String!
 			name: String!
+			believers(first: Int, after: String, last: Int, before: String): UserConnection!
 		}
 
 		type Legend implements Entity{
@@ -640,7 +641,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment UserPaginatedA on User {
-						friendsConnection(first: 10, last: 10) @paginate {
+						friendsConnection(first: 10, last: 10) @paginate(mode: Infinite) {
 							edges {
 								node {
 									id
@@ -759,10 +760,27 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment UserPaginatedA on User {
-						believersInConnection (first: 10) @paginate {
+						friendsConnection (first: 10) @paginate {
 							edges {
 								node {
-									name
+									firstName
+								}
+							}
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@paginate must fall on something with configured lookups",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment UserPaginatedA on Ghost {
+						believers (first: 10) @paginate {
+							edges {
+								node {
+									firstName
 								}
 							}
 						}
@@ -775,11 +793,11 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`
-					fragment GhostPaginatedA on User {
+					fragment UserPaginated on User {
 						friendsConnection (first: 10) @paginate {
 							edges {
 								node {
-									name
+									firstName
 								}
 							}
 						}

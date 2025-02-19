@@ -33,6 +33,7 @@ export const default_config: ConfigFile = {
 	runtimeDir: '.houdini',
 	cacheBufferSize: 10,
 	defaultKeys: ['id'],
+	defaultPaginateMode: 'Infinite',
 }
 
 // a place to store the current configuration
