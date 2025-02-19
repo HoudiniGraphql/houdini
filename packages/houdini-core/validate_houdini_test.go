@@ -31,6 +31,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 		type User implements Node {
 			id: ID!
+			parent: User
 			firstName: String!
 			friends: [User!]!
 			friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
@@ -978,6 +979,21 @@ func TestValidate_Houdini(t *testing.T) {
 					query QueryA {
 						user {
 							firstName @required
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "@required may be used on non-nullable fields if the child is marked with @required",
+			Pass:  true,
+			Documents: []string{
+				`
+					query QueryA {
+						user @required {
+							parent @required {
+								firstName
+							}
 						}
 					}
 				`,

@@ -612,7 +612,7 @@ func writeInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 		return err
 	}
 
-	// @componentField on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
+	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
 	err = db.ExecStatement(statements.InsertInternalDirective, componentFieldDirective, "@componentField is used to mark a field as a component field", true)
 	if err != nil {
 		return err
@@ -622,6 +622,14 @@ func writeInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 		if err != nil {
 			return err
 		}
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, componentFieldDirective, "prop", "String", nil)
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, componentFieldDirective, "field", "String", nil)
+	if err != nil {
+		return err
 	}
 
 	// we need a directive to register runtime scalars but it shouldn't end up in the generated schema

@@ -80,7 +80,40 @@ func (p *HoudiniCore) validate_lists(ctx context.Context, errs *plugins.ErrorLis
 }
 
 func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plugins.ErrorList) {
-	// Obtain a connection.
+	// This query selects all field selections that have the required directive,
+	// along with:
+	//  - The field's name.
+	//  - The field definition's type_modifiers.
+	//  - The parent's type kind.
+	//  - Location info (from raw_documents via selection_refs).
+	//  - The document name.
+	//  - An aggregated count of child selections that have the required directive.
+	// Instead of a subquery, we join the child selections using LEFT JOIN.
+	query := `
+	SELECT
+	  s.id AS selectionID,
+	  s.field_name,
+	  tf.type_modifiers,
+	  t.kind AS parentKind,
+	  rd.filepath,
+	  sr.row,
+	  sr.column,
+	  d.name AS documentName,
+	  COUNT(sd_child.directive) AS childReqCount
+	FROM selections s
+	  JOIN type_fields tf ON s.type = tf.id
+	  JOIN types t ON tf.parent = t.name
+	  JOIN selection_directives sd ON s.id = sd.selection_id
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  LEFT JOIN selection_refs sr_child ON sr_child.parent_id = s.id
+	  LEFT JOIN selection_directives sd_child
+	    ON sr_child.child_id = sd_child.selection_id AND sd_child.directive = ?
+	WHERE sd.directive = ?
+	GROUP BY s.id, s.field_name, tf.type_modifiers, t.kind, rd.filepath, sr.row, sr.column, d.name
+	`
+
 	conn, err := p.DB.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -88,32 +121,6 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 	}
 	defer p.DB.Put(conn)
 
-	// This query retrieves all field selections that have the required directive.
-	// It joins:
-	// - selections (for field nodes),
-	// - type_fields (to get the field definition including type_modifiers),
-	// - types (to get the kind of the parent type),
-	// - selection_directives (for directive attachments),
-	// - selection_refs and documents/raw_documents (for location and document name).
-	query := `
-		SELECT
-		s.id AS selectionID,
-		s.field_name,
-		tf.type_modifiers,
-		t.kind AS parentKind,
-		rd.filepath,
-		sd.row,
-		sd.column,
-		d.name AS documentName
-		FROM selections s
-		JOIN type_fields tf ON s.type = tf.id
-		JOIN types t ON tf.parent = t.name
-		JOIN selection_directives sd ON s.id = sd.selection_id
-		JOIN selection_refs sr ON sr.child_id = s.id
-		JOIN documents d ON d.id = sr.document
-		JOIN raw_documents rd ON rd.id = d.raw_document
-		WHERE sd.directive = ?
-	`
 	stmt, err := conn.Prepare(query)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -121,19 +128,11 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 	}
 	defer stmt.Finalize()
 
+	// Bind the required directive name twice.
 	stmt.BindText(1, requiredDirective)
+	stmt.BindText(2, requiredDirective)
 
-	// Process each field selection with the required directive.
-	for {
-		hasData, err := stmt.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		if !hasData {
-			break
-		}
-
+	p.runValidationStatement(ctx, conn, stmt, "error checking required directives", errs, func() {
 		fieldName := stmt.ColumnText(1)
 		typeModifiers := stmt.ColumnText(2)
 		parentKind := stmt.ColumnText(3)
@@ -141,30 +140,36 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 		row := int(stmt.ColumnInt(5))
 		column := int(stmt.ColumnInt(6))
 		docName := stmt.ColumnText(7)
+		childReqCount := stmt.ColumnInt(8)
 
-		// Rule 1: The required directive may only be used on object types.
+		// Rule 1: The field must be defined on an object type.
 		if parentKind != "OBJECT" {
 			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("@%s may only be used on object types, not on %s types (field %q in document %s)", requiredDirective, parentKind, fieldName, docName),
+				Message: fmt.Sprintf("@%s may only be used on object fields, not on fields of %s type (field %q in document %s)", requiredDirective, parentKind, fieldName, docName),
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: filepath, Line: row, Column: column},
 				},
 			})
+			return
 		}
 
-		// Rule 2: The required directive may only be used on server‑nullable fields.
-		// We assume that a non‑null field is indicated by a "!" in the type_modifiers.
-		if strings.HasSuffix(typeModifiers, "!") {
+		// Determine if the field is non-null on the server.
+		// We require that type_modifiers ends with "!".
+		serverNonNull := strings.HasSuffix(typeModifiers, "!")
+
+		// Rule 2: If the field is non-null on the server, it is only allowed to use @required
+		// if at least one child selection already has @required.
+		if serverNonNull && childReqCount == 0 {
 			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("@%s may only be used on nullable fields, but field %q is non-null (document %s)", requiredDirective, fieldName, docName),
+				Message: fmt.Sprintf("@%s may only be used on fields that are nullable on the server or on fields whose child selections already carry @%s (field %q in document %s)", requiredDirective, requiredDirective, fieldName, docName),
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: filepath, Line: row, Column: column},
 				},
 			})
 		}
-	}
+	})
 }
 
 func (p *HoudiniCore) validate_maskDirectives(ctx context.Context, errs *plugins.ErrorList) {
