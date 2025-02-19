@@ -603,6 +603,56 @@ var tests = []testCase{
 		},
 	},
 	{
+		name: "variables in fragments",
+		rawQuery: `
+            fragment TestFragmentArguments on Query @arguments(show: {type: "Boolean!", defaultValue: true}) {
+                user(id: "123") @include(if: $show) {
+                    id
+                }
+            }
+        `,
+		expectedDocs: []expectedDocument{
+			{
+				Name:          "TestFragmentArguments",
+				Kind:          "fragment",
+				TypeCondition: strPtr("Query"),
+				Variables: []operationVariableRow{
+					{Document: 1, VarName: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
+				},
+				Directives: []expectedDirective{
+					{
+						Name: "arguments",
+						Arguments: []expectedDirectiveArgument{
+							{Name: "show", Value: "{type:\"Boolean!\",defaultValue:true}"},
+						},
+					},
+				},
+				Selections: []expectedSelection{
+					{
+						FieldName: "user",
+						Alias:     strPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Arguments: []expectedArgument{
+							{Name: "id", Value: "\"123\""},
+						},
+						Directives: []expectedDirective{
+							{
+								Name: "include",
+								Arguments: []expectedDirectiveArgument{
+									{Name: "if", Value: "$show"},
+								},
+							},
+						},
+						Children: []expectedSelection{
+							{FieldName: "id", Alias: strPtr("id"), PathIndex: 0, Kind: "field"},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
 		name: "introspection fields",
 		rawQuery: `
             query TestIntrospection {
@@ -1223,40 +1273,37 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 							t.Errorf("document mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
 						}
 
-						// If the document is an operation, check its operation variables.
-						if expDoc.Kind == "query" || expDoc.Kind == "mutation" || expDoc.Kind == "subscription" {
-							vars := findOperationVariables(t, db)
-							if len(vars) != len(expDoc.Variables) {
-								t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
+						vars := findOperationVariables(t, db)
+						if len(vars) != len(expDoc.Variables) {
+							t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
+						}
+						for i, expectedVar := range expDoc.Variables {
+							if i >= len(vars) {
+								break
 							}
-							for i, expectedVar := range expDoc.Variables {
-								if i >= len(vars) {
-									break
-								}
-								actualVar := vars[i]
-								if actualVar.Document != expectedVar.Document ||
-									actualVar.VarName != expectedVar.VarName ||
-									actualVar.Type != expectedVar.Type ||
-									!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
-									t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
-								}
-								// Check directives attached to the operation variable.
-								if len(expectedVar.Directives) != len(actualVar.Directives) {
-									t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.VarName, len(expectedVar.Directives), len(actualVar.Directives))
-								} else {
-									for j, expDir := range expectedVar.Directives {
-										actDir := actualVar.Directives[j]
-										if actDir.Name != expDir.Name {
-											t.Errorf("for document %s, operation variable %s directive %d mismatch: expected %s, got %s", expDoc.Name, expectedVar.VarName, j, expDir.Name, actDir.Name)
-										}
-										if len(expDir.Arguments) != len(actDir.Arguments) {
-											t.Errorf("for document %s, operation variable %s directive %s expected %d arguments, got %d", expDoc.Name, expectedVar.VarName, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
-										} else {
-											for k, expArg := range expDir.Arguments {
-												actArg := actDir.Arguments[k]
-												if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
-													t.Errorf("for document %s, operation variable %s directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.VarName, expDir.Name, k, expArg, actArg)
-												}
+							actualVar := vars[i]
+							if actualVar.Document != expectedVar.Document ||
+								actualVar.VarName != expectedVar.VarName ||
+								actualVar.Type != expectedVar.Type ||
+								!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
+								t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
+							}
+							// Check directives attached to the operation variable.
+							if len(expectedVar.Directives) != len(actualVar.Directives) {
+								t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.VarName, len(expectedVar.Directives), len(actualVar.Directives))
+							} else {
+								for j, expDir := range expectedVar.Directives {
+									actDir := actualVar.Directives[j]
+									if actDir.Name != expDir.Name {
+										t.Errorf("for document %s, operation variable %s directive %d mismatch: expected %s, got %s", expDoc.Name, expectedVar.VarName, j, expDir.Name, actDir.Name)
+									}
+									if len(expDir.Arguments) != len(actDir.Arguments) {
+										t.Errorf("for document %s, operation variable %s directive %s expected %d arguments, got %d", expDoc.Name, expectedVar.VarName, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
+									} else {
+										for k, expArg := range expDir.Arguments {
+											actArg := actDir.Arguments[k]
+											if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+												t.Errorf("for document %s, operation variable %s directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.VarName, expDir.Name, k, expArg, actArg)
 											}
 										}
 									}

@@ -605,7 +605,6 @@ func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugin
 			ON av.id = sargs.value
 				AND av.kind = 'Variable'
 				AND av.raw = opv.name
-		WHERE d.kind IN ('query', 'mutation', 'subscription')
 		GROUP BY opv.id
 		HAVING COUNT(av.id) = 0
 	`

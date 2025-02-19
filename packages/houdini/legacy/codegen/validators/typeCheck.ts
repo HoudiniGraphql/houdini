@@ -298,51 +298,26 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 	// there was nothing wrong, we're ready validate the documents totally
 
 	// build up the list of rules we'll apply to every document
-	const rules = (filepath: string) =>
-		[...graphql.specifiedRules]
-			.filter(
-				// remove rules that conflict with houdini
-				(rule) =>
-					![
-						// fragments are defined on their own so unused fragments are a fact of life
-						graphql.NoUnusedFragmentsRule,
-						// query documents don't contain the fragments they use so we can't enforce
-						// that we know every fragment. this is replaced with a more appropriate version
-						// down below
-						graphql.KnownFragmentNamesRule,
-						// some of the documents (ie the injected ones) will contain directive definitions
-						// and therefor not be explicitly executable
-						graphql.ExecutableDefinitionsRule,
-						// list include directives that aren't defined by the schema. this
-						// is replaced with a more appropriate version down below
-						graphql.KnownDirectivesRule,
-						// a few directives such at @arguments and @with don't have static names. this is
-						// replaced with a more flexible version below
-						graphql.KnownArgumentNamesRule,
-					].includes(rule)
-			)
-			.concat(
-				// this will replace `KnownDirectives` and `KnownFragmentNames`
-				validateLists({
-					config,
-					freeLists,
-					lists,
-					listTypes,
-					fragments,
-				}),
-				// checkMutationOperation
-				checkMutationOperation(config),
-				// pagination directive can only show up on nodes or the query type
-				nodeDirectives(config, [config.paginateDirective]),
-				// validate any fragment arguments
-				validateFragmentArguments(config, filepath, fragments),
-				// make sure there are pagination args on fields marked with @paginate
-				paginateArgs(config, filepath),
-				// make sure every argument defined in a fragment is used
-				noUnusedFragmentArguments(config),
-				// make sure @optimisticKey is used on any keys
-				validateOptimisticKeys(config)
-			)
+	const rules = (filepath: string) => [
+		// this will replace `KnownDirectives` and `KnownFragmentNames`
+		validateLists({
+			config,
+			freeLists,
+			lists,
+			listTypes,
+			fragments,
+		}),
+		// checkMutationOperation
+		checkMutationOperation(config),
+		// pagination directive can only show up on nodes or the query type
+		nodeDirectives(config, [config.paginateDirective]),
+		// validate any fragment arguments
+		validateFragmentArguments(config, filepath, fragments),
+		// make sure there are pagination args on fields marked with @paginate
+		paginateArgs(config, filepath),
+		// make sure every argument defined in a fragment is used
+		noUnusedFragmentArguments(config),
+	]
 
 	for (const { filename, document: parsed, originalString } of docs) {
 		// validate the document

@@ -566,7 +566,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment NodePaginatedA on Query @arguments(
-						ids: { type: [String] }
+						ids: { type: "[String]" }
 					) {
 						nodes(ids: $ids) {
 							id

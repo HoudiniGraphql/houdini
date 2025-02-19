@@ -45,7 +45,6 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_knownDirectiveArguments,
 		p.validate_fragmentArguments,
 		p.validate_paginateArgs,
-		p.validate_noUnusedFragmentArguments,
 		p.validate_loadingDirective,
 		p.validate_optimisticKeyFullSelection,
 		p.validate_optimisticKeyOnScalar,

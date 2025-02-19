@@ -627,6 +627,109 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 				}
 			}
 
+			// we might need to register arguments on fragment by looking for the @arguments directive
+			if directive.Name == argumentsDirective {
+				// we need to find the arguments directive and then add the arguments to the database
+				for _, arg := range directive.Arguments {
+					// the argument needs to be an object type
+					if arg.Value.Kind != ast.ObjectValue {
+						return &plugins.Error{
+							Message: "arguments directive must have an object value",
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+
+					// the values we need to extract are the name, the type, and a default value
+					argName := arg.Name
+					var argType string
+					var argDefault string
+
+					// walk the object value and extract the values we need
+					for _, field := range arg.Value.Children {
+						switch field.Name {
+						case "type":
+							if field.Value.Kind != ast.StringValue {
+								return &plugins.Error{
+									Message: "fragment argument type must be a string",
+									Locations: []*plugins.ErrorLocation{
+										{
+											Filepath: query.Filepath,
+											Line:     query.RowOffset + field.Position.Line,
+											Column:   query.ColumnOffset + field.Position.Column,
+										},
+									},
+								}
+							}
+							argType = field.Value.Raw
+						case "default":
+							argDefault = field.Value.Raw
+						}
+					}
+
+					// if we got this far and didn't find a name or type, we have a problem
+					if argName == "" {
+						return &plugins.Error{
+							Message: "fragment arguments must have a name",
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+					if argType == "" {
+						return &plugins.Error{
+							Message: "fragment arguments must have a type",
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+
+					// we can now insert the argument into the database
+
+					// parse the type of the variable.
+					variableType, typeModifiers := parseFieldType(argType)
+
+					statements.InsertDocumentVariable.BindInt64(1, fragmentID)
+					statements.InsertDocumentVariable.BindText(2, argName)
+					statements.InsertDocumentVariable.BindText(3, variableType)
+					statements.InsertDocumentVariable.BindText(4, typeModifiers)
+					if argDefault != "" {
+						statements.InsertDocumentVariable.BindText(5, argDefault)
+					} else {
+						statements.InsertDocumentVariable.BindNull(5)
+					}
+					statements.InsertDocumentVariable.BindInt64(6, int64(arg.Position.Line))
+					statements.InsertDocumentVariable.BindInt64(7, int64(arg.Position.Column))
+					if err := p.DB.ExecStatement(statements.InsertDocumentVariable); err != nil {
+						return &plugins.Error{
+							Message: "could not associate document variable",
+							Detail:  err.Error(),
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+				}
+			}
+
 		}
 	}
 

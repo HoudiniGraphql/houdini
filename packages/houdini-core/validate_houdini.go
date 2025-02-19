@@ -304,10 +304,6 @@ func (p *HoudiniCore) validate_paginateArgs(ctx context.Context, errs *plugins.E
 
 }
 
-func (p *HoudiniCore) validate_noUnusedFragmentArguments(ctx context.Context, errs *plugins.ErrorList) {
-
-}
-
 func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugins.ErrorList) {
 	// This query selects selections (fields or fragment spreads) that have the loading directive,
 	// are not at the document root (i.e. they have a parent selection),
