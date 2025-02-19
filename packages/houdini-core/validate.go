@@ -38,12 +38,11 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_duplicateKeysInInputObject,
 		// Houdini-specific validation rules
 		p.validate_noKeyAlias,
-		p.validate_uniqueNames,
 		p.validate_lists,
 		p.validate_requiredDirective,
-		p.validate_maskDirective,
+		p.validate_maskDirectives,
 		p.validate_nodeDirective,
-		p.validate_knownArguments,
+		p.validate_knownDirectiveArguments,
 		p.validate_fragmentArguments,
 		p.validate_paginateArgs,
 		p.validate_noUnusedFragmentArguments,
@@ -115,5 +114,28 @@ func (p *HoudiniCore) runValidationQuery(ctx context.Context, queryStr, prepErrM
 			break
 		}
 		rowHandler(query)
+	}
+}
+
+func (p *HoudiniCore) runValidationStatement(ctx context.Context, conn *sqlite.Conn, queryStatement *sqlite.Stmt, prepErrMsg string, errs *plugins.ErrorList, rowHandler func()) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		hasData, err := queryStatement.Step()
+		if err != nil {
+			errs.Append(plugins.Error{
+				Message: "query step error",
+				Detail:  err.Error(),
+			})
+			break
+		}
+		if !hasData {
+			break
+		}
+		rowHandler()
 	}
 }

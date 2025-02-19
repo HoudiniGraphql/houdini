@@ -151,6 +151,32 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "Valid arguments on directives",
+			Pass:  true,
+			Documents: []string{
+				`query TestQuery {
+						user {
+							friends @list(name: "Friends") {
+								id
+							}
+						}
+					}`,
+			},
+		},
+		{
+			Title: "Invalid arguments on directives",
+			Pass:  false,
+			Documents: []string{
+				`query TestQuery {
+						user {
+							friends @list(foo: "Friends") {
+								id
+							}
+						}
+					}`,
+			},
+		},
+		{
 			Title: "@list on query",
 			Pass:  true,
 			Documents: []string{
@@ -418,7 +444,7 @@ func TestValidate_Houdini(t *testing.T) {
 				`
 				query UserFriends {
 					user {
-						friendsByCursor @list(name: "Friends") {
+						friendsConnection @list(name: "Friends") {
 							edges {
 								node {
 									id
@@ -579,7 +605,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment UserPaginatedA on User {
-						friendsByCursor(first: 10) @paginate {
+						friendsConnection(first: 10) @paginate {
 							edges {
 								node {
 									id
@@ -596,7 +622,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment UserCursorPaginatedA on User {
-						friendsByCursor @paginate {
+						friendsConnection @paginate {
 							edges {
 								node {
 									id
@@ -613,7 +639,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment UserPaginatedA on User {
-						friendsByCursor(first: 10, last: 10) @paginate {
+						friendsConnection(first: 10, last: 10) @paginate {
 							edges {
 								node {
 									id
@@ -630,7 +656,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {
-						friendsByCursor(first: 10, after: $foo) @paginate {
+						friendsConnection(first: 10, after: $foo) @paginate {
 							edges {
 								node {
 									id
@@ -663,7 +689,7 @@ func TestValidate_Houdini(t *testing.T) {
 						friendsByOffset(limit: 10) @paginate {
 							id
 						}
-						friendsByCursor(first: 10) @paginate {
+						friendsConnection(first: 10) @paginate {
 							edges {
 								node {
 									id
@@ -749,7 +775,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment GhostPaginatedA on User {
-						friendsByCursor (first: 10) @paginate {
+						friendsConnection (first: 10) @paginate {
 							edges {
 								node {
 									name
@@ -766,10 +792,10 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment LoadingDirectiveA on User {
-						friendsByCursor {
+						friendsConnection {
 							edges {
 								node @loading {
-									name
+									firstName
 								}
 							}
 						}
@@ -783,10 +809,10 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					fragment LoadingDirectiveA on User @loading {
-						friendsByCursor {
+						friendsConnection {
 							edges {
 								node @loading {
-									name
+									firstName
 								}
 							}
 						}
@@ -818,7 +844,7 @@ func TestValidate_Houdini(t *testing.T) {
 						friendsConnection @loading {
 							edges @loading {
 								node @loading {
-									name
+									firstName
 								}
 							}
 						}
@@ -963,7 +989,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query A {
-						node @loading {
+						node(id: "1") @loading {
 							... on User @loading {
 								firstName @loading
 							}

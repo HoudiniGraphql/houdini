@@ -1132,6 +1132,11 @@ func (p *HoudiniCore) validate_wrongTypesToScalarArg(ctx context.Context, errs *
 			loc.Filepath = filepath
 		}
 
+		// ID and string are equivalent
+		if expectedType == "ID" && providedKind == "String" {
+			return
+		}
+
 		errs.Append(plugins.Error{
 			Message:   fmt.Sprintf("Argument '%s' expects type '%s' but provided literal of type '%s' (value: %s)", argName, expectedType, providedKind, providedLiteral),
 			Kind:      plugins.ErrorKindValidation,

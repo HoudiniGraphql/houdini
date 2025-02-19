@@ -330,15 +330,10 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 					listTypes,
 					fragments,
 				}),
-				validateRequiredDirective(config, filepath),
 				// checkMutationOperation
 				checkMutationOperation(config),
-				// checkMaskDirectives
-				checkMaskDirectives(config),
 				// pagination directive can only show up on nodes or the query type
 				nodeDirectives(config, [config.paginateDirective]),
-				// this replaces KnownArgumentNamesRule
-				knownArguments(config),
 				// validate any fragment arguments
 				validateFragmentArguments(config, filepath, fragments),
 				// make sure there are pagination args on fields marked with @paginate
@@ -370,53 +365,6 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 
 	// we're done here
 	return
-}
-
-function validateRequiredDirective(config: Config, filepath: string) {
-	function isClientNullable(node: graphql.FieldNode, ignoreCurrent: boolean): boolean {
-		const hasRequiredDirective = node.directives?.some(
-			({ name }) => name.value === config.requiredDirective
-		)
-		return (
-			(!ignoreCurrent && hasRequiredDirective) ||
-			node.selectionSet?.selections.some(
-				(node) => node.kind == 'Field' && isClientNullable(node, false)
-			) == true
-		)
-	}
-
-	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
-		return {
-			Field(node, _, __, ___, ancestors) {
-				if (!node.directives?.some(({ name }) => name.value === config.requiredDirective))
-					return
-
-				const parentType = parentTypeFromAncestors(config.schema, filepath, ancestors)
-
-				// Check that we're on an object type, not an argument or interface type
-				if (!graphql.isObjectType(parentType)) {
-					ctx.reportError(
-						new graphql.GraphQLError(
-							`@${config.requiredDirective} may only be used on objects, not arguments`
-						)
-					)
-					return
-				}
-
-				const type = parentType.getFields()[node.name.value].type
-				const isServerNullable = !graphql.isNonNullType(type)
-				const isAlreadyClientNullable = isClientNullable(node, true)
-				if (!isServerNullable && !isAlreadyClientNullable) {
-					ctx.reportError(
-						new graphql.GraphQLError(
-							`@${config.requiredDirective} may only be used on nullable fields`
-						)
-					)
-					return
-				}
-			},
-		}
-	}
 }
 
 // build up the custom rule that requires parentID on all list directives
@@ -565,42 +513,6 @@ const validateLists = ({
 			},
 		}
 	}
-
-function knownArguments(config: Config) {
-	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
-		// grab the default known arguments validator
-		const nativeValidator = graphql.KnownArgumentNamesRule(ctx)
-
-		// keep the default arguments validator (it doesn't check directives)
-		return {
-			...nativeValidator,
-			Directive(directiveNode) {
-				// the name of the directive
-				const directiveName = directiveNode.name.value
-
-				// if the directive points to the arguments or with directive, we don't
-				// need the arguments to be defined
-				if (
-					[
-						config.argumentsDirective,
-						config.withDirective,
-						config.whenDirective,
-						config.whenNotDirective,
-						config.listAppendDirective,
-						config.listPrependDirective,
-						config.blockingDirective,
-						config.blockingDisableDirective,
-					].includes(directiveName)
-				) {
-					return false
-				}
-
-				// otherwise use the default validator
-				return (nativeValidator as any).Directive(directiveNode)
-			},
-		}
-	}
-}
 
 function validateFragmentArguments(
 	config: Config,

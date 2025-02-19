@@ -1023,17 +1023,6 @@ const table: Row[] = [
 				}
 			}
 			`,
-			`
-			fragment LoadingDirectiveB on Ghost {
-				friendsConnection {
-					edges {
-						node @loading {
-							name
-						}
-					}
-				}
-			}
-			`,
 		],
 	},
 	{
