@@ -340,8 +340,6 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 				paginateArgs(config, filepath),
 				// make sure every argument defined in a fragment is used
 				noUnusedFragmentArguments(config),
-				// make sure that @loading is used correctly
-				validateLoadingDirective(config),
 				// make sure @optimisticKey is used on any keys
 				validateOptimisticKeys(config)
 			)

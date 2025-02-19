@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"code.houdinigraphql.com/plugins"
@@ -374,7 +375,215 @@ func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugi
 		})
 	})
 }
+func (p *HoudiniCore) validate_optimisticKeyOnScalar(ctx context.Context, errs *plugins.ErrorList) {
+	// This query selects every field selection that has the optimisticKey directive
+	// and whose declared type is not a scalar (i.e. its type's kind is not "SCALAR").
+	query := `
+	SELECT
+	  s.id AS selectionID,
+	  s.field_name,
+	  rd.filepath,
+	  sr.row,
+	  sr.column,
+	  d.name AS documentName,
+	  t.kind AS fieldTypeKind
+	FROM selection_directives sd
+	  JOIN selections s ON s.id = sd.selection_id
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  JOIN type_fields tf ON s.type = tf.id
+	  JOIN types t ON tf.type = t.name
+	WHERE sd.directive = ?
+	  AND t.kind != 'SCALAR'
+	`
 
-func (p *HoudiniCore) validate_optimisticKeys(ctx context.Context, errs *plugins.ErrorList) {
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer p.DB.Put(conn)
 
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	stmt.BindText(1, optimisticKeyDirective)
+
+	p.runValidationStatement(ctx, conn, stmt, "error checking optimistic key directive on scalar", errs, func() {
+		fieldTypeKind := stmt.ColumnText(6)
+		filepath := stmt.ColumnText(2)
+		row := int(stmt.ColumnInt(3))
+		column := int(stmt.ColumnInt(4))
+		fieldName := stmt.ColumnText(1)
+		docName := stmt.ColumnText(5)
+
+		errs.Append(plugins.Error{
+			Message: fmt.Sprintf("@%s can only be applied on scalar fields, but field %q in document %q has type kind %q", optimisticKeyDirective, fieldName, docName, fieldTypeKind),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+}
+
+func (p *HoudiniCore) validate_optimisticKeyFullSelection(ctx context.Context, errs *plugins.ErrorList) {
+	optimisticDirective := optimisticKeyDirective
+
+	// Query returns one row per optimistic-key usage.
+	// We retrieve:
+	//  - sr.parent_id: the parent selection ID (which groups a selection set).
+	//  - d.kind: the document kind.
+	//  - rd.filepath, sr.row, sr.column: location info.
+	//  - s.field_name: the field that is tagged with @optimisticKey.
+	//  - tfp.type AS parentTypeName: the parent's declared return type (i.e. the type of the object).
+	//  - COALESCE(tc.keys, c.default_keys) AS expectedKeys: the expected key fields as a JSON array.
+	query := `
+	SELECT
+	  sr.parent_id AS parentID,
+	  d.kind AS docKind,
+	  rd.filepath,
+	  sr.row,
+	  sr.column,
+	  s.field_name,
+	  tfp.type AS parentTypeName,
+	  COALESCE(tc.keys, c.default_keys) AS expectedKeys
+	FROM selection_directives sd
+	  JOIN selections s ON s.id = sd.selection_id
+	  JOIN selection_refs sr ON sr.child_id = s.id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  LEFT JOIN selections sp ON sp.id = sr.parent_id
+	  LEFT JOIN type_fields tfp ON sp.type = tfp.id
+	  LEFT JOIN type_configs tc ON tc.name = tfp.type
+	  CROSS JOIN config c
+	WHERE sd.directive = ?
+	  AND sr.parent_id IS NOT NULL
+	  AND sp.kind = 'field'
+	`
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer p.DB.Put(conn)
+
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	stmt.BindText(1, optimisticDirective)
+
+	// In-memory grouping: map parentID -> list of usage records.
+	type usageRecord struct {
+		fieldName      string
+		filepath       string
+		row            int
+		column         int
+		docKind        string
+		parentTypeName string
+		expectedKeys   string // JSON
+	}
+	groups := make(map[int64][]usageRecord)
+
+	for {
+		hasData, err := stmt.Step()
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+		if !hasData {
+			break
+		}
+		parentID := stmt.ColumnInt64(0)
+		rec := usageRecord{
+			fieldName:      stmt.ColumnText(5),
+			filepath:       stmt.ColumnText(2),
+			row:            int(stmt.ColumnInt(3)),
+			column:         int(stmt.ColumnInt(4)),
+			docKind:        stmt.ColumnText(1),
+			parentTypeName: stmt.ColumnText(6),
+			expectedKeys:   stmt.ColumnText(7),
+		}
+		groups[parentID] = append(groups[parentID], rec)
+	}
+
+	// Process each group.
+	for _, usages := range groups {
+		// Use the first usage as a representative for location, document kind, and parent's type.
+		rep := usages[0]
+		// Rule: Must be used in a mutation.
+		if rep.docKind != "mutation" {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("@%s can only be used in mutations", optimisticDirective),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
+				},
+			})
+			continue
+		}
+		// Rule: Must have a defined parent type.
+		if strings.TrimSpace(rep.parentTypeName) == "" {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("@%s must be applied to a selection set with a defined parent type", optimisticDirective),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
+				},
+			})
+			continue
+		}
+
+		// Combine found keys from all usages in the group.
+		keySet := make(map[string]struct{})
+		for _, u := range usages {
+			keySet[u.fieldName] = struct{}{}
+		}
+		var foundKeys []string
+		for k := range keySet {
+			foundKeys = append(foundKeys, k)
+		}
+		sort.Strings(foundKeys)
+
+		// Unmarshal expected keys from the JSON.
+		var expectedKeys []string
+		if err := json.Unmarshal([]byte(rep.expectedKeys), &expectedKeys); err != nil {
+			errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal expectedKeys JSON for type %q: %w", rep.parentTypeName, err)))
+			continue
+		}
+		sort.Strings(expectedKeys)
+
+		// Compare: if found keys do not exactly match expected keys, report error.
+		if len(foundKeys) != len(expectedKeys) {
+			errs.Append(plugins.Error{
+				Message: fmt.Sprintf("@%s must be applied to every key field for type %q; expected keys %v but found %v", optimisticDirective, rep.parentTypeName, expectedKeys, foundKeys),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
+				},
+			})
+			continue
+		}
+		for i, key := range expectedKeys {
+			if key != foundKeys[i] {
+				errs.Append(plugins.Error{
+					Message: fmt.Sprintf("@%s must be applied to every key field for type %q; expected keys %v but found %v", optimisticDirective, rep.parentTypeName, expectedKeys, foundKeys),
+					Kind:    plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{
+						{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
+					},
+				})
+				break
+			}
+		}
+	}
 }

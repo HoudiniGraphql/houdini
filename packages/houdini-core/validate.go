@@ -47,7 +47,8 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		p.validate_paginateArgs,
 		p.validate_noUnusedFragmentArguments,
 		p.validate_loadingDirective,
-		p.validate_optimisticKeys,
+		p.validate_optimisticKeyFullSelection,
+		p.validate_optimisticKeyOnScalar,
 	}
 
 	// run all of the rules concurrently
