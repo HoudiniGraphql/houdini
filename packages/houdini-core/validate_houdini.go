@@ -927,6 +927,100 @@ func (p *HoudiniCore) validate_paginateTypeCondition(ctx context.Context, errs *
 	})
 }
 
+func (p *HoudiniCore) validate_conflictingPrependAppend(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+	SELECT
+	  rd.filepath,
+	  rd.offset_line AS row,
+	  rd.offset_column AS column,
+	  d.name AS documentName,
+	  GROUP_CONCAT(DISTINCT sd.directive) AS directives
+	FROM selection_directives sd
+	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE sd.directive IN ('prepend', 'append')
+	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
+	HAVING COUNT(DISTINCT sd.directive) > 1
+	`
+
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer p.DB.Put(conn)
+
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	p.runValidationStatement(ctx, conn, stmt, "error checking conflicting @prepend and @append", errs, func() {
+		filepath := stmt.ColumnText(0)
+		row := int(stmt.ColumnInt(1))
+		column := int(stmt.ColumnInt(2))
+		documentName := stmt.ColumnText(3)
+		directives := stmt.ColumnText(4)
+		errs.Append(plugins.Error{
+			Message: fmt.Sprintf("@prepend and @append cannot appear on the same fragment in document %q (found: %s)", documentName, directives),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+}
+
+func (p *HoudiniCore) validate_conflictingParentIDAllLists(ctx context.Context, errs *plugins.ErrorList) {
+	query := `
+	SELECT
+	  rd.filepath,
+	  rd.offset_line AS row,
+	  rd.offset_column AS column,
+	  d.name AS documentName,
+	  GROUP_CONCAT(DISTINCT sd.directive) AS directives
+	FROM selection_directives sd
+	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
+	  JOIN documents d ON d.id = sr.document
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE sd.directive IN ('parentID', 'allLists')
+	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
+	HAVING COUNT(DISTINCT sd.directive) > 1
+	`
+
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer p.DB.Put(conn)
+
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	p.runValidationStatement(ctx, conn, stmt, "error checking conflicting @parentID and @allLists", errs, func() {
+		filepath := stmt.ColumnText(0)
+		row := int(stmt.ColumnInt(1))
+		column := int(stmt.ColumnInt(2))
+		documentName := stmt.ColumnText(3)
+		directives := stmt.ColumnText(4)
+		errs.Append(plugins.Error{
+			Message: fmt.Sprintf("@parentID cannot appear alongside @allLists in document %q (found: %s)", documentName, directives),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+}
+
 func (p *HoudiniCore) validate_lists(ctx context.Context, errs *plugins.ErrorList) {
 
 }

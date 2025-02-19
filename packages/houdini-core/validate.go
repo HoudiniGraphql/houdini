@@ -39,6 +39,8 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		// Houdini-specific validation rules
 		p.validate_noKeyAlias,
 		p.validate_lists,
+		p.validate_conflictingParentIDAllLists,
+		p.validate_conflictingPrependAppend,
 		p.validate_requiredDirective,
 		p.validate_maskDirectives,
 		p.validate_nodeDirective,

@@ -307,16 +307,10 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 			listTypes,
 			fragments,
 		}),
-		// checkMutationOperation
-		checkMutationOperation(config),
 		// pagination directive can only show up on nodes or the query type
 		nodeDirectives(config, [config.paginateDirective]),
 		// validate any fragment arguments
 		validateFragmentArguments(config, filepath, fragments),
-		// make sure there are pagination args on fields marked with @paginate
-		paginateArgs(config, filepath),
-		// make sure every argument defined in a fragment is used
-		noUnusedFragmentArguments(config),
 	]
 
 	for (const { filename, document: parsed, originalString } of docs) {

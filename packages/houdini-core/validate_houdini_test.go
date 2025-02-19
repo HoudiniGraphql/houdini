@@ -304,6 +304,38 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "@prepend and @append cannot appear on the same fragment",
+			Pass:  false,
+			Documents: []string{
+				`query TestQuery {
+					user @list(name: "Friends") {
+						firstName
+					}
+        		}`,
+				`mutation MutationM1($parentID: ID!) {
+					addFriend {
+						...Friends_insert @prepend @append
+					}
+				}`,
+			},
+		},
+		{
+			Title: "@parentID cannot appear alongside @allLists",
+			Pass:  false,
+			Documents: []string{
+				`fragment FragmentA on User {
+					friends @list(name: "Friends") {
+						firstName
+					}
+                }`,
+				`mutation Mutation1 {
+					addFriend {
+						...Friends_insert @parentID(value: "1") @allLists
+					}
+                }`,
+			},
+		},
+		{
 			Title: "@list without parentID on fragment",
 			Pass:  false,
 			Documents: []string{
