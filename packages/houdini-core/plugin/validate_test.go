@@ -339,6 +339,17 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "Variable used only in directive",
+			Pass:  true,
+			Documents: []string{
+				`query Test($message: String) {
+				   user(name: "foo") {
+					   firstName @deprecated(reason: $message)
+				   }
+			   }`,
+			},
+		},
+		{
 			Title: "Using an unknown directive",
 			Pass:  false,
 			Documents: []string{

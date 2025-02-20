@@ -619,6 +619,11 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 }
 
 func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// This query finds operation variables that are defined but never used.
+	// We join operation_variables (opv) to documents and raw_documents to get context.
+	// Then we left join a UNION ALL subquery ("var") that finds all variable usages,
+	// whether in field arguments, selection directives, or document directives.
+	// If COUNT(var.raw) = 0 for an operation variable, then it is unused.
 	query := `
 		SELECT
 			opv.name,
@@ -626,21 +631,39 @@ func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.D
 			r.filepath,
 			COALESCE(
 			json_group_array(
-				json_object('line', refs.row, 'column', refs.column)
-			),
-			json('[]')
+				json_object('line', var.row, 'column', var.column)
+			), '[]'
 			) AS locations
 		FROM operation_variables opv
-			JOIN documents d ON opv.document = d.id
-			JOIN raw_documents r ON r.id = d.raw_document
-			LEFT JOIN selection_refs refs ON refs.document = d.id
-			LEFT JOIN selection_arguments sargs ON sargs.selection_id = refs.child_id
-			LEFT JOIN argument_values av
-			ON av.id = sargs.value
-				AND av.kind = 'Variable'
-				AND av.raw = opv.name
+		JOIN documents d ON opv.document = d.id
+		JOIN raw_documents r ON r.id = d.raw_document
+		LEFT JOIN (
+			-- Variable usages in field arguments:
+			SELECT d.id AS document, av.raw, refs.row, refs.column
+			FROM selection_refs refs
+			JOIN selection_arguments sargs ON sargs.selection_id = refs.child_id
+			JOIN argument_values av ON av.id = sargs.value AND av.kind = 'Variable'
+			JOIN documents d ON d.id = refs.document
+			UNION ALL
+			-- Variable usages in selection directives:
+			SELECT d.id AS document, av.raw, sd.row, sd.column
+			FROM selection_directives sd
+			JOIN selection_directive_arguments sda ON sda.parent = sd.id
+			JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
+			JOIN selections s ON s.id = sd.selection_id
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d ON d.id = sr.document
+			UNION ALL
+			-- Variable usages in document directives:
+			SELECT d.id AS document, av.raw, dd.row, dd.column
+			FROM document_directives dd
+			JOIN document_directive_arguments sda ON sda.parent = dd.id
+			JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
+			JOIN documents d ON d.id = dd.document
+		) var ON var.document = d.id
+			AND var.raw = opv.name
 		GROUP BY opv.id
-		HAVING COUNT(av.id) = 0
+		HAVING COUNT(var.raw) = 0
 	`
 
 	err := db.StepQuery(ctx, query, func(row *sqlite.Stmt) {

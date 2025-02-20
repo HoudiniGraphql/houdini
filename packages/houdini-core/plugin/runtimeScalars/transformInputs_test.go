@@ -8,6 +8,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/runtimeScalars"
 	"code.houdinigraphql.com/plugins"
+
 	"github.com/stretchr/testify/require"
 )
 
