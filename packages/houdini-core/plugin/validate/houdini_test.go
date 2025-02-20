@@ -1,4 +1,4 @@
-package main
+package validate_test
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 )
 
 func TestValidate_Houdini(t *testing.T) {
@@ -1083,13 +1086,13 @@ func TestValidate_Houdini(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Title, func(t *testing.T) {
 			// // create and wire up a database we can test against
-			db, err := plugins.NewPoolInMemory[PluginConfig]()
+			db, err := plugins.NewPoolInMemory[houdiniCore.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
-			plugin := &HoudiniCore{
-				fs: afero.NewMemMapFs(),
+			plugin := &houdiniCore.HoudiniCore{
+				Fs: afero.NewMemMapFs(),
 			}
 			db.SetProjectConfig(projectConfig)
 			plugin.SetDatabase(db)
@@ -1099,11 +1102,11 @@ func TestValidate_Houdini(t *testing.T) {
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = executeSchema(conn)
+			err = database.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
+			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
 			// wire up the plugin
 			err = plugin.Schema(ctx)
@@ -1156,7 +1159,7 @@ func TestValidate_Houdini(t *testing.T) {
 			}
 
 			// load the raw documents into the database
-			err = plugin.afterExtract_loadDocuments(ctx)
+			err = plugin.AfterExtract(ctx)
 			if err != nil {
 				db.Put(conn)
 				if !test.Pass {
@@ -1164,29 +1167,6 @@ func TestValidate_Houdini(t *testing.T) {
 					return
 				}
 				t.Fatalf("failed to load documents: %v", err)
-			}
-
-			errs := &plugins.ErrorList{}
-			plugin.afterExtract_componentFields(conn, errs)
-			if errs.Len() > 0 {
-				// we're done with the database connection for now
-				db.Put(conn)
-				if !test.Pass {
-					// we're done
-					return
-				}
-				t.Fatalf("failed to extract component fields: %v", errs.GetItems())
-			}
-
-			plugin.afterExtract_runtimeScalars(ctx, conn, errs)
-			if errs.Len() > 0 {
-				// we're done with the database connection for now
-				db.Put(conn)
-				if !test.Pass {
-					// we're done
-					return
-				}
-				t.Fatalf("failed to extract component fields: %v", errs.GetItems())
 			}
 
 			db.Put(conn)

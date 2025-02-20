@@ -1,11 +1,14 @@
-package main
+package schema_test
 
 import (
 	"context"
 	"path"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
+
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -88,7 +91,7 @@ func TestSchema(t *testing.T) {
 			}
 
 			// Instantiate an in-memory database and set the project config.
-			db, _ := plugins.NewPoolInMemory[PluginConfig]()
+			db, _ := plugins.NewPoolInMemory[houdiniCore.PluginConfig]()
 			defer db.Close()
 			db.SetProjectConfig(plugins.ProjectConfig{
 				ProjectRoot: "/project",
@@ -98,12 +101,12 @@ func TestSchema(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 
-			err = executeSchema(conn)
+			err = database.WriteHoudiniSchema(conn)
 			db.Put(conn)
 			require.Nil(t, err)
 
 			// Create the HoudiniCore instance and set its DB.
-			core := &HoudiniCore{fs: fs}
+			core := &houdiniCore.HoudiniCore{Fs: fs}
 			core.SetDatabase(db)
 
 			// Call the Schema method.
@@ -176,7 +179,7 @@ type expectedType struct {
 
 // queryTypes returns a map from type name to true for all types in the
 // "types" table that were imported as user types (i.e. not internal).
-func queryTypes(db plugins.DatabasePool[PluginConfig]) (map[string]bool, error) {
+func queryTypes(db plugins.DatabasePool[houdiniCore.PluginConfig]) (map[string]bool, error) {
 	typesMap := make(map[string]bool)
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -203,7 +206,7 @@ func queryTypes(db plugins.DatabasePool[PluginConfig]) (map[string]bool, error) 
 
 // queryTypeFields returns a map from a parent type name to a slice of expectedField
 // (populated from the "type_fields" table for user types).
-func queryTypeFields(db plugins.DatabasePool[PluginConfig]) (map[string][]expectedField, error) {
+func queryTypeFields(db plugins.DatabasePool[houdiniCore.PluginConfig]) (map[string][]expectedField, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil, err

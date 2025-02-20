@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"strings"
@@ -7,8 +7,8 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-// executeSchema creates the database schema.
-func executeSchema(db *sqlite.Conn) error {
+// ExecuteSchema creates the database schema.
+func WriteHoudiniSchema(db *sqlite.Conn) error {
 	statements := strings.Split(schema, ";")
 	for _, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)

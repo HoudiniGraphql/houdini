@@ -1,6 +1,6 @@
 // this file contains implementations for the default validators included in graphql-js
 
-package main
+package validate
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"zombiezen.com/go/sqlite"
 )
 
-func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.Context, errs *plugins.ErrorList) {
+func SubscriptionsWithMultipleRootFields[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
 			raw_documents.filepath,
@@ -28,7 +28,7 @@ func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.C
 			AND selections.kind = 'field'
 		GROUP BY documents.id, documents.name HAVING COUNT(*) > 1
 	`
-	p.runValidationQuery(ctx, queryStr, "could not validate subscriptions with multiple root fields", errs, func(q *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "could not validate subscriptions with multiple root fields", errs, func(q *sqlite.Stmt) {
 		filepath := q.ColumnText(0)
 		locationsRaw := q.ColumnText(1)
 
@@ -49,7 +49,7 @@ func (p *HoudiniCore) validate_subscriptionsWithMultipleRootFields(ctx context.C
 	})
 }
 
-func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs *plugins.ErrorList) {
+func DuplicateDocumentNames[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
 			documents.name,
@@ -65,7 +65,7 @@ func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs 
 		GROUP BY documents.name
 		HAVING COUNT(*) > 1
 	`
-	p.runValidationQuery(ctx, queryStr, "could not validate duplicate document names", errs, func(q *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "could not validate duplicate document names", errs, func(q *sqlite.Stmt) {
 		docName := q.ColumnText(0)
 		locationsRaw := q.ColumnText(1)
 
@@ -82,7 +82,7 @@ func (p *HoudiniCore) validate_duplicateDocumentNames(ctx context.Context, errs 
 	})
 }
 
-func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *plugins.ErrorList) {
+func FragmentUnknownType[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
 			documents.name,
@@ -98,7 +98,7 @@ func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *pl
 			AND types.name IS NULL
 		GROUP BY documents.id
 	`
-	p.runValidationQuery(ctx, queryStr, "could not validate fragment type condition", errs, func(query *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "could not validate fragment type condition", errs, func(query *sqlite.Stmt) {
 		fragName := query.ColumnText(0)
 		typeCond := query.ColumnText(1)
 		filepath := query.ColumnText(2)
@@ -122,7 +122,7 @@ func (p *HoudiniCore) validate_fragmentUnknownType(ctx context.Context, errs *pl
 	})
 }
 
-func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugins.ErrorList) {
+func FragmentOnScalar[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
 			documents.name,
@@ -138,7 +138,7 @@ func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugi
 		  AND types.kind = 'SCALAR'
 		GROUP BY documents.id
 	`
-	p.runValidationQuery(ctx, queryStr, "could not validate fragment on scalars", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "could not validate fragment on scalars", errs, func(row *sqlite.Stmt) {
 		fragName := row.ColumnText(0)
 		typeCond := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -160,7 +160,7 @@ func (p *HoudiniCore) validate_fragmentOnScalar(ctx context.Context, errs *plugi
 	})
 }
 
-func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plugins.ErrorList) {
+func OutputTypeAsInput[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
 			operation_variables.name,
@@ -174,7 +174,7 @@ func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plug
 			JOIN types ON operation_variables.type = types.name
 		WHERE types.kind in ('OBJECT', 'INTERFACE', 'UNION')
 	`
-	p.runValidationQuery(ctx, queryStr, "could not validate operation variable types", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "could not validate operation variable types", errs, func(row *sqlite.Stmt) {
 		varName := row.ColumnText(0)
 		varType := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -194,7 +194,7 @@ func (p *HoudiniCore) validate_outputTypeAsInput(ctx context.Context, errs *plug
 	})
 }
 
-func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *plugins.ErrorList) {
+func ScalarWithSelection[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
 			selections.alias,
@@ -209,7 +209,7 @@ func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *pl
 			JOIN types on type_fields.type = types.name
 		WHERE types.kind = 'SCALAR'
 	`
-	p.runValidationQuery(ctx, queryStr, "error checking for selections with selections", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "error checking for selections with selections", errs, func(row *sqlite.Stmt) {
 		alias := row.ColumnText(0)
 		filepath := row.ColumnText(1)
 		line := row.ColumnInt(2)
@@ -228,7 +228,7 @@ func (p *HoudiniCore) validate_scalarWithSelection(ctx context.Context, errs *pl
 	})
 }
 
-func (p *HoudiniCore) validate_unknownField(ctx context.Context, errs *plugins.ErrorList) {
+func UnknownField[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 		SELECT
 			alias,
@@ -249,7 +249,7 @@ func (p *HoudiniCore) validate_unknownField(ctx context.Context, errs *plugins.E
 		GROUP BY selections.id
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for selections with selections", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for selections with selections", errs, func(row *sqlite.Stmt) {
 		alias := row.ColumnText(0)
 		fieldType := strings.Split(row.ColumnText(1), ".")[0]
 
@@ -271,7 +271,7 @@ func (p *HoudiniCore) validate_unknownField(ctx context.Context, errs *plugins.E
 	})
 }
 
-func (p *HoudiniCore) validate_incompatibleFragmentSpread(ctx context.Context, errs *plugins.ErrorList) {
+func IncompatibleFragmentSpread[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 	SELECT
 		childSel.id AS fragmentSpreadId,
@@ -303,7 +303,7 @@ func (p *HoudiniCore) validate_incompatibleFragmentSpread(ctx context.Context, e
 	GROUP BY childSel.id
 	`
 
-	p.runValidationQuery(ctx, query, "error checking incompatible fragment spreads", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking incompatible fragment spreads", errs, func(row *sqlite.Stmt) {
 		fragSpreadID := row.ColumnText(0)
 		parentFieldType := row.ColumnText(1)
 		fragTypeCondition := row.ColumnText(2)
@@ -355,7 +355,7 @@ func (p *HoudiniCore) validate_incompatibleFragmentSpread(ctx context.Context, e
 	})
 }
 
-func (p *HoudiniCore) validate_fragmentCycles(ctx context.Context, errs *plugins.ErrorList) {
+func FragmentCycles[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// a structure to hold a fragment dependency
 	type edge struct {
 		source   string                 // The container fragment definition name.
@@ -391,7 +391,7 @@ func (p *HoudiniCore) validate_fragmentCycles(ctx context.Context, errs *plugins
 	var edges []edge
 
 	// run the query using our helper
-	p.runValidationQuery(ctx, query, "error fetching fragment dependency edges", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error fetching fragment dependency edges", errs, func(row *sqlite.Stmt) {
 		source := row.ColumnText(0)
 		target := row.ColumnText(1)
 		locJSON := row.ColumnText(2)
@@ -487,7 +487,7 @@ func (p *HoudiniCore) validate_fragmentCycles(ctx context.Context, errs *plugins
 	}
 }
 
-func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plugins.ErrorList) {
+func DuplicateVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 		SELECT
 			documents.name AS documentName,
@@ -506,7 +506,7 @@ func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plu
 		HAVING COUNT(*) > 1
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for duplicate variables", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for duplicate variables", errs, func(row *sqlite.Stmt) {
 		docName := row.ColumnText(0)
 		varName := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -534,7 +534,7 @@ func (p *HoudiniCore) validate_duplicateVariables(ctx context.Context, errs *plu
 	})
 }
 
-func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plugins.ErrorList) {
+func UndefinedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 	SELECT
 		av.raw AS varUsage,
@@ -557,7 +557,7 @@ func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plu
 	GROUP BY d.id, av.raw
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for undefined variables", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for undefined variables", errs, func(row *sqlite.Stmt) {
 		varUsage := row.ColumnText(0)
 		filepath := row.ColumnText(1)
 		locationsRaw := row.ColumnText(2)
@@ -584,7 +584,7 @@ func (p *HoudiniCore) validate_undefinedVariables(ctx context.Context, errs *plu
 	})
 }
 
-func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugins.ErrorList) {
+func UnusedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 		SELECT
 			opv.name,
@@ -609,7 +609,7 @@ func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugin
 		HAVING COUNT(av.id) = 0
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for unused variables", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for unused variables", errs, func(row *sqlite.Stmt) {
 		varName := row.ColumnText(0)
 		docName := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -637,7 +637,7 @@ func (p *HoudiniCore) validate_unusedVariables(ctx context.Context, errs *plugin
 	})
 }
 
-func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugins.ErrorList) {
+func UnknownDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// unknownDirectiveUsage holds a single usage of a directive that was not defined.
 	type unknownDirectiveUsage struct {
 		directive  string
@@ -648,7 +648,7 @@ func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugi
 	var usages []unknownDirectiveUsage
 
 	// Open a connection.
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.Error{
 			Message: "could not open connection (unknownDirective)",
@@ -656,7 +656,7 @@ func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugi
 		})
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	// Query for unknown directives in selection_directives.
 	querySelection := `
@@ -766,7 +766,7 @@ func (p *HoudiniCore) validate_unknownDirective(ctx context.Context, errs *plugi
 	}
 }
 
-func (p *HoudiniCore) validate_repeatingNonRepeatable(ctx context.Context, errs *plugins.ErrorList) {
+func RepeatingNonRepeatable[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query finds fields where a non-repeatable directive is applied more than once.
 	// We join selection_directives (alias sd) to selections (s), then to selection_refs (sr)
 	// to obtain the document where the selection appears. That document (d) and its raw document (rd)
@@ -792,7 +792,7 @@ func (p *HoudiniCore) validate_repeatingNonRepeatable(ctx context.Context, errs 
 	HAVING COUNT(*) > 1
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for repeating non-repeatable directives", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for repeating non-repeatable directives", errs, func(row *sqlite.Stmt) {
 		selectionID := row.ColumnText(0)
 		directive := row.ColumnText(1)
 		documentID := row.ColumnText(2)
@@ -820,7 +820,7 @@ func (p *HoudiniCore) validate_repeatingNonRepeatable(ctx context.Context, errs 
 		})
 	})
 }
-func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, errs *plugins.ErrorList) {
+func DuplicateArgumentInField[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query finds cases where the same argument is provided more than once on a field.
 	// We join selection_arguments (sargs) with selections (s), then via selection_refs (sr)
 	// to determine the document (d) and its raw document (rd) for file path and location info.
@@ -843,7 +843,7 @@ func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, err
 	HAVING COUNT(DISTINCT sargs.id) > 1
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for duplicate arguments on a field", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for duplicate arguments on a field", errs, func(row *sqlite.Stmt) {
 		selectionID := row.ColumnText(0)
 		argName := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -864,7 +864,7 @@ func (p *HoudiniCore) validate_duplicateArgumentInField(ctx context.Context, err
 		})
 	})
 }
-func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context, errs *plugins.ErrorList) {
+func FieldArgumentIncompatibleType[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query retrieves each field argument variable usage along with:
 	//   - The expected type and modifiers (from the field argument definition).
 	//   - The provided type and modifiers (from the operation variable definition).
@@ -904,7 +904,7 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 	)
 	`
 
-	p.runValidationQuery(ctx, query, "error checking field argument incompatible type", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking field argument incompatible type", errs, func(row *sqlite.Stmt) {
 		argName := row.ColumnText(1)
 		expectedType := row.ColumnText(2)
 		expectedModifiers := row.ColumnText(3)
@@ -935,7 +935,7 @@ func (p *HoudiniCore) validate_fieldArgumentIncompatibleType(ctx context.Context
 	})
 }
 
-func (p *HoudiniCore) validate_missingRequiredArgument(ctx context.Context, errs *plugins.ErrorList) {
+func MissingRequiredArgument[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 	SELECT
 		fad.name AS argName,
@@ -956,7 +956,7 @@ func (p *HoudiniCore) validate_missingRequiredArgument(ctx context.Context, errs
 	GROUP BY s.id, fad.name
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for missing required arguments", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for missing required arguments", errs, func(row *sqlite.Stmt) {
 		argName := row.ColumnText(0)
 		filepath := row.ColumnText(1)
 		locationsRaw := row.ColumnText(2)
@@ -983,7 +983,7 @@ func (p *HoudiniCore) validate_missingRequiredArgument(ctx context.Context, errs
 	})
 }
 
-func (p *HoudiniCore) validate_conflictingSelections(ctx context.Context, errs *plugins.ErrorList) {
+func ConflictingSelections[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query detects conflicting selections by grouping by the parent selection id (from selection_refs)
 	// and the alias (from selections). If more than one distinct field type is used for the same alias,
 	// we consider that a conflict.
@@ -1006,7 +1006,7 @@ func (p *HoudiniCore) validate_conflictingSelections(ctx context.Context, errs *
 		HAVING COUNT(DISTINCT s.type) > 1
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for conflicting selections", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for conflicting selections", errs, func(row *sqlite.Stmt) {
 		parentSelectionID := row.ColumnText(0)
 		alias := row.ColumnText(1)
 		conflictingFields := row.ColumnText(2)
@@ -1034,7 +1034,7 @@ func (p *HoudiniCore) validate_conflictingSelections(ctx context.Context, errs *
 	})
 }
 
-func (p *HoudiniCore) validate_duplicateKeysInInputObject(ctx context.Context, errs *plugins.ErrorList) {
+func DuplicateKeysInInputObject[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 		SELECT
 			av.id AS parentID,
@@ -1059,7 +1059,7 @@ func (p *HoudiniCore) validate_duplicateKeysInInputObject(ctx context.Context, e
 		GROUP BY av.id, av2.name
 		HAVING COUNT(*) > 1
 		`
-	p.runValidationQuery(ctx, query, "error checking for duplicate keys in an argument object", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for duplicate keys in an argument object", errs, func(row *sqlite.Stmt) {
 		parentRow := row.ColumnInt(1)
 		parentCol := row.ColumnInt(2)
 		keyName := row.ColumnText(3)
@@ -1078,7 +1078,7 @@ func (p *HoudiniCore) validate_duplicateKeysInInputObject(ctx context.Context, e
 	})
 }
 
-func (p *HoudiniCore) validate_wrongTypesToScalarArg(ctx context.Context, errs *plugins.ErrorList) {
+func WrongTypesToScalarArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// SQL query for top-level scalar arguments.
 	// This query joins the argument value with its corresponding field argument definition.
 	// It retrieves:
@@ -1110,7 +1110,7 @@ func (p *HoudiniCore) validate_wrongTypesToScalarArg(ctx context.Context, errs *
 	`
 
 	// Run the query.
-	p.runValidationQuery(ctx, queryStr, "error checking argument types", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryStr, "error checking argument types", errs, func(row *sqlite.Stmt) {
 		argName := row.ColumnText(1)
 		expectedType := row.ColumnText(2)
 		providedLiteral := row.ColumnText(3)
@@ -1192,12 +1192,12 @@ func parseModifiers(modifiers string) TypeModifiers {
 // loadUsedInputTypes loads only those input types that are used by structured arguments.
 // It first queries for distinct expected input type names from structured arguments, then
 // loads all matching type definitions (from the types table) and their fields (from type_fields).
-func (p *HoudiniCore) loadUsedInputTypes(ctx context.Context) (map[string]*InputTypeDefinition, error) {
-	conn, err := p.DB.Take(ctx)
+func loadUsedInputTypes[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) (map[string]*InputTypeDefinition, error) {
+	conn, err := db.Take(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	// Step 1: Get distinct input type names used by structured arguments.
 	distinctQuery := `
@@ -1439,9 +1439,9 @@ func validateNestedInput(provided interface{}, def *InputTypeDefinition, path st
 
 	return errs
 }
-func (p *HoudiniCore) validate_wrongTypesToStructuredArg(ctx context.Context, errs *plugins.ErrorList) {
+func WrongTypesToStructuredArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// Step 1: Load all used input types into memory.
-	typeCache, err := p.loadUsedInputTypes(ctx)
+	typeCache, err := loadUsedInputTypes(ctx, db)
 	if err != nil {
 		errs.Append(plugins.Error{
 			Message: fmt.Sprintf("Failed to load used input types: %v", err),
@@ -1472,7 +1472,7 @@ func (p *HoudiniCore) validate_wrongTypesToStructuredArg(ctx context.Context, er
 	WHERE av.kind = 'Object'
 	GROUP BY sargs.selection_id, fad.name, av.raw
 	`
-	p.runValidationQuery(ctx, queryObj, "error checking structured argument", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, queryObj, "error checking structured argument", errs, func(row *sqlite.Stmt) {
 		argName := row.ColumnText(1)
 		expectedTypeName := row.ColumnText(2)
 		providedJSON := row.ColumnText(3)

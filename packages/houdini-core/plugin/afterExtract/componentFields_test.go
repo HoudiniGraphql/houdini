@@ -1,4 +1,4 @@
-package main
+package afterextract_test
 
 import (
 	"context"
@@ -6,6 +6,9 @@ import (
 	"path"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -23,24 +26,24 @@ func TestComponentFields(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.NewPoolInMemory[PluginConfig]()
+	db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}
 	defer db.Close()
-	plugin := &HoudiniCore{}
+	plugin := &plugin.HoudiniCore{}
 	plugin.SetDatabase(db)
 
 	conn, err := db.Take(context.Background())
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = executeSchema(conn)
+	err = database.WriteHoudiniSchema(conn)
 	require.Nil(t, err)
 	db.Put(conn)
 
 	// load the query into the database as a pending query
-	err = plugin.afterExtract_loadPendingQuery(PendingQuery{
+	err = afterextract.LoadPendingQuery(db, afterextract.PendingQuery{
 		ID:                       1,
 		Query:                    query,
 		InlineComponentField:     true,
@@ -50,7 +53,7 @@ func TestComponentFields(t *testing.T) {
 
 	// now trigger the component fields portion of the process
 	errs := &plugins.ErrorList{}
-	plugin.afterExtract_componentFields(conn, errs)
+	afterextract.ComponentFields(db, conn, errs)
 	require.Equal(t, 0, errs.Len())
 
 	// there should be an entry for User.Avatar in the type fields table
@@ -141,13 +144,13 @@ func TestComponentFieldChecks(t *testing.T) {
 		t.Run(test.Title, func(t *testing.T) {
 
 			// create and wire up a database we can test against
-			db, err := plugins.NewPoolInMemory[PluginConfig]()
+			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
-			plugin := &HoudiniCore{
-				fs: afero.NewMemMapFs(),
+			plugin := &plugin.HoudiniCore{
+				Fs: afero.NewMemMapFs(),
 			}
 
 			db.SetProjectConfig(plugins.ProjectConfig{
@@ -157,17 +160,17 @@ func TestComponentFieldChecks(t *testing.T) {
 			plugin.SetDatabase(db)
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
+			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
 			ctx := context.Background()
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = executeSchema(conn)
+			err = database.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
+			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
 			// wire up the plugin
 			err = plugin.Schema(ctx)
@@ -177,7 +180,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// load the query into the database as a pending query
 			for i, doc := range test.Documents {
-				err = plugin.afterExtract_loadPendingQuery(PendingQuery{
+				err = afterextract.LoadPendingQuery(db, afterextract.PendingQuery{
 					ID:       i,
 					Query:    doc,
 					Filepath: fmt.Sprintf("file-%v", i),
@@ -187,7 +190,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// now trigger the component fields portion of the process
 			errs := &plugins.ErrorList{}
-			plugin.afterExtract_componentFields(conn, errs)
+			afterextract.ComponentFields(db, conn, errs)
 
 			if test.Pass {
 				require.Equal(t, 0, errs.Len(), errs.GetItems())

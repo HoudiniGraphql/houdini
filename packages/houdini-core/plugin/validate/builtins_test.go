@@ -1,4 +1,4 @@
-package main
+package validate_test
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 )
 
 func TestValidate(t *testing.T) {
@@ -428,13 +431,13 @@ func TestValidate(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.Title, func(t *testing.T) {
 			// // create and wire up a database we can test against
-			db, err := plugins.NewPoolInMemory[PluginConfig]()
+			db, err := plugins.NewPoolInMemory[houdiniCore.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
-			plugin := &HoudiniCore{
-				fs: afero.NewMemMapFs(),
+			plugin := &houdiniCore.HoudiniCore{
+				Fs: afero.NewMemMapFs(),
 			}
 			db.SetProjectConfig(plugins.ProjectConfig{
 				ProjectRoot: "/project",
@@ -447,11 +450,11 @@ func TestValidate(t *testing.T) {
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = executeSchema(conn)
+			err = database.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
+			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
 			// wire up the plugin
 			err = plugin.Schema(ctx)
@@ -472,7 +475,7 @@ func TestValidate(t *testing.T) {
 			}
 
 			// load the raw documents into the database
-			err = plugin.afterExtract_loadDocuments(ctx)
+			err = plugin.AfterExtract(ctx)
 			require.Nil(t, err)
 
 			// run the validation

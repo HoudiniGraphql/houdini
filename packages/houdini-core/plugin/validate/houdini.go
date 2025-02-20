@@ -1,6 +1,5 @@
 // this file contains the validation logic for the houdini-specifics
-
-package main
+package validate
 
 import (
 	"context"
@@ -10,11 +9,12 @@ import (
 	"strconv"
 	"strings"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"zombiezen.com/go/sqlite"
 )
 
-func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.ErrorList) {
+func NoKeyAlias[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query finds selections whose alias conflicts with an allowed key,
 	// but only if the alias is different from the underlying field name.
 	// Allowed keys are derived from two sources:
@@ -54,7 +54,7 @@ func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.Err
 		GROUP BY s.alias, t.name, rd.filepath
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for alias keys", errs, func(stmt *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for alias keys", errs, func(stmt *sqlite.Stmt) {
 		alias := stmt.ColumnText(0)
 		typeName := stmt.ColumnText(1)
 		filepath := stmt.ColumnText(2)
@@ -77,7 +77,7 @@ func (p *HoudiniCore) validate_noKeyAlias(ctx context.Context, errs *plugins.Err
 	})
 }
 
-func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plugins.ErrorList) {
+func RequiredDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query selects all field selections that have the required directive,
 	// along with:
 	//  - The field's name.
@@ -112,12 +112,12 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 	GROUP BY s.id, s.field_name, tf.type_modifiers, t.kind, rd.filepath, sr.row, sr.column, d.name
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -127,10 +127,10 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 	defer stmt.Finalize()
 
 	// Bind the required directive name twice.
-	stmt.BindText(1, requiredDirective)
-	stmt.BindText(2, requiredDirective)
+	stmt.BindText(1, schema.RequiredDirective)
+	stmt.BindText(2, schema.RequiredDirective)
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking required directives", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking required directives", errs, func() {
 		fieldName := stmt.ColumnText(1)
 		typeModifiers := stmt.ColumnText(2)
 		parentKind := stmt.ColumnText(3)
@@ -143,7 +143,7 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 		// Rule 1: The field must be defined on an object type.
 		if parentKind != "OBJECT" {
 			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("@%s may only be used on object fields, not on fields of %s type (field %q in document %s)", requiredDirective, parentKind, fieldName, docName),
+				Message: fmt.Sprintf("@%s may only be used on object fields, not on fields of %s type (field %q in document %s)", schema.RequiredDirective, parentKind, fieldName, docName),
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: filepath, Line: row, Column: column},
@@ -160,7 +160,7 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 		// if at least one child selection already has @required.
 		if serverNonNull && childReqCount == 0 {
 			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("@%s may only be used on fields that are nullable on the server or on fields whose child selections already carry @%s (field %q in document %s)", requiredDirective, requiredDirective, fieldName, docName),
+				Message: fmt.Sprintf("@%s may only be used on fields that are nullable on the server or on fields whose child selections already carry @%s (field %q in document %s)", schema.RequiredDirective, schema.RequiredDirective, fieldName, docName),
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: filepath, Line: row, Column: column},
@@ -170,7 +170,7 @@ func (p *HoudiniCore) validate_requiredDirective(ctx context.Context, errs *plug
 	})
 }
 
-func (p *HoudiniCore) validate_maskDirectives(ctx context.Context, errs *plugins.ErrorList) {
+func MaskDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// We want to detect fragment spreads (selections of kind "fragment")
 	// that have both the mask-enable and mask-disable directives.
 	// We can do this by grouping by the selection (fragment spread)
@@ -192,12 +192,12 @@ func (p *HoudiniCore) validate_maskDirectives(ctx context.Context, errs *plugins
 		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -207,16 +207,16 @@ func (p *HoudiniCore) validate_maskDirectives(ctx context.Context, errs *plugins
 	defer stmt.Finalize()
 
 	// Bind the two directive names.
-	stmt.BindText(1, enableMaskDirective)
-	stmt.BindText(2, disableMaskDirective)
+	stmt.BindText(1, schema.EnableMaskDirective)
+	stmt.BindText(2, schema.DisableMaskDirective)
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking mask directives", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking mask directives", errs, func() {
 		filepath := stmt.ColumnText(1)
 		row := int(stmt.ColumnInt(2))
 		column := int(stmt.ColumnInt(3))
 
 		errs.Append(plugins.Error{
-			Message: fmt.Sprintf("You can't apply both @%s and @%s on the same fragment spread", enableMaskDirective, disableMaskDirective),
+			Message: fmt.Sprintf("You can't apply both @%s and @%s on the same fragment spread", schema.EnableMaskDirective, schema.DisableMaskDirective),
 			Kind:    plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{
@@ -229,7 +229,7 @@ func (p *HoudiniCore) validate_maskDirectives(ctx context.Context, errs *plugins
 	})
 }
 
-func (p *HoudiniCore) validate_knownDirectiveArguments(ctx context.Context, errs *plugins.ErrorList) {
+func KnownDirectiveArguments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// the @arguments, @with, @when, and @when_not do not have argumenst that are known to the schema
 	// so we need to looks for directive arguments (both at the selection level and document level)
 	// that do not have a matching entry in the directive_arguments table.
@@ -270,7 +270,7 @@ func (p *HoudiniCore) validate_knownDirectiveArguments(ctx context.Context, errs
 		)
 	`
 
-	p.runValidationQuery(ctx, query, "error checking for unknown directive arguments", errs, func(row *sqlite.Stmt) {
+	runValidationQuery(ctx, db, query, "error checking for unknown directive arguments", errs, func(row *sqlite.Stmt) {
 		directive := row.ColumnText(0)
 		argName := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -289,7 +289,7 @@ func (p *HoudiniCore) validate_knownDirectiveArguments(ctx context.Context, errs
 	})
 }
 
-func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugins.ErrorList) {
+func LoadingDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query selects selections (fields or fragment spreads) that have the loading directive,
 	// are not at the document root (i.e. they have a parent selection),
 	// whose parent selection does NOT also have the loading directive,
@@ -319,12 +319,12 @@ func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugi
 	  )
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -334,17 +334,17 @@ func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugi
 	defer stmt.Finalize()
 
 	// Bind the loading directive three times.
-	stmt.BindText(1, loadingDirective)
-	stmt.BindText(2, loadingDirective)
-	stmt.BindText(3, loadingDirective)
+	stmt.BindText(1, schema.LoadingDirective)
+	stmt.BindText(2, schema.LoadingDirective)
+	stmt.BindText(3, schema.LoadingDirective)
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking loading directives", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking loading directives", errs, func() {
 		filepath := stmt.ColumnText(2)
 		row := int(stmt.ColumnInt(3))
 		column := int(stmt.ColumnInt(4))
 
 		errs.Append(plugins.Error{
-			Message: fmt.Sprintf("@%s can only be applied at the root of a document or on a field/fragment spread whose parent also has @%s", loadingDirective, loadingDirective),
+			Message: fmt.Sprintf("@%s can only be applied at the root of a document or on a field/fragment spread whose parent also has @%s", schema.LoadingDirective, schema.LoadingDirective),
 			Kind:    plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{
@@ -356,7 +356,7 @@ func (p *HoudiniCore) validate_loadingDirective(ctx context.Context, errs *plugi
 		})
 	})
 }
-func (p *HoudiniCore) validate_optimisticKeyOnScalar(ctx context.Context, errs *plugins.ErrorList) {
+func OptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query selects every field selection that has the optimisticKey directive
 	// and whose declared type is not a scalar (i.e. its type's kind is not "SCALAR").
 	query := `
@@ -379,12 +379,12 @@ func (p *HoudiniCore) validate_optimisticKeyOnScalar(ctx context.Context, errs *
 	  AND t.kind != 'SCALAR'
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -393,9 +393,9 @@ func (p *HoudiniCore) validate_optimisticKeyOnScalar(ctx context.Context, errs *
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, optimisticKeyDirective)
+	stmt.BindText(1, schema.OptimisticKeyDirective)
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking optimistic key directive on scalar", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking optimistic key directive on scalar", errs, func() {
 		fieldTypeKind := stmt.ColumnText(6)
 		filepath := stmt.ColumnText(2)
 		row := int(stmt.ColumnInt(3))
@@ -404,7 +404,7 @@ func (p *HoudiniCore) validate_optimisticKeyOnScalar(ctx context.Context, errs *
 		docName := stmt.ColumnText(5)
 
 		errs.Append(plugins.Error{
-			Message: fmt.Sprintf("@%s can only be applied on scalar fields, but field %q in document %q has type kind %q", optimisticKeyDirective, fieldName, docName, fieldTypeKind),
+			Message: fmt.Sprintf("@%s can only be applied on scalar fields, but field %q in document %q has type kind %q", schema.OptimisticKeyDirective, fieldName, docName, fieldTypeKind),
 			Kind:    plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
@@ -413,8 +413,8 @@ func (p *HoudiniCore) validate_optimisticKeyOnScalar(ctx context.Context, errs *
 	})
 }
 
-func (p *HoudiniCore) validate_optimisticKeyFullSelection(ctx context.Context, errs *plugins.ErrorList) {
-	optimisticDirective := optimisticKeyDirective
+func OptimisticKeyFullSelection[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	optimisticDirective := schema.OptimisticKeyDirective
 
 	// Query returns one row per optimistic-key usage.
 	// We retrieve:
@@ -447,12 +447,12 @@ func (p *HoudiniCore) validate_optimisticKeyFullSelection(ctx context.Context, e
 	  AND sr.parent_id IS NOT NULL
 	  AND sp.kind = 'field'
 	`
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -569,7 +569,7 @@ func (p *HoudiniCore) validate_optimisticKeyFullSelection(ctx context.Context, e
 	}
 }
 
-func (p *HoudiniCore) validate_singlePaginateDirective(ctx context.Context, errs *plugins.ErrorList) {
+func SinglePaginateDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query retrieves every usage of the paginate directive along with document and location info.
 	query := `
 	SELECT
@@ -585,12 +585,12 @@ func (p *HoudiniCore) validate_singlePaginateDirective(ctx context.Context, errs
 	WHERE sd.directive = ?
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -599,7 +599,7 @@ func (p *HoudiniCore) validate_singlePaginateDirective(ctx context.Context, errs
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, paginationDirective)
+	stmt.BindText(1, schema.PaginationDirective)
 
 	// We'll group usages in memory by documentID.
 	type usage struct {
@@ -643,16 +643,16 @@ func (p *HoudiniCore) validate_singlePaginateDirective(ctx context.Context, errs
 			// Use the document name from the first usage.
 			docName := usages[0].documentName
 			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("@%s can only appear once in a document; found %d occurrences in document %q at locations: %s", paginationDirective, len(usages), docName, strings.Join(locStrs, "; ")),
+				Message: fmt.Sprintf("@%s can only appear once in a document; found %d occurrences in document %q at locations: %s", schema.PaginationDirective, len(usages), docName, strings.Join(locStrs, "; ")),
 				Kind:    plugins.ErrorKindValidation,
 			})
 		}
 	}
 }
 
-func (p *HoudiniCore) validate_paginateArgs(ctx context.Context, errs *plugins.ErrorList) {
+func PaginateArgs[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// Load project configuration.
-	config, err := p.DB.ProjectConfig(ctx)
+	config, err := db.ProjectConfig(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
@@ -660,7 +660,7 @@ func (p *HoudiniCore) validate_paginateArgs(ctx context.Context, errs *plugins.E
 	defaultPaginateMode := config.DefaultPaginateMode // e.g., "Infinite"
 	// We assume the paginate mode argument is named "mode".
 	paginateModeArgName := "mode"
-	paginateDirective := paginationDirective
+	paginateDirective := schema.PaginationDirective
 
 	// This query retrieves paginate usage info plus field definitions (aggregated) without a subquery.
 	usageQuery := `
@@ -692,12 +692,12 @@ func (p *HoudiniCore) validate_paginateArgs(ctx context.Context, errs *plugins.E
 	GROUP BY s.id, s.field_name, s.type, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column, sd.id, ptf.type_modifiers
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(usageQuery)
 	if err != nil {
@@ -865,7 +865,7 @@ func (p *HoudiniCore) validate_paginateArgs(ctx context.Context, errs *plugins.E
 	}
 }
 
-func (p *HoudiniCore) validate_paginateTypeCondition(ctx context.Context, errs *plugins.ErrorList) {
+func PaginateTypeCondition[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query returns documents that use @paginate (via selection_directives)
 	// and that have a non-empty type_condition, but that are invalid—
 	// meaning the type condition neither implements Node nor has a valid resolve_query.
@@ -891,12 +891,12 @@ func (p *HoudiniCore) validate_paginateTypeCondition(ctx context.Context, errs *
 	HAVING MAX(CASE WHEN pt.type = 'Node' AND pt.member = d.type_condition THEN 1 ELSE 0 END) = 0
 	   AND MAX(CASE WHEN tc.resolve_query IS NOT NULL AND TRIM(tc.resolve_query) <> '' THEN 1 ELSE 0 END) = 0
 	`
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -905,9 +905,9 @@ func (p *HoudiniCore) validate_paginateTypeCondition(ctx context.Context, errs *
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, paginationDirective)
+	stmt.BindText(1, schema.PaginationDirective)
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking paginate type condition", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking paginate type condition", errs, func() {
 		docID := stmt.ColumnInt64(0)
 		docName := stmt.ColumnText(1)
 		typeCondition := stmt.ColumnText(2)
@@ -918,7 +918,7 @@ func (p *HoudiniCore) validate_paginateTypeCondition(ctx context.Context, errs *
 		resolveFlag := stmt.ColumnInt(7)
 
 		errs.Append(plugins.Error{
-			Message: fmt.Sprintf("Document %q (ID %d) uses @%s but its type condition %q is invalid (implementsNode=%d, hasResolveQuery=%d). It must either implement Node or have a type_configs entry with a valid resolve_query", docName, docID, paginationDirective, typeCondition, impl, resolveFlag),
+			Message: fmt.Sprintf("Document %q (ID %d) uses @%s but its type condition %q is invalid (implementsNode=%d, hasResolveQuery=%d). It must either implement Node or have a type_configs entry with a valid resolve_query", docName, docID, schema.PaginationDirective, typeCondition, impl, resolveFlag),
 			Kind:    plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
@@ -927,7 +927,7 @@ func (p *HoudiniCore) validate_paginateTypeCondition(ctx context.Context, errs *
 	})
 }
 
-func (p *HoudiniCore) validate_conflictingPrependAppend(ctx context.Context, errs *plugins.ErrorList) {
+func ConflictingPrependAppend[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 	SELECT
 	  rd.filepath,
@@ -944,12 +944,12 @@ func (p *HoudiniCore) validate_conflictingPrependAppend(ctx context.Context, err
 	HAVING COUNT(DISTINCT sd.directive) > 1
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -958,7 +958,7 @@ func (p *HoudiniCore) validate_conflictingPrependAppend(ctx context.Context, err
 	}
 	defer stmt.Finalize()
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking conflicting @prepend and @append", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking conflicting @prepend and @append", errs, func() {
 		filepath := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
@@ -974,7 +974,7 @@ func (p *HoudiniCore) validate_conflictingPrependAppend(ctx context.Context, err
 	})
 }
 
-func (p *HoudiniCore) validate_conflictingParentIDAllLists(ctx context.Context, errs *plugins.ErrorList) {
+func ConflictingParentIDAllLists[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
 	SELECT
 	  rd.filepath,
@@ -991,12 +991,12 @@ func (p *HoudiniCore) validate_conflictingParentIDAllLists(ctx context.Context, 
 	HAVING COUNT(DISTINCT sd.directive) > 1
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -1005,7 +1005,7 @@ func (p *HoudiniCore) validate_conflictingParentIDAllLists(ctx context.Context, 
 	}
 	defer stmt.Finalize()
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking conflicting @parentID and @allLists", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking conflicting @parentID and @allLists", errs, func() {
 		filepath := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
@@ -1021,7 +1021,7 @@ func (p *HoudiniCore) validate_conflictingParentIDAllLists(ctx context.Context, 
 	})
 }
 
-func (p *HoudiniCore) validate_fragmentArgumentsMissingWith(ctx context.Context, errs *plugins.ErrorList) {
+func FragmentArgumentsMissingWith[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query finds fragment spreads (in selections) that reference a fragment document (documents with kind = 'fragment')
 	// that declares at least one required argument (operation_variables with type_modifiers ending in '!'),
 	// but the fragment spread does not have any @with arguments.
@@ -1044,12 +1044,12 @@ func (p *HoudiniCore) validate_fragmentArgumentsMissingWith(ctx context.Context,
 	GROUP BY s.id, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column
 	HAVING COUNT(sda.id) < 1
 	`
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	stmt, err := conn.Prepare(query)
 	if err != nil {
@@ -1058,7 +1058,7 @@ func (p *HoudiniCore) validate_fragmentArgumentsMissingWith(ctx context.Context,
 	}
 	defer stmt.Finalize()
 
-	p.runValidationStatement(ctx, conn, stmt, "error checking required @with directive arguments", errs, func() {
+	runValidationStatement(ctx, conn, stmt, "error checking required @with directive arguments", errs, func() {
 		fragmentName := stmt.ColumnText(2)
 		filepath := stmt.ColumnText(3)
 		row := int(stmt.ColumnInt(4))
@@ -1075,7 +1075,7 @@ func (p *HoudiniCore) validate_fragmentArgumentsMissingWith(ctx context.Context,
 	})
 }
 
-func (p *HoudiniCore) validate_fragmentArguments(ctx context.Context, errs *plugins.ErrorList) {
+func FragmentArguments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// --- STEP 1. Build a flat map of argument values for the 'with' directive ---
 	flatTreeQuery := `
 		WITH RECURSIVE arg_tree(id, kind, raw, parent) AS (
@@ -1105,19 +1105,19 @@ func (p *HoudiniCore) validate_fragmentArguments(ctx context.Context, errs *plug
 		SELECT id, kind, raw, parent FROM arg_tree
 	`
 
-	conn, err := p.DB.Take(ctx)
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
 	flatStmt, err := conn.Prepare(flatTreeQuery)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	flatStmt.BindText(1, withDirective)
+	flatStmt.BindText(1, schema.WithDirective)
 
 	// Build a map of nodes keyed by their id.
 	flatNodes := make(map[int]*DirectiveArgValueNode)
@@ -1194,10 +1194,10 @@ func (p *HoudiniCore) validate_fragmentArguments(ctx context.Context, errs *plug
 		return
 	}
 
-	// Assume withDirective is defined (for example, "@with")
-	mainStmt.BindText(1, withDirective)
+	// Assume schema.WithDirective is defined (for example, "@with")
+	mainStmt.BindText(1, schema.WithDirective)
 
-	p.runValidationStatement(ctx, conn, mainStmt, "error checking fragment arguments", errs, func() {
+	runValidationStatement(ctx, conn, mainStmt, "error checking fragment arguments", errs, func() {
 		// fragmentName := mainStmt.ColumnText(0)
 		operationVariablesJson := mainStmt.ColumnText(4)
 		directiveArgumentsRaw := mainStmt.ColumnText(5)
@@ -1377,10 +1377,10 @@ func stripOneLayer(modifiers string) string {
 	return newStr
 }
 
-func (p *HoudiniCore) validate_lists(ctx context.Context, errs *plugins.ErrorList) {
+func Lists[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 
 }
 
-func (p *HoudiniCore) validate_nodeDirective(ctx context.Context, errs *plugins.ErrorList) {
+func NodeDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 
 }

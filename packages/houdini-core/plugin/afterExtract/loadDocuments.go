@@ -1,13 +1,12 @@
-package main
+package afterextract
 
 import (
 	"context"
 	"fmt"
 	"runtime"
-	"strconv"
-	"strings"
-	"unicode"
 
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -17,51 +16,7 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-type PendingQuery struct {
-	Filepath                 string
-	ColumnOffset             int
-	RowOffset                int
-	Query                    string
-	ID                       int
-	InlineComponentField     bool
-	InlineComponentFieldProp *string
-}
-
-// AfterExtract is called after all of the plugins have added their documents to the project.
-// We'll use this plugin to parse each document and load it into the database.
-func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
-	// sqlite only allows for one write at a time so there's no point in parallelizing this
-
-	// the first thing we have to do is load the extracted queries
-	err := p.afterExtract_loadDocuments(ctx)
-	if err != nil {
-		return err
-	}
-
-	errs := &plugins.ErrorList{}
-
-	conn, err := p.DB.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer p.DB.Put(conn)
-
-	// write component field information to the database
-	p.afterExtract_componentFields(conn, errs)
-
-	// and replace runtime scalars with their schema-valid equivalents
-	p.afterExtract_runtimeScalars(ctx, conn, errs)
-
-	// if we have any errors collected, return them
-	if errs.Len() > 0 {
-		return errs
-	}
-
-	// we're done
-	return nil
-}
-
-func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
+func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
 	// we want to process the documents in parallel so we'll pull down from the database
 	// in one goroutine and then pass it a pool of workers who will parse the documents
 	// and insert them into the database
@@ -76,11 +31,11 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	wg, _ := errgroup.WithContext(ctx)
 	for i := 0; i < runtime.NumCPU(); i++ {
 		wg.Go(func() error {
-			conn, err := p.DB.Take(context.Background())
+			conn, err := db.Take(context.Background())
 			if err != nil {
 				return err
 			}
-			defer p.DB.Put(conn)
+			defer db.Put(conn)
 
 			// each query gets wrapped in its own transaction
 			close := sqlitex.Transaction(conn)
@@ -93,7 +48,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 			// consume queries until the channel is closed
 			for query := range queries {
 				// load the document into the database
-				err := p.afterExtract_loadPendingQuery(query)
+				err := LoadPendingQuery(db, query)
 				if err != nil {
 					txErr = err
 					errs.Append(*err)
@@ -109,7 +64,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	}
 
 	// grab a connection to the database and look for raw documents to process
-	conn, err := p.DB.Take(context.Background())
+	conn, err := db.Take(context.Background())
 	if err != nil {
 		return err
 	}
@@ -174,7 +129,7 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	}
 
 	// we're done with the connection (close before we wait for the workers)
-	p.DB.Put(conn)
+	db.Put(conn)
 
 	// signal workers that no more queries are coming.
 	close(queries)
@@ -193,17 +148,17 @@ func (p *HoudiniCore) afterExtract_loadDocuments(ctx context.Context) error {
 	return nil
 }
 
-// afterExtract_loadPendingQuery parses the graphql query and inserts the ast into the database.
+// LoadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins.Error {
-	conn, err := p.DB.Take(context.Background())
+func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], query PendingQuery) *plugins.Error {
+	conn, err := db.Take(context.Background())
 	if err != nil {
 		err := plugins.WrapError(err)
 		return &err
 	}
-	defer p.DB.Put(conn)
+	defer db.Put(conn)
 
-	statements, err, finalize := p.prepareDocumentInsertStatements(conn)
+	statements, err, finalize := database.PrepareDocumentInsertStatements(conn)
 	if err != nil {
 		err := plugins.WrapError(err)
 		return &err
@@ -328,7 +283,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			hasDirective := false
 			var field string
 			for _, directive := range inlineFragment.Directives {
-				if directive.Name != componentFieldDirective {
+				if directive.Name != schema.ComponentFieldDirective {
 					continue
 				}
 
@@ -414,7 +369,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			// add a fragment definition to the document
 			parsed.Fragments = append(parsed.Fragments, &ast.FragmentDefinition{
 				TypeCondition: inlineFragment.TypeCondition,
-				Name:          componentFieldFragmentName(fragmentType, field),
+				Name:          schema.ComponentFieldFragmentName(fragmentType, field),
 				Directives:    inlineFragment.Directives,
 				SelectionSet:  inlineFragment.SelectionSet,
 			})
@@ -425,7 +380,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 		// insert the operation into the "documents" table.
 		// for operations, we set type_condition to null.
-		if err := p.DB.ExecStatement(
+		if err := db.ExecStatement(
 			statements.InsertDocument,
 			operation.Name,
 			query.ID,
@@ -449,7 +404,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		// insert any variable definitions.
 		for _, variable := range operation.VariableDefinitions {
 			// parse the type of the variable.
-			variableType, typeModifiers := parseFieldType(variable.Type.String())
+			variableType, typeModifiers := schema.ParseFieldType(variable.Type.String())
 
 			statements.InsertDocumentVariable.BindInt64(1, operationID)
 			statements.InsertDocumentVariable.BindText(2, variable.Variable)
@@ -462,7 +417,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			}
 			statements.InsertDocumentVariable.BindInt64(6, int64(variable.Position.Line))
 			statements.InsertDocumentVariable.BindInt64(7, int64(variable.Position.Column))
-			if err := p.DB.ExecStatement(statements.InsertDocumentVariable); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
 				return &plugins.Error{
 					Message: "could not associate document variable",
 					Detail:  err.Error(),
@@ -480,7 +435,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 			// insert any directives on the variable.
 			for _, directive := range variable.Directives {
-				if err := p.DB.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document variable directive",
 						Detail:  err.Error(),
@@ -495,7 +450,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 				}
 				varDirID := conn.LastInsertRowID()
 				for _, arg := range directive.Arguments {
-					if err := p.DB.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, varDirID, arg.Name, arg.Value.String()); err != nil {
+					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, varDirID, arg.Name, arg.Value.String()); err != nil {
 						return &plugins.Error{
 							Message: "could not insert document variable argument",
 							Detail:  err.Error(),
@@ -524,14 +479,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		// walk the selection set for the operation.
 		for i, sel := range operation.SelectionSet {
 			// add each selection to the database.
-			if err := p.processSelection(conn, query, operationID, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
+			if err := processSelection(db, conn, query, operationID, statements, searchTypeStatement, operation.Name, nil, operationType, sel, int64(i)); err != nil {
 				return err
 			}
 		}
 
 		// add document-level directives for the operation.
 		for _, directive := range operation.Directives {
-			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 				return &plugins.Error{
 					Message: "could not insert document directive",
 					Detail:  err.Error(),
@@ -546,7 +501,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			}
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
-				if err := p.DB.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document variable directive argument",
 						Detail:  err.Error(),
@@ -566,7 +521,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 	// process fragment definitions.
 	for _, fragment := range parsed.Fragments {
 		// insert the fragment into "documents".
-		if err := p.DB.ExecStatement(
+		if err := db.ExecStatement(
 			statements.InsertDocument,
 			fragment.Name,
 			query.ID,
@@ -591,14 +546,14 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 		// walk the fragment's selection set.
 		for i, sel := range fragment.SelectionSet {
 			// add each selection to the database.
-			if err := p.processSelection(conn, query, fragmentID, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
+			if err := processSelection(db, conn, query, fragmentID, statements, searchTypeStatement, fragment.Name, nil, fragment.TypeCondition, sel, int64(i)); err != nil {
 				return err
 			}
 		}
 
 		// add document-level directives for the operation.
 		for _, directive := range fragment.Directives {
-			if err := p.DB.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 				return &plugins.Error{
 					Message: "could not insert document directive",
 					Detail:  err.Error(),
@@ -613,7 +568,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			}
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
-				if err := p.DB.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document directive argument",
 						Detail:  err.Error(),
@@ -629,7 +584,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 			}
 
 			// we might need to register arguments on fragment by looking for the @arguments directive
-			if directive.Name == argumentsDirective {
+			if directive.Name == schema.ArgumentsDirective {
 				// we need to find the arguments directive and then add the arguments to the database
 				for _, arg := range directive.Arguments {
 					// the argument needs to be an object type
@@ -703,7 +658,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 					// before we insert the argument definition we need to confirm that the default value is valid
 					if argDefault != "" {
-						match, err := typesMatch(argType, argDefaultValue)
+						match, err := schema.ValueMatchesType(argType, argDefaultValue)
 						if err != nil {
 							pluginErr := plugins.WrapError(err)
 							return &pluginErr
@@ -727,7 +682,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 					// we can now insert the argument into the database
 
 					// parse the type of the variable.
-					variableType, typeModifiers := parseFieldType(argType)
+					variableType, typeModifiers := schema.ParseFieldType(argType)
 
 					statements.InsertDocumentVariable.BindInt64(1, fragmentID)
 					statements.InsertDocumentVariable.BindText(2, argName)
@@ -740,7 +695,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 					}
 					statements.InsertDocumentVariable.BindInt64(6, int64(arg.Position.Line))
 					statements.InsertDocumentVariable.BindInt64(7, int64(arg.Position.Column))
-					if err := p.DB.ExecStatement(statements.InsertDocumentVariable); err != nil {
+					if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
 						return &plugins.Error{
 							Message: "could not associate document variable",
 							Detail:  err.Error(),
@@ -764,7 +719,7 @@ func (p *HoudiniCore) afterExtract_loadPendingQuery(query PendingQuery) *plugins
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, documentID int64, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
+func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, documentID int64, statements database.DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -782,7 +737,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		statements.InsertSelection.BindInt64(3, fieldIndex)
 		statements.InsertSelection.BindText(4, "field")
 		statements.InsertSelection.BindText(5, fmt.Sprintf("%s.%s", parentType, s.Name))
-		if err := p.DB.ExecStatement(statements.InsertSelection); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection); err != nil {
 			return &plugins.Error{
 				Message: "could not add selection to database",
 				Detail:  err.Error(),
@@ -832,7 +787,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		for _, arg := range s.Arguments {
 			// Use the new function to recursively process the argument value
 			// and get its normalized ID.
-			argValueID, err := p.processArgumentValue(conn, arg.Value, statements)
+			argValueID, err := processArgumentValue(db, conn, arg.Value, statements)
 			if err != nil {
 				return &plugins.Error{
 					Message: "could not process argument value",
@@ -848,7 +803,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 			}
 
 			// Insert the argument record that links the argument name to the processed value.
-			if err := p.DB.ExecStatement(
+			if err := db.ExecStatement(
 				statements.InsertSelectionArgument,
 				selectionID,
 				arg.Name,
@@ -871,14 +826,14 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		}
 
 		// insert any directives on the field.
-		pluginError := p.processDirectives(conn, query, statements, selectionID, s.Directives)
+		pluginError := processDirectives(db, conn, query, statements, selectionID, s.Directives)
 		if pluginError != nil {
 			return pluginError
 		}
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := p.processSelection(conn, query, documentID, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
+			err := processSelection(db, conn, query, documentID, statements, searchTypeStatement, documentName, &selectionID, fieldType, child, int64(i))
 			if err != nil {
 				return err
 			}
@@ -889,7 +844,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		if fragType == "" {
 			fragType = "inline_fragment"
 		}
-		if err := p.DB.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment", nil); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment", nil); err != nil {
 			return &plugins.Error{
 				Message: "Could not store inline fragment in database",
 				Detail:  err.Error(),
@@ -906,20 +861,20 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := p.processSelection(conn, query, documentID, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
+			err := processSelection(db, conn, query, documentID, statements, searchTypeStatement, documentName, &selectionID, fragType, child, int64(i))
 			if err != nil {
 				return err
 			}
 		}
 
 		// process directives
-		err := p.processDirectives(conn, query, statements, selectionID, s.Directives)
+		err := processDirectives(db, conn, query, statements, selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
 
 	case *ast.FragmentSpread:
-		if err := p.DB.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment", nil); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment", nil); err != nil {
 			return &plugins.Error{
 				Message: "could not store fragment spread in database",
 				Detail:  err.Error(),
@@ -935,7 +890,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		selectionID = conn.LastInsertRowID()
 
 		// process any directives on the fragment spread.
-		err := p.processDirectives(conn, query, statements, selectionID, s.Directives)
+		err := processDirectives(db, conn, query, statements, selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
@@ -973,7 +928,7 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 		statements.InsertSelectionRef.BindNull(4)
 		statements.InsertSelectionRef.BindNull(5)
 	}
-	if err := p.DB.ExecStatement(statements.InsertSelectionRef); err != nil {
+	if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
 		return &plugins.Error{
 			Message: "could not store selection ref",
 			Detail:  err.Error(),
@@ -991,10 +946,10 @@ func (p *HoudiniCore) processSelection(conn *sqlite.Conn, query PendingQuery, do
 	return nil
 }
 
-func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
+func processDirectives[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, statements database.DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
 	for _, directive := range directives {
 		// insert the directive row
-		if err := p.DB.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+		if err := db.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
 			return &plugins.Error{
 				Message: "could not store selection directive in database",
 				Detail:  err.Error(),
@@ -1012,7 +967,7 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 		// and the arguments to the directive
 		for _, dArg := range directive.Arguments {
 			// Process the directive argument's value.
-			argValueID, err := p.processArgumentValue(conn, dArg.Value, statements)
+			argValueID, err := processArgumentValue(db, conn, dArg.Value, statements)
 			if err != nil {
 				return &plugins.Error{
 					Message: "could not process directive argument value",
@@ -1028,7 +983,7 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 			}
 
 			// Insert the directive argument record.
-			if err := p.DB.ExecStatement(
+			if err := db.ExecStatement(
 				statements.InsertSelectionDirectiveArgument,
 				dirID,
 				dArg.Name,
@@ -1053,367 +1008,21 @@ func (p HoudiniCore) processDirectives(conn *sqlite.Conn, query PendingQuery, st
 	return nil
 }
 
-// we need to look at anything tagged with @componentField and load the metadata into the database
-// this includes:
-// - populate prop, fields, etc for non-inline component fields
-// - adding internal fields to the type definitions
-// note: we'll hold on doing the actual injection of fragments til after we've validated
-// everything to ensure that error messages make sense
-func (p *HoudiniCore) afterExtract_componentFields(conn *sqlite.Conn, errs *plugins.ErrorList) {
-	// Obtain schema insertion statements (not modified here).
-	_, finalizeSchemaStatements := p.prepareSchemaInsertStatements(conn)
-	defer finalizeSchemaStatements()
-
-	// First, load component field info from document_directives.
-	// We assume that the @componentField directive appears only on fragment definitions.
-	type ComponentFieldData struct {
-		RawDocumentID int
-		Type          string
-		Prop          string
-		Field         string
-		Filepath      string
-		Row           int
-		Line          int
-	}
-	documentInfo := map[int]*ComponentFieldData{}
-
-	search, err := conn.Prepare(`
-		SELECT
-			documents.raw_document,
-			documents.type_condition,
-			document_directive_arguments.name,
-			document_directive_arguments.value,
-			raw_documents.filepath,
-			raw_documents.offset_column,
-			raw_documents.offset_line
-		FROM
-			document_directives
-			JOIN documents ON document_directives.document = documents.id
-			JOIN document_directive_arguments ON document_directive_arguments.parent = document_directives.id
-			LEFT JOIN raw_documents ON documents.raw_document = raw_documents.id
-		WHERE
-			document_directives.directive = ?
-	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer search.Finalize()
-	search.BindText(1, componentFieldDirective)
-
-	// Process each row.
-	for {
-		hasData, err := search.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		if !hasData {
-			break
-		}
-		rawDocumentID := search.ColumnInt(0)
-		// Create or reuse the entry for this raw document.
-		document, ok := documentInfo[rawDocumentID]
-		if !ok {
-			document = &ComponentFieldData{}
-			documentInfo[rawDocumentID] = document
-		}
-		// The type comes from the document's type_condition.
-		document.Type = search.ColumnText(1)
-		document.RawDocumentID = rawDocumentID
-		document.Row = search.ColumnInt(4)
-		document.Line = search.ColumnInt(5)
-		document.Filepath = search.ColumnText(6)
-
-		// Unquote the value.
-		unquoted, err := strconv.Unquote(search.ColumnText(3))
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-		switch search.ColumnText(2) {
-		case "prop":
-			document.Prop = unquoted
-		case "field":
-			document.Field = unquoted
-		}
-	}
-
-	// Convert our map into a slice for in‑memory processing.
-	var records []ComponentFieldData
-	for _, data := range documentInfo {
-		records = append(records, *data)
-	}
-
-	// Prepare a statement to look up a type's kind from the types table.
-	typesStmt, err := conn.Prepare(`SELECT kind FROM types WHERE name = ?`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer typesStmt.Finalize()
-
-	// Prepare a statement to check for conflicts in type_fields.
-	tfStmt, err := conn.Prepare(`SELECT COUNT(*) FROM type_fields WHERE id = ?`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer tfStmt.Finalize()
-
-	// validate the component fields before we write them
-
-	// ensure that each component field has a non-empty prop.
-	for _, rec := range records {
-		if strings.TrimSpace(rec.Prop) == "" {
-			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("Component field in document %d must specify a prop", rec.RawDocumentID),
-				Kind:    plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{
-					{
-						Filepath: rec.Filepath,
-						Line:     rec.Line,
-						Column:   rec.Row,
-					},
-				},
-			})
-		}
-	}
-
-	// ensure that the component field's type is not abstract.
-	for _, rec := range records {
-		if err := typesStmt.Reset(); err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-		typesStmt.BindText(1, rec.Type)
-		hasRow, err := typesStmt.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-		if !hasRow {
-			// Type not found—skip.
-			continue
-		}
-		kind := typesStmt.ColumnText(0)
-		if kind == "INTERFACE" || kind == "UNION" {
-			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("Component field on type %q is not allowed on abstract type (document %d)", rec.Type, rec.RawDocumentID),
-				Kind:    plugins.ErrorKindValidation,
-			})
-		}
-	}
-
-	// (c) Check that the component field does not conflict with an existing type field.
-	// We assume the conflict key is built as "<Type>.<Field>".
-	for _, rec := range records {
-		candidateID := fmt.Sprintf("%s.%s", rec.Type, rec.Field)
-		if err := tfStmt.Reset(); err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-		tfStmt.BindText(1, candidateID)
-		if _, err := tfStmt.Step(); err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-		count := tfStmt.ColumnInt(0)
-		if count > 0 {
-			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("Component field '%s' (prop %q) on type %q conflicts with an existing type field", rec.Field, rec.Prop, rec.Type),
-				Kind:    plugins.ErrorKindValidation,
-			})
-		}
-	}
-
-	// (d) Ensure that there are no duplicate component field definitions.
-	// That is, group by (Type, Prop, Field) and if any group has more than one record, that's an error.
-	group := make(map[string][]ComponentFieldData)
-	for _, rec := range records {
-		key := fmt.Sprintf("%s|%s|%s", rec.Type, rec.Prop, rec.Field)
-		group[key] = append(group[key], rec)
-	}
-	for key, recs := range group {
-		if len(recs) > 1 {
-			errs.Append(plugins.Error{
-				Message: fmt.Sprintf("Duplicate component field definition for (%s); found %d occurrences", key, len(recs)),
-				Kind:    plugins.ErrorKindValidation,
-			})
-		}
-	}
-
-	// if there are any errors, don't go any further
-	if errs.Len() > 0 {
-		return
-	}
-
-	// Prepare statements to insert (or upsert) component fields and internal type fields.
-	insertComponentField, err := conn.Prepare(`
-		INSERT INTO component_fields
-			(document, prop, field, type, inline)
-		VALUES
-			(?, ?, ?, ?, false)
-		ON CONFLICT(document) DO UPDATE SET
-  			prop = excluded.prop,
-  			field = excluded.field,
-  			type = excluded.type
-	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer insertComponentField.Finalize()
-
-	insertInternalField, err := conn.Prepare(`
-		INSERT INTO type_fields (id, parent, name, type, internal) VALUES (?, ?, ?, ?, true)
-	`)
-	if err != nil {
-		errs.Append(plugins.Error{
-			Message: "could not prepare statement to insert internal fields",
-			Detail:  err.Error(),
-		})
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer insertInternalField.Finalize()
-
-	// Process the collected component field data.
-	for _, data := range documentInfo {
-		err = p.DB.ExecStatement(insertComponentField, data.RawDocumentID, data.Prop, data.Field, data.Type)
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-		err = p.DB.ExecStatement(insertInternalField, fmt.Sprintf("%s.%s", data.Type, data.Field), data.Type, data.Field, "Component")
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			continue
-		}
-	}
-}
-
-// we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
-func (p *HoudiniCore) afterExtract_runtimeScalars(ctx context.Context, conn *sqlite.Conn, errs *plugins.ErrorList) {
-	// load the project configuration
-	projectConfig, err := p.DB.ProjectConfig(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-
-	// wrap the operations in a transaction
-	close := sqlitex.Transaction(conn)
-	commit := func(err error) error {
-		close(&err)
-		return err
-	}
-
-	// we need a list of all the runtime scalars
-	runtimeScalars := ""
-	for scalar := range projectConfig.RuntimeScalars {
-		runtimeScalars += `'` + scalar + `',`
-	}
-	if runtimeScalars == "" {
-		runtimeScalars = ","
-	}
-
-	// we need to look at every operation variable that has a runtime scalar for its type
-	search, err := conn.Prepare(fmt.Sprintf(`
-		SELECT
-			id,
-			type,
-			row,
-			column
-		FROM operation_variables WHERE type in (%s)
-	`, runtimeScalars[:len(runtimeScalars)-1]))
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		commit(err)
-		return
-	}
-	defer search.Finalize()
-
-	// and a query to update the type of the variable
-	updateType, err := conn.Prepare(`
-		UPDATE operation_variables SET type = ? WHERE id = ?
-	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		commit(err)
-		return
-	}
-	defer updateType.Finalize()
-
-	// and some statements to insert the runtime scalar directives
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		commit(err)
-		return
-	}
-	defer insertDocumentVariableDirective.Finalize()
-	// and scalar directive arguments
-	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		commit(err)
-		return
-	}
-	defer insertDocumentVariableDirectiveArgument.Finalize()
-
-	for {
-		hasData, err := search.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			commit(err)
-			return
-		}
-		if !hasData {
-			break
-		}
-
-		// pull the query results out
-		variablesID := search.ColumnInt(0)
-		variableType := search.ColumnText(1)
-		row := search.ColumnInt(2)
-		column := search.ColumnInt(3)
-
-		// we need to update the type of the variable
-		err = p.DB.ExecStatement(updateType, projectConfig.RuntimeScalars[variableType], variablesID)
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			commit(err)
-			return
-		}
-
-		// we also need to add a directive to the variable
-		err = p.DB.ExecStatement(insertDocumentVariableDirective, variablesID, runtimeScalarDirective, row, column)
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			commit(err)
-			return
-		}
-		directiveID := conn.LastInsertRowID()
-
-		// and the arguments to the directive
-		err = p.DB.ExecStatement(insertDocumentVariableDirectiveArgument, directiveID, "type", variableType)
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			commit(err)
-			return
-		}
-	}
-
-	// we're done (commit the transaction)
-	commit(nil)
+type PendingQuery struct {
+	Filepath                 string
+	ColumnOffset             int
+	RowOffset                int
+	Query                    string
+	ID                       int
+	InlineComponentField     bool
+	InlineComponentFieldProp *string
 }
 
 // processArgumentValue inserts a parsed AST argument value into the database.
 // It returns the database id of the inserted argument value so that parent/child
 // relationships can be recorded. If the value is a List or Object, it will
 // recursively process its children and insert rows into the argument_value_children table.
-func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, statements DocumentInsertStatements) (int64, *plugins.Error) {
+func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, value *ast.Value, statements database.DocumentInsertStatements) (int64, *plugins.Error) {
 	// Determine the kind string based on the AST value kind.
 	var kindStr string
 	switch value.Kind {
@@ -1442,7 +1051,7 @@ func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, 
 	}
 
 	// Insert the value itself into the argument_values table.
-	err := p.DB.ExecStatement(statements.InsertArgumentValue, kindStr, value.Raw, value.Position.Line, value.Position.Column)
+	err := db.ExecStatement(statements.InsertArgumentValue, kindStr, value.Raw, value.Position.Line, value.Position.Column)
 	if err != nil {
 		wrapped := plugins.WrapError(err)
 		return 0, &wrapped
@@ -1456,7 +1065,7 @@ func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, 
 		// value.Children is now a slice of ChildValue structs.
 		for _, child := range value.Children {
 			// Recursively process the child value.
-			childID, err := p.processArgumentValue(conn, child.Value, statements)
+			childID, err := processArgumentValue(db, conn, child.Value, statements)
 			if err != nil {
 				return 0, err
 			}
@@ -1478,7 +1087,7 @@ func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, 
 			}
 
 			// Insert the relationship into argument_value_children.
-			execErr := p.DB.ExecStatement(
+			execErr := db.ExecStatement(
 				statements.InsertArgumentValueChild,
 				nameParam,
 				parentID,
@@ -1494,177 +1103,4 @@ func (p *HoudiniCore) processArgumentValue(conn *sqlite.Conn, value *ast.Value, 
 	}
 
 	return parentID, nil
-}
-
-// typesMatch checks if the given AST value (val) conforms to the GraphQL type described by typeStr.
-func typesMatch(typeStr string, val *ast.Value) (bool, error) {
-	gqlType, err := parseGraphQLType(typeStr)
-	if err != nil {
-		return false, err
-	}
-	return validateValue(gqlType, val)
-}
-
-// parseGraphQLType parses a GraphQL type string like "[String!]!" into an *ast.Type.
-func parseGraphQLType(s string) (*ast.Type, error) {
-	p := &typeParser{s: s}
-	typ, err := p.parseType()
-	if err != nil {
-		return nil, err
-	}
-	p.skipWhitespace()
-	if p.pos != len(p.s) {
-		return nil, fmt.Errorf("unexpected trailing characters: %q", s[p.pos:])
-	}
-	return typ, nil
-}
-
-// typeParser is a simple recursive descent parser for GraphQL type strings.
-type typeParser struct {
-	s   string
-	pos int
-}
-
-func (p *typeParser) skipWhitespace() {
-	for p.pos < len(p.s) && unicode.IsSpace(rune(p.s[p.pos])) {
-		p.pos++
-	}
-}
-
-func (p *typeParser) peek() byte {
-	if p.pos < len(p.s) {
-		return p.s[p.pos]
-	}
-	return 0
-}
-
-func (p *typeParser) consume(expected byte) error {
-	if p.pos < len(p.s) && p.s[p.pos] == expected {
-		p.pos++
-		return nil
-	}
-	return fmt.Errorf("expected %q at position %d", expected, p.pos)
-}
-
-func (p *typeParser) parseName() (string, error) {
-	p.skipWhitespace()
-	start := p.pos
-	for p.pos < len(p.s) {
-		ch := p.s[p.pos]
-		if unicode.IsLetter(rune(ch)) || unicode.IsDigit(rune(ch)) || ch == '_' {
-			p.pos++
-		} else {
-			break
-		}
-	}
-	if start == p.pos {
-		return "", fmt.Errorf("expected name at position %d", p.pos)
-	}
-	return p.s[start:p.pos], nil
-}
-
-// parseType parses a type according to the grammar:
-//
-//	Type : NamedType | ListType
-//	NamedType : Name '!'?
-//	ListType : '[' Type ']' '!'?
-func (p *typeParser) parseType() (*ast.Type, error) {
-	p.skipWhitespace()
-	var t *ast.Type
-	if p.peek() == '[' {
-		// Parse a list type.
-		if err := p.consume('['); err != nil {
-			return nil, err
-		}
-		inner, err := p.parseType()
-		if err != nil {
-			return nil, err
-		}
-		p.skipWhitespace()
-		if err := p.consume(']'); err != nil {
-			return nil, fmt.Errorf("expected ']' at position %d", p.pos)
-		}
-		t = &ast.Type{
-			Elem: inner,
-		}
-	} else {
-		// Parse a named type.
-		name, err := p.parseName()
-		if err != nil {
-			return nil, err
-		}
-		t = &ast.Type{
-			NamedType: name,
-		}
-	}
-	p.skipWhitespace()
-	// Check for non-null marker.
-	if p.peek() == '!' {
-		if err := p.consume('!'); err != nil {
-			return nil, err
-		}
-		t.NonNull = true
-	}
-	return t, nil
-}
-
-// validateValue recursively validates an AST value against a parsed GraphQL type.
-// It handles non-null, list, and named types.
-func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
-	// If the type is non-null, the value must be non-nil.
-	if t.NonNull {
-		if val == nil {
-			return false, nil
-		}
-		// Remove the non-null requirement for nested validation.
-		tCopy := *t
-		tCopy.NonNull = false
-		return validateValue(&tCopy, val)
-	}
-
-	// For nullable types, a nil value (GraphQL null) is valid.
-	if val == nil {
-		return true, nil
-	}
-
-	// Handle list types.
-	if t.Elem != nil {
-		// The value must be a list.
-		if val.Kind != ast.ListValue {
-			return false, nil
-		}
-		// Recursively validate each element of the list.
-		for _, child := range val.Children {
-			valid, err := validateValue(t.Elem, child.Value)
-			if err != nil {
-				return false, err
-			}
-			if !valid {
-				return false, nil
-			}
-		}
-		return true, nil
-	}
-
-	// For named types, determine the expected AST value kind.
-	expectedKind, err := expectedKindForNamedType(t.NamedType)
-	if err != nil {
-		return false, err
-	}
-	return val.Kind == expectedKind, nil
-}
-
-// expectedKindForNamedType maps a GraphQL named type (e.g. "Int", "String", "Boolean")
-// to its expected AST value kind.
-func expectedKindForNamedType(name string) (ast.ValueKind, error) {
-	switch name {
-	case "Int":
-		return ast.IntValue, nil
-	case "String":
-		return ast.StringValue, nil
-	case "Boolean":
-		return ast.BooleanValue, nil
-	default:
-		return ast.StringValue, fmt.Errorf("unknown named type: %s", name)
-	}
 }

@@ -1,9 +1,12 @@
-package main
+package afterextract_test
 
 import (
 	"context"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
 	"code.houdinigraphql.com/plugins"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +21,7 @@ func TestRuntimeScalars(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.NewPoolInMemory[PluginConfig]()
+	db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}
@@ -28,19 +31,19 @@ func TestRuntimeScalars(t *testing.T) {
 			"UserFromSession": "ID",
 		},
 	})
-	plugin := &HoudiniCore{}
+	plugin := &plugin.HoudiniCore{}
 	plugin.SetDatabase(db)
 
 	conn, err := db.Take(context.Background())
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = executeSchema(conn)
+	err = database.WriteHoudiniSchema(conn)
 	db.Put(conn)
 	require.Nil(t, err)
 
 	// load the query into the database as a pending query
-	err = plugin.afterExtract_loadPendingQuery(PendingQuery{
+	err = afterextract.LoadPendingQuery(db, afterextract.PendingQuery{
 		ID:    1,
 		Query: query,
 	})
@@ -48,7 +51,7 @@ func TestRuntimeScalars(t *testing.T) {
 
 	// now trigger the component fields portion of the proces
 	errs := &plugins.ErrorList{}
-	plugin.afterExtract_runtimeScalars(context.Background(), conn, errs)
+	afterextract.RuntimeScalars(context.Background(), db, conn, errs)
 	require.Equal(t, 0, errs.Len(), errs.Error())
 
 	// to check that the query was extracted correctly we need to look up the query

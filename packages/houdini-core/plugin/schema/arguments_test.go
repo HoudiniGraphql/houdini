@@ -1,8 +1,9 @@
-package main
+package schema_test
 
 import (
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -197,7 +198,7 @@ func TestTypesMatch(t *testing.T) {
 		t.Run(tc.Title, func(t *testing.T) {
 			for _, tv := range tc.Values {
 				t.Run(tv.Title, func(t *testing.T) {
-					got, err := typesMatch(tc.TypeStr, tv.Value)
+					got, err := schema.ValueMatchesType(tc.TypeStr, tv.Value)
 					if err != nil {
 						t.Fatalf("typesMatch(%q, astVal) error: %v", tc.TypeStr, err)
 					}

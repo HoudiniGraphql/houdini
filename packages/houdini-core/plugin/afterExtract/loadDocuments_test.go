@@ -1,4 +1,4 @@
-package main
+package afterextract_test
 
 import (
 	"context"
@@ -7,6 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/database"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"github.com/stretchr/testify/require"
 	"zombiezen.com/go/sqlite"
@@ -883,7 +887,7 @@ var tests = []testCase{
 		inlineComponentFieldProp: strPtr("user"),
 		expectedDocs: []expectedDocument{
 			{
-				Name:          componentFieldFragmentName("User", "Avatar"),
+				Name:          schema.ComponentFieldFragmentName("User", "Avatar"),
 				Kind:          "fragment",
 				TypeCondition: strPtr("User"),
 				Selections: []expectedSelection{
@@ -1149,7 +1153,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// create an in-memory db.
-			db, err := plugins.NewPoolInMemory[PluginConfig]()
+			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
@@ -1157,7 +1161,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 
-			if err := executeSchema(conn); err != nil {
+			if err := database.WriteHoudiniSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
 			db.Put(conn)
@@ -1218,17 +1222,17 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				t.Fatalf("failed to insert raw document: %v", err)
 			}
 
-			hc := &HoudiniCore{}
+			hc := &plugin.HoudiniCore{}
 			hc.SetDatabase(db)
 
-			pending := PendingQuery{
+			pending := afterextract.PendingQuery{
 				Query:                    tc.rawQuery,
 				ID:                       1,
 				InlineComponentField:     tc.inlineComponentField,
 				InlineComponentFieldProp: tc.inlineComponentFieldProp,
 			}
 
-			pendingErr := hc.afterExtract_loadPendingQuery(pending)
+			pendingErr := afterextract.LoadPendingQuery(db, pending)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)
@@ -1454,7 +1458,7 @@ func sortTree(tree []expectedSelection) {
 
 // buildSelectionTree builds the selection tree for a given document.
 // it returns a mapping of selection id to dbSelection, a parent-to-children map, and a slice of root selection ids.
-func buildSelectionTree(db plugins.DatabasePool[PluginConfig], document int64) (map[int]dbSelection, map[int][]int, []int, error) {
+func buildSelectionTree[PluginConfig any](db plugins.DatabasePool[PluginConfig], document int64) (map[int]dbSelection, map[int][]int, []int, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil, nil, nil, err
@@ -1557,7 +1561,7 @@ ORDER BY s.id`
 	return filteredSelections, parentToChildren, roots, nil
 }
 
-func fetchDocuments(t *testing.T, db plugins.DatabasePool[PluginConfig]) []documentRow {
+func fetchDocuments[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig]) []documentRow {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1596,7 +1600,7 @@ func fetchDocuments(t *testing.T, db plugins.DatabasePool[PluginConfig]) []docum
 }
 
 // findOperationVariables returns all operation variables along with any attached directives.
-func findOperationVariables(t *testing.T, db plugins.DatabasePool[PluginConfig]) []operationVariableRow {
+func findOperationVariables[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig]) []operationVariableRow {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1654,7 +1658,7 @@ func findOperationVariables(t *testing.T, db plugins.DatabasePool[PluginConfig])
 }
 
 // findOperationVariableDirectives looks up all directives for a given operation variable.
-func findOperationVariableDirectives(t *testing.T, db plugins.DatabasePool[PluginConfig], variableID int) []expectedDirective {
+func findOperationVariableDirectives[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], variableID int) []expectedDirective {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1704,7 +1708,7 @@ func findOperationVariableDirectives(t *testing.T, db plugins.DatabasePool[Plugi
 }
 
 // findOperationVariableDirectiveArguments retrieves all arguments for a given variable directive.
-func findOperationVariableDirectiveArguments(db plugins.DatabasePool[PluginConfig], directiveID int) ([]expectedDirectiveArgument, error) {
+func findOperationVariableDirectiveArguments[PluginConfig any](db plugins.DatabasePool[PluginConfig], directiveID int) ([]expectedDirectiveArgument, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil, err
@@ -1742,7 +1746,7 @@ func findOperationVariableDirectiveArguments(db plugins.DatabasePool[PluginConfi
 	return args, nil
 }
 
-func fetchSelections(t *testing.T, db plugins.DatabasePool[PluginConfig]) []dbSelection {
+func fetchSelections[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig]) []dbSelection {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1816,7 +1820,7 @@ func compareExpected(expected, actual []expectedSelection) error {
 	return nil
 }
 
-func verifySelectionDetails(t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int, expected expectedSelection) {
+func verifySelectionDetails[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int, expected expectedSelection) {
 	actualArgs := fetchSelectionArgumentsForSelection(t, db, selectionID)
 	if len(actualArgs) != len(expected.Arguments) {
 		t.Errorf("for selection id %d, expected %d arguments, got %d", selectionID, len(expected.Arguments), len(actualArgs))
@@ -1852,7 +1856,7 @@ func verifySelectionDetails(t *testing.T, db plugins.DatabasePool[PluginConfig],
 	}
 }
 
-func verifySelectionTreeDirectives(expectedTree []expectedSelection, dbSelections []dbSelection, db plugins.DatabasePool[PluginConfig], t *testing.T) {
+func verifySelectionTreeDirectives[PluginConfig any](expectedTree []expectedSelection, dbSelections []dbSelection, db plugins.DatabasePool[PluginConfig], t *testing.T) {
 	for _, exp := range expectedTree {
 		if len(exp.Arguments) > 0 || len(exp.Directives) > 0 {
 			if sel, found := findDBSelection(exp, dbSelections); found {
@@ -1877,7 +1881,7 @@ func findDBSelection(expected expectedSelection, dbSelections []dbSelection) (db
 	return dbSelection{}, false
 }
 
-func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int) []expectedArgument {
+func fetchSelectionArgumentsForSelection[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int) []expectedArgument {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1908,7 +1912,7 @@ func fetchSelectionArgumentsForSelection(t *testing.T, db plugins.DatabasePool[P
 	return args
 }
 
-func fetchSelectionDirectivesForSelection(t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int) []expectedDirective {
+func fetchSelectionDirectivesForSelection[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], selectionID int) []expectedDirective {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1978,7 +1982,7 @@ func strEqual(a, b *string) bool {
 	return *a == *b
 }
 
-func fetchDocumentDirectives(t *testing.T, db plugins.DatabasePool[PluginConfig], document int64) []expectedDirective {
+func fetchDocumentDirectives[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], document int64) []expectedDirective {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
