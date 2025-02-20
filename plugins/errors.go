@@ -5,8 +5,15 @@ import (
 	"sync"
 )
 
-func WrapError(err error) Error {
-	return Error{
+func WrapError(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	if e, ok := err.(*Error); ok {
+		return e
+	}
+	return &Error{
 		Message: err.Error(),
 	}
 }
@@ -40,7 +47,14 @@ func (e Error) WithPrefix(prefix string) Error {
 }
 
 type ErrorList struct {
-	ThreadSafeSlice[Error]
+	ThreadSafeSlice[*Error]
+}
+
+func (e *ErrorList) Append(err *Error) {
+	if err == nil {
+		return
+	}
+	e.ThreadSafeSlice.Append(err)
 }
 
 func (errs *ErrorList) Error() string {

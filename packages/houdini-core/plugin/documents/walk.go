@@ -1,4 +1,4 @@
-package extract
+package documents
 
 import (
 	"context"
@@ -86,7 +86,7 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 					}
 					// process the file
 					if err := ProcessFile(fs, fp, resultsCh); err != nil {
-						errs.Append(*err)
+						errs.Append(err)
 					}
 				case <-ctx.Done():
 					return

@@ -1,4 +1,4 @@
-package afterextract
+package runtimeScalars
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 // we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
-func RuntimeScalars[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, errs *plugins.ErrorList) {
+func TransformVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, errs *plugins.ErrorList) {
 	// load the project configuration
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"path"
 	"testing"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
 
@@ -101,7 +100,7 @@ func TestSchema(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 
-			err = database.WriteHoudiniSchema(conn)
+			err = plugins.WriteHoudiniSchema(conn)
 			db.Put(conn)
 			require.Nil(t, err)
 

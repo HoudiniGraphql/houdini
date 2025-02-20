@@ -1,4 +1,4 @@
-package validate_test
+package plugin_test
 
 import (
 	"context"
@@ -10,15 +10,35 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 )
 
 func TestValidate_Houdini(t *testing.T) {
 	// the local schema we'll test against``
 	schema := `
+		type Subscription {
+			newMessage: String
+			anotherMessage: String
+		}
+
+		type Cat {
+			name: String!
+		}
+
+		input InputType {
+			field: String
+			list: [InputType]
+		}
+
+		interface Node {
+			id: ID!
+		}
+
+		directive @repeatable repeatable on FIELD
+
 		type Query {
-			user : User
+			rootScalar: String
+			user(name: String!) : User
 			users: [User!]!
 			nodes(ids: [ID!]!): [Node!]!
 			entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
@@ -27,15 +47,19 @@ func TestValidate_Houdini(t *testing.T) {
 		}
 
 		type Mutation {
+			update(input: InputType, list: [InputType]): String
 			addFriend: AddFriendOutput!
 			deleteUser(id: String!): DeleteUserOutput!
 			updateGhost: Ghost!
 		}
 
+		union Human = User
+
 		type User implements Node {
 			id: ID!
 			parent: User
 			firstName: String!
+			lastName: String
 			friends: [User!]!
 			friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
 			friendsByOffset(offset: Int, limit: Int): [User!]!
@@ -79,9 +103,6 @@ func TestValidate_Houdini(t *testing.T) {
 			endCursor: String
 		}
 
-		interface Node {
-			id: ID!
-		}
 
 		interface Entity {
 			name: String!
@@ -113,13 +134,372 @@ func TestValidate_Houdini(t *testing.T) {
 		Documents []string
 		Pass      bool
 		Config    func(config *plugins.ProjectConfig)
-	}{
+	}{ /*
+		* These tests validate the default validation rules that are specified by the spec
+		 */
+		{
+			Title: "Subscription with more than one root field (negative)",
+			Pass:  false,
+			Documents: []string{
+				`subscription TestSub {
+				   newMessage
+				   anotherMessage
+			   }`,
+			},
+		},
+		{
+			Title: "Subscription with more than one root field (positive)",
+			Pass:  true,
+			Documents: []string{
+				`subscription TestSub {
+				   newMessage
+			   }`,
+			},
+		},
+		{
+			Title: "Duplicate operation names",
+			Pass:  false,
+			Documents: []string{
+				`fragment Test on User {
+				   firstName
+			   }`,
+				`query Test {
+				   user(name:"foo") {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Fragment references an unknown type",
+			Pass:  false,
+			Documents: []string{
+				`fragment invalidFragment on NonExistentType {
+				   field
+			   }`,
+			},
+		},
+		{
+			Title: "Fragment defined on a scalar type",
+			Pass:  false,
+			Documents: []string{
+				`fragment scalarFragment on String {
+				   length
+			   }`,
+			},
+		},
+		{
+			Title: "Using an output type (object type) as a variable type",
+			Pass:  false,
+			Documents: []string{
+				`query Test($name: Query) {
+				   user(arg: $name)
+			   }`,
+			},
+		},
+		{
+			Title: "Using a scalar as a variable type",
+			Pass:  true,
+			Documents: []string{
+				`query Test($name: String!) {
+				   user(name: $name)
+			   }`,
+			},
+		},
+		{
+			Title: "Scalar field with a sub-selection",
+			Pass:  false,
+			Documents: []string{
+				`query Test {
+				   rootScalar {
+					   first
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Querying a field that doesn't exist on the type",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+				   user(name:"foo") {
+					   nonExistentField
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on an incompatible type",
+			Pass:  false,
+			Documents: []string{
+				`fragment frag on Cat {
+				   name
+			   }`,
+				`query A {
+				   user(name:"foo") {
+					   ...frag
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on a compatible object type",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on User {
+				   firstName
+			   }`,
+				`query A {
+				   user(name:"foo") {
+					   ...frag
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on a compatible union type",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on Human {
+				   	... on User {
+						firstName
+				   	}
+			   }`,
+				`query A {
+				   user(name:"foo") {
+					   ...frag
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on a compatible interface type",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on Node {
+				   id
+			   }`,
+				`query A {
+				   user(name:"foo") {
+					   ...frag
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Fragment cycles",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+				   user(name:"foo") {
+					   ...A
+				   }
+			   }`,
+				`fragment A on User {
+				   firstName
+				   ...B
+			   }`,
+				`fragment B on User {
+				   firstName
+				   ...A
+			   }`,
+			},
+		},
+		{
+			Title: "Defining the same variable twice",
+			Pass:  false,
+			Documents: []string{
+				`query Test($a: String, $a: String) {
+				   user(name: "foo") {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Using an undefined variable",
+			Pass:  false,
+			Documents: []string{
+				`query Test {
+				   user(name: $undefined) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Variable defined but never used",
+			Pass:  false,
+			Documents: []string{
+				`query Test($unused: String) {
+				   user(name:"foo") {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Using an unknown directive",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+				   user(name:"foo") @unknown {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Repeating the same non-repeatable directive on a field",
+			Pass:  false,
+			Documents: []string{
+				`query Test {
+				   user(name:"foo") @include(if: true) @include(if: false) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Repeating a repeatable directive on a field",
+			Pass:  true,
+			Documents: []string{
+				`query Test{
+				   user(name:"foo") @repeatable @repeatable {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Duplicating an argument in a field",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+				   user(name: "value", name: "another")
+			   }`,
+			},
+		},
+		{
+			Title: "Duplicate keys in an input object",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+				   update(input: { field: "value", field: "another value" })
+			   }`,
+			},
+		},
+		{
+			Title: "Missing a required argument",
+			Pass:  false,
+			Documents: []string{
+				`query Test {
+				   user {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Threading a required argument through",
+			Pass:  true,
+			Documents: []string{
+				`query Test($name: String!) {
+				   user(name: $name) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Variable used in a position with an incompatible type",
+			Pass:  false,
+			Documents: []string{
+				`query Test($var: String) {
+				   user(name: $var) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Variable used in a position with a compatible type",
+			Pass:  true,
+			Documents: []string{
+				`query Test($var: String!) {
+				   user(name: $var) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Non-required variables passed to required arg",
+			Pass:  false,
+			Documents: []string{
+				`query Test($var: String) {
+				   user(name: $var) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Conflicting field selections that cannot be merged",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+				   user(name:"foo") {
+					   name: firstName
+					   name: lastName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Providing an argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`query Test{
+				   user(name: 1) {
+					   firstName
+				   }
+			   }`,
+			},
+		},
+		{
+			Title: "Providing a nested argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+				   update(input: { field: 1 })
+			   }`,
+			},
+		},
+		{
+			Title: "Providing a deeply nested argument value of the wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+				   update(list: [{ field: 2 }])
+			   }`,
+			},
+		},
+		{
+			Title: "Providing multiple deeply nested argument values with one wrong type",
+			Pass:  false,
+			Documents: []string{
+				`mutation Test {
+				   update(list: [{ field: 2 }, { field: "String"}])
+			   }`,
+			},
+		},
 		{
 			Title: "No aliases for default keys",
 			Pass:  false,
 			Documents: []string{
 				`query QueryA {
-					user {
+					user(name: "foo") {
 						id: firstName
 					}
 				}`,
@@ -141,12 +521,12 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`query QueryA {
-					user {
+					user(name: "foo") {
 						...FragmentA
 					}
 				}`,
 				`query QueryB {
-					user {
+					user(name: "foo") {
 						...FragmentA
 					}
 				}`,
@@ -160,7 +540,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`query TestQuery {
-						user {
+						user(name: "foo") {
 							friends @list(name: "Friends") {
 								id
 							}
@@ -173,7 +553,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`query TestQuery {
-						user {
+						user(name: "foo") {
 							friends @list(foo: "Friends") {
 								id
 							}
@@ -186,7 +566,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`query TestQuery {
-					user {
+					user(name: "foo") {
 						friends @list(name: "Friends") {
 							id
 						}
@@ -206,7 +586,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`query TestQuery {
-					user {
+					user(name: "foo") {
 						friends {
 							friends @list(name: "Friends") {
 								id
@@ -231,7 +611,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`query TestQuery {
-					user {
+					user(name: "foo") {
 						friends {
 							friends @list(name: "Friends") {
 								id
@@ -264,7 +644,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
                 query TestQuery1 {
-					user {
+					user(name: "foo") {
 						friends {
 							friends @list(name: "Friends") {
 								id
@@ -275,7 +655,7 @@ func TestValidate_Houdini(t *testing.T) {
             	`,
 				`
 				query TestQuery2 {
-					user {
+					user(name: "foo") {
 						friends {
 							friends @list(name: "Friends") {
 								id
@@ -291,7 +671,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`query TestQuery {
-					user {
+					user(name: "foo") {
 						friends {
 							friends @list(name: "Friends") {
 								id
@@ -360,7 +740,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query UserFriends {
-						user {
+						user(name: "foo") {
 							friends {
 								friends @list(name: "Friends") {
 									id
@@ -384,7 +764,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query UserFriends {
-						user {
+						user(name: "foo") {
 							friends {
 								friends @list(name: "Friends") {
 									id
@@ -408,7 +788,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query UserFriends {
-						user {
+						user(name: "foo") {
 							friends {
 								friends @list(name: "Friends") {
 									id
@@ -432,7 +812,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query Foo {
-						user {
+						user(name: "foo") {
 							...UserFragment
 						}
 					}
@@ -458,7 +838,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 				query UserFriends {
-					user {
+					user(name: "foo") {
 						friends @list(name: "Friends") {
 							id
 						}
@@ -480,7 +860,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 				query UserFriends {
-					user {
+					user(name: "foo") {
 						friendsConnection @list(name: "Friends") {
 							edges {
 								node {
@@ -1031,7 +1411,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query QueryA {
-						user {
+						user(name: "foo") {
 							firstName @required
 						}
 					}
@@ -1044,7 +1424,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Documents: []string{
 				`
 					query QueryA {
-						user @required {
+						user(name: "foo") @required {
 							parent @required {
 								firstName
 							}
@@ -1102,7 +1482,7 @@ func TestValidate_Houdini(t *testing.T) {
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = database.WriteHoudiniSchema(conn)
+			err = plugins.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.
@@ -1174,7 +1554,14 @@ func TestValidate_Houdini(t *testing.T) {
 			// run the validation
 			err = plugin.Validate(ctx)
 			if test.Pass {
-				require.Nil(t, err)
+				if err != nil {
+					msg := err.Error()
+					if pluginErr, ok := err.(*plugins.ErrorList); ok {
+						msg = pluginErr.GetItems()[0].Message
+						t.Fatal(msg)
+					}
+					require.Nil(t, err, msg)
+				}
 			} else {
 				require.NotNil(t, err)
 

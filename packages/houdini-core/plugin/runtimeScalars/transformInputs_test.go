@@ -1,12 +1,12 @@
-package afterextract_test
+package runtimeScalars_test
 
 import (
 	"context"
 	"testing"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/runtimeScalars"
 	"code.houdinigraphql.com/plugins"
 	"github.com/stretchr/testify/require"
 )
@@ -38,12 +38,12 @@ func TestRuntimeScalars(t *testing.T) {
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = database.WriteHoudiniSchema(conn)
+	err = plugins.WriteHoudiniSchema(conn)
 	db.Put(conn)
 	require.Nil(t, err)
 
 	// load the query into the database as a pending query
-	err = afterextract.LoadPendingQuery(db, afterextract.PendingQuery{
+	err = documents.LoadPendingQuery(db, documents.PendingQuery{
 		ID:    1,
 		Query: query,
 	})
@@ -51,7 +51,7 @@ func TestRuntimeScalars(t *testing.T) {
 
 	// now trigger the component fields portion of the proces
 	errs := &plugins.ErrorList{}
-	afterextract.RuntimeScalars(context.Background(), db, conn, errs)
+	runtimeScalars.TransformVariables(context.Background(), db, conn, errs)
 	require.Equal(t, 0, errs.Len(), errs.Error())
 
 	// to check that the query was extracted correctly we need to look up the query

@@ -1,4 +1,4 @@
-package database
+package plugins
 
 import (
 	"strings"

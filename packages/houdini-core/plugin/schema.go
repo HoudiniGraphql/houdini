@@ -10,7 +10,6 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"zombiezen.com/go/sqlite/sqlitex"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	houdiniSchema "code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 )
 
@@ -81,7 +80,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// prepare the statements we'll use
-	statements, finalize := database.PrepareSchemaInsertStatements(conn)
+	statements, finalize := houdiniSchema.PrepareSchemaInsertStatements(conn)
 	defer finalize()
 
 	// import the user's schema into the database

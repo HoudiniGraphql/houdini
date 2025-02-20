@@ -1,4 +1,4 @@
-package afterextract_test
+package componentFields_test
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"path"
 	"testing"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -38,12 +38,12 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = database.WriteHoudiniSchema(conn)
+	err = plugins.WriteHoudiniSchema(conn)
 	require.Nil(t, err)
 	db.Put(conn)
 
 	// load the query into the database as a pending query
-	err = afterextract.LoadPendingQuery(db, afterextract.PendingQuery{
+	err = documents.LoadPendingQuery(db, documents.PendingQuery{
 		ID:                       1,
 		Query:                    query,
 		InlineComponentField:     true,
@@ -53,7 +53,7 @@ func TestComponentFields(t *testing.T) {
 
 	// now trigger the component fields portion of the process
 	errs := &plugins.ErrorList{}
-	afterextract.ComponentFields(db, conn, errs)
+	componentFields.WriteMetadata(db, conn, errs)
 	require.Equal(t, 0, errs.Len())
 
 	// there should be an entry for User.Avatar in the type fields table
@@ -166,7 +166,7 @@ func TestComponentFieldChecks(t *testing.T) {
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = database.WriteHoudiniSchema(conn)
+			err = plugins.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.
@@ -180,7 +180,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// load the query into the database as a pending query
 			for i, doc := range test.Documents {
-				err = afterextract.LoadPendingQuery(db, afterextract.PendingQuery{
+				err = documents.LoadPendingQuery(db, documents.PendingQuery{
 					ID:       i,
 					Query:    doc,
 					Filepath: fmt.Sprintf("file-%v", i),
@@ -190,7 +190,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// now trigger the component fields portion of the process
 			errs := &plugins.ErrorList{}
-			afterextract.ComponentFields(db, conn, errs)
+			componentFields.WriteMetadata(db, conn, errs)
 
 			if test.Pass {
 				require.Equal(t, 0, errs.Len(), errs.GetItems())
@@ -199,4 +199,8 @@ func TestComponentFieldChecks(t *testing.T) {
 			}
 		})
 	}
+}
+
+func strPtr(s string) *string {
+	return &s
 }

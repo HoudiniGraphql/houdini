@@ -1,4 +1,4 @@
-package afterextract_test
+package documents_test
 
 import (
 	"context"
@@ -7,9 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"github.com/stretchr/testify/require"
@@ -1161,7 +1160,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 
-			if err := database.WriteHoudiniSchema(conn); err != nil {
+			if err := plugins.WriteHoudiniSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
 			db.Put(conn)
@@ -1225,14 +1224,14 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			hc := &plugin.HoudiniCore{}
 			hc.SetDatabase(db)
 
-			pending := afterextract.PendingQuery{
+			pending := documents.PendingQuery{
 				Query:                    tc.rawQuery,
 				ID:                       1,
 				InlineComponentField:     tc.inlineComponentField,
 				InlineComponentFieldProp: tc.inlineComponentFieldProp,
 			}
 
-			pendingErr := afterextract.LoadPendingQuery(db, pending)
+			pendingErr := documents.LoadPendingQuery(db, pending)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)

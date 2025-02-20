@@ -1,10 +1,10 @@
-package extract_test
+package documents_test
 
 import (
 	"strings"
 	"testing"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/extract"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"github.com/spf13/afero"
 )
 
@@ -341,22 +341,22 @@ export default function CF_A_UserAvatar({ user }: Props) {
 				t.Fatalf("failed to write file: %v", err)
 			}
 
-			resultsCh := make(chan extract.DiscoveredDocument, 10)
+			resultsCh := make(chan documents.DiscoveredDocument, 10)
 			go func() {
-				if err := extract.ProcessFile(fs, filePath, resultsCh); err != nil {
+				if err := documents.ProcessFile(fs, filePath, resultsCh); err != nil {
 					t.Errorf("processFile returned error: %v", err)
 				}
 				close(resultsCh)
 			}()
 
-			var docs []extract.DiscoveredDocument
+			var docs []documents.DiscoveredDocument
 			for doc := range resultsCh {
 				docs = append(docs, doc)
 			}
 
 			// Separate discovered documents into non‑component and component fields.
-			var normalDocs []extract.DiscoveredDocument
-			var compDocs []extract.DiscoveredDocument
+			var normalDocs []documents.DiscoveredDocument
+			var compDocs []documents.DiscoveredDocument
 			for _, d := range docs {
 				if d.Prop == "" {
 					normalDocs = append(normalDocs, d)

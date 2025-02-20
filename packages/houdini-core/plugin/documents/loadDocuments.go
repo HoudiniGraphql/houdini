@@ -1,11 +1,10 @@
-package afterextract
+package documents
 
 import (
 	"context"
 	"fmt"
 	"runtime"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -51,7 +50,7 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 				err := LoadPendingQuery(db, query)
 				if err != nil {
 					txErr = err
-					errs.Append(*err)
+					errs.Append(err)
 				}
 			}
 
@@ -153,15 +152,13 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], query PendingQuery) *plugins.Error {
 	conn, err := db.Take(context.Background())
 	if err != nil {
-		err := plugins.WrapError(err)
-		return &err
+		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
 
-	statements, err, finalize := database.PrepareDocumentInsertStatements(conn)
+	statements, err, finalize := PrepareDocumentInsertStatements(conn)
 	if err != nil {
-		err := plugins.WrapError(err)
-		return &err
+		return plugins.WrapError(err)
 	}
 	defer finalize()
 
@@ -193,8 +190,7 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 	// look up the type of the field from the database
 	searchTypeStatement, err := conn.Prepare(`SELECT type FROM type_fields WHERE id = ?`)
 	if err != nil {
-		pluginError := plugins.WrapError(err)
-		return &pluginError
+		return plugins.WrapError(err)
 	}
 	defer searchTypeStatement.Finalize()
 	// process operations.
@@ -660,8 +656,7 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 					if argDefault != "" {
 						match, err := schema.ValueMatchesType(argType, argDefaultValue)
 						if err != nil {
-							pluginErr := plugins.WrapError(err)
-							return &pluginErr
+							return plugins.WrapError(err)
 						}
 
 						if !match {
@@ -719,7 +714,7 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 
 // processSelection walks down a selection set and  inserts a row into "selections"
 // along with its arguments, directives, directive arguments, and any child selections.
-func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, documentID int64, statements database.DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
+func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, documentID int64, statements DocumentInsertStatements, searchTypeStatement *sqlite.Stmt, documentName string, parent *int64, parentType string, sel ast.Selection, fieldIndex int64) *plugins.Error {
 	// we need to keep track of the id we create for this selection
 	var selectionID int64
 
@@ -946,7 +941,7 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 	return nil
 }
 
-func processDirectives[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, statements database.DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
+func processDirectives[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
 	for _, directive := range directives {
 		// insert the directive row
 		if err := db.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
@@ -1022,7 +1017,7 @@ type PendingQuery struct {
 // It returns the database id of the inserted argument value so that parent/child
 // relationships can be recorded. If the value is a List or Object, it will
 // recursively process its children and insert rows into the argument_value_children table.
-func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, value *ast.Value, statements database.DocumentInsertStatements) (int64, *plugins.Error) {
+func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, value *ast.Value, statements DocumentInsertStatements) (int64, *plugins.Error) {
 	// Determine the kind string based on the AST value kind.
 	var kindStr string
 	switch value.Kind {
@@ -1053,8 +1048,7 @@ func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig
 	// Insert the value itself into the argument_values table.
 	err := db.ExecStatement(statements.InsertArgumentValue, kindStr, value.Raw, value.Position.Line, value.Position.Column)
 	if err != nil {
-		wrapped := plugins.WrapError(err)
-		return 0, &wrapped
+		return 0, plugins.WrapError(err)
 	}
 
 	// Get the id of the inserted value.
@@ -1096,8 +1090,7 @@ func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig
 				column,
 			)
 			if execErr != nil {
-				wrapped := plugins.WrapError(execErr)
-				return 0, &wrapped
+				return 0, plugins.WrapError(execErr)
 			}
 		}
 	}

@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.DatabasePool[PluginConfig], schema *ast.Schema, statements database.SchemaInsertStatements, errors *plugins.ErrorList) {
+func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.DatabasePool[PluginConfig], schema *ast.Schema, statements SchemaInsertStatements, errors *plugins.ErrorList) {
 	// in a single pass over all types, insert the type and any associated details.
 	// the type references are deferrable foreign keys, so we can insert them in any order
 	for _, typ := range schema.Types {
@@ -35,7 +34,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		// insert the type row
 		err := db.ExecStatement(statements.InsertType, typ.Name, kind)
 		if err != nil {
-			errors.Append(plugins.Error{
+			errors.Append(&plugins.Error{
 				Message: fmt.Sprintf("could not register type %s", typ.Name),
 				Detail:  err.Error(),
 				Locations: []*plugins.ErrorLocation{
@@ -56,7 +55,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			for _, value := range typ.EnumValues {
 				err = db.ExecStatement(statements.InsertEnumValue, typ.Name, value.Name)
 				if err != nil {
-					errors.Append(plugins.Error{
+					errors.Append(&plugins.Error{
 						Message: fmt.Sprintf("error inserting enum value %s for %s", value.Name, typ.Name),
 						Detail:  err.Error(),
 						Locations: []*plugins.ErrorLocation{
@@ -79,7 +78,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
 				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "", field.Description)
 				if err != nil {
-					errors.Append(plugins.Error{
+					errors.Append(&plugins.Error{
 						Message: fmt.Sprintf("error registering field %s for object %s", field.Name, typ.Name),
 						Detail:  err.Error(),
 						Locations: []*plugins.ErrorLocation{
@@ -97,7 +96,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
 					err = db.ExecStatement(statements.InsertFieldArgument, fieldID, arg.Name, variableType, "", typeModifiers)
 					if err != nil {
-						errors.Append(plugins.Error{
+						errors.Append(&plugins.Error{
 							Message: fmt.Sprintf("error inserting field argument %s for %s", arg.Name, fieldID),
 							Detail:  err.Error(),
 							Locations: []*plugins.ErrorLocation{
@@ -120,7 +119,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
 				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, field.DefaultValue.String(), field.Description)
 				if err != nil {
-					errors.Append(plugins.Error{
+					errors.Append(&plugins.Error{
 						Message: fmt.Sprintf("error inserting input field %s for %s", field.Name, typ.Name),
 						Detail:  err.Error(),
 						Locations: []*plugins.ErrorLocation{
@@ -142,7 +141,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
 				err = db.ExecStatement(statements.InsertTypeField, fieldID, typ.Name, field.Name, fieldTypeName, fieldTypeModifiers, "", field.Description)
 				if err != nil {
-					errors.Append(plugins.Error{
+					errors.Append(&plugins.Error{
 						Message: fmt.Sprintf("error inserting interface field %s for %s", field.Name, typ.Name),
 						Detail:  err.Error(),
 						Locations: []*plugins.ErrorLocation{
@@ -161,7 +160,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			for _, impl := range schema.GetPossibleTypes(typ) {
 				err = db.ExecStatement(statements.InsertPossibelType, typ.Name, impl.Name)
 				if err != nil {
-					errors.Append(plugins.Error{
+					errors.Append(&plugins.Error{
 						Message: fmt.Sprintf("error linking interface %s with implementor %s", typ.Name, impl.Name),
 						Detail:  err.Error(),
 						Locations: []*plugins.ErrorLocation{
@@ -181,7 +180,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			for _, member := range schema.GetPossibleTypes(typ) {
 				err = db.ExecStatement(statements.InsertPossibelType, typ.Name, member.Name)
 				if err != nil {
-					errors.Append(plugins.Error{
+					errors.Append(&plugins.Error{
 						Message: fmt.Sprintf("error linking union %s with member %s", typ.Name, member.Name),
 						Detail:  err.Error(),
 						Locations: []*plugins.ErrorLocation{
@@ -202,7 +201,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 	for _, directive := range schema.Directives {
 		err := db.ExecStatement(statements.InsertDirective, directive.Name, directive.IsRepeatable)
 		if err != nil {
-			errors.Append(plugins.Error{
+			errors.Append(&plugins.Error{
 				Message: fmt.Sprintf("error inserting directive %s", directive.Name),
 				Detail:  err.Error(),
 				Locations: []*plugins.ErrorLocation{
@@ -218,7 +217,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		for _, location := range directive.Locations {
 			err = db.ExecStatement(statements.InsertDirectiveLocation, directive.Name, string(location))
 			if err != nil {
-				errors.Append(plugins.Error{
+				errors.Append(&plugins.Error{
 					Message: fmt.Sprintf("error inserting directive location %s for %s", location, directive.Name),
 					Detail:  err.Error(),
 					Locations: []*plugins.ErrorLocation{
@@ -235,7 +234,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		for _, arg := range directive.Arguments {
 			err = db.ExecStatement(statements.InsertDirectiveArgument, directive.Name, arg.Name, arg.Type.String(), "")
 			if err != nil {
-				errors.Append(plugins.Error{
+				errors.Append(&plugins.Error{
 					Message: fmt.Sprintf("error inserting directive argument %s for %s", arg.Name, directive.Name),
 					Detail:  err.Error(),
 					Locations: []*plugins.ErrorLocation{
@@ -256,7 +255,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 }
 
 // write the houdini internal schema bits
-func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig], statements database.SchemaInsertStatements) error {
+func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig], statements SchemaInsertStatements) error {
 	var err error
 
 	// Add the ComponentFields scalar

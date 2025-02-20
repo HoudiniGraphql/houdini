@@ -3,7 +3,9 @@ package plugin
 import (
 	"context"
 
-	afterextract "code.houdinigraphql.com/packages/houdini-core/plugin/afterExtract"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/runtimeScalars"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -12,8 +14,8 @@ import (
 func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	// sqlite only allows for one write at a time so there's no point in parallelizing this
 
-	// the first thing we have to do is load the extracted queries
-	err := afterextract.LoadDocuments(ctx, p.DB)
+	// the first thing we have to do is load the extracted queries into the database
+	err := documents.LoadDocuments(ctx, p.DB)
 	if err != nil {
 		return err
 	}
@@ -27,10 +29,10 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	defer p.DB.Put(conn)
 
 	// write component field information to the database
-	afterextract.ComponentFields(p.DB, conn, errs)
+	componentFields.WriteMetadata(p.DB, conn, errs)
 
 	// and replace runtime scalars with their schema-valid equivalents
-	afterextract.RuntimeScalars(ctx, p.DB, conn, errs)
+	runtimeScalars.TransformVariables(ctx, p.DB, conn, errs)
 
 	// if we have any errors collected, return them
 	if errs.Len() > 0 {

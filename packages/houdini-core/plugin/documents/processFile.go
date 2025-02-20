@@ -1,4 +1,4 @@
-package extract
+package documents
 
 import (
 	"bufio"
@@ -11,14 +11,13 @@ import (
 	"github.com/spf13/afero"
 )
 
-// processFile reads the file (using the provided afero.Fs) in fixed-size chunks to avoid holding
+// ProcessFile reads the file (using the provided afero.Fs) in fixed-size chunks to avoid holding
 // onto the full file in memory whenever possible. If a complete match is found, it sends the
 // extracted document on the provided channel.
 func ProcessFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Error {
 	f, err := fs.Open(fp)
 	if err != nil {
-		pluginError := plugins.WrapError(fmt.Errorf("failed to open file: %w", err))
-		return &pluginError
+		return plugins.WrapError(fmt.Errorf("failed to open file: %w", err))
 	}
 	defer f.Close()
 
@@ -26,8 +25,7 @@ func ProcessFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 	if strings.HasSuffix(fp, ".graphql") || strings.HasSuffix(fp, ".gql") {
 		content, err := io.ReadAll(f)
 		if err != nil {
-			pluginError := plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
-			return &pluginError
+			return plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
 		}
 		ch <- DiscoveredDocument{
 			FilePath:     fp,
@@ -156,8 +154,7 @@ func ProcessFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 
 		if err != nil {
 			if err != io.EOF {
-				pluginError := plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
-				return &pluginError
+				return plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
 			}
 			// Process any remaining text at the end of the file.
 			text := string(buffer)

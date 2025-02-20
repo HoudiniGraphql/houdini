@@ -1,11 +1,10 @@
-package afterextract
+package componentFields
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
 
-	"code.houdinigraphql.com/packages/houdini-core/database"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"zombiezen.com/go/sqlite"
@@ -17,11 +16,7 @@ import (
 // - adding internal fields to the type definitions
 // note: we'll hold on doing the actual injection of fragments til after we've validated
 // everything to ensure that error messages make sense
-func ComponentFields[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, errs *plugins.ErrorList) {
-	// Obtain schema insertion statements (not modified here).
-	_, finalizeSchemaStatements := database.PrepareSchemaInsertStatements(conn)
-	defer finalizeSchemaStatements()
-
+func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, errs *plugins.ErrorList) {
 	// First, load component field info from document_directives.
 	// We assume that the @componentField directive appears only on fragment definitions.
 	type ComponentFieldData struct {
@@ -124,7 +119,7 @@ func ComponentFields[PluginConfig any](db plugins.DatabasePool[PluginConfig], co
 	// ensure that each component field has a non-empty prop.
 	for _, rec := range records {
 		if strings.TrimSpace(rec.Prop) == "" {
-			errs.Append(plugins.Error{
+			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf("Component field in document %d must specify a prop", rec.RawDocumentID),
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
@@ -156,7 +151,7 @@ func ComponentFields[PluginConfig any](db plugins.DatabasePool[PluginConfig], co
 		}
 		kind := typesStmt.ColumnText(0)
 		if kind == "INTERFACE" || kind == "UNION" {
-			errs.Append(plugins.Error{
+			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf("Component field on type %q is not allowed on abstract type (document %d)", rec.Type, rec.RawDocumentID),
 				Kind:    plugins.ErrorKindValidation,
 			})
@@ -178,7 +173,7 @@ func ComponentFields[PluginConfig any](db plugins.DatabasePool[PluginConfig], co
 		}
 		count := tfStmt.ColumnInt(0)
 		if count > 0 {
-			errs.Append(plugins.Error{
+			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf("Component field '%s' (prop %q) on type %q conflicts with an existing type field", rec.Field, rec.Prop, rec.Type),
 				Kind:    plugins.ErrorKindValidation,
 			})
@@ -194,7 +189,7 @@ func ComponentFields[PluginConfig any](db plugins.DatabasePool[PluginConfig], co
 	}
 	for key, recs := range group {
 		if len(recs) > 1 {
-			errs.Append(plugins.Error{
+			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf("Duplicate component field definition for (%s); found %d occurrences", key, len(recs)),
 				Kind:    plugins.ErrorKindValidation,
 			})
@@ -227,7 +222,7 @@ func ComponentFields[PluginConfig any](db plugins.DatabasePool[PluginConfig], co
 		INSERT INTO type_fields (id, parent, name, type, internal) VALUES (?, ?, ?, ?, true)
 	`)
 	if err != nil {
-		errs.Append(plugins.Error{
+		errs.Append(&plugins.Error{
 			Message: "could not prepare statement to insert internal fields",
 			Detail:  err.Error(),
 		})

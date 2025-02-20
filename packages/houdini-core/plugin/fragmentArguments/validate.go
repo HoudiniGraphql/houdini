@@ -1,0 +1,373 @@
+package fragmentarguments
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strings"
+
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
+	"code.houdinigraphql.com/plugins"
+)
+
+func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// This query finds fragment spreads (in selections) that reference a fragment document (documents with kind = 'fragment')
+	// that declares at least one required argument (operation_variables with type_modifiers ending in '!'),
+	// but the fragment spread does not have any @with arguments.
+	query := `
+	SELECT
+	  s.id AS spreadID,
+	  d.id AS fragmentID,
+	  d.name AS fragmentName,
+	  rd.filepath,
+	  rd.offset_line AS row,
+	  rd.offset_column AS column,
+	  GROUP_CONCAT(DISTINCT ov.name) AS requiredArgs,
+	  COUNT(sda.id) AS withArgCount
+	FROM selections s
+	  JOIN documents d ON d.name = s.field_name AND d.kind = 'fragment'
+	  JOIN raw_documents rd ON rd.id = d.raw_document
+	  JOIN operation_variables ov ON ov.document = d.id AND ov.type_modifiers LIKE '%!'
+	  LEFT JOIN selection_directives wd ON wd.selection_id = s.id AND wd.directive = 'with'
+	  LEFT JOIN selection_directive_arguments sda ON sda.parent = wd.id
+	GROUP BY s.id, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column
+	HAVING COUNT(sda.id) < 1
+	`
+	conn, err := db.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	err = db.StepStatement(ctx, stmt, func() {
+		fragmentName := stmt.ColumnText(2)
+		filepath := stmt.ColumnText(3)
+		row := int(stmt.ColumnInt(4))
+		column := int(stmt.ColumnInt(5))
+		requiredArgs := stmt.ColumnText(6)
+		// withArgCount is guaranteed to be 0 because of the HAVING clause.
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("Fragment spread referencing fragment %q requires a @with directive with at least one argument; the fragment declares required arguments: %s", fragmentName, requiredArgs),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// --- STEP 1. Build a flat map of argument values for the 'with' directive ---
+	flatTreeQuery := `
+		WITH RECURSIVE arg_tree(id, kind, raw, parent) AS (
+			-- Base case: argument_values directly referenced by a @with directive.
+			SELECT
+				av.id,
+				av.kind,
+				av.raw,
+				avc.parent
+			FROM argument_values av
+			JOIN selection_directive_arguments sda ON sda.value = av.id
+			JOIN selection_directives sd ON sd.id = sda.parent
+			LEFT JOIN argument_value_children avc ON avc.value = av.id
+			WHERE sd.directive = ?
+
+			-- Recursive part: get children of any node in arg_tree.
+			UNION ALL
+			SELECT
+				child.id,
+				child.kind,
+				child.raw,
+				avc.parent
+			FROM arg_tree
+			JOIN argument_value_children avc ON avc.parent = arg_tree.id
+			JOIN argument_values child ON child.id = avc.value
+		)
+		SELECT id, kind, raw, parent FROM arg_tree
+	`
+
+	conn, err := db.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer db.Put(conn)
+
+	flatStmt, err := conn.Prepare(flatTreeQuery)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	flatStmt.BindText(1, schema.WithDirective)
+
+	// Build a map of nodes keyed by their id.
+	flatNodes := make(map[int]*DirectiveArgValueNode)
+	for {
+		hasData, err := flatStmt.Step()
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+		if !hasData {
+			break
+		}
+
+		id := flatStmt.ColumnInt(0)
+		kind := flatStmt.ColumnText(1)
+		raw := flatStmt.ColumnText(2)
+		var parent *int
+		if !flatStmt.ColumnIsNull(3) {
+			pid := flatStmt.ColumnInt(3)
+			parent = &pid
+		}
+
+		flatNodes[id] = &DirectiveArgValueNode{
+			ID:       id,
+			Kind:     kind,
+			Raw:      raw,
+			Parent:   parent,
+			Children: []*DirectiveArgValueNode{},
+		}
+	}
+
+	// Assemble the tree by attaching each node to its parent.
+	for _, node := range flatNodes {
+		if node.Parent != nil {
+			if parentNode, ok := flatNodes[*node.Parent]; ok {
+				parentNode.Children = append(parentNode.Children, node)
+			}
+		}
+	}
+
+	// --- STEP 2. Run the main query that returns fragment info and directive arguments ---
+	// We now have directive arguments as JSON objects with fields "name", "argId", and "raw".
+	// Later in Go we will unmarshal these into a struct.
+	mainQuery := `
+		SELECT
+			fd.name as fragmentName,
+			rd.filepath,
+			sd.row AS row,
+			sd.column AS column,
+			group_concat(DISTINCT json_object(
+				'name', operation_variables.name,
+				'type', operation_variables.type,
+				'typeModifiers', operation_variables.type_modifiers
+			)) AS operationVariablesJson,
+			group_concat(DISTINCT json_object(
+				'name', sda.name,
+				'argId', av.id,
+				'raw', av.raw
+			)) AS directiveArgumentsJson
+		FROM selection_directives sd
+			JOIN selections s ON s.id = sd.selection_id
+			JOIN documents fd ON fd.name = s.field_name AND fd.kind = 'fragment'
+			JOIN raw_documents rd ON rd.id = fd.raw_document
+			LEFT JOIN selection_directive_arguments sda ON sda.parent = sd.id
+			LEFT JOIN argument_values av ON av.id = sda.value
+			JOIN operation_variables ON fd.id = operation_variables.document
+		WHERE sd.directive = ?
+		GROUP BY sd.id
+	`
+
+	mainStmt, err := conn.Prepare(mainQuery)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	// Assume schema.WithDirective is defined (for example, "@with")
+	mainStmt.BindText(1, schema.WithDirective)
+
+	err = db.StepStatement(ctx, mainStmt, func() {
+		// fragmentName := mainStmt.ColumnText(0)
+		operationVariablesJson := mainStmt.ColumnText(4)
+		directiveArgumentsRaw := mainStmt.ColumnText(5)
+		// If directiveArgumentsRaw is "null" or empty, substitute an empty JSON array.
+		if directiveArgumentsRaw == "null" || directiveArgumentsRaw == "" {
+			directiveArgumentsRaw = ""
+		}
+
+		var rawArgs []RawDirectiveArgument
+		if directiveArgumentsRaw != "" {
+			// Wrap the comma-separated JSON objects in square brackets.
+			wrapped := "[" + directiveArgumentsRaw + "]"
+			if err := json.Unmarshal([]byte(wrapped), &rawArgs); err != nil {
+				rawArgs = []RawDirectiveArgument{}
+			}
+		}
+
+		// Build a slice of directive arguments as structs.
+		var directiveArgs []DirectiveArgument
+		for _, rawArg := range rawArgs {
+			var fullNode *DirectiveArgValueNode
+			if rawArg.ArgId != 0 {
+				if node, exists := flatNodes[rawArg.ArgId]; exists {
+					fullNode = node
+				}
+			}
+			// Fallback: if no valid node is found, we create one using the raw value.
+			if fullNode == nil {
+				fullNode = &DirectiveArgValueNode{
+					Kind: rawArg.Raw,
+					Raw:  rawArg.Raw,
+				}
+			}
+			directiveArgs = append(directiveArgs, DirectiveArgument{
+				Name:  rawArg.Name,
+				Value: fullNode,
+			})
+		}
+
+		operationVariables := make([]OperationVariables, 0)
+		if err := json.Unmarshal([]byte("["+operationVariablesJson+"]"), &operationVariables); err != nil {
+			operationVariables = []OperationVariables{}
+		}
+
+		if err := validateWithArguments(directiveArgs, operationVariables); err != nil {
+			errs.Append(&plugins.Error{
+				Message: err.Error(),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{
+						Filepath: mainStmt.ColumnText(1),
+						Line:     int(mainStmt.ColumnInt(2)),
+						Column:   int(mainStmt.ColumnInt(3)),
+					},
+				},
+			})
+			return
+		}
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+// DirectiveArgValueNode represents a node in the argument value tree.
+type DirectiveArgValueNode struct {
+	ID       int                      `json:"id"`
+	Kind     string                   `json:"kind"`
+	Raw      string                   `json:"raw"`
+	Parent   *int                     `json:"parent,omitempty"`
+	Children []*DirectiveArgValueNode `json:"children"`
+}
+
+// Define structs for unmarshaling directive arguments.
+type RawDirectiveArgument struct {
+	Name  string `json:"name"`
+	ArgId int    `json:"argId"` // if 0, then no valid arg
+	Raw   string `json:"raw"`
+}
+
+type DirectiveArgument struct {
+	Name  string                 `json:"name"`
+	Value *DirectiveArgValueNode `json:"value"` // Full nested structure
+}
+
+type OperationVariables struct {
+	Name          string `json:"name"`
+	Type          string `json:"type"`
+	TypeModifiers string `json:"typeModifiers"`
+}
+
+// validateWithArguments loops through the directive arguments, validates
+// each one against its corresponding operation variable, and ensures that every
+// required argument is passed (i.e. every opVar whose TypeModifiers ends with '!')
+func validateWithArguments(directiveArgs []DirectiveArgument, opVars []OperationVariables) error {
+	// Create a map of passed directive argument names.
+	passedArgs := make(map[string]bool)
+
+	// Validate each directive argument against the matching operation variable.
+	for _, arg := range directiveArgs {
+		// Mark this argument as passed.
+		passedArgs[arg.Name] = true
+
+		// Look up the operation variable by name.
+		var opVar *OperationVariables
+		for i, op := range opVars {
+			if op.Name == arg.Name {
+				opVar = &opVars[i]
+				break
+			}
+		}
+		if opVar == nil {
+			return fmt.Errorf("no matching operation variable for argument: %s", arg.Name)
+		}
+
+		// Validate the argument's value against the expected type and type modifiers.
+		if !checkTypeCompatibility(arg.Value, opVar.Type, opVar.TypeModifiers) {
+			return fmt.Errorf("argument %s value does not match expected type %s with modifiers %s",
+				arg.Name, opVar.Type, opVar.TypeModifiers)
+		}
+	}
+
+	// Now ensure that every required argument (operation variable with a type modifier ending in '!') is passed.
+	for _, op := range opVars {
+		if strings.HasSuffix(op.TypeModifiers, "!") {
+			// This opVar is required.
+			if _, exists := passedArgs[op.Name]; !exists {
+				return fmt.Errorf("missing required argument: %s", op.Name)
+			}
+		}
+	}
+
+	return nil
+}
+
+// checkTypeCompatibility recursively validates that the ArgNode value matches
+// the expected type (as a string) and its type modifiers.
+// For our purposes:
+//   - An empty modifier string indicates a scalar (no children, non-empty raw value).
+//   - If the modifiers contain a ']', we expect a list.
+//   - A trailing '!' indicates that the list (or scalar) is non-null.
+func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType, modifiers string) bool {
+	// No modifiers: expect a scalar value.
+	if modifiers == "" {
+		return len(arg.Children) == 0 && arg.Raw != ""
+	}
+
+	// If the modifier contains a ']', then we expect a list.
+	if strings.Contains(modifiers, "]") {
+		// If a non-null list is required (modifier ends with '!'), ensure the list is nonempty.
+		if strings.HasSuffix(modifiers, "!") && len(arg.Children) == 0 {
+			return false
+		}
+		// Recursively validate each child with one layer of list notation stripped.
+		newModifiers := stripOneLayer(modifiers)
+		for _, child := range arg.Children {
+			if !checkTypeCompatibility(child, expectedType, newModifiers) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Fallback: treat as scalar.
+	return arg.Raw != ""
+}
+
+// stripOneLayer removes one layer of list notation from the modifiers string.
+// For example, given a modifiers string like "]!]!", it will remove up to and including
+// the first ']' and then, if the next character is '!', remove that as well.
+func stripOneLayer(modifiers string) string {
+	idx := strings.Index(modifiers, "]")
+	if idx == -1 {
+		return modifiers
+	}
+	newStr := modifiers[idx+1:]
+	if strings.HasPrefix(newStr, "!") {
+		newStr = newStr[1:]
+	}
+	return newStr
+}

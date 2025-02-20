@@ -4,7 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/validate"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
+	fragmentarguments "code.houdinigraphql.com/packages/houdini-core/plugin/fragmentArguments"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -15,44 +17,44 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 	// build up all of the rules
 	rules := []RuleFunc{
 		// default GraphQL-js validation Rules
-		validate.SubscriptionsWithMultipleRootFields[PluginConfig],
-		validate.DuplicateDocumentNames[PluginConfig],
-		validate.FragmentUnknownType[PluginConfig],
-		validate.FragmentOnScalar[PluginConfig],
-		validate.OutputTypeAsInput[PluginConfig],
-		validate.ScalarWithSelection[PluginConfig],
-		validate.UnknownField[PluginConfig],
-		validate.IncompatibleFragmentSpread[PluginConfig],
-		validate.FragmentCycles[PluginConfig],
-		validate.DuplicateVariables[PluginConfig],
-		validate.UndefinedVariables[PluginConfig],
-		validate.UnusedVariables[PluginConfig],
-		validate.UnknownDirective[PluginConfig],
-		validate.RepeatingNonRepeatable[PluginConfig],
-		validate.DuplicateArgumentInField[PluginConfig],
-		validate.WrongTypesToStructuredArg[PluginConfig],
-		validate.WrongTypesToScalarArg[PluginConfig],
-		validate.MissingRequiredArgument[PluginConfig],
-		validate.FieldArgumentIncompatibleType[PluginConfig],
-		validate.ConflictingSelections[PluginConfig],
-		validate.DuplicateKeysInInputObject[PluginConfig],
+		documents.ValidateSubscriptionsWithMultipleRootFields[PluginConfig],
+		documents.ValidateDuplicateDocumentNames[PluginConfig],
+		documents.ValidateFragmentUnknownType[PluginConfig],
+		documents.ValidateFragmentOnScalar[PluginConfig],
+		documents.ValidateOutputTypeAsInput[PluginConfig],
+		documents.ValidateScalarWithSelection[PluginConfig],
+		documents.ValidateUnknownField[PluginConfig],
+		documents.ValidateIncompatibleFragmentSpread[PluginConfig],
+		documents.ValidateFragmentCycles[PluginConfig],
+		documents.ValidateDuplicateVariables[PluginConfig],
+		documents.ValidateUndefinedVariables[PluginConfig],
+		documents.ValidateUnusedVariables[PluginConfig],
+		documents.ValidateUnknownDirective[PluginConfig],
+		documents.ValidateRepeatingNonRepeatable[PluginConfig],
+		documents.ValidateDuplicateArgumentInField[PluginConfig],
+		documents.ValidateWrongTypesToStructuredArg[PluginConfig],
+		documents.ValidateWrongTypesToScalarArg[PluginConfig],
+		documents.ValidateMissingRequiredArgument[PluginConfig],
+		documents.ValidateFieldArgumentIncompatibleType[PluginConfig],
+		documents.ValidateConflictingSelections[PluginConfig],
+		documents.ValidateDuplicateKeysInInputObject[PluginConfig],
 		// Houdini-specific validation rules
-		validate.NoKeyAlias[PluginConfig],
-		validate.Lists[PluginConfig],
-		validate.ConflictingParentIDAllLists[PluginConfig],
-		validate.ConflictingPrependAppend[PluginConfig],
-		validate.RequiredDirective[PluginConfig],
-		validate.MaskDirectives[PluginConfig],
-		validate.NodeDirective[PluginConfig],
-		validate.KnownDirectiveArguments[PluginConfig],
-		validate.FragmentArguments[PluginConfig],
-		validate.FragmentArgumentsMissingWith[PluginConfig],
-		validate.PaginateArgs[PluginConfig],
-		validate.PaginateTypeCondition[PluginConfig],
-		validate.SinglePaginateDirective[PluginConfig],
-		validate.LoadingDirective[PluginConfig],
-		validate.OptimisticKeyFullSelection[PluginConfig],
-		validate.OptimisticKeyOnScalar[PluginConfig],
+		documents.ValidateNoKeyAlias[PluginConfig],
+		documents.ValidateKnownDirectiveArguments[PluginConfig],
+		documents.ValidateMaskDirectives[PluginConfig],
+		documents.ValidateLoadingDirective[PluginConfig],
+		documents.ValidateRequiredDirective[PluginConfig],
+		documents.ValidateOptimisticKeyFullSelection[PluginConfig],
+		documents.ValidateOptimisticKeyOnScalar[PluginConfig],
+		lists.ValidateLists[PluginConfig],
+		lists.ValidateConflictingParentIDAllLists[PluginConfig],
+		lists.ValidateConflictingPrependAppend[PluginConfig],
+		lists.ValidateNodeDirective[PluginConfig],
+		lists.ValidatePaginateArgs[PluginConfig],
+		lists.ValidatePaginateTypeCondition[PluginConfig],
+		lists.ValidateSinglePaginateDirective[PluginConfig],
+		fragmentarguments.ValidateFragmentArgumentValues[PluginConfig],
+		fragmentarguments.ValidateFragmentArgumentsMissingWith[PluginConfig],
 	}
 
 	// run all of the rules concurrently

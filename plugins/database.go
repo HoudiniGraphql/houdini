@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"context"
 	"fmt"
 
 	"zombiezen.com/go/sqlite"
@@ -67,4 +68,54 @@ func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args 
 		return err
 	}
 	return statement.Reset()
+}
+
+// StepQuery wraps the common steps for executing a query.
+// It obtains the connection, prepares the query, iterates over rows, and calls the rowHandler callback for each row.
+func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, rowHandler func(q *sqlite.Stmt)) *Error {
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return &Error{
+			Message: "could not open connection to database",
+			Detail:  err.Error(),
+		}
+	}
+	defer db.Put(conn)
+
+	query, err := conn.Prepare(queryStr)
+	if err != nil {
+		return &Error{
+			Message: "could not prepare query",
+			Detail:  err.Error(),
+		}
+	}
+	defer query.Finalize()
+
+	return db.StepStatement(ctx, query, func() {
+		rowHandler(query)
+	})
+}
+
+func (db DatabasePool[PluginConfig]) StepStatement(ctx context.Context, queryStatement *sqlite.Stmt, rowHandler func()) *Error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
+
+		hasData, err := queryStatement.Step()
+		if err != nil {
+			return &Error{
+				Message: "query step error",
+				Detail:  err.Error(),
+			}
+		}
+		if !hasData {
+			break
+		}
+		rowHandler()
+	}
+
+	return nil
 }
