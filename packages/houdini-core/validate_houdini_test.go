@@ -511,6 +511,17 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "unused fragment arguments",
+			Pass:  false,
+			Documents: []string{
+				`
+					fragment Foo1 on Query @arguments(name: { type: "String!" }) {
+						users(stringValue: "hello") { id }
+					}
+				`,
+			},
+		},
+		{
 			Title: "missing fragment arguments",
 			Pass:  false,
 			Documents: []string{
@@ -543,28 +554,18 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
-			Title: "unused fragment arguments",
-			Pass:  false,
-			Documents: []string{
-				`
-					fragment Foo1 on Query @arguments(name: { type: "String!" }) {
-						users(stringValue: "hello") { id }
-					}
-				`,
-			},
-		},
-		{
 			Title: "applied fragment arguments",
 			Pass:  false,
 			Documents: []string{
 				`
-					fragment Foo on Query @arguments(name: { type: "String" }) {
+					fragment Foo on Query @arguments(name: { type: "String" }, otherName: { type: "String" }) {
 						users(stringValue: $name) { id }
+						more: users(stringValue: $otherName) { id }
 					}
 				`,
 				`
 					query Query2 {
-						...Foo @with(name: true)
+						...Foo @with(name: {value:"hello"})
 					}
 				`,
 			},
@@ -595,11 +596,11 @@ func TestValidate_Houdini(t *testing.T) {
 		},
 		{
 			Title: "list of strings passed to fragment argument type argument (woof)",
-			Pass:  true,
+			Pass:  false,
 			Documents: []string{
 				`
 					fragment NodePaginatedA on Query @arguments(
-						ids: { type: "[String]" }
+						ids: { type: [String] }
 					) {
 						nodes(ids: $ids) {
 							id
@@ -1156,13 +1157,39 @@ func TestValidate_Houdini(t *testing.T) {
 
 			// load the raw documents into the database
 			err = plugin.afterExtract_loadDocuments(ctx)
-			require.Nil(t, err)
-			// we're done with the database connection for now
-			db.Put(conn)
+			if err != nil {
+				db.Put(conn)
+				if !test.Pass {
+					// we're done
+					return
+				}
+				t.Fatalf("failed to load documents: %v", err)
+			}
 
 			errs := &plugins.ErrorList{}
 			plugin.afterExtract_componentFields(conn, errs)
-			require.Equal(t, 0, errs.Len(), errs.GetItems())
+			if errs.Len() > 0 {
+				// we're done with the database connection for now
+				db.Put(conn)
+				if !test.Pass {
+					// we're done
+					return
+				}
+				t.Fatalf("failed to extract component fields: %v", errs.GetItems())
+			}
+
+			plugin.afterExtract_runtimeScalars(ctx, conn, errs)
+			if errs.Len() > 0 {
+				// we're done with the database connection for now
+				db.Put(conn)
+				if !test.Pass {
+					// we're done
+					return
+				}
+				t.Fatalf("failed to extract component fields: %v", errs.GetItems())
+			}
+
+			db.Put(conn)
 
 			// run the validation
 			err = plugin.Validate(ctx)
