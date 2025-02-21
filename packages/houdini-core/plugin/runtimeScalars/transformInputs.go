@@ -42,7 +42,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 			type,
 			row,
 			column
-		FROM operation_variables WHERE type in (%s)
+		FROM document_variables WHERE type in (%s)
 	`, runtimeScalars[:len(runtimeScalars)-1]))
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -53,7 +53,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 
 	// and a query to update the type of the variable
 	updateType, err := conn.Prepare(`
-		UPDATE operation_variables SET type = ? WHERE id = ?
+		UPDATE document_variables SET type = ? WHERE id = ?
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))

@@ -307,10 +307,6 @@ export default async function typeCheck(config: Config, docs: Document[]): Promi
 			listTypes,
 			fragments,
 		}),
-		// pagination directive can only show up on nodes or the query type
-		nodeDirectives(config, [config.paginateDirective]),
-		// validate any fragment arguments
-		validateFragmentArguments(config, filepath, fragments),
 	]
 
 	for (const { filename, document: parsed, originalString } of docs) {

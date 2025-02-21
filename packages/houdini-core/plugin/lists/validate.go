@@ -330,26 +330,26 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 	// and that have a non-empty type_condition, but that are invalid—
 	// meaning the type condition neither implements Node nor has a valid resolve_query.
 	query := `
-	SELECT
-	  d.id AS documentID,
-	  d.name AS documentName,
-	  d.type_condition AS typeCondition,
-	  rd.filepath,
-	  rd.offset_line AS row,
-	  rd.offset_column AS column,
-	  MAX(CASE WHEN pt.type = 'Node' AND pt.member = d.type_condition THEN 1 ELSE 0 END) AS implementsNode,
-	  MAX(CASE WHEN tc.resolve_query IS NOT NULL AND TRIM(tc.resolve_query) <> '' THEN 1 ELSE 0 END) AS hasResolveQuery
-	FROM documents d
-	  JOIN raw_documents rd ON rd.id = d.raw_document
-	  -- Only consider documents that have at least one @paginate usage.
-	  JOIN selection_refs sr ON sr.document = d.id
-	  JOIN selection_directives sd ON sd.selection_id = sr.child_id AND sd.directive = ?
-	  LEFT JOIN possible_types pt ON pt.type = 'Node' AND pt.member = d.type_condition
-	  LEFT JOIN type_configs tc ON tc.name = d.type_condition
-	WHERE TRIM(d.type_condition) <> ''
-	GROUP BY d.id, d.name, d.type_condition, rd.filepath, rd.offset_line, rd.offset_column
-	HAVING MAX(CASE WHEN pt.type = 'Node' AND pt.member = d.type_condition THEN 1 ELSE 0 END) = 0
-	   AND MAX(CASE WHEN tc.resolve_query IS NOT NULL AND TRIM(tc.resolve_query) <> '' THEN 1 ELSE 0 END) = 0
+		SELECT DISTINCT
+			d.name AS documentName,
+			d.type_condition,
+			rd.filepath,
+			sd.row,
+			sd.column
+		FROM documents d
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN selection_refs sr ON sr.document = d.id
+			JOIN selection_directives sd ON sd.selection_id = sr.child_id
+		LEFT JOIN possible_types pt
+			ON pt.type = 'Node'
+			AND d.type_condition = pt.member
+		LEFT JOIN type_configs tc
+			ON tc.resolve_query IS NOT NULL
+			AND d.type_condition = tc.name
+		WHERE d.kind = 'fragment'
+			AND sd.directive = ?
+			AND pt.member IS NULL
+			AND tc.name IS NULL
 	`
 	conn, err := db.Take(ctx)
 	if err != nil {
@@ -368,17 +368,14 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 	stmt.BindText(1, schema.PaginationDirective)
 
 	err = db.StepStatement(ctx, stmt, func() {
-		docID := stmt.ColumnInt64(0)
-		docName := stmt.ColumnText(1)
-		typeCondition := stmt.ColumnText(2)
-		filepath := stmt.ColumnText(3)
-		row := int(stmt.ColumnInt(4))
-		column := int(stmt.ColumnInt(5))
-		impl := stmt.ColumnInt(6)
-		resolveFlag := stmt.ColumnInt(7)
+		docName := stmt.ColumnText(0)
+		typeCondition := stmt.ColumnText(1)
+		filepath := stmt.ColumnText(2)
+		row := int(stmt.ColumnInt(3))
+		column := int(stmt.ColumnInt(4))
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Document %q (ID %d) uses @%s but its type condition %q is invalid (implementsNode=%d, hasResolveQuery=%d). It must either implement Node or have a type_configs entry with a valid resolve_query", docName, docID, schema.PaginationDirective, typeCondition, impl, resolveFlag),
+			Message: fmt.Sprintf("Document %q uses @%s but its type condition %q is invalid. It must either implement Node or have a type_configs entry with a valid resolve_query", docName, schema.PaginationDirective, typeCondition),
 			Kind:    plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
@@ -471,10 +468,14 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	}
 }
 
+// we have a few things that we need to validate about lists and along the way confirm that we don't have any unknown directives or fragments
+//   - name must be a static argument (it can't be a variable)
+//   - the same name can't be used more than once globally
+//   - if we run into a list operation we need to confirm that if it requires a @parentID by looking up until the root of the document for a list.
+//     if we run into a list, then there needs to be a parent id
+//   - targets with @paginate must have a valid key (either the default keys apply or there is a custom entry in the type_configs table)
+//   - every fragment spread needs to reference a document with kind = fragment or end in one of the operation prefixes
+//   - every directive must be known or reference a delete operation
 func ValidateLists[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-
-}
-
-func ValidateNodeDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 
 }

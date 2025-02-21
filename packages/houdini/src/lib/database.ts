@@ -172,7 +172,7 @@ CREATE TABLE operation_variable_directives (
 	directive TEXT NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-	FOREIGN KEY (parent) REFERENCES operation_variables(id) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (parent) REFERENCES document_variables(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -188,7 +188,7 @@ CREATE TABLE operation_variable_directive_arguments (
 -- Document Tables
 -----------------------------------------------------------
 
-CREATE TABLE operation_variables (
+CREATE TABLE document_variables (
  	id INTEGER PRIMARY KEY AUTOINCREMENT,
     document TEXT NOT NULL,
     name INTEGER NOT NULL,
@@ -331,7 +331,7 @@ CREATE INDEX idx_type_fields_name ON type_fields(name);
 CREATE INDEX idx_type_configs_name ON type_configs(name);
 CREATE INDEX idx_argument_value_children_parent ON argument_value_children(parent);
 CREATE INDEX idx_argument_values_kind_raw ON argument_values(kind, raw);
-CREATE INDEX idx_operation_variables_document_name ON operation_variables(document, name);
+CREATE INDEX idx_document_variables_document_name ON document_variables(document, name);
 CREATE INDEX idx_selection_arguments_value ON selection_arguments(value);
 CREATE INDEX idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
 CREATE INDEX idx_selection_directives_directive ON selection_directives(directive);

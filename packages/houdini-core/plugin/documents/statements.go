@@ -23,7 +23,7 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariable, err := conn.Prepare("INSERT INTO operation_variables (document, name, type, type_modifiers, default_value, row, column) VALUES (?, ?, ?, ?, ?, ?, ?)")
+	insertDocumentVariable, err := conn.Prepare("INSERT INTO document_variables (document, name, type, type_modifiers, default_value, row, column) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}

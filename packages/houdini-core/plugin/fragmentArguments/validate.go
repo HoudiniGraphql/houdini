@@ -12,7 +12,7 @@ import (
 
 func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query finds fragment spreads (in selections) that reference a fragment document (documents with kind = 'fragment')
-	// that declares at least one required argument (operation_variables with type_modifiers ending in '!'),
+	// that declares at least one required argument (document_variables with type_modifiers ending in '!'),
 	// but the fragment spread does not have any @with arguments.
 	query := `
 	SELECT
@@ -27,7 +27,7 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 	FROM selections s
 	  JOIN documents d ON d.name = s.field_name AND d.kind = 'fragment'
 	  JOIN raw_documents rd ON rd.id = d.raw_document
-	  JOIN operation_variables ov ON ov.document = d.id AND ov.type_modifiers LIKE '%!'
+	  JOIN document_variables ov ON ov.document = d.id AND ov.type_modifiers LIKE '%!'
 	  LEFT JOIN selection_directives wd ON wd.selection_id = s.id AND wd.directive = 'with'
 	  LEFT JOIN selection_directive_arguments sda ON sda.parent = wd.id
 	GROUP BY s.id, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column
@@ -160,10 +160,10 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			sd.row AS row,
 			sd.column AS column,
 			group_concat(DISTINCT json_object(
-				'name', operation_variables.name,
-				'type', operation_variables.type,
-				'typeModifiers', operation_variables.type_modifiers
-			)) AS operationVariablesJson,
+				'name', document_variables.name,
+				'type', document_variables.type,
+				'typeModifiers', document_variables.type_modifiers
+			)) AS documentVariablesJson,
 			group_concat(DISTINCT json_object(
 				'name', sda.name,
 				'argId', av.id,
@@ -175,7 +175,7 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			JOIN raw_documents rd ON rd.id = fd.raw_document
 			LEFT JOIN selection_directive_arguments sda ON sda.parent = sd.id
 			LEFT JOIN argument_values av ON av.id = sda.value
-			JOIN operation_variables ON fd.id = operation_variables.document
+			JOIN document_variables ON fd.id = document_variables.document
 		WHERE sd.directive = ?
 		GROUP BY sd.id
 	`
@@ -191,7 +191,7 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 
 	err = db.StepStatement(ctx, mainStmt, func() {
 		// fragmentName := mainStmt.ColumnText(0)
-		operationVariablesJson := mainStmt.ColumnText(4)
+		documentVariablesJson := mainStmt.ColumnText(4)
 		directiveArgumentsRaw := mainStmt.ColumnText(5)
 		// If directiveArgumentsRaw is "null" or empty, substitute an empty JSON array.
 		if directiveArgumentsRaw == "null" || directiveArgumentsRaw == "" {
@@ -229,12 +229,12 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			})
 		}
 
-		operationVariables := make([]OperationVariables, 0)
-		if err := json.Unmarshal([]byte("["+operationVariablesJson+"]"), &operationVariables); err != nil {
-			operationVariables = []OperationVariables{}
+		documentVariables := make([]DocumentVariables, 0)
+		if err := json.Unmarshal([]byte("["+documentVariablesJson+"]"), &documentVariables); err != nil {
+			documentVariables = []DocumentVariables{}
 		}
 
-		if err := validateWithArguments(directiveArgs, operationVariables); err != nil {
+		if err := validateWithArguments(directiveArgs, documentVariables); err != nil {
 			errs.Append(&plugins.Error{
 				Message: err.Error(),
 				Kind:    plugins.ErrorKindValidation,
@@ -275,7 +275,7 @@ type DirectiveArgument struct {
 	Value *DirectiveArgValueNode `json:"value"` // Full nested structure
 }
 
-type OperationVariables struct {
+type DocumentVariables struct {
 	Name          string `json:"name"`
 	Type          string `json:"type"`
 	TypeModifiers string `json:"typeModifiers"`
@@ -284,7 +284,7 @@ type OperationVariables struct {
 // validateWithArguments loops through the directive arguments, validates
 // each one against its corresponding operation variable, and ensures that every
 // required argument is passed (i.e. every opVar whose TypeModifiers ends with '!')
-func validateWithArguments(directiveArgs []DirectiveArgument, opVars []OperationVariables) error {
+func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentVariables) error {
 	// Create a map of passed directive argument names.
 	passedArgs := make(map[string]bool)
 
@@ -294,7 +294,7 @@ func validateWithArguments(directiveArgs []DirectiveArgument, opVars []Operation
 		passedArgs[arg.Name] = true
 
 		// Look up the operation variable by name.
-		var opVar *OperationVariables
+		var opVar *DocumentVariables
 		for i, op := range opVars {
 			if op.Name == arg.Name {
 				opVar = &opVars[i]

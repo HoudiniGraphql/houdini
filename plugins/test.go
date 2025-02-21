@@ -191,7 +191,7 @@ CREATE TABLE operation_variable_directives (
 	directive TEXT NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-	FOREIGN KEY (parent) REFERENCES operation_variables(id) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (parent) REFERENCES document_variables(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -207,7 +207,7 @@ CREATE TABLE operation_variable_directive_arguments (
 -- Document Tables
 -----------------------------------------------------------
 
-CREATE TABLE operation_variables (
+CREATE TABLE document_variables (
  	id INTEGER PRIMARY KEY AUTOINCREMENT,
     document TEXT NOT NULL,
     name INTEGER NOT NULL,
@@ -319,45 +319,4 @@ CREATE TABLE argument_value_children (
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
 );
-
-
------------------------------------------------------------
--- Indices
------------------------------------------------------------
-
-CREATE INDEX idx_documents_kind ON documents(kind);
-
--- Selection traversal indices
-CREATE INDEX idx_documents_type_condition ON documents(type_condition);
-CREATE INDEX idx_documents_raw_document ON documents(raw_document);
-CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
-CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
-CREATE INDEX idx_selection_refs_document ON selection_refs(document);
-CREATE INDEX idx_operation_variable_directives_parent ON operation_variable_directives(parent);
-CREATE INDEX idx_operation_variable_directives_directive ON operation_variable_directives(directive);
-CREATE INDEX idx_operation_variable_directive_arguments_parent ON operation_variable_directive_arguments(parent);
-CREATE INDEX idx_selections_type ON selections(type);
-CREATE INDEX idx_document_directives_document ON document_directives(document);
-CREATE INDEX idx_document_directives_directive ON document_directives(directive);
-CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
-
--- Field lookups
-CREATE INDEX idx_type_fields_parent ON type_fields(parent);
-CREATE INDEX idx_selections_alias ON selections(alias);
-
--- Selection metadata lookups
-CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);
-CREATE INDEX idx_selection_arguments_selection ON selection_arguments(selection_id);
-CREATE INDEX idx_selection_directive_args_parent ON selection_directive_arguments(parent);
-
--- Type system lookups
-CREATE INDEX idx_possible_types_type ON possible_types(type);
-CREATE INDEX idx_possible_types_member ON possible_types(member);
-CREATE INDEX idx_enum_values_parent ON enum_values(parent);
-CREATE INDEX idx_type_fields_name ON type_fields(name);
-CREATE INDEX idx_type_configs_name ON type_configs(name);
-CREATE INDEX idx_argument_value_children_parent ON argument_value_children(parent);
-CREATE INDEX idx_argument_values_kind_raw ON argument_values(kind, raw);
-CREATE INDEX idx_operation_variables_document_name ON operation_variables(document, name);
-CREATE INDEX idx_selection_arguments_value ON selection_arguments(value);
 `

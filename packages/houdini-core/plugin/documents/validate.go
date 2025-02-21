@@ -177,15 +177,15 @@ func ValidateFragmentOnScalar[PluginConfig any](ctx context.Context, db plugins.
 func ValidateOutputTypeAsInput[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	queryStr := `
 		SELECT
-			operation_variables.name,
-			operation_variables.type,
+			document_variables.name,
+			document_variables.type,
 			raw_documents.filepath,
 			raw_documents.offset_line,
 			raw_documents.offset_column
-		FROM operation_variables
-			JOIN documents ON operation_variables.document = documents.id
+		FROM document_variables
+			JOIN documents ON document_variables.document = documents.id
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
-			JOIN types ON operation_variables.type = types.name
+			JOIN types ON document_variables.type = types.name
 		WHERE types.kind in ('OBJECT', 'INTERFACE', 'UNION')
 	`
 	err := db.StepQuery(ctx, queryStr, func(row *sqlite.Stmt) {
@@ -519,7 +519,7 @@ func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugin
 	query := `
 		SELECT
 			documents.name AS documentName,
-			operation_variables.name AS variableName,
+			document_variables.name AS variableName,
 			raw_documents.filepath,
 			json_group_array(
 				json_object(
@@ -527,10 +527,10 @@ func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugin
 					'column', raw_documents.offset_column
 				)
 			) AS locations
-		FROM operation_variables
-		JOIN documents ON operation_variables.document = documents.id
+		FROM document_variables
+		JOIN documents ON document_variables.document = documents.id
 		JOIN raw_documents ON raw_documents.id = documents.raw_document
-		GROUP BY documents.id, operation_variables.name
+		GROUP BY documents.id, document_variables.name
 		HAVING COUNT(*) > 1
 	`
 
@@ -579,7 +579,7 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 		JOIN documents d ON sr.document = d.id
 		JOIN raw_documents r ON r.id = d.raw_document
 		JOIN argument_values av ON av.id = sargs.value
-		LEFT JOIN operation_variables opv
+		LEFT JOIN document_variables opv
 			ON opv.document = d.id
 			AND opv.name = av.raw
 	WHERE av.kind = 'Variable'
@@ -620,7 +620,7 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 
 func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query finds operation variables that are defined but never used.
-	// We join operation_variables (opv) to documents and raw_documents to get context.
+	// We join document_variables (opv) to documents and raw_documents to get context.
 	// Then we left join a UNION ALL subquery ("var") that finds all variable usages,
 	// whether in field arguments, selection directives, or document directives.
 	// If COUNT(var.raw) = 0 for an operation variable, then it is unused.
@@ -634,34 +634,34 @@ func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.D
 				json_object('line', var.row, 'column', var.column)
 			), '[]'
 			) AS locations
-		FROM operation_variables opv
-		JOIN documents d ON opv.document = d.id
-		JOIN raw_documents r ON r.id = d.raw_document
-		LEFT JOIN (
-			-- Variable usages in field arguments:
-			SELECT d.id AS document, av.raw, refs.row, refs.column
-			FROM selection_refs refs
-			JOIN selection_arguments sargs ON sargs.selection_id = refs.child_id
-			JOIN argument_values av ON av.id = sargs.value AND av.kind = 'Variable'
-			JOIN documents d ON d.id = refs.document
-			UNION ALL
-			-- Variable usages in selection directives:
-			SELECT d.id AS document, av.raw, sd.row, sd.column
-			FROM selection_directives sd
-			JOIN selection_directive_arguments sda ON sda.parent = sd.id
-			JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
-			JOIN selections s ON s.id = sd.selection_id
-			JOIN selection_refs sr ON sr.child_id = s.id
-			JOIN documents d ON d.id = sr.document
-			UNION ALL
-			-- Variable usages in document directives:
-			SELECT d.id AS document, av.raw, dd.row, dd.column
-			FROM document_directives dd
-			JOIN document_directive_arguments sda ON sda.parent = dd.id
-			JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
-			JOIN documents d ON d.id = dd.document
-		) var ON var.document = d.id
-			AND var.raw = opv.name
+		FROM document_variables opv
+			JOIN documents d ON opv.document = d.id
+			JOIN raw_documents r ON r.id = d.raw_document
+			LEFT JOIN (
+				-- Variable usages in field arguments:
+				SELECT d.id AS document, av.raw, refs.row, refs.column
+				FROM selection_refs refs
+				JOIN selection_arguments sargs ON sargs.selection_id = refs.child_id
+				JOIN argument_values av ON av.id = sargs.value AND av.kind = 'Variable'
+				JOIN documents d ON d.id = refs.document
+				UNION ALL
+				-- Variable usages in selection directives:
+				SELECT d.id AS document, av.raw, sd.row, sd.column
+				FROM selection_directives sd
+				JOIN selection_directive_arguments sda ON sda.parent = sd.id
+				JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
+				JOIN selections s ON s.id = sd.selection_id
+				JOIN selection_refs sr ON sr.child_id = s.id
+				JOIN documents d ON d.id = sr.document
+				UNION ALL
+				-- Variable usages in document directives:
+				SELECT d.id AS document, av.raw, dd.row, dd.column
+				FROM document_directives dd
+				JOIN document_directive_arguments sda ON sda.parent = dd.id
+				JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
+				JOIN documents d ON d.id = dd.document
+			) var ON var.document = d.id
+				AND var.raw = opv.name
 		GROUP BY opv.id
 		HAVING COUNT(var.raw) = 0
 	`
@@ -959,7 +959,7 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 		JOIN documents d ON d.id = sr.document
 		JOIN raw_documents rd ON rd.id = d.raw_document
 		JOIN argument_values av ON av.id = sa.value
-		JOIN operation_variables opv ON d.id = opv.document AND opv.name = av.raw
+		JOIN document_variables opv ON d.id = opv.document AND opv.name = av.raw
 	GROUP BY sa.selection_id, fad.name
 	HAVING NOT (
 		  fad.type = opv.type

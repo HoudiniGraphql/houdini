@@ -1276,7 +1276,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 							t.Errorf("document mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
 						}
 
-						vars := findOperationVariables(t, db)
+						vars := findDocumentVariables(t, db)
 						if len(vars) != len(expDoc.Variables) {
 							t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
 						}
@@ -1598,8 +1598,8 @@ func fetchDocuments[PluginConfig any](t *testing.T, db plugins.DatabasePool[Plug
 	return rows
 }
 
-// findOperationVariables returns all operation variables along with any attached directives.
-func findOperationVariables[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig]) []operationVariableRow {
+// findDocumentVariables returns all operation variables along with any attached directives.
+func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig]) []operationVariableRow {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -1609,11 +1609,11 @@ func findOperationVariables[PluginConfig any](t *testing.T, db plugins.DatabaseP
 	// Note: we now select the id as well so that we can look up directives.
 	stmt, err := conn.Prepare(`
 		SELECT id, document, name, type, default_value, type_modifiers
-		FROM operation_variables
+		FROM document_variables
 		ORDER BY name
 	`)
 	if err != nil {
-		t.Fatalf("failed to prepare operation_variables query: %v", err)
+		t.Fatalf("failed to prepare document_variables query: %v", err)
 	}
 	defer stmt.Finalize()
 
@@ -1621,7 +1621,7 @@ func findOperationVariables[PluginConfig any](t *testing.T, db plugins.DatabaseP
 	for {
 		ok, err := stmt.Step()
 		if err != nil {
-			t.Fatalf("error stepping operation_variables query: %v", err)
+			t.Fatalf("error stepping document_variables query: %v", err)
 		}
 		if !ok {
 			break
