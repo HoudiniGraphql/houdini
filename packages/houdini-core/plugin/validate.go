@@ -47,12 +47,13 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateOptimisticKeyFullSelection[PluginConfig],
 		documents.ValidateOptimisticKeyOnScalar[PluginConfig],
 		// this will replace `KnownDirectives` and `KnownFragmentNames`
-		lists.ValidateLists[PluginConfig],
+		lists.ValidateListNames[PluginConfig],
 		lists.ValidateConflictingParentIDAllLists[PluginConfig],
 		lists.ValidateConflictingPrependAppend[PluginConfig],
 		lists.ValidatePaginateArgs[PluginConfig],
 		lists.ValidatePaginateTypeCondition[PluginConfig],
 		lists.ValidateSinglePaginateDirective[PluginConfig],
+		lists.ValidateParentID[PluginConfig],
 		fragmentarguments.ValidateFragmentArgumentValues[PluginConfig],
 		fragmentarguments.ValidateFragmentArgumentsMissingWith[PluginConfig],
 	}

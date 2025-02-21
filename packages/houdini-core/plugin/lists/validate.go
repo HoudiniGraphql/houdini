@@ -476,6 +476,154 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 //   - targets with @paginate must have a valid key (either the default keys apply or there is a custom entry in the type_configs table)
 //   - every fragment spread needs to reference a document with kind = fragment or end in one of the operation prefixes
 //   - every directive must be known or reference a delete operation
-func ValidateLists[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+
+func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	projectConfig, err := db.ProjectConfig(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	// if the default target is allLists, we dont need to verify anything
+	if projectConfig.DefaultListTarget == "all" {
+		return
+	}
+
+	// we need the name argument of every instance of @paginate whose parent is a list at some point in the chain
+	// to do this, we'll build a recursive query that starts at pagination directives joined with the table
+	// with directive_argments filtered for the name argument and keep walking until we see a parent whose type modifiers include ]
+	query := `
+		-- Build up a list of parents that require a parentID
+		WITH RECURSIVE pagination_parents AS (
+			-- Base case: start at selections with the paginate or list directive
+			SELECT
+				s.id,
+				0 AS has_match,
+				argument_values.raw AS list_name
+			FROM selection_directives sd
+				JOIN selections s ON sd.selection_id = s.id
+				JOIN selection_refs sr ON s.id = sr.child_id
+				JOIN documents doc ON sr.document = doc.id
+				JOIN selection_directive_arguments da ON sd.id = da.parent
+				JOIN argument_values ON da.value = argument_values.id
+			WHERE sd.directive IN (? , ?)
+				AND da.name = 'name'
+				AND doc.kind = 'query'
+
+			UNION ALL
+
+			-- Recursive step: keep walking up until we find a match
+			SELECT
+				p.id,
+				CASE WHEN tf.type_modifiers LIKE '%]%' THEN 1 ELSE 0 END AS has_match,
+				sh.list_name
+			FROM pagination_parents sh
+				JOIN selection_refs sr ON sr.child_id = sh.id
+				JOIN selections p ON p.id = sr.parent_id
+				JOIN type_fields tf ON p.type = tf.id
+			WHERE sh.has_match = 0
+		),
+
+		-- There are 2 categories of fragment spreads that require a parentID:
+		--    - if the operation is in a query document contained within a field
+		--    - if the operation is in a fragment definition
+		constrained_lists AS (
+			-- Get the first parent where the match is found
+			SELECT list_name
+				FROM pagination_parents
+				WHERE has_match = 1
+
+			UNION
+
+			-- look for list operations in fragments
+			SELECT
+				argument_values.raw AS list_name
+			FROM selection_directives sd
+				JOIN selections s ON sd.selection_id = s.id
+				JOIN selection_refs sr ON s.id = sr.child_id
+				JOIN documents doc ON sr.document = doc.id
+				JOIN selection_directive_arguments da ON sd.id = da.parent
+				JOIN argument_values ON da.value = argument_values.id
+			WHERE sd.directive IN (? , ?)
+				AND da.name = 'name'
+				AND doc.kind = 'fragment'
+		),
+
+		-- Define a table of acceptable suffixes
+		suffixes(sfx) AS (
+			VALUES (?), (?), (?)
+		),
+
+		-- precompute the list of operation names that could refer to a constrainted list
+		operation_names AS (
+			SELECT
+				mp.list_name,
+				mp.list_name || '_' || s.sfx AS expected_field_name
+			FROM constrained_lists mp
+			CROSS JOIN suffixes s
+		)
+
+		-- Find all fragment spreads that refer to a list operation on a constrained list and don't have a target directive
+		SELECT DISTINCT
+			o_names.list_name,
+			sr.row,
+			sr.column,
+			rd.filepath
+		FROM operation_names o_names
+			JOIN selections f ON f.field_name = o_names.expected_field_name
+			JOIN selection_refs sr ON sr.child_id = f.id
+			JOIN documents d ON sr.document = d.id
+			JOIN raw_documents rd ON d.raw_document = rd.id
+			LEFT JOIN selection_directives sd2 ON sd2.selection_id = f.id AND sd2.directive in (?, ?)
+		WHERE f.kind = 'fragment'
+		AND sd2.id IS NULL
+	`
+
+	conn, err := db.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer db.Put(conn)
+
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	// assign the suffixes that indicate a list operation
+	stmt.BindText(1, schema.PaginationDirective)
+	stmt.BindText(2, schema.ListDirective)
+	stmt.BindText(3, schema.PaginationDirective)
+	stmt.BindText(4, schema.ListDirective)
+	stmt.BindText(5, schema.ListOperationPrefixInsert)
+	stmt.BindText(6, schema.ListOperationPrefixToggle)
+	stmt.BindText(7, schema.ListOperationPrefixRemove)
+	stmt.BindText(8, schema.ParentIDDirective)
+	stmt.BindText(9, schema.AllListsDirective)
+
+	// every result is a list that requires a parent id but doesn't have one
+	err = db.StepStatement(ctx, stmt, func() {
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("operations on %q requires a parentID", stmt.ColumnText(0)),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: stmt.ColumnText(3),
+					Line:     int(stmt.ColumnInt(1)),
+					Column:   int(stmt.ColumnInt(2)),
+				},
+			},
+		})
+
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
+func ValidateListNames[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 
 }

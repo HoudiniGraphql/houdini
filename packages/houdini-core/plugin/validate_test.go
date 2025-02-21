@@ -64,6 +64,7 @@ func TestValidate_Houdini(t *testing.T) {
 			friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
 			friendsByOffset(offset: Int, limit: Int): [User!]!
 			believers(first: Int, after: String, last: Int, before: String): UserConnection!
+			bestFriend: User
 		}
 
 		type Ghost implements Entity{
@@ -120,14 +121,6 @@ func TestValidate_Houdini(t *testing.T) {
 		}
 
 	`
-
-	projectConfig := plugins.ProjectConfig{
-		ProjectRoot: "/project",
-		SchemaPath:  "schema.graphql",
-		RuntimeScalars: map[string]string{
-			"ViewerIDFromSession": "ID",
-		},
-	}
 
 	var tests = []struct {
 		Title     string
@@ -746,6 +739,30 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "@list doesn't need parentID on free list",
+			Pass:  true,
+			Documents: []string{
+				`
+					query UserFriends {
+						user(name: "foo") {
+							bestFriend {
+								friends @list(name: "Friends") {
+									id
+								}
+							}
+						}
+					}
+				`,
+				`
+					mutation Mutation1 {
+						addFriend {
+							...Friends_insert @prepend
+						}
+					}
+            	`,
+			},
+		},
+		{
 			Title: "@list prepend on query no id",
 			Pass:  false,
 			Documents: []string{
@@ -764,6 +781,54 @@ func TestValidate_Houdini(t *testing.T) {
 					mutation Mutation1 {
 						addFriend {
 							...Friends_insert @prepend
+						}
+					}
+            	`,
+			},
+		},
+		{
+			Title: "@list prepend on query with id",
+			Pass:  true,
+			Documents: []string{
+				`
+					query UserFriends {
+						user(name: "foo") {
+							friends {
+								friends @list(name: "Friends") {
+									id
+								}
+							}
+						}
+					}
+				`,
+				`
+					mutation Mutation1 {
+						addFriend {
+							...Friends_insert @prepend @parentID(value: "2")
+						}
+					}
+            	`,
+			},
+		},
+		{
+			Title: "@list prepend on query with @allLists",
+			Pass:  true,
+			Documents: []string{
+				`
+					query UserFriends {
+						user(name: "foo") {
+							friends {
+								friends @list(name: "Friends") {
+									id
+								}
+							}
+						}
+					}
+				`,
+				`
+					mutation Mutation1 {
+						addFriend {
+							...Friends_insert @prepend @allLists
 						}
 					}
             	`,
@@ -1485,6 +1550,18 @@ func TestValidate_Houdini(t *testing.T) {
 			plugin := &houdiniCore.HoudiniCore{
 				Fs: afero.NewMemMapFs(),
 			}
+
+			projectConfig := plugins.ProjectConfig{
+				ProjectRoot: "/project",
+				SchemaPath:  "schema.graphql",
+				RuntimeScalars: map[string]string{
+					"ViewerIDFromSession": "ID",
+				},
+			}
+			if test.Config != nil {
+				test.Config(&projectConfig)
+			}
+
 			db.SetProjectConfig(projectConfig)
 			plugin.SetDatabase(db)
 

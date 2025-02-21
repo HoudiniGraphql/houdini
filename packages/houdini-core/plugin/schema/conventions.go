@@ -46,3 +46,9 @@ const RequiredDirective = "required"
 const ComponentFieldDirective = "componentField"
 
 const RuntimeScalarDirective = "__houdini__runtimeScalar"
+
+const ListOperationPrefixInsert = "insert"
+
+const ListOperationPrefixRemove = "remove"
+
+const ListOperationPrefixToggle = "toggle"
