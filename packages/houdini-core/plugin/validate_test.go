@@ -695,7 +695,7 @@ func TestValidate_Houdini(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`query TestQuery {
-					user @list(name: "Friends") {
+					users @list(name: "Friends") {
 						firstName
 					}
         		}`,
@@ -903,6 +903,21 @@ func TestValidate_Houdini(t *testing.T) {
 					mutation Foo {
 						addFriend {
 							...UserFragment_insert @parentID(value: "2")
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "list directive on invalid type",
+			Pass:  false,
+			Documents: []string{
+				`
+					query UserInfo {
+						user(name: "foo") {
+							bestFriend @list(name:"BestFriends") {
+								firstName
+							}
 						}
 					}
 				`,
@@ -1578,16 +1593,23 @@ func TestValidate_Houdini(t *testing.T) {
 
 			// wire up the plugin
 			err = plugin.Schema(ctx)
-			require.Nil(t, err)
+			if err != nil {
+				db.Put(conn)
+				if !test.Pass {
+					// we're done
+					return
+				}
+				t.Fatalf("failed to load schema: %v", err)
+			}
 
 			// write the raw documents to the database
-			insertRaw, err := conn.Prepare(`insert into raw_documents (content, filepath) values (?, 'foo')`)
+			insertRaw, err := conn.Prepare(`insert into raw_documents (content, filepath) values (?, ?)`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRaw.Finalize()
-			for _, doc := range test.Documents {
-				if err := db.ExecStatement(insertRaw, doc); err != nil {
+			for i, doc := range test.Documents {
+				if err := db.ExecStatement(insertRaw, doc, fmt.Sprintf("foo-%v", i)); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}

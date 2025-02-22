@@ -203,6 +203,20 @@ CREATE TABLE operation_variable_directive_arguments (
     FOREIGN KEY (parent) REFERENCES operation_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
+-- while we validate list operations we need to store metadata that we can use to generate the
+-- necessary documents after everything has been validated
+CREATE TABLE discovered_lists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    node_selection INTEGER NOT NULL,
+    raw_document INTEGER NOT NULL,
+
+    FOREIGN KEY (node_selection) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
+);
+
 -----------------------------------------------------------
 -- Document Tables
 -----------------------------------------------------------
@@ -224,7 +238,7 @@ CREATE TABLE documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
-	raw_document INTEGER NOT NULL,
+	raw_document INTEGER,
     type_condition TEXT,
     FOREIGN KEY (type_condition) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED

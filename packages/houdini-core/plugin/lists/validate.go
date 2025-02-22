@@ -3,11 +3,12 @@ package lists
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
+	"sync"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
+	"zombiezen.com/go/sqlite"
 )
 
 func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
@@ -266,19 +267,7 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 		// Determine effective paginate mode.
 		effectiveMode := defaultPaginateMode
 		if usage.modeArg != "" {
-			// Mode argument must not be numeric.
-			if _, err := strconv.Atoi(usage.modeArg); err == nil {
-				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("Field %q in document %q: paginate mode argument must be a string, got numeric value %q", usage.fieldName, usage.documentName, usage.modeArg),
-					Kind:    plugins.ErrorKindValidation,
-					Locations: []*plugins.ErrorLocation{
-						{Filepath: usage.filepath, Line: usage.row, Column: usage.column},
-					},
-				})
-				continue
-			} else {
-				effectiveMode = usage.modeArg
-			}
+			effectiveMode = usage.modeArg
 		}
 
 		// Validate based on supported pagination mode.
@@ -558,7 +547,7 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 		operation_names AS (
 			SELECT
 				mp.list_name,
-				mp.list_name || '_' || s.sfx AS expected_field_name
+				mp.list_name || s.sfx AS expected_field_name
 			FROM constrained_lists mp
 			CROSS JOIN suffixes s
 		)
@@ -624,6 +613,340 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 	}
 }
 
-func ValidateListNames[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// grab a connection from the pool
+	conn, err := db.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
 
+	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
+	// directives
+	nameStatement, err := conn.Prepare(`
+		WITH list_names AS (
+			SELECT
+				argument_values.raw AS list_name,
+				selection_directives.row,
+				selection_directives.column,
+				raw_documents.id as raw_document,
+				selections.id AS selection_id
+			FROM selection_directive_arguments
+				JOIN argument_values ON selection_directive_arguments.value = argument_values.id
+				JOIN selection_directives ON selection_directive_arguments.parent = selection_directives.id
+				JOIN selections ON selection_directives.selection_id = selections.id
+				JOIN selection_refs ON selections.id = selection_refs.child_id
+				JOIN documents ON selection_refs.document = documents.id
+				JOIN raw_documents ON documents.raw_document = raw_documents.id
+			WHERE selection_directive_arguments.name = 'name'
+				AND selection_directives.directive IN (?, ?)
+		),
+		base AS (
+			-- Get the declared type (and its type_modifiers) for the original selection.
+			SELECT
+				ln.*,
+				s.type AS base_type,
+				tf.type_modifiers,
+				tf.type AS base_list_type,
+				ln.raw_document
+			FROM list_names ln
+			JOIN selections s ON ln.selection_id = s.id
+			JOIN type_fields tf ON s.type = tf.id
+		),
+		edges AS (
+			-- If the base type is not already a list (i.e. no ']' in type_modifiers),
+			-- then find the child selection with field_name = 'edges'.
+			SELECT
+				b.selection_id,
+				s_edges.id AS edges_id,
+				b.raw_document
+			FROM base b
+			JOIN selection_refs sr ON sr.parent_id = b.selection_id
+			JOIN selections s_edges ON s_edges.id = sr.child_id
+			WHERE s_edges.field_name = 'edges' AND b.type_modifiers NOT LIKE '%]%'
+		),
+		-- From the "edges" selection, find the child selection with field_name = 'node'
+		-- and join to type_fields to get its type.
+		node AS (
+			SELECT
+				e.selection_id,
+				s_node.id AS node_id,
+				tf_node.type AS node_list_type,
+				e.raw_document
+			FROM edges e
+			JOIN selection_refs sr2 ON sr2.parent_id = e.edges_id
+			JOIN selections s_node ON s_node.id = sr2.child_id
+			JOIN type_fields tf_node ON s_node.type = tf_node.id
+			WHERE s_node.field_name = 'node'
+		)
+		SELECT
+			b.list_name,
+			b.row,
+			b.column,
+			b.raw_document,
+			CASE
+				WHEN b.type_modifiers LIKE '%]%' THEN b.base_list_type
+				ELSE n.node_list_type
+			END AS final_list_type,
+			CASE
+				WHEN b.type_modifiers LIKE '%]%' THEN b.selection_id
+				ELSE n.node_id
+			END as node_id,
+			CASE
+				WHEN b.type_modifiers LIKE '%]%' THEN b.raw_document
+				ELSE n.raw_document
+			END as raw_document
+		FROM base b
+		LEFT JOIN node n
+		ON b.selection_id = n.selection_id
+	`)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer nameStatement.Finalize()
+
+	nameStatement.BindText(1, schema.ListDirective)
+	nameStatement.BindText(2, schema.PaginationDirective)
+
+	// as we step through the results we'll need to keep track of operation names
+	// we've already seen so we can identify duplicates
+	type DiscoveredList struct {
+		SelectionID int
+		RawDocument int
+		Type        string
+		Locations   []*plugins.ErrorLocation
+	}
+	lists := map[string]*DiscoveredList{}
+
+	// iterate over the results
+	err = db.StepStatement(ctx, nameStatement, func() {
+		listName := nameStatement.ColumnText(0)
+		row := nameStatement.ColumnInt(1)
+		column := nameStatement.ColumnInt(2)
+		filepath := nameStatement.ColumnText(3)
+		finalType := nameStatement.ColumnText(4)
+		selectionID := nameStatement.ColumnInt(5)
+		rawDocument := nameStatement.ColumnInt(6)
+
+		// if we haven't seen the name before, create a new entry
+		if _, ok := lists[listName]; !ok {
+			lists[listName] = &DiscoveredList{
+				SelectionID: selectionID,
+				RawDocument: rawDocument,
+				Type:        finalType,
+				Locations:   []*plugins.ErrorLocation{},
+			}
+		}
+
+		// add the location to the list of locations
+		lists[listName].Locations = append(lists[listName].Locations, &plugins.ErrorLocation{
+			Line:     row,
+			Column:   column,
+			Filepath: filepath,
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	// we need to store the set of discovered lists into the database for 2 reasons:
+	// - we'll consider them when validating directive and fragment spreads
+	// - we'll use them to insert the operation schema items
+	insertDiscoveredLists, err := conn.Prepare(`
+		INSERT INTO discovered_lists (name, type, node_selection, raw_document) VALUES (?, ?, ?, ?)
+	`)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer insertDiscoveredLists.Finalize()
+
+	// loop over every name we found and insert the discovered list into the database
+	for name, list := range lists {
+		// if we saw the name more than once, we need to report an error
+		if len(list.Locations) > 1 {
+			errs.Append(&plugins.Error{
+				Message:   fmt.Sprintf("encountered duplicate operation name %s", name),
+				Locations: list.Locations,
+				Kind:      plugins.ErrorKindValidation,
+			})
+			continue
+		}
+
+		// if the list type doesn't exist then its an invalid placement of a list directive
+		if list.Type == "" || list.SelectionID == 0 {
+			errs.Append(&plugins.Error{
+				Message:   invalidConnectinErr,
+				Locations: list.Locations,
+				Kind:      plugins.ErrorKindValidation,
+			})
+			continue
+		}
+
+		// insert the discovered list into the database
+		err = db.ExecStatement(insertDiscoveredLists, name, list.Type, list.SelectionID, list.RawDocument)
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+	}
+
+	// there's still more to do but we'll parallelize the next steps so we're done with the connectionf
+	db.Put(conn)
+
+	// now that we have recorded the discovered lists we can build up the full set of directives and fragments
+	// that we need to validate
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		validateDirectives(ctx, db, errs)
+		wg.Done()
+	}()
+	go func() {
+		validateFragmentSpreads(ctx, db, errs)
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
+var invalidConnectinErr = fmt.Sprintf(`Looks like you are trying to use the "%s" directive on a field but your field does not conform to the connection spec:
+your edge type does not have node as a field. For more information, visit this link: ${siteURL}/guides/pagination`, schema.PaginationDirective)
+
+func validateDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// we need a query that looks for references to directives in selection that don't exist in the database
+	selectionSearch := `
+		WITH discovered_directives AS (
+			SELECT
+				type || '_delete' AS key
+			FROM discovered_lists
+		)
+		SELECT
+			sd.directive,
+			rd.filepath,
+			sd.row,
+			sd.column
+		FROM selection_directives sd
+			JOIN selections s ON s.id = sd.selection_id
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			LEFT JOIN directives dir ON sd.directive = dir.name
+			LEFT JOIN discovered_directives dl ON sd.directive = dl.key
+		WHERE dir.name IS NULL AND dl.key IS NULL
+	`
+	err := db.StepQuery(ctx, selectionSearch, func(stmt *sqlite.Stmt) {
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("Unknown directive %q", stmt.ColumnText(0)),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: stmt.ColumnText(1),
+					Line:     int(stmt.ColumnInt(2)),
+					Column:   int(stmt.ColumnInt(3)),
+				},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	// we need a query that looks for references to directives on documents that don't exist in the database
+	documentSearch := `
+		WITH discovered_directives AS (
+			SELECT
+				type || '_delete' AS key
+			FROM discovered_lists
+		)
+		SELECT
+			dd.directive,
+			rd.filepath,
+			dd.row,
+			dd.column
+		FROM document_directives dd
+			JOIN documents d ON d.id = dd.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			LEFT JOIN directives dir ON dd.directive = dir.name
+			LEFT JOIN discovered_directives dl ON dd.directive = dl.key
+		WHERE dir.name IS NULL AND dl.key IS NULL
+	`
+	err = db.StepQuery(ctx, documentSearch, func(stmt *sqlite.Stmt) {
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("Unknown directive %q", stmt.ColumnText(0)),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: stmt.ColumnText(1),
+					Line:     int(stmt.ColumnInt(2)),
+					Column:   int(stmt.ColumnInt(3)),
+				},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+}
+
+func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	conn, err := db.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer db.Put(conn)
+
+	// we need a query that looks for references to fragments in selection that don't exist in the database
+	stmt, err := conn.Prepare(`
+		WITH suffixes(sfx) AS (
+			VALUES (?), (?), (?)
+		),
+		discovered_fragments AS (
+			SELECT
+				dl.name || s.sfx AS computed_key
+			FROM discovered_lists dl
+			CROSS JOIN suffixes s
+		)
+		SELECT
+			s.field_name,
+			rd.filepath,
+			sr.row,
+			sr.column
+		FROM selections s
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			LEFT JOIN documents docs ON s.field_name = docs.name AND docs.kind = 'fragment'
+			LEFT JOIN discovered_fragments df ON s.field_name = df.computed_key
+		WHERE s.kind = 'fragment'
+			AND docs.name IS NULL
+			AND df.computed_key IS NULL
+	`)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer stmt.Finalize()
+
+	stmt.BindText(1, schema.ListOperationPrefixInsert)
+	stmt.BindText(2, schema.ListOperationPrefixRemove)
+	stmt.BindText(3, schema.ListOperationPrefixToggle)
+
+	db.StepStatement(ctx, stmt, func() {
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("Unknown fragment spread %q", stmt.ColumnText(0)),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: stmt.ColumnText(1),
+					Line:     int(stmt.ColumnInt(2)),
+					Column:   int(stmt.ColumnInt(3)),
+				},
+			},
+		})
+	})
 }

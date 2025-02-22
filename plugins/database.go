@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"zombiezen.com/go/sqlite"
@@ -48,17 +49,17 @@ func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 
 func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
 	for i, arg := range args {
-		switch arg.(type) {
+		switch val := arg.(type) {
 		case string:
-			statement.BindText(i+1, arg.(string))
+			statement.BindText(i+1, val)
 		case int:
-			statement.BindInt64(i+1, int64(arg.(int)))
+			statement.BindInt64(i+1, int64(val))
 		case int64:
-			statement.BindInt64(i+1, arg.(int64))
+			statement.BindInt64(i+1, val)
 		case nil:
 			statement.BindNull(i + 1)
 		case bool:
-			statement.BindBool(i+1, arg.(bool))
+			statement.BindBool(i+1, val)
 		default:
 			return fmt.Errorf("unsupported type: %T", arg)
 		}
@@ -72,7 +73,7 @@ func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args 
 
 // StepQuery wraps the common steps for executing a query.
 // It obtains the connection, prepares the query, iterates over rows, and calls the rowHandler callback for each row.
-func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, rowHandler func(q *sqlite.Stmt)) *Error {
+func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, rowHandler func(q *sqlite.Stmt)) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return &Error{
@@ -85,8 +86,7 @@ func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr str
 	query, err := conn.Prepare(queryStr)
 	if err != nil {
 		return &Error{
-			Message: "could not prepare query",
-			Detail:  err.Error(),
+			Message: fmt.Sprintf("could not prepare query: %v", err),
 		}
 	}
 	defer query.Finalize()
@@ -96,7 +96,7 @@ func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr str
 	})
 }
 
-func (db DatabasePool[PluginConfig]) StepStatement(ctx context.Context, queryStatement *sqlite.Stmt, rowHandler func()) *Error {
+func (db DatabasePool[PluginConfig]) StepStatement(ctx context.Context, queryStatement *sqlite.Stmt, rowHandler func()) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -106,10 +106,7 @@ func (db DatabasePool[PluginConfig]) StepStatement(ctx context.Context, querySta
 
 		hasData, err := queryStatement.Step()
 		if err != nil {
-			return &Error{
-				Message: "query step error",
-				Detail:  err.Error(),
-			}
+			return errors.New("query step error: " + err.Error())
 		}
 		if !hasData {
 			break

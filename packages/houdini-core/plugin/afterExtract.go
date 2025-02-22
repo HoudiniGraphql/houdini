@@ -19,7 +19,6 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
 	errs := &plugins.ErrorList{}
 
 	conn, err := p.DB.Take(context.Background())

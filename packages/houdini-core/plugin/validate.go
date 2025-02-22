@@ -29,7 +29,6 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateDuplicateVariables[PluginConfig],
 		documents.ValidateUndefinedVariables[PluginConfig],
 		documents.ValidateUnusedVariables[PluginConfig],
-		documents.ValidateUnknownDirective[PluginConfig],
 		documents.ValidateRepeatingNonRepeatable[PluginConfig],
 		documents.ValidateDuplicateArgumentInField[PluginConfig],
 		documents.ValidateWrongTypesToStructuredArg[PluginConfig],
@@ -47,7 +46,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateOptimisticKeyFullSelection[PluginConfig],
 		documents.ValidateOptimisticKeyOnScalar[PluginConfig],
 		// this will replace `KnownDirectives` and `KnownFragmentNames`
-		lists.ValidateListNames[PluginConfig],
+		lists.ValidateKnownDirectivesAndFragments[PluginConfig],
 		lists.ValidateConflictingParentIDAllLists[PluginConfig],
 		lists.ValidateConflictingPrependAppend[PluginConfig],
 		lists.ValidatePaginateArgs[PluginConfig],

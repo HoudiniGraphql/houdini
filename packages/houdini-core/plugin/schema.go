@@ -87,7 +87,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	errors := &plugins.ErrorList{}
 	houdiniSchema.WriteProjectSchema(schemaPath, p.DB, schema, statements, errors)
 	if errors.Len() > 0 {
-		return commit(err)
+		return commit(errors)
 	}
 
 	// write the internal schema

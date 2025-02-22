@@ -111,13 +111,13 @@ export async function runPipeline(config: Config, docs: Document[]) {
 
 				transforms.addFields,
 				transforms.typename,
-				transforms.componentFields,
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
 				transforms.list,
 				// paginate transform needs to go before fragmentVariables
 				// so that the variable definitions get hashed
 				transforms.paginate,
+				transforms.componentFields,
 				transforms.fragmentVariables,
 				transforms.collectDefinitions,
 
