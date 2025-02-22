@@ -63,11 +63,11 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}

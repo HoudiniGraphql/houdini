@@ -45,7 +45,6 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateRequiredDirective[PluginConfig],
 		documents.ValidateOptimisticKeyFullSelection[PluginConfig],
 		documents.ValidateOptimisticKeyOnScalar[PluginConfig],
-		// this will replace `KnownDirectives` and `KnownFragmentNames`
 		lists.ValidateKnownDirectivesAndFragments[PluginConfig],
 		lists.ValidateConflictingParentIDAllLists[PluginConfig],
 		lists.ValidateConflictingPrependAppend[PluginConfig],

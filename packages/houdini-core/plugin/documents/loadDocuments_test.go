@@ -1666,12 +1666,12 @@ func findOperationVariableDirectives[PluginConfig any](t *testing.T, db plugins.
 
 	stmt, err := conn.Prepare(`
 		SELECT id, directive
-		FROM operation_variable_directives
+		FROM document_variable_directives
 		WHERE parent = ?
 		ORDER BY id
 	`)
 	if err != nil {
-		t.Fatalf("failed to prepare operation_variable_directives query: %v", err)
+		t.Fatalf("failed to prepare document_variable_directives query: %v", err)
 	}
 	defer stmt.Finalize()
 
@@ -1682,7 +1682,7 @@ func findOperationVariableDirectives[PluginConfig any](t *testing.T, db plugins.
 	for {
 		ok, err := stmt.Step()
 		if err != nil {
-			t.Fatalf("error stepping operation_variable_directives query: %v", err)
+			t.Fatalf("error stepping document_variable_directives query: %v", err)
 		}
 		if !ok {
 			break
@@ -1716,12 +1716,12 @@ func findOperationVariableDirectiveArguments[PluginConfig any](db plugins.Databa
 
 	stmt, err := conn.Prepare(`
 		SELECT name, value
-		FROM operation_variable_directive_arguments
+		FROM document_variable_directive_arguments
 		WHERE parent = ?
 		ORDER BY id
 	`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to prepare operation_variable_directive_arguments query: %v", err)
+		return nil, fmt.Errorf("failed to prepare document_variable_directive_arguments query: %v", err)
 	}
 	defer stmt.Finalize()
 
@@ -1731,7 +1731,7 @@ func findOperationVariableDirectiveArguments[PluginConfig any](db plugins.Databa
 	for {
 		ok, err := stmt.Step()
 		if err != nil {
-			return nil, fmt.Errorf("error stepping operation_variable_directive_arguments query: %v", err)
+			return nil, fmt.Errorf("error stepping document_variable_directive_arguments query: %v", err)
 		}
 		if !ok {
 			break

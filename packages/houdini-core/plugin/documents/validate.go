@@ -1745,7 +1745,6 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 	//  - Location info (from raw_documents via selection_refs).
 	//  - The document name.
 	//  - An aggregated count of child selections that have the required directive.
-	// Instead of a subquery, we join the child selections using LEFT JOIN.
 	query := `
 	SELECT
 	  s.id AS selectionID,

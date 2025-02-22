@@ -63,7 +63,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 	defer updateType.Finalize()
 
 	// and some statements to insert the runtime scalar directives
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO operation_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)
@@ -71,7 +71,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 	}
 	defer insertDocumentVariableDirective.Finalize()
 	// and scalar directive arguments
-	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO operation_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)

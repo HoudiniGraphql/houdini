@@ -695,7 +695,8 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 			CASE
 				WHEN b.type_modifiers LIKE '%]%' THEN b.raw_document
 				ELSE n.raw_document
-			END as raw_document
+			END as raw_document,
+			b.type_modifiers NOT LIKE '%]%' as connection
 		FROM base b
 		LEFT JOIN node n
 		ON b.selection_id = n.selection_id
@@ -716,6 +717,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		RawDocument int
 		Type        string
 		Locations   []*plugins.ErrorLocation
+		Connection  bool
 	}
 	lists := map[string]*DiscoveredList{}
 
@@ -728,6 +730,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		finalType := nameStatement.ColumnText(4)
 		selectionID := nameStatement.ColumnInt(5)
 		rawDocument := nameStatement.ColumnInt(6)
+		connection := nameStatement.ColumnBool(7)
 
 		// if we haven't seen the name before, create a new entry
 		if _, ok := lists[listName]; !ok {
@@ -736,6 +739,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				RawDocument: rawDocument,
 				Type:        finalType,
 				Locations:   []*plugins.ErrorLocation{},
+				Connection:  connection,
 			}
 		}
 
@@ -755,7 +759,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// - we'll consider them when validating directive and fragment spreads
 	// - we'll use them to insert the operation schema items
 	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists (name, type, node_selection, raw_document) VALUES (?, ?, ?, ?)
+		INSERT INTO discovered_lists (name, type, node, raw_document, connection) VALUES (?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -786,7 +790,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		}
 
 		// insert the discovered list into the database
-		err = db.ExecStatement(insertDiscoveredLists, name, list.Type, list.SelectionID, list.RawDocument)
+		err = db.ExecStatement(insertDiscoveredLists, name, list.Type, list.SelectionID, list.RawDocument, list.Connection)
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			return

@@ -100,7 +100,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// ...wrapHook(beforeValidate),
 
 				// validators
-				validators.typeCheck,
+				// validators.typeCheck,
 				// validators.uniqueNames,
 				// validators.noIDAlias,
 				// this replaces wrapHook(validate) to group them up

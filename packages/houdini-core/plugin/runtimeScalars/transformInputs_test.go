@@ -60,12 +60,12 @@ func TestRuntimeScalars(t *testing.T) {
 	queryRow, err := conn.Prepare(`
 		SELECT
 			documents.name,
-			operation_variable_directive_arguments.name,
-			operation_variable_directive_arguments.value
+			document_variable_directive_arguments.name,
+			document_variable_directive_arguments.value
 		FROM documents
 			JOIN document_variables ON documents.id = document_variables.document
-			JOIN operation_variable_directives ON document_variables.id = operation_variable_directives.parent
-			JOIN operation_variable_directive_arguments ON operation_variable_directives.id = operation_variable_directive_arguments.parent
+			JOIN document_variable_directives ON document_variables.id = document_variable_directives.parent
+			JOIN document_variable_directive_arguments ON document_variable_directives.id = document_variable_directive_arguments.parent
 		WHERE documents.name = ?
 	`)
 	require.Nil(t, err)

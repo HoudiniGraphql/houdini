@@ -185,7 +185,7 @@ CREATE TABLE directive_locations (
     PRIMARY KEY (directive, location)
 );
 
-CREATE TABLE operation_variable_directives (
+CREATE TABLE document_variable_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	parent INTEGER NOT NULL,
 	directive TEXT NOT NULL,
@@ -195,12 +195,12 @@ CREATE TABLE operation_variable_directives (
 	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
 );
 
-CREATE TABLE operation_variable_directive_arguments (
+CREATE TABLE document_variable_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
     value TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES operation_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (parent) REFERENCES document_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 -- while we validate list operations we need to store metadata that we can use to generate the
@@ -209,10 +209,11 @@ CREATE TABLE discovered_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
-    node_selection INTEGER NOT NULL,
+    node INTEGER NOT NULL,
     raw_document INTEGER NOT NULL,
+    connection BOOLEAN default false,
 
-    FOREIGN KEY (node_selection) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
