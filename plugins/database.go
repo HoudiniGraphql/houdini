@@ -48,21 +48,9 @@ func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 }
 
 func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args map[string]interface{}) error {
-	for key, arg := range args {
-		switch val := arg.(type) {
-		case string:
-			statement.SetText("$"+key, val)
-		case int:
-			statement.SetInt64("$"+key, int64(val))
-		case int64:
-			statement.SetInt64("$"+key, val)
-		case nil:
-			statement.SetNull("$" + key)
-		case bool:
-			statement.SetBool("$"+key, val)
-		default:
-			return fmt.Errorf("unsupported type: %T", arg)
-		}
+	err := db.BindStatement(statement, args)
+	if err != nil {
+		return err
 	}
 
 	if _, err := statement.Step(); err != nil {
@@ -78,9 +66,31 @@ func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args 
 	return nil
 }
 
+func (db DatabasePool[PluginConfig]) BindStatement(stmt *sqlite.Stmt, args map[string]interface{}) error {
+	for key, arg := range args {
+		switch val := arg.(type) {
+		case string:
+			stmt.SetText("$"+key, val)
+		case int:
+			stmt.SetInt64("$"+key, int64(val))
+		case int64:
+			stmt.SetInt64("$"+key, val)
+		case nil:
+			stmt.SetNull("$" + key)
+		case bool:
+			stmt.SetBool("$"+key, val)
+		default:
+			return fmt.Errorf("unsupported type: %T", arg)
+		}
+	}
+
+	// nothing went wrong
+	return nil
+}
+
 // StepQuery wraps the common steps for executing a query.
 // It obtains the connection, prepares the query, iterates over rows, and calls the rowHandler callback for each row.
-func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, rowHandler func(q *sqlite.Stmt)) error {
+func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, bindings map[string]interface{}, rowHandler func(q *sqlite.Stmt)) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return &Error{
@@ -97,6 +107,16 @@ func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr str
 		}
 	}
 	defer query.Finalize()
+
+	// apply any bindings if they exist
+	if bindings != nil {
+		err = db.BindStatement(query, bindings)
+		if err != nil {
+			return &Error{
+				Message: fmt.Sprintf("could not bind statement: %v", err),
+			}
+		}
+	}
 
 	return db.StepStatement(ctx, query, func() {
 		rowHandler(query)

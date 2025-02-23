@@ -12,86 +12,87 @@ func pluginHooks[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plu
 	hooks := map[string]bool{}
 	if _, ok := plugin.(IncludeRuntime); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", EventHook(ctx, handleGenerate(plugin)))
+		http.Handle("/generate", InjectTaskID(EventHook(ctx, handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(StaticRuntime); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterload", EventHook(ctx, handleAfterLoad(plugin)))
+		http.Handle("/afterload", InjectTaskID(EventHook(ctx, handleAfterLoad(plugin))))
 	}
 	if _, ok := plugin.(TransformRuntime); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", EventHook(ctx, handleGenerate(plugin)))
+		http.Handle("/generate", InjectTaskID(EventHook(ctx, handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(Config); ok {
 		hooks["Config"] = true
+		// TODO: support config hook
 	}
 	if p, ok := plugin.(Environment); ok {
 		hooks["Environment"] = true
-		http.Handle("/environment", handleEnvironment(ctx, p))
+		http.Handle("/environment", InjectTaskID(handleEnvironment(ctx, p)))
 	}
 	if _, ok := plugin.(AfterLoad); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterload", EventHook(ctx, handleAfterLoad(plugin)))
+		http.Handle("/afterload", InjectTaskID(EventHook(ctx, handleAfterLoad(plugin))))
 	}
 	if p, ok := plugin.(ExtractDocuments); ok {
 		hooks["ExtractDocuments"] = true
-		http.Handle("/extractdocuments", EventHook(ctx, p.ExtractDocuments))
+		http.Handle("/extractdocuments", InjectTaskID(EventHook(ctx, p.ExtractDocuments)))
 	}
 	if p, ok := plugin.(AfterExtract); ok {
 		hooks["AfterExtract"] = true
-		http.Handle("/afterextract", EventHook(ctx, p.AfterExtract))
+		http.Handle("/afterextract", InjectTaskID(EventHook(ctx, p.AfterExtract)))
 	}
 	if p, ok := plugin.(Schema); ok {
 		hooks["Schema"] = true
-		http.Handle("/schema", EventHook(ctx, p.Schema))
+		http.Handle("/schema", InjectTaskID(EventHook(ctx, p.Schema)))
 	}
 	if p, ok := plugin.(BeforeValidate); ok {
 		hooks["BeforeValidate"] = true
-		http.Handle("/beforevalidate", EventHook(ctx, p.BeforeValidate))
+		http.Handle("/beforevalidate", InjectTaskID(EventHook(ctx, p.BeforeValidate)))
 	}
 	if p, ok := plugin.(Validate); ok {
 		hooks["Validate"] = true
-		http.Handle("/validate", EventHook(ctx, p.Validate))
+		http.Handle("/validate", InjectTaskID(EventHook(ctx, p.Validate)))
 	}
 	if p, ok := plugin.(AfterValidate); ok {
 		hooks["AfterValidate"] = true
-		http.Handle("/aftervalidate", EventHook(ctx, p.AfterValidate))
+		http.Handle("/aftervalidate", InjectTaskID(EventHook(ctx, p.AfterValidate)))
 	}
 	if _, ok := plugin.(BeforeGenerate); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/beforegenerate", EventHook(ctx, handleBeforeGenerate(plugin)))
+		http.Handle("/beforegenerate", InjectTaskID(EventHook(ctx, handleBeforeGenerate(plugin))))
 	}
 	if _, ok := plugin.(Generate); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", EventHook(ctx, handleGenerate(plugin)))
+		http.Handle("/generate", InjectTaskID(EventHook(ctx, handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(ArtifactData); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", EventHook(ctx, handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(Hash); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/aftergenerate", EventHook(ctx, handleBeforeGenerate(plugin)))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleBeforeGenerate(plugin))))
 	}
 	if _, ok := plugin.(GraphQLTagReturn); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", EventHook(ctx, handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(IndexFile); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", EventHook(ctx, handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(ArtifactEnd); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", EventHook(ctx, handleAfterGenerate(plugin)))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
 	}
 	if p, ok := plugin.(ClientPlugins); ok {
 		hooks["ClientPlugins"] = true
-		http.Handle("/clientplugins", JSONHook(ctx, p.ClientPlugins))
+		http.Handle("/clientplugins", InjectTaskID(JSONHook(ctx, p.ClientPlugins)))
 	}
 	if p, ok := plugin.(TransformFile); ok {
 		hooks["TransformFile"] = true
-		http.Handle("/transformfile", handleTransformFile(ctx, p))
+		http.Handle("/transformfile", InjectTaskID(handleTransformFile(ctx, p)))
 	}
 
 	// get the unique hooks this plugin cares about
@@ -101,6 +102,20 @@ func pluginHooks[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plu
 	}
 
 	return hookStrs
+}
+
+func InjectTaskID(next http.Handler) http.Handler {
+	// the task id is passed in the request headers
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// get the task id from the request headers
+		taskID := r.Header.Get("Task-ID")
+
+		// add the task id to the context
+		ctx := ContextWithTaskID(r.Context(), taskID)
+
+		// call the next handler
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func JSONHook[T any](ctx context.Context, hook func(ctx context.Context) (T, error)) http.Handler {
