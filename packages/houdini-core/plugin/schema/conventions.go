@@ -52,3 +52,5 @@ const ListOperationPrefixInsert = "_insert"
 const ListOperationPrefixRemove = "_remove"
 
 const ListOperationPrefixToggle = "_toggle"
+
+const ListOperationPrefixDelete = "_delete"

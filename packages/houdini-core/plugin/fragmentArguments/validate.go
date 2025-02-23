@@ -29,12 +29,13 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 	  JOIN documents d ON d.name = s.field_name AND d.kind = 'fragment'
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	  JOIN document_variables ov ON ov.document = d.id AND ov.type_modifiers LIKE '%!'
-	  LEFT JOIN selection_directives wd ON wd.selection_id = s.id AND wd.directive = 'with'
+	  LEFT JOIN selection_directives wd ON wd.selection_id = s.id AND wd.directive = $with_directive
 	  LEFT JOIN selection_directive_arguments sda ON sda.parent = wd.id
 	GROUP BY s.id, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column
 	HAVING COUNT(sda.id) < 1
 	`
-	err := db.StepQuery(ctx, query, func(stmt *sqlite.Stmt) {
+	bindings := map[string]interface{}{"with_directive": schema.WithDirective}
+	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		fragmentName := stmt.ColumnText(2)
 		filepath := stmt.ColumnText(3)
 		row := int(stmt.ColumnInt(4))
@@ -56,6 +57,7 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 
 func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// --- STEP 1. Build a flat map of argument values for the 'with' directive ---
+	flatNodes := make(map[int]*DirectiveArgValueNode)
 	flatTreeQuery := `
 		WITH RECURSIVE arg_tree(id, kind, raw, parent) AS (
 			-- Base case: argument_values directly referenced by a @with directive.
@@ -84,38 +86,14 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 		SELECT id, kind, raw, parent FROM arg_tree
 	`
 
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer db.Put(conn)
-
-	flatStmt, err := conn.Prepare(flatTreeQuery)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	flatStmt.SetText("$with_directive", schema.WithDirective)
-
-	// Build a map of nodes keyed by their id.
-	flatNodes := make(map[int]*DirectiveArgValueNode)
-	for {
-		hasData, err := flatStmt.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		if !hasData {
-			break
-		}
-
-		id := flatStmt.ColumnInt(0)
-		kind := flatStmt.ColumnText(1)
-		raw := flatStmt.ColumnText(2)
+	bindings := map[string]interface{}{"with_directive": schema.WithDirective}
+	err := db.StepQuery(ctx, flatTreeQuery, bindings, func(stmt *sqlite.Stmt) {
+		id := stmt.ColumnInt(0)
+		kind := stmt.ColumnText(1)
+		raw := stmt.ColumnText(2)
 		var parent *int
-		if !flatStmt.ColumnIsNull(3) {
-			pid := flatStmt.ColumnInt(3)
+		if !stmt.ColumnIsNull(3) {
+			pid := stmt.ColumnInt(3)
 			parent = &pid
 		}
 
@@ -126,6 +104,10 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			Parent:   parent,
 			Children: []*DirectiveArgValueNode{},
 		}
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
 	}
 
 	// Assemble the tree by attaching each node to its parent.
@@ -163,23 +145,15 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			LEFT JOIN selection_directive_arguments sda ON sda.parent = sd.id
 			LEFT JOIN argument_values av ON av.id = sda.value
 			JOIN document_variables ON fd.id = document_variables.document
-		WHERE sd.directive = ?
+		WHERE sd.directive = $with_directive
 		GROUP BY sd.id
 	`
 
-	mainStmt, err := conn.Prepare(mainQuery)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-
-	// Assume schema.WithDirective is defined (for example, "@with")
-	mainStmt.BindText(1, schema.WithDirective)
-
-	err = db.StepStatement(ctx, mainStmt, func() {
+	step2Bindings := map[string]interface{}{"with_directive": schema.WithDirective}
+	err = db.StepQuery(ctx, mainQuery, step2Bindings, func(stmt *sqlite.Stmt) {
 		// fragmentName := mainStmt.ColumnText(0)
-		documentVariablesJson := mainStmt.ColumnText(4)
-		directiveArgumentsRaw := mainStmt.ColumnText(5)
+		documentVariablesJson := stmt.ColumnText(4)
+		directiveArgumentsRaw := stmt.ColumnText(5)
 		// If directiveArgumentsRaw is "null" or empty, substitute an empty JSON array.
 		if directiveArgumentsRaw == "null" || directiveArgumentsRaw == "" {
 			directiveArgumentsRaw = ""
@@ -227,9 +201,9 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{
-						Filepath: mainStmt.ColumnText(1),
-						Line:     int(mainStmt.ColumnInt(2)),
-						Column:   int(mainStmt.ColumnInt(3)),
+						Filepath: stmt.ColumnText(1),
+						Line:     int(stmt.ColumnInt(2)),
+						Column:   int(stmt.ColumnInt(3)),
 					},
 				},
 			})

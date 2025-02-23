@@ -23,11 +23,15 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
-	WHERE sd.directive IN ('prepend', 'append')
+	WHERE sd.directive IN ($prepend, $append)
 	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 	HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-	err := db.StepQuery(ctx, query, func(stmt *sqlite.Stmt) {
+	bindings := map[string]interface{}{
+		"prepend": schema.PrependDirective,
+		"append":  schema.AppendDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
@@ -58,11 +62,15 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 			JOIN selection_refs sr ON sr.child_id = sd.selection_id
 			JOIN documents d ON d.id = sr.document
 			JOIN raw_documents rd ON rd.id = d.raw_document
-		WHERE sd.directive IN ('parentID', 'allLists')
+		WHERE sd.directive IN ($parentID, $allLists)
 			GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 			HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-	err := db.StepQuery(ctx, query, func(stmt *sqlite.Stmt) {
+	bindings := map[string]interface{}{
+		"parentID": schema.ParentIDDirective,
+		"allLists": schema.AllListsDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
@@ -122,24 +130,10 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 	WHERE sd.directive = $paginate_directive
 	GROUP BY s.id, s.field_name, s.type, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column, sd.id, ptf.type_modifiers
 	`
-
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+	bindings := map[string]interface{}{
+		"paginate_mode_arg":  paginateModeArgName,
+		"paginate_directive": paginateDirective,
 	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(usageQuery)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	// Bind parameters: first the mode argument name, then the paginate directive.
-	stmt.SetText("$paginate_mode_arg", paginateModeArgName)
-	stmt.SetText("$paginate_directive", paginateDirective)
 
 	type usageRecord struct {
 		selectionID     int64
@@ -156,15 +150,7 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 		fieldArgDefs    string // aggregated "argName:argType" pairs
 	}
 	var usages []usageRecord
-	for {
-		hasData, err := stmt.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		if !hasData {
-			break
-		}
+	db.StepQuery(ctx, usageQuery, bindings, func(stmt *sqlite.Stmt) {
 		usages = append(usages, usageRecord{
 			selectionID:     stmt.ColumnInt64(0),
 			fieldName:       stmt.ColumnText(1),
@@ -179,7 +165,7 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			parentModifiers: stmt.ColumnText(10),
 			fieldArgDefs:    stmt.ColumnText(11),
 		})
-	}
+	})
 
 	// In-memory, process each usage.
 	// First, check that the parent field is not a list.
@@ -310,23 +296,10 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 			AND pt.member IS NULL
 			AND tc.name IS NULL
 	`
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+	bindings := map[string]interface{}{
+		"paginate_directive": schema.PaginationDirective,
 	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(query)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	stmt.SetText("$paginate_directive", schema.PaginationDirective)
-
-	err = db.StepStatement(ctx, stmt, func() {
+	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		docName := stmt.ColumnText(0)
 		typeCondition := stmt.ColumnText(1)
 		filepath := stmt.ColumnText(2)
@@ -361,23 +334,9 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE sd.directive = $paginate_directive
 	`
-
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+	bindings := map[string]interface{}{
+		"paginate_directive": schema.PaginationDirective,
 	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(query)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	stmt.SetText("$paginate_directive", schema.PaginationDirective)
-
 	// We'll group usages in memory by documentID.
 	type usage struct {
 		documentID   int64
@@ -389,15 +348,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	groups := make(map[int64][]usage)
 
 	// Iterate over all rows.
-	for {
-		hasData, err := stmt.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		if !hasData {
-			break
-		}
+	db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		uid := stmt.ColumnInt64(0)
 		u := usage{
 			documentID:   uid,
@@ -407,7 +358,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 			column:       int(stmt.ColumnInt(4)),
 		}
 		groups[uid] = append(groups[uid], u)
-	}
+	})
 
 	// Now, for each document that has more than one paginate directive, report an error.
 	for _, usages := range groups {
@@ -543,32 +494,18 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 		WHERE f.kind = 'fragment'
 		AND sd2.id IS NULL
 	`
-
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+	bindings := map[string]interface{}{
+		"paginate_directive": schema.PaginationDirective,
+		"list_directive":     schema.ListDirective,
+		"insert_prefix":      schema.ListOperationPrefixInsert,
+		"toggle_prefix":      schema.ListOperationPrefixToggle,
+		"remove_prefix":      schema.ListOperationPrefixRemove,
+		"parentID_directive": schema.ParentIDDirective,
+		"allLists_directive": schema.AllListsDirective,
 	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(query)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	// assign the suffixes that indicate a list operation
-	stmt.SetText("$paginate_directive", schema.PaginationDirective)
-	stmt.SetText("$list_directive", schema.ListDirective)
-	stmt.SetText("$insert_prefix", schema.ListOperationPrefixInsert)
-	stmt.SetText("$toggle_prefix", schema.ListOperationPrefixToggle)
-	stmt.SetText("$remove_prefix", schema.ListOperationPrefixRemove)
-	stmt.SetText("$parentID_directive", schema.ParentIDDirective)
-	stmt.SetText("$allLists_directive", schema.AllListsDirective)
 
 	// every result is a list that requires a parent id but doesn't have one
-	err = db.StepStatement(ctx, stmt, func() {
+	err = db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("operations on %q requires a parentID", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,
@@ -580,7 +517,6 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 				},
 			},
 		})
-
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -588,16 +524,10 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 }
 
 func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	// grab a connection from the pool
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
 
 	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
 	// directives
-	nameStatement, err := conn.Prepare(`
+	query := `
 		WITH list_names AS (
 			SELECT
 				argument_values.raw AS list_name,
@@ -674,15 +604,11 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		FROM base b
 		LEFT JOIN node n
 		ON b.selection_id = n.selection_id
-	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+	`
+	bindings := map[string]interface{}{
+		"list_directive":     schema.ListDirective,
+		"paginate_directive": schema.PaginationDirective,
 	}
-	defer nameStatement.Finalize()
-
-	nameStatement.SetText("$list_directive", schema.ListDirective)
-	nameStatement.SetText("$paginate_directive", schema.PaginationDirective)
 
 	// as we step through the results we'll need to keep track of operation names
 	// we've already seen so we can identify duplicates
@@ -696,7 +622,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	lists := map[string]*DiscoveredList{}
 
 	// iterate over the results
-	err = db.StepStatement(ctx, nameStatement, func() {
+	err := db.StepQuery(ctx, query, bindings, func(nameStatement *sqlite.Stmt) {
 		listName := nameStatement.ColumnText(0)
 		row := nameStatement.ColumnInt(1)
 		column := nameStatement.ColumnInt(2)
@@ -724,6 +650,12 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 			Filepath: filepath,
 		})
 	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
+	conn, err := db.Take(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
@@ -803,7 +735,7 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 	selectionSearch := `
 		WITH discovered_directives AS (
 			SELECT
-				type || '_delete' AS key
+				type || $delete_prefix AS key
 			FROM discovered_lists
 		)
 		SELECT
@@ -819,32 +751,9 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 			LEFT JOIN directives dir ON sd.directive = dir.name
 			LEFT JOIN discovered_directives dl ON sd.directive = dl.key
 		WHERE dir.name IS NULL AND dl.key IS NULL
-	`
-	err := db.StepQuery(ctx, selectionSearch, func(stmt *sqlite.Stmt) {
-		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Unknown directive %q", stmt.ColumnText(0)),
-			Kind:    plugins.ErrorKindValidation,
-			Locations: []*plugins.ErrorLocation{
-				{
-					Filepath: stmt.ColumnText(1),
-					Line:     int(stmt.ColumnInt(2)),
-					Column:   int(stmt.ColumnInt(3)),
-				},
-			},
-		})
-	})
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
 
-	// we need a query that looks for references to directives on documents that don't exist in the database
-	documentSearch := `
-		WITH discovered_directives AS (
-			SELECT
-				type || '_delete' AS key
-			FROM discovered_lists
-		)
+		UNION ALL
+
 		SELECT
 			dd.directive,
 			rd.filepath,
@@ -857,7 +766,10 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 			LEFT JOIN discovered_directives dl ON dd.directive = dl.key
 		WHERE dir.name IS NULL AND dl.key IS NULL
 	`
-	err = db.StepQuery(ctx, documentSearch, func(stmt *sqlite.Stmt) {
+	bindings := map[string]interface{}{
+		"delete_prefix": schema.ListOperationPrefixDelete,
+	}
+	err := db.StepQuery(ctx, selectionSearch, bindings, func(stmt *sqlite.Stmt) {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("Unknown directive %q", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,
@@ -877,17 +789,10 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 }
 
 func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer db.Put(conn)
-
 	// we need a query that looks for references to fragments in selection that don't exist in the database
-	stmt, err := conn.Prepare(`
+	query := `
 		WITH suffixes(sfx) AS (
-			VALUES (?), (?), (?)
+			VALUES ($insert_prefix), ($remove_prefix), ($toggle_prefix)
 		),
 		discovered_fragments AS (
 			SELECT
@@ -909,18 +814,14 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 		WHERE s.kind = 'fragment'
 			AND docs.name IS NULL
 			AND df.computed_key IS NULL
-	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+	`
+	bindings := map[string]interface{}{
+		"insert_prefix": schema.ListOperationPrefixInsert,
+		"remove_prefix": schema.ListOperationPrefixRemove,
+		"toggle_prefix": schema.ListOperationPrefixToggle,
 	}
-	defer stmt.Finalize()
 
-	stmt.BindText(1, schema.ListOperationPrefixInsert)
-	stmt.BindText(2, schema.ListOperationPrefixRemove)
-	stmt.BindText(3, schema.ListOperationPrefixToggle)
-
-	err = db.StepStatement(ctx, stmt, func() {
+	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("Unknown fragment spread %q", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,
