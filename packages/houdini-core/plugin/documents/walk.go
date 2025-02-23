@@ -59,9 +59,8 @@ func ExtractTaskDocuments[PluginConfig any](ctx context.Context, db plugins.Data
 		}
 
 		return db.StepQuery(ctx, query, bindings, func(search *sqlite.Stmt) {
-			fp := search.ColumnText(0)
 			select {
-			case filePathsCh <- fp:
+			case filePathsCh <- search.ColumnText(0):
 			case <-ctx.Done():
 			}
 		})

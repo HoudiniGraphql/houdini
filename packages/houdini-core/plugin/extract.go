@@ -13,11 +13,10 @@ import (
 func (p *HoudiniCore) ExtractDocuments(ctx context.Context) error {
 	// if there is a task ID then we should only extract the raw documents for that task
 	taskID := plugins.TaskIDFromContext(ctx)
-	if taskID == nil {
-		return documents.Walk(ctx, p.DB, p.Fs)
+	if taskID != nil {
+		return documents.ExtractTaskDocuments(ctx, p.DB, p.Fs, *taskID)
 	}
 
-	// TODO: extract task ID documents
-	return documents.ExtractTaskDocuments(ctx, p.DB, p.Fs, *taskID)
-
+	// there is no task id, just walk the full filesystem
+	return documents.Walk(ctx, p.DB, p.Fs)
 }
