@@ -1486,7 +1486,7 @@ func buildSelectionTree[PluginConfig any](db plugins.DatabasePool[PluginConfig],
 	stmt.Finalize()
 
 	// step 1. restrict to only those selections that have a matching selection_refs row.
-	query := `SELECT s.id, s.field_name, s.alias, s.path_index, s.kind
+	query := `SELECT s.id, s.field_name, s.alias, sr.path_index, s.kind
 FROM selections s
 JOIN selection_refs sr ON s.id = sr.child_id
 WHERE sr.document = ?
@@ -1757,7 +1757,7 @@ func fetchSelections[PluginConfig any](t *testing.T, db plugins.DatabasePool[Plu
 	}
 	defer db.Put(conn)
 
-	stmt, err := conn.Prepare("select id, field_name, alias, path_index, kind from selections order by id")
+	stmt, err := conn.Prepare("select id, field_name, alias, path_index, kind from selections join selection_refs on selection_refs.child_id = selections.id order by id")
 	if err != nil {
 		t.Fatalf("failed to prepare selections query: %v", err)
 	}

@@ -218,7 +218,6 @@ CREATE TABLE selections (
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
-    path_index INTEGER NOT NULL,
     FOREIGN KEY (type) REFERENCES type_fields(id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -263,6 +262,7 @@ CREATE TABLE document_directive_arguments (
 CREATE TABLE selection_refs (
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
+    path_index INTEGER NOT NULL,
     document INTEGER NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,

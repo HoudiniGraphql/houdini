@@ -760,7 +760,6 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 		}
 		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
 			"field_name": s.Name,
-			"path_index": fieldIndex,
 			"kind":       "field",
 			"type":       fmt.Sprintf("%s.%s", parentType, s.Name),
 		}); err != nil {
@@ -874,7 +873,6 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
 			"field_name": fragType,
 			"alias":      nil,
-			"path_index": fieldIndex,
 			"kind":       "inline_fragment",
 		}); err != nil {
 			return &plugins.Error{
@@ -909,7 +907,6 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
 			"field_name": s.Name,
 			"alias":      nil,
-			"path_index": fieldIndex,
 			"kind":       "fragment",
 		}); err != nil {
 			return &plugins.Error{
@@ -956,10 +953,11 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 		column = position.Column + query.ColumnOffset
 	}
 	if err := db.ExecStatement(statements.InsertSelectionRef, map[string]interface{}{
-		"child_id": selectionID,
-		"document": documentID,
-		"row":      line,
-		"column":   column,
+		"child_id":   selectionID,
+		"path_index": fieldIndex,
+		"document":   documentID,
+		"row":        line,
+		"column":     column,
 	}); err != nil {
 		return &plugins.Error{
 			Message: "could not store selection ref",

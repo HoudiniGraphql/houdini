@@ -1556,7 +1556,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Title, func(t *testing.T) {
-			// // create and wire up a database we can test against
+			// create and wire up a database we can test against
 			db, err := plugins.NewPoolInMemory[houdiniCore.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
