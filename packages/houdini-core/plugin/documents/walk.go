@@ -10,6 +10,7 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
+	"zombiezen.com/go/sqlite"
 )
 
 // Walk is responsible for walking down the project directory structure and
@@ -31,6 +32,43 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 		walker.AddExclude(pattern)
 	}
 
+	// and extract the documents that the walker finds
+	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
+		return walker.Walk(ctx, fs, config.ProjectRoot, func(fp string) error {
+			// in case the context is canceled, stop early.
+			select {
+			case filePathsCh <- fp:
+				return nil
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		})
+	})
+}
+
+// ExtractTaskDocuments looks for all raw_documents associated with a specific task ID
+// and extracts them into the database.
+func ExtractTaskDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], fs afero.Fs, taskID string) error {
+	// extract the documents that the walker finds
+	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
+		query := `
+			SELECT filepath FROM raw_documents WHERE current_task = $task
+		`
+		bindings := map[string]interface{}{
+			"task": taskID,
+		}
+
+		return db.StepQuery(ctx, query, bindings, func(search *sqlite.Stmt) {
+			fp := search.ColumnText(0)
+			select {
+			case filePathsCh <- fp:
+			case <-ctx.Done():
+			}
+		})
+	})
+}
+
+func extractDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], fs afero.Fs, walk func(chan string) error) error {
 	// channels for file paths and discovered documents
 	filePathsCh := make(chan string, 100)
 	resultsCh := make(chan DiscoveredDocument, 100)
@@ -49,15 +87,7 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 	// file walker goroutine
 	g.Go(func() error {
 		// start the walk; each file path found is sent into filePathsCh.
-		err := walker.Walk(ctx, fs, config.ProjectRoot, func(fp string) error {
-			// in case the context is canceled, stop early.
-			select {
-			case filePathsCh <- fp:
-				return nil
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		})
+		err := walk(filePathsCh)
 		// whether or not there was an error, close the channel
 		// to signal that no more file paths will be sent.
 		close(filePathsCh)

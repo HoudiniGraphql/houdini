@@ -1,15 +1,20 @@
 package plugins
 
-import "context"
+import (
+	"context"
+)
 
 func ContextWithTaskID(ctx context.Context, taskID string) context.Context {
-	return context.WithValue(ctx, "taskID", taskID)
+	if taskID == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, "taskID", &taskID)
 }
 
 func TaskIDFromContext(ctx context.Context) *string {
-	taskID := ctx.Value("taskID").(string)
-	if taskID == "" {
+	taskID := ctx.Value("taskID")
+	if taskID == nil {
 		return nil
 	}
-	return &taskID
+	return taskID.(*string)
 }

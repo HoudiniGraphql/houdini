@@ -53,7 +53,7 @@ func TestComponentFields(t *testing.T) {
 
 	// now trigger the component fields portion of the process
 	errs := &plugins.ErrorList{}
-	componentFields.WriteMetadata(db, conn, errs)
+	componentFields.WriteMetadata(context.Background(), db, errs)
 	require.Equal(t, 0, errs.Len())
 
 	// there should be an entry for User.Avatar in the type fields table
@@ -190,7 +190,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// now trigger the component fields portion of the process
 			errs := &plugins.ErrorList{}
-			componentFields.WriteMetadata(db, conn, errs)
+			componentFields.WriteMetadata(context.Background(), db, errs)
 
 			if test.Pass {
 				require.Equal(t, 0, errs.Len(), errs.GetItems())

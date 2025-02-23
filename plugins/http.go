@@ -12,15 +12,15 @@ func pluginHooks[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plu
 	hooks := map[string]bool{}
 	if _, ok := plugin.(IncludeRuntime); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHook(ctx, handleGenerate(plugin))))
+		http.Handle("/generate", InjectTaskID(EventHook(handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(StaticRuntime); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterload", InjectTaskID(EventHook(ctx, handleAfterLoad(plugin))))
+		http.Handle("/afterload", InjectTaskID(EventHook(handleAfterLoad(plugin))))
 	}
 	if _, ok := plugin.(TransformRuntime); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHook(ctx, handleGenerate(plugin))))
+		http.Handle("/generate", InjectTaskID(EventHook(handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(Config); ok {
 		hooks["Config"] = true
@@ -32,67 +32,67 @@ func pluginHooks[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plu
 	}
 	if _, ok := plugin.(AfterLoad); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterload", InjectTaskID(EventHook(ctx, handleAfterLoad(plugin))))
+		http.Handle("/afterload", InjectTaskID(EventHook(handleAfterLoad(plugin))))
 	}
 	if p, ok := plugin.(ExtractDocuments); ok {
 		hooks["ExtractDocuments"] = true
-		http.Handle("/extractdocuments", InjectTaskID(EventHook(ctx, p.ExtractDocuments)))
+		http.Handle("/extractdocuments", InjectTaskID(EventHook(p.ExtractDocuments)))
 	}
 	if p, ok := plugin.(AfterExtract); ok {
 		hooks["AfterExtract"] = true
-		http.Handle("/afterextract", InjectTaskID(EventHook(ctx, p.AfterExtract)))
+		http.Handle("/afterextract", InjectTaskID(EventHook(p.AfterExtract)))
 	}
 	if p, ok := plugin.(Schema); ok {
 		hooks["Schema"] = true
-		http.Handle("/schema", InjectTaskID(EventHook(ctx, p.Schema)))
+		http.Handle("/schema", InjectTaskID(EventHook(p.Schema)))
 	}
 	if p, ok := plugin.(BeforeValidate); ok {
 		hooks["BeforeValidate"] = true
-		http.Handle("/beforevalidate", InjectTaskID(EventHook(ctx, p.BeforeValidate)))
+		http.Handle("/beforevalidate", InjectTaskID(EventHook(p.BeforeValidate)))
 	}
 	if p, ok := plugin.(Validate); ok {
 		hooks["Validate"] = true
-		http.Handle("/validate", InjectTaskID(EventHook(ctx, p.Validate)))
+		http.Handle("/validate", InjectTaskID(EventHook(p.Validate)))
 	}
 	if p, ok := plugin.(AfterValidate); ok {
 		hooks["AfterValidate"] = true
-		http.Handle("/aftervalidate", InjectTaskID(EventHook(ctx, p.AfterValidate)))
+		http.Handle("/aftervalidate", InjectTaskID(EventHook(p.AfterValidate)))
 	}
 	if _, ok := plugin.(BeforeGenerate); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/beforegenerate", InjectTaskID(EventHook(ctx, handleBeforeGenerate(plugin))))
+		http.Handle("/beforegenerate", InjectTaskID(EventHook(handleBeforeGenerate(plugin))))
 	}
 	if _, ok := plugin.(Generate); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHook(ctx, handleGenerate(plugin))))
+		http.Handle("/generate", InjectTaskID(EventHook(handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(ArtifactData); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(Hash); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleBeforeGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleBeforeGenerate(plugin))))
 	}
 	if _, ok := plugin.(GraphQLTagReturn); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(IndexFile); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(ArtifactEnd); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(ctx, handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
 	}
 	if p, ok := plugin.(ClientPlugins); ok {
 		hooks["ClientPlugins"] = true
-		http.Handle("/clientplugins", InjectTaskID(JSONHook(ctx, p.ClientPlugins)))
+		http.Handle("/clientplugins", InjectTaskID(JSONHook(p.ClientPlugins)))
 	}
 	if p, ok := plugin.(TransformFile); ok {
 		hooks["TransformFile"] = true
-		http.Handle("/transformfile", InjectTaskID(handleTransformFile(ctx, p)))
+		http.Handle("/transformfile", InjectTaskID(handleTransformFile(p)))
 	}
 
 	// get the unique hooks this plugin cares about
@@ -118,10 +118,10 @@ func InjectTaskID(next http.Handler) http.Handler {
 	})
 }
 
-func JSONHook[T any](ctx context.Context, hook func(ctx context.Context) (T, error)) http.Handler {
+func JSONHook[T any](hook func(ctx context.Context) (T, error)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// call the function
-		data, err := hook(ctx)
+		data, err := hook(r.Context())
 		if err != nil {
 			handleError(w, err)
 			return
@@ -134,10 +134,10 @@ func JSONHook[T any](ctx context.Context, hook func(ctx context.Context) (T, err
 
 }
 
-func EventHook(ctx context.Context, hook func(ctx context.Context) error) http.Handler {
+func EventHook(hook func(context.Context) error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// call the function
-		err := hook(ctx)
+		err := hook(r.Context())
 		if err != nil {
 			handleError(w, err)
 			return
@@ -215,7 +215,7 @@ func handleEnvironment(ctx context.Context, plugin Environment) http.Handler {
 	})
 }
 
-func handleTransformFile(ctx context.Context, plugin TransformFile) http.Handler {
+func handleTransformFile(plugin TransformFile) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// the include and exclude paramters come as json in the request body
 		payload := struct {
@@ -229,7 +229,7 @@ func handleTransformFile(ctx context.Context, plugin TransformFile) http.Handler
 		}
 
 		// invoke the extraction logic
-		updated, err := plugin.TransformFile(ctx, payload.Filename, payload.Source)
+		updated, err := plugin.TransformFile(r.Context(), payload.Filename, payload.Source)
 		if err != nil {
 			handleError(w, err)
 			return

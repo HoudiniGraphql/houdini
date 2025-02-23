@@ -24,6 +24,7 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE sd.directive IN ($prepend, $append)
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 	HAVING COUNT(DISTINCT sd.directive) > 1
 	`
@@ -63,8 +64,9 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 			JOIN documents d ON d.id = sr.document
 			JOIN raw_documents rd ON rd.id = d.raw_document
 		WHERE sd.directive IN ($parentID, $allLists)
-			GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
-			HAVING COUNT(DISTINCT sd.directive) > 1
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+		GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
+		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
 	bindings := map[string]interface{}{
 		"parentID": schema.ParentIDDirective,
@@ -128,6 +130,7 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 	  LEFT JOIN type_fields ptf ON ptf.id = sp.type
 	  LEFT JOIN field_argument_definitions fd ON fd.field = s.type
 	WHERE sd.directive = $paginate_directive
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, s.field_name, s.type, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column, sd.id, ptf.type_modifiers
 	`
 	bindings := map[string]interface{}{
@@ -285,16 +288,13 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 			JOIN raw_documents rd ON rd.id = d.raw_document
 			JOIN selection_refs sr ON sr.document = d.id
 			JOIN selection_directives sd ON sd.selection_id = sr.child_id
-		LEFT JOIN possible_types pt
-			ON pt.type = 'Node'
-			AND d.type_condition = pt.member
-		LEFT JOIN type_configs tc
-			ON tc.resolve_query IS NOT NULL
-			AND d.type_condition = tc.name
+			LEFT JOIN possible_types pt ON pt.type = 'Node' AND d.type_condition = pt.member
+			LEFT JOIN type_configs tc ON tc.resolve_query IS NOT NULL AND d.type_condition = tc.name
 		WHERE d.kind = 'fragment'
 			AND sd.directive = $paginate_directive
 			AND pt.member IS NULL
 			AND tc.name IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
 		"paginate_directive": schema.PaginationDirective,
@@ -333,6 +333,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE sd.directive = $paginate_directive
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
 		"paginate_directive": schema.PaginationDirective,
@@ -492,6 +493,7 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 			JOIN raw_documents rd ON d.raw_document = rd.id
 			LEFT JOIN selection_directives sd2 ON sd2.selection_id = f.id AND sd2.directive in ($parentID_directive, $allLists_directive)
 		WHERE f.kind = 'fragment'
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		AND sd2.id IS NULL
 	`
 	bindings := map[string]interface{}{
@@ -524,7 +526,6 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 }
 
 func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-
 	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
 	// directives
 	query := `
@@ -544,6 +545,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				JOIN raw_documents ON documents.raw_document = raw_documents.id
 			WHERE selection_directive_arguments.name = 'name'
 				AND selection_directives.directive IN ($list_directive, $paginate_directive)
+				AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		),
 		base AS (
 			-- Get the declared type (and its type_modifiers) for the original selection.
@@ -602,8 +604,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 			END as raw_document,
 			b.type_modifiers NOT LIKE '%]%' as connection
 		FROM base b
-		LEFT JOIN node n
-		ON b.selection_id = n.selection_id
+			LEFT JOIN node n ON b.selection_id = n.selection_id
 	`
 	bindings := map[string]interface{}{
 		"list_directive":     schema.ListDirective,
@@ -751,6 +752,7 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 			LEFT JOIN directives dir ON sd.directive = dir.name
 			LEFT JOIN discovered_directives dl ON sd.directive = dl.key
 		WHERE dir.name IS NULL AND dl.key IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 
 		UNION ALL
 
@@ -765,6 +767,7 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 			LEFT JOIN directives dir ON dd.directive = dir.name
 			LEFT JOIN discovered_directives dl ON dd.directive = dl.key
 		WHERE dir.name IS NULL AND dl.key IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
 		"delete_prefix": schema.ListOperationPrefixDelete,
@@ -814,6 +817,7 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 		WHERE s.kind = 'fragment'
 			AND docs.name IS NULL
 			AND df.computed_key IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
 		"insert_prefix": schema.ListOperationPrefixInsert,

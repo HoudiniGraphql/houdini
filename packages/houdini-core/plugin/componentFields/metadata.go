@@ -1,6 +1,7 @@
 package componentFields
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ import (
 // - adding internal fields to the type definitions
 // note: we'll hold on doing the actual injection of fragments til after we've validated
 // everything to ensure that error messages make sense
-func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, errs *plugins.ErrorList) {
+func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// First, load component field info from document_directives.
 	// We assume that the @componentField directive appears only on fragment definitions.
 	type ComponentFieldData struct {
@@ -30,7 +31,7 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 	}
 	documentInfo := map[int]*ComponentFieldData{}
 
-	search, err := conn.Prepare(`
+	query := `
 		SELECT
 			documents.raw_document,
 			documents.type_condition,
@@ -45,25 +46,14 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 			JOIN document_directive_arguments ON document_directive_arguments.parent = document_directives.id
 			LEFT JOIN raw_documents ON documents.raw_document = raw_documents.id
 		WHERE
-			document_directives.directive = ?
-	`)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+			document_directives.directive = $component_field
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	`
+	bindings := map[string]interface{}{
+		"component_field": schema.ComponentFieldDirective,
 	}
-	defer search.Finalize()
-	search.BindText(1, schema.ComponentFieldDirective)
 
-	// Process each row.
-	for {
-		hasData, err := search.Step()
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		if !hasData {
-			break
-		}
+	err := db.StepQuery(ctx, query, bindings, func(search *sqlite.Stmt) {
 		rawDocumentID := search.ColumnInt(0)
 		// Create or reuse the entry for this raw document.
 		document, ok := documentInfo[rawDocumentID]
@@ -82,7 +72,7 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 		unquoted, err := strconv.Unquote(search.ColumnText(3))
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
-			continue
+			return
 		}
 		switch search.ColumnText(2) {
 		case "prop":
@@ -90,7 +80,19 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 		case "field":
 			document.Field = unquoted
 		}
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
 	}
+
+	// grab a connection to write with
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer db.Put(conn)
 
 	// Convert our map into a slice for in‑memory processing.
 	var records []ComponentFieldData

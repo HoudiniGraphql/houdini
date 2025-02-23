@@ -52,7 +52,7 @@ func TestRuntimeScalars(t *testing.T) {
 
 	// now trigger the component fields portion of the proces
 	errs := &plugins.ErrorList{}
-	runtimeScalars.TransformVariables(context.Background(), db, conn, errs)
+	runtimeScalars.TransformVariables(context.Background(), db, errs)
 	require.Equal(t, 0, errs.Len(), errs.Error())
 
 	// to check that the query was extracted correctly we need to look up the query

@@ -118,12 +118,34 @@ func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr str
 		}
 	}
 
+	// if there is a $task_id binding, we need to bind it
+	if taskID := TaskIDFromContext(ctx); taskID != nil {
+		for i := 0; i < query.BindParamCount(); i++ {
+			name := query.BindParamName(i)
+			if name == "$task_id" {
+				query.SetText("$task_id", *taskID)
+				break
+			}
+		}
+	}
+
 	return db.StepStatement(ctx, query, func() {
 		rowHandler(query)
 	})
 }
 
 func (db DatabasePool[PluginConfig]) StepStatement(ctx context.Context, queryStatement *sqlite.Stmt, rowHandler func()) error {
+	// if there is a $task_id binding, we need to bind it
+	if taskID := TaskIDFromContext(ctx); taskID != nil {
+		for i := 0; i < queryStatement.BindParamCount(); i++ {
+			name := queryStatement.BindParamName(i)
+			if name == "$task_id" {
+				queryStatement.SetText("$task_id", *taskID)
+				break
+			}
+		}
+	}
+
 	for {
 		select {
 		case <-ctx.Done():

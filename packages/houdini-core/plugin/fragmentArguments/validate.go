@@ -31,6 +31,7 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 	  JOIN document_variables ov ON ov.document = d.id AND ov.type_modifiers LIKE '%!'
 	  LEFT JOIN selection_directives wd ON wd.selection_id = s.id AND wd.directive = $with_directive
 	  LEFT JOIN selection_directive_arguments sda ON sda.parent = wd.id
+	WHERE (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column
 	HAVING COUNT(sda.id) < 1
 	`
@@ -146,6 +147,7 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			LEFT JOIN argument_values av ON av.id = sda.value
 			JOIN document_variables ON fd.id = document_variables.document
 		WHERE sd.directive = $with_directive
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY sd.id
 	`
 

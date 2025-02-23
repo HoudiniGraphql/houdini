@@ -87,7 +87,7 @@ CREATE TABLE raw_documents (
     offset_column INTEGER,
     filepath TEXT NOT NULL,
     content TEXT NOT NULL,
-    current_task INTEGER
+    current_task TEXT
 );
 
 -----------------------------------------------------------
@@ -321,6 +321,7 @@ CREATE TABLE discovered_lists (
 
 CREATE INDEX idx_documents_kind ON documents(kind);
 CREATE INDEX idx_documents_type_condition ON documents(type_condition);
+CREATE INDEX idx_raw_documents_current_task ON raw_documents(current_task);
 CREATE INDEX idx_documents_raw_document ON documents(raw_document);
 CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);

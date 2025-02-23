@@ -28,6 +28,7 @@ func ValidateSubscriptionsWithMultipleRootFields[PluginConfig any](ctx context.C
 		WHERE documents.kind = 'subscription'
 			AND refs.parent_id IS NULL
 			AND selections.kind = 'field'
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id, documents.name HAVING COUNT(*) > 1
 	`
 	err := db.StepQuery(ctx, queryStr, nil, func(q *sqlite.Stmt) {
@@ -66,7 +67,8 @@ func ValidateDuplicateDocumentNames[PluginConfig any](ctx context.Context, db pl
 				)
 			) as locations
 		FROM documents
-		JOIN raw_documents ON raw_documents.id = documents.raw_document
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.name
 		HAVING COUNT(*) > 1
 	`
@@ -104,6 +106,7 @@ func ValidateFragmentUnknownType[PluginConfig any](ctx context.Context, db plugi
 			LEFT JOIN types ON documents.type_condition = types.name
 		WHERE documents.kind = 'fragment'
 			AND types.name IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id
 	`
 	err := db.StepQuery(ctx, queryStr, nil, func(query *sqlite.Stmt) {
@@ -147,6 +150,7 @@ func ValidateFragmentOnScalar[PluginConfig any](ctx context.Context, db plugins.
 			JOIN types ON documents.type_condition = types.name
 		WHERE documents.kind = 'fragment'
 		  AND types.kind = 'SCALAR'
+		  AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id
 	`
 	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
@@ -187,6 +191,7 @@ func ValidateOutputTypeAsInput[PluginConfig any](ctx context.Context, db plugins
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 			JOIN types ON document_variables.type = types.name
 		WHERE types.kind in ('OBJECT', 'INTERFACE', 'UNION')
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
 	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
 		varName := row.ColumnText(0)
@@ -225,6 +230,7 @@ func ValidateScalarWithSelection[PluginConfig any](ctx context.Context, db plugi
 			JOIN type_fields on selections.type = type_fields.id
 			JOIN types on type_fields.type = types.name
 		WHERE types.kind = 'SCALAR'
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
 	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
 		alias := row.ColumnText(0)
@@ -266,6 +272,7 @@ func ValidateUnknownField[PluginConfig any](ctx context.Context, db plugins.Data
 			JOIN documents ON refs.document = documents.id
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 		WHERE selections.kind = 'field' AND type_fields.id IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY selections.id
 	`
 
@@ -323,6 +330,7 @@ func ValidateIncompatibleFragmentSpread[PluginConfig any](ctx context.Context, d
 		-- LEFT JOIN possible_types using the fragment's type condition.
 		LEFT JOIN possible_types ON possible_types.type = fragDoc.type_condition
 	WHERE childSel.kind = 'fragment'
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY childSel.id
 	`
 
@@ -402,14 +410,15 @@ func ValidateFragmentCycles[PluginConfig any](ctx context.Context, db plugins.Da
 				'filepath', raw_documents.filepath
 			) AS location
 		FROM selection_refs AS refs
-		-- The container document is the one in which the fragment spread is used.
-		JOIN documents AS containerDoc ON refs.document = containerDoc.id AND containerDoc.kind = 'fragment'
-		-- The fragment spread selection (child) in the container.
-		JOIN selections AS childSel ON refs.child_id = childSel.id AND childSel.kind = 'fragment'
-		-- Look up the referenced fragment's definition.
-		JOIN documents AS childFragDoc ON childFragDoc.name = childSel.field_name AND childFragDoc.kind = 'fragment'
-		-- Retrieve the location from the container's raw document.
-		JOIN raw_documents ON raw_documents.id = (SELECT raw_document FROM documents WHERE id = refs.document LIMIT 1)
+			-- The container document is the one in which the fragment spread is used.
+			JOIN documents AS containerDoc ON refs.document = containerDoc.id AND containerDoc.kind = 'fragment'
+			-- The fragment spread selection (child) in the container.
+			JOIN selections AS childSel ON refs.child_id = childSel.id AND childSel.kind = 'fragment'
+			-- Look up the referenced fragment's definition.
+			JOIN documents AS childFragDoc ON childFragDoc.name = childSel.field_name AND childFragDoc.kind = 'fragment'
+			-- Retrieve the location from the container's raw document.
+			JOIN raw_documents ON raw_documents.id = (SELECT raw_document FROM documents WHERE id = refs.document LIMIT 1)
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
 
 	// accumulate the edges
@@ -528,10 +537,11 @@ func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugin
 				)
 			) AS locations
 		FROM document_variables
-		JOIN documents ON document_variables.document = documents.id
-		JOIN raw_documents ON raw_documents.id = documents.raw_document
+			JOIN documents ON document_variables.document = documents.id
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id, document_variables.name
-		HAVING COUNT(*) > 1
+			HAVING COUNT(*) > 1
 	`
 
 	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
@@ -585,6 +595,7 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 	WHERE av.kind = 'Variable'
 		AND d.kind IN ('query', 'mutation', 'subscription')
 		AND opv.name IS NULL
+		AND (r.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY d.id, av.raw
 	`
 
@@ -662,6 +673,7 @@ func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.D
 				JOIN documents d ON d.id = dd.document
 			) var ON var.document = d.id
 				AND var.raw = opv.name
+		WHERE (r.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY opv.id
 		HAVING COUNT(var.raw) = 0
 	`
@@ -719,6 +731,7 @@ func ValidateRepeatingNonRepeatable[PluginConfig any](ctx context.Context, db pl
 		JOIN raw_documents rd ON rd.id = d.raw_document
 		JOIN directives d2 ON sd.directive = d2.name
 	WHERE d2.repeatable = 0
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sd.selection_id, sd.directive
 	HAVING COUNT(*) > 1
 	`
@@ -773,6 +786,7 @@ func ValidateDuplicateArgumentInField[PluginConfig any](ctx context.Context, db 
 	  JOIN selection_refs sr ON sr.child_id = s.id
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
+	WHERE (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sargs.selection_id, sargs.name
 	HAVING COUNT(DISTINCT sargs.id) > 1
 	`
@@ -831,6 +845,7 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 		JOIN raw_documents rd ON rd.id = d.raw_document
 		JOIN argument_values av ON av.id = sa.value
 		JOIN document_variables opv ON d.id = opv.document AND opv.name = av.raw
+	WHERE (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sa.selection_id, fad.name
 	HAVING NOT (
 		  fad.type = opv.type
@@ -892,6 +907,7 @@ func ValidateMissingRequiredArgument[PluginConfig any](ctx context.Context, db p
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE fad.type_modifiers LIKE '%!'
 	  AND sa.id IS NULL
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, fad.name
 	`
 	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
@@ -943,6 +959,7 @@ func ValidateConflictingSelections[PluginConfig any](ctx context.Context, db plu
 			JOIN documents d ON sr.document = d.id
 			JOIN raw_documents rd ON rd.id = d.raw_document
 		WHERE s.alias IS NOT NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY sr.parent_id, s.alias
 		HAVING COUNT(DISTINCT s.type) > 1
 	`
@@ -989,17 +1006,14 @@ func ValidateDuplicateKeysInInputObject[PluginConfig any](ctx context.Context, d
 			rd.filepath
 		FROM argument_values av
 			JOIN argument_value_children av2 ON av2.parent = av.id
-			JOIN raw_documents rd ON rd.id = (
-				SELECT raw_document FROM documents WHERE id = (
-					SELECT document FROM selection_refs WHERE child_id IN (
-						SELECT id FROM selections WHERE id IN (
-							SELECT selection_id FROM selection_arguments WHERE value = av.id LIMIT 1
-						)
-					) LIMIT 1
-				) LIMIT 1
-			)
+			JOIN selection_arguments sa ON sa.value = av.id
+			JOIN selections s ON s.id = sa.selection_id
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
 		WHERE av.kind = 'Object'
-		  AND av2.name IS NOT NULL
+			AND av2.name IS NOT NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY av.id, av2.name
 		HAVING COUNT(*) > 1
 		`
@@ -1052,6 +1066,7 @@ func ValidateWrongTypesToScalarArg[PluginConfig any](ctx context.Context, db plu
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	  JOIN argument_values av ON av.id = sargs.value
 	WHERE av.kind NOT IN ('Object', 'Variable')
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sargs.selection_id, fad.name, av.raw, av.kind
 	HAVING fad.type <> av.kind
 	`
@@ -1420,6 +1435,7 @@ func ValidateWrongTypesToStructuredArg[PluginConfig any](ctx context.Context, db
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	  JOIN argument_values av ON av.id = sargs.value
 	WHERE av.kind = 'Object'
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sargs.selection_id, fad.name, av.raw
 	`
 	err = db.StepQuery(ctx, queryObj, nil, func(row *sqlite.Stmt) {
@@ -1492,22 +1508,23 @@ func ValidateNoKeyAlias[PluginConfig any](ctx context.Context, db plugins.Databa
 			json_object('line', sr.row, 'column', sr.column)
 		) AS locations
 		FROM selections s
-		JOIN selection_refs sr ON sr.child_id = s.id
-		JOIN type_fields tf ON s.field_name = tf.name
-		JOIN types t ON tf.parent = t.name
-		JOIN documents d ON d.id = sr.document
-		JOIN raw_documents rd ON rd.id = d.raw_document
-		JOIN (
-			-- Global default keys from config.
-			SELECT value AS key, NULL AS type_name
-			FROM config, json_each(config.default_keys)
-			UNION
-			-- Type-specific keys from type_configs.
-			SELECT value AS key, tc.name AS type_name
-			FROM type_configs tc, json_each(tc.keys)
-		) allowed ON allowed.key = s.alias
-			AND (allowed.type_name IS NULL OR allowed.type_name = t.name)
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN type_fields tf ON s.field_name = tf.name
+			JOIN types t ON tf.parent = t.name
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN (
+				-- Global default keys from config.
+				SELECT value AS key, NULL AS type_name
+				FROM config, json_each(config.default_keys)
+				UNION
+				-- Type-specific keys from type_configs.
+				SELECT value AS key, tc.name AS type_name
+				FROM type_configs tc, json_each(tc.keys)
+			) allowed ON allowed.key = s.alias
+				AND (allowed.type_name IS NULL OR allowed.type_name = t.name)
 		WHERE s.alias IS NOT NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		AND s.alias <> s.field_name
 		GROUP BY s.alias, t.name, rd.filepath
 	`
@@ -1559,6 +1576,7 @@ func ValidateKnownDirectiveArguments[PluginConfig any](ctx context.Context, db p
 			LEFT JOIN directive_arguments da ON da.parent = sd.directive AND da.name = sda.name
 		  WHERE da.name IS NULL
 			AND sd.directive NOT IN ('with', 'when', 'when_not', 'arguments')
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 
 		  UNION ALL
 
@@ -1576,6 +1594,7 @@ func ValidateKnownDirectiveArguments[PluginConfig any](ctx context.Context, db p
 			LEFT JOIN directive_arguments da ON da.parent = dd.directive AND da.name = dda.name
 		  WHERE da.name IS NULL
 			AND dd.directive NOT IN ('with', 'when', 'when_not', 'arguments')
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		)
 	`
 
@@ -1619,6 +1638,7 @@ func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.Da
 			JOIN raw_documents rd ON rd.id = d.raw_document
 		WHERE s.kind = 'fragment'
 			AND sd.directive IN ($enable_directive, $disable_directive)
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY s.id
 		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
@@ -1676,6 +1696,7 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 	    JOIN document_directives dd ON d2.id = dd.document
 	    WHERE dd.directive = $loading_directive
 	  )
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
 		"loading_directive": schema.LoadingDirective,
@@ -1734,6 +1755,7 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 	  LEFT JOIN selection_directives sd_child
 		ON sr_child.child_id = sd_child.selection_id AND sd_child.directive = $required_directive
 	WHERE sd.directive = $required_directive
+		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, s.field_name, tf.type_modifiers, t.kind, rd.filepath, sr.row, sr.column, d.name
 	`
 
@@ -1805,6 +1827,7 @@ func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plu
 	  JOIN types t ON tf.type = t.name
 	WHERE sd.directive = $optimistic_key_directive
 	  AND t.kind != 'SCALAR'
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
 		"optimistic_key_directive": schema.OptimisticKeyDirective,
@@ -1864,6 +1887,7 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 	WHERE sd.directive = $optimistic_key_directive
 	  AND sr.parent_id IS NOT NULL
 	  AND sp.kind = 'field'
+	  AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	conn, err := db.Take(ctx)
 	if err != nil {
@@ -1985,9 +2009,4 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 			}
 		}
 	}
-}
-
-// KnownDirectives needs to confirm that every directive exists in the schema excluding
-func KnownDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-
 }

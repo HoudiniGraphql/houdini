@@ -17,19 +17,15 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// combine the next
 	errs := &plugins.ErrorList{}
 
-	conn, err := p.DB.Take(context.Background())
-	if err != nil {
-		return err
-	}
-	defer p.DB.Put(conn)
-
 	// write component field information to the database
-	componentFields.WriteMetadata(p.DB, conn, errs)
+	componentFields.WriteMetadata(ctx, p.DB, errs)
 
 	// and replace runtime scalars with their schema-valid equivalents
-	runtimeScalars.TransformVariables(ctx, p.DB, conn, errs)
+	runtimeScalars.TransformVariables(ctx, p.DB, errs)
 
 	// if we have any errors collected, return them
 	if errs.Len() > 0 {

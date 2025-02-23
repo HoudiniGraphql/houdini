@@ -6,18 +6,24 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 // we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
-func TransformVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, errs *plugins.ErrorList) {
+func TransformVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// load the project configuration
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
+
+	conn, err := db.Take(context.Background())
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer db.Put(conn)
 
 	// wrap the operations in a transaction
 	close := sqlitex.Transaction(conn)
