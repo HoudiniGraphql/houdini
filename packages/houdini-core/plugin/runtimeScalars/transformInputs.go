@@ -53,7 +53,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 
 	// and a query to update the type of the variable
 	updateType, err := conn.Prepare(`
-		UPDATE document_variables SET type = ? WHERE id = ?
+		UPDATE document_variables SET type = $type WHERE id = $document
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -63,7 +63,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 	defer updateType.Finalize()
 
 	// and some statements to insert the runtime scalar directives
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES ($parent, $directive, $row, $column)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)
@@ -71,7 +71,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 	}
 	defer insertDocumentVariableDirective.Finalize()
 	// and scalar directive arguments
-	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)
@@ -97,7 +97,10 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 		column := search.ColumnInt(3)
 
 		// we need to update the type of the variable
-		err = db.ExecStatement(updateType, projectConfig.RuntimeScalars[variableType], variablesID)
+		err = db.ExecStatement(updateType, map[string]interface{}{
+			"type":     projectConfig.RuntimeScalars[variableType],
+			"document": variablesID,
+		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			commit(err)
@@ -105,7 +108,12 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 		}
 
 		// we also need to add a directive to the variable
-		err = db.ExecStatement(insertDocumentVariableDirective, variablesID, schema.RuntimeScalarDirective, row, column)
+		err = db.ExecStatement(insertDocumentVariableDirective, map[string]interface{}{
+			"parent":    variablesID,
+			"directive": schema.RuntimeScalarDirective,
+			"row":       row,
+			"column":    column,
+		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			commit(err)
@@ -114,7 +122,11 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 		directiveID := conn.LastInsertRowID()
 
 		// and the arguments to the directive
-		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, directiveID, "type", variableType)
+		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, map[string]interface{}{
+			"parent": directiveID,
+			"name":   "type",
+			"value":  variableType,
+		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			commit(err)

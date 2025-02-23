@@ -19,55 +19,55 @@ type DocumentInsertStatements struct {
 }
 
 func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatements, error, func()) {
-	insertDocument, err := conn.Prepare("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
+	insertDocument, err := conn.Prepare("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariable, err := conn.Prepare("INSERT INTO document_variables (document, name, type, type_modifiers, default_value, row, column) VALUES (?, ?, ?, ?, ?, ?, ?)")
+	insertDocumentVariable, err := conn.Prepare("INSERT INTO document_variables (document, name, type, type_modifiers, default_value, row, column) VALUES ($document, $name, $type, $type_modifiers, $default_value, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, path_index, kind, type) VALUES (?, ?, ?, ?, ?)")
+	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, path_index, kind, type) VALUES ($field_name, $alias, $path_index, $kind, $type)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value, row, column) VALUES (?, ?, ?, ?, ?)")
+	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value, row, column) VALUES ($selection_id, $name, $value, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertArgumentValue, err := conn.Prepare("INSERT INTO argument_values (kind, raw, row, column) VALUES (?, ?, ?, ?)")
+	insertArgumentValue, err := conn.Prepare("INSERT INTO argument_values (kind, raw, row, column) VALUES ($kind, $raw, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertArgumentValueChildren, err := conn.Prepare("INSERT INTO argument_value_children (name, parent, value, row, column) VALUES (?, ?, ?, ?, ?)")
+	insertArgumentValueChildren, err := conn.Prepare("INSERT INTO argument_value_children (name, parent, value, row, column) VALUES ($name, $parent, $value, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column) VALUES (?, ?, ?, ?, ?)")
+	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column) VALUES ($parent_id, $child_id, $document, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionDirective, err := conn.Prepare("INSERT INTO selection_directives (selection_id, directive, row, column) VALUES (?, ?, ?, ?)")
+	insertSelectionDirective, err := conn.Prepare("INSERT INTO selection_directives (selection_id, directive, row, column) VALUES ($selection_id, $directive, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionDirectiveArgument, err := conn.Prepare("INSERT INTO selection_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertSelectionDirectiveArgument, err := conn.Prepare("INSERT INTO selection_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentDirective, err := conn.Prepare("INSERT INTO document_directives (document, directive, row, column) VALUES (?, ?, ?, ?)")
+	insertDocumentDirective, err := conn.Prepare("INSERT INTO document_directives (document, directive, row, column) VALUES ($document, $directive, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentDirectiveArgument, err := conn.Prepare("INSERT INTO document_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertDocumentDirectiveArgument, err := conn.Prepare("INSERT INTO document_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES (?, ?, ?, ?)")
+	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES ($parent, $directive, $row, $column)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES (?, ?, ?)")
+	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}

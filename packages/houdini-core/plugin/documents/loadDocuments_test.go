@@ -1196,7 +1196,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				{"Node.id", "ID"},
 			}
 
-			insertTypeField, err := conn.Prepare("INSERT INTO type_fields (id, type, parent, name) VALUES (?, ?, ?, ?)")
+			insertTypeField, err := conn.Prepare("INSERT INTO type_fields (id, type, parent, name) VALUES ($id, $type, $parent, $name)")
 			if err != nil {
 				t.Fatalf("failed to prepare type_fields insert: %v", err)
 			}
@@ -1204,7 +1204,12 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 
 			for _, tf := range typeFields {
 				typeParams := strings.Split(tf.id, ".")
-				if err := db.ExecStatement(insertTypeField, tf.id, tf.typ, typeParams[0], typeParams[1]); err != nil {
+				if err := db.ExecStatement(insertTypeField, map[string]interface{}{
+					"id":     tf.id,
+					"type":   tf.typ,
+					"parent": typeParams[0],
+					"name":   typeParams[1],
+				}); err != nil {
 					t.Fatalf("failed to insert type_field %s: %v", tf.id, err)
 				}
 			}
@@ -1212,12 +1217,12 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			// ─────────────────────────────────────────────────────────────────────
 
 			// insert the raw document (assume id becomes 1).
-			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values (?, 'foo')")
+			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values ($content, 'foo')")
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRaw.Finalize()
-			if err := db.ExecStatement(insertRaw, tc.rawQuery); err != nil {
+			if err := db.ExecStatement(insertRaw, map[string]interface{}{"content": tc.rawQuery}); err != nil {
 				t.Fatalf("failed to insert raw document: %v", err)
 			}
 

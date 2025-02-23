@@ -47,19 +47,19 @@ func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 	return DatabasePool[PluginConfig]{Pool: pool}, nil
 }
 
-func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args ...any) error {
-	for i, arg := range args {
+func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args map[string]interface{}) error {
+	for key, arg := range args {
 		switch val := arg.(type) {
 		case string:
-			statement.BindText(i+1, val)
+			statement.SetText("$"+key, val)
 		case int:
-			statement.BindInt64(i+1, int64(val))
+			statement.SetInt64("$"+key, int64(val))
 		case int64:
-			statement.BindInt64(i+1, val)
+			statement.SetInt64("$"+key, val)
 		case nil:
-			statement.BindNull(i + 1)
+			statement.SetNull("$" + key)
 		case bool:
-			statement.BindBool(i+1, val)
+			statement.SetBool("$"+key, val)
 		default:
 			return fmt.Errorf("unsupported type: %T", arg)
 		}

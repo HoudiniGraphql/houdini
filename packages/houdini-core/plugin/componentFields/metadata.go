@@ -206,7 +206,7 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 		INSERT INTO component_fields
 			(document, prop, field, type, inline)
 		VALUES
-			(?, ?, ?, ?, false)
+			($document, $prop, $field, $type, false)
 		ON CONFLICT(document) DO UPDATE SET
   			prop = excluded.prop,
   			field = excluded.field,
@@ -219,7 +219,7 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 	defer insertComponentField.Finalize()
 
 	insertInternalField, err := conn.Prepare(`
-		INSERT INTO type_fields (id, parent, name, type, internal) VALUES (?, ?, ?, ?, true)
+		INSERT INTO type_fields (id, parent, name, type, internal) VALUES ($id, $parent, $name, $type, true)
 	`)
 	if err != nil {
 		errs.Append(&plugins.Error{
@@ -233,12 +233,22 @@ func WriteMetadata[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn
 
 	// Process the collected component field data.
 	for _, data := range documentInfo {
-		err = db.ExecStatement(insertComponentField, data.RawDocumentID, data.Prop, data.Field, data.Type)
+		err = db.ExecStatement(insertComponentField, map[string]interface{}{
+			"document": data.RawDocumentID,
+			"prop":     data.Prop,
+			"field":    data.Field,
+			"type":     data.Type,
+		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			continue
 		}
-		err = db.ExecStatement(insertInternalField, fmt.Sprintf("%s.%s", data.Type, data.Field), data.Type, data.Field, "Component")
+		err = db.ExecStatement(insertInternalField, map[string]interface{}{
+			"id":     fmt.Sprintf("%s.%s", data.Type, data.Field),
+			"parent": data.Type,
+			"name":   data.Field,
+			"type":   "Component",
+		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			continue

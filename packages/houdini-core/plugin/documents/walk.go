@@ -106,13 +106,13 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 		defer db.Put(conn)
 
 		// prepare the insert statements.
-		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, offset_column, offset_line) VALUES (?, ?, ?, ?)")
+		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, offset_column, offset_line) VALUES ($filepath, $content, $column, $row)")
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
 			return nil
 		}
 		defer insertRawStatement.Finalize()
-		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop, inline) VALUES (?, ?, true)")
+		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop, inline) VALUES ($document, $prop, true)")
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
 			return nil
@@ -121,7 +121,12 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 
 		// consume discovered documents from resultsCh and write them to the database.
 		for doc := range resultsCh {
-			err := db.ExecStatement(insertRawStatement, doc.FilePath, doc.Content, doc.OffsetColumn, doc.OffsetRow)
+			err := db.ExecStatement(insertRawStatement, map[string]interface{}{
+				"filepath": doc.FilePath,
+				"content":  doc.Content,
+				"row":      doc.OffsetColumn,
+				"column":   doc.OffsetRow,
+			})
 			if err != nil {
 				errs.Append(plugins.WrapError(fmt.Errorf("failed to insert raw document: %v", err)))
 				return nil
@@ -130,7 +135,10 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 
 			// if the document has a component field prop, let's register it now as well.
 			if doc.Prop != "" {
-				err = db.ExecStatement(insertComponentField, documentID, doc.Prop)
+				err = db.ExecStatement(insertComponentField, map[string]interface{}{
+					"document": documentID,
+					"prop":     doc.Prop,
+				})
 				if err != nil {
 					errs.Append(plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)))
 					return nil

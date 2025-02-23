@@ -484,11 +484,13 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 	query := `
 		-- Build up a list of parents that require a parentID
 		WITH RECURSIVE pagination_parents AS (
-			-- Base case: start at selections with the paginate or list directive
+			-- Base case: start with depth 1 and initialize a path for cycle detection
 			SELECT
 				s.id,
 				0 AS has_match,
-				argument_values.raw AS list_name
+				argument_values.raw AS list_name,
+				1 AS depth,
+				',' || s.id || ',' AS path
 			FROM selection_directives sd
 				JOIN selections s ON sd.selection_id = s.id
 				JOIN selection_refs sr ON s.id = sr.child_id
@@ -501,17 +503,21 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 
 			UNION ALL
 
-			-- Recursive step: keep walking up until we find a match
+			-- Recursive step: only continue if depth is less than 2 and no cycles occur
 			SELECT
 				p.id,
 				CASE WHEN tf.type_modifiers LIKE '%]%' THEN 1 ELSE 0 END AS has_match,
-				sh.list_name
+				sh.list_name,
+				sh.depth + 1,
+				sh.path || p.id || ','
 			FROM pagination_parents sh
 				JOIN selection_refs sr ON sr.child_id = sh.id
 				JOIN selections p ON p.id = sr.parent_id
 				JOIN type_fields tf ON p.type = tf.id
 			WHERE sh.has_match = 0
-		),
+				AND sh.depth < 2    -- Ensures that recursion stops once depth reaches 2
+				AND instr(sh.path, ',' || p.id || ',') = 0   -- Prevents cycles
+			),
 
 		-- There are 2 categories of fragment spreads that require a parentID:
 		--    - if the operation is in a query document contained within a field
@@ -759,7 +765,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// - we'll consider them when validating directive and fragment spreads
 	// - we'll use them to insert the operation schema items
 	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists (name, type, node, raw_document, connection) VALUES (?, ?, ?, ?, ?)
+		INSERT INTO discovered_lists (name, type, node, raw_document, connection) VALUES ($name, $type, $node, $raw_document, $connection)
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -790,7 +796,13 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		}
 
 		// insert the discovered list into the database
-		err = db.ExecStatement(insertDiscoveredLists, name, list.Type, list.SelectionID, list.RawDocument, list.Connection)
+		err = db.ExecStatement(insertDiscoveredLists, map[string]interface{}{
+			"name":         name,
+			"type":         list.Type,
+			"node":         list.SelectionID,
+			"raw_document": list.RawDocument,
+			"connection":   list.Connection,
+		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			return
@@ -940,7 +952,7 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 	stmt.BindText(2, schema.ListOperationPrefixRemove)
 	stmt.BindText(3, schema.ListOperationPrefixToggle)
 
-	db.StepStatement(ctx, stmt, func() {
+	err = db.StepStatement(ctx, stmt, func() {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("Unknown fragment spread %q", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,
@@ -953,4 +965,8 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 			},
 		})
 	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
 }

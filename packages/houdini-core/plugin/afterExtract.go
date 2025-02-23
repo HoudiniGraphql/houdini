@@ -12,8 +12,6 @@ import (
 // AfterExtract is called after all of the plugins have added their documents to the project.
 // We'll use this plugin to parse each document and load it into the database.
 func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
-	// sqlite only allows for one write at a time so there's no point in parallelizing this
-
 	// the first thing we have to do is load the extracted queries into the database
 	err := documents.LoadDocuments(ctx, p.DB)
 	if err != nil {

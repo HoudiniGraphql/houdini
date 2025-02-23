@@ -378,10 +378,11 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 		// for operations, we set type_condition to null.
 		if err := db.ExecStatement(
 			statements.InsertDocument,
-			operation.Name,
-			query.ID,
-			string(operation.Operation),
-			nil,
+			map[string]interface{}{
+				"name":         operation.Name,
+				"raw_document": query.ID,
+				"kind":         string(operation.Operation),
+			},
 		); err != nil {
 			return &plugins.Error{
 				Message: "could not insert document",
@@ -402,18 +403,19 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 			// parse the type of the variable.
 			variableType, typeModifiers := schema.ParseFieldType(variable.Type.String())
 
-			statements.InsertDocumentVariable.BindInt64(1, operationID)
-			statements.InsertDocumentVariable.BindText(2, variable.Variable)
-			statements.InsertDocumentVariable.BindText(3, variableType)
-			statements.InsertDocumentVariable.BindText(4, typeModifiers)
+			// if there's a default value, bind it (we'll bind the rest later)
 			if variable.DefaultValue != nil {
-				statements.InsertDocumentVariable.BindText(5, variable.DefaultValue.String())
-			} else {
-				statements.InsertDocumentVariable.BindNull(5)
+				statements.InsertDocumentVariable.SetText("$defaultValue", variable.DefaultValue.String())
 			}
-			statements.InsertDocumentVariable.BindInt64(6, int64(variable.Position.Line))
-			statements.InsertDocumentVariable.BindInt64(7, int64(variable.Position.Column))
-			if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
+
+			if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{
+				"document":       operationID,
+				"name":           variable.Variable,
+				"type":           variableType,
+				"type_modifiers": typeModifiers,
+				"row":            int64(variable.Position.Line),
+				"column":         int64(variable.Position.Column),
+			}); err != nil {
 				return &plugins.Error{
 					Message: "could not associate document variable",
 					Detail:  err.Error(),
@@ -431,7 +433,12 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 
 			// insert any directives on the variable.
 			for _, directive := range variable.Directives {
-				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, variableID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, map[string]interface{}{
+					"parent":    variableID,
+					"directive": directive.Name,
+					"row":       int64(directive.Position.Line),
+					"column":    int64(directive.Position.Column),
+				}); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document variable directive",
 						Detail:  err.Error(),
@@ -446,7 +453,11 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 				}
 				varDirID := conn.LastInsertRowID()
 				for _, arg := range directive.Arguments {
-					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, varDirID, arg.Name, arg.Value.String()); err != nil {
+					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, map[string]interface{}{
+						"parent": varDirID,
+						"name":   arg.Name,
+						"value":  arg.Value.String(),
+					}); err != nil {
 						return &plugins.Error{
 							Message: "could not insert document variable argument",
 							Detail:  err.Error(),
@@ -482,7 +493,12 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 
 		// add document-level directives for the operation.
 		for _, directive := range operation.Directives {
-			if err := db.ExecStatement(statements.InsertDocumentDirective, operationID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, map[string]interface{}{
+				"document":  operationID,
+				"directive": directive.Name,
+				"row":       directive.Position.Line,
+				"column":    directive.Position.Column,
+			}); err != nil {
 				return &plugins.Error{
 					Message: "could not insert document directive",
 					Detail:  err.Error(),
@@ -497,7 +513,11 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 			}
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
-				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
+					"parent": docDirID,
+					"name":   arg.Name,
+					"value":  arg.Value.String(),
+				}); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document variable directive argument",
 						Detail:  err.Error(),
@@ -519,10 +539,12 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 		// insert the fragment into "documents".
 		if err := db.ExecStatement(
 			statements.InsertDocument,
-			fragment.Name,
-			query.ID,
-			"fragment",
-			fragment.TypeCondition,
+			map[string]interface{}{
+				"name":           fragment.Name,
+				"raw_document":   query.ID,
+				"kind":           "fragment",
+				"type_condition": fragment.TypeCondition,
+			},
 		); err != nil {
 			return &plugins.Error{
 				Message: "could not insert fragment",
@@ -549,7 +571,12 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 
 		// add document-level directives for the operation.
 		for _, directive := range fragment.Directives {
-			if err := db.ExecStatement(statements.InsertDocumentDirective, fragmentID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+			if err := db.ExecStatement(statements.InsertDocumentDirective, map[string]interface{}{
+				"document":  fragmentID,
+				"directive": directive.Name,
+				"row":       directive.Position.Line,
+				"column":    directive.Position.Column,
+			}); err != nil {
 				return &plugins.Error{
 					Message: "could not insert document directive",
 					Detail:  err.Error(),
@@ -564,7 +591,11 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 			}
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
-				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, docDirID, arg.Name, arg.Value.String()); err != nil {
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
+					"parent": docDirID,
+					"name":   arg.Name,
+					"value":  arg.Value.String(),
+				}); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document directive argument",
 						Detail:  err.Error(),
@@ -678,19 +709,17 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 
 					// parse the type of the variable.
 					variableType, typeModifiers := schema.ParseFieldType(argType)
-
-					statements.InsertDocumentVariable.BindInt64(1, fragmentID)
-					statements.InsertDocumentVariable.BindText(2, argName)
-					statements.InsertDocumentVariable.BindText(3, variableType)
-					statements.InsertDocumentVariable.BindText(4, typeModifiers)
 					if argDefault != "" {
-						statements.InsertDocumentVariable.BindText(5, argDefault)
-					} else {
-						statements.InsertDocumentVariable.BindNull(5)
+						statements.InsertDocumentVariable.SetText("$defaultValue", argDefault)
 					}
-					statements.InsertDocumentVariable.BindInt64(6, int64(arg.Position.Line))
-					statements.InsertDocumentVariable.BindInt64(7, int64(arg.Position.Column))
-					if err := db.ExecStatement(statements.InsertDocumentVariable); err != nil {
+					if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{
+						"document":       fragmentID,
+						"name":           argName,
+						"type":           variableType,
+						"type_modifiers": typeModifiers,
+						"row":            int64(arg.Position.Line),
+						"column":         int64(arg.Position.Column),
+					}); err != nil {
 						return &plugins.Error{
 							Message: "could not associate document variable",
 							Detail:  err.Error(),
@@ -723,16 +752,15 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 
 	case *ast.Field:
 		// insert the field row.
-		statements.InsertSelection.BindText(1, s.Name)
 		if s.Alias != "" {
 			statements.InsertSelection.BindText(2, s.Alias)
-		} else {
-			statements.InsertSelection.BindNull(2)
 		}
-		statements.InsertSelection.BindInt64(3, fieldIndex)
-		statements.InsertSelection.BindText(4, "field")
-		statements.InsertSelection.BindText(5, fmt.Sprintf("%s.%s", parentType, s.Name))
-		if err := db.ExecStatement(statements.InsertSelection); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
+			"field_name": s.Name,
+			"path_index": fieldIndex,
+			"kind":       "field",
+			"type":       fmt.Sprintf("%s.%s", parentType, s.Name),
+		}); err != nil {
 			return &plugins.Error{
 				Message: "could not add selection to database",
 				Detail:  err.Error(),
@@ -800,12 +828,13 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 			// Insert the argument record that links the argument name to the processed value.
 			if err := db.ExecStatement(
 				statements.InsertSelectionArgument,
-				selectionID,
-				arg.Name,
-				argValueID,
-				arg.Value.Position.Line,
-				arg.Value.Position.Column,
-			); err != nil {
+				map[string]interface{}{
+					"selection_id": selectionID,
+					"name":         arg.Name,
+					"value":        argValueID,
+					"row":          int64(arg.Position.Line),
+					"column":       int64(arg.Position.Column),
+				}); err != nil {
 				return &plugins.Error{
 					Message: "could not add selection argument to database",
 					Detail:  err.Error(),
@@ -839,7 +868,12 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 		if fragType == "" {
 			fragType = "inline_fragment"
 		}
-		if err := db.ExecStatement(statements.InsertSelection, fragType, nil, fieldIndex, "inline_fragment", nil); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
+			"field_name": fragType,
+			"alias":      nil,
+			"path_index": fieldIndex,
+			"kind":       "inline_fragment",
+		}); err != nil {
 			return &plugins.Error{
 				Message: "Could not store inline fragment in database",
 				Detail:  err.Error(),
@@ -869,7 +903,12 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 		}
 
 	case *ast.FragmentSpread:
-		if err := db.ExecStatement(statements.InsertSelection, s.Name, nil, fieldIndex, "fragment", nil); err != nil {
+		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
+			"field_name": s.Name,
+			"alias":      nil,
+			"path_index": fieldIndex,
+			"kind":       "fragment",
+		}); err != nil {
 			return &plugins.Error{
 				Message: "could not store fragment spread in database",
 				Detail:  err.Error(),
@@ -904,26 +943,21 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 
 	// if we get this far, we need to associate the selection with its parent
 	if parent != nil {
-		statements.InsertSelectionRef.BindInt64(1, *parent)
-	} else {
-		statements.InsertSelectionRef.BindNull(1)
+		statements.InsertSelectionRef.SetInt64("$parent_id", *parent)
 	}
-	statements.InsertSelectionRef.BindInt64(2, selectionID)
-	statements.InsertSelectionRef.BindInt64(3, documentID)
-
 	line := query.RowOffset
 	column := query.ColumnOffset
 	// we want to save the selection location in the document
 	if position := sel.GetPosition(); position != nil {
-		line = position.Line + query.RowOffset
+		line += position.Line + query.RowOffset
 		column = position.Column + query.ColumnOffset
-		statements.InsertSelectionRef.BindInt64(4, int64(line))
-		statements.InsertSelectionRef.BindInt64(5, int64(column))
-	} else {
-		statements.InsertSelectionRef.BindNull(4)
-		statements.InsertSelectionRef.BindNull(5)
 	}
-	if err := db.ExecStatement(statements.InsertSelectionRef); err != nil {
+	if err := db.ExecStatement(statements.InsertSelectionRef, map[string]interface{}{
+		"child_id": selectionID,
+		"document": documentID,
+		"row":      line,
+		"column":   column,
+	}); err != nil {
 		return &plugins.Error{
 			Message: "could not store selection ref",
 			Detail:  err.Error(),
@@ -944,7 +978,12 @@ func processSelection[PluginConfig any](db plugins.DatabasePool[PluginConfig], c
 func processDirectives[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, statements DocumentInsertStatements, selectionID int64, directives []*ast.Directive) *plugins.Error {
 	for _, directive := range directives {
 		// insert the directive row
-		if err := db.ExecStatement(statements.InsertSelectionDirective, selectionID, directive.Name, directive.Position.Line, directive.Position.Column); err != nil {
+		if err := db.ExecStatement(statements.InsertSelectionDirective, map[string]interface{}{
+			"selection_id": selectionID,
+			"directive":    directive.Name,
+			"row":          directive.Position.Line,
+			"column":       directive.Position.Column,
+		}); err != nil {
 			return &plugins.Error{
 				Message: "could not store selection directive in database",
 				Detail:  err.Error(),
@@ -980,10 +1019,11 @@ func processDirectives[PluginConfig any](db plugins.DatabasePool[PluginConfig], 
 			// Insert the directive argument record.
 			if err := db.ExecStatement(
 				statements.InsertSelectionDirectiveArgument,
-				dirID,
-				dArg.Name,
-				argValueID,
-			); err != nil {
+				map[string]interface{}{
+					"parent": dirID,
+					"name":   dArg.Name,
+					"value":  argValueID,
+				}); err != nil {
 				return &plugins.Error{
 					Message: "could not insert directive argument",
 					Detail:  err.Error(),
@@ -1046,7 +1086,12 @@ func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig
 	}
 
 	// Insert the value itself into the argument_values table.
-	err := db.ExecStatement(statements.InsertArgumentValue, kindStr, value.Raw, value.Position.Line, value.Position.Column)
+	err := db.ExecStatement(statements.InsertArgumentValue, map[string]interface{}{
+		"kind":   kindStr,
+		"raw":    value.Raw,
+		"row":    int64(value.Position.Line),
+		"column": int64(value.Position.Column),
+	})
 	if err != nil {
 		return 0, plugins.WrapError(err)
 	}
@@ -1083,12 +1128,13 @@ func processArgumentValue[PluginConfig any](db plugins.DatabasePool[PluginConfig
 			// Insert the relationship into argument_value_children.
 			execErr := db.ExecStatement(
 				statements.InsertArgumentValueChild,
-				nameParam,
-				parentID,
-				childID,
-				line,
-				column,
-			)
+				map[string]interface{}{
+					"name":   nameParam,
+					"parent": parentID,
+					"value":  childID,
+					"row":    int64(line),
+					"column": int64(column),
+				})
 			if execErr != nil {
 				return 0, plugins.WrapError(execErr)
 			}

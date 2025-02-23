@@ -1603,47 +1603,55 @@ func TestValidate_Houdini(t *testing.T) {
 			}
 
 			// write the raw documents to the database
-			insertRaw, err := conn.Prepare(`insert into raw_documents (content, filepath) values (?, ?)`)
+			insertRaw, err := conn.Prepare(`insert into raw_documents (content, filepath) values ($content, $filepath)`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRaw.Finalize()
 			for i, doc := range test.Documents {
-				if err := db.ExecStatement(insertRaw, doc, fmt.Sprintf("foo-%v", i)); err != nil {
+				if err := db.ExecStatement(insertRaw, map[string]interface{}{
+					"content":  doc,
+					"filepath": fmt.Sprintf("foo-%v", i),
+				}); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}
 
-			insertDefaultKeys, err := conn.Prepare(`insert into config (default_keys, include, exclude, schema_path) values (?, '*', '*', '*')`)
+			insertDefaultKeys, err := conn.Prepare(`insert into config (default_keys, include, exclude, schema_path) values ($keys, '*', '*', '*')`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertDefaultKeys.Finalize()
-			err = db.ExecStatement(insertDefaultKeys, `["id"]`)
+			err = db.ExecStatement(insertDefaultKeys, map[string]interface{}{
+				"keys": `["id"]`,
+			})
 			if err != nil {
 				t.Fatalf("failed insert default keys: %v", err)
 			}
 
-			insertTypeKeys, err := conn.Prepare(`insert into type_configs (name, keys) values (?, '["aka", "name"]')`)
+			insertTypeKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ($name, '["aka", "name"]')`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertTypeKeys.Finalize()
-			err = db.ExecStatement(insertTypeKeys, "Ghost")
+			err = db.ExecStatement(insertTypeKeys, map[string]interface{}{"name": "Ghost"})
 			if err != nil {
 				t.Fatalf("failed insert default keys: %v", err)
 			}
-			err = db.ExecStatement(insertTypeKeys, "Legend")
+			err = db.ExecStatement(insertTypeKeys, map[string]interface{}{"name": "Legend"})
 			if err != nil {
 				t.Fatalf("failed insert default keys: %v", err)
 			}
 
-			insertRuntimeScalar, err := conn.Prepare(`insert into runtime_scalar_definitions (name, type) values (?, ?)`)
+			insertRuntimeScalar, err := conn.Prepare(`insert into runtime_scalar_definitions (name, type) values ($name, $type)`)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRuntimeScalar.Finalize()
-			err = db.ExecStatement(insertRuntimeScalar, "ViewerIDFromSession", "ID")
+			err = db.ExecStatement(insertRuntimeScalar, map[string]interface{}{
+				"name": "ViewerIDFromSession",
+				"type": "ID",
+			})
 			if err != nil {
 				t.Fatalf("failed insert runtime scalar: %v", err)
 			}
