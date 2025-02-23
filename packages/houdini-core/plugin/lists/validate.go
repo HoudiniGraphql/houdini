@@ -27,22 +27,7 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 	HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(query)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	err = db.StepStatement(ctx, stmt, func() {
+	err := db.StepQuery(ctx, query, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
@@ -63,36 +48,21 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 
 func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
-	SELECT
-	  rd.filepath,
-	  rd.offset_line AS row,
-	  rd.offset_column AS column,
-	  d.name AS documentName,
-	  GROUP_CONCAT(DISTINCT sd.directive) AS directives
-	FROM selection_directives sd
-	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
-	  JOIN documents d ON d.id = sr.document
-	  JOIN raw_documents rd ON rd.id = d.raw_document
-	WHERE sd.directive IN ('parentID', 'allLists')
-	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
-	HAVING COUNT(DISTINCT sd.directive) > 1
+		SELECT
+			rd.filepath,
+			rd.offset_line AS row,
+			rd.offset_column AS column,
+			d.name AS documentName,
+			GROUP_CONCAT(DISTINCT sd.directive) AS directives
+		FROM selection_directives sd
+			JOIN selection_refs sr ON sr.child_id = sd.selection_id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+		WHERE sd.directive IN ('parentID', 'allLists')
+			GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
+			HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(query)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	err = db.StepStatement(ctx, stmt, func() {
+	err := db.StepQuery(ctx, query, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
@@ -144,12 +114,12 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	  LEFT JOIN selection_arguments sa ON sa.selection_id = s.id
-	  LEFT JOIN selection_directive_arguments sda ON sda.parent = sd.id AND sda.name = ?
+	  LEFT JOIN selection_directive_arguments sda ON sda.parent = sd.id AND sda.name = $paginate_mode_arg
 	  LEFT JOIN argument_values av ON av.id = sda.value
 	  LEFT JOIN selections sp ON sp.id = sr.parent_id
 	  LEFT JOIN type_fields ptf ON ptf.id = sp.type
 	  LEFT JOIN field_argument_definitions fd ON fd.field = s.type
-	WHERE sd.directive = ?
+	WHERE sd.directive = $paginate_directive
 	GROUP BY s.id, s.field_name, s.type, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column, sd.id, ptf.type_modifiers
 	`
 
@@ -168,8 +138,8 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 	defer stmt.Finalize()
 
 	// Bind parameters: first the mode argument name, then the paginate directive.
-	stmt.BindText(1, paginateModeArgName)
-	stmt.BindText(2, paginateDirective)
+	stmt.SetText("$paginate_mode_arg", paginateModeArgName)
+	stmt.SetText("$paginate_directive", paginateDirective)
 
 	type usageRecord struct {
 		selectionID     int64
@@ -336,7 +306,7 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 			ON tc.resolve_query IS NOT NULL
 			AND d.type_condition = tc.name
 		WHERE d.kind = 'fragment'
-			AND sd.directive = ?
+			AND sd.directive = $paginate_directive
 			AND pt.member IS NULL
 			AND tc.name IS NULL
 	`
@@ -354,7 +324,7 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, schema.PaginationDirective)
+	stmt.SetText("$paginate_directive", schema.PaginationDirective)
 
 	err = db.StepStatement(ctx, stmt, func() {
 		docName := stmt.ColumnText(0)
@@ -389,7 +359,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
-	WHERE sd.directive = ?
+	WHERE sd.directive = $paginate_directive
 	`
 
 	conn, err := db.Take(ctx)
@@ -406,7 +376,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, schema.PaginationDirective)
+	stmt.SetText("$paginate_directive", schema.PaginationDirective)
 
 	// We'll group usages in memory by documentID.
 	type usage struct {
@@ -497,7 +467,7 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 				JOIN documents doc ON sr.document = doc.id
 				JOIN selection_directive_arguments da ON sd.id = da.parent
 				JOIN argument_values ON da.value = argument_values.id
-			WHERE sd.directive IN (? , ?)
+			WHERE sd.directive IN ($paginate_directive , $list_directive)
 				AND da.name = 'name'
 				AND doc.kind = 'query'
 
@@ -539,14 +509,14 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 				JOIN documents doc ON sr.document = doc.id
 				JOIN selection_directive_arguments da ON sd.id = da.parent
 				JOIN argument_values ON da.value = argument_values.id
-			WHERE sd.directive IN (? , ?)
+			WHERE sd.directive IN ($paginate_directive , $list_directive)
 				AND da.name = 'name'
 				AND doc.kind = 'fragment'
 		),
 
 		-- Define a table of acceptable suffixes
 		suffixes(sfx) AS (
-			VALUES (?), (?), (?)
+			VALUES ($insert_prefix), ($toggle_prefix), ($remove_prefix)
 		),
 
 		-- precompute the list of operation names that could refer to a constrainted list
@@ -569,7 +539,7 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 			JOIN selection_refs sr ON sr.child_id = f.id
 			JOIN documents d ON sr.document = d.id
 			JOIN raw_documents rd ON d.raw_document = rd.id
-			LEFT JOIN selection_directives sd2 ON sd2.selection_id = f.id AND sd2.directive in (?, ?)
+			LEFT JOIN selection_directives sd2 ON sd2.selection_id = f.id AND sd2.directive in ($parentID_directive, $allLists_directive)
 		WHERE f.kind = 'fragment'
 		AND sd2.id IS NULL
 	`
@@ -589,15 +559,13 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 	defer stmt.Finalize()
 
 	// assign the suffixes that indicate a list operation
-	stmt.BindText(1, schema.PaginationDirective)
-	stmt.BindText(2, schema.ListDirective)
-	stmt.BindText(3, schema.PaginationDirective)
-	stmt.BindText(4, schema.ListDirective)
-	stmt.BindText(5, schema.ListOperationPrefixInsert)
-	stmt.BindText(6, schema.ListOperationPrefixToggle)
-	stmt.BindText(7, schema.ListOperationPrefixRemove)
-	stmt.BindText(8, schema.ParentIDDirective)
-	stmt.BindText(9, schema.AllListsDirective)
+	stmt.SetText("$paginate_directive", schema.PaginationDirective)
+	stmt.SetText("$list_directive", schema.ListDirective)
+	stmt.SetText("$insert_prefix", schema.ListOperationPrefixInsert)
+	stmt.SetText("$toggle_prefix", schema.ListOperationPrefixToggle)
+	stmt.SetText("$remove_prefix", schema.ListOperationPrefixRemove)
+	stmt.SetText("$parentID_directive", schema.ParentIDDirective)
+	stmt.SetText("$allLists_directive", schema.AllListsDirective)
 
 	// every result is a list that requires a parent id but doesn't have one
 	err = db.StepStatement(ctx, stmt, func() {
@@ -645,7 +613,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				JOIN documents ON selection_refs.document = documents.id
 				JOIN raw_documents ON documents.raw_document = raw_documents.id
 			WHERE selection_directive_arguments.name = 'name'
-				AND selection_directives.directive IN (?, ?)
+				AND selection_directives.directive IN ($list_directive, $paginate_directive)
 		),
 		base AS (
 			-- Get the declared type (and its type_modifiers) for the original selection.
@@ -713,8 +681,8 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	}
 	defer nameStatement.Finalize()
 
-	nameStatement.BindText(1, schema.ListDirective)
-	nameStatement.BindText(2, schema.PaginationDirective)
+	nameStatement.SetText("$list_directive", schema.ListDirective)
+	nameStatement.SetText("$paginate_directive", schema.PaginationDirective)
 
 	// as we step through the results we'll need to keep track of operation names
 	// we've already seen so we can identify duplicates

@@ -8,6 +8,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
+	"zombiezen.com/go/sqlite"
 )
 
 func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
@@ -33,21 +34,7 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 	GROUP BY s.id, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column
 	HAVING COUNT(sda.id) < 1
 	`
-	conn, err := db.Take(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer db.Put(conn)
-
-	stmt, err := conn.Prepare(query)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defer stmt.Finalize()
-
-	err = db.StepStatement(ctx, stmt, func() {
+	err := db.StepQuery(ctx, query, func(stmt *sqlite.Stmt) {
 		fragmentName := stmt.ColumnText(2)
 		filepath := stmt.ColumnText(3)
 		row := int(stmt.ColumnInt(4))
@@ -81,7 +68,7 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 			JOIN selection_directive_arguments sda ON sda.value = av.id
 			JOIN selection_directives sd ON sd.id = sda.parent
 			LEFT JOIN argument_value_children avc ON avc.value = av.id
-			WHERE sd.directive = ?
+			WHERE sd.directive = $with_directive
 
 			-- Recursive part: get children of any node in arg_tree.
 			UNION ALL
@@ -109,7 +96,7 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	flatStmt.BindText(1, schema.WithDirective)
+	flatStmt.SetText("$with_directive", schema.WithDirective)
 
 	// Build a map of nodes keyed by their id.
 	flatNodes := make(map[int]*DirectiveArgValueNode)

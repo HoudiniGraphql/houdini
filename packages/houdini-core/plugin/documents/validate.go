@@ -892,10 +892,8 @@ func ValidateMissingRequiredArgument[PluginConfig any](ctx context.Context, db p
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE fad.type_modifiers LIKE '%!'
 	  AND sa.id IS NULL
-	  AND d.kind IN ('query', 'mutation', 'subscription')
 	GROUP BY s.id, fad.name
 	`
-
 	err := db.StepQuery(ctx, query, func(row *sqlite.Stmt) {
 		argName := row.ColumnText(0)
 		filepath := row.ColumnText(1)
@@ -1620,7 +1618,7 @@ func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.Da
 			JOIN documents d ON d.id = sr.document
 			JOIN raw_documents rd ON rd.id = d.raw_document
 		WHERE s.kind = 'fragment'
-			AND sd.directive IN (?, ?)
+			AND sd.directive IN ($enable_directive, $disable_directive)
 		GROUP BY s.id
 		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
@@ -1640,8 +1638,8 @@ func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.Da
 	defer stmt.Finalize()
 
 	// Bind the two directive names.
-	stmt.BindText(1, schema.EnableMaskDirective)
-	stmt.BindText(2, schema.DisableMaskDirective)
+	stmt.SetText("$enable_directive", schema.EnableMaskDirective)
+	stmt.SetText("$disable_directive", schema.DisableMaskDirective)
 
 	err = db.StepStatement(ctx, stmt, func() {
 		filepath := stmt.ColumnText(1)
@@ -1682,8 +1680,8 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 	  JOIN selection_refs sr ON sr.child_id = s.id
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
-	  LEFT JOIN selection_directives pd ON pd.selection_id = sr.parent_id AND pd.directive = ?
-	WHERE sd.directive = ?
+	  LEFT JOIN selection_directives pd ON pd.selection_id = sr.parent_id AND pd.directive = $loading_directive
+	WHERE sd.directive = $loading_directive
 	  AND s.kind IN ('field', 'fragment')
 	  AND sr.parent_id IS NOT NULL
 	  AND pd.directive IS NULL
@@ -1691,7 +1689,7 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 	    SELECT d2.id
 	    FROM documents d2
 	    JOIN document_directives dd ON d2.id = dd.document
-	    WHERE dd.directive = ?
+	    WHERE dd.directive = $loading_directive
 	  )
 	`
 
@@ -1710,9 +1708,7 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 	defer stmt.Finalize()
 
 	// Bind the loading directive three times.
-	stmt.BindText(1, schema.LoadingDirective)
-	stmt.BindText(2, schema.LoadingDirective)
-	stmt.BindText(3, schema.LoadingDirective)
+	stmt.SetText("$loading_directive", schema.LoadingDirective)
 
 	err = db.StepStatement(ctx, stmt, func() {
 		filepath := stmt.ColumnText(2)
@@ -1765,8 +1761,8 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	  LEFT JOIN selection_refs sr_child ON sr_child.parent_id = s.id
 	  LEFT JOIN selection_directives sd_child
-		ON sr_child.child_id = sd_child.selection_id AND sd_child.directive = ?
-	WHERE sd.directive = ?
+		ON sr_child.child_id = sd_child.selection_id AND sd_child.directive = $required_directive
+	WHERE sd.directive = $required_directive
 	GROUP BY s.id, s.field_name, tf.type_modifiers, t.kind, rd.filepath, sr.row, sr.column, d.name
 	`
 
@@ -1785,8 +1781,7 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 	defer stmt.Finalize()
 
 	// Bind the required directive name twice.
-	stmt.BindText(1, schema.RequiredDirective)
-	stmt.BindText(2, schema.RequiredDirective)
+	stmt.SetText("$required_directive", schema.RequiredDirective)
 
 	err = db.StepStatement(ctx, stmt, func() {
 		fieldName := stmt.ColumnText(1)
@@ -1850,7 +1845,7 @@ func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plu
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	  JOIN type_fields tf ON s.type = tf.id
 	  JOIN types t ON tf.type = t.name
-	WHERE sd.directive = ?
+	WHERE sd.directive = $optimistic_key_directive
 	  AND t.kind != 'SCALAR'
 	`
 
@@ -1868,7 +1863,7 @@ func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plu
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, schema.OptimisticKeyDirective)
+	stmt.SetText("$optimistic_key_directive", schema.OptimisticKeyDirective)
 
 	err = db.StepStatement(ctx, stmt, func() {
 		fieldTypeKind := stmt.ColumnText(6)
@@ -1921,7 +1916,7 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 	  LEFT JOIN type_fields tfp ON sp.type = tfp.id
 	  LEFT JOIN type_configs tc ON tc.name = tfp.type
 	  CROSS JOIN config c
-	WHERE sd.directive = ?
+	WHERE sd.directive = $optimistic_key_directive
 	  AND sr.parent_id IS NOT NULL
 	  AND sp.kind = 'field'
 	`
@@ -1939,7 +1934,7 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 	}
 	defer stmt.Finalize()
 
-	stmt.BindText(1, optimisticDirective)
+	stmt.SetText("$optimistic_key_directive", optimisticDirective)
 
 	// In-memory grouping: map parentID -> list of usage records.
 	type usageRecord struct {
