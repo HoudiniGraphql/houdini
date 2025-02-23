@@ -124,8 +124,8 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 			err := db.ExecStatement(insertRawStatement, map[string]interface{}{
 				"filepath": doc.FilePath,
 				"content":  doc.Content,
-				"row":      doc.OffsetColumn,
-				"column":   doc.OffsetRow,
+				"row":      doc.OffsetRow,
+				"column":   doc.OffsetColumn,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(fmt.Errorf("failed to insert raw document: %v", err)))

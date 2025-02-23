@@ -68,7 +68,14 @@ func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args 
 	if _, err := statement.Step(); err != nil {
 		return err
 	}
-	return statement.Reset()
+	if err := statement.Reset(); err != nil {
+		return err
+	}
+	if err := statement.ClearBindings(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // StepQuery wraps the common steps for executing a query.

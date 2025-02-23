@@ -404,8 +404,9 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 			variableType, typeModifiers := schema.ParseFieldType(variable.Type.String())
 
 			// if there's a default value, bind it (we'll bind the rest later)
+			var defaultValue interface{}
 			if variable.DefaultValue != nil {
-				statements.InsertDocumentVariable.SetText("$defaultValue", variable.DefaultValue.String())
+				defaultValue = variable.DefaultValue.String()
 			}
 
 			if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{
@@ -415,6 +416,7 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 				"type_modifiers": typeModifiers,
 				"row":            int64(variable.Position.Line),
 				"column":         int64(variable.Position.Column),
+				"default_value":  defaultValue,
 			}); err != nil {
 				return &plugins.Error{
 					Message: "could not associate document variable",
