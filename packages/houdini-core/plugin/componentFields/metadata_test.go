@@ -10,6 +10,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
@@ -38,17 +39,21 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = plugins.WriteHoudiniSchema(conn)
+	err = tests.WriteHoudiniSchema(conn)
 	require.Nil(t, err)
-	db.Put(conn)
+	defer db.Put(conn)
+
+	statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
+	require.Nil(t, err)
+	defer finalize()
 
 	// load the query into the database as a pending query
-	err = documents.LoadPendingQuery(db, documents.PendingQuery{
+	err = documents.LoadPendingQuery(db, conn, documents.PendingQuery{
 		ID:                       1,
 		Query:                    query,
 		InlineComponentField:     true,
 		InlineComponentFieldProp: strPtr("user"),
-	})
+	}, statements)
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process
@@ -85,7 +90,7 @@ func TestComponentFieldChecks(t *testing.T) {
 		union Friend = User
 	`
 
-	tests := []struct {
+	table := []struct {
 		Title     string
 		Pass      bool
 		Documents []string
@@ -140,9 +145,8 @@ func TestComponentFieldChecks(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range table {
 		t.Run(test.Title, func(t *testing.T) {
-
 			// create and wire up a database we can test against
 			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
 			if err != nil {
@@ -166,25 +170,26 @@ func TestComponentFieldChecks(t *testing.T) {
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = plugins.WriteHoudiniSchema(conn)
+			err = tests.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
-
-			// Use an in-memory file system.
-			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
 			// wire up the plugin
 			err = plugin.Schema(ctx)
 			require.Nil(t, err)
 			// we're done with the database connection for now
-			db.Put(conn)
+			defer db.Put(conn)
+
+			statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
+			require.Nil(t, err)
+			defer finalize()
 
 			// load the query into the database as a pending query
 			for i, doc := range test.Documents {
-				err = documents.LoadPendingQuery(db, documents.PendingQuery{
+				err = documents.LoadPendingQuery(db, conn, documents.PendingQuery{
 					ID:       i,
 					Query:    doc,
 					Filepath: fmt.Sprintf("file-%v", i),
-				})
+				}, statements)
 				require.Nil(t, err)
 			}
 

@@ -32,11 +32,11 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		}
 
 		isOperation := false
-		if typ.Name == schema.Query.Name {
+		if schema.Query != nil && typ.Name == schema.Query.Name {
 			isOperation = true
-		} else if typ.Name == schema.Mutation.Name {
+		} else if schema.Mutation != nil && typ.Name == schema.Mutation.Name {
 			isOperation = true
-		} else if typ.Name == schema.Subscription.Name {
+		} else if schema.Subscription != nil && typ.Name == schema.Subscription.Name {
 			isOperation = true
 		}
 

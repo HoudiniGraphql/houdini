@@ -42,15 +42,20 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 				close(&err)
 				return err
 			}
+			statements, err, finalize := PrepareDocumentInsertStatements(conn)
+			if err != nil {
+				return plugins.WrapError(err)
+			}
+			defer finalize()
 
 			var txErr error
 			// consume queries until the channel is closed
 			for query := range queries {
 				// load the document into the database
-				err := LoadPendingQuery(db, query)
-				if err != nil {
+				pluginErr := LoadPendingQuery(db, conn, query, statements)
+				if pluginErr != nil {
 					txErr = err
-					errs.Append(err)
+					errs.Append(pluginErr)
 				}
 			}
 
@@ -150,19 +155,7 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 
 // LoadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], query PendingQuery) *plugins.Error {
-	conn, err := db.Take(context.Background())
-	if err != nil {
-		return plugins.WrapError(err)
-	}
-	defer db.Put(conn)
-
-	statements, err, finalize := PrepareDocumentInsertStatements(conn)
-	if err != nil {
-		return plugins.WrapError(err)
-	}
-	defer finalize()
-
+func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, statements DocumentInsertStatements) *plugins.Error {
 	// parse the query.
 	parsed, err := parser.ParseQuery(&ast.Source{
 		Input: query.Query,

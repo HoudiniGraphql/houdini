@@ -1157,11 +1157,11 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			defer db.Close()
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
+			defer db.Put(conn)
 
 			if err := tests.WriteHoudiniSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
-			db.Put(conn)
 
 			// ─── POPULATE THE SCHEMA ─────────────────────────────────────────────
 			// Insert rows into "type_fields" so that the lookup in processSelection
@@ -1232,7 +1232,11 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				InlineComponentFieldProp: tc.inlineComponentFieldProp,
 			}
 
-			pendingErr := documents.LoadPendingQuery(db, pending)
+			statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
+			require.Nil(t, err)
+			defer finalize()
+
+			pendingErr := documents.LoadPendingQuery(db, conn, pending, statements)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)
@@ -1245,6 +1249,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 
 			// make sure we generated what we expected
 			tests.ValidateExpectedDocuments(t, db, tc.expectedDocs)
+
 		})
 	}
 }

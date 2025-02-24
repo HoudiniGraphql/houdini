@@ -38,17 +38,21 @@ func TestRuntimeScalars(t *testing.T) {
 
 	conn, err := db.Take(context.Background())
 	require.Nil(t, err)
+	defer db.Put(conn)
 
 	// write the schema to the database
 	err = tests.WriteHoudiniSchema(conn)
-	db.Put(conn)
 	require.Nil(t, err)
 
+	statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
+	require.Nil(t, err)
+	defer finalize()
+
 	// load the query into the database as a pending query
-	err = documents.LoadPendingQuery(db, documents.PendingQuery{
+	err = documents.LoadPendingQuery(db, conn, documents.PendingQuery{
 		ID:    1,
 		Query: query,
-	})
+	}, statements)
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the proces
