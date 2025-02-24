@@ -236,6 +236,18 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				}
 			}
 
+			if !typ.BuiltIn {
+				// make sure that we can always ask for the __typename of an object
+				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+					"id":             fmt.Sprintf("%s.__typename", typ.Name),
+					"parent":         typ.Name,
+					"name":           "__typename",
+					"type":           "String",
+					"type_modifiers": "!",
+					"description":    "",
+				})
+			}
+
 		case ast.Union:
 			// implement the union members in a deferred pass
 			for _, member := range schema.GetPossibleTypes(typ) {
@@ -258,6 +270,19 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 					continue
 				}
 			}
+
+			if !typ.BuiltIn {
+				// make sure that we can always ask for the __typename of an object
+				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+					"id":             fmt.Sprintf("%s.__typename", typ.Name),
+					"parent":         typ.Name,
+					"name":           "__typename",
+					"type":           "String",
+					"type_modifiers": "!",
+					"description":    "",
+				})
+			}
+
 		}
 	}
 
