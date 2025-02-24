@@ -81,7 +81,9 @@ export default async function () {
 			)
 
 			// make sure the binary is executable
-			await execCmd('chmod', ['+x', path.join(outputDir, bin)], {})
+			if (process.platform !== 'win32') {
+				await execCmd('chmod', ['+x', path.join(outputDir, bin)], {})
+			}
 
 			// next we need to add the package.json file
 			await fs.writeFile(
@@ -136,7 +138,9 @@ export default async function () {
 
 		await fs.writeFile(scriptPath, scriptContents, 'utf8')
 
-		await execCmd('chmod', ['+x', scriptPath], {})
+		if (process.platform !== 'win32') {
+			await execCmd('chmod', ['+x', scriptPath], {})
+		}
 	}
 
 	// write the package.json somewhere that we can use later (the package scripts will modify it)
