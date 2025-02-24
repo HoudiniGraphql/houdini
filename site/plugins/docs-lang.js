@@ -190,7 +190,7 @@ function transformVariable(statement, parent, importPaths) {
 		// remove the type annotation
 		declaration.id.typeAnnotation = null
 
-		parent.comments = [...(parent.comments ?? []), AST.commentBlock(` @type { ${targetType} } `)]
+		parent.comments = [...(parent.comments ?? []), AST.commentBlock(`* @type { ${targetType} } `)]
 	}
 }
 
