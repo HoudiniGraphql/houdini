@@ -1249,7 +1249,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 
 			// make sure we generated what we expected
 			tests.ValidateExpectedDocuments(t, db, tc.expectedDocs)
-
 		})
 	}
 }

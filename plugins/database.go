@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -86,6 +87,18 @@ func (db DatabasePool[PluginConfig]) BindStatement(stmt *sqlite.Stmt, args map[s
 
 	// nothing went wrong
 	return nil
+}
+
+// our wrapper over take needs to time out after 10 seconds
+func (db DatabasePool[PluginConfig]) Take(ctx context.Context) (*sqlite.Conn, error) {
+	ctx, _ = context.WithTimeout(ctx, 10*time.Second)
+
+	conn, err := db.Pool.Take(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 // StepQuery wraps the common steps for executing a query.
