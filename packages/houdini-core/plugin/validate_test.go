@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
@@ -122,7 +123,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 	`
 
-	var tests = []struct {
+	var table = []struct {
 		Title     string
 		Documents []string
 		Pass      bool
@@ -1554,7 +1555,7 @@ func TestValidate_Houdini(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range table {
 		t.Run(test.Title, func(t *testing.T) {
 			// create and wire up a database we can test against
 			db, err := plugins.NewPoolInMemory[houdiniCore.PluginConfig]()
@@ -1585,7 +1586,7 @@ func TestValidate_Houdini(t *testing.T) {
 			conn, err := db.Take(ctx)
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = plugins.WriteHoudiniSchema(conn)
+			err = tests.WriteHoudiniSchema(conn)
 			require.Nil(t, err)
 
 			// Use an in-memory file system.

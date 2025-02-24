@@ -1,4 +1,4 @@
-package plugins
+package tests
 
 import (
 	"strings"
@@ -116,6 +116,7 @@ CREATE TABLE raw_documents (
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
+    operation BOOLEAN default false,
 	internal BOOLEAN default false
 );
 
@@ -336,3 +337,59 @@ CREATE TABLE argument_value_children (
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
 );
 `
+
+// expectedDocument represents an operation or fragment definition.
+type ExpectedDocument struct {
+	Name          string
+	RawDocument   int
+	Kind          string // "query", "mutation", "subscription", or "fragment"
+	TypeCondition *string
+	Variables     []ExpectedOperationVariable
+	Selections    []ExpectedSelection
+	Directives    []ExpectedDirective
+}
+
+type ExpectedOperationVariable struct {
+	Document      int
+	VarName       string
+	Type          string
+	TypeModifiers string
+	DefaultValue  *string
+	Directives    []ExpectedDirective
+}
+
+type ExpectedArgument struct {
+	Name  string
+	Value string
+}
+
+type ExpectedArgumentValue struct {
+	Kind     string
+	Raw      string
+	Children []ExpectedArgumentValueChild
+}
+
+type ExpectedArgumentValueChild struct {
+	Name  string
+	Value ExpectedArgumentValue
+}
+
+type ExpectedDirectiveArgument struct {
+	Name  string
+	Value string
+}
+
+type ExpectedDirective struct {
+	Name      string
+	Arguments []ExpectedDirectiveArgument
+}
+
+type ExpectedSelection struct {
+	FieldName  string
+	Alias      *string
+	PathIndex  int
+	Kind       string // "field", "fragment", "inline_fragment", etc.
+	Arguments  []ExpectedArgument
+	Directives []ExpectedDirective
+	Children   []ExpectedSelection
+}

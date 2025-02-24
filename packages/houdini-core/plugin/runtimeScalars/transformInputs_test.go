@@ -8,6 +8,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/runtimeScalars"
 	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/tests"
 
 	"github.com/stretchr/testify/require"
 )
@@ -39,7 +40,7 @@ func TestRuntimeScalars(t *testing.T) {
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = plugins.WriteHoudiniSchema(conn)
+	err = tests.WriteHoudiniSchema(conn)
 	db.Put(conn)
 	require.Nil(t, err)
 

@@ -7,13 +7,14 @@ import (
 
 	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/tests"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSchema(t *testing.T) {
-	tests := []struct {
+	table := []struct {
 		name        string
 		setupFs     func(fs afero.Fs) error
 		expectError bool
@@ -80,7 +81,7 @@ func TestSchema(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
+	for _, tc := range table {
 		tc := tc // capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			// Use an in-memory file system.
@@ -100,7 +101,7 @@ func TestSchema(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 
-			err = plugins.WriteHoudiniSchema(conn)
+			err = tests.WriteHoudiniSchema(conn)
 			db.Put(conn)
 			require.Nil(t, err)
 

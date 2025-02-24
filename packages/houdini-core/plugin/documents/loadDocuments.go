@@ -477,7 +477,6 @@ func LoadPendingQuery[PluginConfig any](db plugins.DatabasePool[PluginConfig], q
 			}
 		}
 
-		// TODO: support custom operation types
 		// figure out the name of the root type for the operation.
 		operationType := "Query"
 		if operation.Operation == ast.Mutation {

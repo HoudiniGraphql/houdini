@@ -31,10 +31,20 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			continue
 		}
 
+		isOperation := false
+		if typ.Name == schema.Query.Name {
+			isOperation = true
+		} else if typ.Name == schema.Mutation.Name {
+			isOperation = true
+		} else if typ.Name == schema.Subscription.Name {
+			isOperation = true
+		}
+
 		// insert the type row
 		err := db.ExecStatement(statements.InsertType, map[string]interface{}{
-			"name": typ.Name,
-			"kind": kind,
+			"name":      typ.Name,
+			"kind":      kind,
+			"operation": isOperation,
 		})
 		if err != nil {
 			errors.Append(&plugins.Error{
@@ -104,6 +114,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 					})
 					continue
 				}
+
 				for _, arg := range field.Arguments {
 
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
@@ -128,6 +139,18 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 						continue
 					}
 				}
+			}
+
+			if !typ.BuiltIn {
+				// make sure that we can always ask for the __typename of an object
+				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+					"id":             fmt.Sprintf("%s.__typename", typ.Name),
+					"parent":         typ.Name,
+					"name":           "__typename",
+					"type":           "String",
+					"type_modifiers": "!",
+					"description":    "",
+				})
 			}
 
 		case ast.InputObject:

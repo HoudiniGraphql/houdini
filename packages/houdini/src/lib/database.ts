@@ -97,6 +97,7 @@ CREATE TABLE raw_documents (
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
+    operation BOOLEAN default false,
 	internal BOOLEAN default false
 );
 
@@ -319,6 +320,8 @@ CREATE TABLE discovered_lists (
 -- Indices
 -----------------------------------------------------------
 
+CREATE INDEX idx_type_fields_parent_name ON type_fields(parent, name);
+CREATE INDEX idx_types_kind_operation ON types(kind, operation);
 CREATE INDEX idx_documents_kind ON documents(kind);
 CREATE INDEX idx_documents_type_condition ON documents(type_condition);
 CREATE INDEX idx_raw_documents_current_task ON raw_documents(current_task);
