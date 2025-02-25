@@ -462,6 +462,32 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "Non-conflicting field selections across multiple fragments",
+			Pass:  true,
+			Documents: []string{
+				`fragment UserInfo on User {
+					id
+			   }`,
+				`fragment Test on Node{
+					id
+			  	}`,
+			},
+		},
+		{
+			Title: "Non-conflicting field selections in the same document",
+			Pass:  true,
+			Documents: []string{
+				`fragment UserInfo on User {
+					friends {
+						id
+					}
+					friends {
+						id
+					}
+			   }`,
+			},
+		},
+		{
 			Title: "Providing an argument value of the wrong type",
 			Pass:  false,
 			Documents: []string{

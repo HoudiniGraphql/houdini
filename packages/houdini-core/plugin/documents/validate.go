@@ -960,7 +960,7 @@ func ValidateConflictingSelections[PluginConfig any](ctx context.Context, db plu
 			JOIN raw_documents rd ON rd.id = d.raw_document
 		WHERE s.alias IS NOT NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
-		GROUP BY sr.parent_id, s.alias
+		GROUP BY sr.parent_id, s.alias, d.id
 		HAVING COUNT(DISTINCT s.type) > 1
 	`
 
