@@ -1,5 +1,5 @@
 <div class={$$props.class}>
-	<a href="https://discord.gg/ufWDdn3bvY" target="_blank" rel="noreferrer" class="hide-thin">
+	<a href="https://discord.gg/Gd8vfvxpsD" target="_blank" rel="noreferrer" class="hide-thin">
 		<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 127.14 96.36">
 			<path
 				fill="currentcolor"
