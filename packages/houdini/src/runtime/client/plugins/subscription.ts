@@ -105,8 +105,8 @@ export type SubscriptionClient = {
 		payload: {
 			operationName?: string
 			query: string
-			variables?: Record<string, unknown> | null
-			extensions?: Record<'persistedQuery', string> | Record<string, unknown> | null
+			variables?: Record<string, unknown>
+			extensions?: Record<'persistedQuery', string> | Record<string, unknown>
 		},
 		handlers: {
 			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
