@@ -630,78 +630,80 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 }
 
 func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	// This query finds operation variables that are defined but never used.
-	// We join document_variables (opv) to documents and raw_documents to get context.
-	// Then we left join a UNION ALL subquery ("var") that finds all variable usages,
-	// whether in field arguments, selection directives, or document directives.
-	// If COUNT(var.raw) = 0 for an operation variable, then it is unused.
 	query := `
+		WITH RECURSIVE used_arguments AS (
+			-- to start, let's join all of the top-level argument value IDs that
+			-- are used in selections or directives
+			SELECT
+				selections.id AS selection_id,
+				argument_values.raw,
+				argument_values.id AS parent_id,
+				argument_values.kind,
+				selection_refs."document" AS document
+			FROM selection_arguments
+				JOIN selections ON selection_arguments.selection_id = selections.id
+				JOIN argument_values ON selection_arguments."value" = argument_values.id
+				JOIN selection_refs ON selection_refs.child_id = selections.id
+
+			UNION ALL
+
+			SELECT
+				selection_refs.child_id as selection_id,
+				argument_values.raw,
+				argument_values.id AS parent_id,
+				argument_values.kind,
+				selection_refs."document" AS document
+			FROM selection_directive_arguments
+				JOIN argument_values on selection_directive_arguments."value" = argument_values.id
+				JOIN selection_directives on selection_directive_arguments.parent = selection_directives.id
+				JOIN selection_refs ON selection_refs.child_id = selection_directives.selection_id
+				JOIN documents on selection_refs."document" = documents.id
+
+
+-- 			now let's walk down the tree of argument values to find every node that's used
+
+			UNION ALL
+			SELECT
+				base.selection_id,
+				argument_values.raw,
+				argument_values.id AS parent_id,
+				argument_values.kind,
+				base.document
+			FROM argument_values argument_values
+				JOIN argument_value_children ON argument_value_children."value" = argument_values.id
+				JOIN used_arguments base ON base.parent_id = argument_value_children.parent
+			WHERE argument_value_children.parent IS NOT NULL
+		),
+
+		-- we only care about arguments that refer to variables
+		used_variables as (
+			SELECT * FROM used_arguments WHERE kind = 'Variable'
+		)
+
+		-- look for any document variables that do not have a corresponding entry in the used_variables CTE
 		SELECT
-			opv.name,
-			d.name AS documentName,
-			r.filepath,
-			COALESCE(
-			json_group_array(
-				json_object('line', var.row, 'column', var.column)
-			), '[]'
-			) AS locations
-		FROM document_variables opv
-			JOIN documents d ON opv.document = d.id
-			JOIN raw_documents r ON r.id = d.raw_document
-			LEFT JOIN (
-				-- Variable usages in field arguments:
-				SELECT d.id AS document, av.raw, refs.row, refs.column
-				FROM selection_refs refs
-				JOIN selection_arguments sargs ON sargs.selection_id = refs.child_id
-				JOIN argument_values av ON av.id = sargs.value AND av.kind = 'Variable'
-				JOIN documents d ON d.id = refs.document
-				UNION ALL
-				-- Variable usages in selection directives:
-				SELECT d.id AS document, av.raw, sd.row, sd.column
-				FROM selection_directives sd
-				JOIN selection_directive_arguments sda ON sda.parent = sd.id
-				JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
-				JOIN selections s ON s.id = sd.selection_id
-				JOIN selection_refs sr ON sr.child_id = s.id
-				JOIN documents d ON d.id = sr.document
-				UNION ALL
-				-- Variable usages in document directives:
-				SELECT d.id AS document, av.raw, dd.row, dd.column
-				FROM document_directives dd
-				JOIN document_directive_arguments sda ON sda.parent = dd.id
-				JOIN argument_values av ON av.id = sda.value AND av.kind = 'Variable'
-				JOIN documents d ON d.id = dd.document
-			) var ON var.document = d.id
-				AND var.raw = opv.name
-		WHERE (r.current_task = $task_id OR $task_id IS NULL)
-		GROUP BY opv.id
-		HAVING COUNT(var.raw) = 0
+			document_variables."name",
+			raw_documents.filepath,
+			document_variables.row,
+			document_variables."column"
+		FROM document_variables
+			JOIN documents ON document_variables.document = documents.id
+			JOIN raw_documents ON documents.raw_document = raw_documents.id
+			LEFT JOIN used_variables ON document_variables."document" = used_variables.document
+				AND document_variables."name" = used_variables.raw
+		WHERE used_variables.document IS NULL
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
-		varName := row.ColumnText(0)
-		docName := row.ColumnText(1)
-		filepath := row.ColumnText(2)
-		locationsRaw := row.ColumnText(3)
-
-		var locations []*plugins.ErrorLocation
-		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for unused variable '%s'", varName),
-				Detail:  err.Error(),
-			})
-			return
-		}
-
-		// Set the file path from the raw document for each location.
-		for _, loc := range locations {
-			loc.Filepath = filepath
-		}
+	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+		varName := stmt.ColumnText(0)
+		filepath := stmt.ColumnText(1)
+		row := stmt.ColumnInt(2)
+		column := stmt.ColumnInt(3)
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Variable '$%s' is defined in document '%s' but never used", varName, docName),
+			Message:   fmt.Sprintf("Variable '$%s' is defined but never used", varName),
 			Kind:      plugins.ErrorKindValidation,
-			Locations: locations,
+			Locations: []*plugins.ErrorLocation{{Filepath: filepath, Line: row, Column: column}},
 		})
 	})
 	if err != nil {
