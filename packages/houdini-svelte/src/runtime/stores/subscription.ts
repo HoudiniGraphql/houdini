@@ -1,10 +1,10 @@
 import type {
+	GraphQLLoadedObject,
 	GraphQLVariables,
 	QueryResult,
 	SubscriptionArtifact,
 } from '$houdini/runtime/lib/types'
 import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
-import type { GraphQLObject } from 'houdini'
 import { derived, writable, type Subscriber, type Writable } from 'svelte/store'
 
 import { initClient } from '../client'
@@ -12,7 +12,7 @@ import { getSession } from '../session'
 import { BaseStore } from './base'
 
 export class SubscriptionStore<
-	_Data extends GraphQLObject,
+	_Data extends GraphQLLoadedObject,
 	_Input extends GraphQLVariables
 > extends BaseStore<_Data, _Input, SubscriptionArtifact> {
 	kind = CompiledSubscriptionKind
