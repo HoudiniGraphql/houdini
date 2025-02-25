@@ -28,7 +28,7 @@ we're going to be building a loading screen for the Pokédex that we constructed
 
 For the sake of this guide, you can imagine that the Pokedex is built using the following route:
 
-```graphql:title=src/routes/[[id]]/+page.qgl
+```graphql:title=src/routes/[[id]]/+page.gql
 query SpeciesInfo($id: Int = 1) {
     species(id: $id) {
         name
