@@ -40,11 +40,19 @@ func TestValidate_Houdini(t *testing.T) {
 		type Query {
 			rootScalar: String
 			user(name: String!) : User
-			users: [User!]!
+			users(filter: [UserFilter]): [User!]!
 			nodes(ids: [ID!]!): [Node!]!
 			entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 			node(id: ID!): Node
 			ghost: Ghost!
+		}
+
+		input UserFilter {
+			and: [UserValueFilter]
+		}
+
+		input UserValueFilter {
+			firstName: String
 		}
 
 		type Mutation {
@@ -1049,6 +1057,19 @@ func TestValidate_Houdini(t *testing.T) {
 				`
 					fragment Foo1 on Query @arguments(name: { type: "String!" }) {
 						users(stringValue: "hello") { id }
+					}
+				`,
+			},
+		},
+		{
+			Title: "used variable in deeply nested argument",
+			Pass:  true,
+			Documents: []string{
+				`
+					query UserInfo($name: String) {
+						users (filter: [{ and: [{ firstName: $name }] }]) {
+							id
+						}
 					}
 				`,
 			},
