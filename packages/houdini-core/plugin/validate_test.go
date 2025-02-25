@@ -488,6 +488,37 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
+			Title: "Can query __typename on objects",
+			Pass:  true,
+			Documents: []string{
+				`query Test {
+					user(name: "foo") {
+						__typename
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Can query __typename on interfaces",
+			Pass:  true,
+			Documents: []string{
+				`query Test {
+					node(id: "foo") {
+						__typename
+					}
+				}`,
+			},
+		},
+		{
+			Title: "Can query __typename on unions",
+			Pass:  true,
+			Documents: []string{
+				`fragment HumanInfo on Human {
+					__typename
+				}`,
+			},
+		},
+		{
 			Title: "Providing an argument value of the wrong type",
 			Pass:  false,
 			Documents: []string{
