@@ -631,56 +631,6 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 
 func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	query := `
-		WITH RECURSIVE used_arguments AS (
-			-- to start, let's join all of the top-level argument value IDs that
-			-- are used in selections or directives
-			SELECT
-				selections.id AS selection_id,
-				argument_values.raw,
-				argument_values.id AS parent_id,
-				argument_values.kind,
-				selection_refs."document" AS document
-			FROM selection_arguments
-				JOIN selections ON selection_arguments.selection_id = selections.id
-				JOIN argument_values ON selection_arguments."value" = argument_values.id
-				JOIN selection_refs ON selection_refs.child_id = selections.id
-
-			UNION ALL
-
-			SELECT
-				selection_refs.child_id as selection_id,
-				argument_values.raw,
-				argument_values.id AS parent_id,
-				argument_values.kind,
-				selection_refs."document" AS document
-			FROM selection_directive_arguments
-				JOIN argument_values on selection_directive_arguments."value" = argument_values.id
-				JOIN selection_directives on selection_directive_arguments.parent = selection_directives.id
-				JOIN selection_refs ON selection_refs.child_id = selection_directives.selection_id
-				JOIN documents on selection_refs."document" = documents.id
-
-
--- 			now let's walk down the tree of argument values to find every node that's used
-
-			UNION ALL
-			SELECT
-				base.selection_id,
-				argument_values.raw,
-				argument_values.id AS parent_id,
-				argument_values.kind,
-				base.document
-			FROM argument_values argument_values
-				JOIN argument_value_children ON argument_value_children."value" = argument_values.id
-				JOIN used_arguments base ON base.parent_id = argument_value_children.parent
-			WHERE argument_value_children.parent IS NOT NULL
-		),
-
-		-- we only care about arguments that refer to variables
-		used_variables as (
-			SELECT * FROM used_arguments WHERE kind = 'Variable'
-		)
-
-		-- look for any document variables that do not have a corresponding entry in the used_variables CTE
 		SELECT
 			document_variables."name",
 			raw_documents.filepath,
@@ -689,9 +639,11 @@ func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.D
 		FROM document_variables
 			JOIN documents ON document_variables.document = documents.id
 			JOIN raw_documents ON documents.raw_document = raw_documents.id
-			LEFT JOIN used_variables ON document_variables."document" = used_variables.document
-				AND document_variables."name" = used_variables.raw
-		WHERE used_variables.document IS NULL
+			LEFT JOIN argument_values
+				ON argument_values.document = documents.id
+				AND argument_values.kind = 'Variable'
+				AND argument_values.raw = document_variables."name"
+		WHERE argument_values.document IS NULL
 	`
 
 	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
