@@ -1,5 +1,11 @@
 # houdini
 
+## 1.5.2
+
+### Patch Changes
+
+-   [#1441](https://github.com/HoudiniGraphql/houdini/pull/1441) [`0e02fa8a`](https://github.com/HoudiniGraphql/houdini/commit/0e02fa8a043cdb092515835bcc7d9e2c9546678c) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Loosen typing requirements for SubscriptionClient to fix compatibility with graphql-sse
+
 ## 1.5.1
 
 ### Patch Changes
