@@ -48,7 +48,7 @@ func TestComponentFields(t *testing.T) {
 	defer finalize()
 
 	// load the query into the database as a pending query
-	err = documents.LoadPendingQuery(db, conn, documents.PendingQuery{
+	err = documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
 		ID:                       1,
 		Query:                    query,
 		InlineComponentField:     true,
@@ -185,7 +185,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			// load the query into the database as a pending query
 			for i, doc := range test.Documents {
-				err = documents.LoadPendingQuery(db, conn, documents.PendingQuery{
+				err = documents.LoadPendingQuery(ctx, db, conn, documents.PendingQuery{
 					ID:       i,
 					Query:    doc,
 					Filepath: fmt.Sprintf("file-%v", i),

@@ -49,7 +49,7 @@ func TestRuntimeScalars(t *testing.T) {
 	defer finalize()
 
 	// load the query into the database as a pending query
-	err = documents.LoadPendingQuery(db, conn, documents.PendingQuery{
+	err = documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
 		ID:    1,
 		Query: query,
 	}, statements)

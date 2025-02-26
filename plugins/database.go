@@ -176,5 +176,12 @@ func (db DatabasePool[PluginConfig]) StepStatement(ctx context.Context, querySta
 		rowHandler()
 	}
 
+	if err := queryStatement.Reset(); err != nil {
+		return err
+	}
+	if err := queryStatement.ClearBindings(); err != nil {
+		return err
+	}
+
 	return nil
 }

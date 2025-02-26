@@ -116,7 +116,7 @@ CREATE TABLE type_fields (
 );
 
 CREATE TABLE field_argument_definitions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     field TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -155,6 +155,7 @@ CREATE TABLE directive_arguments (
     parent TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+	type_modifiers TEXT,
     default_value TEXT,
     FOREIGN KEY (parent) REFERENCES directives(name),
     PRIMARY KEY (parent, name),
@@ -279,9 +280,11 @@ CREATE TABLE selection_arguments (
     value INTEGER NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
+    field_argument TEXT NOT NULL,
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (field_argument) REFERENCES field_argument_definitions(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 
@@ -290,7 +293,13 @@ CREATE TABLE argument_values (
     kind TEXT NOT NULL CHECK (kind IN ('Variable', 'Int', 'Float', 'String', 'Block', 'Boolean', 'Null', 'Enum', 'List', 'Object')),
     raw TEXT NOT NULL,
     row INTEGER NOT NULL,
-    column INTEGER NOT NULL
+    column INTEGER NOT NULL,
+    expected_type TEXT NOT NULL,
+    expected_type_modifiers TEXT,
+    document INTEGER NOT NULL,
+
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (expected_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE argument_value_children (
@@ -320,7 +329,8 @@ CREATE TABLE discovered_lists (
 -- Indices
 -----------------------------------------------------------
 
-CREATE INDEX idx_type_fields_parent_name ON type_fields(parent, name);
+CREATE INDEX idx_field_argument_definitions_id ON field_argument_definitions(id);
+CREATE INDEX idx_type_fields_id ON type_fields(id);
 CREATE INDEX idx_types_kind_operation ON types(kind, operation);
 CREATE INDEX idx_documents_kind ON documents(kind);
 CREATE INDEX idx_documents_type_condition ON documents(type_condition);
@@ -336,6 +346,7 @@ CREATE INDEX idx_selections_type ON selections(type);
 CREATE INDEX idx_document_directives_document ON document_directives(document);
 CREATE INDEX idx_document_directives_directive ON document_directives(directive);
 CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
+CREATE INDEX idx_document_directive_arguments_parent_name ON document_directive_arguments(parent, name);
 CREATE INDEX idx_type_fields_parent ON type_fields(parent);
 CREATE INDEX idx_selections_alias ON selections(alias);
 CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);
@@ -352,7 +363,11 @@ CREATE INDEX idx_document_variables_document_name ON document_variables(document
 CREATE INDEX idx_selection_arguments_value ON selection_arguments(value);
 CREATE INDEX idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
 CREATE INDEX idx_selection_directives_directive ON selection_directives(directive);
-
+CREATE INDEX idx_argument_values_document ON argument_values(document);
+CREATE INDEX idx_types_name ON types(name);
+CREATE INDEX idx_enum_values_parent_value ON enum_values(parent, value);
+CREATE INDEX idx_selection_directive_arguments_value ON selection_directive_arguments(value);
+CREATE INDEX idx_argument_value_children_value ON argument_value_children(value);
 `
 
 export async function write_config(

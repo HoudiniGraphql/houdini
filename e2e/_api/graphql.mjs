@@ -117,6 +117,7 @@ export const typeDefs = /* GraphQL */ `
 		aOrB: [UnionAorB!]!
 		avgYearsBirthDate: Float!
 		node(id: ID!): Node
+		nodes(ids: [ID!]!): [Node!]!
 		user(id: ID!, snapshot: String!, tmp: Boolean, delay: Int, forceNullDate: Boolean): User!
 		usersConnection(
 			after: String

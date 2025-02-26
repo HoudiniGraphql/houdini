@@ -524,45 +524,6 @@ var loadDocumentsTable = []testCase{
 		expectError: true,
 	},
 	{
-		name: "complex field arguments",
-		rawQuery: `
-            query TestComplexArgs {
-                search(filter: {term: "foo", tags: ["bar", "baz"]}) {
-                    results { id }
-                }
-            }
-        `,
-		expectedDocs: []tests.ExpectedDocument{
-			{
-				Name: "TestComplexArgs",
-				Kind: "query",
-				Selections: []tests.ExpectedSelection{
-					{
-						FieldName: "search",
-						Alias:     tests.StrPtr("search"),
-						PathIndex: 0,
-						Kind:      "field",
-						Arguments: []tests.ExpectedArgument{
-							// the nested object is normalized as a string.
-							{Name: "filter", Value: "{term:\"foo\",tags:[\"bar\",\"baz\"]}"},
-						},
-						Children: []tests.ExpectedSelection{
-							{
-								FieldName: "results",
-								Alias:     tests.StrPtr("results"),
-								PathIndex: 0,
-								Kind:      "field",
-								Children: []tests.ExpectedSelection{
-									{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	},
-	{
 		name: "variables in directives",
 		rawQuery: `
             query TestVariableDirective($show: Boolean!) {
@@ -1236,7 +1197,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			require.Nil(t, err)
 			defer finalize()
 
-			pendingErr := documents.LoadPendingQuery(db, conn, pending, statements)
+			pendingErr := documents.LoadPendingQuery(context.Background(), db, conn, pending, statements)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)

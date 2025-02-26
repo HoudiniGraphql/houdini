@@ -135,7 +135,7 @@ CREATE TABLE type_fields (
 );
 
 CREATE TABLE field_argument_definitions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     field TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -174,6 +174,7 @@ CREATE TABLE directive_arguments (
     parent TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+    type_modifiers TEXT,
     default_value TEXT,
     FOREIGN KEY (parent) REFERENCES directives(name),
     PRIMARY KEY (parent, name),
@@ -313,9 +314,11 @@ CREATE TABLE selection_arguments (
     value INTEGER NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
+    field_argument TEXT NOT NULL,
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (field_argument) REFERENCES field_argument_definitions(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 
@@ -324,7 +327,13 @@ CREATE TABLE argument_values (
     kind TEXT NOT NULL CHECK (kind IN ('Variable', 'Int', 'Float', 'String', 'Block', 'Boolean', 'Null', 'Enum', 'List', 'Object')),
     raw TEXT NOT NULL,
     row INTEGER NOT NULL,
-    column INTEGER NOT NULL
+    column INTEGER NOT NULL,
+    expected_type TEXT NOT NULL,
+    expected_type_modifiers TEXT,
+    document INTEGER NOT NULL,
+
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (expected_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE argument_value_children (

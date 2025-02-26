@@ -119,6 +119,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
 					err = db.ExecStatement(statements.InsertFieldArgument, map[string]interface{}{
+						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
 						"type":           variableType,
@@ -327,10 +328,12 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			}
 		}
 		for _, arg := range directive.Arguments {
+			argType, argTypeMOdifiers := ParseFieldType(arg.Type.String())
 			err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
-				"directive": directive.Name,
-				"name":      arg.Name,
-				"type":      arg.Type.String(),
+				"directive":      directive.Name,
+				"name":           arg.Name,
+				"type":           argType,
+				"type_modifiers": argTypeMOdifiers,
 			})
 			if err != nil {
 				errors.Append(&plugins.Error{
@@ -383,9 +386,10 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 		return err
 	}
 	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
-		"directive": ListDirective,
-		"name":      "name",
-		"type":      "String!",
+		"directive":      ListDirective,
+		"name":           "name",
+		"type":           "String",
+		"type_modifiers": "!",
 	})
 	if err != nil {
 		return err
@@ -434,9 +438,10 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 		return err
 	}
 	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
-		"directive": PaginationDirective,
-		"name":      "name",
-		"type":      "String!",
+		"directive":      PaginationDirective,
+		"name":           "name",
+		"type":           "String",
+		"type_modifiers": "!",
 	})
 	if err != nil {
 		return err
@@ -594,9 +599,10 @@ then the request will never be deduplicated.`,
 		return err
 	}
 	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
-		"directive": ParentIDDirective,
-		"name":      "value",
-		"type":      "ID!",
+		"directive":      ParentIDDirective,
+		"name":           "value",
+		"type":           "ID",
+		"type_modifiers": "!",
 	})
 	if err != nil {
 		return err
@@ -854,9 +860,10 @@ then the request will never be deduplicated.`,
 		return err
 	}
 	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
-		"directive": RuntimeScalarDirective,
-		"name":      "type",
-		"type":      "String!",
+		"directive":      RuntimeScalarDirective,
+		"name":           "type",
+		"type":           "String",
+		"type_modifiers": "!",
 	})
 	if err != nil {
 		return err

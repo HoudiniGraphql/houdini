@@ -1041,76 +1041,6 @@ func ValidateDuplicateKeysInInputObject[PluginConfig any](ctx context.Context, d
 	}
 }
 
-func ValidateWrongTypesToScalarArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	// SQL query for top-level scalar arguments.
-	// This query joins the argument value with its corresponding field argument definition.
-	// It retrieves:
-	//   - The argument name and expected type (from fad.type)
-	//   - The provided literal (av.raw) and its kind (av.kind)
-	//   - The file path and location info for error reporting.
-	queryStr := `
-	SELECT
-	  sargs.selection_id,
-	  fad.name AS argName,
-	  fad.type AS expectedType,
-	  av.raw AS providedLiteral,
-	  av.kind AS providedKind,
-	  rd.filepath,
-	  json_group_array(
-	    json_object('line', rd.offset_line, 'column', rd.offset_column)
-	  ) AS locations
-	FROM selection_arguments sargs
-	  JOIN selections s ON sargs.selection_id = s.id
-	  JOIN type_fields tf ON s.type = tf.id
-	  JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sargs.name
-	  JOIN selection_refs sr ON sr.child_id = s.id
-	  JOIN documents d ON d.id = sr.document
-	  JOIN raw_documents rd ON rd.id = d.raw_document
-	  JOIN argument_values av ON av.id = sargs.value
-	WHERE av.kind NOT IN ('Object', 'Variable')
-		AND (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY sargs.selection_id, fad.name, av.raw, av.kind
-	HAVING fad.type <> av.kind
-	`
-
-	// Run the query.
-	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
-		argName := row.ColumnText(1)
-		expectedType := row.ColumnText(2)
-		providedLiteral := row.ColumnText(3)
-		providedKind := row.ColumnText(4)
-		filepath := row.ColumnText(5)
-		locationsRaw := row.ColumnText(6)
-
-		// Unmarshal the aggregated locations.
-		var locations []*plugins.ErrorLocation
-		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Could not unmarshal locations for argument '%s'", argName),
-				Detail:  err.Error(),
-			})
-			return
-		}
-		for _, loc := range locations {
-			loc.Filepath = filepath
-		}
-
-		// ID and string are equivalent
-		if expectedType == "ID" && providedKind == "String" {
-			return
-		}
-
-		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Argument '%s' expects type '%s' but provided literal of type '%s' (value: %s)", argName, expectedType, providedKind, providedLiteral),
-			Kind:      plugins.ErrorKindValidation,
-			Locations: locations,
-		})
-	})
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-	}
-}
-
 // InputTypeDefinition describes an input object type.
 type InputTypeDefinition struct {
 	Name   string
@@ -1323,167 +1253,118 @@ func validateScalar(value interface{}, expectedType, path string) *plugins.Error
 	return nil
 }
 
-// validateNestedInput recursively validates that the provided input object conforms to
-// the expected InputTypeDefinition. The 'path' parameter accumulates the field path for error messages.
-func validateNestedInput(provided interface{}, def *InputTypeDefinition, path string) []*plugins.Error {
-	var errs []*plugins.Error
+func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// every argument value contains the type that it should be so we need to look at every scalar
+	// usage and make sure that it matches with the expectations
+	query := `
+		SELECT
+			raw_documents.filepath,
+			argument_values.row,
+			argument_values.column,
+			COALESCE(selection_arguments.name, selection_directive_arguments.name, argument_value_children.name) AS argument_name,
+			argument_values.expected_type,
+			argument_values.expected_type_modifiers,
+			argument_values.kind
+		FROM argument_values
+		JOIN documents on argument_values."document" = documents.id
+		JOIN raw_documents on documents.raw_document = raw_documents.id
 
-	// The provided value should be a JSON object.
-	providedMap, ok := provided.(map[string]interface{})
-	if !ok {
-		errs = append(errs, &plugins.Error{
-			Message: fmt.Sprintf("Value at '%s' should be an object", path),
-			Kind:    plugins.ErrorKindValidation,
-		})
-		return errs
-	}
+		LEFT JOIN types ON argument_values.expected_type = types.name
+		LEFT JOIN document_variables
+			ON argument_values.kind = 'Variable'
+			AND argument_values.document = document_variables.document
+			AND argument_values.raw = document_variables."name"
+		LEFT JOIN selection_arguments
+			ON argument_values.id = selection_arguments.value
+		LEFT JOIN selection_directive_arguments
+			ON argument_values.id = selection_directive_arguments.value
+		LEFT JOIN argument_value_children
+			ON argument_values.id = argument_value_children.value
+		LEFT JOIN enum_values ev
+			ON argument_values.kind = 'Enum'
+			AND argument_values.expected_type = ev.parent
+			AND argument_values.raw = ev.value
 
-	// Validate each expected field.
-	for fieldName, fieldDef := range def.Fields {
-		currentPath := fieldName
-		if path != "" {
-			currentPath = path + "." + fieldName
-		}
+		WHERE
+			raw_documents.current_task = $task_id OR $task_id IS NULL
 
-		value, exists := providedMap[fieldName]
-		if !exists || value == nil {
-			if fieldDef.Required {
-				errs = append(errs, &plugins.Error{
-					Message: fmt.Sprintf("Missing required field '%s'", currentPath),
-					Kind:    plugins.ErrorKindValidation,
-				})
-			}
-			continue
-		}
+			AND (
+			-- For non-variable, non-null kinds that are scalar or enum:
+			-- invalid if the expected_type_modifiers contains a ']' or the kind !=
+			(
+				argument_values.kind NOT IN ('Variable', 'Null',  'ENUM')
+				AND types.kind = 'SCALAR'
+				AND (
+					argument_values.expected_type_modifiers LIKE '%]%'
+					OR (
+						argument_values.kind <> argument_values.expected_type
+						AND NOT (
+							argument_values.kind IN ('ID','String')
+							AND argument_values.expected_type IN ('ID','String')
+						)
 
-		if fieldDef.IsList {
-			// Expect a list.
-			arrayVal, ok := value.([]interface{})
-			if !ok {
-				errs = append(errs, &plugins.Error{
-					Message: fmt.Sprintf("Field '%s' should be a list", currentPath),
-					Kind:    plugins.ErrorKindValidation,
-				})
-				continue
-			}
-			for i, elem := range arrayVal {
-				elementPath := fmt.Sprintf("%s[%d]", currentPath, i)
-				if fieldDef.InputDef != nil {
-					nestedErrs := validateNestedInput(elem, fieldDef.InputDef, elementPath)
-					errs = append(errs, nestedErrs...)
-				} else {
-					if scalarErr := validateScalar(elem, fieldDef.ExpectedType, elementPath); scalarErr != nil {
-						errs = append(errs, scalarErr)
-					}
-				}
-			}
-		} else {
-			// Not a list.
-			if fieldDef.InputDef != nil {
-				nestedErrs := validateNestedInput(value, fieldDef.InputDef, currentPath)
-				errs = append(errs, nestedErrs...)
-			} else {
-				if scalarErr := validateScalar(value, fieldDef.ExpectedType, currentPath); scalarErr != nil {
-					errs = append(errs, scalarErr)
-				}
-			}
-		}
-	}
+					)
+				)
+			)
 
-	// Optionally, warn about extra fields not defined on the input type.
-	for key := range providedMap {
-		if _, ok := def.Fields[key]; !ok {
-			extraPath := key
-			if path != "" {
-				extraPath = path + "." + key
-			}
-			errs = append(errs, &plugins.Error{
-				Message: fmt.Sprintf("Field '%s' is not defined on input type '%s'", extraPath, def.Name),
-				Kind:    plugins.ErrorKindValidation,
-			})
-		}
-	}
+			OR
 
-	return errs
-}
-func ValidateWrongTypesToStructuredArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	// Step 1: Load all used input types into memory.
-	typeCache, err := loadUsedInputTypes(ctx, db)
-	if err != nil {
-		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Failed to load used input types: %v", err),
-			Kind:    plugins.ErrorKindValidation,
-		})
-		return
-	}
+			-- For enum kinds: invalid if the expected modifiers contain a ']' or if no matching enum value is found.
+			(
+				argument_values.kind = 'Enum'
+				AND (
+					argument_values.expected_type_modifiers LIKE '%]%'
+					OR ev.value IS NULL
+				)
+			)
+			OR
 
-	// Step 2: Query for structured (object) arguments.
-	queryObj := `
-	SELECT
-	  sargs.selection_id,
-	  fad.name AS argName,
-	  fad.type AS expectedInputType,
-	  av.raw AS providedJSON,
-	  rd.filepath,
-	  json_group_array(
-	    json_object('line', rd.offset_line, 'column', rd.offset_column)
-	  ) AS locations
-	FROM selection_arguments sargs
-	  JOIN selections s ON sargs.selection_id = s.id
-	  JOIN type_fields tf ON s.type = tf.id
-	  JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sargs.name
-	  JOIN selection_refs sr ON sr.child_id = s.id
-	  JOIN documents d ON d.id = sr.document
-	  JOIN raw_documents rd ON rd.id = d.raw_document
-	  JOIN argument_values av ON av.id = sargs.value
-	WHERE av.kind = 'Object'
-		AND (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY sargs.selection_id, fad.name, av.raw
+			-- For Null kinds: invalid if the expected_type_modifiers end with '!'
+			(
+				argument_values.kind = 'Null'
+				AND argument_values.expected_type_modifiers LIKE '%!'
+			)
+
+			OR
+
+			-- For Variable kinds: compare the variable's modifiers to the expected modifiers,
+			-- but allow the case where the variable's modifiers end with '!' and, when removed, match.
+			(
+				argument_values.kind = 'Variable'
+				AND NOT (
+					document_variables.type_modifiers = argument_values.expected_type_modifiers
+					OR (document_variables.type_modifiers LIKE '%!'
+						AND SUBSTR(document_variables.type_modifiers, 1, LENGTH(document_variables.type_modifiers) - 1) = argument_values.expected_type_modifiers)
+				)
+			)
+		)
 	`
-	err = db.StepQuery(ctx, queryObj, nil, func(row *sqlite.Stmt) {
-		argName := row.ColumnText(1)
-		expectedTypeName := row.ColumnText(2)
-		providedJSON := row.ColumnText(3)
-		filepath := row.ColumnText(4)
-		locationsRaw := row.ColumnText(5)
 
-		// Unmarshal the provided JSON.
-		var providedInput map[string]interface{}
-		if err := json.Unmarshal([]byte(providedJSON), &providedInput); err != nil {
-			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("Could not unmarshal JSON for argument '%s': %v", argName, err),
-				Kind:      plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{{Filepath: filepath}},
-			})
-			return
+	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+		filepath := stmt.ColumnText(0)
+		row := stmt.ColumnInt(1)
+		column := stmt.ColumnInt(2)
+		argumentName := stmt.ColumnText(3)
+		kind := stmt.ColumnText(6)
+
+		// Create a single error location from the representative row/column.
+		loc := &plugins.ErrorLocation{
+			Filepath: filepath,
+			Line:     row,
+			Column:   column,
 		}
 
-		expectedDef, found := typeCache[expectedTypeName]
-		if !found {
-			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("Input type '%s' is not defined in the schema", expectedTypeName),
-				Kind:      plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{{Filepath: filepath}},
-			})
-			return
+		// we want to show [[User!]!] instead of User!]!]
+		expectedType := stmt.ColumnText(4) + stmt.ColumnText(5)
+		for i := 0; i < strings.Count(expectedType, "]"); i++ {
+			expectedType = "[" + expectedType
 		}
 
-		// Recursively validate the provided input.
-		nestedErrs := validateNestedInput(providedInput, expectedDef, "")
-		if len(nestedErrs) > 0 {
-			var locations []*plugins.ErrorLocation
-			if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-				locations = []*plugins.ErrorLocation{{Filepath: filepath}}
-			} else {
-				for _, loc := range locations {
-					loc.Filepath = filepath
-				}
-			}
-			for _, e := range nestedErrs {
-				e.Locations = append(e.Locations, locations...)
-				errs.Append(e)
-			}
-		}
+		errs.Append(&plugins.Error{
+			Message:   fmt.Sprintf("Argument '%s' has the wrong type: expected '%s', received %s", argumentName, expectedType, kind),
+			Kind:      plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{loc},
+		})
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))

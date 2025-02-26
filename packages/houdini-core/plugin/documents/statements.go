@@ -31,11 +31,11 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value, row, column) VALUES ($selection_id, $name, $value, $row, $column)")
+	insertSelectionArgument, err := conn.Prepare("INSERT INTO selection_arguments (selection_id, name, value, row, column, field_argument) VALUES ($selection_id, $name, $value, $row, $column, $field_argument)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}
-	insertArgumentValue, err := conn.Prepare("INSERT INTO argument_values (kind, raw, row, column) VALUES ($kind, $raw, $row, $column)")
+	insertArgumentValue, err := conn.Prepare("INSERT INTO argument_values (kind, raw, row, column, expected_type, expected_type_modifiers, document) VALUES ($kind, $raw, $row, $column, $type, $type_modifiers, $document)")
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
 	}

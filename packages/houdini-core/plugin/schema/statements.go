@@ -22,11 +22,11 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
 	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value, description) VALUES ($id, $parent, $name, $type, $type_modifiers, $default_value, $description)")
 	insertPossibleTypeStmt := db.Prep("INSERT INTO possible_types (type, member) VALUES ($type, $member)")
 	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES ($parent, $value)")
-	insertFieldArgumentStmt := db.Prep("INSERT INTO field_argument_definitions (field, name, type, default_value, type_modifiers) VALUES ($field, $name, $type, $default_value, $type_modifiers)")
+	insertFieldArgumentStmt := db.Prep("INSERT INTO field_argument_definitions (id, field, name, type, default_value, type_modifiers) VALUES ($id, $field, $name, $type, $default_value, $type_modifiers)")
 	insertDirectiveStmt := db.Prep("INSERT INTO directives (name, repeatable) VALUES ($name, $repeatable)")
 	insertInternalDirectiveStmt := db.Prep("INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, $visible)")
 	insertDirectiveLocationStmt := db.Prep("INSERT INTO directive_locations (directive, location) VALUES ($directive, $location)")
-	insertDirectiveArgumentStmt := db.Prep("INSERT INTO directive_arguments (parent, name, type, default_value) VALUES ($directive, $name, $type, $default_value)")
+	insertDirectiveArgumentStmt := db.Prep("INSERT INTO directive_arguments (parent, name, type, default_value, type_modifiers) VALUES ($directive, $name, $type, $default_value, $type_modifiers)")
 
 	finalize := func() {
 		insertTypeStmt.Finalize()
