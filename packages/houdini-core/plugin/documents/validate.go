@@ -1356,7 +1356,7 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 
 		// we want to show [[User!]!] instead of User!]!]
 		expectedType := stmt.ColumnText(4) + stmt.ColumnText(5)
-		for i := 0; i < strings.Count(expectedType, "]"); i++ {
+		for range strings.Count(expectedType, "]") {
 			expectedType = "[" + expectedType
 		}
 
