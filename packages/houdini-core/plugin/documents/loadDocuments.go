@@ -26,6 +26,11 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	// collect all errors we encounter
 	errs := &plugins.ErrorList{}
 
+	typeCache, err := LoadTypeCache(ctx, db)
+	if err != nil {
+		return plugins.WrapError(err)
+	}
+
 	// start a pool of workers to process the documents
 	wg, _ := errgroup.WithContext(ctx)
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -52,7 +57,7 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			// consume queries until the channel is closed
 			for query := range queries {
 				// load the document into the database
-				pluginErr := LoadPendingQuery(ctx, db, conn, query, statements)
+				pluginErr := LoadPendingQuery(ctx, db, conn, query, statements, typeCache)
 				if pluginErr != nil {
 					txErr = err
 					errs.Append(pluginErr)
@@ -155,7 +160,14 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 
 // LoadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func LoadPendingQuery[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], conn *sqlite.Conn, query PendingQuery, statements DocumentInsertStatements) *plugins.Error {
+func LoadPendingQuery[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	conn *sqlite.Conn,
+	query PendingQuery,
+	statements DocumentInsertStatements,
+	typeCache TypeCache,
+) *plugins.Error {
 	// parse the query.
 	parsed, err := parser.ParseQuery(&ast.Source{
 		Input: query.Query,
@@ -180,27 +192,6 @@ func LoadPendingQuery[PluginConfig any](ctx context.Context, db plugins.Database
 
 		return pluginErr
 	}
-
-	// look up the type of the field from the database
-	searchTypeStatement, err := conn.Prepare(`SELECT type, type_modifiers FROM type_fields WHERE id = ?`)
-	if err != nil {
-		return plugins.WrapError(err)
-	}
-	defer searchTypeStatement.Finalize()
-
-	// look up the argument definition for a given type.field
-	searchSelectionArgStatement, err := conn.Prepare(`SELECT type, type_modifiers FROM type_field_arguments WHERE id = ?`)
-	if err != nil {
-		return plugins.WrapError(err)
-	}
-	defer searchSelectionArgStatement.Finalize()
-
-	// look up the argument definition for a given directive argument
-	searchDirectiveArgStatement, err := conn.Prepare(`SELECT type, type_modifiers FROM directive_arguments WHERE parent = ? AND name = ?`)
-	if err != nil {
-		return plugins.WrapError(err)
-	}
-	defer searchDirectiveArgStatement.Finalize()
 
 	// process operations.
 	for _, operation := range parsed.Operations {
@@ -503,9 +494,7 @@ func LoadPendingQuery[PluginConfig any](ctx context.Context, db plugins.Database
 				query,
 				operationID,
 				statements,
-				searchTypeStatement,
-				searchSelectionArgStatement,
-				searchDirectiveArgStatement,
+				typeCache,
 				operation.Name,
 				nil,
 				operationType,
@@ -577,8 +566,8 @@ func LoadPendingQuery[PluginConfig any](ctx context.Context, db plugins.Database
 				Locations: []*plugins.ErrorLocation{
 					{
 						Filepath: query.Filepath,
-						Line:     query.RowOffset + fragment.Position.Line,
-						Column:   query.ColumnOffset + fragment.Position.Column,
+						Line:     query.RowOffset,
+						Column:   query.ColumnOffset,
 					},
 				},
 			}
@@ -596,9 +585,7 @@ func LoadPendingQuery[PluginConfig any](ctx context.Context, db plugins.Database
 				query,
 				fragmentID,
 				statements,
-				searchTypeStatement,
-				searchSelectionArgStatement,
-				searchDirectiveArgStatement,
+				typeCache,
 				fragment.Name,
 				nil,
 				fragment.TypeCondition,
@@ -790,9 +777,7 @@ func processSelection[PluginConfig any](
 	query PendingQuery,
 	operationID int64,
 	statements DocumentInsertStatements,
-	searchTypeStatement *sqlite.Stmt,
-	searchSelectionArgStatement *sqlite.Stmt,
-	searchDirectiveArgStatement *sqlite.Stmt,
+	typeCache TypeCache,
 	documentName string,
 	parent *int64,
 	parentType string,
@@ -833,52 +818,18 @@ func processSelection[PluginConfig any](
 		selectionID = conn.LastInsertRowID()
 
 		// search for the fieldType
-		var fieldType string
-		searchTypeStatement.BindText(1, fieldID)
-		err := db.StepStatement(ctx, searchTypeStatement, func() {
-			fieldType = searchTypeStatement.ColumnText(0)
-		})
-		if err != nil {
-			return &plugins.Error{
-				Message: "could not find type for field " + fieldID + ": " + err.Error(),
-				Detail:  err.Error(),
-				Locations: []*plugins.ErrorLocation{
-					{
-						Filepath: query.Filepath,
-						Line:     query.RowOffset + s.Position.Line,
-						Column:   query.ColumnOffset + s.Position.Column,
-					},
-				},
-			}
-		}
+		fieldType, _ := typeCache.TypeFields[fieldID]
 
 		// Process each argument for a field.
 		for _, arg := range s.Arguments {
 			// look for the type of the argument
-			var argType, argTypeModifiers string
-			searchSelectionArgStatement.BindText(1, fmt.Sprintf("%s.%s", fieldID, arg.Name))
-
-			err = db.StepStatement(ctx, searchSelectionArgStatement, func() {
-				argType = searchSelectionArgStatement.ColumnText(0)
-				argTypeModifiers = searchSelectionArgStatement.ColumnText(1)
-			})
-			if err != nil {
-				return &plugins.Error{
-					Message: "could not find argument definition",
-					Detail:  err.Error(),
-					Locations: []*plugins.ErrorLocation{
-						{
-							Filepath: query.Filepath,
-							Line:     query.RowOffset + arg.Position.Line,
-							Column:   query.ColumnOffset + arg.Position.Column,
-						},
-					},
-				}
-			}
+			argTypeWithModifiers, _ := typeCache.FieldArguments[fmt.Sprintf("%s.%s", fieldID, arg.Name)]
+			argType := argTypeWithModifiers.Type
+			argTypeModifiers := argTypeWithModifiers.Modifiers
 
 			// Use the new function to recursively process the argument value
 			// and get its normalized ID.
-			argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, arg.Value, statements, searchTypeStatement, argType, argTypeModifiers)
+			argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
 			if err != nil {
 				return &plugins.Error{
 					Message: "could not process argument value: " + err.Error(),
@@ -918,14 +869,27 @@ func processSelection[PluginConfig any](
 		}
 
 		// insert any directives on the field.
-		pluginError := processDirectives(ctx, db, conn, query, operationID, statements, searchTypeStatement, searchDirectiveArgStatement, selectionID, s.Directives)
+		pluginError := processDirectives(ctx, db, conn, query, operationID, statements, typeCache.TypeFields, typeCache.DirectiveArguments, selectionID, s.Directives)
 		if pluginError != nil {
 			return pluginError
 		}
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(ctx, db, conn, query, operationID, statements, searchTypeStatement, searchSelectionArgStatement, searchDirectiveArgStatement, documentName, &selectionID, fieldType, child, int64(i))
+			err := processSelection(
+				ctx,
+				db,
+				conn,
+				query,
+				operationID,
+				statements,
+				typeCache,
+				documentName,
+				&selectionID,
+				fieldType.Type,
+				child,
+				int64(i),
+			)
 			if err != nil {
 				return err
 			}
@@ -957,14 +921,18 @@ func processSelection[PluginConfig any](
 
 		// walk down any nested selections
 		for i, child := range s.SelectionSet {
-			err := processSelection(ctx, db, conn, query, operationID, statements, searchTypeStatement, searchSelectionArgStatement, searchDirectiveArgStatement, documentName, &selectionID, fragType, child, int64(i))
+			err := processSelection(ctx, db, conn, query, operationID, statements,
+				typeCache, documentName, &selectionID, fragType, child, int64(i))
 			if err != nil {
 				return err
 			}
 		}
 
 		// process directives
-		err := processDirectives(ctx, db, conn, query, operationID, statements, searchTypeStatement, searchDirectiveArgStatement, selectionID, s.Directives)
+		err := processDirectives(ctx, db, conn, query, operationID, statements,
+			typeCache.TypeFields,
+			typeCache.DirectiveArguments,
+			selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
@@ -990,7 +958,7 @@ func processSelection[PluginConfig any](
 		selectionID = conn.LastInsertRowID()
 
 		// process any directives on the fragment spread.
-		err := processDirectives(ctx, db, conn, query, operationID, statements, searchTypeStatement, searchDirectiveArgStatement, selectionID, s.Directives)
+		err := processDirectives(ctx, db, conn, query, operationID, statements, typeCache.TypeFields, typeCache.DirectiveArguments, selectionID, s.Directives)
 		if err != nil {
 			return err
 		}
@@ -1049,8 +1017,8 @@ func processDirectives[PluginConfig any](
 	query PendingQuery,
 	operationID int64,
 	statements DocumentInsertStatements,
-	searchTypeStatement *sqlite.Stmt,
-	searchDirectiveArgStatement *sqlite.Stmt,
+	typeFields map[string]TypeWithModifiers,
+	directiveArguments map[string]TypeWithModifiers,
 	selectionID int64,
 	directives []*ast.Directive,
 ) *plugins.Error {
@@ -1078,16 +1046,10 @@ func processDirectives[PluginConfig any](
 
 		// and the arguments to the directive
 		for _, dArg := range directive.Arguments {
-			var argType, argTypeModifiers string
-			searchDirectiveArgStatement.BindText(1, directive.Name)
-			searchDirectiveArgStatement.BindText(2, dArg.Name)
-			if err := db.StepStatement(ctx, searchDirectiveArgStatement, func() {
-				argType = searchDirectiveArgStatement.ColumnText(0)
-				argTypeModifiers = searchDirectiveArgStatement.ColumnText(1)
-			}); err != nil {
+			dArgType, ok := directiveArguments[fmt.Sprintf("%s.%s", directive.Name, dArg.Name)]
+			if !ok {
 				return &plugins.Error{
 					Message: "could not process directive argument value",
-					Detail:  err.Error(),
 					Locations: []*plugins.ErrorLocation{
 						{
 							Filepath: query.Filepath,
@@ -1097,8 +1059,10 @@ func processDirectives[PluginConfig any](
 					},
 				}
 			}
+			argType := dArgType.Type
+			argTypeModifiers := dArgType.Modifiers
 
-			argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, dArg.Value, statements, searchTypeStatement, argType, argTypeModifiers)
+			argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, dArg.Value, statements, typeFields, argType, argTypeModifiers)
 			if err != nil {
 				return &plugins.Error{
 					Message: "could not process directive argument value",
@@ -1162,7 +1126,7 @@ func processArgumentValue[PluginConfig any](
 	operationID int64,
 	value *ast.Value,
 	statements DocumentInsertStatements,
-	searchTypeStatement *sqlite.Stmt,
+	typeFields map[string]TypeWithModifiers,
 	expectedType string,
 	expectedTypeModifiers string,
 ) (int64, *plugins.Error) {
@@ -1244,25 +1208,10 @@ func processArgumentValue[PluginConfig any](
 			childModifiers := typeModifier
 			// if the parent is an object, we need to use the parent name to get the type of the
 			if valueKind == "Object" {
-				// we need to look for the type of the field
-				searchTypeStatement.BindText(1, fmt.Sprintf("%s.%s", expectedType, child.Name))
-				err := db.StepStatement(ctx, searchTypeStatement, func() {
-					childType = searchTypeStatement.ColumnText(0)
-					childModifiers = searchTypeStatement.ColumnText(1)
-				})
-				if err != nil {
-					return 0, &plugins.Error{
-						Message: "could not find type for field " + child.Name + ": " + err.Error(),
-						Detail:  err.Error(),
-						Locations: []*plugins.ErrorLocation{
-							{
-								Filepath: query.Filepath,
-								Line:     query.RowOffset + value.Position.Line,
-								Column:   query.ColumnOffset + value.Position.Column,
-							},
-						},
-					}
-				}
+				childTypes, _ := typeFields[fmt.Sprintf("%s.%s", expectedType, child.Name)]
+
+				childType = childTypes.Type
+				childModifiers = childTypes.Modifiers
 			}
 
 			// Recursively process the child value.
@@ -1274,7 +1223,7 @@ func processArgumentValue[PluginConfig any](
 				operationID,
 				child.Value,
 				statements,
-				searchTypeStatement,
+				typeFields,
 				childType,
 				childModifiers,
 			)
@@ -1315,4 +1264,88 @@ func processArgumentValue[PluginConfig any](
 	}
 
 	return parentID, nil
+}
+
+type TypeWithModifiers struct {
+	Type      string
+	Modifiers string
+}
+
+type TypeCache struct {
+	TypeFields         map[string]TypeWithModifiers
+	FieldArguments     map[string]TypeWithModifiers
+	DirectiveArguments map[string]TypeWithModifiers
+}
+
+func LoadTypeCache[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) (TypeCache, error) {
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return TypeCache{}, err
+	}
+	defer db.Put(conn)
+
+	caches := TypeCache{
+		TypeFields:         map[string]TypeWithModifiers{},
+		FieldArguments:     map[string]TypeWithModifiers{},
+		DirectiveArguments: map[string]TypeWithModifiers{},
+	}
+
+	// we need to know the type and mofiifers for a given type field
+	typeFieldTypeQuery, err := conn.Prepare(`
+		SELECT type_fields.id, type_fields.type, type_fields.type_modifiers FROM type_fields
+	`)
+	if err != nil {
+		return TypeCache{}, err
+	}
+	defer typeFieldTypeQuery.Finalize()
+	err = db.StepStatement(ctx, typeFieldTypeQuery, func() {
+		caches.TypeFields[typeFieldTypeQuery.ColumnText(0)] = TypeWithModifiers{
+			Type:      typeFieldTypeQuery.ColumnText(1),
+			Modifiers: typeFieldTypeQuery.ColumnText(2),
+		}
+	})
+	if err != nil {
+		return TypeCache{}, err
+	}
+
+	// we need the type and modifiers for field arguments
+	fieldArgumentsQuery, err := conn.Prepare(`
+		SELECT
+			type_field_arguments.id,
+			type_field_arguments.type,
+			type_field_arguments.type_modifiers
+		FROM type_field_arguments`)
+	if err != nil {
+		return TypeCache{}, err
+	}
+	defer fieldArgumentsQuery.Finalize()
+	err = db.StepStatement(ctx, fieldArgumentsQuery, func() {
+		caches.FieldArguments[fieldArgumentsQuery.ColumnText(0)] = TypeWithModifiers{
+			Type:      fieldArgumentsQuery.ColumnText(1),
+			Modifiers: fieldArgumentsQuery.ColumnText(2),
+		}
+	})
+	if err != nil {
+		return TypeCache{}, err
+	}
+
+	// we need type information for directive arguments
+	directiveArgumentsQuery, err := conn.Prepare(`SELECT parent, name, type, type_modifiers FROM directive_arguments`)
+	if err != nil {
+		return TypeCache{}, err
+	}
+	defer directiveArgumentsQuery.Finalize()
+	err = db.StepStatement(ctx, directiveArgumentsQuery, func() {
+		parent := directiveArgumentsQuery.ColumnText(0)
+		name := directiveArgumentsQuery.ColumnText(1)
+		caches.DirectiveArguments[parent+"."+name] = TypeWithModifiers{
+			Type:      directiveArgumentsQuery.ColumnText(2),
+			Modifiers: directiveArgumentsQuery.ColumnText(3),
+		}
+	})
+	if err != nil {
+		return TypeCache{}, err
+	}
+
+	return caches, nil
 }

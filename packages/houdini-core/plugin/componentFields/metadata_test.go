@@ -47,13 +47,16 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 	defer finalize()
 
+	typeCaches, err := documents.LoadTypeCache(context.Background(), db)
+	require.Nil(t, err)
+
 	// load the query into the database as a pending query
 	err = documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
 		ID:                       1,
 		Query:                    query,
 		InlineComponentField:     true,
 		InlineComponentFieldProp: strPtr("user"),
-	}, statements)
+	}, statements, typeCaches)
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the process
@@ -183,13 +186,16 @@ func TestComponentFieldChecks(t *testing.T) {
 			require.Nil(t, err)
 			defer finalize()
 
+			typeCaches, err := documents.LoadTypeCache(context.Background(), db)
+			require.Nil(t, err)
+
 			// load the query into the database as a pending query
 			for i, doc := range test.Documents {
 				err = documents.LoadPendingQuery(ctx, db, conn, documents.PendingQuery{
 					ID:       i,
 					Query:    doc,
 					Filepath: fmt.Sprintf("file-%v", i),
-				}, statements)
+				}, statements, typeCaches)
 				require.Nil(t, err)
 			}
 

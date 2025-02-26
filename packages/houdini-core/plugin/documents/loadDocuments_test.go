@@ -1197,7 +1197,10 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			require.Nil(t, err)
 			defer finalize()
 
-			pendingErr := documents.LoadPendingQuery(context.Background(), db, conn, pending, statements)
+			typeCaches, err := documents.LoadTypeCache(context.Background(), db)
+			require.Nil(t, err)
+
+			pendingErr := documents.LoadPendingQuery(context.Background(), db, conn, pending, statements, typeCaches)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)

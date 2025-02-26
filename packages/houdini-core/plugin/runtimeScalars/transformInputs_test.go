@@ -48,11 +48,14 @@ func TestRuntimeScalars(t *testing.T) {
 	require.Nil(t, err)
 	defer finalize()
 
+	typeCaches, err := documents.LoadTypeCache(context.Background(), db)
+	require.Nil(t, err)
+
 	// load the query into the database as a pending query
 	err = documents.LoadPendingQuery(context.Background(), db, conn, documents.PendingQuery{
 		ID:    1,
 		Query: query,
-	}, statements)
+	}, statements, typeCaches)
 	require.Nil(t, err)
 
 	// now trigger the component fields portion of the proces
