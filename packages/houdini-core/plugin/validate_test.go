@@ -31,7 +31,11 @@ func TestValidate_Houdini(t *testing.T) {
 			list: [InputType]
 		}
 
-		interface Node {
+		interface Node implements HasID {
+			id: ID!
+		}
+
+		interface HasID {
 			id: ID!
 		}
 
@@ -64,7 +68,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 		union Human = User
 
-		type User implements Node {
+		type User implements Node & HasID{
 			id: ID!
 			parent: User
 			firstName: String!
@@ -275,7 +279,7 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
-			Title: "Spreading a fragment on a compatible interface type",
+			Title: "Spreading a fragment on union on a compatible type",
 			Pass:  true,
 			Documents: []string{
 				`fragment frag on Node {
@@ -286,6 +290,20 @@ func TestValidate_Houdini(t *testing.T) {
 					   ...frag
 				   }
 			   }`,
+			},
+		},
+		{
+			Title: "Spreading a fragment on on a compatible interface type",
+			Pass:  true,
+			Documents: []string{
+				`fragment frag on HasID {
+					id
+				}`,
+				`query A {
+					node(id: "1") {
+						...frag
+					}
+				}`,
 			},
 		},
 		{

@@ -122,7 +122,6 @@ func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db pl
 
 	// --- STEP 2. Run the main query that returns fragment info and directive arguments ---
 	// We now have directive arguments as JSON objects with fields "name", "argId", and "raw".
-	// Later in Go we will unmarshal these into a struct.
 	mainQuery := `
 		SELECT
 			fd.name as fragmentName,

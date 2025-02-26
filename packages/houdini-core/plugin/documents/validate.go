@@ -793,7 +793,7 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 	FROM selection_arguments sa
 		JOIN selections s ON sa.selection_id = s.id
 		JOIN type_fields tf ON s.type = tf.id
-		JOIN field_argument_definitions fad ON fad.field = tf.id AND fad.name = sa.name
+		JOIN type_field_arguments fad ON fad.field = tf.id AND fad.name = sa.name
 		JOIN selection_refs sr ON sr.child_id = s.id
 		JOIN documents d ON d.id = sr.document
 		JOIN raw_documents rd ON rd.id = d.raw_document
@@ -854,7 +854,7 @@ func ValidateMissingRequiredArgument[PluginConfig any](ctx context.Context, db p
 		) AS locations
 	FROM selections s
 	  JOIN type_fields tf ON s.type = tf.id
-	  JOIN field_argument_definitions fad ON fad.field = tf.id
+	  JOIN type_field_arguments fad ON fad.field = tf.id
 	  LEFT JOIN selection_arguments sa ON sa.selection_id = s.id AND sa.name = fad.name
 	  JOIN selection_refs sr ON sr.child_id = s.id
 	  JOIN documents d ON d.id = sr.document
@@ -1052,7 +1052,7 @@ func loadUsedInputTypes[PluginConfig any](ctx context.Context, db plugins.Databa
 	distinctQuery := `
 	SELECT DISTINCT fad.type AS expectedInputType
 	FROM selection_arguments sargs
-	  JOIN field_argument_definitions fad ON fad.field = sargs.selection_id AND fad.name = sargs.name
+	  JOIN type_field_arguments fad ON fad.field = sargs.selection_id AND fad.name = sargs.name
 	  JOIN argument_values av ON av.id = sargs.value
 	WHERE av.kind = 'Object'
 	`

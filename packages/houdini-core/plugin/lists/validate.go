@@ -128,7 +128,7 @@ func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 	  LEFT JOIN argument_values av ON av.id = sda.value
 	  LEFT JOIN selections sp ON sp.id = sr.parent_id
 	  LEFT JOIN type_fields ptf ON ptf.id = sp.type
-	  LEFT JOIN field_argument_definitions fd ON fd.field = s.type
+	  LEFT JOIN type_field_arguments fd ON fd.field = s.type
 	WHERE sd.directive = $paginate_directive
 		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, s.field_name, s.type, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column, sd.id, ptf.type_modifiers

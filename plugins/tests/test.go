@@ -134,7 +134,7 @@ CREATE TABLE type_fields (
     UNIQUE (parent, name)
 );
 
-CREATE TABLE field_argument_definitions (
+CREATE TABLE type_field_arguments (
     id TEXT PRIMARY KEY,
     field TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -318,7 +318,7 @@ CREATE TABLE selection_arguments (
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (field_argument) REFERENCES field_argument_definitions(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (field_argument) REFERENCES type_field_arguments(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 

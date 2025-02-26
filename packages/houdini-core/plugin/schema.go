@@ -62,8 +62,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	})
 	if err != nil {
 		return plugins.Error{
-			Message: "encountered error parsing schema file",
-			Detail:  err.Error(),
+			Message: "encountered error parsing schema file: " + err.Error(),
 			Locations: []*plugins.ErrorLocation{
 				{
 					Filepath: schemaPath,

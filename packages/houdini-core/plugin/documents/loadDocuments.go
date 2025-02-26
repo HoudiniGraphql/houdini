@@ -189,7 +189,7 @@ func LoadPendingQuery[PluginConfig any](ctx context.Context, db plugins.Database
 	defer searchTypeStatement.Finalize()
 
 	// look up the argument definition for a given type.field
-	searchSelectionArgStatement, err := conn.Prepare(`SELECT type, type_modifiers FROM field_argument_definitions WHERE id = ?`)
+	searchSelectionArgStatement, err := conn.Prepare(`SELECT type, type_modifiers FROM type_field_arguments WHERE id = ?`)
 	if err != nil {
 		return plugins.WrapError(err)
 	}

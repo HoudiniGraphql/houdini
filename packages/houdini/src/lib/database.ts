@@ -115,7 +115,7 @@ CREATE TABLE type_fields (
     UNIQUE (parent, name)
 );
 
-CREATE TABLE field_argument_definitions (
+CREATE TABLE type_field_arguments (
     id TEXT PRIMARY KEY,
     field TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -284,7 +284,7 @@ CREATE TABLE selection_arguments (
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (field_argument) REFERENCES field_argument_definitions(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (field_argument) REFERENCES type_field_arguments(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 
@@ -329,7 +329,7 @@ CREATE TABLE discovered_lists (
 -- Indices
 -----------------------------------------------------------
 
-CREATE INDEX idx_field_argument_definitions_id ON field_argument_definitions(id);
+CREATE INDEX idx_type_field_arguments_id ON type_field_arguments(id);
 CREATE INDEX idx_type_fields_id ON type_fields(id);
 CREATE INDEX idx_types_kind_operation ON types(kind, operation);
 CREATE INDEX idx_documents_kind ON documents(kind);
