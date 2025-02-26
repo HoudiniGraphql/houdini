@@ -26,6 +26,7 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	// collect all errors we encounter
 	errs := &plugins.ErrorList{}
 
+	// precompute the type information for the schema
 	typeCache, err := LoadTypeCache(ctx, db)
 	if err != nil {
 		return plugins.WrapError(err)
@@ -33,7 +34,7 @@ func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 
 	// start a pool of workers to process the documents
 	wg, _ := errgroup.WithContext(ctx)
-	for i := 0; i < runtime.NumCPU(); i++ {
+	for range runtime.NumCPU() {
 		wg.Go(func() error {
 			conn, err := db.Take(context.Background())
 			if err != nil {
