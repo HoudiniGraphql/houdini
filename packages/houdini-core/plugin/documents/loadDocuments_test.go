@@ -2,7 +2,7 @@ package documents_test
 
 import (
 	"context"
-	"strings"
+	"path"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
@@ -10,6 +10,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1110,67 +1111,87 @@ var loadDocumentsTable = []testCase{
 func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 	for _, tc := range loadDocumentsTable {
 		t.Run(tc.name, func(t *testing.T) {
+			schema := `
+				type Query {
+					user: User
+					userById: User
+					users: [User]
+					search: SearchResult
+				}
+
+				type Mutation {
+					updateUser(id: ID, name: String): User
+				}
+
+				type Subscription {
+					userUpdated: User
+				}
+
+				type User {
+					id: ID!
+					name: String
+					email: String
+					age: Int
+					profile: Profile
+					oldField: String
+					newField: String
+					avatar: String
+				}
+
+				type Profile {
+					bio: String
+					picture: String
+				}
+
+				type SearchResult {
+					results: [Result]
+				}
+
+				type Result {
+					id: ID
+				}
+
+				interface Node {
+					id: ID!
+				}
+
+			`
 			// create an in-memory db.
 			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
+
+			plugin := &plugin.HoudiniCore{
+				Fs: afero.NewMemMapFs(),
+			}
+
+			projectConfig := plugins.ProjectConfig{
+				ProjectRoot: "/project",
+				SchemaPath:  "schema.graphql",
+				RuntimeScalars: map[string]string{
+					"ViewerIDFromSession": "ID",
+				},
+			}
+			db.SetProjectConfig(projectConfig)
+			plugin.SetDatabase(db)
+
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 			defer db.Put(conn)
-
 			if err := tests.WriteHoudiniSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
 
-			// ─── POPULATE THE SCHEMA ─────────────────────────────────────────────
-			// Insert rows into "type_fields" so that the lookup in processSelection
-			// (i.e. SELECT type FROM type_fields WHERE id = ?)
-			// finds the correct types.
-			// (The types here are arbitrary as long as they allow subsequent lookups to succeed.)
-			typeFields := []struct {
-				id  string
-				typ string
-			}{
-				{"Query.user", "User"},
-				{"Query.userById", "User"},
-				{"Query.users", "User"},
-				{"Query.search", "SearchResult"},
-				{"Mutation.updateUser", "User"},
-				{"Subscription.userUpdated", "User"},
-				{"User.id", "ID"},
-				{"User.name", "String"},
-				{"User.email", "String"},
-				{"User.age", "Int"},
-				{"User.profile", "Profile"},
-				{"User.oldField", "String"},
-				{"User.newField", "String"},
-				{"User.__typename", "String"},
-				{"User.avatar", "Avatar"},
-				{"Profile.bio", "String"},
-				{"Profile.picture", "String"},
-				{"SearchResult.results", "Result"},
-				{"Result.id", "ID"},
-				{"Node.id", "ID"},
-			}
+			// Use an in-memory file system.
+			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
 
-			insertTypeField, err := conn.Prepare("INSERT INTO type_fields (id, type, parent, name) VALUES ($id, $type, $parent, $name)")
+			// wire up the plugin
+			err = plugin.Schema(context.Background())
 			if err != nil {
-				t.Fatalf("failed to prepare type_fields insert: %v", err)
-			}
-			defer insertTypeField.Finalize()
-
-			for _, tf := range typeFields {
-				typeParams := strings.Split(tf.id, ".")
-				if err := db.ExecStatement(insertTypeField, map[string]interface{}{
-					"id":     tf.id,
-					"type":   tf.typ,
-					"parent": typeParams[0],
-					"name":   typeParams[1],
-				}); err != nil {
-					t.Fatalf("failed to insert type_field %s: %v", tf.id, err)
-				}
+				db.Put(conn)
+				t.Fatalf("failed to load schema: %v", err)
 			}
 
 			// insert the raw document (assume id becomes 1).
@@ -1182,9 +1203,6 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			if err := db.ExecStatement(insertRaw, map[string]interface{}{"content": tc.rawQuery}); err != nil {
 				t.Fatalf("failed to insert raw document: %v", err)
 			}
-
-			hc := &plugin.HoudiniCore{}
-			hc.SetDatabase(db)
 
 			pending := documents.PendingQuery{
 				Query:                    tc.rawQuery,

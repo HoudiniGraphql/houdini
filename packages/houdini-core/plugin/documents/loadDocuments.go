@@ -1050,7 +1050,7 @@ func processDirectives[PluginConfig any](
 			dArgType, ok := directiveArguments[fmt.Sprintf("%s.%s", directive.Name, dArg.Name)]
 			if !ok {
 				return &plugins.Error{
-					Message: "could not process directive argument value",
+					Message: "could not process directive argument value: " + fmt.Sprintf("%s.%s", directive.Name, dArg.Name),
 					Locations: []*plugins.ErrorLocation{
 						{
 							Filepath: query.Filepath,
