@@ -2,6 +2,7 @@ package documents
 
 import (
 	"context"
+	"fmt"
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -14,6 +15,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		errs.Append(plugins.WrapError(err))
 		return
 	}
+	defer db.Put(conn)
 
 	// to pull this off we have to perform 2 different inserts that are driven by looking
 	// at selections_ref (to indentify a selection that has sub-selections) and joining it
@@ -22,7 +24,12 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 	// need to be added
 	fieldsToInsert, err := conn.Prepare(`
 		-- look for distinct selection sets
-		WITH base AS (
+		WITH default_config AS (
+			SELECT default_keys
+			FROM config
+			LIMIT 1
+		),
+		base AS (
 			SELECT DISTINCT
 				sr.parent_id AS object_selection_id,
 				sr.document AS doc_id,
@@ -31,7 +38,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 				JOIN selections s ON sr.parent_id = s.id
 				JOIN type_fields tf ON s.type = tf.id
 				JOIN types t ON t.name = tf.parent AND t.kind = 'OBJECT'
-				JOIN documents on selection_refs.document = documents.id
+				JOIN documents on sr.document = documents.id
 				JOIN raw_documents on documents.raw_document = raw_documents.id
 			WHERE sr.parent_id IS NOT NULL AND t.operation = false
 				AND raw_documents.current_task = $task_id OR $task_id IS NULL
@@ -56,36 +63,69 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 			-- Use default keys only if no type-specific keys exist for that type.
 			SELECT j.value AS key_name, b.parent_type, b.object_selection_id, b.doc_id
 			FROM base b
-				CROSS JOIN json_each((SELECT default_keys FROM config LIMIT 1)) j
+  				CROSS JOIN default_config
+				CROSS JOIN json_each(default_config.default_keys) j
 				LEFT JOIN type_configs tc ON tc.name = b.parent_type
 			WHERE tc.name IS NULL
 		)
 
 		-- Only keep keys that actually exist in type_fields
-		SELECT ok.*
-		FROM keys_union ok
-		JOIN type_fields tf  ON tf.parent = ok.parent_type AND tf.name = ok.key_name
+		SELECT keys_union.*
+		FROM keys_union
+		JOIN type_fields tf  ON tf.parent = keys_union.parent_type AND tf.name = keys_union.key_name
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
+	defer fieldsToInsert.Finalize()
 
 	// we need statments to insert selections and selection refs
-	_, err = conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
+	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
-	_, err = conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
+	defer insertSelection.Finalize()
+	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		return
 	}
+	defer insertSelectionRef.Finalize()
 
 	// every row of the above query is a selection that needs to be inserted
 	err = db.StepStatement(ctx, fieldsToInsert, func() {
+		field := fieldsToInsert.ColumnText(0)
+		parentType := fieldsToInsert.ColumnText(1)
+		selectionID := fieldsToInsert.ColumnInt64(2)
+		docID := fieldsToInsert.ColumnInt64(3)
 
+		// insert the selection
+		err := db.ExecStatement(insertSelection, map[string]interface{}{
+			"field_name": field,
+			"alias":      field,
+			"kind":       "field",
+			"type":       fmt.Sprintf("%s.%s", parentType, field),
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+
+		// and now we need to create the selection ref
+		err = db.ExecStatement(insertSelectionRef, map[string]interface{}{
+			"parent_id":  selectionID,
+			"child_id":   conn.LastInsertRowID(),
+			"document":   docID,
+			"row":        0,
+			"column":     0,
+			"path_index": 0,
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))

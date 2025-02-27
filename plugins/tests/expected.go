@@ -58,7 +58,7 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 				// Compare document metadata.
 				if actual.Kind != expDoc.Kind ||
 					!StrEqual(actual.TypeCondition, expDoc.TypeCondition) {
-					t.Errorf("document mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
+					t.Errorf("document kind mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
 				}
 
 				vars := FindDocumentVariables(t, db)
@@ -504,14 +504,14 @@ func BuildExpectedFromDB(selections map[int]DBSelection, rel map[int][]int, root
 
 func CompareExpected(expected, actual []ExpectedSelection) error {
 	if len(expected) != len(actual) {
-		return fmt.Errorf("expected %d selections, got %d", len(expected), len(actual))
+		return fmt.Errorf("expected %d selections got %d: %+v", len(expected), len(actual), actual)
 	}
 	for i := range expected {
 		if expected[i].FieldName != actual[i].FieldName ||
 			!StrEqual(expected[i].Alias, actual[i].Alias) ||
 			expected[i].PathIndex != actual[i].PathIndex ||
 			expected[i].Kind != actual[i].Kind {
-			return fmt.Errorf("mismatch at index %d: expected %+v, got %+v", i, expected[i], actual[i])
+			return fmt.Errorf("mismatch at %v %d: \n expected %+v \n got:     %+v", StrEqual(expected[i].Alias, actual[i].Alias), i, expected[i], actual[i])
 		}
 		if err := CompareExpected(expected[i].Children, actual[i].Children); err != nil {
 			return err
