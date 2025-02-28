@@ -528,10 +528,31 @@ func LoadPendingQuery[PluginConfig any](
 			}
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
+				// look for the type of the argument
+				argTypeWithModifiers, _ := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+				argType := argTypeWithModifiers.Type
+				argTypeModifiers := argTypeWithModifiers.Modifiers
+
+				// load the nested argument structure
+				argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
+				if err != nil {
+					return &plugins.Error{
+						Message: "could not process argument value: " + err.Error(),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + arg.Position.Line,
+								Column:   query.ColumnOffset + arg.Position.Column,
+							},
+						},
+					}
+				}
+
 				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
 					"parent": docDirID,
 					"name":   arg.Name,
-					"value":  arg.Value.String(),
+					"value":  argValueID,
 				}); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document variable directive argument",
@@ -619,10 +640,33 @@ func LoadPendingQuery[PluginConfig any](
 			}
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
+				// look for the type of the argument
+				argTypeWithModifiers, _ := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+				argType := argTypeWithModifiers.Type
+				argTypeModifiers := argTypeWithModifiers.Modifiers
+
+				// load the nested argument structure
+				argValueID, err := processArgumentValue(ctx, db, conn, query, fragmentID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
+				if err != nil {
+					return &plugins.Error{
+						Message: "could not process argument value: " + err.Error(),
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + arg.Position.Line,
+								Column:   query.ColumnOffset + arg.Position.Column,
+							},
+						},
+					}
+				}
+
+				fmt.Println("argValueID", argValueID)
+
 				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
 					"parent": docDirID,
 					"name":   arg.Name,
-					"value":  arg.Value.String(),
+					"value":  argValueID,
 				}); err != nil {
 					return &plugins.Error{
 						Message: "could not associate document directive argument",
@@ -1183,13 +1227,18 @@ func processArgumentValue[PluginConfig any](
 			}
 		}
 	}
+	line, column := 0, 0
+	if value.Position != nil {
+		line = value.Position.Line
+		column = value.Position.Column
+	}
 
 	// Insert the value itself into the argument_values table.
 	err := db.ExecStatement(statements.InsertArgumentValue, map[string]interface{}{
 		"kind":           valueKind,
 		"raw":            value.Raw,
-		"row":            int64(value.Position.Line),
-		"column":         int64(value.Position.Column),
+		"row":            line,
+		"column":         column,
 		"type":           typ,
 		"type_modifiers": typeModifier,
 		"document":       operationID,

@@ -257,7 +257,9 @@ CREATE TABLE document_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value TEXT NOT NULL,
+    value INTEGER NOT NULL,
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -329,6 +331,7 @@ CREATE TABLE discovered_lists (
 -- Indices
 -----------------------------------------------------------
 
+CREATE INDEX idx_document_directive_arguments_value on document_directive_arguments(value);
 CREATE INDEX idx_type_field_arguments_id ON type_field_arguments(id);
 CREATE INDEX idx_type_fields_id ON type_fields(id);
 CREATE INDEX idx_types_kind_operation ON types(kind, operation);

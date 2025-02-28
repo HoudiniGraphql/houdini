@@ -91,7 +91,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		await run(
 			config,
 			[
-				// validators.componentFields,
+				// validtors.componentFields,
 
 				// transforms.internalSchema,
 
@@ -109,8 +109,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 
 				// ...wrapHook(afterValidate),
 
-				transforms.addFields,
-				transforms.typename,
+				// transforms.addFields,
+				// transforms.typename,
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
 				transforms.list,

@@ -49,7 +49,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			document_directives.directive = $component_field
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"component_field": schema.ComponentFieldDirective,
 	}
 
@@ -122,7 +122,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	for _, rec := range records {
 		if strings.TrimSpace(rec.Prop) == "" {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Component field in document %d must specify a prop", rec.RawDocumentID),
+				Message: "Component field must specify a prop",
 				Kind:    plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{
@@ -235,7 +235,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 
 	// Process the collected component field data.
 	for _, data := range documentInfo {
-		err = db.ExecStatement(insertComponentField, map[string]interface{}{
+		err = db.ExecStatement(insertComponentField, map[string]any{
 			"document": data.RawDocumentID,
 			"prop":     data.Prop,
 			"field":    data.Field,
@@ -245,7 +245,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			errs.Append(plugins.WrapError(err))
 			continue
 		}
-		err = db.ExecStatement(insertInternalField, map[string]interface{}{
+		err = db.ExecStatement(insertInternalField, map[string]any{
 			"id":     fmt.Sprintf("%s.%s", data.Type, data.Field),
 			"parent": data.Type,
 			"name":   data.Field,

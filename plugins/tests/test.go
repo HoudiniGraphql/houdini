@@ -291,7 +291,9 @@ CREATE TABLE document_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
-    value TEXT NOT NULL,
+    value INTEGER NOT NULL,
+
+    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED
 );
 
