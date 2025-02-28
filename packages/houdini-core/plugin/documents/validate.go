@@ -1261,6 +1261,15 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 
 			OR
 
+			-- if the argument kind is an object but the expected type modifiers have a list in it, there's a problem
+			(
+				argument_values.kind = 'Object'
+				AND argument_values.expected_type_modifiers LIKE '%]%'
+			)
+
+
+			OR
+
 			-- For enum kinds: invalid if the expected modifiers contain a ']' or if no matching enum value is found.
 			(
 				argument_values.kind = 'Enum'

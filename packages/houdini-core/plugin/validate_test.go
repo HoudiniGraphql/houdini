@@ -44,7 +44,7 @@ func TestValidate_Houdini(t *testing.T) {
 		type Query {
 			rootScalar: String
 			user(name: String!) : User
-			users(filter: [UserFilter]): [User!]!
+			users(filters: [UserFilter], filter: UserFilter): [User!]!
 			nodes(ids: [ID!]!): [Node!]!
 			entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 			node(id: ID!): Node
@@ -57,6 +57,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 		input UserValueFilter {
 			firstName: String
+			hasFriendWith: UserValueFilter
 		}
 
 		type Mutation {
@@ -1080,12 +1081,60 @@ func TestValidate_Houdini(t *testing.T) {
 			},
 		},
 		{
-			Title: "used variable in deeply nested argument",
+			Title: "used variable in deeply nested list argument",
 			Pass:  true,
 			Documents: []string{
 				`
 					query UserInfo($name: String) {
-						users (filter: [{ and: [{ firstName: $name }] }]) {
+						users (filters: [{ and: [{ firstName: $name }] }]) {
+							id
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "used variable in deeply nested object argument",
+			Pass:  true,
+			Documents: []string{
+				`
+					query UserInfo($name1: String, $name2: String) {
+						users (filter: {
+							and: [
+								{ hasFriendWith: { firstName: $name1 }},
+								{ hasFriendWith: { firstName: $name2 }}
+							]
+						}) {
+							id
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "Assigning object to list in deeply nested argument",
+			Pass:  false,
+			Documents: []string{
+				`
+					query UserInfo($name: String) {
+						users (filters: { and: [{ hasFriendWith: { firstName: $name }}] }) {
+							id
+						}
+					}
+				`,
+			},
+		},
+		{
+			Title: "Assigning list to object in deeply nested argument",
+			Pass:  false,
+			Documents: []string{
+				`
+					query UserInfo($name: String) {
+						users (filter: [
+							{
+								and: [{ hasFriendWith: { firstName: $name }}]
+							}
+						]) {
 							id
 						}
 					}

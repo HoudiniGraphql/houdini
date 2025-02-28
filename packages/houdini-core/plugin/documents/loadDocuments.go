@@ -661,8 +661,6 @@ func LoadPendingQuery[PluginConfig any](
 					}
 				}
 
-				fmt.Println("argValueID", argValueID)
-
 				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
 					"parent": docDirID,
 					"name":   arg.Name,
