@@ -1208,23 +1208,19 @@ func processArgumentValue[PluginConfig any](
 	// list types retain their parents type
 	if valueKind == "List" {
 		typ = expectedType
-
-		// but the type modifiers need to lose a ]
-		if expectedTypeModifiers != "" && expectedTypeModifiers[0] == ']' {
-			typeModifier = "]"
-			expectedTypeModifiers = expectedTypeModifiers[1:]
-		} else {
-			return 0, &plugins.Error{
-				Message: "Encountered a list when one was not expected: " + expectedTypeModifiers,
-				Locations: []*plugins.ErrorLocation{
-					{
-						Filepath: query.Filepath,
-						Line:     query.RowOffset + value.Position.Line,
-						Column:   query.ColumnOffset + value.Position.Column,
-					},
-				},
+		listModifier := ""
+		if expectedTypeModifiers != "" {
+			if expectedTypeModifiers[len(expectedTypeModifiers)-1] == '!' {
+				listModifier = "!"
+				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
+			}
+			if expectedTypeModifiers[len(expectedTypeModifiers)-1] == ']' {
+				listModifier = "]" + listModifier
+				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
 			}
 		}
+
+		typeModifier = listModifier
 	}
 	line, column := 0, 0
 	if value.Position != nil {
