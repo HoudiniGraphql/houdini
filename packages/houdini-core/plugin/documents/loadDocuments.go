@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
@@ -1260,6 +1261,16 @@ func processArgumentValue[PluginConfig any](
 
 				childType = childTypes.Type
 				childModifiers = childTypes.Modifiers
+			}
+
+			// if the type is a list then we need to strip away the outer brackets
+			if valueKind == "List" {
+				if strings.HasSuffix(childModifiers, "!") {
+					childModifiers = childModifiers[:len(childModifiers)-1]
+				}
+				if strings.HasSuffix(childModifiers, "]") {
+					childModifiers = childModifiers[:len(childModifiers)-1]
+				}
 			}
 
 			// Recursively process the child value.

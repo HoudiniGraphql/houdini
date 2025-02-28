@@ -1267,6 +1267,14 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 				AND argument_values.expected_type_modifiers LIKE '%]%'
 			)
 
+			OR
+
+			-- if the argument kind is a list and there are no list modifiers
+
+			(
+				argument_values.kind = 'List'
+				AND argument_values.expected_type_modifiers NOT LIKE '%]'
+			)
 
 			OR
 
