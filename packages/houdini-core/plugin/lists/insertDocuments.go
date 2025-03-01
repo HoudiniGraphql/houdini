@@ -6,13 +6,14 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
-func InsertListOperationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
 	// during validation, we might have discovered lists that cause new documents to be inserted
-	// into the database
+	// into the database. we also need to insert internal directives so that we can strip them
+	// from the final selection set
+
 	conn, err := db.Take(ctx)
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
 
@@ -29,16 +30,23 @@ func InsertListOperationDocuments[PluginConfig any](ctx context.Context, db plug
 		FROM selection_refs WHERE parent_id = ?
 	`)
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer copySelection.Finalize()
 
 	insertDocument, err := conn.Prepare("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer insertDocument.Finalize()
 
+	// a statement to insert internal directives
+	insertInternalDirectiveStmt, err := conn.Prepare("INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, true)")
+	if err != nil {
+		return plugins.WrapError(err)
+	}
+	defer insertInternalDirectiveStmt.Finalize()
+
+	// we're done
+	return nil
 }

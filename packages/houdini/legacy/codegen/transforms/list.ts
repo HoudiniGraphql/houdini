@@ -26,118 +26,118 @@ export default async function addListFragments(
 		}
 	} = {}
 
-	const errors: Error[] = []
-	// look at every document
-	for (const doc of documents) {
-		doc.document = graphql.visit(doc.document, {
-			Directive(node, key, parent, path, ancestors) {
-				// if we found a @list applied (or a @paginate which implies a @list )
-				if ([config.listDirective, config.paginateDirective].includes(node.name.value)) {
-					// look up the name passed to the directive
-					const nameArg = node.arguments?.find(
-						(arg) => arg.name.value === config.listOrPaginateNameArg
-					)
+	// const errors: Error[] = []
+	// // look at every document
+	// for (const doc of documents) {
+	// 	doc.document = graphql.visit(doc.document, {
+	// 		Directive(node, key, parent, path, ancestors) {
+	// 			// if we found a @list applied (or a @paginate which implies a @list )
+	// 			if ([config.listDirective, config.paginateDirective].includes(node.name.value)) {
+	// 				// look up the name passed to the directive
+	// 				const nameArg = node.arguments?.find(
+	// 					(arg) => arg.name.value === config.listOrPaginateNameArg
+	// 				)
 
-					// if we need to use an error relative to this node
-					let error = {
-						...new graphql.GraphQLError(
-							'',
-							node,
-							new graphql.Source(''),
-							node.loc ? [node.loc.start, node.loc.end] : null,
-							path
-						),
-						filepath: doc.filename,
-					}
+	// 				// if we need to use an error relative to this node
+	// 				let error = {
+	// 					...new graphql.GraphQLError(
+	// 						'',
+	// 						node,
+	// 						new graphql.Source(''),
+	// 						node.loc ? [node.loc.start, node.loc.end] : null,
+	// 						path
+	// 					),
+	// 					filepath: doc.filename,
+	// 				}
 
-					// if there is no name argument
-					if (!nameArg) {
-						// if we are looking at a @list we need a name argument
-						if (node.name.value === config.listDirective) {
-							error.message = `@${node.name.value} must have a name argument`
-							errors.push(error)
-						}
+	// 				// if there is no name argument
+	// 				if (!nameArg) {
+	// 					// if we are looking at a @list we need a name argument
+	// 					if (node.name.value === config.listDirective) {
+	// 						error.message = `@${node.name.value} must have a name argument`
+	// 						errors.push(error)
+	// 					}
 
-						// regardless, we don't need to process this node any more
-						return
-					}
+	// 					// regardless, we don't need to process this node any more
+	// 					return
+	// 				}
 
-					// make sure it was a string
-					if (nameArg.value.kind !== 'StringValue') {
-						error.message = `@${node.name.value} name must be a string`
-						errors.push(error)
-						return
-					}
+	// 				// make sure it was a string
+	// 				if (nameArg.value.kind !== 'StringValue') {
+	// 					error.message = `@${node.name.value} name must be a string`
+	// 					errors.push(error)
+	// 					return
+	// 				}
 
-					// if we've already seen this list
-					if (lists[nameArg.value.value]) {
-						error.message = `@${node.name.value} name must be unique`
-						errors.push(error)
-					}
+	// 				// if we've already seen this list
+	// 				if (lists[nameArg.value.value]) {
+	// 					error.message = `@${node.name.value} name must be unique`
+	// 					errors.push(error)
+	// 				}
 
-					// look up the parent's type
-					const parentType = parentTypeFromAncestors(
-						config.schema,
-						doc.filename,
-						ancestors.slice(0, -1)
-					)
+	// 				// look up the parent's type
+	// 				const parentType = parentTypeFromAncestors(
+	// 					config.schema,
+	// 					doc.filename,
+	// 					ancestors.slice(0, -1)
+	// 				)
 
-					// a non-connection list can just use the selection set of the tagged field
-					// but if this is a connection tagged with list we need to use the selection
-					// of the edges.node field
-					const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
-					const targetFieldDefinition = parentType.getFields()[
-						targetField.name.value
-					] as graphql.GraphQLField<any, any>
+	// 				// a non-connection list can just use the selection set of the tagged field
+	// 				// but if this is a connection tagged with list we need to use the selection
+	// 				// of the edges.node field
+	// 				const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
+	// 				const targetFieldDefinition = parentType.getFields()[
+	// 					targetField.name.value
+	// 				] as graphql.GraphQLField<any, any>
 
-					const { selection, type, connection } = connectionSelection(
-						config,
-						targetFieldDefinition,
-						parentTypeFromAncestors(
-							config.schema,
-							doc.filename,
-							ancestors
-						) as graphql.GraphQLObjectType,
-						(ancestors[ancestors.length - 1] as graphql.FieldNode).selectionSet
-					)
+	// 				const { selection, type, connection } = connectionSelection(
+	// 					config,
+	// 					targetFieldDefinition,
+	// 					parentTypeFromAncestors(
+	// 						config.schema,
+	// 						doc.filename,
+	// 						ancestors
+	// 					) as graphql.GraphQLObjectType,
+	// 					(ancestors[ancestors.length - 1] as graphql.FieldNode).selectionSet
+	// 				)
 
-					// add the target of the directive to the list
-					lists[nameArg.value.value] = {
-						selection,
-						type,
-						filename: doc.filename,
-					}
+	// 				// add the target of the directive to the list
+	// 				lists[nameArg.value.value] = {
+	// 					selection,
+	// 					type,
+	// 					filename: doc.filename,
+	// 				}
 
-					// if the list is marking a connection we need to add the flag in a place we can track when
-					// generating the artifact
-					if (connection) {
-						return {
-							...node,
-							arguments: [
-								...node.arguments!,
-								{
-									kind: 'Argument',
-									name: {
-										kind: graphql.Kind.NAME,
-										value: 'connection',
-									},
-									value: {
-										kind: 'BooleanValue',
-										value: true,
-									},
-								} as graphql.ArgumentNode,
-							],
-						}
-					}
-				}
-			},
-		})
-	}
+	// 				// if the list is marking a connection we need to add the flag in a place we can track when
+	// 				// generating the artifact
+	// 				if (connection) {
+	// 					return {
+	// 						...node,
+	// 						arguments: [
+	// 							...node.arguments!,
+	// 							{
+	// 								kind: 'Argument',
+	// 								name: {
+	// 									kind: graphql.Kind.NAME,
+	// 									value: 'connection',
+	// 								},
+	// 								value: {
+	// 									kind: 'BooleanValue',
+	// 									value: true,
+	// 								},
+	// 							} as graphql.ArgumentNode,
+	// 						],
+	// 					}
+	// 				}
+	// 			}
+	// 		},
+	// 	})
+	// }
 
-	// if we ran into any errors
-	if (errors.length > 0) {
-		throw errors
-	}
+	// // if we ran into any errors
+	// if (errors.length > 0) {
+	// 	throw errors
+	// }
 
 	// we need to add a delete directive for every type that is the target of a list
 	const validDeletes = [

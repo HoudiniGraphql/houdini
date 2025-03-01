@@ -48,6 +48,15 @@ var loadDocumentsTable = []testCase{
 							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
 							{FieldName: "name", Alias: tests.StrPtr("name"), PathIndex: 1, Kind: "field"},
 						},
+						Arguments: []tests.ExpectedArgument{
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "Variable",
+									Raw:  "id",
+								},
+							},
+						},
 					},
 				},
 			},
@@ -95,8 +104,20 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
-							{Name: "active", Value: "true"},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
+							{
+								Name: "active",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "Boolean",
+									Raw:  "true",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
@@ -141,6 +162,15 @@ var loadDocumentsTable = []testCase{
 								},
 							},
 						},
+						Arguments: []tests.ExpectedArgument{
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
+						},
 					},
 				},
 			},
@@ -166,7 +196,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Directives: []tests.ExpectedDirective{
 							{
@@ -211,7 +247,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{FieldName: "name", Alias: tests.StrPtr("fn"), PathIndex: 0, Kind: "field"},
@@ -252,6 +294,15 @@ var loadDocumentsTable = []testCase{
 						Children: []tests.ExpectedSelection{
 							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
 						},
+						Arguments: []tests.ExpectedArgument{
+							{
+								Name: "limit",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "Variable",
+									Raw:  "limit",
+								},
+							},
+						},
 					},
 				},
 			},
@@ -277,7 +328,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Directives: []tests.ExpectedDirective{
 							{
@@ -297,7 +354,7 @@ var loadDocumentsTable = []testCase{
 								Arguments: []tests.ExpectedDirectiveArgument{
 									{
 										Name: "reason", Value: &tests.ExpectedArgumentValue{
-											Kind: "BStringoolean",
+											Kind: "String",
 											Raw:  "old field",
 										},
 									},
@@ -333,8 +390,20 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
-							{Name: "name", Value: "\"NewName\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
+							{
+								Name: "name",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "NewName",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
@@ -401,7 +470,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{
@@ -462,7 +537,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{
@@ -564,7 +645,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Directives: []tests.ExpectedDirective{
 							{
@@ -642,7 +729,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Directives: []tests.ExpectedDirective{
 							{
@@ -767,7 +860,7 @@ var loadDocumentsTable = []testCase{
 												Name: "reason",
 												Value: &tests.ExpectedArgumentValue{
 													Kind: "String",
-													Raw:  "User newField",
+													Raw:  "Use newField",
 												},
 											},
 										},
@@ -819,7 +912,7 @@ var loadDocumentsTable = []testCase{
 												Name: "hello",
 												Value: &tests.ExpectedArgumentValue{
 													Kind: "Object",
-													Raw:  "{type:\"String\"}",
+													Raw:  "",
 													Children: []tests.ExpectedArgumentValueChildren{
 														{
 															Name: "type",
@@ -1041,7 +1134,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "filter", Value: "$filter"},
+							{
+								Name: "filter",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "Variable",
+									Raw:  "filter",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{
@@ -1099,7 +1198,13 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Arguments: []tests.ExpectedArgument{
-							{Name: "id", Value: "\"123\""},
+							{
+								Name: "id",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "123",
+								},
+							},
 						},
 						Children: []tests.ExpectedSelection{
 							{

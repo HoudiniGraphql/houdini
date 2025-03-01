@@ -4,17 +4,22 @@ import (
 	"context"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
-	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
 )
 
 func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 	// now that we've validated the documents we can start to process them
 
 	// the first thing we need to do is add the necessary fields to the documents
-	errs := &plugins.ErrorList{}
-	documents.AddDocumentFields(ctx, p.DB, errs)
-	if errs.Len() > 0 {
-		return errs
+	err := documents.AddDocumentFields(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
+	// next, we need to add the list operation documents
+	err = lists.InsertOperationDocuments(ctx, p.DB)
+	if err != nil {
+		return err
 	}
 
 	// if we got this far, we're done

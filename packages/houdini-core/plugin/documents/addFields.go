@@ -9,11 +9,10 @@ import (
 
 // AddDocumentFields adds necessary documents to the selections of the user's project including
 // keys and __typename for every object
-func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
 
@@ -83,24 +82,23 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		JOIN type_fields tf ON tf.parent = keys_union.parent_type AND tf.name = keys_union.key_name
 	`)
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer fieldsToInsert.Finalize()
 
 	// we need statments to insert selections and selection refs
 	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer insertSelection.Finalize()
 	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
 	defer insertSelectionRef.Finalize()
+
+	errs := &plugins.ErrorList{}
 
 	// every row of the above query is a selection that needs to be inserted
 	err = db.StepStatement(ctx, fieldsToInsert, func() {
@@ -134,9 +132,22 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 			errs.Append(plugins.WrapError(err))
 			return
 		}
+
+		fmt.Println("inserting selection ref", map[string]interface{}{
+			"parent_id":  selectionID,
+			"child_id":   conn.LastInsertRowID(),
+			"document":   docID,
+			"row":        0,
+			"column":     0,
+			"path_index": 0,
+		})
 	})
 	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
+		return plugins.WrapError(err)
 	}
+	// if we collcted any errors along the way, return them
+	if errs.Len() > 0 {
+		return errs
+	}
+	return nil
 }

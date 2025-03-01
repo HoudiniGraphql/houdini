@@ -301,15 +301,13 @@ func TestAddFields(t *testing.T) {
 				t.Fatalf("failed to load schema: %v", err)
 			}
 
-			errs := plugins.ErrorList{}
-			documents.AddDocumentFields(context.Background(), db, &errs)
-			if errs.Len() > 0 {
-				t.Fatalf("failed to add fields: %v", errs.GetItems())
+			err = documents.AddDocumentFields(context.Background(), db)
+			if err != nil {
+				t.Fatalf("failed to add fields: %v", err)
 			}
 
 			// make sure we generated what we expected
 			tests.ValidateExpectedDocuments(t, db, row.Expected)
 		})
-
 	}
 }

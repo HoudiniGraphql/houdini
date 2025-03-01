@@ -371,7 +371,7 @@ type ExpectedOperationVariable struct {
 
 type ExpectedArgument struct {
 	Name  string
-	Value string
+	Value *ExpectedArgumentValue
 }
 
 type ExpectedArgumentValue struct {
