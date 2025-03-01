@@ -132,15 +132,6 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 			errs.Append(plugins.WrapError(err))
 			return
 		}
-
-		fmt.Println("inserting selection ref", map[string]interface{}{
-			"parent_id":  selectionID,
-			"child_id":   conn.LastInsertRowID(),
-			"document":   docID,
-			"row":        0,
-			"column":     0,
-			"path_index": 0,
-		})
 	})
 	if err != nil {
 		return plugins.WrapError(err)

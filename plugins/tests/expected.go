@@ -239,9 +239,6 @@ ORDER BY s.id`
 	}
 	stmt.Finalize()
 
-	fmt.Println("filteredSelections", filteredSelections)
-	fmt.Println("parentToChildren", parentToChildren)
-
 	// step 3. determine the roots.
 	roots := make([]int, 0)
 	for id := range filteredSelections {
