@@ -244,5 +244,5 @@ export async function codegen(
 	await trigger_hook('Validate', true)
 	await trigger_hook('AfterValidate', false)
 	await trigger_hook('BeforeGenerate', false)
-	await trigger_hook('Generate', false)
+	await trigger_hook('Generate', true)
 }

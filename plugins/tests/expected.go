@@ -573,33 +573,52 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 		return fmt.Errorf("expected %d selections got %d: %+v", len(expected), len(actual), actual)
 	}
 	for i := range expected {
-		found := false
+		foundIndex := -1
 		for j := range actual {
-			if !strEqual(expected[i].Alias, actual[j].Alias) {
-				continue
-			}
+			switch expected[i].Kind {
+			// fragment spreads match by name
+			case "fragment":
+				if expected[i].FieldName != actual[j].FieldName {
+					continue
+				}
+				foundIndex = j
 
-			found = true
+			// fragment spreads match by name
+			case "inline_fragment":
+				if expected[i].FieldName != actual[j].FieldName {
+					continue
+				}
+				foundIndex = j
 
-			if !strEqual(expected[i].Alias, actual[j].Alias) ||
-				expected[i].PathIndex != actual[j].PathIndex ||
-				expected[i].Kind != actual[j].Kind {
-				return fmt.Errorf("mismatch at %d: \n expected %+v \n got:     %+v", i, expected[i], actual[j])
-			}
+			// fields match by alias
+			case "field":
+				if !strEqual(expected[i].Alias, actual[j].Alias) {
+					continue
+				}
 
-			// make sure that arguments and directives line up
-			verifySelectionDetails(t, expected[i], actual[j])
+				foundIndex = j
 
-			// walk down the children
-			if err := compareExpected(t, expected[i].Children, actual[j].Children); err != nil {
-				return err
+				if !strEqual(expected[i].Alias, actual[j].Alias) ||
+					expected[i].PathIndex != actual[j].PathIndex ||
+					expected[i].Kind != actual[j].Kind {
+					return fmt.Errorf("mismatch at %d: \n expected %+v \n got:     %+v", i, expected[i], actual[j])
+				}
+
+				// walk down the children
+				if err := compareExpected(t, expected[i].Children, actual[j].Children); err != nil {
+					return err
+				}
 			}
 		}
-		if !found {
+
+		if foundIndex == -1 {
 			return fmt.Errorf("expected selection not found: %+v", expected[i])
+		} else {
+			// if we did find a make sure that arguments and directives line up
+			verifySelectionDetails(t, expected[i], actual[foundIndex])
 		}
-
 	}
+
 	return nil
 }
 
