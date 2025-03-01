@@ -47,10 +47,10 @@ const ComponentFieldDirective = "componentField"
 
 const RuntimeScalarDirective = "__houdini__runtimeScalar"
 
-const ListOperationPrefixInsert = "_insert"
+const ListOperationSuffixInsert = "_insert"
 
-const ListOperationPrefixRemove = "_remove"
+const ListOperationSuffixRemove = "_remove"
 
-const ListOperationPrefixToggle = "_toggle"
+const ListOperationSuffixToggle = "_toggle"
 
-const ListOperationPrefixDelete = "_delete"
+const ListOperationSuffixDelete = "_delete"

@@ -499,9 +499,9 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 	bindings := map[string]interface{}{
 		"paginate_directive": schema.PaginationDirective,
 		"list_directive":     schema.ListDirective,
-		"insert_prefix":      schema.ListOperationPrefixInsert,
-		"toggle_prefix":      schema.ListOperationPrefixToggle,
-		"remove_prefix":      schema.ListOperationPrefixRemove,
+		"insert_prefix":      schema.ListOperationSuffixInsert,
+		"toggle_prefix":      schema.ListOperationSuffixToggle,
+		"remove_prefix":      schema.ListOperationSuffixRemove,
 		"parentID_directive": schema.ParentIDDirective,
 		"allLists_directive": schema.AllListsDirective,
 	}
@@ -770,7 +770,7 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
-		"delete_prefix": schema.ListOperationPrefixDelete,
+		"delete_prefix": schema.ListOperationSuffixDelete,
 	}
 	err := db.StepQuery(ctx, selectionSearch, bindings, func(stmt *sqlite.Stmt) {
 		errs.Append(&plugins.Error{
@@ -820,9 +820,9 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]interface{}{
-		"insert_prefix": schema.ListOperationPrefixInsert,
-		"remove_prefix": schema.ListOperationPrefixRemove,
-		"toggle_prefix": schema.ListOperationPrefixToggle,
+		"insert_prefix": schema.ListOperationSuffixInsert,
+		"remove_prefix": schema.ListOperationSuffixRemove,
+		"toggle_prefix": schema.ListOperationSuffixToggle,
 	}
 
 	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {

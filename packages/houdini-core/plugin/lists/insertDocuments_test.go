@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
@@ -44,6 +45,16 @@ func TestInsertOperationDocuments(t *testing.T) {
 									Alias:     tests.StrPtr("firstName"),
 									Kind:      "field",
 								},
+								{
+									FieldName: "__typename",
+									Alias:     tests.StrPtr("__typename"),
+									Kind:      "field",
+								},
+								{
+									FieldName: "id",
+									Alias:     tests.StrPtr("id"),
+									Kind:      "field",
+								},
 							},
 							Directives: []tests.ExpectedDirective{
 								{
@@ -59,6 +70,67 @@ func TestInsertOperationDocuments(t *testing.T) {
 									},
 								},
 							},
+						},
+					},
+				},
+				{
+					Name:          "All_Users_insert",
+					Kind:          "fragment",
+					TypeCondition: tests.StrPtr("User"),
+					Selections: []tests.ExpectedSelection{
+						{
+							FieldName: "firstName",
+							Alias:     tests.StrPtr("firstName"),
+							Kind:      "field",
+						},
+						{
+							FieldName: "id",
+							Alias:     tests.StrPtr("id"),
+							Kind:      "field",
+						},
+						{
+							FieldName: "__typename",
+							Alias:     tests.StrPtr("__typename"),
+							Kind:      "field",
+						},
+					},
+				},
+				{
+					Name:          "All_Users_remove",
+					Kind:          "fragment",
+					TypeCondition: tests.StrPtr("User"),
+					Selections: []tests.ExpectedSelection{
+						{
+							FieldName: "__typename",
+							Alias:     tests.StrPtr("__typename"),
+							Kind:      "field",
+						},
+						{
+							FieldName: "id",
+							Alias:     tests.StrPtr("id"),
+							Kind:      "field",
+						},
+					},
+				},
+				{
+					Name:          "All_Users_toggle",
+					Kind:          "fragment",
+					TypeCondition: tests.StrPtr("User"),
+					Selections: []tests.ExpectedSelection{
+						{
+							FieldName: "firstName",
+							Alias:     tests.StrPtr("firstName"),
+							Kind:      "field",
+						},
+						{
+							FieldName: "id",
+							Alias:     tests.StrPtr("id"),
+							Kind:      "field",
+						},
+						{
+							FieldName: "__typename",
+							Alias:     tests.StrPtr("__typename"),
+							Kind:      "field",
 						},
 					},
 				},
@@ -163,6 +235,19 @@ func TestInsertOperationDocuments(t *testing.T) {
 			err = plugin.AfterExtract(context.Background())
 			if err != nil {
 				t.Fatalf("failed to load schema: %v", err)
+			}
+
+			// run the validation step to discover lists
+			errs := &plugins.ErrorList{}
+			lists.ValidateKnownDirectivesAndFragments(context.Background(), db, errs)
+			if errs.Len() > 0 {
+				t.Fatalf("failed to validate: %v", errs.GetItems())
+			}
+
+			// perform the necessary afterValidate steps
+			err = plugin.AfterValidate(context.Background())
+			if err != nil {
+				t.Fatalf("failed to execute afterValidate: %v", err)
 			}
 
 			// make sure we generated what we expected

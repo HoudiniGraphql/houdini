@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"sort"
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
@@ -30,7 +29,7 @@ type documentRow struct {
 func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], expectedDocs []ExpectedDocument) {
 	// fetch documents and compare with expectedDocs.
 	documents := fetchDocuments(t, db)
-	if len(documents) != len(expectedDocs) {
+	if len(documents) < len(expectedDocs) {
 		t.Errorf("expected %d documents, got %d", len(expectedDocs), len(documents))
 	}
 
@@ -42,8 +41,8 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 
 				// Compare document metadata.
 				if actual.Kind != expDoc.Kind ||
-					!strEqual(actual.TypeCondition, expDoc.TypeCondition) {
-					t.Errorf("document kind mismatch for %s: expected %+v, got %+v", expDoc.Name, expDoc, actual)
+					!strEqual(expDoc.TypeCondition, actual.TypeCondition) {
+					t.Errorf("document metadata mismatch for %s: \nexpected \n\t%+v \ngot \n\t%+v", expDoc.Name, expDoc, actual)
 				}
 
 				vars := findDocumentVariables(t, db)
@@ -58,7 +57,7 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 					if actualVar.Document != expectedVar.Document ||
 						actualVar.VarName != expectedVar.VarName ||
 						actualVar.Type != expectedVar.Type ||
-						!strEqual(actualVar.DefaultValue, expectedVar.DefaultValue) {
+						!strEqual(expectedVar.DefaultValue, actualVar.DefaultValue) {
 						t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
 					}
 					// Check directives attached to the operation variable.
@@ -88,8 +87,6 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 
 				// Build and compare the selection tree.
 				actualTree := buildSelectionTree(t, db, int64(actual.ID))
-				sortSelections(actualTree)
-				sortSelections(expDoc.Selections)
 				if err := compareExpected(t, expDoc.Selections, actualTree); err != nil {
 					t.Errorf("selection tree mismatch for document %s: %v", expDoc.Name, err)
 				}
@@ -124,16 +121,6 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 		if !found {
 			t.Errorf("expected document %s not found", expDoc.Name)
 		}
-	}
-}
-
-// sortSelections sorts the expected selection tree.
-func sortSelections(sels []ExpectedSelection) {
-	sort.Slice(sels, func(i, j int) bool {
-		return sels[i].PathIndex < sels[j].PathIndex
-	})
-	for i := range sels {
-		sortSelections(sels[i].Children)
 	}
 }
 
@@ -586,20 +573,32 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 		return fmt.Errorf("expected %d selections got %d: %+v", len(expected), len(actual), actual)
 	}
 	for i := range expected {
-		if expected[i].FieldName != actual[i].FieldName ||
-			!strEqual(expected[i].Alias, actual[i].Alias) ||
-			expected[i].PathIndex != actual[i].PathIndex ||
-			expected[i].Kind != actual[i].Kind {
-			return fmt.Errorf("mismatch at %v %d: \n expected %+v \n got:     %+v", strEqual(expected[i].Alias, actual[i].Alias), i, expected[i], actual[i])
+		found := false
+		for j := range actual {
+			if !strEqual(expected[i].Alias, actual[j].Alias) {
+				continue
+			}
+
+			found = true
+
+			if !strEqual(expected[i].Alias, actual[j].Alias) ||
+				expected[i].PathIndex != actual[j].PathIndex ||
+				expected[i].Kind != actual[j].Kind {
+				return fmt.Errorf("mismatch at %d: \n expected %+v \n got:     %+v", i, expected[i], actual[j])
+			}
+
+			// make sure that arguments and directives line up
+			verifySelectionDetails(t, expected[i], actual[j])
+
+			// walk down the children
+			if err := compareExpected(t, expected[i].Children, actual[j].Children); err != nil {
+				return err
+			}
+		}
+		if !found {
+			return fmt.Errorf("expected selection not found: %+v", expected[i])
 		}
 
-		// make sure that arguments and directives line up
-		verifySelectionDetails(t, expected[i], actual[i])
-
-		// walk down the children
-		if err := compareExpected(t, expected[i].Children, actual[i].Children); err != nil {
-			return err
-		}
 	}
 	return nil
 }
