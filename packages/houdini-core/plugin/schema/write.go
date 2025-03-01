@@ -670,6 +670,28 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// both with and arguments are structured in a way that's technically not valid in the schema
+	// ie @with(foo: {type: "String", defaultValue: "hello"})
+	// or @arguments(foo: {type: "Boolean!", defaultValue: true})
+	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
+		"name": ArgumentSpecificationType,
+		"kind": "OBJECT",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+		"id":             fmt.Sprintf("%s.type", ArgumentSpecificationType),
+		"parent":         ArgumentSpecificationType,
+		"name":           "type",
+		"type":           "String",
+		"type_modifiers": "!",
+	})
+	if err != nil {
+		return err
+	}
+
 	// CachePolicy enum
 	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
 		"name": "CachePolicy",
@@ -898,3 +920,5 @@ func ParseFieldType(s string) (base, modifier string) {
 	}
 	return matches[1], matches[2]
 }
+
+const ArgumentSpecificationType = "__ArgumentSpecification"

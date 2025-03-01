@@ -62,7 +62,7 @@ func TestComponentFields(t *testing.T) {
 	// now trigger the component fields portion of the process
 	errs := &plugins.ErrorList{}
 	componentFields.WriteMetadata(context.Background(), db, errs)
-	require.Equal(t, 0, errs.Len())
+	require.Equal(t, 0, errs.Len(), errs.Error())
 
 	// there should be an entry for User.Avatar in the type fields table
 	search, err := conn.Prepare("SELECT parent, name, type, internal FROM type_fields where id = ?")

@@ -377,17 +377,17 @@ type ExpectedArgument struct {
 type ExpectedArgumentValue struct {
 	Kind     string
 	Raw      string
-	Children []ExpectedArgumentValueChild
+	Children []ExpectedArgumentValueChildren
 }
 
-type ExpectedArgumentValueChild struct {
+type ExpectedArgumentValueChildren struct {
 	Name  string
-	Value ExpectedArgumentValue
+	Value *ExpectedArgumentValue
 }
 
 type ExpectedDirectiveArgument struct {
 	Name  string
-	Value string
+	Value *ExpectedArgumentValue
 }
 
 type ExpectedDirective struct {

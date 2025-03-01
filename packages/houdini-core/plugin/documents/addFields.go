@@ -23,28 +23,36 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 	// as parents, we can look at the config and type_config tables to determine which keys
 	// need to be added
 	fieldsToInsert, err := conn.Prepare(`
-		-- look for distinct selection sets
 		WITH default_config AS (
 			SELECT default_keys
 			FROM config
 			LIMIT 1
 		),
+
 		base AS (
 			SELECT DISTINCT
 				sr.parent_id AS object_selection_id,
 				sr.document AS doc_id,
-				tf.type AS parent_type
+				CASE
+					WHEN s.kind = 'inline_fragment' THEN s.field_name
+					ELSE tf.type
+				END AS parent_type
 			FROM selection_refs sr
-				JOIN selections s ON sr.parent_id = s.id
-				JOIN type_fields tf ON s.type = tf.id
-				JOIN types t ON t.name = tf.parent AND t.kind = 'OBJECT'
-				JOIN documents on sr.document = documents.id
-				JOIN raw_documents on documents.raw_document = raw_documents.id
-			WHERE sr.parent_id IS NOT NULL AND t.operation = false
-				AND raw_documents.current_task = $task_id OR $task_id IS NULL
+			JOIN selections s ON sr.parent_id = s.id
+			LEFT JOIN type_fields tf ON s.type = tf.id
+			JOIN types t ON t.name = (
+				CASE
+					WHEN s.kind = 'inline_fragment' THEN s.field_name
+					ELSE tf.type
+				END
+			)
+			JOIN documents d ON sr.document = d.id
+			JOIN raw_documents rd ON d.raw_document = rd.id
+			WHERE sr.parent_id IS NOT NULL
+			AND t.operation = false
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		),
 
-		-- build up the keys that need to be inserted for each distinct selection set we found
 		keys_union AS (
 			-- Always include __typename.
 			SELECT '__typename' AS key_name, parent_type, object_selection_id, doc_id
@@ -63,7 +71,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 			-- Use default keys only if no type-specific keys exist for that type.
 			SELECT j.value AS key_name, b.parent_type, b.object_selection_id, b.doc_id
 			FROM base b
-  				CROSS JOIN default_config
+				CROSS JOIN default_config
 				CROSS JOIN json_each(default_config.default_keys) j
 				LEFT JOIN type_configs tc ON tc.name = b.parent_type
 			WHERE tc.name IS NULL
@@ -72,7 +80,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		-- Only keep keys that actually exist in type_fields
 		SELECT keys_union.*
 		FROM keys_union
-		JOIN type_fields tf  ON tf.parent = keys_union.parent_type AND tf.name = keys_union.key_name
+		JOIN type_fields tf ON tf.parent = keys_union.parent_type AND tf.name = keys_union.key_name
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/plugins"
+	"github.com/stretchr/testify/require"
 	"zombiezen.com/go/sqlite"
 )
 
@@ -90,9 +91,11 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 							} else {
 								for k, expArg := range expDir.Arguments {
 									actArg := actDir.Arguments[k]
-									if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+									if actArg.Name != expArg.Name {
 										t.Errorf("for document %s, operation variable %s directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.VarName, expDir.Name, k, expArg, actArg)
 									}
+
+									validateArgumentValue(t, expArg.Value, actArg.Value)
 								}
 							}
 						}
@@ -126,9 +129,12 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 						} else {
 							for j, expArg := range expDir.Arguments {
 								actArg := actDir.Arguments[j]
-								if actArg.Name != expArg.Name || actArg.Value != expArg.Value {
+
+								if actArg.Name != expArg.Name {
 									t.Errorf("document %s, directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expDir.Name, j, expArg, actArg)
 								}
+
+								validateArgumentValue(t, expArg.Value, actArg.Value)
 							}
 						}
 					}
@@ -394,7 +400,7 @@ func findOperationVariableDirectives[PluginConfig any](t *testing.T, db plugins.
 		dirName := stmt.ColumnText(1)
 
 		// Now look up any arguments for this directive.
-		args, err := findOperationVariableDirectiveArguments(db, dirID)
+		args, err := findOperationVariableDirectiveArguments(t, db, dirID)
 		if err != nil {
 			t.Fatalf("failed to fetch arguments for directive %s: %v", dirName, err)
 		}
@@ -408,7 +414,7 @@ func findOperationVariableDirectives[PluginConfig any](t *testing.T, db plugins.
 }
 
 // findOperationVariableDirectiveArguments retrieves all arguments for a given variable directive.
-func findOperationVariableDirectiveArguments[PluginConfig any](db plugins.DatabasePool[PluginConfig], directiveID int) ([]ExpectedDirectiveArgument, error) {
+func findOperationVariableDirectiveArguments[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], directiveID int) ([]ExpectedDirectiveArgument, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil, err
@@ -440,7 +446,7 @@ func findOperationVariableDirectiveArguments[PluginConfig any](db plugins.Databa
 
 		args = append(args, ExpectedDirectiveArgument{
 			Name:  stmt.ColumnText(0),
-			Value: stmt.ColumnText(1),
+			Value: findArgumentValue(t, db, stmt.ColumnInt(1)),
 		})
 	}
 	return args, nil
@@ -547,9 +553,11 @@ func VerifySelectionDetails[PluginConfig any](t *testing.T, db plugins.DatabaseP
 			} else {
 				for j, expDArg := range expDir.Arguments {
 					actDArg := actDir.Arguments[j]
-					if actDArg.Name != expDArg.Name || actDArg.Value != expDArg.Value {
+					if actDArg.Name != expDArg.Name {
 						t.Errorf("for selection id %d directive %s argument %d, expected %+v, got %+v", selectionID, expDir.Name, j, expDArg, actDArg)
 					}
+
+					validateArgumentValue(t, expDArg.Value, actDArg.Value)
 				}
 			}
 		}
@@ -653,7 +661,7 @@ func fetchSelectionDirectivesForSelection[PluginConfig any](t *testing.T, db plu
 			}
 			dirArgs = append(dirArgs, ExpectedDirectiveArgument{
 				Name:  argStmt.ColumnText(0),
-				Value: argStmt.ColumnText(1),
+				Value: findArgumentValue(t, db, argStmt.ColumnInt(1)),
 			})
 		}
 		argStmt.Finalize()
@@ -725,7 +733,7 @@ func FetchDocumentDirectives[PluginConfig any](t *testing.T, db plugins.Database
 			}
 			args = append(args, ExpectedDirectiveArgument{
 				Name:  argStmt.ColumnText(0),
-				Value: argStmt.ColumnText(1),
+				Value: findArgumentValue(t, db, argStmt.ColumnInt(1)),
 			})
 		}
 		argStmt.Finalize()
@@ -735,4 +743,164 @@ func FetchDocumentDirectives[PluginConfig any](t *testing.T, db plugins.Database
 		})
 	}
 	return directives
+}
+
+func validateArgumentValue(t *testing.T, expected *ExpectedArgumentValue, actual *ExpectedArgumentValue) {
+	if expected == nil && actual != nil {
+		t.Errorf("expected nil argument value, got %+v", actual)
+		return
+	}
+	if expected != nil && actual == nil {
+		t.Errorf("expected %+v, got nil argument value", expected)
+		return
+	}
+
+	// Compare the basic fields.
+	if expected.Kind != actual.Kind {
+		t.Errorf("mismatch in Kind: expected %q, got %q", expected.Kind, actual.Kind)
+	}
+	if expected.Raw != actual.Raw {
+		t.Errorf("mismatch in Raw: expected %q, got %q", expected.Raw, actual.Raw)
+	}
+
+	// Check that the number of children match.
+	if len(expected.Children) != len(actual.Children) {
+		t.Errorf("mismatch in number of children for argument value (kind %q): expected %d, got %d",
+			expected.Kind, len(expected.Children), len(actual.Children))
+	}
+
+	// For each expected child, find a corresponding actual child with the same name.
+	// This example first tries to use the same index; if that doesn't match, it searches by name.
+	for i, expChild := range expected.Children {
+		var actChildValue *ExpectedArgumentValue
+		if i < len(actual.Children) && actual.Children[i].Name == expChild.Name {
+			actChildValue = actual.Children[i].Value
+		} else {
+			// Search for a matching child by name.
+			for _, ac := range actual.Children {
+				if ac.Name == expChild.Name {
+					actChildValue = ac.Value
+					break
+				}
+			}
+		}
+		if actChildValue == nil {
+			t.Errorf("expected child with name %q not found in actual argument value %+v", expChild.Name, actual)
+		} else {
+			// Recurse into the child value.
+			validateArgumentValue(t, expChild.Value, actChildValue)
+		}
+	}
+}
+
+func findArgumentValue[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], valueID int) *ExpectedArgumentValue {
+
+	// Recursive query to build the argument tree.
+	query := `
+	WITH RECURSIVE arg_tree AS (
+	  -- Base case: start at the given argument value.
+	  SELECT
+	    av.id,
+	    av.kind,
+	    av.raw,
+	    NULL AS parent_id,
+	    NULL AS child_name,
+	    0 AS level,
+	    CAST(av.id AS TEXT) AS path
+	  FROM argument_values av
+	  WHERE av.id = $value_id
+
+	  UNION ALL
+
+	  -- Recursive step: join children via argument_value_children.
+	  SELECT
+	    child_av.id,
+	    child_av.kind,
+	    child_av.raw,
+	    avc.parent AS parent_id,
+	    avc.name AS child_name,
+	    at.level + 1 AS level,
+	    at.path || ',' || child_av.id AS path
+	  FROM arg_tree at
+	    JOIN argument_value_children avc ON avc.parent = at.id
+	    JOIN argument_values child_av ON child_av.id = avc.value
+	)
+	SELECT * FROM arg_tree
+	`
+
+	// Define an internal type to represent nodes in the tree.
+	type argNode struct {
+		id        int
+		kind      string
+		raw       string
+		parentID  *int // nil for the root
+		childName string
+		level     int
+		children  []*argNode
+	}
+
+	// Use a map to keep track of nodes by id.
+	nodes := make(map[int]*argNode)
+
+	err := db.StepQuery(context.Background(), query, map[string]any{"value_id": valueID}, func(s *sqlite.Stmt) {
+		id := int(s.ColumnInt(0))
+		kind := s.ColumnText(1)
+		raw := s.ColumnText(2)
+		var parentID *int
+		if s.ColumnType(3) != sqlite.TypeNull {
+			pid := int(s.ColumnInt(3))
+			parentID = &pid
+		}
+		childName := s.ColumnText(4)
+		level := int(s.ColumnInt(5))
+
+		node := &argNode{
+			id:        id,
+			kind:      kind,
+			raw:       raw,
+			parentID:  parentID,
+			childName: childName,
+			level:     level,
+		}
+		nodes[id] = node
+	})
+	require.Nil(t, err)
+
+	// If no rows were returned, no argument value was found.
+	if len(nodes) == 0 {
+		return nil
+	}
+
+	// Build the tree structure from the flat map.
+	var root *argNode
+	for _, node := range nodes {
+		if node.parentID == nil {
+			root = node
+		} else if parent, ok := nodes[*node.parentID]; ok {
+			parent.children = append(parent.children, node)
+		}
+	}
+	// If we didn't identify a root, return nil.
+	if root == nil {
+		return nil
+	}
+
+	// Recursively convert the tree of argNodes into ExpectedArgumentValue structures.
+	var convert func(node *argNode) *ExpectedArgumentValue
+	convert = func(node *argNode) *ExpectedArgumentValue {
+		children := make([]ExpectedArgumentValueChildren, len(node.children))
+		for i, child := range node.children {
+			children[i] = ExpectedArgumentValueChildren{
+				Name:  child.childName,
+				Value: convert(child),
+			}
+		}
+		return &ExpectedArgumentValue{
+			Kind:     node.kind,
+			Raw:      node.raw,
+			Children: children,
+		}
+	}
+
+	return convert(root)
 }

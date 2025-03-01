@@ -172,7 +172,13 @@ var loadDocumentsTable = []testCase{
 							{
 								Name: "include",
 								Arguments: []tests.ExpectedDirectiveArgument{
-									{Name: "if", Value: "true"},
+									{
+										Name: "if",
+										Value: &tests.ExpectedArgumentValue{
+											Kind: "Boolean",
+											Raw:  "true",
+										},
+									},
 								},
 							},
 						},
@@ -277,13 +283,24 @@ var loadDocumentsTable = []testCase{
 							{
 								Name: "include",
 								Arguments: []tests.ExpectedDirectiveArgument{
-									{Name: "if", Value: "true"},
+									{
+										Name: "if",
+										Value: &tests.ExpectedArgumentValue{
+											Kind: "Boolean",
+											Raw:  "true",
+										},
+									},
 								},
 							},
 							{
 								Name: "deprecated",
 								Arguments: []tests.ExpectedDirectiveArgument{
-									{Name: "reason", Value: "\"old field\""},
+									{
+										Name: "reason", Value: &tests.ExpectedArgumentValue{
+											Kind: "BStringoolean",
+											Raw:  "old field",
+										},
+									},
 								},
 							},
 						},
@@ -553,7 +570,13 @@ var loadDocumentsTable = []testCase{
 							{
 								Name: "include",
 								Arguments: []tests.ExpectedDirectiveArgument{
-									{Name: "if", Value: "$show"},
+									{
+										Name: "if",
+										Value: &tests.ExpectedArgumentValue{
+											Kind: "Variable",
+											Raw:  "show",
+										},
+									},
 								},
 							},
 						},
@@ -586,7 +609,29 @@ var loadDocumentsTable = []testCase{
 					{
 						Name: "arguments",
 						Arguments: []tests.ExpectedDirectiveArgument{
-							{Name: "show", Value: "{type:\"Boolean!\",defaultValue:true}"},
+							{
+								Name: "show",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "Object",
+									Raw:  "",
+									Children: []tests.ExpectedArgumentValueChildren{
+										{
+											Name: "type",
+											Value: &tests.ExpectedArgumentValue{
+												Kind: "String",
+												Raw:  "Boolean!",
+											},
+										},
+										{
+											Name: "defaultValue",
+											Value: &tests.ExpectedArgumentValue{
+												Kind: "Boolean",
+												Raw:  "true",
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -603,7 +648,13 @@ var loadDocumentsTable = []testCase{
 							{
 								Name: "include",
 								Arguments: []tests.ExpectedDirectiveArgument{
-									{Name: "if", Value: "$show"},
+									{
+										Name: "if",
+										Value: &tests.ExpectedArgumentValue{
+											Kind: "Variable",
+											Raw:  "show",
+										},
+									},
 								},
 							},
 						},
@@ -712,7 +763,13 @@ var loadDocumentsTable = []testCase{
 									{
 										Name: "deprecated",
 										Arguments: []tests.ExpectedDirectiveArgument{
-											{Name: "reason", Value: "\"Use newField\""},
+											{
+												Name: "reason",
+												Value: &tests.ExpectedArgumentValue{
+													Kind: "String",
+													Raw:  "User newField",
+												},
+											},
 										},
 									},
 								},
@@ -722,6 +779,61 @@ var loadDocumentsTable = []testCase{
 								Alias:     tests.StrPtr("newField"),
 								PathIndex: 1,
 								Kind:      "field",
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		name: "nested directive arguments",
+		rawQuery: `
+            query TestDeprecated {
+                user {
+                    oldField @with(hello: {type: "String"})
+                }
+            }
+        `,
+		expectedDocs: []tests.ExpectedDocument{
+			{
+				Name: "TestDeprecated",
+				Kind: "query",
+				Selections: []tests.ExpectedSelection{
+					{
+						FieldName: "user",
+						Alias:     tests.StrPtr("user"),
+						PathIndex: 0,
+						Kind:      "field",
+						Children: []tests.ExpectedSelection{
+							{
+								FieldName: "oldField",
+								Alias:     tests.StrPtr("oldField"),
+								PathIndex: 0,
+								Kind:      "field",
+								Directives: []tests.ExpectedDirective{
+									{
+										Name: "with",
+										Arguments: []tests.ExpectedDirectiveArgument{
+											{
+												Name: "hello",
+												Value: &tests.ExpectedArgumentValue{
+													Kind: "Object",
+													Raw:  "{type:\"String\"}",
+													Children: []tests.ExpectedArgumentValueChildren{
+														{
+															Name: "type",
+															Value: &tests.ExpectedArgumentValue{
+																Kind: "String",
+																Raw:  "String",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -746,7 +858,13 @@ var loadDocumentsTable = []testCase{
 					{
 						Name: "deprecated",
 						Arguments: []tests.ExpectedDirectiveArgument{
-							{Name: "reason", Value: "\"old fragment\""},
+							{
+								Name: "reason",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "old fragment",
+								},
+							},
 						},
 					},
 				},
@@ -861,8 +979,20 @@ var loadDocumentsTable = []testCase{
 					{
 						Name: "componentField",
 						Arguments: []tests.ExpectedDirectiveArgument{
-							{Name: "field", Value: "\"Avatar\""},
-							{Name: "prop", Value: "\"user\""},
+							{
+								Name: "field",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "Avatar",
+								},
+							},
+							{
+								Name: "prop",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "user",
+								},
+							},
 						},
 					},
 				},
@@ -981,7 +1111,13 @@ var loadDocumentsTable = []testCase{
 									{
 										Name: "include",
 										Arguments: []tests.ExpectedDirectiveArgument{
-											{Name: "if", Value: "true"},
+											{
+												Name: "if",
+												Value: &tests.ExpectedArgumentValue{
+													Kind: "Boolean",
+													Raw:  "true",
+												},
+											},
 										},
 									},
 								},
@@ -1016,7 +1152,13 @@ var loadDocumentsTable = []testCase{
 					{
 						Name: "cacheControl",
 						Arguments: []tests.ExpectedDirectiveArgument{
-							{Name: "maxAge", Value: "60"},
+							{
+								Name: "maxAge",
+								Value: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "60",
+								},
+							},
 						},
 					},
 				},
@@ -1055,7 +1197,13 @@ var loadDocumentsTable = []testCase{
 							{
 								Name: "cacheControl",
 								Arguments: []tests.ExpectedDirectiveArgument{
-									{Name: "maxAge", Value: "60"},
+									{
+										Name: "maxAge",
+										Value: &tests.ExpectedArgumentValue{
+											Kind: "Int",
+											Raw:  "60",
+										},
+									},
 								},
 							},
 						},
@@ -1089,7 +1237,13 @@ var loadDocumentsTable = []testCase{
 				Directives: []tests.ExpectedDirective{
 					{Name: "directive1", Arguments: []tests.ExpectedDirectiveArgument{}},
 					{Name: "directive2", Arguments: []tests.ExpectedDirectiveArgument{
-						{Name: "arg", Value: "\"value\""},
+						{
+							Name: "arg",
+							Value: &tests.ExpectedArgumentValue{
+								Kind: "String",
+								Raw:  "value",
+							},
+						},
 					}},
 				},
 				Selections: []tests.ExpectedSelection{

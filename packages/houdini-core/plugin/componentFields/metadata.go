@@ -36,7 +36,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			documents.raw_document,
 			documents.type_condition,
 			document_directive_arguments.name,
-			document_directive_arguments.value,
+			argument_values.raw,
 			raw_documents.filepath,
 			raw_documents.offset_column,
 			raw_documents.offset_line
@@ -44,6 +44,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			document_directives
 			JOIN documents ON document_directives.document = documents.id
 			JOIN document_directive_arguments ON document_directive_arguments.parent = document_directives.id
+			JOIN argument_values on document_directive_arguments.value = argument_values.id
 			LEFT JOIN raw_documents ON documents.raw_document = raw_documents.id
 		WHERE
 			document_directives.directive = $component_field
@@ -61,19 +62,25 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			document = &ComponentFieldData{}
 			documentInfo[rawDocumentID] = document
 		}
-		// The type comes from the document's type_condition.
+		// the type comes from the document's type_condition.
 		document.Type = search.ColumnText(1)
 		document.RawDocumentID = rawDocumentID
 		document.Row = search.ColumnInt(4)
 		document.Line = search.ColumnInt(5)
 		document.Filepath = search.ColumnText(6)
 
-		// Unquote the value.
-		unquoted, err := strconv.Unquote(search.ColumnText(3))
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
+		// unquote the value if need be
+		unquoted := search.ColumnText(3)
+		if strings.HasPrefix(unquoted, `"`) {
+			var err error
+			unquoted, err = strconv.Unquote(search.ColumnText(3))
+			if err != nil {
+				fmt.Println(err)
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 		}
+
 		switch search.ColumnText(2) {
 		case "prop":
 			document.Prop = unquoted
@@ -168,6 +175,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			errs.Append(plugins.WrapError(err))
 			continue
 		}
+		fmt.Println(candidateID, rec)
 		tfStmt.BindText(1, candidateID)
 		if _, err := tfStmt.Step(); err != nil {
 			errs.Append(plugins.WrapError(err))

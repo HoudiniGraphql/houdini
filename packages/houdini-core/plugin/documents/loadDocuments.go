@@ -457,10 +457,31 @@ func LoadPendingQuery[PluginConfig any](
 				}
 				varDirID := conn.LastInsertRowID()
 				for _, arg := range directive.Arguments {
+					// look for the type of the argument
+					argTypeWithModifiers, _ := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+					argType := argTypeWithModifiers.Type
+					argTypeModifiers := argTypeWithModifiers.Modifiers
+
+					// load the nested argument structure
+					argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
+					if err != nil {
+						return &plugins.Error{
+							Message: "could not process argument value: " + err.Error(),
+							Detail:  err.Error(),
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+
 					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, map[string]interface{}{
 						"parent": varDirID,
 						"name":   arg.Name,
-						"value":  arg.Value.String(),
+						"value":  argValueID,
 					}); err != nil {
 						return &plugins.Error{
 							Message: "could not insert document variable argument",
@@ -1092,15 +1113,23 @@ func processDirectives[PluginConfig any](
 		for _, dArg := range directive.Arguments {
 			dArgType, ok := directiveArguments[fmt.Sprintf("%s.%s", directive.Name, dArg.Name)]
 			if !ok {
-				return &plugins.Error{
-					Message: "could not process directive argument value: " + fmt.Sprintf("%s.%s", directive.Name, dArg.Name),
-					Locations: []*plugins.ErrorLocation{
-						{
-							Filepath: query.Filepath,
-							Line:     query.RowOffset + dArg.Position.Line,
-							Column:   query.ColumnOffset + dArg.Position.Column,
+				// if we are processing with or arguments, then the top level of the directive can accept any argument
+				if directive.Name == schema.WithDirective || directive.Name == schema.ArgumentsDirective {
+					dArgType = TypeWithModifiers{
+						Type:      "ArgumentSpecification",
+						Modifiers: "!",
+					}
+				} else {
+					return &plugins.Error{
+						Message: "could not process directive argument value: " + fmt.Sprintf("%s.%s", directive.Name, dArg.Name),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + dArg.Position.Line,
+								Column:   query.ColumnOffset + dArg.Position.Column,
+							},
 						},
-					},
+					}
 				}
 			}
 			argType := dArgType.Type
@@ -1214,7 +1243,7 @@ func processArgumentValue[PluginConfig any](
 				listModifier = "!"
 				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
 			}
-			if expectedTypeModifiers[len(expectedTypeModifiers)-1] == ']' {
+			if expectedTypeModifiers != "" && expectedTypeModifiers[len(expectedTypeModifiers)-1] == ']' {
 				listModifier = "]" + listModifier
 				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
 			}
@@ -1253,10 +1282,29 @@ func processArgumentValue[PluginConfig any](
 			childModifiers := typeModifier
 			// if the parent is an object, we need to use the parent name to get the type of the
 			if valueKind == "Object" {
-				childTypes, _ := typeFields[fmt.Sprintf("%s.%s", expectedType, child.Name)]
+				childTypes, ok := typeFields[fmt.Sprintf("%s.%s", expectedType, child.Name)]
+				// if the type of the value is an argument specification then the default value needs to be trusted
+				if !ok && expectedType == schema.ArgumentSpecificationType && child.Name == "defaultValue" {
+					childModifiers = "!"
+					switch child.Value.Kind {
+					case ast.IntValue:
+						childType = "Int"
+					case ast.FloatValue:
+						childType = "Float"
+					case ast.StringValue:
+						childType = "String"
+					case ast.BlockValue:
+						childType = "Block"
+					case ast.BooleanValue:
+						childType = "Boolean"
+					default:
+						return 0, &plugins.Error{Message: fmt.Sprintf("unsupported value kind for defaultValue: %d", value.Kind)}
+					}
+				} else {
+					childType = childTypes.Type
+					childModifiers = childTypes.Modifiers
+				}
 
-				childType = childTypes.Type
-				childModifiers = childTypes.Modifiers
 			}
 
 			// if the type is a list then we need to strip away the outer brackets

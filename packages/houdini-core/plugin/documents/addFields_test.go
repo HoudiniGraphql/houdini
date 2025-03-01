@@ -2,7 +2,6 @@ package documents_test
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"testing"
 
@@ -172,6 +171,11 @@ func TestAddFields(t *testing.T) {
 											Kind:      "field",
 										},
 										{
+											FieldName: "__typename",
+											Alias:     tests.StrPtr("__typename"),
+											Kind:      "field",
+										},
+										{
 											FieldName: "id",
 											Alias:     tests.StrPtr("id"),
 											Kind:      "field",
@@ -181,6 +185,11 @@ func TestAddFields(t *testing.T) {
 								{
 									FieldName: "__typename",
 									Alias:     tests.StrPtr("__typename"),
+									Kind:      "field",
+								},
+								{
+									FieldName: "id",
+									Alias:     tests.StrPtr("id"),
 									Kind:      "field",
 								},
 							},
@@ -196,11 +205,16 @@ func TestAddFields(t *testing.T) {
 			user: User
 			legends: [Legend]
 			ghost: Ghost
+			entities: [Entity]
 		}
 
-		type User {
+		type User implements Entity{
 			id: ID!
 			firstName: String!
+		}
+
+		interface Entity {
+			id: ID!
 		}
 
 		type Legend {
@@ -295,8 +309,6 @@ func TestAddFields(t *testing.T) {
 
 			// make sure we generated what we expected
 			tests.ValidateExpectedDocuments(t, db, row.Expected)
-
-			fmt.Println("hello")
 		})
 
 	}
