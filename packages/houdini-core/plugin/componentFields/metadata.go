@@ -75,7 +75,6 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			var err error
 			unquoted, err = strconv.Unquote(search.ColumnText(3))
 			if err != nil {
-				fmt.Println(err)
 				errs.Append(plugins.WrapError(err))
 				return
 			}
@@ -175,7 +174,6 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			errs.Append(plugins.WrapError(err))
 			continue
 		}
-		fmt.Println(candidateID, rec)
 		tfStmt.BindText(1, candidateID)
 		if _, err := tfStmt.Step(); err != nil {
 			errs.Append(plugins.WrapError(err))
