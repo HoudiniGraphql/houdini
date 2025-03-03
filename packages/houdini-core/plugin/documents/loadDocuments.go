@@ -733,6 +733,7 @@ func LoadPendingQuery[PluginConfig any](
 							if field.Value.Kind != ast.StringValue {
 								return &plugins.Error{
 									Message: "fragment argument type must be a string",
+									Kind:    plugins.ErrorKindValidation,
 									Locations: []*plugins.ErrorLocation{
 										{
 											Filepath: query.Filepath,
@@ -785,6 +786,7 @@ func LoadPendingQuery[PluginConfig any](
 						if !match {
 							return &plugins.Error{
 								Message: "default value does not match argument type",
+								Kind:    plugins.ErrorKindValidation,
 								Locations: []*plugins.ErrorLocation{
 									{
 										Filepath: query.Filepath,
@@ -1122,6 +1124,7 @@ func processDirectives[PluginConfig any](
 				} else {
 					return &plugins.Error{
 						Message: "could not process directive argument value: " + fmt.Sprintf("%s.%s", directive.Name, dArg.Name),
+						Kind:    plugins.ErrorKindValidation,
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: query.Filepath,
@@ -1139,6 +1142,7 @@ func processDirectives[PluginConfig any](
 			if err != nil {
 				return &plugins.Error{
 					Message: "could not process directive argument value",
+					Kind:    plugins.ErrorKindValidation,
 					Detail:  err.Error(),
 					Locations: []*plugins.ErrorLocation{
 						{

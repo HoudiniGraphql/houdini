@@ -91,7 +91,7 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 				if err := compareExpected(t, expDoc.Selections, actualTree); err != nil {
 					e, _ := json.MarshalIndent(expDoc.Selections, "", "  ")
 					a, _ := json.MarshalIndent(actualTree, "", "  ")
-					t.Errorf("selection tree mismatch for document %s: \n\texpected:%s \n\tfound:%s ", expDoc.Name, err, string(e), string(a))
+					t.Errorf("selection tree mismatch for document %s: \n\texpected:%s \n\tfound:%s ", expDoc.Name, string(e), string(a))
 				}
 
 				// Finally, verify that the document-level directives match.
@@ -602,6 +602,7 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 				foundIndex = j
 
 				if !strEqual(expected[i].Alias, actual[j].Alias) ||
+					expected[i].FieldName != actual[j].FieldName ||
 					expected[i].PathIndex != actual[j].PathIndex ||
 					expected[i].Kind != actual[j].Kind {
 					return fmt.Errorf("mismatch at %d: \n expected %+v \n got:     %+v", i, expected[i], actual[j])
