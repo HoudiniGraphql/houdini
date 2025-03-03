@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -88,7 +89,9 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 				// Build and compare the selection tree.
 				actualTree := buildSelectionTree(t, db, int64(actual.ID))
 				if err := compareExpected(t, expDoc.Selections, actualTree); err != nil {
-					t.Errorf("selection tree mismatch for document %s: %v", expDoc.Name, err)
+					e, _ := json.MarshalIndent(expDoc.Selections, "", "  ")
+					a, _ := json.MarshalIndent(actualTree, "", "  ")
+					t.Errorf("selection tree mismatch for document %s: \n\texpected:%s \n\tfound:%s ", expDoc.Name, err, string(e), string(a))
 				}
 
 				// Finally, verify that the document-level directives match.
@@ -612,7 +615,7 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 		}
 
 		if foundIndex == -1 {
-			return fmt.Errorf("expected selection not found: %+v", expected[i])
+			return fmt.Errorf("expected selection not found. \n\tlooking for: %+v \n\tgot: %+v", expected[i], actual)
 		} else {
 			// if we did find a make sure that arguments and directives line up
 			verifySelectionDetails(t, expected[i], actual[foundIndex])

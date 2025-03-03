@@ -22,6 +22,12 @@ func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 		return err
 	}
 
+	// we can now prepare the pagination documents
+	err = lists.PreparePaginationDocuments(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
 	// if we got this far, we're done
 	return nil
 }

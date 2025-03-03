@@ -602,7 +602,8 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				WHEN b.type_modifiers LIKE '%]%' THEN b.raw_document
 				ELSE n.raw_document
 			END as raw_document,
-			b.type_modifiers NOT LIKE '%]%' as connection
+			b.type_modifiers NOT LIKE '%]%' as connection,
+			b.selection_id
 		FROM base b
 			LEFT JOIN node n ON b.selection_id = n.selection_id
 	`
@@ -615,6 +616,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// we've already seen so we can identify duplicates
 	type DiscoveredList struct {
 		SelectionID int
+		ListField   int
 		RawDocument int
 		Type        string
 		Locations   []*plugins.ErrorLocation
@@ -632,6 +634,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		selectionID := nameStatement.ColumnInt(5)
 		rawDocument := nameStatement.ColumnInt(6)
 		connection := nameStatement.ColumnBool(7)
+		listField := nameStatement.ColumnInt(8)
 
 		// if we haven't seen the name before, create a new entry
 		if _, ok := lists[listName]; !ok {
@@ -641,6 +644,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				Type:        finalType,
 				Locations:   []*plugins.ErrorLocation{},
 				Connection:  connection,
+				ListField:   listField,
 			}
 		}
 
@@ -666,7 +670,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// - we'll consider them when validating directive and fragment spreads
 	// - we'll use them to insert the operation schema items
 	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists (name, type, node, raw_document, connection) VALUES ($name, $type, $node, $raw_document, $connection)
+		INSERT INTO discovered_lists (name, type, node, raw_document, connection, list_field) VALUES ($name, $type, $node, $raw_document, $connection, $list_field)
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -703,6 +707,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 			"node":         list.SelectionID,
 			"raw_document": list.RawDocument,
 			"connection":   list.Connection,
+			"list_field":   list.ListField,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

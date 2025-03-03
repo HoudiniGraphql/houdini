@@ -321,8 +321,10 @@ CREATE TABLE discovered_lists (
     node INTEGER NOT NULL,
     raw_document INTEGER NOT NULL,
     connection BOOLEAN default false,
+    list_field INTEGER NOT NULL,
 
-    FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+	FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
