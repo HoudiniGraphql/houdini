@@ -1,7 +1,14 @@
 package lists_test
 
-import "testing"
+import (
+	"testing"
 
-func TestPaginationDocumentGenerations(t *testing.T) {
+	"code.houdinigraphql.com/plugins/tests"
+)
+
+func TestPaginationDocumentGeneration(t *testing.T) {
+	tests.RunTable(t, tests.Table{
+		Tests: []tests.Test{},
+	})
 
 }

@@ -20,6 +20,9 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 	}
 	defer db.Put(conn)
 
+	// we don't want to add the same directive twice
+	insertedDirectives := map[string]bool{}
+
 	// we need a query that copys the subselection for the list field
 	// into a document
 	copySelection, err := conn.Prepare(`
@@ -159,14 +162,19 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 			return
 		}
 
-		// we need to insert a delete directive for each type that has a list
-		err = db.ExecStatement(insertInternalDirectiveStmt, map[string]interface{}{
-			"name":        fmt.Sprintf("%s%s", typeName, schema.ListOperationSuffixDelete),
-			"description": fmt.Sprintf("Delete the %s with the matching key", typeName),
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
+		if ok := insertedDirectives[typeName]; !ok {
+			// we need to insert a delete directive for each type that has a list
+			err = db.ExecStatement(insertInternalDirectiveStmt, map[string]interface{}{
+				"name":        fmt.Sprintf("%s%s", typeName, schema.ListOperationSuffixDelete),
+				"description": fmt.Sprintf("Delete the %s with the matching key", typeName),
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+
+			// make sure we only generate it once
+			insertedDirectives[typeName] = true
 		}
 
 		// we also need to insert a remove fragment for each type that has a list

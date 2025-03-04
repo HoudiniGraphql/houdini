@@ -91,188 +91,6 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 	}
 }
 
-func ValidatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	// Load project configuration.
-	config, err := db.ProjectConfig(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defaultPaginateMode := config.DefaultPaginateMode // e.g., "Infinite"
-	// We assume the paginate mode argument is named "mode".
-	paginateModeArgName := "mode"
-	paginateDirective := schema.PaginationDirective
-
-	// This query retrieves paginate usage info plus field definitions (aggregated) without a subquery.
-	usageQuery := `
-	SELECT
-	  s.id AS selectionID,
-	  s.field_name,
-	  s.type AS fieldTypeID,
-	  d.id AS documentID,
-	  d.name AS documentName,
-	  rd.filepath,
-	  rd.offset_line AS row,
-	  rd.offset_column AS column,
-	  GROUP_CONCAT(DISTINCT sa.name) AS appliedArgs,
-	  MAX(av.raw) AS modeArg,
-	  ptf.type_modifiers AS parentModifiers,
-	  GROUP_CONCAT(DISTINCT fd.name || ':' || fd.type) AS fieldArgDefs
-	FROM selection_directives sd
-	  JOIN selections s ON s.id = sd.selection_id
-	  JOIN selection_refs sr ON sr.child_id = s.id
-	  JOIN documents d ON d.id = sr.document
-	  JOIN raw_documents rd ON rd.id = d.raw_document
-	  LEFT JOIN selection_arguments sa ON sa.selection_id = s.id
-	  LEFT JOIN selection_directive_arguments sda ON sda.parent = sd.id AND sda.name = $paginate_mode_arg
-	  LEFT JOIN argument_values av ON av.id = sda.value
-	  LEFT JOIN selections sp ON sp.id = sr.parent_id
-	  LEFT JOIN type_fields ptf ON ptf.id = sp.type
-	  LEFT JOIN type_field_arguments fd ON fd.field = s.type
-	WHERE sd.directive = $paginate_directive
-		AND (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY s.id, s.field_name, s.type, d.id, d.name, rd.filepath, rd.offset_line, rd.offset_column, sd.id, ptf.type_modifiers
-	`
-	bindings := map[string]interface{}{
-		"paginate_mode_arg":  paginateModeArgName,
-		"paginate_directive": paginateDirective,
-	}
-
-	type usageRecord struct {
-		selectionID     int64
-		fieldName       string
-		fieldTypeID     string
-		documentID      int64
-		documentName    string
-		filepath        string
-		row             int
-		column          int
-		appliedArgs     string // comma-separated list (may be empty)
-		modeArg         string // from argument_values.raw; should be a non-numeric string if provided
-		parentModifiers string // parent's type modifiers
-		fieldArgDefs    string // aggregated "argName:argType" pairs
-	}
-	var usages []usageRecord
-	db.StepQuery(ctx, usageQuery, bindings, func(stmt *sqlite.Stmt) {
-		usages = append(usages, usageRecord{
-			selectionID:     stmt.ColumnInt64(0),
-			fieldName:       stmt.ColumnText(1),
-			fieldTypeID:     stmt.ColumnText(2),
-			documentID:      stmt.ColumnInt64(3),
-			documentName:    stmt.ColumnText(4),
-			filepath:        stmt.ColumnText(5),
-			row:             int(stmt.ColumnInt(6)),
-			column:          int(stmt.ColumnInt(7)),
-			appliedArgs:     stmt.ColumnText(8),
-			modeArg:         stmt.ColumnText(9),
-			parentModifiers: stmt.ColumnText(10),
-			fieldArgDefs:    stmt.ColumnText(11),
-		})
-	})
-
-	// In-memory, process each usage.
-	// First, check that the parent field is not a list.
-	isListType := func(modifiers string) bool {
-		return strings.Contains(modifiers, "]")
-	}
-
-	// For each usage, parse the aggregated field definitions into a map.
-	// The format is "argName1:type1,argName2:type2,..."
-	parseFieldArgs := func(defs string) map[string]string {
-		m := make(map[string]string)
-		if defs == "" {
-			return m
-		}
-		pairs := strings.Split(defs, ",")
-		for _, pair := range pairs {
-			parts := strings.Split(pair, ":")
-			if len(parts) == 2 {
-				m[parts[0]] = parts[1]
-			}
-		}
-		return m
-	}
-
-	// Group usages by fieldTypeID (optional if we want to load definitions only once) – but here we've already aggregated them.
-	// Now process each usage.
-	for _, usage := range usages {
-		// Check parent's type: if parent's modifiers indicate a list, it's invalid.
-		if isListType(usage.parentModifiers) {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Field %q in document %q: @%s cannot be applied when the parent field is a list", usage.fieldName, usage.documentName, paginateDirective),
-				Kind:    plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{
-					{Filepath: usage.filepath, Line: usage.row, Column: usage.column},
-				},
-			})
-			continue
-		}
-
-		// Parse the field definitions.
-		fieldArgs := parseFieldArgs(usage.fieldArgDefs)
-		forwardPagination := (fieldArgs["first"] == "Int" && fieldArgs["after"] == "String")
-		backwardsPagination := (fieldArgs["last"] == "Int" && fieldArgs["before"] == "String")
-		cursorPagination := forwardPagination || backwardsPagination
-		offsetPagination := (fieldArgs["offset"] == "Int" && fieldArgs["limit"] == "Int")
-
-		// Build a set of applied argument names.
-		appliedSet := make(map[string]bool)
-		if usage.appliedArgs != "" {
-			for _, arg := range strings.Split(usage.appliedArgs, ",") {
-				appliedSet[strings.TrimSpace(arg)] = true
-			}
-		}
-
-		// Determine effective paginate mode.
-		effectiveMode := defaultPaginateMode
-		if usage.modeArg != "" {
-			effectiveMode = usage.modeArg
-		}
-
-		// Validate based on supported pagination mode.
-		if cursorPagination {
-			forwardApplied := appliedSet["first"]
-			backwardsApplied := appliedSet["last"]
-			if !forwardApplied && !backwardsApplied {
-				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination must have either a 'first' or a 'last' argument", usage.fieldName, usage.documentName),
-					Kind:    plugins.ErrorKindValidation,
-					Locations: []*plugins.ErrorLocation{
-						{Filepath: usage.filepath, Line: usage.row, Column: usage.column},
-					},
-				})
-			}
-			if forwardApplied && backwardsApplied && effectiveMode == "Infinite" {
-				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode", usage.fieldName, usage.documentName),
-					Kind:    plugins.ErrorKindValidation,
-					Locations: []*plugins.ErrorLocation{
-						{Filepath: usage.filepath, Line: usage.row, Column: usage.column},
-					},
-				})
-			}
-		} else if offsetPagination {
-			if !appliedSet["limit"] {
-				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("Field %q in document %q with offset-based pagination must have an 'limit' argument", usage.fieldName, usage.documentName),
-					Kind:    plugins.ErrorKindValidation,
-					Locations: []*plugins.ErrorLocation{
-						{Filepath: usage.filepath, Line: usage.row, Column: usage.column},
-					},
-				})
-			}
-		} else {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Field %q in document %q does not support a valid pagination mode (cursor-based or offset-based)", usage.fieldName, usage.documentName),
-				Kind:    plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{
-					{Filepath: usage.filepath, Line: usage.row, Column: usage.column},
-				},
-			})
-		}
-	}
-}
-
 func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query returns documents that use @paginate (via selection_directives)
 	// and that have a non-empty type_condition, but that are invalid—
@@ -369,7 +187,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 			for _, u := range usages {
 				locStrs = append(locStrs, fmt.Sprintf("%s:%d:%d", u.filepath, u.row, u.column))
 			}
-			// Use the document name from the first usage.
+			// Use the document name from the first
 			docName := usages[0].documentName
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf("@%s can only appear once in a document; found %d occurrences in document %q at locations: %s", schema.PaginationDirective, len(usages), docName, strings.Join(locStrs, "; ")),
@@ -525,7 +343,7 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 	}
 }
 
-func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
 	// directives
 	query := `
@@ -535,16 +353,18 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				selection_directives.row,
 				selection_directives.column,
 				raw_documents.id as raw_document,
-				selections.id AS selection_id
-			FROM selection_directive_arguments
-				JOIN argument_values ON selection_directive_arguments.value = argument_values.id
-				JOIN selection_directives ON selection_directive_arguments.parent = selection_directives.id
+				selections.id AS selection_id,
+				selection_directives.directive as directive
+			FROM selection_directives
 				JOIN selections ON selection_directives.selection_id = selections.id
 				JOIN selection_refs ON selections.id = selection_refs.child_id
 				JOIN documents ON selection_refs.document = documents.id
 				JOIN raw_documents ON documents.raw_document = raw_documents.id
-			WHERE selection_directive_arguments.name = 'name'
-				AND selection_directives.directive IN ($list_directive, $paginate_directive)
+				LEFT JOIN selection_directive_arguments
+					ON selection_directives.id = selection_directive_arguments.parent
+					AND selection_directive_arguments.name = 'name'
+				LEFT JOIN argument_values ON selection_directive_arguments.value = argument_values.id
+			WHERE selection_directives.directive in ($paginate_directive, $list_directive)
 				AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		),
 		base AS (
@@ -554,7 +374,8 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				s.type AS base_type,
 				tf.type_modifiers,
 				tf.type AS base_list_type,
-				ln.raw_document
+				ln.raw_document,
+				ln.directive as directive
 			FROM list_names ln
 			JOIN selections s ON ln.selection_id = s.id
 			JOIN type_fields tf ON s.type = tf.id
@@ -603,7 +424,8 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 				ELSE n.raw_document
 			END as raw_document,
 			b.type_modifiers NOT LIKE '%]%' as connection,
-			b.selection_id
+			b.selection_id,
+			b.directive
 		FROM base b
 			LEFT JOIN node n ON b.selection_id = n.selection_id
 	`
@@ -615,14 +437,16 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// as we step through the results we'll need to keep track of operation names
 	// we've already seen so we can identify duplicates
 	type DiscoveredList struct {
+		ListName    string
 		SelectionID int
 		ListField   int
 		RawDocument int
 		Type        string
 		Locations   []*plugins.ErrorLocation
 		Connection  bool
+		Paginate    bool
 	}
-	lists := map[string]*DiscoveredList{}
+	lists := map[int]*DiscoveredList{}
 
 	// iterate over the results
 	err := db.StepQuery(ctx, query, bindings, func(nameStatement *sqlite.Stmt) {
@@ -635,21 +459,24 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 		rawDocument := nameStatement.ColumnInt(6)
 		connection := nameStatement.ColumnBool(7)
 		listField := nameStatement.ColumnInt(8)
+		directive := nameStatement.ColumnText(9)
 
 		// if we haven't seen the name before, create a new entry
-		if _, ok := lists[listName]; !ok {
-			lists[listName] = &DiscoveredList{
+		if _, ok := lists[listField]; !ok {
+			lists[listField] = &DiscoveredList{
+				ListName:    listName,
 				SelectionID: selectionID,
 				RawDocument: rawDocument,
 				Type:        finalType,
 				Locations:   []*plugins.ErrorLocation{},
 				Connection:  connection,
 				ListField:   listField,
+				Paginate:    directive == schema.PaginationDirective,
 			}
 		}
 
 		// add the location to the list of locations
-		lists[listName].Locations = append(lists[listName].Locations, &plugins.ErrorLocation{
+		lists[listField].Locations = append(lists[listField].Locations, &plugins.ErrorLocation{
 			Line:     row,
 			Column:   column,
 			Filepath: filepath,
@@ -670,7 +497,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// - we'll consider them when validating directive and fragment spreads
 	// - we'll use them to insert the operation schema items
 	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists (name, type, node, raw_document, connection, list_field) VALUES ($name, $type, $node, $raw_document, $connection, $list_field)
+		INSERT INTO discovered_lists (name, type, node, raw_document, connection, list_field, paginate) VALUES ($name, $type, $node, $raw_document, $connection, $list_field, $paginate)
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -679,11 +506,11 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	defer insertDiscoveredLists.Finalize()
 
 	// loop over every name we found and insert the discovered list into the database
-	for name, list := range lists {
+	for _, list := range lists {
 		// if we saw the name more than once, we need to report an error
 		if len(list.Locations) > 1 {
 			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("encountered duplicate operation name %s", name),
+				Message:   fmt.Sprintf("encountered duplicate operation name %s", list.ListName),
 				Locations: list.Locations,
 				Kind:      plugins.ErrorKindValidation,
 			})
@@ -702,7 +529,7 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 
 		// insert the discovered list into the database
 		err = db.ExecStatement(insertDiscoveredLists, map[string]interface{}{
-			"name":         name,
+			"name":         list.ListName,
 			"type":         list.Type,
 			"node":         list.SelectionID,
 			"raw_document": list.RawDocument,
@@ -721,13 +548,17 @@ func ValidateKnownDirectivesAndFragments[PluginConfig any](ctx context.Context, 
 	// now that we have recorded the discovered lists we can build up the full set of directives and fragments
 	// that we need to validate
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		validateDirectives(ctx, db, errs)
 		wg.Done()
 	}()
 	go func() {
 		validateFragmentSpreads(ctx, db, errs)
+		wg.Done()
+	}()
+	go func() {
+		validatePaginateArgs(ctx, db, errs)
 		wg.Done()
 	}()
 	wg.Wait()
@@ -847,4 +678,183 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 		errs.Append(plugins.WrapError(err))
 		return
 	}
+}
+
+func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// Load project configuration.
+	config, err := db.ProjectConfig(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defaultPaginateMode := config.DefaultPaginateMode
+
+	// This query retrieves paginate usage info plus field definitions
+	usageQuery := `
+		SELECT
+			s.alias,
+			d.name,
+			rd.filepath,
+			sr.row,
+			sr.column,
+			GROUP_CONCAT(DISTINCT sa.name) AS appliedArgs,
+			argument_values.raw as paginateMode,
+			GROUP_CONCAT(DISTINCT field_args.name || ':' || field_args.type) AS fieldArgDefs,
+			discovered_lists.name,
+			selection_directives.directive,
+			type_fields.type_modifiers
+		FROM discovered_lists
+			JOIN selections s ON discovered_lists.list_field = s.id
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+			JOIN selection_directives
+				ON s.id = selection_directives.selection_id
+				AND selection_directives.directive in ($paginate_directive, $list_directive)
+			LEFT JOIN selection_directive_arguments
+				ON selection_directive_arguments.parent = selection_directives.id
+				AND selection_directive_arguments.name = $paginate_mode_arg
+			LEFT JOIN argument_values ON selection_directive_arguments.value = argument_values.id
+			LEFT JOIN selection_arguments sa ON sa.selection_id = s.id
+			LEFT JOIN selections parent_ref ON parent_ref.id = sr.parent_id
+			LEFT JOIN type_fields ON type_fields.id = parent_ref.type
+			LEFT JOIN type_field_arguments field_args ON field_args.field = s.type
+		GROUP BY discovered_lists.id
+	`
+	bindings := map[string]interface{}{
+		"paginate_mode_arg":  "mode",
+		"paginate_directive": schema.PaginationDirective,
+		"list_directive":     schema.ListDirective,
+	}
+
+	// For each usage, parse the aggregated field definitions into a map.
+	// The format is "argName1:type1,argName2:type2,..."
+	parseFieldArgs := func(defs string) map[string]string {
+		m := make(map[string]string)
+		if defs == "" {
+			return m
+		}
+		pairs := strings.Split(defs, ",")
+		for _, pair := range pairs {
+			parts := strings.Split(pair, ":")
+			if len(parts) == 2 {
+				m[parts[0]] = parts[1]
+			}
+		}
+		return m
+	}
+
+	seenNames := map[string]bool{}
+
+	db.StepQuery(ctx, usageQuery, bindings, func(stmt *sqlite.Stmt) {
+		fieldName := stmt.ColumnText(0)
+		documentName := stmt.ColumnText(1)
+		filepath := stmt.ColumnText(2)
+		row := stmt.ColumnInt(3)
+		column := stmt.ColumnInt(4)
+		appliedArgs := stmt.ColumnText(5)
+		modeArg := stmt.ColumnText(6)
+		fieldArgDefs := stmt.ColumnText(7)
+		listName := stmt.ColumnText(8)
+		directive := stmt.ColumnText(9)
+		typeModifiers := stmt.ColumnText(10)
+
+		// Ensure that the list name is unique.
+		if _, ok := seenNames[listName]; ok {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf("List %q is defined more than once", listName),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: filepath, Line: row, Column: column},
+				},
+			})
+
+			// we're done processing this entry
+			return
+		}
+
+		seenNames[listName] = true
+
+		// if we're not looking at a paginated list, we're done here (we just need to confirm the name isn't a duplicate)
+		if directive != schema.PaginationDirective {
+			return
+		}
+
+		// @paginate can't fall under a list
+		if strings.Contains(typeModifiers, "]") {
+			errs.Append(&plugins.Error{
+				Message: "Paginated fields cannot be inside of lists. Please move this field into a fragment",
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: filepath, Line: row, Column: column},
+				},
+			})
+
+			return
+
+		}
+
+		// parse the field definitions.
+		fieldArgs := parseFieldArgs(fieldArgDefs)
+		forwardPagination := (fieldArgs["first"] == "Int" && fieldArgs["after"] == "String")
+		backwardsPagination := (fieldArgs["last"] == "Int" && fieldArgs["before"] == "String")
+		cursorPagination := forwardPagination || backwardsPagination
+		offsetPagination := (fieldArgs["offset"] == "Int" && fieldArgs["limit"] == "Int")
+
+		// build a set of applied argument names.
+		appliedSet := make(map[string]bool)
+		if appliedArgs != "" {
+			for _, arg := range strings.Split(appliedArgs, ",") {
+				appliedSet[strings.TrimSpace(arg)] = true
+			}
+		}
+
+		// determine effective paginate mode.
+		effectiveMode := defaultPaginateMode
+		if modeArg != "" {
+			effectiveMode = modeArg
+		}
+
+		// validate based on supported pagination mode.
+		if cursorPagination {
+			forwardApplied := appliedSet["first"]
+			backwardsApplied := appliedSet["last"]
+			if !forwardApplied && !backwardsApplied {
+				errs.Append(&plugins.Error{
+					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination must have either a 'first' or a 'last' argument", fieldName, documentName),
+					Kind:    plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{
+						{Filepath: filepath, Line: row, Column: column},
+					},
+				})
+			}
+			if forwardApplied && backwardsApplied && effectiveMode == "Infinite" {
+				errs.Append(&plugins.Error{
+					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode", fieldName, documentName),
+					Kind:    plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{
+						{Filepath: filepath, Line: row, Column: column},
+					},
+				})
+			}
+		} else if offsetPagination {
+			if !appliedSet["limit"] {
+				errs.Append(&plugins.Error{
+					Message: fmt.Sprintf("Field %q in document %q with offset-based pagination must have an 'limit' argument", fieldName, documentName),
+					Kind:    plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{
+						{Filepath: filepath, Line: row, Column: column},
+					},
+				})
+			}
+		} else {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf("Field %q in document %q does not support a valid pagination mode (cursor-based or offset-based)", fieldName, documentName),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: filepath, Line: row, Column: column},
+				},
+			})
+		}
+	})
 }

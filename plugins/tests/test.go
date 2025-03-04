@@ -210,15 +210,16 @@ CREATE TABLE document_variable_directive_arguments (
 -- necessary documents after everything has been validated
 CREATE TABLE discovered_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT,
     type TEXT NOT NULL,
     node INTEGER NOT NULL,
-    list_field INTEGER NOT NULL,
     raw_document INTEGER NOT NULL,
     connection BOOLEAN default false,
+    list_field INTEGER NOT NULL,
+    paginate TEXT,
 
-    FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );

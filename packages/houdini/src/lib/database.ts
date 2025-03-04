@@ -316,12 +316,13 @@ CREATE TABLE argument_value_children (
 
 CREATE TABLE discovered_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT,
     type TEXT NOT NULL,
     node INTEGER NOT NULL,
     raw_document INTEGER NOT NULL,
     connection BOOLEAN default false,
     list_field INTEGER NOT NULL,
+    paginate TEXT,
 
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
