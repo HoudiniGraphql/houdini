@@ -107,6 +107,25 @@ test(`Files that should not be included`, async () => {
 	expect(config.includeFile(path.join(process.cwd(), 'src/rou?tes/page.nop?s?e'))).toBe(false)
 })
 
+test('Include with absolute paths to project root', () => {
+	const config = testConfig()
+	config.projectRoot = '/path/to/project'
+
+	expect(config.includeFile('/path/to/project/src/lib/test.gql')).toBe(true)
+	expect(config.includeFile('/path/to/project/src/lib/test.ts')).toBe(true)
+	expect(config.includeFile('/path/to/project/src/lib/test.nope')).toBe(false)
+})
+
+test('Exclude with absolute paths to project root', () => {
+	const config = testConfig()
+	config.projectRoot = '/path/to/project'
+	config.exclude = ['src/lib/paraglide/**']
+
+	expect(config.includeFile('/path/to/project/src/lib/paraglide/messages.js')).toBe(false)
+	expect(config.includeFile('/path/to/project/src/lib/paraglide/registry.js')).toBe(false)
+	expect(config.includeFile('/path/to/project/src/lib/paraglide/messages/_index.js')).toBe(false)
+})
+
 test('Config.include includes plugin runtimes', () => {
 	const config = testConfig()
 
