@@ -681,16 +681,11 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 }
 
 func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
-	// Load project configuration.
-	config, err := db.ProjectConfig(ctx)
-	if err != nil {
-		errs.Append(plugins.WrapError(err))
-		return
-	}
-	defaultPaginateMode := config.DefaultPaginateMode
+	conn, err := db.Take(ctx)
+	defer db.Put(conn)
 
 	// This query retrieves paginate usage info plus field definitions
-	usageQuery := `
+	usageQuery, err := conn.Prepare(`
 		SELECT
 			s.alias,
 			d.name,
@@ -702,7 +697,8 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			GROUP_CONCAT(DISTINCT field_args.name || ':' || field_args.type) AS fieldArgDefs,
 			discovered_lists.name,
 			selection_directives.directive,
-			type_fields.type_modifiers
+			type_fields.type_modifiers,
+			discovered_lists.id
 		FROM discovered_lists
 			JOIN selections s ON discovered_lists.list_field = s.id
 			JOIN selection_refs sr ON sr.child_id = s.id
@@ -720,12 +716,23 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			LEFT JOIN type_fields ON type_fields.id = parent_ref.type
 			LEFT JOIN type_field_arguments field_args ON field_args.field = s.type
 		GROUP BY discovered_lists.id
-	`
-	bindings := map[string]interface{}{
+	`)
+	db.BindStatement(usageQuery, map[string]interface{}{
 		"paginate_mode_arg":  "mode",
 		"paginate_directive": schema.PaginationDirective,
 		"list_directive":     schema.ListDirective,
+	})
+	defer usageQuery.Finalize()
+
+	// if we discover a connection-based pagination we should update the discovered list with the direction
+	updateList, err := conn.Prepare(`
+		UPDATE discovered_lists SET paginate = $paginate WHERE id = $id
+	`)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
 	}
+	defer updateList.Finalize()
 
 	// For each usage, parse the aggregated field definitions into a map.
 	// The format is "argName1:type1,argName2:type2,..."
@@ -746,21 +753,21 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 
 	seenNames := map[string]bool{}
 
-	db.StepQuery(ctx, usageQuery, bindings, func(stmt *sqlite.Stmt) {
-		fieldName := stmt.ColumnText(0)
-		documentName := stmt.ColumnText(1)
-		filepath := stmt.ColumnText(2)
-		row := stmt.ColumnInt(3)
-		column := stmt.ColumnInt(4)
-		appliedArgs := stmt.ColumnText(5)
-		modeArg := stmt.ColumnText(6)
-		fieldArgDefs := stmt.ColumnText(7)
-		listName := stmt.ColumnText(8)
-		directive := stmt.ColumnText(9)
-		typeModifiers := stmt.ColumnText(10)
+	db.StepStatement(ctx, usageQuery, func() {
+		fieldName := usageQuery.ColumnText(0)
+		documentName := usageQuery.ColumnText(1)
+		filepath := usageQuery.ColumnText(2)
+		row := usageQuery.ColumnInt(3)
+		column := usageQuery.ColumnInt(4)
+		appliedArgs := usageQuery.ColumnText(5)
+		fieldArgDefs := usageQuery.ColumnText(7)
+		listName := usageQuery.ColumnText(8)
+		directive := usageQuery.ColumnText(9)
+		typeModifiers := usageQuery.ColumnText(10)
+		listID := usageQuery.ColumnInt(11)
 
 		// Ensure that the list name is unique.
-		if _, ok := seenNames[listName]; ok {
+		if _, ok := seenNames[listName]; listName != "" && ok {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf("List %q is defined more than once", listName),
 				Kind:    plugins.ErrorKindValidation,
@@ -809,16 +816,11 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			}
 		}
 
-		// determine effective paginate mode.
-		effectiveMode := defaultPaginateMode
-		if modeArg != "" {
-			effectiveMode = modeArg
-		}
+		_, forwardApplied := appliedSet["first"]
+		_, backwardsApplied := appliedSet["last"]
 
 		// validate based on supported pagination mode.
 		if cursorPagination {
-			forwardApplied := appliedSet["first"]
-			backwardsApplied := appliedSet["last"]
 			if !forwardApplied && !backwardsApplied {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination must have either a 'first' or a 'last' argument", fieldName, documentName),
@@ -828,7 +830,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 					},
 				})
 			}
-			if forwardApplied && backwardsApplied && effectiveMode == "Infinite" {
+			if forwardApplied && backwardsApplied {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode", fieldName, documentName),
 					Kind:    plugins.ErrorKindValidation,
@@ -855,6 +857,24 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 					{Filepath: filepath, Line: row, Column: column},
 				},
 			})
+		}
+
+		if cursorPagination {
+			var direction string
+			switch {
+			case forwardApplied:
+				direction = "forward"
+			case backwardsApplied:
+				direction = "backward"
+			}
+
+			err = db.ExecStatement(updateList, map[string]interface{}{
+				"id":       listID,
+				"paginate": direction,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+			}
 		}
 	})
 }
