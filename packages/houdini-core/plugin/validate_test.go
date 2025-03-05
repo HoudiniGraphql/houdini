@@ -1364,7 +1364,7 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
-				Name: "@paginate cursor can't go both ways",
+				Name: "@paginate Infinite cursor can't go both ways",
 				Pass: false,
 				Input: []string{
 					`
@@ -1378,6 +1378,25 @@ func TestValidate_Houdini(t *testing.T) {
 						}
 					}
 				`,
+				},
+			},
+			{
+				Name: "@paginate SinglePage cursor can go both ways",
+				Pass: true,
+				Input: []string{
+					`
+					query UserPaginatedA($first: Int, $last: Int) {
+						user(name: "foo") {
+							friendsConnection(first: $first, last: $last) @paginate(mode: SinglePage) {
+								edges {
+									node {
+										id
+									}
+								}
+							}
+						}
+					}
+					`,
 				},
 			},
 			{

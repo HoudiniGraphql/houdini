@@ -802,6 +802,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 		row := usageQuery.ColumnInt(3)
 		column := usageQuery.ColumnInt(4)
 		appliedArgs := usageQuery.ColumnText(5)
+		paginateMode := usageQuery.ColumnText(6)
 		fieldArgDefs := usageQuery.ColumnText(7)
 		listName := usageQuery.ColumnText(8)
 		directive := usageQuery.ColumnText(9)
@@ -872,7 +873,8 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 					},
 				})
 			}
-			if forwardApplied && backwardsApplied {
+
+			if forwardApplied && backwardsApplied && paginateMode != "SinglePage" {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode", fieldName, documentName),
 					Kind:    plugins.ErrorKindValidation,
