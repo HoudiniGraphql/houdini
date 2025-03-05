@@ -30,6 +30,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateUndefinedVariables[PluginConfig],
 		documents.ValidateUnusedVariables[PluginConfig],
 		documents.ValidateRepeatingNonRepeatable[PluginConfig],
+		documents.ValidateUnknownFieldArguments[PluginConfig],
 		documents.ValidateDuplicateArgumentInField[PluginConfig],
 		documents.ValidateWrongTypesToArg[PluginConfig],
 		documents.ValidateMissingRequiredArgument[PluginConfig],

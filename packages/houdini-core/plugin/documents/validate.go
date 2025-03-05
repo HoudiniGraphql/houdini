@@ -1472,6 +1472,47 @@ func ValidateKnownDirectiveArguments[PluginConfig any](ctx context.Context, db p
 	}
 }
 
+func ValidateUnknownFieldArguments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// we are looking for field arguments that are not known to the schema
+	query := `
+		SELECT
+			selection_arguments.name,
+			selection_arguments.row,
+			selection_arguments.column,
+			raw_documents.filepath
+		FROM
+			selection_arguments
+			LEFT JOIN type_field_arguments on selection_arguments.field_argument = type_field_arguments.id
+			JOIN selections on selection_arguments.selection_id = selections.id
+			JOIN selection_refs on selections.id = selection_refs.child_id
+			JOIN documents on selection_refs.document = documents.id
+			JOIN raw_documents on documents.raw_document = raw_documents.id
+		WHERE
+			type_field_arguments.id IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	`
+
+	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+		argName := stmt.ColumnText(0)
+		row := int(stmt.ColumnInt(1))
+		col := int(stmt.ColumnInt(2))
+		filepath := stmt.ColumnText(3)
+
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("Unknown field argument '%s'", argName),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{{
+				Filepath: filepath,
+				Line:     row,
+				Column:   col,
+			}},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
 func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// We want to detect fragment spreads (selections of kind "fragment")
 	// that have both the mask-enable and mask-disable directives.

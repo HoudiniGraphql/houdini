@@ -116,7 +116,6 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				}
 
 				for _, arg := range field.Arguments {
-
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
 					err = db.ExecStatement(statements.InsertFieldArgument, map[string]interface{}{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
@@ -212,6 +211,31 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 						},
 					})
 					continue
+				}
+
+				for _, arg := range field.Arguments {
+					variableType, typeModifiers := ParseFieldType(arg.Type.String())
+					err = db.ExecStatement(statements.InsertFieldArgument, map[string]interface{}{
+						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
+						"field":          fieldID,
+						"name":           arg.Name,
+						"type":           variableType,
+						"type_modifiers": typeModifiers,
+					})
+					if err != nil {
+						errors.Append(&plugins.Error{
+							Message: fmt.Sprintf("error inserting field argument %s for %s", arg.Name, fieldID),
+							Detail:  err.Error(),
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: schemaPath,
+									Line:     arg.Position.Line,
+									Column:   arg.Position.Column,
+								},
+							},
+						})
+						continue
+					}
 				}
 			}
 

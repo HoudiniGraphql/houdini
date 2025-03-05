@@ -46,6 +46,10 @@ func TestValidate_Houdini(t *testing.T) {
 				id: ID!
 			}
 
+			interface HasFriends {
+				friends(offset: Int, limit: Int): [User!]!
+			}
+
 			directive @repeatable repeatable on FIELD
 
 			type Query {
@@ -76,7 +80,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 			union Human = User
 
-			type User implements Node & HasID{
+			type User implements Node & HasID & HasFriends{
 				id: ID!
 				parent: User
 				firstName: String!
@@ -682,6 +686,28 @@ func TestValidate_Houdini(t *testing.T) {
 							friends @list(name: "Friends") {
 								id
 							}
+						}
+					}`,
+				},
+			},
+			{
+				Name: "Valid arguments on interfaces",
+				Pass: true,
+				Input: []string{
+					`fragment WithFriends on HasFriends {
+						friends(offset: 10) {
+							id
+						}
+					}`,
+				},
+			},
+			{
+				Name: "Invalid arguments on interfaces",
+				Pass: false,
+				Input: []string{
+					`fragment WithFriends on HasFriends {
+						friends(foo: 10) {
+							id
 						}
 					}`,
 				},
