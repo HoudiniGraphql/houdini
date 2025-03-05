@@ -1,5 +1,11 @@
 # houdini
 
+## 1.5.3
+
+### Patch Changes
+
+-   [#1445](https://github.com/HoudiniGraphql/houdini/pull/1445) [`0eced73c`](https://github.com/HoudiniGraphql/houdini/commit/0eced73c7494c9409f3bb69f1766c02f555d30ca) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix config exclude not excluding absolute paths correctly
+
 ## 1.5.2
 
 ### Patch Changes
