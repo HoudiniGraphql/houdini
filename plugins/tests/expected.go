@@ -56,27 +56,27 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 					}
 					actualVar := vars[i]
 					if actualVar.Document != expectedVar.Document ||
-						actualVar.VarName != expectedVar.VarName ||
+						actualVar.Name != expectedVar.Name ||
 						actualVar.Type != expectedVar.Type ||
 						!strEqual(expectedVar.DefaultValue, actualVar.DefaultValue) {
 						t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
 					}
 					// Check directives attached to the operation variable.
 					if len(expectedVar.Directives) != len(actualVar.Directives) {
-						t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.VarName, len(expectedVar.Directives), len(actualVar.Directives))
+						t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.Name, len(expectedVar.Directives), len(actualVar.Directives))
 					} else {
 						for j, expDir := range expectedVar.Directives {
 							actDir := actualVar.Directives[j]
 							if actDir.Name != expDir.Name {
-								t.Errorf("for document %s, operation variable %s directive %d mismatch: expected %s, got %s", expDoc.Name, expectedVar.VarName, j, expDir.Name, actDir.Name)
+								t.Errorf("for document %s, operation variable %s directive %d mismatch: expected %s, got %s", expDoc.Name, expectedVar.Name, j, expDir.Name, actDir.Name)
 							}
 							if len(expDir.Arguments) != len(actDir.Arguments) {
-								t.Errorf("for document %s, operation variable %s directive %s expected %d arguments, got %d", expDoc.Name, expectedVar.VarName, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
+								t.Errorf("for document %s, operation variable %s directive %s expected %d arguments, got %d", expDoc.Name, expectedVar.Name, expDir.Name, len(expDir.Arguments), len(actDir.Arguments))
 							} else {
 								for k, expArg := range expDir.Arguments {
 									actArg := actDir.Arguments[k]
 									if actArg.Name != expArg.Name {
-										t.Errorf("for document %s, operation variable %s directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.VarName, expDir.Name, k, expArg, actArg)
+										t.Errorf("for document %s, operation variable %s directive %s argument %d mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.Name, expDir.Name, k, expArg, actArg)
 									}
 
 									validateArgumentValue(t, expArg.Value, actArg.Value)
@@ -336,7 +336,7 @@ func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePo
 		varID := int(stmt.ColumnInt(0))
 		opVar := ExpectedOperationVariable{
 			Document:      stmt.ColumnInt(1),
-			VarName:       stmt.ColumnText(2),
+			Name:          stmt.ColumnText(2),
 			Type:          stmt.ColumnText(3),
 			TypeModifiers: stmt.ColumnText(4),
 			DefaultValue:  defaultValue,
@@ -345,7 +345,7 @@ func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePo
 		// Look up any directives attached to this variable.
 		directives := findOperationVariableDirectives(t, db, varID)
 		if err != nil {
-			t.Fatalf("failed to lookup directives for variable %s: %v", opVar.VarName, err)
+			t.Fatalf("failed to lookup directives for variable %s: %v", opVar.Name, err)
 		}
 		opVar.Directives = directives
 

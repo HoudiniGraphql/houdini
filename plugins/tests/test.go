@@ -368,7 +368,7 @@ type ExpectedDocument struct {
 
 type ExpectedOperationVariable struct {
 	Document      int
-	VarName       string
+	Name          string
 	Type          string
 	TypeModifiers string
 	DefaultValue  *string

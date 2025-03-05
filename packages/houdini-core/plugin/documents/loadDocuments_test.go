@@ -32,7 +32,7 @@ var loadDocumentsTable = []testCase{
 				Variables: []tests.ExpectedOperationVariable{
 					{
 						Document:      1,
-						VarName:       "id",
+						Name:          "id",
 						Type:          "ID",
 						TypeModifiers: "!",
 						DefaultValue:  nil,
@@ -280,7 +280,7 @@ var loadDocumentsTable = []testCase{
 				Variables: []tests.ExpectedOperationVariable{
 					{
 						Document:     1,
-						VarName:      "limit",
+						Name:         "limit",
 						Type:         "Int",
 						DefaultValue: tests.StrPtr("10"),
 					},
@@ -636,7 +636,7 @@ var loadDocumentsTable = []testCase{
 				Name: "TestVariableDirective",
 				Kind: "query",
 				Variables: []tests.ExpectedOperationVariable{
-					{Document: 1, VarName: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
+					{Document: 1, Name: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
 				},
 				Selections: []tests.ExpectedSelection{
 					{
@@ -690,7 +690,7 @@ var loadDocumentsTable = []testCase{
 				Kind:          "fragment",
 				TypeCondition: tests.StrPtr("Query"),
 				Variables: []tests.ExpectedOperationVariable{
-					{Document: 1, VarName: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
+					{Document: 1, Name: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
 				},
 				Directives: []tests.ExpectedDirective{
 					{
@@ -1122,7 +1122,7 @@ var loadDocumentsTable = []testCase{
 				Variables: []tests.ExpectedOperationVariable{
 					{
 						Document:     1,
-						VarName:      "filter",
+						Name:         "filter",
 						Type:         "FilterInput",
 						DefaultValue: tests.StrPtr("{term:\"foo\",tags:[\"bar\",\"baz\"]}"),
 					},
@@ -1295,7 +1295,7 @@ var loadDocumentsTable = []testCase{
 				Variables: []tests.ExpectedOperationVariable{
 					{
 						Document:     1,
-						VarName:      "arg",
+						Name:         "arg",
 						Type:         "String",
 						DefaultValue: nil,
 						Directives: []tests.ExpectedDirective{
