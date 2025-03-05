@@ -91,6 +91,42 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 	}
 }
 
+func validateConflictingPaginateListDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	query := `
+		SELECT
+			rd.filepath,
+			rd.offset_line AS row,
+			rd.offset_column AS column
+		FROM selection_directives sd
+			JOIN selection_refs sr ON sr.child_id = sd.selection_id
+			JOIN documents d ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+		WHERE sd.directive IN ($list_directive, $paginate_directive)
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+		GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
+		HAVING COUNT(DISTINCT sd.directive) > 1
+	`
+	bindings := map[string]interface{}{
+		"list_directive":     schema.ListDirective,
+		"paginate_directive": schema.PaginationDirective,
+	}
+	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+		filepath := stmt.ColumnText(0)
+		row := int(stmt.ColumnInt(1))
+		column := int(stmt.ColumnInt(2))
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf("@list is unnecessary on a field annotated with @paginate, simply use the 'name' parameter on @paginate instead"),
+			Kind:    plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{Filepath: filepath, Line: row, Column: column},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
 func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// This query returns documents that use @paginate (via selection_directives)
 	// and that have a non-empty type_condition, but that are invalid—
@@ -344,6 +380,12 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 }
 
 func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+	// if paginate and list appear on the same node then it will produce a confusing error message so let's check that first
+	validateConflictingPaginateListDirectives(ctx, db, errs)
+	if errs.Len() > 0 {
+		return
+	}
+
 	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
 	// directives
 	query := `

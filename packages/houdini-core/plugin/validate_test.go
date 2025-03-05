@@ -720,6 +720,19 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@list and @paginate on the same field",
+				Pass: false,
+				Input: []string{
+					`query TestQuery {
+						user(name: "foo") {
+							friends @list(name: "Friends") @paginate {
+								id
+							}
+						}
+					}`,
+				},
+			},
+			{
 				Name: "no @parentID @allLists on _insert, but defaultListTarget",
 				Pass: true,
 				Input: []string{
