@@ -1,7 +1,10 @@
 package tests
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
+	"text/tabwriter"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -406,4 +409,37 @@ type ExpectedSelection struct {
 	Arguments  []ExpectedArgument
 	Directives []ExpectedDirective
 	Children   []ExpectedSelection
+}
+
+func printColumns(columnA string, columnB string) string {
+	expectedLines := strings.Split(columnA, "\n")
+	foundLines := strings.Split(columnB, "\n")
+
+	// Use tabwriter to align the columns
+	var buf bytes.Buffer
+	w := tabwriter.NewWriter(&buf, 0, 0, 2, ' ', 0)
+
+	fmt.Fprintf(w, "%-60s\t%s\n", "expected", "found")
+	fmt.Fprintf(w, "%-60s\t%s\n", strings.Repeat("-", 60), strings.Repeat("-", 60))
+
+	// determine the maximum number of lines
+	maxLines := len(expectedLines)
+	if len(foundLines) > maxLines {
+		maxLines = len(foundLines)
+	}
+
+	for i := 0; i < maxLines; i++ {
+		var expLine, foundLine string
+		if i < len(expectedLines) {
+			expLine = expectedLines[i]
+		}
+		if i < len(foundLines) {
+			foundLine = foundLines[i]
+		}
+		// Print expected and found lines side by side separated by a tab
+		fmt.Fprintf(w, "%-60s\t%s\n", expLine, foundLine)
+	}
+	w.Flush()
+
+	return buf.String()
 }

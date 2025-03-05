@@ -91,7 +91,7 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 				if err := compareExpected(t, expDoc.Selections, actualTree); err != nil {
 					e, _ := json.MarshalIndent(expDoc.Selections, "", "  ")
 					a, _ := json.MarshalIndent(actualTree, "", "  ")
-					t.Errorf("selection tree mismatch for document %s: \n\texpected:%s \n\tfound:%s ", expDoc.Name, string(e), string(a))
+					t.Errorf("selection tree mismatch for document %s: \n%s ", expDoc.Name, printColumns(string(e), string(a)))
 				}
 
 				// Finally, verify that the document-level directives match.

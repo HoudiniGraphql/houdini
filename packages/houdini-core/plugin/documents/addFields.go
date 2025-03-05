@@ -170,6 +170,8 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		edgesField := connectionWalk.ColumnInt64(1)
 		docID := connectionWalk.ColumnInt64(2)
 
+		fmt.Println(listField, edgesField, docID)
+
 		// if we haven't generate a page info selection, do it now
 		if pageInfoSelection == 0 {
 			// insert the selection for pageInfo

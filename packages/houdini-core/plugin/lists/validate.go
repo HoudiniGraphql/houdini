@@ -394,9 +394,10 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 				argument_values.raw AS list_name,
 				selection_directives.row,
 				selection_directives.column,
-				raw_documents.filepath as raw_document,
+				raw_documents.filepath as filepath,
 				selections.id AS selection_id,
-				selection_directives.directive as directive
+				selection_directives.directive as directive,
+				raw_documents.id as raw_document_id
 			FROM selection_directives
 				JOIN selections ON selection_directives.selection_id = selections.id
 				JOIN selection_refs ON selections.id = selection_refs.child_id
@@ -416,8 +417,9 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 				s.type AS base_type,
 				tf.type_modifiers,
 				tf.type AS base_list_type,
-				ln.raw_document,
-				ln.directive as directive
+				ln.filepath,
+				ln.directive as directive,
+				ln.raw_document_id
 			FROM list_names ln
 			JOIN selections s ON ln.selection_id = s.id
 			JOIN type_fields tf ON s.type = tf.id
@@ -428,7 +430,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 			SELECT
 				b.selection_id,
 				s_edges.id AS edges_id,
-				b.raw_document
+				b.raw_document_id
 			FROM base b
 			JOIN selection_refs sr ON sr.parent_id = b.selection_id
 			JOIN selections s_edges ON s_edges.id = sr.child_id
@@ -441,7 +443,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 				e.selection_id,
 				s_node.id AS node_id,
 				tf_node.type AS node_list_type,
-				e.raw_document
+				e.raw_document_id
 			FROM edges e
 			JOIN selection_refs sr2 ON sr2.parent_id = e.edges_id
 			JOIN selections s_node ON s_node.id = sr2.child_id
@@ -452,7 +454,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 			b.list_name,
 			b.row,
 			b.column,
-			b.raw_document,
+			b.filepath,
 			CASE
 				WHEN b.type_modifiers LIKE '%]%' THEN b.base_list_type
 				ELSE n.node_list_type
@@ -461,10 +463,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 				WHEN b.type_modifiers LIKE '%]%' THEN b.selection_id
 				ELSE n.node_id
 			END as node_id,
-			CASE
-				WHEN b.type_modifiers LIKE '%]%' THEN b.raw_document
-				ELSE n.raw_document
-			END as raw_document,
+			b.raw_document_id,
 			b.type_modifiers NOT LIKE '%]%' as connection,
 			b.selection_id,
 			b.directive
@@ -482,6 +481,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 		ListName    string
 		SelectionID int
 		ListField   int
+		Filepath    string
 		RawDocument int
 		Type        string
 		Locations   []*plugins.ErrorLocation
@@ -508,6 +508,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 			lists[listField] = &DiscoveredList{
 				ListName:    listName,
 				SelectionID: selectionID,
+				Filepath:    filepath,
 				RawDocument: rawDocument,
 				Type:        finalType,
 				Locations:   []*plugins.ErrorLocation{},
