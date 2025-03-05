@@ -1200,12 +1200,25 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
-				Name: "Assigning object to list in deeply nested argument",
-				Pass: false,
+				Name: "Object can be coerced as list type",
+				Pass: true,
 				Input: []string{
 					`
 					query UserInfo($name: String) {
 						users (filters: { and: [{ hasFriendWith: { firstName: $name }}] }) {
+							id
+						}
+					}
+				`,
+				},
+			},
+			{
+				Name: "Assigning invalid object to list in deeply nested argument",
+				Pass: false,
+				Input: []string{
+					`
+					query UserInfo($name: String) {
+						users (filters: { foo: [{ hasFriendWith: { firstName: $name }}] }) {
 							id
 						}
 					}

@@ -1264,7 +1264,7 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 			-- if the argument kind is an object but the expected type modifiers have a list in it, there's a problem
 			(
 				argument_values.kind = 'Object'
-				AND argument_values.expected_type_modifiers LIKE '%]%'
+				AND argument_values.expected_type_modifiers LIKE '%]]%'
 			)
 
 			OR
@@ -1327,6 +1327,15 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 		expectedType := stmt.ColumnText(4) + stmt.ColumnText(5)
 		for range strings.Count(expectedType, "]") {
 			expectedType = "[" + expectedType
+		}
+
+		if expectedType == "" {
+			errs.Append(&plugins.Error{
+				Message:   fmt.Sprintf("Unexpected field in '%s'", argumentName),
+				Kind:      plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{loc},
+			})
+			return
 		}
 
 		errs.Append(&plugins.Error{
