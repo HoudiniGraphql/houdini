@@ -334,6 +334,10 @@ CREATE TABLE discovered_lists (
 -- Indices
 -----------------------------------------------------------
 
+CREATE INDEX idx_discovered_lists_raw_document ON discovered_lists(raw_document);
+CREATE INDEX idx_discovered_lists_node ON discovered_lists(node);
+CREATE INDEX idx_discovered_lists_list_field ON discovered_lists(list_field);
+CREATE INDEX idx_discovered_lists_connection ON discovered_lists(connection);
 CREATE INDEX idx_document_directive_arguments_value on document_directive_arguments(value);
 CREATE INDEX idx_type_field_arguments_id ON type_field_arguments(id);
 CREATE INDEX idx_type_fields_id ON type_fields(id);
