@@ -394,7 +394,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 				argument_values.raw AS list_name,
 				selection_directives.row,
 				selection_directives.column,
-				raw_documents.id as raw_document,
+				raw_documents.filepath as raw_document,
 				selections.id AS selection_id,
 				selection_directives.directive as directive
 			FROM selection_directives
