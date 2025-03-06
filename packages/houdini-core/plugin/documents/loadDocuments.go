@@ -412,7 +412,7 @@ func LoadPendingQuery[PluginConfig any](
 				if argErr != nil {
 					return &plugins.Error{
 						Message: "could not process variable default value",
-						Detail:  err.Error(),
+						Detail:  argErr.Error(),
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: query.Filepath,
