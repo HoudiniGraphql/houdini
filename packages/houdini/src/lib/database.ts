@@ -121,7 +121,6 @@ CREATE TABLE type_field_arguments (
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
-    default_value TEXT,
     FOREIGN KEY (field) REFERENCES type_fields(id),
     UNIQUE (field, name)
 );
@@ -197,9 +196,11 @@ CREATE TABLE document_variables (
     name INTEGER NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
-    default_value TEXT,
+    default_value INT,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
+
+    FOREIGN KEY (default_value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (document) REFERENCES documents(id)
 );
 

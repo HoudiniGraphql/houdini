@@ -165,7 +165,6 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 						"name":           field.Name,
 						"type":           fieldTypeName,
 						"type_modifiers": fieldTypeModifiers,
-						"default_value":  field.DefaultValue.String(),
 						"description":    field.Description,
 					})
 				if err != nil {

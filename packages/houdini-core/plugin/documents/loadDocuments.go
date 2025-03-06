@@ -408,7 +408,22 @@ func LoadPendingQuery[PluginConfig any](
 			// if there's a default value, bind it (we'll bind the rest later)
 			var defaultValue interface{}
 			if variable.DefaultValue != nil {
-				defaultValue = variable.DefaultValue.String()
+				valueID, argErr := processArgumentValue(ctx, db, conn, query, operationID, variable.DefaultValue, statements, typeCache.TypeFields, variableType, typeModifiers)
+				if argErr != nil {
+					return &plugins.Error{
+						Message: "could not process variable default value",
+						Detail:  err.Error(),
+						Locations: []*plugins.ErrorLocation{
+							{
+								Filepath: query.Filepath,
+								Line:     query.RowOffset + variable.Position.Line,
+								Column:   query.ColumnOffset + variable.Position.Column,
+							},
+						},
+					}
+				}
+
+				defaultValue = valueID
 			}
 
 			if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{

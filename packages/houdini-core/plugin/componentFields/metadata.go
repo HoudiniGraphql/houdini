@@ -294,7 +294,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	defer insertInternalField.Finalize()
 
 	insertFieldArgument, err := conn.Prepare(`
-		INSERT INTO type_field_arguments (id, field, name, type, type_modifiers, default_value) VALUES ($id, $parent, $name, $type, $type_modifiers, $default_value)
+		INSERT INTO type_field_arguments (id, field, name, type, type_modifiers) VALUES ($id, $parent, $name, $type, $type_modifiers)
 	`)
 	if err != nil {
 		errs.Append(&plugins.Error{
@@ -338,7 +338,6 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 				"name":           arg.Name,
 				"type":           argType,
 				"type_modifiers": typeModifiers,
-				"default_value":  arg.Default,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
