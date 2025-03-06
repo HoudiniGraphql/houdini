@@ -162,6 +162,8 @@ func TestValidate_Houdini(t *testing.T) {
 					} else {
 						t.Fatal("did not receive error list")
 					}
+				} else {
+					require.Nil(t, err, err.Error())
 				}
 				return
 			}
@@ -1223,6 +1225,22 @@ func TestValidate_Houdini(t *testing.T) {
 						}
 					}
 				`,
+				},
+			},
+			{
+				Name: "component fields with arguments",
+				Pass: true,
+				Input: []string{
+					`query MyQuery {
+						user(name:"foo") {
+							Avatar(size: 10)
+						}
+					}`,
+					`
+						fragment UserAvatar on User @componentField(field: "Avatar", prop:"foo") @arguments(size: {type: "Int"}) {
+							avatarURL(size: $size)
+						}
+					`,
 				},
 			},
 			{

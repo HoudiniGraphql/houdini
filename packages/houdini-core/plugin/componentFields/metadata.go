@@ -2,6 +2,7 @@ package componentFields
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -27,31 +28,73 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		Field         string
 		Filepath      string
 		Row           int
-		Line          int
+		Column        int
+		Arguments     []struct {
+			Name    string `json:"name"`
+			Type    string `json:"type"`
+			Default int    `json:"default"`
+		}
 	}
 	documentInfo := map[int]*ComponentFieldData{}
 
 	query := `
 		SELECT
-			documents.raw_document,
-			documents.type_condition,
-			document_directive_arguments.name,
-			argument_values.raw,
-			raw_documents.filepath,
-			raw_documents.offset_column,
-			raw_documents.offset_line
-		FROM
-			document_directives
-			JOIN documents ON document_directives.document = documents.id
-			JOIN document_directive_arguments ON document_directive_arguments.parent = document_directives.id
-			JOIN argument_values on document_directive_arguments.value = argument_values.id
-			LEFT JOIN raw_documents ON documents.raw_document = raw_documents.id
-		WHERE
-			document_directives.directive = $component_field
-			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+			docs.raw_document,
+			raw_docs.filepath,
+			doc_directives."column",
+			doc_directives."row",
+			docs.type_condition,
+			field_arg_values.raw AS type_field,
+			prop_arg_values.raw AS component_prop,
+			COALESCE(
+				'[' || GROUP_CONCAT(
+				CASE WHEN arg_directive_args.name IS NOT NULL THEN json_object(
+					'name', arg_directive_args.name,
+					'type', arg_type_values.raw,
+					'default', arg_default_values.id
+				) END
+				) || ']',
+				''
+			) AS component_field_args
+		FROM document_directives AS doc_directives
+			JOIN documents AS docs
+				ON doc_directives.document = docs.id
+			JOIN document_directive_arguments AS doc_dir_arg_field
+				ON doc_directives.id = doc_dir_arg_field.parent
+				AND doc_dir_arg_field.name = 'field'
+			JOIN argument_values AS field_arg_values
+				ON doc_dir_arg_field.value = field_arg_values.id
+			JOIN document_directive_arguments AS doc_dir_arg_prop
+				ON doc_directives.id = doc_dir_arg_prop.parent
+				AND doc_dir_arg_prop.name = 'prop'
+			JOIN argument_values AS prop_arg_values
+				ON doc_dir_arg_prop.value = prop_arg_values.id
+			JOIN raw_documents AS raw_docs
+				ON docs.raw_document = raw_docs.id
+			LEFT JOIN document_directives AS arg_directive
+				ON arg_directive.document = docs.id
+				AND arg_directive.directive = $arguments_directive
+			LEFT JOIN document_directive_arguments AS arg_directive_args
+				ON arg_directive.id = arg_directive_args.parent
+			LEFT JOIN argument_values AS arg_values2
+				ON arg_directive_args.value = arg_values2.id
+			LEFT JOIN argument_value_children AS arg_child_type
+				ON arg_child_type.parent = arg_values2.id
+				AND arg_child_type.name = 'type'
+			LEFT JOIN argument_values AS arg_type_values
+				ON arg_child_type.value = arg_type_values.id
+			LEFT JOIN argument_value_children AS arg_child_default
+				ON arg_child_default.parent = arg_values2.id
+				AND arg_child_default.name = 'default'
+			LEFT JOIN argument_values AS arg_default_values
+				ON arg_child_default.value = arg_default_values.id
+		WHERE doc_directives.directive = $component_field
+			AND (raw_docs.current_task = $task_id OR $task_id IS NULL)
+		GROUP BY doc_directives.id
 	`
 	bindings := map[string]any{
-		"component_field": schema.ComponentFieldDirective,
+		"component_field":     schema.ComponentFieldDirective,
+		"arguments_directive": schema.ArgumentsDirective,
 	}
 
 	err := db.StepQuery(ctx, query, bindings, func(search *sqlite.Stmt) {
@@ -62,12 +105,23 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			document = &ComponentFieldData{}
 			documentInfo[rawDocumentID] = document
 		}
+
 		// the type comes from the document's type_condition.
-		document.Type = search.ColumnText(1)
-		document.RawDocumentID = rawDocumentID
-		document.Row = search.ColumnInt(4)
-		document.Line = search.ColumnInt(5)
-		document.Filepath = search.ColumnText(6)
+		document.Filepath = search.ColumnText(1)
+		document.Row = search.ColumnInt(2)
+		document.Column = search.ColumnInt(3)
+		document.Type = search.ColumnText(4)
+		document.Field = search.ColumnText(5)
+		document.Prop = search.ColumnText(6)
+
+		// marshal the arguments spec into the document
+		argJSON := search.ColumnText(7)
+		if argJSON != "" {
+			if err := json.Unmarshal([]byte(argJSON), &document.Arguments); err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+		}
 
 		// unquote the value if need be
 		unquoted := search.ColumnText(3)
@@ -133,8 +187,8 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 				Locations: []*plugins.ErrorLocation{
 					{
 						Filepath: rec.Filepath,
-						Line:     rec.Line,
-						Column:   rec.Row,
+						Line:     rec.Row,
+						Column:   rec.Column,
 					},
 				},
 			})
@@ -239,6 +293,19 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	}
 	defer insertInternalField.Finalize()
 
+	insertFieldArgument, err := conn.Prepare(`
+		INSERT INTO type_field_arguments (id, field, name, type, type_modifiers, default_value) VALUES ($id, $parent, $name, $type, $type_modifiers, $default_value)
+	`)
+	if err != nil {
+		errs.Append(&plugins.Error{
+			Message: "could not prepare statement to insert internal fields",
+			Detail:  err.Error(),
+		})
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer insertFieldArgument.Finalize()
+
 	// Process the collected component field data.
 	for _, data := range documentInfo {
 		err = db.ExecStatement(insertComponentField, map[string]any{
@@ -260,6 +327,23 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
 			continue
+		}
+
+		// make sure any arguments on the component field are added to the internal field
+		for _, arg := range data.Arguments {
+			argType, typeModifiers := schema.ParseFieldType(arg.Type)
+			err = db.ExecStatement(insertFieldArgument, map[string]any{
+				"id":             fmt.Sprintf("%s.%s.%s", data.Type, data.Field, arg.Name),
+				"parent":         fmt.Sprintf("%s.%s", data.Type, data.Field),
+				"name":           arg.Name,
+				"type":           argType,
+				"type_modifiers": typeModifiers,
+				"default_value":  arg.Default,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				continue
+			}
 		}
 	}
 }

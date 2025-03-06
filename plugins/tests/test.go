@@ -143,8 +143,9 @@ CREATE TABLE type_field_arguments (
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
-    default_value TEXT,
+    default_value INT,
     FOREIGN KEY (field) REFERENCES type_fields(id),
+    FOREIGN KEY (default_value) REFERENCES argument_values(id),
     UNIQUE (field, name)
 );
 
@@ -220,6 +221,8 @@ CREATE TABLE discovered_lists (
     connection BOOLEAN default false,
     list_field INTEGER NOT NULL,
     paginate TEXT,
+    supports_forward BOOLEAN default false,
+    supports_backward BOOLEAN default false,
 
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,

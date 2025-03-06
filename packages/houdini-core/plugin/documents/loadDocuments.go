@@ -804,7 +804,7 @@ func LoadPendingQuery[PluginConfig any](
 					// parse the type of the variable.
 					variableType, typeModifiers := schema.ParseFieldType(argType)
 					if argDefault != "" {
-						statements.InsertDocumentVariable.SetText("$defaultValue", argDefault)
+						statements.InsertDocumentVariable.SetText("$default_value", argDefault)
 					}
 					if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{
 						"document":       fragmentID,

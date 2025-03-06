@@ -323,6 +323,8 @@ CREATE TABLE discovered_lists (
     connection BOOLEAN default false,
     list_field INTEGER NOT NULL,
     paginate TEXT,
+    supports_forward BOOLEAN default false,
+    supports_backward BOOLEAN default false,
 
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,

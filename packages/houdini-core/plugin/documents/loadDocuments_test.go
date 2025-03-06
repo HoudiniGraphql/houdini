@@ -678,7 +678,7 @@ var loadDocumentsTable = []testCase{
 	{
 		name: "variables in fragments",
 		rawQuery: `
-            fragment TestFragmentArguments on Query @arguments(show: {type: "Boolean!", defaultValue: true}) {
+            fragment TestFragmentArguments on Query @arguments(show: {type: "Boolean!", default: true}) {
                 user(id: "123") @include(if: $show) {
                     id
                 }

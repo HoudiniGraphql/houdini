@@ -91,6 +91,10 @@ func TestComponentFieldChecks(t *testing.T) {
 		}
 
 		union Friend = User
+
+		type Query {
+			user: User
+		}
 	`
 
 	table := []struct {
@@ -103,8 +107,8 @@ func TestComponentFieldChecks(t *testing.T) {
 			Pass:  true,
 			Documents: []string{
 				`fragment MyFragmentOne on User @componentField(field: "Avatar", prop: "user") {
-			firstName
-		}`,
+					firstName
+				}`,
 			},
 		},
 		{
@@ -112,11 +116,11 @@ func TestComponentFieldChecks(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`fragment MyFragmentOne on User  @componentField(field: "Avatar", prop: "user") {
-			firstName
-		}`,
+					firstName
+				}`,
 				`fragment MyFragmentTwo on User  @componentField(field: "Avatar", prop: "user") {
-			firstName
-		}`,
+					firstName
+				}`,
 			},
 		},
 		{
@@ -124,8 +128,8 @@ func TestComponentFieldChecks(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`fragment MyFragmentOne on User  @componentField(field: "firstName", prop: "user") {
-			firstName
-		}`,
+					firstName
+				}`,
 			},
 		},
 		{
@@ -133,8 +137,8 @@ func TestComponentFieldChecks(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`fragment MyFragmentOne on User  @componentField(field: "firstName") {
-			firstName
-		}`,
+					firstName
+				}`,
 			},
 		},
 		{
@@ -142,8 +146,8 @@ func TestComponentFieldChecks(t *testing.T) {
 			Pass:  false,
 			Documents: []string{
 				`fragment MyFragmentOne on Friend  @componentField(field: "firstName", prop: "user") {
-			firstName
-		}`,
+					firstName
+				}`,
 			},
 		},
 	}

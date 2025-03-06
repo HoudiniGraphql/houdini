@@ -593,7 +593,6 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 			ON opv.document = d.id
 			AND opv.name = av.raw
 	WHERE av.kind = 'Variable'
-		AND d.kind IN ('query', 'mutation', 'subscription')
 		AND opv.name IS NULL
 		AND (r.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY d.id, av.raw

@@ -769,7 +769,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 
 	// if we discover a connection-based pagination we should update the discovered list with the direction
 	updateList, err := conn.Prepare(`
-		UPDATE discovered_lists SET paginate = $paginate WHERE id = $id
+		UPDATE discovered_lists SET paginate = $paginate, supports_forward = $supports_forward, supports_backward = $supports_backward WHERE id = $id
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -914,12 +914,20 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			}
 
 			err = db.ExecStatement(updateList, map[string]interface{}{
-				"id":       listID,
-				"paginate": direction,
+				"id":                listID,
+				"paginate":          direction,
+				"supports_forward":  forwardPagination,
+				"supports_backward": backwardsPagination,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
 			}
+		} else {
+			err = db.ExecStatement(updateList, map[string]interface{}{
+				"id":               listID,
+				"paginate":         "forward",
+				"supports_forward": "true",
+			})
 		}
 	})
 }

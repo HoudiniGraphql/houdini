@@ -695,8 +695,8 @@ then the request will never be deduplicated.`,
 	}
 
 	// both with and arguments are structured in a way that's technically not valid in the schema
-	// ie @with(foo: {type: "String", defaultValue: "hello"})
-	// or @arguments(foo: {type: "Boolean!", defaultValue: true})
+	// ie @with(foo: {type: "String", default: "hello"})
+	// or @arguments(foo: {type: "Boolean!", default: true})
 	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
 		"name": ArgumentSpecificationType,
 		"kind": "OBJECT",

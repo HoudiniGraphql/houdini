@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"testing"
 
@@ -36,6 +37,7 @@ func RunTable(t *testing.T, table Table) {
 			if err != nil {
 				t.Fatalf("failed to execute after extract %v", err)
 			}
+			fmt.Println(err)
 
 			// run the validation step to discover lists
 			err = plugin.Validate(context.Background())
