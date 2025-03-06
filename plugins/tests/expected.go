@@ -57,10 +57,19 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 					actualVar := vars[i]
 					if actualVar.Document != expectedVar.Document ||
 						actualVar.Name != expectedVar.Name ||
-						actualVar.Type != expectedVar.Type ||
-						!strEqual(expectedVar.DefaultValue, actualVar.DefaultValue) {
+						actualVar.Type != expectedVar.Type {
 						t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
 					}
+					if expectedVar.DefaultValue == nil && actualVar.DefaultValue != nil {
+						t.Errorf("for document %s, operation variable %s expected nil default value, got %+v", expDoc.Name, expectedVar.Name, actualVar.DefaultValue)
+					}
+					if expectedVar.DefaultValue != nil && actualVar.DefaultValue == nil {
+						t.Errorf("for document %s, operation variable %s expected nil default value, got %+v", expDoc.Name, expectedVar.Name, actualVar.DefaultValue)
+					}
+					if expectedVar.DefaultValue != nil && actualVar.DefaultValue == nil {
+						validateArgumentValue(t, expectedVar.DefaultValue, actualVar.DefaultValue)
+					}
+
 					// Check directives attached to the operation variable.
 					if len(expectedVar.Directives) != len(actualVar.Directives) {
 						t.Errorf("for document %s, operation variable %s expected %d directives, got %d", expDoc.Name, expectedVar.Name, len(expectedVar.Directives), len(actualVar.Directives))
@@ -326,9 +335,9 @@ func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePo
 		}
 
 		// Read the default value (if any)
-		var defaultValue *string
-		if stmt.ColumnType(4) == sqlite.TypeText {
-			s := stmt.ColumnText(4)
+		var defaultValue *int
+		if stmt.ColumnType(4) == sqlite.TypeInteger {
+			s := stmt.ColumnInt(4)
 			defaultValue = &s
 		}
 
@@ -339,7 +348,10 @@ func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePo
 			Name:          stmt.ColumnText(2),
 			Type:          stmt.ColumnText(3),
 			TypeModifiers: stmt.ColumnText(4),
-			DefaultValue:  defaultValue,
+		}
+
+		if defaultValue != nil {
+			opVar.DefaultValue = findArgumentValue(t, db, *defaultValue)
 		}
 
 		// Look up any directives attached to this variable.

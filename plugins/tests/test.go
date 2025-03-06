@@ -144,7 +144,6 @@ CREATE TABLE type_field_arguments (
     type TEXT NOT NULL,
     type_modifiers TEXT,
     FOREIGN KEY (field) REFERENCES type_fields(id),
-    FOREIGN KEY (default_value) REFERENCES argument_values(id),
     UNIQUE (field, name)
 );
 
@@ -375,7 +374,7 @@ type ExpectedOperationVariable struct {
 	Name          string
 	Type          string
 	TypeModifiers string
-	DefaultValue  *string
+	DefaultValue  *ExpectedArgumentValue
 	Directives    []ExpectedDirective
 }
 

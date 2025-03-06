@@ -85,6 +85,7 @@ func TestValidate_Houdini(t *testing.T) {
 				parent: User
 				firstName: String!
 				lastName: String
+				avatarURL(size: Int): String
 				friends(offset: Int, limit: Int): [User!]!
 				friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
 				believers(first: Int, after: String, last: Int, before: String): UserConnection!

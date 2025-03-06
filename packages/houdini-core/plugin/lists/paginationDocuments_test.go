@@ -61,9 +61,12 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "first",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "first",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
 								Name: "after",
@@ -205,9 +208,12 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "first",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "first",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
 								Name: "after",
@@ -470,9 +476,12 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "last",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "last",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
 								Name: "before",
@@ -614,9 +623,12 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "last",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "last",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
 								Name: "before",
@@ -736,14 +748,20 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "last",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "last",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
-								Name:         "after",
-								Type:         "String",
-								DefaultValue: tests.StrPtr(`"cursor"`),
+								Name: "after",
+								Type: "String",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "cursor",
+								},
 							},
 							{
 								Name: "first",
@@ -881,24 +899,36 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "last",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "last",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
-								Name:         "before",
-								Type:         "String",
-								DefaultValue: tests.StrPtr(`"cursor"`),
+								Name: "before",
+								Type: "String",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "cursor",
+								},
 							},
 							{
-								Name:         "first",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "first",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
-								Name:         "after",
-								Type:         "String",
-								DefaultValue: tests.StrPtr(`"cursor"`),
+								Name: "after",
+								Type: "String",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "String",
+									Raw:  "cursor",
+								},
 							},
 						},
 						Directives: []tests.ExpectedDirective{
@@ -1031,9 +1061,12 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						Kind: "query",
 						Variables: []tests.ExpectedOperationVariable{
 							{
-								Name:         "first",
-								Type:         "Int",
-								DefaultValue: tests.StrPtr("10"),
+								Name: "first",
+								Type: "Int",
+								DefaultValue: &tests.ExpectedArgumentValue{
+									Kind: "Int",
+									Raw:  "10",
+								},
 							},
 							{
 								Name: "after",

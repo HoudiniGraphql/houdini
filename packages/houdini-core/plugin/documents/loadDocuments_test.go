@@ -282,7 +282,7 @@ var loadDocumentsTable = []testCase{
 						Document:     1,
 						Name:         "limit",
 						Type:         "Int",
-						DefaultValue: tests.StrPtr("10"),
+						DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"},
 					},
 				},
 				Selections: []tests.ExpectedSelection{
@@ -710,7 +710,7 @@ var loadDocumentsTable = []testCase{
 											},
 										},
 										{
-											Name: "defaultValue",
+											Name: "default",
 											Value: &tests.ExpectedArgumentValue{
 												Kind: "Boolean",
 												Raw:  "true",
@@ -1121,10 +1121,43 @@ var loadDocumentsTable = []testCase{
 				Kind: "query",
 				Variables: []tests.ExpectedOperationVariable{
 					{
-						Document:     1,
-						Name:         "filter",
-						Type:         "FilterInput",
-						DefaultValue: tests.StrPtr("{term:\"foo\",tags:[\"bar\",\"baz\"]}"),
+						Document: 1,
+						Name:     "filter",
+						Type:     "FilterInput",
+						DefaultValue: &tests.ExpectedArgumentValue{
+							Kind: "Object",
+							Raw:  "",
+							Children: []tests.ExpectedArgumentValueChildren{
+								{
+									Name: "term",
+									Value: &tests.ExpectedArgumentValue{
+										Kind: "String",
+										Raw:  "foo",
+									},
+								},
+								{
+									Name: "tags",
+									Value: &tests.ExpectedArgumentValue{
+										Kind: "List",
+										Raw:  "",
+										Children: []tests.ExpectedArgumentValueChildren{
+											{
+												Value: &tests.ExpectedArgumentValue{
+													Kind: "String",
+													Raw:  "bar",
+												},
+											},
+											{
+												Value: &tests.ExpectedArgumentValue{
+													Kind: "String",
+													Raw:  "baz",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 				Selections: []tests.ExpectedSelection{

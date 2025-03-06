@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
@@ -59,18 +58,20 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		FROM document_directives AS doc_directives
 			JOIN documents AS docs
 				ON doc_directives.document = docs.id
+			LEFT JOIN raw_documents AS raw_docs
+				ON docs.raw_document = raw_docs.id
 			JOIN document_directive_arguments AS doc_dir_arg_field
 				ON doc_directives.id = doc_dir_arg_field.parent
 				AND doc_dir_arg_field.name = 'field'
 			JOIN argument_values AS field_arg_values
 				ON doc_dir_arg_field.value = field_arg_values.id
-			JOIN document_directive_arguments AS doc_dir_arg_prop
+
+			-- parse any arguments that might be added
+			LEFT JOIN document_directive_arguments AS doc_dir_arg_prop
 				ON doc_directives.id = doc_dir_arg_prop.parent
 				AND doc_dir_arg_prop.name = 'prop'
-			JOIN argument_values AS prop_arg_values
+			LEFT JOIN argument_values AS prop_arg_values
 				ON doc_dir_arg_prop.value = prop_arg_values.id
-			JOIN raw_documents AS raw_docs
-				ON docs.raw_document = raw_docs.id
 			LEFT JOIN document_directives AS arg_directive
 				ON arg_directive.document = docs.id
 				AND arg_directive.directive = $arguments_directive
@@ -123,23 +124,6 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 			}
 		}
 
-		// unquote the value if need be
-		unquoted := search.ColumnText(3)
-		if strings.HasPrefix(unquoted, `"`) {
-			var err error
-			unquoted, err = strconv.Unquote(search.ColumnText(3))
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-		}
-
-		switch search.ColumnText(2) {
-		case "prop":
-			document.Prop = unquoted
-		case "field":
-			document.Field = unquoted
-		}
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
