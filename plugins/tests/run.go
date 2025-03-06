@@ -34,20 +34,25 @@ func RunTable(t *testing.T, table Table) {
 			// wire up the plugin
 			err := plugin.AfterExtract(context.Background())
 			if err != nil {
-				t.Fatalf("failed to execute after extract %v", err)
+				require.False(t, test.Pass)
+				return
 			}
 
 			// run the validation step to discover lists
 			err = plugin.Validate(context.Background())
 			if err != nil {
-				t.Fatalf("failed to execute validate: %v", err)
+				require.False(t, test.Pass)
+				return
 			}
 
 			// perform the necessary afterValidate steps
 			err = plugin.AfterValidate(context.Background())
 			if err != nil {
-				t.Fatalf("failed to execute afterValidate: %v", err)
+				require.False(t, test.Pass)
+				return
 			}
+
+			require.True(t, test.Pass)
 
 			// make sure we generated what we expected
 			ValidateExpectedDocuments(t, plugin.DB, test.Expected)

@@ -21,6 +21,7 @@ func TestInsertOperationInput(t *testing.T) {
 		Tests: []tests.Test{
 			{
 				Name: "Operation fragments",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -138,6 +139,7 @@ func TestInsertOperationInput(t *testing.T) {
 			},
 			{
 				Name: "Operation fragments from @paginate",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {

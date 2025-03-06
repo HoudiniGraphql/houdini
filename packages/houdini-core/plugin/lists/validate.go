@@ -926,7 +926,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			err = db.ExecStatement(updateList, map[string]interface{}{
 				"id":               listID,
 				"paginate":         "forward",
-				"supports_forward": "true",
+				"supports_forward": true,
 			})
 		}
 	})

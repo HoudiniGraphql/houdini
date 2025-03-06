@@ -64,6 +64,7 @@ func TestAddFields(t *testing.T) {
 		Tests: []tests.Test{
 			{
 				Name: "Adds ids to selection sets of objects with them",
+				Pass: true,
 				Input: []string{
 					`
 						query Friends {
@@ -106,6 +107,7 @@ func TestAddFields(t *testing.T) {
 			},
 			{
 				Name: "doesn't add id if there isn't one",
+				Pass: true,
 				Input: []string{`
 					query Friends {
 						legends {
@@ -142,6 +144,7 @@ func TestAddFields(t *testing.T) {
 			{
 
 				Name: "adds custom id fields to selection sets of objects with them",
+				Pass: true,
 				Input: []string{`
 					query Friends {
 						ghost {
@@ -187,6 +190,7 @@ func TestAddFields(t *testing.T) {
 			},
 			{
 				Name: "adds id fields to inline fragments",
+				Pass: true,
 				Input: []string{`
 					query Friends {
 						entities {
@@ -245,6 +249,7 @@ func TestAddFields(t *testing.T) {
 			},
 			{
 				Name: "Add connection info to lists",
+				Pass: true,
 				Input: []string{`
 					query UserList {
 						users(first: 10) @paginate(name: "Foo"){

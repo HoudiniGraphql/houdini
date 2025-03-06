@@ -42,6 +42,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 		Tests: []tests.Test{
 			{
 				Name: "adds full cursor args to forward bidirectional connection",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -189,6 +190,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "adds partial cursor args to forward connection",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -314,6 +316,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "first arg as variable",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers($first: Int) {
@@ -457,6 +460,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "adds full cursor args to backward bidirectional connection",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -604,6 +608,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "adds partial cursor args to backward connection",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -729,6 +734,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "sets default value for last arg",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -880,6 +886,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "sets default value for before arg",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
@@ -1039,6 +1046,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			},
 			{
 				Name: "suppress dedupe",
+				Pass: true,
 				Input: []string{
 					`
 						query AllUsers {
