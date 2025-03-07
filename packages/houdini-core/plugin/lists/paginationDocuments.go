@@ -12,6 +12,11 @@ import (
 )
 
 func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
+	projectConfig, err := db.ProjectConfig(ctx)
+	if err != nil {
+		return plugins.WrapError(err)
+	}
+
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return plugins.WrapError(err)
@@ -30,7 +35,7 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 	query, err := conn.Prepare(`
 		SELECT
 			raw_documents.filepath,
-			documents.id as document,
+			selection_refs.document as document,
 			documents.kind as document_kind,
 			discovered_lists.list_field,
 			json_group_array(
@@ -52,12 +57,14 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			discovered_lists.supports_backward,
 			discovered_lists."connection",
 			selections.type,
-			documents.name
+			documents.name,
+			discovered_lists.paginate
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
-			JOIN documents on documents.raw_document = raw_documents.id
 			JOIN selections on discovered_lists.list_field = selections.id
-			LEFT JOIN document_variables on document_variables."document" = documents.id
+			JOIN selection_refs on selection_refs.child_id = selections.id
+			JOIN documents on selection_refs.document = documents.id
+			LEFT JOIN document_variables on document_variables."document" = selection_refs.document
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
 			LEFT JOIN argument_values on selection_arguments.value = argument_values.id
 		WHERE (document_variables."name"  is null OR document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
@@ -147,6 +154,14 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		supportsBackward := query.ColumnBool(7)
 		connection := query.ColumnBool(8)
 		fieldName := query.ColumnText(9)
+		paginate := false
+		if !query.IsNull("paginate") {
+			paginate = true
+		}
+
+		if !paginate {
+			return
+		}
 
 		// unmarshal the variables
 		var variables []VariableInfo
@@ -252,6 +267,7 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 
 		// now that the field has all of the arguments we need to define the corresponding variables
 		// on the document
+	ARGUMENTS:
 		for _, arg := range argumentsToAdd {
 			// if the variable is already defined then we have a value ID to use as the default value
 			var defaultValue interface{}
@@ -263,6 +279,20 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 					break
 				}
 			}
+
+			// if the variable is already defined, skip it
+			for _, variable := range variables {
+				if variable.Variable == arg.Name {
+					continue ARGUMENTS
+				}
+			}
+
+			fmt.Println("inserting document variables", map[string]interface{}{
+				"document":      document,
+				"name":          arg.Name,
+				"type":          arg.Kind,
+				"default_value": defaultValue,
+			})
 
 			// add the variable to the document
 			err = db.ExecStatement(insertDocumentVariable, map[string]interface{}{
@@ -277,38 +307,41 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			}
 		}
 
-		// add the dedupe directive to the document
-		err = db.ExecStatement(insertDocumentDirectives, map[string]interface{}{
-			"document":  document,
-			"directive": schema.DedupeDirective,
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
+		// if we aren't supposed to suppress the dedupe directive, we need to add it to the document
+		if !projectConfig.SuppressPaginationDeduplication {
+			// add the dedupe directive to the document
+			err = db.ExecStatement(insertDocumentDirectives, map[string]interface{}{
+				"document":  document,
+				"directive": schema.DedupeDirective,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 
-		directiveID := conn.LastInsertRowID()
+			directiveID := conn.LastInsertRowID()
 
-		// set the match argument to Variables
-		err = db.ExecStatement(insertArgumentValue, map[string]interface{}{
-			"kind":          "Enum",
-			"raw":           "Variables",
-			"expected_type": "DedupeMatchMode",
-			"document":      document,
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
+			// set the match argument to Variables
+			err = db.ExecStatement(insertArgumentValue, map[string]interface{}{
+				"kind":          "Enum",
+				"raw":           "Variables",
+				"expected_type": "DedupeMatchMode",
+				"document":      document,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 
-		err = db.ExecStatement(insertDocumentDirectiveArgument, map[string]interface{}{
-			"document_directive": directiveID,
-			"argument":           "match",
-			"value":              conn.LastInsertRowID(),
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
+			err = db.ExecStatement(insertDocumentDirectiveArgument, map[string]interface{}{
+				"document_directive": directiveID,
+				"argument":           "match",
+				"value":              conn.LastInsertRowID(),
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 		}
 	})
 	if err != nil {

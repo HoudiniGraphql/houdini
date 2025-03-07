@@ -57,135 +57,28 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "first",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "after",
-								Type: "String",
-							},
-							{
-								Name: "last",
-								Type: "Int",
-							},
-							{
-								Name: "before",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "userConnection",
-								Alias:     tests.StrPtr("userConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int = 10, $after: String, $before: String, $last: Int) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 			{
@@ -205,113 +98,28 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "first",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "after",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "forwardConnection",
-								Alias:     tests.StrPtr("forwardConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int = 10, $after: String) @dedupe(match: Variables) {
+							forwardConnection(first: $first, after: $after) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 			{
@@ -331,131 +139,28 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "first",
-								Type: "Int",
-							},
-							{
-								Name: "after",
-								Type: "String",
-							},
-							{
-								Name: "last",
-								Type: "Int",
-							},
-							{
-								Name: "before",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "userConnection",
-								Alias:     tests.StrPtr("userConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int, $after: String, $before: String, $last: Int) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 			{
@@ -475,135 +180,28 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "last",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "before",
-								Type: "String",
-							},
-							{
-								Name: "first",
-								Type: "Int",
-							},
-							{
-								Name: "after",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "userConnection",
-								Alias:     tests.StrPtr("userConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($last: Int = 10, $first: Int, $after: String, $before: String) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 			{
@@ -623,269 +221,32 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "last",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "before",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "backwardConnection",
-								Alias:     tests.StrPtr("backwardConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($last: Int = 10, $before: String) @dedupe(match: Variables) {
+							backwardConnection( last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 			{
 				Name: "sets default value for last arg",
-				Pass: true,
-				Input: []string{
-					`
-						query AllUsers {
-							userConnection(last: 10, after: "cursor") @paginate {
-								edges {
-									node {
-										firstName
-									}
-								}
-							}
-						}
-					`,
-				},
-				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "last",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "after",
-								Type: "String",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "String",
-									Raw:  "cursor",
-								},
-							},
-							{
-								Name: "first",
-								Type: "Int",
-							},
-							{
-								Name: "before",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "userConnection",
-								Alias:     tests.StrPtr("userConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
-				},
-			},
-			{
-				Name: "sets default value for before arg",
 				Pass: true,
 				Input: []string{
 					`
@@ -901,139 +262,69 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "last",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "before",
-								Type: "String",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "String",
-									Raw:  "cursor",
-								},
-							},
-							{
-								Name: "first",
-								Type: "Int",
-							},
-							{
-								Name: "after",
-								Type: "String",
-							},
-						},
-						Directives: []tests.ExpectedDirective{
-							{
-								Name: "dedupe",
-								Arguments: []tests.ExpectedDirectiveArgument{
-									{
-										Name: "match",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Enum",
-											Raw:  "Variables",
-										},
-									},
-								},
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "userConnection",
-								Alias:     tests.StrPtr("userConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int, $before: String = "cursor", $after: String, $last: Int = 10) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
+				},
+			},
+			{
+				Name: "sets default value for first arg",
+				Pass: true,
+				Input: []string{
+					`
+						query AllUsers {
+							userConnection(first: 10, after: "cursor") @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int = 10, $after: String = "cursor", $before: String, $last: Int ) @dedupe(match: Variables) {
+							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 			{
@@ -1056,121 +347,28 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					config.SuppressPaginationDeduplication = true
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Variables: []tests.ExpectedOperationVariable{
-							{
-								Name: "first",
-								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
-							},
-							{
-								Name: "after",
-								Type: "String",
-							},
-							{
-								Name: "last",
-								Type: "Int",
-							},
-							{
-								Name: "before",
-								Type: "String",
-							},
-						},
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "userConnection",
-								Alias:     tests.StrPtr("userConnection"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "first",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "first",
-										},
-									},
-									{
-										Name: "after",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "after",
-										},
-									},
-									{
-										Name: "last",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "last",
-										},
-									},
-									{
-										Name: "before",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "before",
-										},
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "edges",
-										Alias:     tests.StrPtr("edges"),
-										Kind:      "field",
-										Children: []tests.ExpectedSelection{
-											{
-												FieldName: "node",
-												Alias:     tests.StrPtr("node"),
-												Kind:      "field",
-												Children: []tests.ExpectedSelection{
-													{
-														FieldName: "firstName",
-														Alias:     tests.StrPtr("firstName"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "__typename",
-														Alias:     tests.StrPtr("__typename"),
-														Kind:      "field",
-													},
-													{
-														FieldName: "id",
-														Alias:     tests.StrPtr("id"),
-														Kind:      "field",
-													},
-												},
-											},
-											{
-												FieldName: "__typename",
-												Alias:     tests.StrPtr("__typename"),
-												Kind:      "field",
-											},
-											{
-												FieldName: "cursor",
-												Alias:     tests.StrPtr("cursor"),
-												Kind:      "field",
-											},
-										},
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									pageInfo,
-								},
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($first: Int = 10, $after: String, $before: String, $last: Int ) {
+							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
 				},
 			},
 		},

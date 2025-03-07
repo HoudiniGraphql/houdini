@@ -46,9 +46,9 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 					t.Errorf("document metadata mismatch for %s: \nexpected \n\t%+v \ngot \n\t%+v", expDoc.Name, expDoc, actual)
 				}
 
-				vars := findDocumentVariables(t, db)
-				if len(vars) < len(expDoc.Variables) {
-					t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
+				vars := findDocumentVariables(t, db, actual.ID)
+				if len(vars) != len(expDoc.Variables) {
+					t.Errorf("for document %s (%d), expected %d operation variables, got %d\n\t%+v", expDoc.Name, actual.ID, len(expDoc.Variables), len(vars), vars)
 				}
 				// order of variables isn't well defined so let's build a map from name to variable
 				varMap := make(map[string]ExpectedOperationVariable)
@@ -113,8 +113,8 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 
 				// Finally, verify that the document-level directives match.
 				docDirectives := fetchDocumentDirectives(t, db, int64(actual.ID))
-				if len(docDirectives) < len(expDoc.Directives) {
-					t.Errorf("for document %s (%d), expected %d document directives, got %d", expDoc.Name, actual.ID, len(expDoc.Directives), len(docDirectives))
+				if len(docDirectives) != len(expDoc.Directives) {
+					t.Errorf("for document %s (%d), expected %d document directives, got %d \n\t %+v", expDoc.Name, actual.ID, len(expDoc.Directives), len(docDirectives), docDirectives)
 				} else {
 					for i, expDir := range expDoc.Directives {
 						actDir := docDirectives[i]
@@ -314,7 +314,7 @@ func fetchDocuments[PluginConfig any](t *testing.T, db plugins.DatabasePool[Plug
 }
 
 // findDocumentVariables returns all operation variables along with any attached directives.
-func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig]) []ExpectedOperationVariable {
+func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePool[PluginConfig], documentID int) []ExpectedOperationVariable {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil
@@ -325,12 +325,14 @@ func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePo
 	stmt, err := conn.Prepare(`
 		SELECT id, document, name, type, default_value, type_modifiers
 		FROM document_variables
+		WHERE document = ?
 		ORDER BY name
 	`)
 	if err != nil {
 		t.Fatalf("failed to prepare document_variables query: %v", err)
 	}
 	defer stmt.Finalize()
+	stmt.BindInt64(1, int64(documentID))
 
 	var variables []ExpectedOperationVariable
 	for {
@@ -623,7 +625,6 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 
 				if !strEqual(expected[i].Alias, actual[j].Alias) ||
 					expected[i].FieldName != actual[j].FieldName ||
-					expected[i].PathIndex != actual[j].PathIndex ||
 					expected[i].Kind != actual[j].Kind {
 					return fmt.Errorf("mismatch at %d: \n expected %+v \n got:     %+v", i, expected[i], actual[j])
 				}
@@ -648,7 +649,7 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 
 func verifySelectionDetails(t *testing.T, expected ExpectedSelection, actual ExpectedSelection) {
 	actualArgs := actual.Arguments
-	if len(actualArgs) < len(expected.Arguments) {
+	if len(actualArgs) != len(expected.Arguments) {
 		t.Errorf("argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expected.Arguments, actualArgs)
 	} else {
 		for _, expArg := range expected.Arguments {

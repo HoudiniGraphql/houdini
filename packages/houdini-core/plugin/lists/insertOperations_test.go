@@ -32,109 +32,35 @@ func TestInsertOperationInput(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "users",
-								Alias:     tests.StrPtr("users"),
-								Kind:      "field",
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "firstName",
-										Alias:     tests.StrPtr("firstName"),
-										Kind:      "field",
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									{
-										FieldName: "id",
-										Alias:     tests.StrPtr("id"),
-										Kind:      "field",
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "list",
-										Arguments: []tests.ExpectedDirectiveArgument{
-											{
-												Name: "name",
-												Value: &tests.ExpectedArgumentValue{
-													Kind: "String",
-													Raw:  "All_Users",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Name:          "All_Users_insert",
-						Kind:          "fragment",
-						TypeCondition: tests.StrPtr("User"),
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "firstName",
-								Alias:     tests.StrPtr("firstName"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "id",
-								Alias:     tests.StrPtr("id"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "__typename",
-								Alias:     tests.StrPtr("__typename"),
-								Kind:      "field",
-							},
-						},
-					},
-					{
-						Name:          "All_Users_remove",
-						Kind:          "fragment",
-						TypeCondition: tests.StrPtr("User"),
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "__typename",
-								Alias:     tests.StrPtr("__typename"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "id",
-								Alias:     tests.StrPtr("id"),
-								Kind:      "field",
-							},
-						},
-					},
-					{
-						Name:          "All_Users_toggle",
-						Kind:          "fragment",
-						TypeCondition: tests.StrPtr("User"),
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "firstName",
-								Alias:     tests.StrPtr("firstName"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "id",
-								Alias:     tests.StrPtr("id"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "__typename",
-								Alias:     tests.StrPtr("__typename"),
-								Kind:      "field",
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers {
+							users @list(name: "All_Users") {
+								firstName
+								__typename
+								id
+							}
+						}
+					`),
+					tests.ExpectedDoc(`
+						fragment All_Users_insert on User {
+							firstName
+							id
+							__typename
+						}
+					`),
+					tests.ExpectedDoc(`
+						fragment All_Users_remove on User {
+							__typename
+							id
+						}
+					`),
+					tests.ExpectedDoc(`
+						fragment All_Users_toggle on User {
+							firstName
+							id
+							__typename
+						}
+					`),
 				},
 			},
 			{
@@ -150,118 +76,35 @@ func TestInsertOperationInput(t *testing.T) {
 					`,
 				},
 				Expected: []tests.ExpectedDocument{
-					{
-						Name: "AllUsers",
-						Kind: "query",
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "users",
-								Alias:     tests.StrPtr("users"),
-								Kind:      "field",
-								Arguments: []tests.ExpectedArgument{
-									{
-										Name: "limit",
-										Value: &tests.ExpectedArgumentValue{
-											Kind: "Variable",
-											Raw:  "limit",
-										},
-									},
-								},
-								Children: []tests.ExpectedSelection{
-									{
-										FieldName: "firstName",
-										Alias:     tests.StrPtr("firstName"),
-										Kind:      "field",
-									},
-									{
-										FieldName: "__typename",
-										Alias:     tests.StrPtr("__typename"),
-										Kind:      "field",
-									},
-									{
-										FieldName: "id",
-										Alias:     tests.StrPtr("id"),
-										Kind:      "field",
-									},
-								},
-								Directives: []tests.ExpectedDirective{
-									{
-										Name: "paginate",
-										Arguments: []tests.ExpectedDirectiveArgument{
-											{
-												Name: "name",
-												Value: &tests.ExpectedArgumentValue{
-													Kind: "String",
-													Raw:  "All_Users",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Name:          "All_Users_insert",
-						Kind:          "fragment",
-						TypeCondition: tests.StrPtr("User"),
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "firstName",
-								Alias:     tests.StrPtr("firstName"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "id",
-								Alias:     tests.StrPtr("id"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "__typename",
-								Alias:     tests.StrPtr("__typename"),
-								Kind:      "field",
-							},
-						},
-					},
-					{
-						Name:          "All_Users_remove",
-						Kind:          "fragment",
-						TypeCondition: tests.StrPtr("User"),
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "__typename",
-								Alias:     tests.StrPtr("__typename"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "id",
-								Alias:     tests.StrPtr("id"),
-								Kind:      "field",
-							},
-						},
-					},
-					{
-						Name:          "All_Users_toggle",
-						Kind:          "fragment",
-						TypeCondition: tests.StrPtr("User"),
-						Selections: []tests.ExpectedSelection{
-							{
-								FieldName: "firstName",
-								Alias:     tests.StrPtr("firstName"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "id",
-								Alias:     tests.StrPtr("id"),
-								Kind:      "field",
-							},
-							{
-								FieldName: "__typename",
-								Alias:     tests.StrPtr("__typename"),
-								Kind:      "field",
-							},
-						},
-					},
+					tests.ExpectedDoc(`
+						query AllUsers($limit: Int = 10, $offset: Int) @dedupe(match: Variables) {
+							users(limit: $limit, offset: $offset) @paginate(name: "All_Users") {
+								firstName
+								__typename
+								id
+							}
+						}
+					`),
+					tests.ExpectedDoc(`
+						fragment All_Users_insert on User {
+							firstName
+							id
+							__typename
+						}
+					`),
+					tests.ExpectedDoc(`
+						fragment All_Users_remove on User {
+							__typename
+							id
+						}
+					`),
+					tests.ExpectedDoc(`
+						fragment All_Users_toggle on User {
+							firstName
+							id
+							__typename
+						}
+					`),
 				},
 			},
 		},
