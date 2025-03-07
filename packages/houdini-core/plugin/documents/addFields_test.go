@@ -274,8 +274,8 @@ func TestAddFields(t *testing.T) {
 									{
 										Name: "first",
 										Value: &tests.ExpectedArgumentValue{
-											Kind: "Int",
-											Raw:  "10",
+											Kind: "Variable",
+											Raw:  "first",
 										},
 									},
 								},

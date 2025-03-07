@@ -48,7 +48,7 @@ func RunTable(t *testing.T, table Table) {
 			// perform the necessary afterValidate steps
 			err = plugin.AfterValidate(context.Background())
 			if err != nil {
-				require.False(t, test.Pass)
+				require.False(t, test.Pass, err)
 				return
 			}
 

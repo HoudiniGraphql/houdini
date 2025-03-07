@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"code.houdinigraphql.com/plugins"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 // AddDocumentFields adds necessary documents to the selections of the user's project including
@@ -15,6 +16,12 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
+
+	close := sqlitex.Transaction(conn)
+	commit := func(err error) error {
+		close(&err)
+		return err
+	}
 
 	// to pull this off we have to perform 2 different inserts that are driven by looking
 	// at selections_ref (to indentify a selection that has sub-selections) and joining it
@@ -82,19 +89,19 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		JOIN type_fields tf ON tf.parent = keys_union.parent_type AND tf.name = keys_union.key_name
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer keysToInsert.Finalize()
 
 	// we need statments to insert selections and selection refs
 	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertSelection.Finalize()
 	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertSelectionRef.Finalize()
 
@@ -134,7 +141,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		}
 	})
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	if errs.Len() > 0 {
 		return errs
@@ -156,7 +163,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 	`)
 
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer connectionWalk.Finalize()
 
@@ -266,12 +273,12 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		}
 	})
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 
 	// if we collcted any errors along the way, return them
 	if errs.Len() > 0 {
-		return errs
+		return commit(errs)
 	}
-	return nil
+	return commit(nil)
 }

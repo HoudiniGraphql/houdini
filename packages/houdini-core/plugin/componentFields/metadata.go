@@ -9,6 +9,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 // we need to look at anything tagged with @componentField and load the metadata into the database
@@ -137,6 +138,20 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		return
 	}
 	defer db.Put(conn)
+
+	close := sqlitex.Transaction(conn)
+	commit := func(err error) error {
+		close(&err)
+		return err
+	}
+
+	defer func() {
+		if errs.Len() > 0 {
+			commit(errs)
+		} else {
+			commit(nil)
+		}
+	}()
 
 	// Convert our map into a slice for in‑memory processing.
 	var records []ComponentFieldData

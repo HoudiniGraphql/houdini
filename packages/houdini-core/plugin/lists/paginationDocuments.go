@@ -6,7 +6,9 @@ import (
 
 	"encoding/json"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
@@ -15,6 +17,12 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
+
+	close := sqlitex.Transaction(conn)
+	commit := func(err error) error {
+		close(&err)
+		return err
+	}
 
 	// in order to prepare paginated documents to load we need add the necessary arguments and replace any references to the pagination fields
 	// with the appropriate variable references. to pull this off, we need to look at the discovered lists and extract information about
@@ -26,10 +34,10 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			documents.kind as document_kind,
 			discovered_lists.list_field,
 			json_group_array(
-			DISTINCT json_object(
-				'variable', document_variables."name",
-				'id', document_variables.id
-			)
+				DISTINCT json_object(
+					'variable', document_variables."name",
+					'id', document_variables.id
+				)
 			) FILTER (WHERE document_variables.id IS NOT NULL) as variables,
 			json_group_array(
 			DISTINCT json_object(
@@ -43,7 +51,8 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			discovered_lists.supports_forward,
 			discovered_lists.supports_backward,
 			discovered_lists."connection",
-			selections.type
+			selections.type,
+			documents.name
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
 			JOIN documents on documents.raw_document = raw_documents.id
@@ -52,11 +61,12 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
 			LEFT JOIN argument_values on selection_arguments.value = argument_values.id
 		WHERE (document_variables."name"  is null OR document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
-		AND (selection_arguments."name" is null OR selection_arguments."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
+			AND (selection_arguments."name" is null OR selection_arguments."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY discovered_lists.id
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer query.Finalize()
 
@@ -68,7 +78,7 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 	type ArgumentInfo struct {
 		Argument string `json:"argument"`
 		ID       int    `json:"id"`
-		Value    string `json:"value"`
+		Value    int    `json:"value"`
 		Kind     string `json:"kind"`
 		Raw      string `json:"raw"`
 	}
@@ -83,30 +93,44 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		INSERT INTO document_variables (document, "name", type, default_value, row, column) VALUES ($document, $name, $type, $default_value, 0, 0)
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertDocumentVariable.Finalize()
 	insertSelectionArgument, err := conn.Prepare(`
 		INSERT INTO selection_arguments (selection_id, "name", "value", row, column, field_argument) VALUES ($selection_id, $name, $value, 0, 0, $field_argument)
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertSelectionArgument.Finalize()
 	insertArgumentValue, err := conn.Prepare(`
-		INSERT INTO argument_values (kind, raw, expected_type, document) VALUES ($kind, $raw, $expected_type, $document)
+		INSERT INTO argument_values (kind, raw, expected_type, document, row, column) VALUES ($kind, $raw, $expected_type, $document, 0, 0)
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertArgumentValue.Finalize()
+	insertDocumentDirectives, err := conn.Prepare(`
+		INSERT INTO document_directives (document, directive, row, column) VALUES ($document, $directive, 0, 0)
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertDocumentDirectives.Finalize()
+	insertDocumentDirectiveArgument, err := conn.Prepare(`
+		INSERT INTO document_directive_arguments (parent, name, value) VALUES ($document_directive, $argument, $value)
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertDocumentDirectiveArgument.Finalize()
 
 	// we might also need to delete an existing argument in place of the new one
 	deleteSelectionArgument, err := conn.Prepare(`
 		DELETE FROM selection_arguments WHERE id = $id
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer deleteSelectionArgument.Finalize()
 
@@ -133,12 +157,14 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 
 		// unmarshal the arguments
 		var arguments []ArgumentInfo
-		if err := json.Unmarshal([]byte(argumentsStr), &arguments); err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal arguments: %v", err)))
-			return
+		if argumentsStr != "" {
+			if err := json.Unmarshal([]byte(argumentsStr), &arguments); err != nil {
+				errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal arguments: %v", err)))
+				return
+			}
 		}
 
-		// now we need to make sure that the tagged field has all of the ncessary argument definitions
+		// now we need to make sure that the tagged field has all of the necessary argument definitions
 		argumentsToAdd := []FieldArgumentSpec{}
 		if connection {
 			if supportsForward {
@@ -251,11 +277,47 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			}
 		}
 
+		// add the dedupe directive to the document
+		err = db.ExecStatement(insertDocumentDirectives, map[string]interface{}{
+			"document":  document,
+			"directive": schema.DedupeDirective,
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+
+		directiveID := conn.LastInsertRowID()
+
+		// set the match argument to Variables
+		err = db.ExecStatement(insertArgumentValue, map[string]interface{}{
+			"kind":          "Enum",
+			"raw":           "Variables",
+			"expected_type": "DedupeMatchMode",
+			"document":      document,
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+
+		err = db.ExecStatement(insertDocumentDirectiveArgument, map[string]interface{}{
+			"document_directive": directiveID,
+			"argument":           "match",
+			"value":              conn.LastInsertRowID(),
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
 	})
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
+	}
+	if errs.Len() > 0 {
+		return commit(errs)
 	}
 
 	// we're done
-	return nil
+	return commit(nil)
 }

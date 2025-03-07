@@ -162,8 +162,8 @@ func TestInsertOperationInput(t *testing.T) {
 									{
 										Name: "limit",
 										Value: &tests.ExpectedArgumentValue{
-											Kind: "Int",
-											Raw:  "10",
+											Kind: "Variable",
+											Raw:  "limit",
 										},
 									},
 								},

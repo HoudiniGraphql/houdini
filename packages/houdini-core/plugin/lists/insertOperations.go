@@ -7,6 +7,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
@@ -19,6 +20,12 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
+
+	close := sqlitex.Transaction(conn)
+	commit := func(err error) error {
+		close(&err)
+		return err
+	}
 
 	// we don't want to add the same directive twice
 	insertedDirectives := map[string]bool{}
@@ -37,34 +44,34 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		FROM selection_refs WHERE parent_id = $selection_parent
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer copySelection.Finalize()
 
 	insertDocument, err := conn.Prepare("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)")
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertDocument.Finalize()
 
 	// a statement to insert internal directives
 	insertInternalDirectiveStmt, err := conn.Prepare("INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, true)")
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertInternalDirectiveStmt.Finalize()
 
 	// a statement to insert a selection
 	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertSelection.Finalize()
 
 	// a statement to insert selection refs
 	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertSelectionRef.Finalize()
 
@@ -77,7 +84,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer insertStatement.Finalize()
 
@@ -115,7 +122,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		}
 	})
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 
 	// we'll insert delete directive and remove fragment driven by a separate query
@@ -145,7 +152,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		WHERE tc.name IS NULL
 	`)
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 	defer statementWithKeys.Finalize()
 
@@ -220,14 +227,14 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		}
 	})
 	if err != nil {
-		return plugins.WrapError(err)
+		return commit(plugins.WrapError(err))
 	}
 
 	// if we collected any errors, return them
 	if errs.Len() > 0 {
-		return errs
+		return commit(errs)
 	}
 
 	// we're done
-	return nil
+	return commit(nil)
 }

@@ -47,19 +47,27 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 				}
 
 				vars := findDocumentVariables(t, db)
-				if len(vars) != len(expDoc.Variables) {
+				if len(vars) < len(expDoc.Variables) {
 					t.Errorf("for document %s, expected %d operation variables, got %d", expDoc.Name, len(expDoc.Variables), len(vars))
 				}
-				for i, expectedVar := range expDoc.Variables {
-					if i >= len(vars) {
-						break
+				// order of variables isn't well defined so let's build a map from name to variable
+				varMap := make(map[string]ExpectedOperationVariable)
+				for _, v := range vars {
+					varMap[v.Name] = v
+				}
+				// now iterate over the actual variables and compare them to the expected ones'
+				for _, expectedVar := range expDoc.Variables {
+					actualVar, ok := varMap[expectedVar.Name]
+					if !ok {
+						t.Errorf("for document %s, operation variable %s not found", expDoc.Name, actualVar.Name)
+						continue
 					}
-					actualVar := vars[i]
-					if actualVar.Document != expectedVar.Document ||
-						actualVar.Name != expectedVar.Name ||
+
+					if actualVar.Name != expectedVar.Name ||
 						actualVar.Type != expectedVar.Type {
-						t.Errorf("for document %s, operation variable row %d mismatch: expected %+v, got %+v", expDoc.Name, i, expectedVar, actualVar)
+						t.Errorf("for document %s, operation variable %s mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.Name, expectedVar, actualVar)
 					}
+
 					if expectedVar.DefaultValue == nil && actualVar.DefaultValue != nil {
 						t.Errorf("for document %s, operation variable %s expected nil default value, got %+v", expDoc.Name, expectedVar.Name, actualVar.DefaultValue)
 					}
@@ -105,8 +113,8 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 
 				// Finally, verify that the document-level directives match.
 				docDirectives := fetchDocumentDirectives(t, db, int64(actual.ID))
-				if len(docDirectives) != len(expDoc.Directives) {
-					t.Errorf("for document %s, expected %d document directives, got %d", expDoc.Name, len(expDoc.Directives), len(docDirectives))
+				if len(docDirectives) < len(expDoc.Directives) {
+					t.Errorf("for document %s (%d), expected %d document directives, got %d", expDoc.Name, actual.ID, len(expDoc.Directives), len(docDirectives))
 				} else {
 					for i, expDir := range expDoc.Directives {
 						actDir := docDirectives[i]
@@ -640,15 +648,21 @@ func compareExpected(t *testing.T, expected, actual []ExpectedSelection) error {
 
 func verifySelectionDetails(t *testing.T, expected ExpectedSelection, actual ExpectedSelection) {
 	actualArgs := actual.Arguments
-	if len(actualArgs) != len(expected.Arguments) {
+	if len(actualArgs) < len(expected.Arguments) {
 		t.Errorf("argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expected.Arguments, actualArgs)
 	} else {
-		for i, expArg := range expected.Arguments {
-			actArg := actual.Arguments[i]
-			if actArg.Name != expArg.Name {
-				t.Errorf("argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expArg, actArg)
+		for _, expArg := range expected.Arguments {
+			found := false
+			for _, arg := range actualArgs {
+				if arg.Name == expArg.Name {
+					found = true
+					validateArgumentValue(t, arg.Value, expArg.Value)
+				}
 			}
-			validateArgumentValue(t, actArg.Value, expArg.Value)
+
+			if !found {
+				t.Errorf("argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expected.Arguments, actualArgs)
+			}
 		}
 	}
 

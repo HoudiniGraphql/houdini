@@ -345,7 +345,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							},
 							{
 								Name: "last",
-								Type: "String",
+								Type: "Int",
 							},
 							{
 								Name: "before",
@@ -924,18 +924,10 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							{
 								Name: "first",
 								Type: "Int",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "Int",
-									Raw:  "10",
-								},
 							},
 							{
 								Name: "after",
 								Type: "String",
-								DefaultValue: &tests.ExpectedArgumentValue{
-									Kind: "String",
-									Raw:  "cursor",
-								},
 							},
 						},
 						Directives: []tests.ExpectedDirective{
@@ -983,7 +975,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 										Name: "after",
 										Value: &tests.ExpectedArgumentValue{
 											Kind: "Variable",
-											Raw:  "before",
+											Raw:  "after",
 										},
 									},
 								},
