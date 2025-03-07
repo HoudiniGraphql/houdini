@@ -287,13 +287,6 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 				}
 			}
 
-			fmt.Println("inserting document variables", map[string]interface{}{
-				"document":      document,
-				"name":          arg.Name,
-				"type":          arg.Kind,
-				"default_value": defaultValue,
-			})
-
 			// add the variable to the document
 			err = db.ExecStatement(insertDocumentVariable, map[string]interface{}{
 				"document":      document,

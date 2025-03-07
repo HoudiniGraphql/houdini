@@ -94,8 +94,8 @@ func TestInsertOperationInput(t *testing.T) {
 					`),
 					tests.ExpectedDoc(`
 						fragment All_Users_remove on User {
-							__typename
 							id
+							__typename
 						}
 					`),
 					tests.ExpectedDoc(`
