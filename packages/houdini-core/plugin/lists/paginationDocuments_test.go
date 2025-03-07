@@ -374,32 +374,3 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 		},
 	})
 }
-
-var pageInfo = tests.ExpectedSelection{
-	FieldName: "pageInfo",
-	Alias:     tests.StrPtr("pageInfo"),
-	Kind:      "field",
-	Children: []tests.ExpectedSelection{
-		{
-			FieldName: "hasNextPage",
-			Alias:     tests.StrPtr("hasNextPage"),
-			Kind:      "field",
-		},
-		{
-			FieldName: "hasPreviousPage",
-			Alias:     tests.StrPtr("hasPreviousPage"),
-			Kind:      "field",
-		},
-		{
-			FieldName: "startCursor",
-			Alias:     tests.StrPtr("startCursor"),
-			Kind:      "field",
-		},
-
-		{
-			FieldName: "endCursor",
-			Alias:     tests.StrPtr("endCursor"),
-			Kind:      "field",
-		},
-	},
-}
