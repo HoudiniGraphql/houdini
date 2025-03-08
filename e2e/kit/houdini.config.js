@@ -32,14 +32,14 @@ const config = {
     UnionAorB: {
       keys: []
     }
-  },
-
-  plugins: {
-    'houdini-plugin-svelte-global-stores': {
-      generate: ['query', 'mutation', 'subscription', 'fragment']
-    },
-    'houdini-svelte': {}
   }
+
+  // plugins: {
+  //   'houdini-plugin-svelte-global-stores': {
+  //     generate: ['query', 'mutation', 'subscription', 'fragment']
+  //   },
+  //   'houdini-svelte': {}
+  // }
 };
 
 export default config;

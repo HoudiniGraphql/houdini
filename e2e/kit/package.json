@@ -13,6 +13,7 @@
     "build:generate": "pnpm build: && npx houdini generate",
     "build:test": "pnpm build: && pnpm test",
     "build:build": "pnpm build: && pnpm build",
+    "houdini": "houdini",
     "previewWeb": "vite preview --port 3007",
     "preview": "concurrently \"pnpm run previewWeb\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
     "tests": "playwright test",
@@ -20,7 +21,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "pnpm run check -- --watch",
     "lint": "prettier --ignore-path .gitignore --check . && eslint .",
-    "format": "prettier --ignore-path .gitignore --write ."
+    "format": "prettier --ignore-path .gitignore --write .",
+    "postinstall": "node postInstall.js"
   },
   "devDependencies": {
     "@kitql/helpers": "^0.8.2",
