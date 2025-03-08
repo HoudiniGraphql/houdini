@@ -55,7 +55,7 @@ func TestValidate_Houdini(t *testing.T) {
 			type Query {
 				rootScalar: String
 				user(name: String!) : User
-				users(filters: [UserFilter], filter: UserFilter): [User!]!
+				users(filters: [UserFilter], filter: UserFilter, limit: Int, offset: Int): [User!]!
 				nodes(ids: [ID!]!): [Node!]!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
 				node(id: ID!): Node
@@ -74,7 +74,7 @@ func TestValidate_Houdini(t *testing.T) {
 			type Mutation {
 				update(input: InputType, list: [InputType]): String
 				addFriend: AddFriendOutput!
-				deleteUser(id: String!): DeleteUserOutput!
+				deleteUser(id: ID!): DeleteUserOutput!
 				updateGhost: Ghost!
 			}
 
@@ -1122,6 +1122,20 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "Int as ID",
+				Pass: true,
+				Input: []string{
+
+					`
+					mutation Bar {
+						deleteUser(id: 2) {
+							userID
+						}
+					}
+				`,
+				},
+			},
+			{
 				Name: "known connection directives",
 				Pass: true,
 				Input: []string{
@@ -1328,6 +1342,19 @@ func TestValidate_Houdini(t *testing.T) {
 					`
 					fragment UserPaginatedA on User {
 						friends(limit: 10) @paginate {
+							id
+						}
+					}
+				`,
+				},
+			},
+			{
+				Name: "@paginate offset happy path",
+				Pass: true,
+				Input: []string{
+					`
+					fragment UserList on Query {
+						users(limit: 10) @paginate {
 							id
 						}
 					}

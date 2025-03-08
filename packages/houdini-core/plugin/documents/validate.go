@@ -1250,10 +1250,9 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 					OR (
 						argument_values.kind <> argument_values.expected_type
 						AND NOT (
-							argument_values.kind IN ('ID','String')
-							AND argument_values.expected_type IN ('ID','String')
+							argument_values.kind IN ('ID','String', 'Int')
+							AND argument_values.expected_type = 'ID'
 						)
-
 					)
 				)
 			)
