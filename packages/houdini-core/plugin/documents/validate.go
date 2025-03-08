@@ -786,7 +786,7 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 		COALESCE(opv.type_modifiers, '') AS providedModifiers,
 		rd.filepath,
 		json_group_array(
-			json_object('line', rd.offset_line, 'column', rd.offset_column)
+			json_object('line', sa.row, 'column', sa.column)
 		) AS locations,
 		av.raw AS varUsage
 	FROM selection_arguments sa
@@ -800,12 +800,13 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 		JOIN document_variables opv ON d.id = opv.document AND opv.name = av.raw
 	WHERE (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY sa.selection_id, fad.name
-	HAVING NOT (
-		  fad.type = opv.type
-		  AND (
-			   (COALESCE(fad.type_modifiers, '') = '!' AND COALESCE(opv.type_modifiers, '') = '!')
-			   OR (COALESCE(fad.type_modifiers, '') = '' AND COALESCE(opv.type_modifiers, '') IN ('','!'))
-		  )
+	HAVING (
+
+			(
+				fad."type" != opv."type"
+				AND
+				fad.type_modifiers != opv.type_modifiers
+			)
 	)
 	`
 

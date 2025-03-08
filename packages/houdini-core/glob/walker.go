@@ -61,7 +61,7 @@ func (w *Walker) Walk(ctx context.Context, fs afero.Fs, root string, onFile func
 	defer cancel()
 
 	// workCh carries directory paths to process
-	workCh := make(chan string, 100)
+	workCh := make(chan string, 100000)
 
 	// taskWG tracks the number of directories pending processing
 	var taskWG sync.WaitGroup

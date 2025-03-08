@@ -1,8 +1,10 @@
 package lists_test
 
 import (
+	"fmt"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
@@ -369,6 +371,63 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						}
 					`),
+				},
+			},
+			{
+				Name: "fragment on query",
+				Pass: true,
+				Input: []string{
+					`
+						fragment AllUsers on Query {
+							userConnection(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.SuppressPaginationDeduplication = true
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment AllUsers on Query {
+							userConnection(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									__typename
+									cursor
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{Name: "first", Type: "Int", DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"}},
+						tests.ExpectedOperationVariable{Name: "after", Type: "String"},
+						tests.ExpectedOperationVariable{Name: "before", Type: "String"},
+						tests.ExpectedOperationVariable{Name: "last", Type: "Int"},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int ) {
+								...AllUsers @with(first: $first, after: $after, before: $before, last: $last)
+							}
+						`,
+							schema.FragmentPaginationQueryName("AllUsers"),
+						)),
 				},
 			},
 		},

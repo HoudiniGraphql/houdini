@@ -54,3 +54,7 @@ const ListOperationSuffixRemove = "_remove"
 const ListOperationSuffixToggle = "_toggle"
 
 const ListOperationSuffixDelete = "_delete"
+
+func FragmentPaginationQueryName(fragmentName string) string {
+	return fmt.Sprintf("%s_Pagination_Query", fragmentName)
+}

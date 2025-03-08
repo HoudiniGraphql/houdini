@@ -143,10 +143,12 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 			JOIN selection_refs sr ON sr.document = d.id
 			JOIN selection_directives sd ON sd.selection_id = sr.child_id
 			LEFT JOIN possible_types pt ON pt.type = 'Node' AND d.type_condition = pt.member
+			LEFT JOIN types on types.name = d.type_condition
 			LEFT JOIN type_configs tc ON tc.resolve_query IS NOT NULL AND d.type_condition = tc.name
 		WHERE d.kind = 'fragment'
 			AND sd.directive = $paginate_directive
 			AND pt.member IS NULL
+			AND (types.operation is false AND types.name IS NOT NULL)
 			AND tc.name IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`

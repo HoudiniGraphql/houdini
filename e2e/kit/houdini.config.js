@@ -3,7 +3,7 @@
 
 /** @type {import('houdini').ConfigFile} */
 const config = {
-  schemaPath: '../_api/*.graphql',
+  schemaPath: '../_api/schema.graphql',
   defaultPartial: true,
   acceptImperativeInstability: true,
   runtimeDir: '.houdini',

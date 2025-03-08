@@ -41,7 +41,7 @@ func RunTable(t *testing.T, table Table) {
 			// run the validation step to discover lists
 			err = plugin.Validate(context.Background())
 			if err != nil {
-				require.False(t, test.Pass)
+				require.False(t, test.Pass, err.Error())
 				return
 			}
 

@@ -34,7 +34,7 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 	// variables that are defined on the document as well as arguments that are passed to the field that's marked with the paginate/list directive
 	query, err := conn.Prepare(`
 		SELECT
-			raw_documents.filepath,
+			raw_documents.id,
 			selection_refs.document as document,
 			documents.kind as document_kind,
 			discovered_lists.list_field,
@@ -58,6 +58,17 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			discovered_lists."connection",
 			selections.type,
 			documents.name,
+			CASE
+				WHEN documents.type_condition IS NOT NULL
+					THEN COALESCE(type_configs.resolve_query, 'node')
+				ELSE null
+			END as resolve_query,
+			CASE
+				WHEN documents.type_condition IS NOT NULL
+					THEN COALESCE(type_configs.keys, config.default_keys)
+				ELSE null
+			END as resolve_keys,
+			documents.type_condition,
 			discovered_lists.paginate
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
@@ -67,6 +78,12 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			LEFT JOIN document_variables on document_variables."document" = selection_refs.document
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
 			LEFT JOIN argument_values on selection_arguments.value = argument_values.id
+			LEFT JOIN type_configs on documents.type_condition = type_configs."name"
+			JOIN config
+			CROSS JOIN json_each(COALESCE(type_configs.keys, config.default_keys)) AS je
+			LEFT JOIN type_fields tf
+				ON tf.parent = documents.type_condition
+				AND tf.name = je.value
 		WHERE (document_variables."name"  is null OR document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
 			AND (selection_arguments."name" is null OR selection_arguments."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
@@ -75,14 +92,15 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
+
 	defer query.Finalize()
 
-	type VariableInfo struct {
+	type variableInfo struct {
 		Variable string `json:"variable"`
 		ID       int    `json:"id"`
 	}
 
-	type ArgumentInfo struct {
+	type paginationArgumentInfo struct {
 		Argument string `json:"argument"`
 		ID       int    `json:"id"`
 		Value    int    `json:"value"`
@@ -90,12 +108,19 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		Raw      string `json:"raw"`
 	}
 
-	type FieldArgumentSpec struct {
+	type paginationFieldArgumentSpec struct {
 		Name string
 		Kind string
 	}
 
-	// once we have a row, we'll need to insert variables and arguments into the document
+	// once we have a row, we'll need to insert variables and arguments into the document (and maybe extra documents)
+	insertDocument, err := conn.Prepare(`
+		INSERT INTO documents (name, kind, raw_document) VALUES ($name, 'query', $raw_document)
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertDocument.Finalize()
 	insertDocumentVariable, err := conn.Prepare(`
 		INSERT INTO document_variables (document, "name", type, default_value, row, column) VALUES ($document, $name, $type, $default_value, 0, 0)
 	`)
@@ -110,6 +135,13 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		return commit(plugins.WrapError(err))
 	}
 	defer insertSelectionArgument.Finalize()
+	insertSelection, err := conn.Prepare(`
+		INSERT INTO selections (field_name, kind, alias, type) VALUES ($field_name, 'field', $field_name, $type)
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertSelection.Finalize()
 	insertArgumentValue, err := conn.Prepare(`
 		INSERT INTO argument_values (kind, raw, expected_type, document, row, column) VALUES ($kind, $raw, $expected_type, $document, 0, 0)
 	`)
@@ -145,8 +177,9 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 	errs := &plugins.ErrorList{}
 	err = db.StepStatement(ctx, query, func() {
 		// pull out the row values
-		document := query.ColumnInt(1)
-		_ = query.ColumnText(2)
+		rawDocument := query.ColumnInt(0)
+		document := query.ColumnInt64(1)
+		docType := query.ColumnText(2)
 		listField := query.ColumnText(3)
 		variablesStr := query.ColumnText(4)
 		argumentsStr := query.ColumnText(5)
@@ -154,6 +187,10 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		supportsBackward := query.ColumnBool(7)
 		connection := query.ColumnBool(8)
 		fieldName := query.ColumnText(9)
+		documentName := query.ColumnText(10)
+		resolveQuery := query.ColumnText(11)
+		resolveKeys := query.ColumnText(12)
+		typeCondition := query.ColumnText(13)
 		paginate := false
 		if !query.IsNull("paginate") {
 			paginate = true
@@ -164,14 +201,14 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		}
 
 		// unmarshal the variables
-		var variables []VariableInfo
+		var variables []variableInfo
 		if err := json.Unmarshal([]byte(variablesStr), &variables); err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal variables: %v", err)))
 			return
 		}
 
 		// unmarshal the arguments
-		var arguments []ArgumentInfo
+		var arguments []paginationArgumentInfo
 		if argumentsStr != "" {
 			if err := json.Unmarshal([]byte(argumentsStr), &arguments); err != nil {
 				errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal arguments: %v", err)))
@@ -179,16 +216,25 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			}
 		}
 
+		// unmarshal the keys to use when resolving this field
+		var keys []string
+		if resolveKeys != "" {
+			if err := json.Unmarshal([]byte(resolveKeys), &keys); err != nil {
+				errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal keys: %v", err)))
+				return
+			}
+		}
+
 		// now we need to make sure that the tagged field has all of the necessary argument definitions
-		argumentsToAdd := []FieldArgumentSpec{}
+		argumentsToAdd := []paginationFieldArgumentSpec{}
 		if connection {
 			if supportsForward {
 				argumentsToAdd = append(argumentsToAdd,
-					FieldArgumentSpec{
+					paginationFieldArgumentSpec{
 						Name: "first",
 						Kind: "Int",
 					},
-					FieldArgumentSpec{
+					paginationFieldArgumentSpec{
 						Name: "after",
 						Kind: "String",
 					},
@@ -196,11 +242,11 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			}
 			if supportsBackward {
 				argumentsToAdd = append(argumentsToAdd,
-					FieldArgumentSpec{
+					paginationFieldArgumentSpec{
 						Name: "last",
 						Kind: "Int",
 					},
-					FieldArgumentSpec{
+					paginationFieldArgumentSpec{
 						Name: "before",
 						Kind: "String",
 					},
@@ -209,11 +255,11 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 		} else {
 			if supportsForward {
 				argumentsToAdd = append(argumentsToAdd,
-					FieldArgumentSpec{
+					paginationFieldArgumentSpec{
 						Name: "limit",
 						Kind: "Int",
 					},
-					FieldArgumentSpec{
+					paginationFieldArgumentSpec{
 						Name: "offset",
 						Kind: "Int",
 					},
@@ -300,11 +346,68 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 			}
 		}
 
+		// we need to apply the dedupe directive to the document that holds the query
+		// if we are looking at a paginated fragment then it needs to point to the generated document
+		dedupeTarget := document
+		if docType == "fragment" {
+			// insert a document with a name derived from the fragment name
+			err = db.ExecStatement(insertDocument, map[string]interface{}{
+				"name":         documentName,
+				"raw_document": rawDocument,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			dedupeTarget = conn.LastInsertRowID()
+
+			// add the variables to the document
+			for _, arg := range argumentsToAdd {
+				// if the variable is already defined then we have a value ID to use as the default value
+				var defaultValue interface{}
+				for _, appliedArg := range arguments {
+					if appliedArg.Argument == arg.Name {
+						if appliedArg.Kind != "Variable" {
+							defaultValue = appliedArg.Value
+						}
+						break
+					}
+				}
+
+				// add the variable definition
+				err = db.ExecStatement(insertDocumentVariable, map[string]interface{}{
+					"document":      dedupeTarget,
+					"name":          arg.Name,
+					"type":          arg.Kind,
+					"default_value": defaultValue,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+			}
+
+			// TODO: add the key arguments to the document (we need their types)
+
+			// now we need a selection with the resolve query
+			err = db.ExecStatement(insertSelection, map[string]interface{}{
+				"field_name": resolveQuery,
+				"type":       fmt.Sprintf("%s.%s", typeCondition, resolveQuery),
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			// resolveSelection := conn.LastInsertRowID()
+
+			// TODO: add the selection to the document along with a child selection that spreads the fragment
+		}
+
 		// if we aren't supposed to suppress the dedupe directive, we need to add it to the document
 		if !projectConfig.SuppressPaginationDeduplication {
 			// add the dedupe directive to the document
 			err = db.ExecStatement(insertDocumentDirectives, map[string]interface{}{
-				"document":  document,
+				"document":  dedupeTarget,
 				"directive": schema.DedupeDirective,
 			})
 			if err != nil {
@@ -319,7 +422,7 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 				"kind":          "Enum",
 				"raw":           "Variables",
 				"expected_type": "DedupeMatchMode",
-				"document":      document,
+				"document":      dedupeTarget,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))

@@ -69,8 +69,8 @@ func ExtractTaskDocuments[PluginConfig any](ctx context.Context, db plugins.Data
 
 func extractDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], fs afero.Fs, walk func(chan string) error) error {
 	// channels for file paths and discovered documents
-	filePathsCh := make(chan string, 100)
-	resultsCh := make(chan DiscoveredDocument, 100)
+	filePathsCh := make(chan string, 100000)
+	resultsCh := make(chan DiscoveredDocument, 100000)
 
 	// create a cancellable context and an errgroup
 	ctx, cancel := context.WithCancel(context.Background())
