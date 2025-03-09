@@ -94,6 +94,12 @@
 				<a href="https://dynamicprocess.io/" target="_blank" rel="noreferrer">
 					<img src="/images/users/dynamic-process.svg" alt="Logo Dynamic-Process" height="60px" />
 				</a>
+				<a href="https://cloudclass.be/" target="_blank" rel="noreferrer">
+					<img src="/images/users/cloudclass.png" alt="Logo CloudClass" height="60px" />
+				</a>
+				<a href="https://ncaecybergames.org/" target="_blank" rel="noreferrer">
+					<img src="/images/users/NCAE.png" alt="Logo NCAE" height="60px" />
+				</a>
 			</div>
 		</div>
 		<div class="selling-points">
@@ -439,20 +445,22 @@
 	}
 
 	.logos {
-		display: flex;
+		display: grid;
+        grid-template-columns: repeat(3, auto);
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
 		gap: 64px;
 	}
 
-	.logos-container {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
+    .logos a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
 	.logos-container h2 {
+		text-align: center;
 		color: var(--lightest-grey);
 		align-self: center;
 		font-size: 18px;
