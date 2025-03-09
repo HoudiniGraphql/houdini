@@ -68,6 +68,10 @@ func ValidateExpectedDocuments[PluginConfig any](t *testing.T, db plugins.Databa
 						t.Errorf("for document %s, operation variable %s mismatch: expected %+v, got %+v", expDoc.Name, expectedVar.Name, expectedVar, actualVar)
 					}
 
+					if expectedVar.TypeModifiers != actualVar.TypeModifiers {
+						t.Errorf("for document %s, operation variable %s expected type modifiers %s, got %s", expDoc.Name, expectedVar.Name, expectedVar.TypeModifiers, actualVar.TypeModifiers)
+					}
+
 					if expectedVar.DefaultValue == nil && actualVar.DefaultValue != nil {
 						t.Errorf("for document %s, operation variable %s expected nil default value, got %+v", expDoc.Name, expectedVar.Name, actualVar.DefaultValue)
 					}
@@ -357,7 +361,7 @@ func findDocumentVariables[PluginConfig any](t *testing.T, db plugins.DatabasePo
 			Document:      stmt.ColumnInt(1),
 			Name:          stmt.ColumnText(2),
 			Type:          stmt.ColumnText(3),
-			TypeModifiers: stmt.ColumnText(4),
+			TypeModifiers: stmt.ColumnText(5),
 		}
 
 		if defaultValue != nil {
@@ -671,22 +675,34 @@ func verifySelectionDetails(t *testing.T, expected ExpectedSelection, actual Exp
 	if len(actualDirs) != len(expected.Directives) {
 		t.Errorf("directive mismatch. \n expected\n\t %+v \n got \n\t %+v", expected.Directives, actualDirs)
 	} else {
-		for i, expDir := range expected.Directives {
-			actDir := actualDirs[i]
-			if actDir.Name != expDir.Name {
-				t.Errorf("directive mismatch. \n expected\n\t %+v \n got \n\t %+v", expDir, actDir)
-			}
-			if len(actDir.Arguments) != len(expDir.Arguments) {
-				t.Errorf("directive argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expDir, actDir)
-			} else {
-				for j, expDArg := range expDir.Arguments {
-					actDArg := actDir.Arguments[j]
-					if actDArg.Name != expDArg.Name {
-						t.Errorf("directive argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expDir, actDir)
+	DIRECTIVE_SEARCH:
+		for _, expDir := range expected.Directives {
+			foundName := false
+			for _, actDir := range actualDirs {
+				if actDir.Name == expDir.Name {
+					foundName = true
+
+				ARG_SEARCH:
+					for _, expDArg := range expDir.Arguments {
+						foundArg := false
+						for _, actDArg := range actDir.Arguments {
+							if actDArg.Name == expDArg.Name {
+								foundArg = true
+								validateArgumentValue(t, expDArg.Value, actDArg.Value)
+								continue ARG_SEARCH
+							}
+						}
+
+						if !foundArg {
+							t.Errorf("directive argument mismatch. \n expected\n\t %+v \n got \n\t %+v", expDir.Arguments, actDir.Arguments)
+						}
 					}
 
-					validateArgumentValue(t, expDArg.Value, actDArg.Value)
+					continue DIRECTIVE_SEARCH
 				}
+			}
+			if !foundName {
+				t.Errorf("directive mismatch. \n expected\n\t %+v \n got \n\t %+v", expected.Directives, actualDirs)
 			}
 		}
 	}

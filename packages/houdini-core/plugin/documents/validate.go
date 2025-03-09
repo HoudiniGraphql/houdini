@@ -1574,7 +1574,7 @@ func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.Da
 		GROUP BY s.id
 		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"enable_directive":  schema.EnableMaskDirective,
 		"disable_directive": schema.DisableMaskDirective,
 	}
@@ -1630,7 +1630,7 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 	  )
 		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"loading_directive": schema.LoadingDirective,
 	}
 
@@ -1691,7 +1691,7 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 	GROUP BY s.id, s.field_name, tf.type_modifiers, t.kind, rd.filepath, sr.row, sr.column, d.name
 	`
 
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"required_directive": schema.RequiredDirective,
 	}
 
@@ -1761,7 +1761,7 @@ func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plu
 	  AND t.kind != 'SCALAR'
 	  AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"optimistic_key_directive": schema.OptimisticKeyDirective,
 	}
 

@@ -380,7 +380,7 @@ func LoadPendingQuery[PluginConfig any](
 		// for operations, we set type_condition to null.
 		if err := db.ExecStatement(
 			statements.InsertDocument,
-			map[string]interface{}{
+			map[string]any{
 				"name":         operation.Name,
 				"raw_document": query.ID,
 				"kind":         string(operation.Operation),
@@ -426,7 +426,7 @@ func LoadPendingQuery[PluginConfig any](
 				defaultValue = valueID
 			}
 
-			if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{
+			if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]any{
 				"document":       operationID,
 				"name":           variable.Variable,
 				"type":           variableType,
@@ -452,7 +452,7 @@ func LoadPendingQuery[PluginConfig any](
 
 			// insert any directives on the variable.
 			for _, directive := range variable.Directives {
-				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, map[string]interface{}{
+				if err := db.ExecStatement(statements.InsertDocumentVariableDirective, map[string]any{
 					"parent":    variableID,
 					"directive": directive.Name,
 					"row":       int64(directive.Position.Line),
@@ -493,7 +493,7 @@ func LoadPendingQuery[PluginConfig any](
 						}
 					}
 
-					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, map[string]interface{}{
+					if err := db.ExecStatement(statements.InsertDocumentVariableDirectiveArgument, map[string]any{
 						"parent": varDirID,
 						"name":   arg.Name,
 						"value":  argValueID,
@@ -545,7 +545,7 @@ func LoadPendingQuery[PluginConfig any](
 
 		// add document-level directives for the operation.
 		for _, directive := range operation.Directives {
-			if err := db.ExecStatement(statements.InsertDocumentDirective, map[string]interface{}{
+			if err := db.ExecStatement(statements.InsertDocumentDirective, map[string]any{
 				"document":  operationID,
 				"directive": directive.Name,
 				"row":       directive.Position.Line,
@@ -586,7 +586,7 @@ func LoadPendingQuery[PluginConfig any](
 					}
 				}
 
-				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]any{
 					"parent": docDirID,
 					"name":   arg.Name,
 					"value":  argValueID,
@@ -612,7 +612,7 @@ func LoadPendingQuery[PluginConfig any](
 		// insert the fragment into "documents".
 		if err := db.ExecStatement(
 			statements.InsertDocument,
-			map[string]interface{}{
+			map[string]any{
 				"name":           fragment.Name,
 				"raw_document":   query.ID,
 				"kind":           "fragment",
@@ -657,7 +657,7 @@ func LoadPendingQuery[PluginConfig any](
 
 		// add document-level directives for the operation.
 		for _, directive := range fragment.Directives {
-			if err := db.ExecStatement(statements.InsertDocumentDirective, map[string]interface{}{
+			if err := db.ExecStatement(statements.InsertDocumentDirective, map[string]any{
 				"document":  fragmentID,
 				"directive": directive.Name,
 				"row":       directive.Position.Line,
@@ -698,7 +698,7 @@ func LoadPendingQuery[PluginConfig any](
 					}
 				}
 
-				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]interface{}{
+				if err := db.ExecStatement(statements.InsertDocumentDirectiveArgument, map[string]any{
 					"parent": docDirID,
 					"name":   arg.Name,
 					"value":  argValueID,
@@ -821,7 +821,7 @@ func LoadPendingQuery[PluginConfig any](
 					if argDefault != "" {
 						statements.InsertDocumentVariable.SetText("$default_value", argDefault)
 					}
-					if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]interface{}{
+					if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]any{
 						"document":       fragmentID,
 						"name":           argName,
 						"type":           variableType,
@@ -880,7 +880,7 @@ func processSelection[PluginConfig any](
 		if s.Alias != "" {
 			statements.InsertSelection.BindText(2, s.Alias)
 		}
-		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
+		if err := db.ExecStatement(statements.InsertSelection, map[string]any{
 			"field_name": s.Name,
 			"kind":       "field",
 			"type":       fieldID,
@@ -929,7 +929,7 @@ func processSelection[PluginConfig any](
 			// Insert the argument record that links the argument name to the processed value.
 			if err := db.ExecStatement(
 				statements.InsertSelectionArgument,
-				map[string]interface{}{
+				map[string]any{
 					"selection_id":   selectionID,
 					"name":           arg.Name,
 					"value":          argValueID,
@@ -982,7 +982,7 @@ func processSelection[PluginConfig any](
 		if fragType == "" {
 			fragType = "inline_fragment"
 		}
-		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
+		if err := db.ExecStatement(statements.InsertSelection, map[string]any{
 			"field_name": fragType,
 			"alias":      nil,
 			"kind":       "inline_fragment",
@@ -1020,7 +1020,7 @@ func processSelection[PluginConfig any](
 		}
 
 	case *ast.FragmentSpread:
-		if err := db.ExecStatement(statements.InsertSelection, map[string]interface{}{
+		if err := db.ExecStatement(statements.InsertSelection, map[string]any{
 			"field_name": s.Name,
 			"alias":      nil,
 			"kind":       "fragment",
@@ -1068,7 +1068,7 @@ func processSelection[PluginConfig any](
 		line += position.Line + query.RowOffset
 		column = position.Column + query.ColumnOffset
 	}
-	if err := db.ExecStatement(statements.InsertSelectionRef, map[string]interface{}{
+	if err := db.ExecStatement(statements.InsertSelectionRef, map[string]any{
 		"child_id":   selectionID,
 		"path_index": fieldIndex,
 		"document":   operationID,
@@ -1106,7 +1106,7 @@ func processDirectives[PluginConfig any](
 ) *plugins.Error {
 	for _, directive := range directives {
 		// insert the directive row
-		if err := db.ExecStatement(statements.InsertSelectionDirective, map[string]interface{}{
+		if err := db.ExecStatement(statements.InsertSelectionDirective, map[string]any{
 			"selection_id": selectionID,
 			"directive":    directive.Name,
 			"row":          directive.Position.Line,
@@ -1172,7 +1172,7 @@ func processDirectives[PluginConfig any](
 			// Insert the directive argument record.
 			if err := db.ExecStatement(
 				statements.InsertSelectionDirectiveArgument,
-				map[string]interface{}{
+				map[string]any{
 					"parent": dirID,
 					"name":   dArg.Name,
 					"value":  argValueID,
@@ -1277,7 +1277,7 @@ func processArgumentValue[PluginConfig any](
 	}
 
 	// Insert the value itself into the argument_values table.
-	err := db.ExecStatement(statements.InsertArgumentValue, map[string]interface{}{
+	err := db.ExecStatement(statements.InsertArgumentValue, map[string]any{
 		"kind":           valueKind,
 		"raw":            value.Raw,
 		"row":            line,
@@ -1372,7 +1372,7 @@ func processArgumentValue[PluginConfig any](
 			// Insert the relationship into argument_value_children.
 			execErr := db.ExecStatement(
 				statements.InsertArgumentValueChild,
-				map[string]interface{}{
+				map[string]any{
 					"name":   nameParam,
 					"parent": parentID,
 					"value":  childID,

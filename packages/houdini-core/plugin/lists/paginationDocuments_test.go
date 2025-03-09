@@ -17,11 +17,13 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				userConnection(first: Int, after: String, last: Int, before: String): UserConnection!
 				forwardConnection(first: Int, after: String): UserConnection!
 				backwardConnection(last: Int, before: String): UserConnection!
+				node(id: ID!): Node
 			}
 
-			type User {
+			type User implements Node {
 				id: ID!
 				firstName: String!
+				friends(first:Int, after: String, last: Int, before: String): UserConnection!
 			}
 
 			type UserConnection {
@@ -39,6 +41,10 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				hasPreviousPage: Boolean!
 				startCursor: String
 				endCursor: String
+			}
+
+			interface Node {
+				id: ID!
 			}
 		`,
 		Tests: []tests.Test{
@@ -389,9 +395,6 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						}
 					`,
 				},
-				ProjectConfig: func(config *plugins.ProjectConfig) {
-					config.SuppressPaginationDeduplication = true
-				},
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						fragment AllUsers on Query {
@@ -422,11 +425,68 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					),
 					tests.ExpectedDoc(
 						fmt.Sprintf(`
-							query %s($first: Int = 10, $after: String, $before: String, $last: Int ) {
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int ) @dedupe(match: Variables) {
 								...AllUsers @with(first: $first, after: $after, before: $before, last: $last)
 							}
 						`,
 							schema.FragmentPaginationQueryName("AllUsers"),
+						)),
+				},
+			},
+
+			{
+				Name: "fragment on node",
+				Pass: true,
+				Input: []string{
+					`
+						fragment Friends on User {
+							friends(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment Friends on User {
+							friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									__typename
+									cursor
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{Name: "first", Type: "Int", DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"}},
+						tests.ExpectedOperationVariable{Name: "after", Type: "String"},
+						tests.ExpectedOperationVariable{Name: "before", Type: "String"},
+						tests.ExpectedOperationVariable{Name: "last", Type: "Int"},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...Friends @with(first: $first, after: $after, before: $before, last: $last)
+								}
+							}
+						`,
+							schema.FragmentPaginationQueryName("Friends"),
 						)),
 				},
 			},

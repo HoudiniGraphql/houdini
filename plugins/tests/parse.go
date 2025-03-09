@@ -124,11 +124,17 @@ func transformSelection(selection ast.Selection, pathIndex *int) ExpectedSelecti
 		return es
 	case *ast.FragmentSpread:
 		// For a fragment spread, use the fragment's name.
-		return ExpectedSelection{
+		es := ExpectedSelection{
 			FieldName: sel.Name,
 			Kind:      "fragment",
 			PathIndex: *pathIndex,
 		}
+
+		for _, d := range sel.Directives {
+			es.Directives = append(es.Directives, transformDirective(d))
+		}
+
+		return es
 	case *ast.InlineFragment:
 		es := ExpectedSelection{
 			Kind:      "inline_fragment",

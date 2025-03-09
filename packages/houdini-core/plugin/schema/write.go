@@ -41,7 +41,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		}
 
 		// insert the type row
-		err := db.ExecStatement(statements.InsertType, map[string]interface{}{
+		err := db.ExecStatement(statements.InsertType, map[string]any{
 			"name":      typ.Name,
 			"kind":      kind,
 			"operation": isOperation,
@@ -67,7 +67,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		case ast.Enum:
 			// insert enum values
 			for _, value := range typ.EnumValues {
-				err = db.ExecStatement(statements.InsertEnumValue, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
 					"parent": typ.Name,
 					"value":  value.Name,
 				})
@@ -93,7 +93,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				fieldTypeName, fieldTypeModifiers := ParseFieldType(field.Type.String())
 
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
-				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertTypeField, map[string]any{
 					"id":             fieldID,
 					"parent":         typ.Name,
 					"name":           field.Name,
@@ -118,7 +118,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 				for _, arg := range field.Arguments {
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
-					err = db.ExecStatement(statements.InsertFieldArgument, map[string]interface{}{
+					err = db.ExecStatement(statements.InsertFieldArgument, map[string]any{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
@@ -144,7 +144,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 			if !typ.BuiltIn {
 				// make sure that we can always ask for the __typename of an object
-				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertTypeField, map[string]any{
 					"id":             fmt.Sprintf("%s.__typename", typ.Name),
 					"parent":         typ.Name,
 					"name":           "__typename",
@@ -160,7 +160,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				fieldTypeName, fieldTypeModifiers := ParseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
 				err = db.ExecStatement(statements.InsertTypeField,
-					map[string]interface{}{
+					map[string]any{
 						"id":             fieldID,
 						"parent":         typ.Name,
 						"name":           field.Name,
@@ -190,7 +190,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 				fieldTypeName, fieldTypeModifiers := ParseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
 				err = db.ExecStatement(statements.InsertTypeField,
-					map[string]interface{}{
+					map[string]any{
 						"id":             fieldID,
 						"parent":         typ.Name,
 						"name":           field.Name,
@@ -215,7 +215,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 				for _, arg := range field.Arguments {
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
-					err = db.ExecStatement(statements.InsertFieldArgument, map[string]interface{}{
+					err = db.ExecStatement(statements.InsertFieldArgument, map[string]any{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
@@ -241,7 +241,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 			// add the interface implementors
 			for _, impl := range schema.GetPossibleTypes(typ) {
-				err = db.ExecStatement(statements.InsertPossibleType, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertPossibleType, map[string]any{
 					"type":   typ.Name,
 					"member": impl.Name,
 				})
@@ -263,7 +263,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 			if !typ.BuiltIn {
 				// make sure that we can always ask for the __typename of an object
-				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertTypeField, map[string]any{
 					"id":             fmt.Sprintf("%s.__typename", typ.Name),
 					"parent":         typ.Name,
 					"name":           "__typename",
@@ -276,7 +276,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		case ast.Union:
 			// implement the union members in a deferred pass
 			for _, member := range schema.GetPossibleTypes(typ) {
-				err = db.ExecStatement(statements.InsertPossibleType, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertPossibleType, map[string]any{
 					"type":   typ.Name,
 					"member": member.Name,
 				})
@@ -298,7 +298,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 			if !typ.BuiltIn {
 				// make sure that we can always ask for the __typename of an object
-				err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+				err = db.ExecStatement(statements.InsertTypeField, map[string]any{
 					"id":             fmt.Sprintf("%s.__typename", typ.Name),
 					"parent":         typ.Name,
 					"name":           "__typename",
@@ -313,7 +313,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 
 	// process directives
 	for _, directive := range schema.Directives {
-		err := db.ExecStatement(statements.InsertDirective, map[string]interface{}{
+		err := db.ExecStatement(statements.InsertDirective, map[string]any{
 			"name":       directive.Name,
 			"repeatable": directive.IsRepeatable,
 		})
@@ -332,7 +332,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			continue
 		}
 		for _, location := range directive.Locations {
-			err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+			err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 				"directive": directive.Name,
 				"location":  string(location),
 			})
@@ -353,7 +353,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 		}
 		for _, arg := range directive.Arguments {
 			argType, argTypeMOdifiers := ParseFieldType(arg.Type.String())
-			err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+			err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 				"directive":      directive.Name,
 				"name":           arg.Name,
 				"type":           argType,
@@ -385,7 +385,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	var err error
 
 	// Add the ComponentFields scalar
-	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalType, map[string]any{
 		"name": "ComponentFields",
 		"kind": "SCALAR",
 	})
@@ -394,7 +394,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// @list(name: String!) on FIELD_DEFINITION
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        ListDirective,
 		"description": "@list is used to mark a field for the runtime as a place to add or remove entities in mutations",
 		"visible":     false,
@@ -402,14 +402,14 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": ListDirective,
 		"location":  "FIELD_DEFINITION",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive":      ListDirective,
 		"name":           "name",
 		"type":           "String",
@@ -418,7 +418,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": ListDirective,
 		"name":      "connection",
 		"type":      "Boolean",
@@ -428,7 +428,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// PaginateMode scalar
-	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalType, map[string]any{
 		"name": "PaginateMode",
 		"kind": "ENUM",
 	})
@@ -436,7 +436,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 		return err
 	}
 	for _, value := range []string{"Infinite", "SinglePage"} {
-		err = db.ExecStatement(statements.InsertEnumValue, map[string]interface{}{
+		err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
 			"parent": "PaginateMode",
 			"value":  value,
 		})
@@ -446,7 +446,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// @paginate(name: String!, mode: PaginateMode) on FIELD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        PaginationDirective,
 		"description": "@paginate is used to to mark a field for pagination.",
 		"visible":     true,
@@ -454,14 +454,14 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": PaginationDirective,
 		"location":  "FIELD",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive":      PaginationDirective,
 		"name":           "name",
 		"type":           "String",
@@ -470,7 +470,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": PaginationDirective,
 		"name":      "mode",
 		"type":      "PaginateMode",
@@ -480,7 +480,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// @prepend on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        PrependDirective,
 		"description": "@prepend is used to tell the runtime to add the result to the end of the list",
 		"visible":     true,
@@ -488,7 +488,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": PrependDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
@@ -497,7 +497,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// @append on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        AppendDirective,
 		"description": "@append is used to tell the runtime to add the result to the start of the list",
 		"visible":     true,
@@ -505,7 +505,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": AppendDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
@@ -514,7 +514,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// DedupeMatchMode scalar
-	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalType, map[string]any{
 		"name": "DedupeMatchMode",
 		"kind": "ENUM",
 	})
@@ -522,7 +522,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 		return err
 	}
 	for _, value := range []string{"Variables", "Operation", "None"} {
-		err = db.ExecStatement(statements.InsertEnumValue, map[string]interface{}{
+		err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
 			"parent": "DedupeMatchMode",
 			"value":  value,
 		})
@@ -532,7 +532,7 @@ func WriteInternalSchema[PluginConfig any](db plugins.DatabasePool[PluginConfig]
 	}
 
 	// @dedupe(cancelFirst: Boolean, match: DedupeMatchMode) on QUERY and MUTATION
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name": DedupeDirective,
 		"description": `@dedupe is used to prevent an operation from running more than once at the same time. true
 If the cancelFirst arg is set to true, the response already in flight will be canceled instead of the second one.
@@ -544,21 +544,21 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": DedupeDirective,
 		"location":  "QUERY",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": DedupeDirective,
 		"location":  "MUTATION",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": DedupeDirective,
 		"name":      "cancelFirst",
 		"type":      "Boolean",
@@ -566,7 +566,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": DedupeDirective,
 		"name":      "match",
 		"type":      "DedupeMatchMode",
@@ -576,7 +576,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @optimisticKey on FIELD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        OptimisticKeyDirective,
 		"description": "@optimisticKey is used to tell the runtime to use the value of the field as the key for optimistic updates.",
 		"visible":     true,
@@ -584,7 +584,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": OptimisticKeyDirective,
 		"location":  "FIELD",
 	})
@@ -593,7 +593,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @allLists on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        AllListsDirective,
 		"description": "@allLists is used to tell the runtime to add the result to all lists in the cache.",
 		"visible":     true,
@@ -601,13 +601,13 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": AllListsDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
 
 	// @parentID(value: ID!) on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        ParentIDDirective,
 		"description": "@parentID is used to provide a parentID without specifying position or in situations where it doesn't make sense (eg when deleting a node.)",
 		"visible":     true,
@@ -615,14 +615,14 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": ParentIDDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive":      ParentIDDirective,
 		"name":           "value",
 		"type":           "ID",
@@ -633,7 +633,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @when on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        WhenDirective,
 		"description": "@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)",
 		"visible":     true,
@@ -641,13 +641,13 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": WhenDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
 
 	// @when_not on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        WhenNotDirective,
 		"description": "@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)",
 		"visible":     true,
@@ -655,13 +655,13 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": WhenNotDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
 
 	// @arguments on FRAGMENT_DEFINITION
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        ArgumentsDirective,
 		"description": "@arguments is used to define the arguments of a fragment.",
 		"visible":     true,
@@ -669,7 +669,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": ArgumentsDirective,
 		"location":  "FRAGMENT_DEFINITION",
 	})
@@ -678,7 +678,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @with on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        WithDirective,
 		"description": "@with  is used to provide arguments to fragments that have been marked with @arguments",
 		"visible":     true,
@@ -686,7 +686,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": WithDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
@@ -697,7 +697,7 @@ then the request will never be deduplicated.`,
 	// both with and arguments are structured in a way that's technically not valid in the schema
 	// ie @with(foo: {type: "String", default: "hello"})
 	// or @arguments(foo: {type: "Boolean!", default: true})
-	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalType, map[string]any{
 		"name": ArgumentSpecificationType,
 		"kind": "OBJECT",
 	})
@@ -705,7 +705,7 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
-	err = db.ExecStatement(statements.InsertTypeField, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertTypeField, map[string]any{
 		"id":             fmt.Sprintf("%s.type", ArgumentSpecificationType),
 		"parent":         ArgumentSpecificationType,
 		"name":           "type",
@@ -717,7 +717,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// CachePolicy enum
-	err = db.ExecStatement(statements.InsertInternalType, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalType, map[string]any{
 		"name": "CachePolicy",
 		"kind": "ENUM",
 	})
@@ -725,7 +725,7 @@ then the request will never be deduplicated.`,
 		return err
 	}
 	for _, value := range []string{"CacheAndNetwork", "CacheOnly", "CacheOrNetwork", "NetworkOnly", "NoCache"} {
-		err = db.ExecStatement(statements.InsertEnumValue, map[string]interface{}{
+		err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
 			"parent": "CachePolicy",
 			"value":  value,
 		})
@@ -735,7 +735,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @cache(policy: CachePolicy, partial: Boolean) on QUERY
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        CacheDirective,
 		"description": "@cache is is used to specify cache rules for a query",
 		"visible":     true,
@@ -743,14 +743,14 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": CacheDirective,
 		"location":  "QUERY",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": CacheDirective,
 		"name":      "policy",
 		"type":      "CachePolicy",
@@ -758,7 +758,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": CacheDirective,
 		"name":      "partial",
 		"type":      "Boolean",
@@ -768,7 +768,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @mask_enable on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        EnableMaskDirective,
 		"description": "@mask_enable is used to to enable masking on fragment (overwriting the global conf)",
 		"visible":     true,
@@ -776,7 +776,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": EnableMaskDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
@@ -785,7 +785,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @mask_disable on FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        DisableMaskDirective,
 		"description": "@mask_disable is used to to disable masking on fragment (overwriting the global conf)",
 		"visible":     true,
@@ -793,7 +793,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": DisableMaskDirective,
 		"location":  "FRAGMENT_SPREAD",
 	})
@@ -802,7 +802,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @loading(count: Int, cascade: Boolean) on QUERY | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        LoadingDirective,
 		"description": "@loading is used to shape the value of your documents while they are loading",
 		"visible":     true,
@@ -811,7 +811,7 @@ then the request will never be deduplicated.`,
 		return err
 	}
 	for _, loc := range []string{"FRAGMENT_SPREAD", "QUERY", "FIELD", "FRAGMENT_DEFINITION"} {
-		err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+		err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 			"directive": LoadingDirective,
 			"location":  loc,
 		})
@@ -819,7 +819,7 @@ then the request will never be deduplicated.`,
 			return err
 		}
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": LoadingDirective,
 		"name":      "count",
 		"type":      "Int",
@@ -827,7 +827,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": LoadingDirective,
 		"name":      "cascade",
 		"type":      "Boolean",
@@ -837,7 +837,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @required on FIELD
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        RequiredDirective,
 		"description": "@required makes a nullable field always non-null by making the parent null when the field is",
 		"visible":     true,
@@ -845,7 +845,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": RequiredDirective,
 		"location":  "FIELD",
 	})
@@ -854,7 +854,7 @@ then the request will never be deduplicated.`,
 	}
 
 	// @componentField(prop: String, field: String) on FRAGMENT_DEFINITION | INLINE_FRAGMENT | FIELD_DEFINITION
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        ComponentFieldDirective,
 		"description": "@componentField is used to mark a field as a component field",
 		"visible":     true,
@@ -863,7 +863,7 @@ then the request will never be deduplicated.`,
 		return err
 	}
 	for _, loc := range []string{"FRAGMENT_DEFINITION", "INLINE_FRAGMENT", "FIELD_DEFINITION"} {
-		err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+		err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 			"directive": ComponentFieldDirective,
 			"location":  loc,
 		})
@@ -871,7 +871,7 @@ then the request will never be deduplicated.`,
 			return err
 		}
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": ComponentFieldDirective,
 		"name":      "prop",
 		"type":      "String",
@@ -879,7 +879,7 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive": ComponentFieldDirective,
 		"name":      "field",
 		"type":      "String",
@@ -890,7 +890,7 @@ then the request will never be deduplicated.`,
 
 	// we need a directive to register runtime scalars but it shouldn't end up in the generated schema
 	// @runtimeScalar(name: String!) on QUERY
-	err = db.ExecStatement(statements.InsertInternalDirective, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        RuntimeScalarDirective,
 		"description": "@runtimeScalar is used to register a scalar with the runtime",
 		"visible":     false,
@@ -898,14 +898,14 @@ then the request will never be deduplicated.`,
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
 		"directive": RuntimeScalarDirective,
 		"location":  "QUERY",
 	})
 	if err != nil {
 		return err
 	}
-	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]interface{}{
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
 		"directive":      RuntimeScalarDirective,
 		"name":           "type",
 		"type":           "String",

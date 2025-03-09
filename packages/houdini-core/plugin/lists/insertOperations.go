@@ -99,7 +99,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 
 		// _insert and _toggle both get the full selection set
 		for _, suffixes := range []string{schema.ListOperationSuffixInsert, schema.ListOperationSuffixToggle} {
-			err := db.ExecStatement(insertDocument, map[string]interface{}{
+			err := db.ExecStatement(insertDocument, map[string]any{
 				"name":           fmt.Sprintf("%s%s", name, suffixes),
 				"kind":           "fragment",
 				"type_condition": listType,
@@ -111,7 +111,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 			}
 
 			// copy the selection from the selection parent to the new document
-			err = db.ExecStatement(copySelection, map[string]interface{}{
+			err = db.ExecStatement(copySelection, map[string]any{
 				"document":         conn.LastInsertRowID(),
 				"selection_parent": selectionParent,
 			})
@@ -171,7 +171,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 
 		if ok := insertedDirectives[typeName]; !ok {
 			// we need to insert a delete directive for each type that has a list
-			err = db.ExecStatement(insertInternalDirectiveStmt, map[string]interface{}{
+			err = db.ExecStatement(insertInternalDirectiveStmt, map[string]any{
 				"name":        fmt.Sprintf("%s%s", typeName, schema.ListOperationSuffixDelete),
 				"description": fmt.Sprintf("Delete the %s with the matching key", typeName),
 			})
@@ -185,7 +185,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		}
 
 		// we also need to insert a remove fragment for each type that has a list
-		db.ExecStatement(insertDocument, map[string]interface{}{
+		db.ExecStatement(insertDocument, map[string]any{
 			"name":           fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove),
 			"kind":           "fragment",
 			"type_condition": typeName,
@@ -201,7 +201,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		// now we need a selection for each key and a ref that links it up to the parent
 		for _, key := range append(keys, "__typename") {
 			// insert the selection row
-			err = db.ExecStatement(insertSelection, map[string]interface{}{
+			err = db.ExecStatement(insertSelection, map[string]any{
 				"field_name": key,
 				"alias":      key,
 				"kind":       "field",
@@ -213,7 +213,7 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 			}
 
 			// insert the selection ref
-			err = db.ExecStatement(insertSelectionRef, map[string]interface{}{
+			err = db.ExecStatement(insertSelectionRef, map[string]any{
 				"child_id":   conn.LastInsertRowID(),
 				"document":   fragmentID,
 				"row":        0,

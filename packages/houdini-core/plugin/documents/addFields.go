@@ -115,7 +115,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		docID := keysToInsert.ColumnInt64(3)
 
 		// insert the selection
-		err := db.ExecStatement(insertSelection, map[string]interface{}{
+		err := db.ExecStatement(insertSelection, map[string]any{
 			"field_name": field,
 			"alias":      field,
 			"kind":       "field",
@@ -127,7 +127,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		}
 
 		// and now we need to create the selection ref
-		err = db.ExecStatement(insertSelectionRef, map[string]interface{}{
+		err = db.ExecStatement(insertSelectionRef, map[string]any{
 			"parent_id":  selectionID,
 			"child_id":   conn.LastInsertRowID(),
 			"document":   docID,
@@ -180,7 +180,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		// if we haven't generate a page info selection, do it now
 		if pageInfoSelection == 0 {
 			// insert the selection for pageInfo
-			err := db.ExecStatement(insertSelection, map[string]interface{}{
+			err := db.ExecStatement(insertSelection, map[string]any{
 				"field_name": "pageInfo",
 				"alias":      "pageInfo",
 				"kind":       "field",
@@ -199,7 +199,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 					fieldType = "String"
 				}
 
-				err = db.ExecStatement(insertSelection, map[string]interface{}{
+				err = db.ExecStatement(insertSelection, map[string]any{
 					"field_name": field,
 					"alias":      field,
 					"kind":       "field",
@@ -218,7 +218,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 
 		// link up the page fields to the info selection within the context of the matching document
 		for _, field := range pageInfoFields {
-			err := db.ExecStatement(insertSelectionRef, map[string]interface{}{
+			err := db.ExecStatement(insertSelectionRef, map[string]any{
 				"parent_id":  pageInfoSelection,
 				"child_id":   field,
 				"document":   docID,
@@ -233,7 +233,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		}
 
 		// and add the pageInfo selection to the edges field
-		err := db.ExecStatement(insertSelectionRef, map[string]interface{}{
+		err := db.ExecStatement(insertSelectionRef, map[string]any{
 			"parent_id":  listField,
 			"child_id":   pageInfoSelection,
 			"document":   docID,
@@ -247,7 +247,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		}
 
 		// next we need to add a selection for the cursor on the edges field
-		err = db.ExecStatement(insertSelection, map[string]interface{}{
+		err = db.ExecStatement(insertSelection, map[string]any{
 			"field_name": "cursor",
 			"alias":      "cursor",
 			"kind":       "field",
@@ -259,7 +259,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		}
 
 		// and link it up to the edges field
-		err = db.ExecStatement(insertSelectionRef, map[string]interface{}{
+		err = db.ExecStatement(insertSelectionRef, map[string]any{
 			"parent_id":  edgesField,
 			"child_id":   conn.LastInsertRowID(),
 			"document":   docID,

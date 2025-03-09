@@ -35,7 +35,7 @@ func (p *HoudiniSvelte) Schema(ctx context.Context) error {
 
 	for name, description := range directives {
 		// insert the directive
-		err := p.DB.ExecStatement(insertDirective, map[string]interface{}{
+		err := p.DB.ExecStatement(insertDirective, map[string]any{
 			"name":        name,
 			"description": description,
 		})
@@ -44,7 +44,7 @@ func (p *HoudiniSvelte) Schema(ctx context.Context) error {
 		}
 
 		// insert the directive
-		err = p.DB.ExecStatement(insertDirectiveLocation, map[string]interface{}{
+		err = p.DB.ExecStatement(insertDirectiveLocation, map[string]any{
 			"directive": conn.LastInsertRowID(),
 		})
 		if err != nil {

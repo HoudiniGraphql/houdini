@@ -54,7 +54,7 @@ func ExtractTaskDocuments[PluginConfig any](ctx context.Context, db plugins.Data
 		query := `
 			SELECT filepath FROM raw_documents WHERE current_task = $task
 		`
-		bindings := map[string]interface{}{
+		bindings := map[string]any{
 			"task": taskID,
 		}
 
@@ -150,7 +150,7 @@ func extractDocuments[PluginConfig any](ctx context.Context, db plugins.Database
 
 		// consume discovered documents from resultsCh and write them to the database.
 		for doc := range resultsCh {
-			err := db.ExecStatement(insertRawStatement, map[string]interface{}{
+			err := db.ExecStatement(insertRawStatement, map[string]any{
 				"filepath": doc.FilePath,
 				"content":  doc.Content,
 				"row":      doc.OffsetRow,
@@ -164,7 +164,7 @@ func extractDocuments[PluginConfig any](ctx context.Context, db plugins.Database
 
 			// if the document has a component field prop, let's register it now as well.
 			if doc.Prop != "" {
-				err = db.ExecStatement(insertComponentField, map[string]interface{}{
+				err = db.ExecStatement(insertComponentField, map[string]any{
 					"document": documentID,
 					"prop":     doc.Prop,
 				})

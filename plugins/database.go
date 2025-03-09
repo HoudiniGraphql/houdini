@@ -48,7 +48,7 @@ func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 	return DatabasePool[PluginConfig]{Pool: pool}, nil
 }
 
-func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args map[string]interface{}) error {
+func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args map[string]any) error {
 	err := db.BindStatement(statement, args)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (db DatabasePool[PluginConfig]) ExecStatement(statement *sqlite.Stmt, args 
 	return nil
 }
 
-func (db DatabasePool[PluginConfig]) BindStatement(stmt *sqlite.Stmt, args map[string]interface{}) error {
+func (db DatabasePool[PluginConfig]) BindStatement(stmt *sqlite.Stmt, args map[string]any) error {
 	for key, arg := range args {
 		switch val := arg.(type) {
 		case string:
@@ -103,7 +103,7 @@ func (db DatabasePool[PluginConfig]) Take(ctx context.Context) (*sqlite.Conn, er
 
 // StepQuery wraps the common steps for executing a query.
 // It obtains the connection, prepares the query, iterates over rows, and calls the rowHandler callback for each row.
-func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, bindings map[string]interface{}, rowHandler func(q *sqlite.Stmt)) error {
+func (db DatabasePool[PluginConfig]) StepQuery(ctx context.Context, queryStr string, bindings map[string]any, rowHandler func(q *sqlite.Stmt)) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return &Error{

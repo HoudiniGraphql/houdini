@@ -122,7 +122,7 @@ func RunTable(t *testing.T, table Table) {
 			}
 			defer insertRaw.Finalize()
 			for _, doc := range test.Input {
-				if err := db.ExecStatement(insertRaw, map[string]interface{}{"content": doc}); err != nil {
+				if err := db.ExecStatement(insertRaw, map[string]any{"content": doc}); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}
@@ -132,7 +132,7 @@ func RunTable(t *testing.T, table Table) {
 			require.Nil(t, err)
 			defer insertConfig.Finalize()
 			defaultKeys, _ := json.Marshal(projectConfig.DefaultKeys)
-			err = db.ExecStatement(insertConfig, map[string]interface{}{"keys": string(defaultKeys)})
+			err = db.ExecStatement(insertConfig, map[string]any{"keys": string(defaultKeys)})
 			require.Nil(t, err)
 
 			insertCustomKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ($name, $keys)`)
@@ -140,7 +140,7 @@ func RunTable(t *testing.T, table Table) {
 			defer insertCustomKeys.Finalize()
 			for typ, config := range projectConfig.TypeConfig {
 				keys, _ := json.Marshal(config.Keys)
-				err = db.ExecStatement(insertCustomKeys, map[string]interface{}{"name": typ, "keys": string(keys)})
+				err = db.ExecStatement(insertCustomKeys, map[string]any{"name": typ, "keys": string(keys)})
 				require.Nil(t, err)
 			}
 
@@ -150,7 +150,7 @@ func RunTable(t *testing.T, table Table) {
 			for typ, config := range projectConfig.Scalars {
 				input_types, _ := json.Marshal(config.InputTypes)
 				config.InputTypes = append(config.InputTypes, typ)
-				err = db.ExecStatement(insertScalarConfig, map[string]interface{}{
+				err = db.ExecStatement(insertScalarConfig, map[string]any{
 					"name":        typ,
 					"input_types": string(input_types),
 					"type":        config.Type,

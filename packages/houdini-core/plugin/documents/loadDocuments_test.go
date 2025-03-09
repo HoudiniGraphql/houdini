@@ -1492,7 +1492,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRaw.Finalize()
-			if err := db.ExecStatement(insertRaw, map[string]interface{}{"content": tc.rawQuery}); err != nil {
+			if err := db.ExecStatement(insertRaw, map[string]any{"content": tc.rawQuery}); err != nil {
 				t.Fatalf("failed to insert raw document: %v", err)
 			}
 

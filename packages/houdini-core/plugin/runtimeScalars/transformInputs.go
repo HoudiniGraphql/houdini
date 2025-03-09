@@ -103,7 +103,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 		column := search.ColumnInt(3)
 
 		// we need to update the type of the variable
-		err = db.ExecStatement(updateType, map[string]interface{}{
+		err = db.ExecStatement(updateType, map[string]any{
 			"type":     projectConfig.RuntimeScalars[variableType],
 			"document": variablesID,
 		})
@@ -114,7 +114,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 		}
 
 		// we also need to add a directive to the variable
-		err = db.ExecStatement(insertDocumentVariableDirective, map[string]interface{}{
+		err = db.ExecStatement(insertDocumentVariableDirective, map[string]any{
 			"parent":    variablesID,
 			"directive": schema.RuntimeScalarDirective,
 			"row":       row,
@@ -128,7 +128,7 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 		directiveID := conn.LastInsertRowID()
 
 		// and the arguments to the directive
-		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, map[string]interface{}{
+		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, map[string]any{
 			"parent": directiveID,
 			"name":   "type",
 			"value":  variableType,

@@ -28,7 +28,7 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 	HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"prepend": schema.PrependDirective,
 		"append":  schema.AppendDirective,
 	}
@@ -68,7 +68,7 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 		GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"parentID": schema.ParentIDDirective,
 		"allLists": schema.AllListsDirective,
 	}
@@ -106,7 +106,7 @@ func validateConflictingPaginateListDirectives[PluginConfig any](ctx context.Con
 		GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
 		HAVING COUNT(DISTINCT sd.directive) > 1
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"list_directive":     schema.ListDirective,
 		"paginate_directive": schema.PaginationDirective,
 	}
@@ -152,7 +152,7 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 			AND tc.name IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"paginate_directive": schema.PaginationDirective,
 	}
 	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
@@ -191,7 +191,7 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 	WHERE sd.directive = $paginate_directive
 		AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"paginate_directive": schema.PaginationDirective,
 	}
 	// We'll group usages in memory by documentID.
@@ -352,7 +352,7 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		AND sd2.id IS NULL
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"paginate_directive": schema.PaginationDirective,
 		"list_directive":     schema.ListDirective,
 		"insert_prefix":      schema.ListOperationSuffixInsert,
@@ -472,7 +472,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 		FROM base b
 			LEFT JOIN node n ON b.selection_id = n.selection_id
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"list_directive":     schema.ListDirective,
 		"paginate_directive": schema.PaginationDirective,
 	}
@@ -573,7 +573,7 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 		}
 
 		// insert the discovered list into the database
-		err = db.ExecStatement(insertDiscoveredLists, map[string]interface{}{
+		err = db.ExecStatement(insertDiscoveredLists, map[string]any{
 			"name":         list.ListName,
 			"type":         list.Type,
 			"node":         list.SelectionID,
@@ -650,7 +650,7 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 		WHERE dir.name IS NULL AND dl.key IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"delete_prefix": schema.ListOperationSuffixDelete,
 	}
 	err := db.StepQuery(ctx, selectionSearch, bindings, func(stmt *sqlite.Stmt) {
@@ -700,7 +700,7 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 			AND df.computed_key IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`
-	bindings := map[string]interface{}{
+	bindings := map[string]any{
 		"insert_prefix": schema.ListOperationSuffixInsert,
 		"remove_prefix": schema.ListOperationSuffixRemove,
 		"toggle_prefix": schema.ListOperationSuffixToggle,
@@ -762,7 +762,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 			LEFT JOIN type_field_arguments field_args ON field_args.field = s.type
 		GROUP BY discovered_lists.id
 	`)
-	db.BindStatement(usageQuery, map[string]interface{}{
+	db.BindStatement(usageQuery, map[string]any{
 		"paginate_mode_arg":  "mode",
 		"paginate_directive": schema.PaginationDirective,
 		"list_directive":     schema.ListDirective,
@@ -915,7 +915,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 				direction = "backward"
 			}
 
-			err = db.ExecStatement(updateList, map[string]interface{}{
+			err = db.ExecStatement(updateList, map[string]any{
 				"id":                listID,
 				"paginate":          direction,
 				"supports_forward":  forwardPagination,
@@ -925,7 +925,7 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 				errs.Append(plugins.WrapError(err))
 			}
 		} else {
-			err = db.ExecStatement(updateList, map[string]interface{}{
+			err = db.ExecStatement(updateList, map[string]any{
 				"id":               listID,
 				"paginate":         "forward",
 				"supports_forward": true,
