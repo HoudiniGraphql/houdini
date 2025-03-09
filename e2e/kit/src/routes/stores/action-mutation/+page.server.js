@@ -14,7 +14,7 @@ export const actions = {
 
     const actionMutation = graphql(`
       mutation ActionMutation($name: String!) {
-        addUser(name: $name, snapshot: "ActionMutation") {
+        addUser(name: $name, birthDate: 254143016000, snapshot: "ActionMutation") {
           id
           name
         }

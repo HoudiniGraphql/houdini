@@ -166,9 +166,6 @@ importers:
       houdini-plugin-svelte-global-stores:
         specifier: workspace:^
         version: link:../../packages/plugin-svelte-global-stores
-      houdini-svelte:
-        specifier: workspace:^
-        version: link:../../packages/houdini-svelte
       prettier:
         specifier: ^3.2.5
         version: 3.3.3
@@ -647,50 +644,10 @@ importers:
         version: link:../_scripts
 
   packages/houdini-svelte:
-    dependencies:
-      '@kitql/helpers':
-        specifier: ^0.8.2
-        version: 0.8.2
-      '@sveltejs/kit':
-        specifier: ^2.9.0
-        version: 2.16.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.0.2)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1)))(svelte@5.0.2)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1))
-      ast-types:
-        specifier: ^0.16.1
-        version: 0.16.1
-      estree-walker:
-        specifier: ^3.0.1
-        version: 3.0.1
-      graphql:
-        specifier: 15.5.0
-        version: 15.5.0
-      houdini:
-        specifier: workspace:^
-        version: link:../houdini
-      recast:
-        specifier: ^0.23.1
-        version: 0.23.1
-      rollup:
-        specifier: ^4.28.1
-        version: 4.30.1
-      svelte:
-        specifier: ^5.0.0
-        version: 5.0.2
-      vite:
-        specifier: ^6.0.3
-        version: 6.0.7(@types/node@22.13.1)(terser@5.16.1)
     devDependencies:
-      '@types/minimatch':
-        specifier: ^5.1.2
-        version: 5.1.2
-      prettier-plugin-svelte:
-        specifier: ^3.2.2
-        version: 3.2.6(prettier@3.3.3)(svelte@5.0.2)
       scripts:
         specifier: workspace:^
         version: link:../_scripts
-      vitest:
-        specifier: ^1.6.0
-        version: 1.6.0(@types/node@22.13.1)(@vitest/ui@1.6.0)(terser@5.16.1)
 
   packages/plugin-svelte-global-stores:
     dependencies:
@@ -9385,23 +9342,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sveltejs/kit@2.16.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.0.2)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1)))(svelte@5.0.2)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1))':
-    dependencies:
-      '@sveltejs/vite-plugin-svelte': 5.0.3(svelte@5.0.2)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1))
-      '@types/cookie': 0.6.0
-      cookie: 0.6.0
-      devalue: 5.1.1
-      esm-env: 1.2.2
-      import-meta-resolve: 4.1.0
-      kleur: 4.1.5
-      magic-string: 0.30.12
-      mrmime: 2.0.0
-      sade: 1.8.1
-      set-cookie-parser: 2.6.0
-      sirv: 3.0.0
-      svelte: 5.0.2
-      vite: 6.0.7(@types/node@22.13.1)(terser@5.16.1)
-
   '@sveltejs/kit@2.16.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.0)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1)))(svelte@5.19.0)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1))':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 5.0.3(svelte@5.19.0)(vite@6.0.7(@types/node@22.13.1)(terser@5.16.1))
@@ -14191,11 +14131,6 @@ snapshots:
     dependencies:
       prettier: 2.8.3
       svelte: 3.57.0
-
-  prettier-plugin-svelte@3.2.6(prettier@3.3.3)(svelte@5.0.2):
-    dependencies:
-      prettier: 3.3.3
-      svelte: 5.0.2
 
   prettier-plugin-svelte@3.2.6(prettier@3.3.3)(svelte@5.19.0):
     dependencies:

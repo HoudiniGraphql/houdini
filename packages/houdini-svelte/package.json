@@ -1,78 +1,10 @@
 {
     "name": "houdini-svelte",
-    "version": "2.1.1",
-    "description": "The svelte plugin for houdini",
-    "keywords": [
-        "typescript",
-        "svelte",
-        "sveltekit",
-        "graphql",
-        "graphql-client"
-    ],
-    "homepage": "https://github.com/HoudiniGraphql/houdini",
-    "funding": "https://github.com/sponsors/HoudiniGraphql",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/HoudiniGraphql/houdini.git"
-    },
-    "license": "MIT",
-    "type": "module",
+    "version": "1.4.2",
     "scripts": {
-        "tests": "vitest",
-        "compile": "scripts build-node --plugin",
-        "typedefs": "scripts typedefs --plugin"
+        "compile": "scripts build-go"
     },
     "devDependencies": {
-        "@types/minimatch": "^5.1.2",
-        "prettier-plugin-svelte": "^3.2.2",
-        "scripts": "workspace:^",
-        "vitest": "^1.6.0"
-    },
-    "dependencies": {
-        "@kitql/helpers": "^0.8.2",
-        "ast-types": "^0.16.1",
-        "estree-walker": "^3.0.1",
-        "graphql": "^15.8.0",
-        "houdini": "workspace:^",
-        "recast": "^0.23.1",
-        "rollup": "^4.28.1"
-    },
-    "peerDependencies": {
-        "@sveltejs/kit": "^2.9.0",
-        "svelte": "^5.0.0",
-        "vite": "^6.0.3"
-    },
-    "files": [
-        "build"
-    ],
-    "exports": {
-        "./package.json": "./package.json",
-        ".": {
-            "types": "./build/plugin/index.d.ts",
-            "import": "./build/plugin-esm/index.js",
-            "require": "./build/plugin-cjs/index.js"
-        },
-        "./preprocess": {
-            "types": "./build/preprocess/index.d.ts",
-            "import": "./build/preprocess-esm/index.js",
-            "require": "./build/preprocess-cjs/index.js"
-        },
-        "./test": {
-            "types": "./build/test/index.d.ts",
-            "import": "./build/test-esm/index.js",
-            "require": "./build/test-cjs/index.js"
-        }
-    },
-    "typesVersions": {
-        "*": {
-            "preprocess": [
-                "build/preprocess/index.d.ts"
-            ],
-            "test": [
-                "build/test/index.d.ts"
-            ]
-        }
-    },
-    "main": "./build/plugin-cjs/index.js",
-    "types": "./build/plugin/index.d.ts"
+        "scripts": "workspace:^"
+    }
 }
