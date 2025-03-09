@@ -1505,6 +1505,20 @@ func TestValidate_Houdini(t *testing.T) {
 					`,
 				},
 			},
+
+			{
+				Name: "null fragment arguments with default value passed to non-null field",
+				Pass: true,
+				Input: []string{
+					`
+					fragment UserPaginatedA on Query @arguments(name: { type: "String", default: "foo" }) {
+						user(name: $name) {
+							id
+						}
+					}
+				`,
+				},
+			},
 			{
 				Name: "@paginate can show up in a document with required args",
 				Pass: true,

@@ -5,7 +5,7 @@
   $: _frag = fragment(
     data,
     graphql(`
-      fragment UserSearch on Query @arguments(name: { type: "String", default: "" }) {
+      fragment UserSearch on Query @arguments(name: { type: "String", default: "test" }) {
         userSearch(filter: { name: $name }, snapshot: "") {
           id
           name

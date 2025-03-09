@@ -1220,11 +1220,14 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 			raw_documents.filepath,
 			argument_values.row,
 			argument_values.column,
+			selection_arguments.name,
+			selection_directive_arguments.name,
+			argument_value_children.name,
 			COALESCE(selection_arguments.name, selection_directive_arguments.name, argument_value_children.name) AS argument_name,
 			argument_values.expected_type,
 			argument_values.expected_type_modifiers,
 			argument_values.kind,
-			argument_values.expected_type || ':' || argument_values.kind
+			input_types.name
 		FROM argument_values
 		JOIN documents on argument_values."document" = documents.id
 		JOIN raw_documents on documents.raw_document = raw_documents.id
@@ -1265,7 +1268,7 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 							argument_values.kind IN ('ID','String', 'Int')
 							AND argument_values.expected_type = 'ID'
 						)
-						AND (
+						AND  (
 							types.built_in IS TRUE OR
 							(types.built_in IS FALSE and input_types.name is null)
 						)
@@ -1315,10 +1318,21 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 			(
 				argument_values.kind = 'Variable'
 				AND NOT (
-					document_variables.type_modifiers = argument_values.expected_type_modifiers
-					OR (document_variables.type_modifiers LIKE '%!'
-						AND SUBSTR(document_variables.type_modifiers, 1, LENGTH(document_variables.type_modifiers) - 1) = argument_values.expected_type_modifiers)
+					document_variables."type" = argument_values.expected_type
+					AND (
+						document_variables.type_modifiers = argument_values.expected_type_modifiers
+						OR (
+							document_variables.type_modifiers LIKE '%!'
+							AND document_variables.default_value is null
+							AND SUBSTR(
+								document_variables.type_modifiers, 1,
+								LENGTH(document_variables.type_modifiers) - 1
+							) = argument_values.expected_type_modifiers
+						)
+						OR document_variables.default_value is not null
+					)
 				)
+				AND argument_values.expected_type is not 'ArgumentSpecification'
 			)
 		)
 	`
