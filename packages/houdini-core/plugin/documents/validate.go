@@ -1168,43 +1168,6 @@ func loadUsedInputTypes[PluginConfig any](ctx context.Context, db plugins.Databa
 	return typeDefs, nil
 }
 
-// validateScalar checks that a scalar value conforms to the expected GraphQL scalar type.
-func validateScalar(value interface{}, expectedType, path string) *plugins.Error {
-	switch expectedType {
-	case "String", "ID":
-		if _, ok := value.(string); !ok {
-			return &plugins.Error{
-				Message: fmt.Sprintf("Field '%s' should be a String", path),
-				Kind:    plugins.ErrorKindValidation,
-			}
-		}
-	case "Int":
-		if num, ok := value.(float64); !ok || num != float64(int(num)) {
-			return &plugins.Error{
-				Message: fmt.Sprintf("Field '%s' should be an Int", path),
-				Kind:    plugins.ErrorKindValidation,
-			}
-		}
-	case "Float":
-		if _, ok := value.(float64); !ok {
-			return &plugins.Error{
-				Message: fmt.Sprintf("Field '%s' should be a Float", path),
-				Kind:    plugins.ErrorKindValidation,
-			}
-		}
-	case "Boolean":
-		if _, ok := value.(bool); !ok {
-			return &plugins.Error{
-				Message: fmt.Sprintf("Field '%s' should be a Boolean", path),
-				Kind:    plugins.ErrorKindValidation,
-			}
-		}
-	default:
-		// Custom scalars: add custom validation logic if needed.
-	}
-	return nil
-}
-
 func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
 	// every argument value contains the type that it should be so we need to look at every scalar
 	// usage and make sure that it matches with the expectations
@@ -1343,8 +1306,6 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 		column := stmt.ColumnInt(2)
 		argumentName := stmt.ColumnText(3)
 		kind := stmt.ColumnText(6)
-		typeKind := stmt.ColumnText(7)
-		fmt.Println(typeKind)
 
 		// Create a single error location from the representative row/column.
 		loc := &plugins.ErrorLocation{

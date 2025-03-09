@@ -116,7 +116,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// transforms.list,
 				// paginate transform needs to go before fragmentVariables
 				// so that the variable definitions get hashed
-				transforms.paginate,
+				// transforms.paginate,
 				transforms.componentFields,
 				transforms.fragmentVariables,
 				transforms.collectDefinitions,
