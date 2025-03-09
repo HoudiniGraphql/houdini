@@ -11,6 +11,7 @@ const config = {
   scalars: {
     DateTime: {
       type: 'Date',
+      inputTypes: ['Int', 'String'],
       // turn the api's response into that type
       unmarshal(val) {
         return new Date(val);

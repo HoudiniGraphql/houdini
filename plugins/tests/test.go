@@ -92,7 +92,8 @@ CREATE TABLE config (
 
 CREATE TABLE scalar_config (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
-    type TEXT NOT NULL
+    type TEXT NOT NULL,
+	input_types JSON
 );
 
 -- Types configuration
@@ -120,7 +121,8 @@ CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
     operation BOOLEAN default false,
-	internal BOOLEAN default false
+	internal BOOLEAN default false,
+	built_in BOOLEAN default false
 );
 
 CREATE TABLE type_fields (

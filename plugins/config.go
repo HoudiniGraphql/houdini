@@ -29,6 +29,7 @@ type ProjectConfig struct {
 	ProjectRoot                     string
 	RuntimeDir                      string
 	RuntimeScalars                  map[string]string
+	Scalars                         map[string]ScalarConfig
 	TypeConfig                      map[string]TypeConfig
 }
 
@@ -53,6 +54,7 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 	config := ProjectConfig{
 		RuntimeScalars: make(map[string]string),
 		TypeConfig:     make(map[string]TypeConfig),
+		Scalars:        make(map[string]ScalarConfig),
 	}
 
 	conn, err := db.Take(ctx)
@@ -154,6 +156,29 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 		}
 	}
 
+	// load scalar config information
+	scalarConfig, err := conn.Prepare(`SELECT name, type, input_types FROM scalar_config`)
+	if err != nil {
+		return err
+	}
+	defer scalarConfig.Finalize()
+	for {
+		hasRow, err := scalarConfig.Step()
+		if err != nil {
+			return err
+		}
+		if !hasRow {
+			break
+		}
+
+		configValue := ScalarConfig{
+			Type: scalarConfig.ColumnText(1),
+		}
+		err = json.Unmarshal([]byte(scalarConfig.ColumnText(2)), &configValue.InputTypes)
+
+		config.Scalars[scalarConfig.ColumnText(0)] = configValue
+	}
+
 	// store the config we loaded
 	db._config = &config
 
@@ -206,4 +231,9 @@ func (db *DatabasePool[PluginConfig]) ReloadPluginConfig(ctx context.Context) er
 
 type TypeConfig struct {
 	Keys []string
+}
+
+type ScalarConfig struct {
+	Type       string
+	InputTypes []string
 }

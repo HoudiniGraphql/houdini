@@ -32,12 +32,12 @@
 
   $: withoutRequired = fragment(
     $GQL_UserRequiredFragments.data?.user,
-    graphql`
+    graphql(`
       fragment UserWithoutRequired on User {
         name
         birthDate
       }
-    `
+    `)
   );
 </script>
 

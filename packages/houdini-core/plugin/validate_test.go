@@ -22,8 +22,16 @@ func TestValidate_Houdini(t *testing.T) {
 			RuntimeScalars: map[string]string{
 				"ViewerIDFromSession": "ID",
 			},
+			Scalars: map[string]plugins.ScalarConfig{
+				"Date": {
+					Type:       "Date",
+					InputTypes: []string{"String", "Date"},
+				},
+			},
 		},
 		Schema: `
+			scalar Date
+
 			type Subscription {
 				newMessage: String
 				anotherMessage: String
@@ -54,7 +62,7 @@ func TestValidate_Houdini(t *testing.T) {
 
 			type Query {
 				rootScalar: String
-				user(name: String!) : User
+				user(name: String! birthday: Date) : User
 				users(filters: [UserFilter], filter: UserFilter, limit: Int, offset: Int): [User!]!
 				nodes(ids: [ID!]!): [Node!]!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
@@ -1136,6 +1144,19 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "Scalar input type as valid argument",
+				Pass: true,
+				Input: []string{
+					`
+						query UserInfo {
+							user(name: "foo", birthday: "2020-01-01") {
+								id
+							}
+						}
+					`,
+				},
+			},
+			{
 				Name: "known connection directives",
 				Pass: true,
 				Input: []string{
@@ -1319,7 +1340,7 @@ func TestValidate_Houdini(t *testing.T) {
 				`,
 					`
 					query Query2 {
-						...Foo @with(name: {value:"hello"})
+						...Foo @with(name: "hello")
 					}
 				`,
 				},

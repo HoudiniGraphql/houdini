@@ -17,7 +17,7 @@ type SchemaInsertStatements struct {
 
 func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, func()) {
 	// Prepare statements. (Check errors and defer closing each statement.)
-	insertTypeStmt := db.Prep("INSERT INTO types (name, kind, operation) VALUES ($name, $kind, $operation)")
+	insertTypeStmt := db.Prep("INSERT INTO types (name, kind, operation, built_in) VALUES ($name, $kind, $operation, $built_in)")
 	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES ($name, $kind, true)")
 	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value, description) VALUES ($id, $parent, $name, $type, $type_modifiers, $default_value, $description)")
 	insertPossibleTypeStmt := db.Prep("INSERT INTO possible_types (type, member) VALUES ($type, $member)")

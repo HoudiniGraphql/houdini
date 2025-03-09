@@ -296,6 +296,8 @@ export type WatchSchemaConfig = {
 export type ScalarSpec = {
 	// the type to use at runtime
 	type: string
+	// the types that should be considered valid input types
+	inputTypes?: Array<'Int' | 'Float' | 'String' | 'Boolean' | 'ID'>
 	// the function to call that serializes the type for the API. If you are using this
 	// scalar as the input to a query through a route parameter, this function will receive
 	// the value as a string in addition to your complex value.

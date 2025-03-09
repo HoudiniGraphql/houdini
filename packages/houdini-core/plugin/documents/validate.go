@@ -1209,6 +1209,13 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 	// every argument value contains the type that it should be so we need to look at every scalar
 	// usage and make sure that it matches with the expectations
 	query := `
+		WITH input_types as (
+			SELECT
+				scalar.name,
+				types.value AS input_type
+			FROM scalar_config AS scalar,
+				json_each(scalar.input_types) AS types
+		)
 		SELECT
 			raw_documents.filepath,
 			argument_values.row,
@@ -1216,7 +1223,8 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 			COALESCE(selection_arguments.name, selection_directive_arguments.name, argument_value_children.name) AS argument_name,
 			argument_values.expected_type,
 			argument_values.expected_type_modifiers,
-			argument_values.kind
+			argument_values.kind,
+			argument_values.expected_type || ':' || argument_values.kind
 		FROM argument_values
 		JOIN documents on argument_values."document" = documents.id
 		JOIN raw_documents on documents.raw_document = raw_documents.id
@@ -1236,6 +1244,9 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 			ON argument_values.kind = 'Enum'
 			AND argument_values.expected_type = ev.parent
 			AND argument_values.raw = ev.value
+		LEFT JOIN input_types
+			ON argument_values.expected_type = input_types.name
+			AND argument_values.kind = input_types.input_type
 
 		WHERE
 			raw_documents.current_task = $task_id OR $task_id IS NULL
@@ -1253,6 +1264,10 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 						AND NOT (
 							argument_values.kind IN ('ID','String', 'Int')
 							AND argument_values.expected_type = 'ID'
+						)
+						AND (
+							types.built_in IS TRUE OR
+							(types.built_in IS FALSE and input_types.name is null)
 						)
 					)
 				)
@@ -1314,6 +1329,8 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 		column := stmt.ColumnInt(2)
 		argumentName := stmt.ColumnText(3)
 		kind := stmt.ColumnText(6)
+		typeKind := stmt.ColumnText(7)
+		fmt.Println(typeKind)
 
 		// Create a single error location from the representative row/column.
 		loc := &plugins.ErrorLocation{

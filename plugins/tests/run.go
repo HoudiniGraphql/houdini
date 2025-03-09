@@ -75,6 +75,10 @@ func RunTable(t *testing.T, table Table) {
 				projectConfig.RuntimeScalars = table.ProjectConfig.RuntimeScalars
 			}
 
+			if table.ProjectConfig.Scalars != nil {
+				projectConfig.Scalars = table.ProjectConfig.Scalars
+			}
+
 			if test.ProjectConfig != nil {
 				test.ProjectConfig(&projectConfig)
 			}
@@ -129,14 +133,28 @@ func RunTable(t *testing.T, table Table) {
 			defer insertConfig.Finalize()
 			defaultKeys, _ := json.Marshal(projectConfig.DefaultKeys)
 			err = db.ExecStatement(insertConfig, map[string]interface{}{"keys": string(defaultKeys)})
-
 			require.Nil(t, err)
+
 			insertCustomKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ($name, $keys)`)
 			require.Nil(t, err)
 			defer insertCustomKeys.Finalize()
 			for typ, config := range projectConfig.TypeConfig {
 				keys, _ := json.Marshal(config.Keys)
 				err = db.ExecStatement(insertCustomKeys, map[string]interface{}{"name": typ, "keys": string(keys)})
+				require.Nil(t, err)
+			}
+
+			insertScalarConfig, err := conn.Prepare(`insert into scalar_config (name, "type", input_types) values ($name, $type, $input_types)`)
+			require.Nil(t, err)
+			defer insertScalarConfig.Finalize()
+			for typ, config := range projectConfig.Scalars {
+				input_types, _ := json.Marshal(config.InputTypes)
+				config.InputTypes = append(config.InputTypes, typ)
+				err = db.ExecStatement(insertScalarConfig, map[string]interface{}{
+					"name":        typ,
+					"input_types": string(input_types),
+					"type":        config.Type,
+				})
 				require.Nil(t, err)
 			}
 

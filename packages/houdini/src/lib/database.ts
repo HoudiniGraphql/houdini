@@ -70,7 +70,8 @@ CREATE TABLE config (
 
 CREATE TABLE scalar_config (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
-    type TEXT NOT NULL
+    type TEXT NOT NULL,
+	input_types JSON
 );
 
 -- Types configuration
@@ -98,7 +99,8 @@ CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
     operation BOOLEAN default false,
-	internal BOOLEAN default false
+	internal BOOLEAN default false,
+	built_in BOOLEAN default false
 );
 
 CREATE TABLE type_fields (
@@ -535,9 +537,9 @@ export async function write_config(
 	}
 
 	// write the scalar configs
-	insert = db.prepare('INSERT INTO scalar_config (name, type) VALUES (?, ?)')
-	for (const [name, { type }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type)
+	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)')
+	for (const [name, { type, inputTypes }] of Object.entries(config.config_file.scalars ?? {})) {
+		insert.run(name, type, JSON.stringify((inputTypes ?? []).concat(name)))
 	}
 
 	// write the type configs

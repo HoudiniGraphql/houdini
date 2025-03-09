@@ -45,6 +45,7 @@ func WriteProjectSchema[PluginConfig any](schemaPath string, db plugins.Database
 			"name":      typ.Name,
 			"kind":      kind,
 			"operation": isOperation,
+			"built_in":  typ.BuiltIn,
 		})
 		if err != nil {
 			errors.Append(&plugins.Error{
