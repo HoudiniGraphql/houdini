@@ -65,6 +65,7 @@ func RunTable(t *testing.T, table Table) {
 				ProjectRoot: "/project",
 				SchemaPath:  "schema.graphql",
 				DefaultKeys: []string{"id"},
+				TypeConfig:  make(map[string]plugins.TypeConfig),
 			}
 
 			if table.ProjectConfig.TypeConfig != nil {
@@ -135,12 +136,12 @@ func RunTable(t *testing.T, table Table) {
 			err = db.ExecStatement(insertConfig, map[string]any{"keys": string(defaultKeys)})
 			require.Nil(t, err)
 
-			insertCustomKeys, err := conn.Prepare(`insert into type_configs (name, keys) values ($name, $keys)`)
+			insertCustomKeys, err := conn.Prepare(`insert into type_configs (name, keys, resolve_query) values ($name, $keys, $resolve_query)`)
 			require.Nil(t, err)
 			defer insertCustomKeys.Finalize()
 			for typ, config := range projectConfig.TypeConfig {
 				keys, _ := json.Marshal(config.Keys)
-				err = db.ExecStatement(insertCustomKeys, map[string]any{"name": typ, "keys": string(keys)})
+				err = db.ExecStatement(insertCustomKeys, map[string]any{"name": typ, "keys": string(keys), "resolve_query": config.ResolveQuery})
 				require.Nil(t, err)
 			}
 

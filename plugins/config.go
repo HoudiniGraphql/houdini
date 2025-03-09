@@ -3,7 +3,6 @@ package plugins
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -138,7 +137,7 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 	}
 
 	// load type config information
-	typeConfigSearch, err := conn.Prepare(`SELECT name, keys FROM type_configs`)
+	typeConfigSearch, err := conn.Prepare(`SELECT name, keys, resolve_query FROM type_configs`)
 	if err != nil {
 		return err
 	}
@@ -151,8 +150,15 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 			break
 		}
 
+		keys := []string{}
+		err = json.Unmarshal([]byte(typeConfigSearch.ColumnText(1)), &keys)
+		if err != nil {
+			return err
+		}
+
 		config.TypeConfig[typeConfigSearch.ColumnText(0)] = TypeConfig{
-			Keys: strings.Split(typeConfigSearch.ColumnText(1), ","),
+			Keys:         keys,
+			ResolveQuery: typeConfigSearch.ColumnText(2),
 		}
 	}
 
@@ -230,7 +236,8 @@ func (db *DatabasePool[PluginConfig]) ReloadPluginConfig(ctx context.Context) er
 }
 
 type TypeConfig struct {
-	Keys []string
+	ResolveQuery string
+	Keys         []string
 }
 
 type ScalarConfig struct {

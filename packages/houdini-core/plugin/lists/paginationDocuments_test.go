@@ -18,6 +18,12 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				forwardConnection(first: Int, after: String): UserConnection!
 				backwardConnection(last: Int, before: String): UserConnection!
 				node(id: ID!): Node
+				legend(title: String!): Legend
+			}
+
+			type Legend {
+				title: String!
+				believers(limit: Int, offset: Int): [User!]!
 			}
 
 			type User implements Node {
@@ -433,7 +439,6 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						)),
 				},
 			},
-
 			{
 				Name: "fragment on node",
 				Pass: true,
@@ -487,6 +492,49 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						`,
 							schema.FragmentPaginationQueryName("Friends"),
+						)),
+				},
+			},
+			{
+				Name: "fragment on custom resolve query",
+				Pass: true,
+				Input: []string{
+					`
+						fragment Believers on Legend {
+							believers(limit: 10) @paginate {
+								firstName
+							}
+						}
+					`,
+				},
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.TypeConfig["Legend"] = plugins.TypeConfig{
+						Keys:         []string{"title"},
+						ResolveQuery: "legend",
+					}
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment Believers on Legend {
+							believers(limit: $limit, offset: $offset) @paginate {
+								firstName
+								__typename
+								id
+							}
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{Name: "limit", Type: "Int", DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"}},
+						tests.ExpectedOperationVariable{Name: "offset", Type: "Int"},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($limit: Int = 10, $offset: Int, $title: String!) @dedupe(match: Variables) {
+								legend(title: $title) {
+									...Believers @with(limit: $limit, offset: $offset)
+								}
+							}
+						`,
+							schema.FragmentPaginationQueryName("Believers"),
 						)),
 				},
 			},
