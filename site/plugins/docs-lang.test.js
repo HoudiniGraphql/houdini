@@ -24,7 +24,7 @@ test('strip type declarations from variable declarations', async function () {
         \`\`\``)
 	).resolves.toMatchInlineSnapshot(`
 		"\`\`\`javascript
-		/* @type { import('./source').Type } */
+		/** @type { import('./source').Type } */
 		const Foo = () => {
 		    console.log('hello')
 		}
@@ -43,7 +43,7 @@ test('strip type declarations from exported variable declarations', async functi
         \`\`\``)
 	).resolves.toMatchInlineSnapshot(`
 		"\`\`\`javascript
-		/* @type { import('./source').Type } */
+		/** @type { import('./source').Type } */
 		export const Foo = () => {
 		    console.log('hello')
 		}
