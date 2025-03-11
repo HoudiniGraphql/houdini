@@ -64,7 +64,10 @@ CREATE TABLE component_fields (
 	prop TEXT,
     field TEXT,
 	inline BOOLEAN default false,
+  type_field TEXT,
+
 	UNIQUE (document),
+  FOREIGN KEY (type_field)  REFERENCES type_fields(id),
 	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 

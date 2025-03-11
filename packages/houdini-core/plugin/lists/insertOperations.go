@@ -5,12 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"zombiezen.com/go/sqlite/sqlitex"
+
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
+func InsertOperationDocuments[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+) error {
 	// during validation, we might have discovered lists that cause new documents to be inserted
 	// into the database. we also need to insert internal directives so that we can strip them
 	// from the final selection set
@@ -48,28 +52,36 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 	}
 	defer copySelection.Finalize()
 
-	insertDocument, err := conn.Prepare("INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)")
+	insertDocument, err := conn.Prepare(
+		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
+	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer insertDocument.Finalize()
 
 	// a statement to insert internal directives
-	insertInternalDirectiveStmt, err := conn.Prepare("INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, true)")
+	insertInternalDirectiveStmt, err := conn.Prepare(
+		"INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, true)",
+	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer insertInternalDirectiveStmt.Finalize()
 
 	// a statement to insert a selection
-	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
+	insertSelection, err := conn.Prepare(
+		"INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)",
+	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer insertSelection.Finalize()
 
 	// a statement to insert selection refs
-	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
+	insertSelectionRef, err := conn.Prepare(
+		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)",
+	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
@@ -93,6 +105,11 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 		listType := insertStatement.ColumnText(1)
 		selectionParent := insertStatement.ColumnInt64(2)
 		rawDocument := insertStatement.ColumnInt64(3)
+
+		// if the document doesn't have a name then we dont need to generate documents for it
+		if name == "" {
+			return
+		}
 
 		// the first thing we have to do is insert a document with the correct names
 		// and then we'll copy over the selection_refs from the selection_parent
@@ -184,45 +201,49 @@ func InsertOperationDocuments[PluginConfig any](ctx context.Context, db plugins.
 			insertedDirectives[typeName] = true
 		}
 
-		// we also need to insert a remove fragment for each type that has a list
-		db.ExecStatement(insertDocument, map[string]any{
-			"name":           fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove),
-			"kind":           "fragment",
-			"type_condition": typeName,
-			"raw_document":   rawDocument,
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
+		// if the list isn't named we dont need to generate  delete directive
+		if listName != "" {
 
-		fragmentID := conn.LastInsertRowID()
-
-		// now we need a selection for each key and a ref that links it up to the parent
-		for _, key := range append(keys, "__typename") {
-			// insert the selection row
-			err = db.ExecStatement(insertSelection, map[string]any{
-				"field_name": key,
-				"alias":      key,
-				"kind":       "field",
-				"type":       fmt.Sprintf("%s.%s", typeName, key),
+			// we also need to insert a remove fragment for each type that has a list
+			db.ExecStatement(insertDocument, map[string]any{
+				"name":           fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove),
+				"kind":           "fragment",
+				"type_condition": typeName,
+				"raw_document":   rawDocument,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
 				return
 			}
 
-			// insert the selection ref
-			err = db.ExecStatement(insertSelectionRef, map[string]any{
-				"child_id":   conn.LastInsertRowID(),
-				"document":   fragmentID,
-				"row":        0,
-				"column":     0,
-				"path_index": 0,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
+			fragmentID := conn.LastInsertRowID()
+
+			// now we need a selection for each key and a ref that links it up to the parent
+			for _, key := range append(keys, "__typename") {
+				// insert the selection row
+				err = db.ExecStatement(insertSelection, map[string]any{
+					"field_name": key,
+					"alias":      key,
+					"kind":       "field",
+					"type":       fmt.Sprintf("%s.%s", typeName, key),
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+
+				// insert the selection ref
+				err = db.ExecStatement(insertSelectionRef, map[string]any{
+					"child_id":   conn.LastInsertRowID(),
+					"document":   fragmentID,
+					"row":        0,
+					"column":     0,
+					"path_index": 0,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
 			}
 		}
 	})

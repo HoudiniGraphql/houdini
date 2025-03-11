@@ -6,17 +6,22 @@ import (
 	"runtime"
 	"sync"
 
-	"code.houdinigraphql.com/packages/houdini-core/glob"
-	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 	"zombiezen.com/go/sqlite"
+
+	"code.houdinigraphql.com/packages/houdini-core/glob"
+	"code.houdinigraphql.com/plugins"
 )
 
 // Walk is responsible for walking down the project directory structure and
 // extracting the raw graphql documents from the files. These files will be parsed in a
 // later step to allow for other plugins to find additional documents we don't know about
-func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], fs afero.Fs) error {
+func Walk[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	fs afero.Fs,
+) error {
 	// load the project config
 	config, err := db.ProjectConfig(ctx)
 	if err != nil {
@@ -48,7 +53,12 @@ func Walk[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginC
 
 // ExtractTaskDocuments looks for all raw_documents associated with a specific task ID
 // and extracts them into the database.
-func ExtractTaskDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], fs afero.Fs, taskID string) error {
+func ExtractTaskDocuments[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	fs afero.Fs,
+	taskID string,
+) error {
 	// extract the documents that the walker finds
 	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
 		query := `
@@ -67,7 +77,12 @@ func ExtractTaskDocuments[PluginConfig any](ctx context.Context, db plugins.Data
 	})
 }
 
-func extractDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], fs afero.Fs, walk func(chan string) error) error {
+func extractDocuments[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	fs afero.Fs,
+	walk func(chan string) error,
+) error {
 	// channels for file paths and discovered documents
 	filePathsCh := make(chan string, 100000)
 	resultsCh := make(chan DiscoveredDocument, 100000)
@@ -93,7 +108,11 @@ func extractDocuments[PluginConfig any](ctx context.Context, db plugins.Database
 
 		// collect the error
 		if err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("encountered error while looking for documents: %v", err)))
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf("encountered error while looking for documents: %v", err),
+				),
+			)
 		}
 
 		// we're done
@@ -135,13 +154,17 @@ func extractDocuments[PluginConfig any](ctx context.Context, db plugins.Database
 		defer db.Put(conn)
 
 		// prepare the insert statements.
-		insertRawStatement, err := conn.Prepare("INSERT INTO raw_documents (filepath, content, offset_column, offset_line) VALUES ($filepath, $content, $column, $row)")
+		insertRawStatement, err := conn.Prepare(
+			"INSERT INTO raw_documents (filepath, content, offset_column, offset_line) VALUES ($filepath, $content, $column, $row)",
+		)
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
 			return nil
 		}
 		defer insertRawStatement.Finalize()
-		insertComponentField, err := conn.Prepare("INSERT INTO component_fields (document, prop, inline) VALUES ($document, $prop, true)")
+		insertComponentField, err := conn.Prepare(
+			"INSERT INTO component_fields (document, prop, inline, type_field) VALUES ($document, $prop, true, $type_field)",
+		)
 		if err != nil {
 			errs.Append(plugins.WrapError(fmt.Errorf("failed to prepare statement: %w", err)))
 			return nil
@@ -169,7 +192,9 @@ func extractDocuments[PluginConfig any](ctx context.Context, db plugins.Database
 					"prop":     doc.Prop,
 				})
 				if err != nil {
-					errs.Append(plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)))
+					errs.Append(
+						plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)),
+					)
 					return nil
 				}
 			}

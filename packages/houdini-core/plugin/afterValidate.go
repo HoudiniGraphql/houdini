@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
 )
@@ -24,6 +25,12 @@ func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 
 	// we can now prepare the pagination documents
 	err = lists.PreparePaginationDocuments(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
+	// transform any references to componentFields to their appropriate fragment
+	err = componentFields.TransformFields(ctx, p.DB)
 	if err != nil {
 		return err
 	}

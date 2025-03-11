@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
-	"code.houdinigraphql.com/plugins"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
+
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
+	"code.houdinigraphql.com/plugins"
 )
 
 // we need to look at anything tagged with @componentField and load the metadata into the database
@@ -18,7 +19,11 @@ import (
 // - adding internal fields to the type definitions
 // note: we'll hold on doing the actual injection of fragments til after we've validated
 // everything to ensure that error messages make sense
-func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func WriteMetadata[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// First, load component field info from document_directives.
 	// We assume that the @componentField directive appears only on fragment definitions.
 	type ComponentFieldData struct {
@@ -109,6 +114,7 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		}
 
 		// the type comes from the document's type_condition.
+		document.RawDocumentID = rawDocumentID
 		document.Filepath = search.ColumnText(1)
 		document.Row = search.ColumnInt(2)
 		document.Column = search.ColumnInt(3)
@@ -124,7 +130,6 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 				return
 			}
 		}
-
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -213,8 +218,12 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		kind := typesStmt.ColumnText(0)
 		if kind == "INTERFACE" || kind == "UNION" {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Component field on type %q is not allowed on abstract type (document %d)", rec.Type, rec.RawDocumentID),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"Component field on type %q is not allowed on abstract type (document %d)",
+					rec.Type,
+					rec.RawDocumentID,
+				),
+				Kind: plugins.ErrorKindValidation,
 			})
 		}
 	}
@@ -235,8 +244,13 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 		count := tfStmt.ColumnInt(0)
 		if count > 0 {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Component field '%s' (prop %q) on type %q conflicts with an existing type field", rec.Field, rec.Prop, rec.Type),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"Component field '%s' (prop %q) on type %q conflicts with an existing type field",
+					rec.Field,
+					rec.Prop,
+					rec.Type,
+				),
+				Kind: plugins.ErrorKindValidation,
 			})
 		}
 	}
@@ -251,8 +265,12 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	for key, recs := range group {
 		if len(recs) > 1 {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("Duplicate component field definition for (%s); found %d occurrences", key, len(recs)),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"Duplicate component field definition for (%s); found %d occurrences",
+					key,
+					len(recs),
+				),
+				Kind: plugins.ErrorKindValidation,
 			})
 		}
 	}
@@ -265,13 +283,14 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	// Prepare statements to insert (or upsert) component fields and internal type fields.
 	insertComponentField, err := conn.Prepare(`
 		INSERT INTO component_fields
-			(document, prop, field, type, inline)
+			(document, prop, field, type, inline, type_field)
 		VALUES
-			($document, $prop, $field, $type, false)
+			($document, $prop, $field, $type, false, $type_field)
 		ON CONFLICT(document) DO UPDATE SET
   			prop = excluded.prop,
   			field = excluded.field,
-  			type = excluded.type
+  			type = excluded.type,
+        type_field = excluded.type_field
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -308,10 +327,11 @@ func WriteMetadata[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	// Process the collected component field data.
 	for _, data := range documentInfo {
 		err = db.ExecStatement(insertComponentField, map[string]any{
-			"document": data.RawDocumentID,
-			"prop":     data.Prop,
-			"field":    data.Field,
-			"type":     data.Type,
+			"document":   data.RawDocumentID,
+			"prop":       data.Prop,
+			"field":      data.Field,
+			"type":       data.Type,
+			"type_field": fmt.Sprintf("%s.%s", data.Type, data.Field),
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

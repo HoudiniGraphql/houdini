@@ -42,6 +42,7 @@ CREATE TABLE component_fields (
 	prop TEXT,
     field TEXT,
 	inline BOOLEAN default false,
+  type_field TEXT,
 	UNIQUE (document),
 	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
@@ -339,6 +340,7 @@ CREATE TABLE discovered_lists (
 -- Indices
 -----------------------------------------------------------
 
+CREATE INDEX idx_component_fields_type_fields ON component_fields(type_field);
 CREATE INDEX idx_discovered_lists_raw_document ON discovered_lists(raw_document);
 CREATE INDEX idx_discovered_lists_node ON discovered_lists(node);
 CREATE INDEX idx_discovered_lists_list_field ON discovered_lists(list_field);

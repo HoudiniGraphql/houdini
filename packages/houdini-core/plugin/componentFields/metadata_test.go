@@ -6,13 +6,14 @@ import (
 	"path"
 	"testing"
 
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
 )
 
 func TestComponentFields(t *testing.T) {
@@ -171,7 +172,12 @@ func TestComponentFieldChecks(t *testing.T) {
 			plugin.SetDatabase(db)
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
+			afero.WriteFile(
+				plugin.Fs,
+				path.Join("/project", "schema.graphql"),
+				[]byte(schema),
+				0644,
+			)
 
 			ctx := context.Background()
 			conn, err := db.Take(ctx)
