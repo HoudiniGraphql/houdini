@@ -1065,7 +1065,7 @@ func processSelection[PluginConfig any](
 	column := query.ColumnOffset
 	// we want to save the selection location in the document
 	if position := sel.GetPosition(); position != nil {
-		line += position.Line + query.RowOffset
+		line = position.Line + query.RowOffset
 		column = position.Column + query.ColumnOffset
 	}
 	if err := db.ExecStatement(statements.InsertSelectionRef, map[string]any{
