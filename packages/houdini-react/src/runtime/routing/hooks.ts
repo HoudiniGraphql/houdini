@@ -1,3 +1,4 @@
+import type { Cache } from '$houdini/runtime/cache/cache'
 import React from 'react'
 import { useContext } from 'react'
 
@@ -45,7 +46,7 @@ type RouterContext = {
 
 export const Context = React.createContext<RouterContext | null>(null)
 
-const LocationContext = React.createContext<{
+export const LocationContext = React.createContext<{
     pathname: string
     params: Record<string, any>
     // a function to imperatively navigate to a url

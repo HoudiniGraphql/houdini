@@ -15,7 +15,7 @@ import { suspense_cache, type SuspenseCache } from './cache'
 
 import { useDocumentHandle, type DocumentHandle } from '../hooks/useDocumentHandle'
 import { useDocumentStore } from '../hooks/useDocumentStore'
-import { Context, useRouterContext, useSession, useLocation, type PageComponent, type PendingCache } from './hooks'
+import { Context, useRouterContext, useSession, useLocation, LocationContext, type PageComponent, type PendingCache } from './hooks'
 
 const PreloadWhich = {
 	component: 'component',
