@@ -11,7 +11,7 @@ import {
 import React from 'react'
 import { build, type BuildOptions, ConfigEnv, type Connect } from 'vite'
 
-import { manifest, setManifest } from '.'
+import { manifest, setManifest } from './state'
 
 let viteEnv: ConfigEnv
 let devServer = false

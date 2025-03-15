@@ -2,20 +2,20 @@ import type { Cache } from '$houdini/runtime/cache/cache'
 import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { LRUCache } from '$houdini/runtime/lib/lru'
+import type { LRUCache } from '$houdini/runtime/lib/lru'
 import { marshalSelection, marshalInputs } from '$houdini/runtime/lib/scalars'
-import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
-import { QueryArtifact } from '$houdini/runtime/lib/types'
+import type { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
+import type { QueryArtifact } from '$houdini/runtime/lib/types'
 import { find_match } from '$houdini/runtime/router/match'
 import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router/types'
 import React from 'react'
 import { useContext } from 'react'
 
-import { DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle'
-import { useDocumentStore } from '../hooks/useDocumentStore'
-import { SuspenseCache, suspense_cache } from './cache'
+import { suspense_cache, type SuspenseCache } from './cache'
 
-type PageComponent = React.ComponentType<{ url: string }>
+import { useDocumentHandle, type DocumentHandle } from '../hooks/useDocumentHandle'
+import { useDocumentStore } from '../hooks/useDocumentStore'
+import { Context, useRouterContext, useSession, useLocation, type PageComponent, type PendingCache } from './hooks'
 
 const PreloadWhich = {
 	component: 'component',
@@ -152,9 +152,6 @@ export function Router({
 		</VariableContext.Provider>
 	)
 }
-
-// export the location information in context
-export const useLocation = () => useContext(LocationContext)
 
 /**
  * usePageData is responsible for kicking off the network requests necessary to render the page.
@@ -514,58 +511,6 @@ export function RouterContextProvider({
 	)
 }
 
-type RouterContext = {
-	client: HoudiniClient
-	cache: Cache
-
-	// We also need a cache for artifacts so that we can avoid suspending to
-	// load them if possible.
-	artifact_cache: SuspenseCache<QueryArtifact>
-
-	// We also need a cache for component references so we can avoid suspending
-	// when we load the same page multiple times
-	component_cache: SuspenseCache<PageComponent>
-
-	// Pages need a way to wait for data
-	data_cache: SuspenseCache<DocumentStore<GraphQLObject, GraphQLVariables>>
-
-	// A way to dedupe requests for a query
-	ssr_signals: PendingCache
-
-	// A way to track the last known good variables
-	last_variables: LRUCache<GraphQLVariables>
-
-	// The current session
-	session: App.Session
-
-	// a function to call that sets the client-side session singletone
-	setSession: (newSession: Partial<App.Session>) => void
-}
-
-export type PendingCache = SuspenseCache<
-	Promise<void> & { resolve: () => void; reject: (message: string) => void }
->
-
-const Context = React.createContext<RouterContext | null>(null)
-
-export const useRouterContext = () => {
-	const ctx = React.useContext(Context)
-
-	if (!ctx) {
-		throw new Error('Could not find router context')
-	}
-
-	return ctx
-}
-
-export function useClient() {
-	return useRouterContext().client
-}
-
-export function useCache() {
-	return useRouterContext().cache
-}
-
 export function updateLocalSession(session: App.Session) {
 	window.dispatchEvent(
 		new CustomEvent<App.Session>('_houdini_session_', {
@@ -575,55 +520,11 @@ export function updateLocalSession(session: App.Session) {
 	)
 }
 
-export function useSession(): [App.Session, (newSession: Partial<App.Session>) => void] {
-	const ctx = useRouterContext()
-
-	// when we update the session we have to do 2 things. (1) we have to update the local state
-	// that we will use on the client (2) we have to send a request to the server so that it
-	// can update the cookie that we use for the session
-	const updateSession = (newSession: Partial<App.Session>) => {
-		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
-		ctx.data_cache.clear()
-
-		// update the local state
-		ctx.setSession(newSession)
-
-		// figure out the url that we will use to send values to the server
-		const auth = configFile.router?.auth
-		if (!auth) {
-			return
-		}
-		const url = 'redirect' in auth ? auth.redirect : auth.url
-
-		fetch(url, {
-			method: 'POST',
-			body: JSON.stringify(newSession),
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json',
-			},
-		})
-	}
-
-	return [ctx.session, updateSession]
-}
-
 export function useCurrentVariables(): GraphQLVariables {
-	return React.useContext(VariableContext)
+    return React.useContext(VariableContext)
 }
 
 const VariableContext = React.createContext<GraphQLVariables>(null)
-
-const LocationContext = React.createContext<{
-	pathname: string
-	params: Record<string, any>
-	// a function to imperatively navigate to a url
-	goto: (url: string) => void
-}>({
-	pathname: '',
-	params: {},
-	goto: () => {},
-})
 
 export function useQueryResult<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
 	name: string
