@@ -1,6 +1,7 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
 import sqlite from 'node:sqlite'
+import { format_hook_error, HookError } from 'src/lib/error'
 
 import * as fs from '../lib/fs'
 import { db_path, houdini_root } from './conventions'
@@ -152,9 +153,12 @@ export async function codegen_setup(
 			if (response.status === 404) {
 				throw new Error(`Plugin ${name} does not support hook ${hook}`)
 			}
-			throw new Error(
-				`Failed to call ${name}/${hook.toLowerCase()}: ${await response.text()}`
-			)
+			const errors: HookError[] = await response.json()
+			errors.forEach((error) => {
+				format_hook_error(config.root_dir, error)
+			})
+			// errors
+			throw new Error(`Failed to call ${name}/${hook.toLowerCase()}`)
 		}
 		// look at the response headers, and if the content type is application/json, parse the body
 		const contentType = response.headers.get('content-type')

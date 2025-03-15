@@ -21,7 +21,7 @@ func WrapError(err error) *Error {
 type Error struct {
 	Message   string           `json:"message"`
 	Detail    string           `json:"detail"`
-	Locations []*ErrorLocation `json:"position"`
+	Locations []*ErrorLocation `json:"locations"`
 	Kind      ErrorKind        `json:"kind"`
 }
 
