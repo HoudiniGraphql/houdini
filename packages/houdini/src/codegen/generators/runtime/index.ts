@@ -1,10 +1,12 @@
-import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
-import type { Config, Document } from '../../../lib'
-import { siteURL as SITE_URL, fs, path } from '../../../lib'
+import type { Config } from '../../../lib/config'
+import type { Document } from '../../../lib/types'
+import { siteURL as SITE_URL } from '../../../lib/constants'
+import * as fs from '../../../lib/fs'
+import * as path from '../../../lib/path'
 import generateGraphqlReturnTypes from './graphqlFunction'
 import injectPlugins from './injectPlugins'
 import { generatePluginIndex } from './pluginIndex'
-import { generatePluginRuntimes } from './pluginRuntime'
+import { generatePluginRuntimes, moduleStatments } from './pluginRuntime'
 import { injectConfig } from './runtimeConfig'
 
 export default async function runtimeGenerator(config: Config, docs: Document[]) {
@@ -50,25 +52,4 @@ ${exportStatement('config')}
 	])
 
 	await generateGraphqlReturnTypes(config, docs)
-}
-
-export function moduleStatments(config: Config) {
-	const importStatement =
-		config.module === 'commonjs'
-			? importDefaultFrom
-			: (where: string, as: string) => `import ${as} from '${where}'`
-
-	const exportDefaultStatement =
-		config.module === 'commonjs' ? exportDefault : (as: string) => `export default ${as}`
-
-	const exportStarStatement =
-		config.module === 'commonjs'
-			? exportStarFrom
-			: (where: string) => `export * from '${where}'`
-
-	return {
-		importStatement,
-		exportDefaultStatement,
-		exportStarStatement,
-	}
 }

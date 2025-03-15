@@ -1,4 +1,5 @@
-import { fs, path } from '.'
+import * as fs from './fs'
+import * as path from './path'
 
 export type HoudiniFrameworkInfo =
 	| {
