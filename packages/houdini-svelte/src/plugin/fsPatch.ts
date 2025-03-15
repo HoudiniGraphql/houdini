@@ -5,11 +5,11 @@ import filesystemPromises, { type FileHandle } from 'node:fs/promises'
 
 import { _config } from '.'
 import type { Framework } from './kit'
+import { plugin_config } from './config'
 import {
 	is_root_layout,
 	is_root_layout_server,
 	is_route_script,
-	plugin_config,
 	resolve_relative,
 } from './kit'
 

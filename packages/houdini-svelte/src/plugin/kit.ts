@@ -4,10 +4,10 @@ import { find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import type * as recast from 'recast'
 
-import type { HoudiniSvelteConfig } from '.'
 import { parseSvelte } from './extract'
 import { extract_load_function } from './extractLoadFunction'
 import type { SvelteTransformPage } from './transforms/types'
+import { plugin_config } from './config'
 
 type Identifier = recast.types.namedTypes.Identifier
 
@@ -365,11 +365,6 @@ export type RouteVisitor = {
 
 type RouteVisitorHandler<_Payload> = (value: _Payload, filepath: string) => Promise<void> | void
 
-export type HoudiniRouteScript = {
-	houdini_load?: graphql.OperationDefinitionNode[]
-	exports: string[]
-}
-
 const routeQueryError = (filepath: string) => ({
 	filepath,
 	message: 'route query error',
@@ -404,31 +399,6 @@ export function store_suffix(config: Config) {
 
 export function store_name({ config, name }: { config: Config; name: string }) {
 	return name + store_suffix(config)
-}
-
-export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
-	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
-
-	return {
-		client: './src/client',
-		defaultRouteBlocking: false,
-		pageQueryFilename: '+page.gql',
-		layoutQueryFilename: '+layout.gql',
-		static: false,
-		forceRunesMode: false,
-		...cfg,
-		customStores: {
-			query: '../runtime/stores/query.QueryStore',
-			mutation: '../runtime/stores/mutation.MutationStore',
-			fragment: '../runtime/stores/fragment.FragmentStore',
-			subscription: '../runtime/stores/subscription.SubscriptionStore',
-			queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
-			queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
-			fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
-			fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
-			...cfg?.customStores,
-		},
-	}
 }
 
 export function store_import({
