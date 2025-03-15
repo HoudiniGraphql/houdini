@@ -16,8 +16,10 @@ import {
 	page_query_path,
 	route_data_path,
 	route_page_path,
-	store_import_path,
 } from '../../kit'
+import {
+	store_import_path
+} from '../../storeConfig'
 import { plugin_config } from '../../config'
 import {
 	houdini_afterLoad_fn,

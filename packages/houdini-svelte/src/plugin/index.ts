@@ -12,6 +12,9 @@ import {
 	store_import_path,
 	store_name,
 	stores_directory,
+} from './storeConfig'
+
+import {
 	resolve_relative,
 	type Framework,
 } from './kit'
