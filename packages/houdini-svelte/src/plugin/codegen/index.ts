@@ -1,7 +1,7 @@
 import type { GenerateHookInput } from 'houdini'
 import { fs } from 'houdini'
 
-import { stores_directory, type_route_dir } from '../kit'
+import { stores_directory, type_route_dir } from '../storeConfig'
 import components from './components'
 import fragmentTypedefs from './fragmentTypedefs'
 import kit from './routes'

@@ -8,7 +8,7 @@ import { test, expect } from 'vitest'
 import runPipeline from '..'
 import '../..'
 import { pipeline_test, test_config } from '../../../test'
-import { stores_directory } from '../../kit'
+import { stores_directory } from '../../storeConfig'
 
 test('generates a query store for every query', async function () {
 	const config = await test_config()

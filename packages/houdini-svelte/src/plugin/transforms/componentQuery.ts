@@ -12,7 +12,8 @@ import type { TransformPage } from 'houdini/vite'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
-import { is_component, store_import_path } from '../kit'
+import { is_component } from '../kit'
+import { store_import_path } from '../storeConfig'
 import { query_variable_fn } from '../naming'
 import type { SvelteTransformPage } from './types'
 

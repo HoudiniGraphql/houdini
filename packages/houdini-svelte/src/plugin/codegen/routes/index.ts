@@ -3,13 +3,16 @@ import type { Config, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
 import type { Framework } from '../../kit'
+import { walk_routes } from '../../kit'
 import {
 	type_route_dir,
 	stores_directory_name,
 	store_suffix,
-	walk_routes,
-	plugin_config,
-} from '../../kit'
+} from '../../storeConfig'
+import {
+	plugin_config
+} from '../../config'
+
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 import { route_params } from '../../routing'
 
