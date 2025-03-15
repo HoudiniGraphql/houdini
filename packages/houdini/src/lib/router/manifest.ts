@@ -1,15 +1,13 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import {
-	path,
-	fs,
-	parseJS,
-	type Config,
-	type TypeWrapper,
-	unwrapType,
-	parse_page_pattern,
-} from '..'
+import * as fs from '../fs'
+import * as path from '../path'
+import { parse_page_pattern } from '../../runtime/router/match'
+import { parseJS } from '../parse'
+import { unwrapType, type TypeWrapper } from '../graphql'
+import type { Config } from '../config'
+
 import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
 import {
 	read_layoutQuery,

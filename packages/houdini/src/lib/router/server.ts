@@ -1,7 +1,8 @@
 import * as graphql from 'graphql'
 import path from 'node:path'
 
-import { fs, routerConventions } from '..'
+import * as fs from '../fs'
+import * as routerConventions from './conventions'
 import type { Config } from '../config'
 import { localApiEndpoint, type ConfigFile } from '../types'
 
