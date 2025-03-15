@@ -6,12 +6,13 @@ import { loadEnv } from 'vite'
 import { artifactData } from './artifactData'
 import generate from './codegen'
 import extract from './extract'
+import { _config, setConfig } from './state'
 import fs_patch from './fsPatch'
 import {
-	resolve_relative,
 	store_import_path,
 	store_name,
 	stores_directory,
+	resolve_relative,
 	type Framework,
 } from './kit'
 import { plugin_config, type HoudiniSvelteConfig } from './config'
@@ -19,8 +20,6 @@ import apply_transforms from './transforms'
 import { validate } from './validate'
 
 let framework: Framework = 'svelte'
-
-export let _config: Config
 
 export const pluginHooks = async (): Promise<PluginHooks> => ({
 	/**
@@ -166,7 +165,7 @@ directive @${config.blockingDisableDirective} on QUERY
 	 */
 
 	async afterLoad({ config: cfg }) {
-		_config = cfg
+		setConfig(cfg)
 		const cfgPlugin = plugin_config(cfg)
 
 		let client_file_exists = false

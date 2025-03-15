@@ -3,7 +3,7 @@ import { fs, path } from 'houdini'
 import filesystem, { Dirent, type PathOrFileDescriptor, type PathLike } from 'node:fs'
 import filesystemPromises, { type FileHandle } from 'node:fs/promises'
 
-import { _config } from '.'
+import { _config } from './state'
 import type { Framework } from './kit'
 import { plugin_config } from './config'
 import {
