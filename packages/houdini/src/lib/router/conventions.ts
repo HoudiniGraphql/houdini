@@ -1,6 +1,6 @@
+import type { Config } from '../config'
 import * as fs from '../fs'
 import * as path from '../path'
-import type { Config } from '../config'
 
 /** The location of the project's router */
 export function router_path(config: Config) {

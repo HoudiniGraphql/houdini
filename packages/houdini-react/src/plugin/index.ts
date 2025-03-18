@@ -16,9 +16,9 @@ import { loadEnv } from 'vite'
 import generate from './codegen'
 import { format_router_manifest } from './codegen/router'
 import { extractDocuments } from './extract'
+import { manifest, setManifest } from './state'
 import { transformFile } from './transform'
 import vite_plugin from './vite'
-import { manifest, setManifest } from './state'
 
 export const hooks: Plugin = async () => ({
 	order: 'core',
@@ -325,4 +325,3 @@ ${
 export default plugin('houdini-react', hooks)
 
 export type HoudiniReactPluginConfig = {}
-

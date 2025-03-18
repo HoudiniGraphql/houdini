@@ -3,15 +3,10 @@ import { fs, path } from 'houdini'
 import filesystem, { Dirent, type PathOrFileDescriptor, type PathLike } from 'node:fs'
 import filesystemPromises, { type FileHandle } from 'node:fs/promises'
 
-import { _config } from './state'
-import type { Framework } from './kit'
 import { plugin_config } from './config'
-import {
-	is_root_layout,
-	is_root_layout_server,
-	is_route_script,
-	resolve_relative,
-} from './kit'
+import type { Framework } from './kit'
+import { is_root_layout, is_root_layout_server, is_route_script, resolve_relative } from './kit'
+import { _config } from './state'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default (getFramework: () => Framework) =>

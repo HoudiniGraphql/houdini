@@ -5,20 +5,12 @@ import { loadEnv } from 'vite'
 
 import { artifactData } from './artifactData'
 import generate from './codegen'
-import extract from './extract'
-import { _config, setConfig } from './state'
-import fs_patch from './fsPatch'
-import {
-	store_import_path,
-	store_name,
-	stores_directory,
-} from './storeConfig'
-
-import {
-	resolve_relative,
-	type Framework,
-} from './kit'
 import { plugin_config, type HoudiniSvelteConfig } from './config'
+import extract from './extract'
+import fs_patch from './fsPatch'
+import { resolve_relative, type Framework } from './kit'
+import { _config, setConfig } from './state'
+import { store_import_path, store_name, stores_directory } from './storeConfig'
 import apply_transforms from './transforms'
 import { validate } from './validate'
 

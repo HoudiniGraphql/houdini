@@ -1,10 +1,10 @@
 import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
 import type { Config } from '../../../lib/config'
-import type { Document } from '../../../lib/types'
-import { HoudiniError } from '../../../lib/error'
 import { houdini_mode } from '../../../lib/constants'
+import { HoudiniError } from '../../../lib/error'
 import * as fs from '../../../lib/fs'
 import * as path from '../../../lib/path'
+import type { Document } from '../../../lib/types'
 
 export function moduleStatments(config: Config) {
 	const importStatement =

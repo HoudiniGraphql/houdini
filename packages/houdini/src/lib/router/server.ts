@@ -1,10 +1,10 @@
 import * as graphql from 'graphql'
 import path from 'node:path'
 
-import * as fs from '../fs'
-import * as routerConventions from './conventions'
 import type { Config } from '../config'
+import * as fs from '../fs'
 import { localApiEndpoint, type ConfigFile } from '../types'
+import * as routerConventions from './conventions'
 
 export function isSecondaryBuild() {
 	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'

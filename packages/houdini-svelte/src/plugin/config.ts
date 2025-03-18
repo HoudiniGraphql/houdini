@@ -60,26 +60,26 @@ export type HoudiniSvelteConfig = {
 }
 
 export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
-    const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
+	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
 
-    return {
-        client: './src/client',
-        defaultRouteBlocking: false,
-        pageQueryFilename: '+page.gql',
-        layoutQueryFilename: '+layout.gql',
-        static: false,
-        forceRunesMode: false,
-        ...cfg,
-        customStores: {
-            query: '../runtime/stores/query.QueryStore',
-            mutation: '../runtime/stores/mutation.MutationStore',
-            fragment: '../runtime/stores/fragment.FragmentStore',
-            subscription: '../runtime/stores/subscription.SubscriptionStore',
-            queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
-            queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
-            fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
-            fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
-            ...cfg?.customStores,
-        },
-    }
+	return {
+		client: './src/client',
+		defaultRouteBlocking: false,
+		pageQueryFilename: '+page.gql',
+		layoutQueryFilename: '+layout.gql',
+		static: false,
+		forceRunesMode: false,
+		...cfg,
+		customStores: {
+			query: '../runtime/stores/query.QueryStore',
+			mutation: '../runtime/stores/mutation.MutationStore',
+			fragment: '../runtime/stores/fragment.FragmentStore',
+			subscription: '../runtime/stores/subscription.SubscriptionStore',
+			queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
+			queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
+			fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
+			fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
+			...cfg?.customStores,
+		},
+	}
 }

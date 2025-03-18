@@ -1,5 +1,3 @@
-import React from 'react'
-
 import type { DocumentStore } from '$houdini/runtime/client'
 import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
 import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
@@ -15,6 +13,7 @@ import type {
 	DocumentArtifact,
 	QueryArtifact,
 } from '$houdini/runtime/lib/types'
+import React from 'react'
 
 import { useClient, useSession, useLocation } from '../routing/hooks'
 

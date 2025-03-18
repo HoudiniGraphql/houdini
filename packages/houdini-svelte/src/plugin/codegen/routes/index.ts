@@ -2,19 +2,12 @@ import type { OperationDefinitionNode } from 'graphql'
 import type { Config, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
+import { plugin_config } from '../../config'
 import type { Framework } from '../../kit'
 import { walk_routes } from '../../kit'
-import {
-	type_route_dir,
-	stores_directory_name,
-	store_suffix,
-} from '../../storeConfig'
-import {
-	plugin_config
-} from '../../config'
-
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_on_error_fn } from '../../naming'
 import { route_params } from '../../routing'
+import { type_route_dir, stores_directory_name, store_suffix } from '../../storeConfig'
 
 export default async function svelteKitGenerator(
 	framework: Framework,

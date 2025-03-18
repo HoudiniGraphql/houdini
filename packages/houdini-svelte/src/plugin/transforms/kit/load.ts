@@ -6,6 +6,7 @@ import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
+import { plugin_config } from '../../config'
 import { parseSvelte } from '../../extract'
 import { extract_load_function, type HoudiniRouteScript } from '../../extractLoadFunction'
 import {
@@ -18,10 +19,6 @@ import {
 	route_page_path,
 } from '../../kit'
 import {
-	store_import_path
-} from '../../storeConfig'
-import { plugin_config } from '../../config'
-import {
 	houdini_afterLoad_fn,
 	houdini_before_load_fn,
 	houdini_on_error_fn,
@@ -29,6 +26,7 @@ import {
 } from '../../naming'
 import type { RouteParam } from '../../routing'
 import { route_params } from '../../routing'
+import { store_import_path } from '../../storeConfig'
 import type { LoadTarget } from '../componentQuery'
 import { find_inline_queries } from '../componentQuery'
 import type { SvelteTransformPage } from '../types'

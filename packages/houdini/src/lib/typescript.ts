@@ -2,11 +2,11 @@ import type { StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { ensureImports } from './imports'
 import type { Config } from './config'
 import * as fs from './fs'
-import * as path from './path'
 import { unwrapType, TypeWrapper } from './graphql'
+import { ensureImports } from './imports'
+import * as path from './path'
 
 const AST = recast.types.builders
 
