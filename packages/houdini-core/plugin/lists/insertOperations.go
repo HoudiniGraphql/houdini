@@ -203,7 +203,6 @@ func InsertOperationDocuments[PluginConfig any](
 
 		// if the list isn't named we dont need to generate  delete directive
 		if listName != "" {
-
 			// we also need to insert a remove fragment for each type that has a list
 			db.ExecStatement(insertDocument, map[string]any{
 				"name":           fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove),

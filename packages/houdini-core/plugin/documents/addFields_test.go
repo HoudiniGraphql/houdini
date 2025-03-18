@@ -142,7 +142,6 @@ func TestAddFields(t *testing.T) {
 				},
 			},
 			{
-
 				Name: "adds custom id fields to selection sets of objects with them",
 				Pass: true,
 				Input: []string{`
@@ -186,6 +185,27 @@ func TestAddFields(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			{
+				Name: "Adds fields to root of fragments",
+				Pass: true,
+				Input: []string{
+					`
+          fragment UserInfo on User {
+            firstName
+          }
+          `,
+				},
+
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+            fragment UserInfo on User {
+              __typename
+              id
+              firstName
+            }
+          `),
 				},
 			},
 			{

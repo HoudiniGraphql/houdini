@@ -55,7 +55,12 @@ func (w *Walker) AddExclude(pattern string) error {
 // for each file, it splits the relative path into tokens and
 // calls onFile if the path matches the include tree and does not match the exclude tree.
 // if a directory matches the exclude tree, its subtree is skipped.
-func (w *Walker) Walk(ctx context.Context, fs afero.Fs, root string, onFile func(string) error) error {
+func (w *Walker) Walk(
+	ctx context.Context,
+	fs afero.Fs,
+	root string,
+	onFile func(string) error,
+) error {
 	// create a cancellable context to cancel processing on error
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

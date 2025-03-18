@@ -4,13 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"code.houdinigraphql.com/plugins"
 	"zombiezen.com/go/sqlite/sqlitex"
+
+	"code.houdinigraphql.com/plugins"
 )
 
 // AddDocumentFields adds necessary documents to the selections of the user's project including
 // keys and __typename for every object
-func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
+func AddDocumentFields[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return plugins.WrapError(err)
@@ -29,7 +33,7 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 	// as parents, we can look at the config and type_config tables to determine which keys
 	// need to be added
 	keysToInsert, err := conn.Prepare(`
-		WITH default_config AS (
+	WITH default_config AS (
 			SELECT default_keys
 			FROM config
 			LIMIT 1
@@ -41,20 +45,22 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 				sr.document AS doc_id,
 				CASE
 					WHEN s.kind = 'inline_fragment' THEN s.field_name
-					ELSE tf.type
+ 					WHEN documents.kind = 'fragment' and sr.parent_id is null THEN documents.type_condition
+ 					ELSE tf.type
 				END AS parent_type
 			FROM selection_refs sr
-			JOIN selections s ON sr.parent_id = s.id
+			LEFT JOIN selections s ON sr.parent_id = s.id
+			JOIN documents on sr."document" = documents.id
 			LEFT JOIN type_fields tf ON s.type = tf.id
 			JOIN types t ON t.name = (
 				CASE
 					WHEN s.kind = 'inline_fragment' THEN s.field_name
+					WHEN documents.kind = 'fragment' and sr.parent_id is null THEN documents.type_condition
 					ELSE tf.type
 				END
 			)
 			JOIN documents d ON sr.document = d.id
 			JOIN raw_documents rd ON d.raw_document = rd.id
-			WHERE sr.parent_id IS NOT NULL
 			AND t.operation = false
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		),
@@ -94,12 +100,16 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 	defer keysToInsert.Finalize()
 
 	// we need statments to insert selections and selection refs
-	insertSelection, err := conn.Prepare("INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)")
+	insertSelection, err := conn.Prepare(
+		"INSERT INTO selections (field_name, alias, kind, type) VALUES ($field_name, $alias, $kind, $type)",
+	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer insertSelection.Finalize()
-	insertSelectionRef, err := conn.Prepare("INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)")
+	insertSelectionRef, err := conn.Prepare(
+		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)",
+	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
@@ -111,8 +121,12 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 	err = db.StepStatement(ctx, keysToInsert, func() {
 		field := keysToInsert.ColumnText(0)
 		parentType := keysToInsert.ColumnText(1)
-		selectionID := keysToInsert.ColumnInt64(2)
 		docID := keysToInsert.ColumnInt64(3)
+
+		var selectionID any
+		if !keysToInsert.ColumnIsNull(2) {
+			selectionID = keysToInsert.ColumnInt64(2)
+		}
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
@@ -161,7 +175,6 @@ func AddDocumentFields[PluginConfig any](ctx context.Context, db plugins.Databas
 		WHERE connection = true
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`)
-
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}

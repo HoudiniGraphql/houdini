@@ -312,6 +312,7 @@ CREATE TABLE document_directive_arguments (
 );
 
 CREATE TABLE selection_refs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
     path_index INTEGER NOT NULL,
@@ -353,12 +354,16 @@ CREATE TABLE argument_values (
 );
 
 CREATE TABLE argument_value_children (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     parent INTEGER NOT NULL,
     value INTEGER NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
+    document INTEGER NOT NULL,
 
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (parent) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
 );
 `
@@ -384,6 +389,7 @@ type ExpectedOperationVariable struct {
 }
 
 type ExpectedArgument struct {
+	ID    int64
 	Name  string
 	Value *ExpectedArgumentValue
 }

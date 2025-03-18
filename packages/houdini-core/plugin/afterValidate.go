@@ -5,6 +5,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
+	fragmentarguments "code.houdinigraphql.com/packages/houdini-core/plugin/fragmentArguments"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
 )
 
@@ -31,6 +32,12 @@ func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 
 	// transform any references to componentFields to their appropriate fragment
 	err = componentFields.TransformFields(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
+	// and finally, realize any fragment any arguments
+	err = fragmentarguments.Transform(ctx, p.DB)
 	if err != nil {
 		return err
 	}

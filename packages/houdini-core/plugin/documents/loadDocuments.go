@@ -6,17 +6,21 @@ import (
 	"runtime"
 	"strings"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
-	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vektah/gqlparser/v2/parser"
 	"golang.org/x/sync/errgroup"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
+
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
+	"code.houdinigraphql.com/plugins"
 )
 
-func LoadDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
+func LoadDocuments[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+) error {
 	// we want to process the documents in parallel so we'll pull down from the database
 	// in one goroutine and then pass it a pool of workers who will parse the documents
 	// and insert them into the database
@@ -232,7 +236,10 @@ func LoadPendingQuery[PluginConfig any](
 			// so make sure there is only one child and its an inline fragment
 			if len(operation.SelectionSet) != 1 {
 				return &plugins.Error{
-					Message: fmt.Sprintf("componentFields must have one child found %d", len(operation.SelectionSet)),
+					Message: fmt.Sprintf(
+						"componentFields must have one child found %d",
+						len(operation.SelectionSet),
+					),
 					Locations: []*plugins.ErrorLocation{
 						{
 							Filepath: query.Filepath,
@@ -408,7 +415,18 @@ func LoadPendingQuery[PluginConfig any](
 			// if there's a default value, bind it (we'll bind the rest later)
 			var defaultValue interface{}
 			if variable.DefaultValue != nil {
-				valueID, argErr := processArgumentValue(ctx, db, conn, query, operationID, variable.DefaultValue, statements, typeCache.TypeFields, variableType, typeModifiers)
+				valueID, argErr := processArgumentValue(
+					ctx,
+					db,
+					conn,
+					query,
+					operationID,
+					variable.DefaultValue,
+					statements,
+					typeCache.TypeFields,
+					variableType,
+					typeModifiers,
+				)
 				if argErr != nil {
 					return &plugins.Error{
 						Message: "could not process variable default value",
@@ -478,7 +496,18 @@ func LoadPendingQuery[PluginConfig any](
 					argTypeModifiers := argTypeWithModifiers.Modifiers
 
 					// load the nested argument structure
-					argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
+					argValueID, err := processArgumentValue(
+						ctx,
+						db,
+						conn,
+						query,
+						operationID,
+						arg.Value,
+						statements,
+						typeCache.TypeFields,
+						argType,
+						argTypeModifiers,
+					)
 					if err != nil {
 						return &plugins.Error{
 							Message: "could not process argument value: " + err.Error(),
@@ -571,7 +600,18 @@ func LoadPendingQuery[PluginConfig any](
 				argTypeModifiers := argTypeWithModifiers.Modifiers
 
 				// load the nested argument structure
-				argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
+				argValueID, err := processArgumentValue(
+					ctx,
+					db,
+					conn,
+					query,
+					operationID,
+					arg.Value,
+					statements,
+					typeCache.TypeFields,
+					argType,
+					argTypeModifiers,
+				)
 				if err != nil {
 					return &plugins.Error{
 						Message: "could not process argument value: " + err.Error(),
@@ -683,7 +723,18 @@ func LoadPendingQuery[PluginConfig any](
 				argTypeModifiers := argTypeWithModifiers.Modifiers
 
 				// load the nested argument structure
-				argValueID, err := processArgumentValue(ctx, db, conn, query, fragmentID, arg.Value, statements, typeCache.TypeFields, argType, argTypeModifiers)
+				argValueID, err := processArgumentValue(
+					ctx,
+					db,
+					conn,
+					query,
+					fragmentID,
+					arg.Value,
+					statements,
+					typeCache.TypeFields,
+					argType,
+					argTypeModifiers,
+				)
 				if err != nil {
 					return &plugins.Error{
 						Message: "could not process argument value: " + err.Error(),
@@ -1131,7 +1182,8 @@ func processDirectives[PluginConfig any](
 			dArgType, ok := directiveArguments[fmt.Sprintf("%s.%s", directive.Name, dArg.Name)]
 			if !ok {
 				// if we are processing with or arguments, then the top level of the directive can accept any argument
-				if directive.Name == schema.WithDirective || directive.Name == schema.ArgumentsDirective {
+				if directive.Name == schema.WithDirective ||
+					directive.Name == schema.ArgumentsDirective {
 					dArgType = TypeWithModifiers{
 						Type:      "ArgumentSpecification",
 						Modifiers: "!",
@@ -1153,7 +1205,18 @@ func processDirectives[PluginConfig any](
 			argType := dArgType.Type
 			argTypeModifiers := dArgType.Modifiers
 
-			argValueID, err := processArgumentValue(ctx, db, conn, query, operationID, dArg.Value, statements, typeFields, argType, argTypeModifiers)
+			argValueID, err := processArgumentValue(
+				ctx,
+				db,
+				conn,
+				query,
+				operationID,
+				dArg.Value,
+				statements,
+				typeFields,
+				argType,
+				argTypeModifiers,
+			)
 			if err != nil {
 				return &plugins.Error{
 					Message: "could not process directive argument value",
@@ -1246,7 +1309,9 @@ func processArgumentValue[PluginConfig any](
 	case ast.ObjectValue:
 		valueKind = "Object"
 	default:
-		return 0, &plugins.Error{Message: fmt.Sprintf("unsupported argument value kind: %d", value.Kind)}
+		return 0, &plugins.Error{
+			Message: fmt.Sprintf("unsupported argument value kind: %d", value.Kind),
+		}
 	}
 
 	// for scalars, we can just use the expected type and modifiers directly
@@ -1262,7 +1327,8 @@ func processArgumentValue[PluginConfig any](
 				listModifier = "!"
 				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
 			}
-			if expectedTypeModifiers != "" && expectedTypeModifiers[len(expectedTypeModifiers)-1] == ']' {
+			if expectedTypeModifiers != "" &&
+				expectedTypeModifiers[len(expectedTypeModifiers)-1] == ']' {
 				listModifier = "]" + listModifier
 				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
 			}
@@ -1303,7 +1369,8 @@ func processArgumentValue[PluginConfig any](
 			if valueKind == "Object" {
 				childTypes, ok := typeFields[fmt.Sprintf("%s.%s", expectedType, child.Name)]
 				// if the type of the value is an argument specification then the default value needs to be trusted
-				if !ok && expectedType == schema.ArgumentSpecificationType && child.Name == "defaultValue" {
+				if !ok && expectedType == schema.ArgumentSpecificationType &&
+					child.Name == "defaultValue" {
 					childModifiers = "!"
 					switch child.Value.Kind {
 					case ast.IntValue:
@@ -1317,7 +1384,12 @@ func processArgumentValue[PluginConfig any](
 					case ast.BooleanValue:
 						childType = "Boolean"
 					default:
-						return 0, &plugins.Error{Message: fmt.Sprintf("unsupported value kind for defaultValue: %d", value.Kind)}
+						return 0, &plugins.Error{
+							Message: fmt.Sprintf(
+								"unsupported value kind for defaultValue: %d",
+								value.Kind,
+							),
+						}
 					}
 				} else {
 					childType = childTypes.Type
@@ -1373,11 +1445,12 @@ func processArgumentValue[PluginConfig any](
 			execErr := db.ExecStatement(
 				statements.InsertArgumentValueChild,
 				map[string]any{
-					"name":   nameParam,
-					"parent": parentID,
-					"value":  childID,
-					"row":    int64(line),
-					"column": int64(column),
+					"name":     nameParam,
+					"parent":   parentID,
+					"value":    childID,
+					"row":      int64(line),
+					"column":   int64(column),
+					"document": operationID,
 				})
 			if execErr != nil {
 				return 0, plugins.WrapError(execErr)
@@ -1399,7 +1472,10 @@ type TypeCache struct {
 	DirectiveArguments map[string]TypeWithModifiers
 }
 
-func LoadTypeCache[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) (TypeCache, error) {
+func LoadTypeCache[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+) (TypeCache, error) {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return TypeCache{}, err
@@ -1452,7 +1528,9 @@ func LoadTypeCache[PluginConfig any](ctx context.Context, db plugins.DatabasePoo
 	}
 
 	// we need type information for directive arguments
-	directiveArgumentsQuery, err := conn.Prepare(`SELECT parent, name, type, type_modifiers FROM directive_arguments`)
+	directiveArgumentsQuery, err := conn.Prepare(
+		`SELECT parent, name, type, type_modifiers FROM directive_arguments`,
+	)
 	if err != nil {
 		return TypeCache{}, err
 	}

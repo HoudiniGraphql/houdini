@@ -1,4 +1,4 @@
-package fragmentarguments
+package fragmentArguments
 
 import (
 	"context"
@@ -6,12 +6,17 @@ import (
 	"fmt"
 	"strings"
 
+	"zombiezen.com/go/sqlite"
+
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite"
 )
 
-func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateFragmentArgumentsMissingWith[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query finds fragment spreads (in selections) that reference a fragment document (documents with kind = 'fragment')
 	// that declares at least one required argument (document_variables with type_modifiers ending in '!'),
 	// but the fragment spread does not have any @with arguments.
@@ -44,8 +49,12 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 		requiredArgs := stmt.ColumnText(6)
 		// withArgCount is guaranteed to be 0 because of the HAVING clause.
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Fragment spread referencing fragment %q requires a @with directive with at least one argument; the fragment declares required arguments: %s", fragmentName, requiredArgs),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"Fragment spread referencing fragment %q requires a @with directive with at least one argument; the fragment declares required arguments: %s",
+				fragmentName,
+				requiredArgs,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
 			},
@@ -56,7 +65,11 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](ctx context.Context,
 	}
 }
 
-func ValidateFragmentArgumentValues[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateFragmentArgumentValues[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// --- STEP 1. Build a flat map of argument values for the 'with' directive ---
 	flatNodes := make(map[int]*DirectiveArgValueNode)
 	flatTreeQuery := `

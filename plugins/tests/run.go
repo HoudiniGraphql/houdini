@@ -6,10 +6,11 @@ import (
 	"path"
 	"testing"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/plugins"
 )
 
 type Table struct {
@@ -34,7 +35,7 @@ func RunTable(t *testing.T, table Table) {
 			// wire up the plugin
 			err := plugin.AfterExtract(context.Background())
 			if err != nil {
-				require.False(t, test.Pass)
+				require.False(t, test.Pass, err.Error())
 				return
 			}
 
@@ -107,7 +108,12 @@ func RunTable(t *testing.T, table Table) {
 			}
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(table.Schema), 0644)
+			afero.WriteFile(
+				plugin.Fs,
+				path.Join("/project", "schema.graphql"),
+				[]byte(table.Schema),
+				0644,
+			)
 
 			// wire up the plugin
 			err = plugin.Schema(context.Background())
@@ -117,7 +123,9 @@ func RunTable(t *testing.T, table Table) {
 			}
 
 			// insert the raw document (assume id becomes 1).
-			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values ($content, 'foo')")
+			insertRaw, err := conn.Prepare(
+				"insert into raw_documents (content, filepath) values ($content, 'foo')",
+			)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
@@ -129,23 +137,36 @@ func RunTable(t *testing.T, table Table) {
 			}
 
 			// write the relevant config values
-			insertConfig, err := conn.Prepare(`insert into config (default_keys, include, exclude, schema_path) values ($keys, '*', '*', '*')`)
+			insertConfig, err := conn.Prepare(
+				`insert into config (default_keys, include, exclude, schema_path) values ($keys, '*', '*', '*')`,
+			)
 			require.Nil(t, err)
 			defer insertConfig.Finalize()
 			defaultKeys, _ := json.Marshal(projectConfig.DefaultKeys)
 			err = db.ExecStatement(insertConfig, map[string]any{"keys": string(defaultKeys)})
 			require.Nil(t, err)
 
-			insertCustomKeys, err := conn.Prepare(`insert into type_configs (name, keys, resolve_query) values ($name, $keys, $resolve_query)`)
+			insertCustomKeys, err := conn.Prepare(
+				`insert into type_configs (name, keys, resolve_query) values ($name, $keys, $resolve_query)`,
+			)
 			require.Nil(t, err)
 			defer insertCustomKeys.Finalize()
 			for typ, config := range projectConfig.TypeConfig {
 				keys, _ := json.Marshal(config.Keys)
-				err = db.ExecStatement(insertCustomKeys, map[string]any{"name": typ, "keys": string(keys), "resolve_query": config.ResolveQuery})
+				err = db.ExecStatement(
+					insertCustomKeys,
+					map[string]any{
+						"name":          typ,
+						"keys":          string(keys),
+						"resolve_query": config.ResolveQuery,
+					},
+				)
 				require.Nil(t, err)
 			}
 
-			insertScalarConfig, err := conn.Prepare(`insert into scalar_config (name, "type", input_types) values ($name, $type, $input_types)`)
+			insertScalarConfig, err := conn.Prepare(
+				`insert into scalar_config (name, "type", input_types) values ($name, $type, $input_types)`,
+			)
 			require.Nil(t, err)
 			defer insertScalarConfig.Finalize()
 			for typ, config := range projectConfig.Scalars {

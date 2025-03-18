@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
-	fragmentarguments "code.houdinigraphql.com/packages/houdini-core/plugin/fragmentArguments"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/fragmentArguments"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
 	"code.houdinigraphql.com/plugins"
 )
@@ -51,8 +51,8 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		lists.ValidatePaginateTypeCondition[PluginConfig],
 		lists.ValidateSinglePaginateDirective[PluginConfig],
 		lists.ValidateParentID[PluginConfig],
-		fragmentarguments.ValidateFragmentArgumentValues[PluginConfig],
-		fragmentarguments.ValidateFragmentArgumentsMissingWith[PluginConfig],
+		fragmentArguments.ValidateFragmentArgumentValues[PluginConfig],
+		fragmentArguments.ValidateFragmentArgumentsMissingWith[PluginConfig],
 	}
 
 	// run all of the rules concurrently
