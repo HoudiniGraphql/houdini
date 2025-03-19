@@ -1,5 +1,5 @@
 import type { Config } from 'houdini'
-import path from 'path'
+import path from 'node:path'
 
 export function stores_directory_name() {
 	return 'stores'

@@ -1,11 +1,9 @@
 import type { Cache } from '$houdini/runtime/cache/cache'
-import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
+import type { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
 import configFile from '$houdini/runtime/imports/config'
 import type { LRUCache } from '$houdini/runtime/lib/lru'
-import type { QueryArtifact } from '$houdini/runtime/lib/types'
-import type { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
-import React from 'react'
-import { useContext } from 'react'
+import type { GraphQLObject, GraphQLVariables, QueryArtifact } from '$houdini/runtime/lib/types'
+import { useContext, default as React } from 'react'
 
 import type { SuspenseCache } from './cache'
 
