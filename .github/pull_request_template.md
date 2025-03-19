@@ -6,5 +6,5 @@ Fixes #TICKET
 - [ ] Add a message that clearly describes the fix
 - [ ] If applicable, add a test that would fail without this fix
 - [ ] Make sure the unit and integration tests pass locally with `pnpm run tests` and `cd integration && pnpm run tests`
+- [ ] Ensure your code is formatted to conform to standard style with `pnpm run format:write` (or `format:check` if you want to preview changes) and linted `pnpm run lint`
 - [ ] Includes a changeset if your fix affects the user with `pnpm changeset`
-
