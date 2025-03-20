@@ -1,7 +1,7 @@
 import type { GenerateHookInput } from 'houdini'
 import { cleanupFiles, fs, ArtifactKind, path } from 'houdini'
 
-import { stores_directory } from '../../kit'
+import { stores_directory } from '../../storeConfig'
 import { fragmentStore } from './fragment'
 import { mutationStore } from './mutation'
 import { queryStore } from './query'

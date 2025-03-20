@@ -4,7 +4,7 @@ import type { Config, Maybe, Script } from 'houdini'
 import { find_graphql, parseJS } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
-import { plugin_config } from './kit'
+import { plugin_config } from './config'
 
 export default async function ({
 	config,

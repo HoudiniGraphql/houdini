@@ -1,6 +1,31 @@
-import { moduleStatments } from '.'
-import type { Config, Document } from '../../../lib'
-import { fs, HoudiniError, path, houdini_mode } from '../../../lib'
+import { exportDefault, exportStarFrom, importDefaultFrom } from '../../../codegen/utils'
+import type { Config } from '../../../lib/config'
+import { houdini_mode } from '../../../lib/constants'
+import { HoudiniError } from '../../../lib/error'
+import * as fs from '../../../lib/fs'
+import * as path from '../../../lib/path'
+import type { Document } from '../../../lib/types'
+
+export function moduleStatments(config: Config) {
+	const importStatement =
+		config.module === 'commonjs'
+			? importDefaultFrom
+			: (where: string, as: string) => `import ${as} from '${where}'`
+
+	const exportDefaultStatement =
+		config.module === 'commonjs' ? exportDefault : (as: string) => `export default ${as}`
+
+	const exportStarStatement =
+		config.module === 'commonjs'
+			? exportStarFrom
+			: (where: string) => `export * from '${where}'`
+
+	return {
+		importStatement,
+		exportDefaultStatement,
+		exportStarStatement,
+	}
+}
 
 export async function generatePluginRuntimes({
 	config,

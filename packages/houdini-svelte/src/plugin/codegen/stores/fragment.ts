@@ -1,8 +1,8 @@
 import type { Document, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
-import type { HoudiniSvelteConfig } from '../..'
-import { stores_directory, store_name } from '../../kit'
+import type { HoudiniSvelteConfig } from '../../config'
+import { stores_directory, store_name } from '../../storeConfig'
 import { store_import } from './custom'
 
 export async function fragmentStore({ config, pluginRoot }: GenerateHookInput, doc: Document) {

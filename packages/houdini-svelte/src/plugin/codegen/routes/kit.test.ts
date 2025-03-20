@@ -3,7 +3,7 @@ import { testConfig } from 'houdini/test'
 import { test, expect } from 'vitest'
 
 import generate from '..'
-import { type_route_dir } from '../../kit'
+import { type_route_dir } from '../../storeConfig'
 
 const config = testConfig()
 const pluginRoot = config.pluginDirectory('test-plugin')

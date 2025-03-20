@@ -2,7 +2,7 @@ import type { DocumentArtifact, GraphQLVariables, QueryResult } from '$houdini/l
 import type { DocumentStore, SendParams } from '$houdini/runtime/client'
 import type { GraphQLObject } from 'houdini'
 
-import { useSession } from '../routing/Router'
+import { useSession } from '../routing/hooks'
 import useDeepCompareEffect from './useDeepCompareEffect'
 import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
 

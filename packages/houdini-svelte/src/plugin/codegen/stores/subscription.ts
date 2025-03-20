@@ -1,7 +1,7 @@
 import type { Document, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
-import { stores_directory, store_name } from '../../kit'
+import { stores_directory, store_name } from '../../storeConfig'
 import { store_import } from './custom'
 
 export async function subscriptionStore({ config, pluginRoot }: GenerateHookInput, doc: Document) {
