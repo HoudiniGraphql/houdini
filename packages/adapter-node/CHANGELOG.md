@@ -1,5 +1,12 @@
 # houdini-adapter-node
 
+## 1.3.7
+
+### Patch Changes
+
+-   Updated dependencies [[`09bef6c9`](https://github.com/HoudiniGraphql/houdini/commit/09bef6c915a7143ce9895447303f942b93e89dbf)]:
+    -   houdini@1.5.4
+
 ## 1.3.6
 
 ### Patch Changes
