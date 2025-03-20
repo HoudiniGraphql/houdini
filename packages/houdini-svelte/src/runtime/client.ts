@@ -1,4 +1,6 @@
 import type { HoudiniClient } from '$houdini/runtime/client'
+// @ts-ignore
+import userClient from 'HOUDINI_CLIENT_PATH'
 
 let client: HoudiniClient | null = null
 
@@ -9,7 +11,7 @@ export async function initClient(): Promise<HoudiniClient> {
 	}
 
 	// @ts-ignore
-	client = (await import('HOUDINI_CLIENT_PATH')).default
+	client = userClient
 	return client!
 }
 
