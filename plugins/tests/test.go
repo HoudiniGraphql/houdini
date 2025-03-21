@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"text/tabwriter"
+	"unicode"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -456,4 +457,38 @@ func printColumns(columnA string, columnB string) string {
 	w.Flush()
 
 	return buf.String()
+}
+
+func Dedent(input string) string {
+	lines := strings.Split(input, "\n")
+	var baseline string
+
+	// Find the first non-empty line and record its leading whitespace.
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		i := 0
+		for i < len(line) {
+			if !unicode.IsSpace(rune(line[i])) {
+				break
+			}
+			i++
+		}
+		baseline = line[:i]
+		break
+	}
+
+	// If no baseline is found, return the original input.
+	if baseline == "" {
+		return input
+	}
+
+	// Remove the baseline indentation from each line (if present).
+	for i, line := range lines {
+		if strings.HasPrefix(line, baseline) {
+			lines[i] = line[len(baseline):]
+		}
+	}
+	return strings.TrimSpace(strings.Join(lines, "\n"))
 }

@@ -25,6 +25,7 @@ type Test struct {
 	Pass          bool
 	Input         []string
 	Expected      []ExpectedDocument
+	Extra         map[string]any
 	ProjectConfig func(config *plugins.ProjectConfig)
 }
 
