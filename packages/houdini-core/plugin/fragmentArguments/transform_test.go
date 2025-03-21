@@ -22,6 +22,49 @@ func TestFragmentArgumentTransform(t *testing.T) {
     `,
 		Tests: []tests.Test{
 			{
+				Name: "Threads query arguments onto fragment",
+				Pass: true,
+				Input: []string{
+					`
+          query AllUsers($name: String) {
+            user { 
+              ...UserInfo @with(name: $name)
+            }
+          }
+          `,
+					`
+            fragment UserInfo on User
+              @arguments(name: {type: "String!"} ) {
+                  friends(name: $name) {
+                      firstName
+                  }
+            }
+          `,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+            query AllUsers($name: String)  {
+              user { 
+                id
+                __typename
+                ...UserInfo_4E9dx0 @with(name: $name)
+              }
+            }
+          `),
+					tests.ExpectedDoc(`
+            fragment UserInfo_4E9dx0 on User {
+              friends(name: $name) {
+                firstName
+                id
+                __typename
+              }
+              id
+              __typename
+            }
+          `),
+				},
+			},
+			{
 				Name: "Passes argument values to generated fragments",
 				Pass: true,
 				Input: []string{

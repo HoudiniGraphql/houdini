@@ -18,6 +18,24 @@ func WrapError(err error) *Error {
 	}
 }
 
+func WrapFilepathError(filepath string, err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	if e, ok := err.(*Error); ok {
+		return e
+	}
+	return &Error{
+		Locations: []*ErrorLocation{
+			{
+				Filepath: filepath,
+			},
+		},
+		Message: err.Error(),
+	}
+}
+
 type Error struct {
 	Message   string           `json:"message"`
 	Detail    string           `json:"detail"`

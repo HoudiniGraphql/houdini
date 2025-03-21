@@ -38,11 +38,15 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 	querySearch, err := conn.Prepare(`
     SELECT 
       documents.id,
+      raw_documents.filepath,
       CASE 
       	WHEN document_variables.name is null THEN null 
       	ELSE 
           json_group_array(
-              document_variables."name"
+          	json_object(
+              'name', document_variables."name",
+              'value', document_variables.default_value
+          	)
           )
  	     END as scope
     FROM documents
@@ -113,9 +117,17 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 			}
 		}()
 	}
+	variableRefSearch, err := conn.Prepare(` 
+    SELECT * from argument_values WHERE kind = 'Variable' AND raw = $variable AND document = $document LIMIT 1
+  `)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return errors.New(errs.Error())
+	}
 
 	// walk through every document and start to transform
 	err = db.StepStatement(ctx, querySearch, func() {
+		filepath := querySearch.GetText("filepath")
 		doc := docWithScope{
 			DocID: querySearch.GetInt64("id"),
 			Scope: map[string]int64{},
@@ -130,12 +142,19 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 		if scopeStr != "" {
 			err = json.Unmarshal([]byte(scopeStr), &scopeEntries)
 			if err != nil {
-				errs.Append(plugins.WrapError(err))
+				errs.Append(plugins.WrapFilepathError(filepath, err))
 				return
 			}
 		}
 		for _, entry := range scopeEntries {
-			doc.Scope[entry.Name] = entry.Value
+			// we need to find the variable value
+			err = db.BindStatement(variableRefSearch, map[string]any{
+				"document": doc.DocID,
+				"variable": entry.Name,
+			})
+			db.StepStatement(ctx, variableRefSearch, func() {
+				doc.Scope[entry.Name] = variableRefSearch.GetInt64("id")
+			})
 		}
 
 		docs <- doc
