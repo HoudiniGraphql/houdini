@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import minimatch from 'minimatch'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -22,13 +23,67 @@ let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
 let devServer = false
 
-export default function Plugin(opts: PluginConfig = {}): VitePlugin {
+type WatchSchemaType = { list: string[] }
+
+async function shouldReactToFileChange(
+	filepath: string,
+	opts: PluginConfig,
+	watchSchemaListref: WatchSchemaType
+): Promise<boolean> {
+	const config = await getConfig(opts)
+
+	// we need to watch some specific files
+	if (config.localSchema) {
+		const toWatch = watchSchemaListref.list
+		if (toWatch.includes(filepath)) {
+			// if it's a schema change, let's reload the config
+			await getConfig({ ...opts, forceReload: true })
+			return true
+		}
+	} else {
+		const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
+		if (minimatch(filepath, schemaPath)) {
+			// if it's a schema change, let's reload the config
+			await getConfig({ ...opts, forceReload: true })
+			return true
+		}
+	}
+
+	return config.includeFile(filepath, { root: process.cwd() })
+}
+
+export default function Plugin(
+	opts: PluginConfig = {},
+	watchSchemaListref: WatchSchemaType
+): VitePlugin {
 	return {
 		name: 'houdini',
 
 		// houdini will always act as a "meta framework" and process the user's code before it
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
+
+		async hotUpdate({ file, server }) {
+			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
+			if (!shouldReact) {
+				return []
+			}
+
+			// load the config file
+			const config = await getConfig(opts)
+			if (config.localSchema) {
+				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
+					.default as graphql.GraphQLSchema
+				// reload the schema
+				// config.schema = await loadLocalSchema(config)
+			}
+
+			// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
+			config.pluginMode = true
+
+			// generate the runtime
+			await generate(config)
+		},
 
 		// add watch-and-run to their vite config
 		async config(userConfig, env) {
