@@ -95,20 +95,20 @@ export class BaseStore<
 	#subscriberCount = 0
 
 	setup(init: boolean = true) {
-    if (this.#unsubscribe) {
-      return
-    }
+		if (this.#unsubscribe) {
+			return
+		}
 
-    this.#unsubscribe = this.observer.subscribe((value) => {
-      this.#store.set(value)
-    })
+		this.#unsubscribe = this.observer.subscribe((value) => {
+			this.#store.set(value)
+		})
 
-    // only initialize when told to
-    if (init && this.#params.initialize) {
-      return this.observer.send({
-        setup: true,
-        variables: get(this.observer).variables,
-      })
-    }
+		// only initialize when told to
+		if (init && this.#params.initialize) {
+			return this.observer.send({
+				setup: true,
+				variables: get(this.observer).variables,
+			})
+		}
 	}
 }
