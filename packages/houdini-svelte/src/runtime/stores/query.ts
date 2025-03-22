@@ -16,7 +16,7 @@ import { get } from 'svelte/store'
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import type { HoudiniSvelteConfig } from '../../plugin/config'
 import { clientStarted, isBrowser } from '../adapter'
-import { initClient } from '../client'
+import { getClient } from '../client'
 import { getSession } from '../session'
 import type {
 	ClientFetchParams,
@@ -66,7 +66,7 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const client = await initClient()
+		const client = getClient()
 
 		this.setup(false)
 

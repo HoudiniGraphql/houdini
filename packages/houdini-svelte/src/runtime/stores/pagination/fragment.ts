@@ -16,7 +16,7 @@ import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
-import { getClient, initClient } from '../../client'
+import { getClient } from '../../client'
 import { getSession } from '../../session'
 import type { OffsetFragmentStoreInstance } from '../../types'
 import { FragmentStore } from '../fragment'
@@ -142,8 +142,6 @@ export class FragmentStoreCursor<
 			getVariables,
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {
-				await initClient()
-
 				return observer.send({
 					session: await getSession(),
 					...args,
@@ -158,8 +156,6 @@ export class FragmentStoreCursor<
 				})
 			},
 			fetch: async (args) => {
-				await initClient()
-
 				return await observer.send({
 					session: await getSession(),
 					...args,
@@ -215,7 +211,6 @@ export class FragmentStoreOffset<
 				})
 			},
 			fetchUpdate: async (args) => {
-				await initClient()
 				return paginationStore.send({
 					session: await getSession(),
 					...args,

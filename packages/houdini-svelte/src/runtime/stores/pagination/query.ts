@@ -12,7 +12,7 @@ import type {
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 
-import { getClient, initClient } from '../../client'
+import { getClient } from '../../client'
 import { getSession } from '../../session'
 import type {
 	ClientFetchParams,
@@ -47,7 +47,6 @@ export class QueryStoreCursor<
 		}
 
 		// initialize the client before we compute the handlers
-		await initClient()
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
@@ -160,8 +159,6 @@ export class QueryStoreOffset<
 		if (this.#_handlers) {
 			return this.#_handlers
 		}
-		// initialize the client before we compute the handlers
-		await initClient()
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
@@ -175,7 +172,6 @@ export class QueryStoreOffset<
 			getVariables: () => get(this.observer).variables!,
 			getSession: getSession,
 			fetchUpdate: async (args) => {
-				await initClient()
 				return paginationObserver.send({
 					...args,
 					variables: {
