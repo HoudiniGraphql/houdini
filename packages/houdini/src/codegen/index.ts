@@ -7,20 +7,32 @@ import * as generators from './generators'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
+interface ArtifactStats {
+	total: string[]
+	changed: string[]
+	new: string[]
+	deleted: string[]
+	hashSize: number[]
+	querySize: number[]
+}
+
 // the main entry point of the compile script
-export default async function compile(config: Config) {
+export default async function compile(config: Config): Promise<ArtifactStats | undefined> {
 	// grab the graphql documents
 	const documents = await collectDocuments(config)
 
 	// push the documents through the pipeline
-	await runPipeline(config, documents)
+	return await runPipeline(config, documents)
 }
 
 // the compiler's job can be broken down into a few different tasks after the documents have been collected:
 // - validate their structure
 // - perform a series of transformations
 // - write the corresponding artifacts to disk
-export async function runPipeline(config: Config, docs: Document[]) {
+export async function runPipeline(
+	config: Config,
+	docs: Document[]
+): Promise<ArtifactStats | undefined> {
 	// we need to create the runtime folder structure
 	config.createDirectories()
 
@@ -202,6 +214,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		// not gzipped!
 		console.log(`🪶  Network request size: ${querySize} (pesisted: ${hashSize})`)
 	}
+
+	return artifactStats
 }
 
 async function collectDocuments(config: Config): Promise<Document[]> {

@@ -1,7 +1,13 @@
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import type { SourceMapInput } from 'rollup'
-import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
+import type {
+	Plugin as VitePlugin,
+	UserConfig,
+	ResolvedConfig,
+	ConfigEnv,
+	EnvironmentModuleNode,
+} from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
@@ -63,11 +69,12 @@ export default function Plugin(
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
 
-		async hotUpdate({ file, server }) {
+		async hotUpdate({ file, server, modules }): Promise<EnvironmentModuleNode[]> {
 			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
 			if (!shouldReact) {
 				return []
 			}
+			console.log('🎩 🔄 bundle HMR rebuild...')
 
 			// load the config file
 			const config = await getConfig(opts)
@@ -82,7 +89,36 @@ export default function Plugin(
 			config.pluginMode = true
 
 			// generate the runtime
-			await generate(config)
+			const artifactStats = await generate(config)
+
+			// if there are no changes, don't trigger a reload
+			if (!artifactStats) {
+				return []
+			}
+
+			console.log('🎩 ⬆️ bundle changed, triggering HMR update')
+
+			// TODO: return tainted files from generate()
+			// Instead, walk over the entire houdini directory and invalidate all modules
+			const taintedFiles: string[] = []
+			for await (const file of fs.walk(
+				path.join(config.projectRoot, config.runtimeDir ?? './$houdini/index')
+			)) {
+				taintedFiles.push(file)
+			}
+
+			// filter out the files that are not in the runtime directory
+			const environment = server.environments.client
+			const taintedModules = taintedFiles.reduce((acc, file) => {
+				const module = environment.moduleGraph.getModuleById(file)
+				if (module) {
+					acc.push(module)
+				}
+				return acc
+			}, [] as EnvironmentModuleNode[])
+
+			// invalidate the module that contains the runtime
+			return [...modules, ...taintedModules]
 		},
 
 		// add watch-and-run to their vite config
