@@ -1,5 +1,4 @@
 import * as graphql from 'graphql'
-import minimatch from 'minimatch'
 import type { SourceMapInput } from 'rollup'
 import type {
 	Plugin as VitePlugin,
@@ -23,40 +22,12 @@ import {
 	isSecondaryBuild,
 	writeTsConfig,
 } from '../lib'
+import { fileDependsOnHoudini, shouldReactToFileChange, type WatchSchemaType } from './hmr'
 
 let config: Config
 let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
 let devServer = false
-
-type WatchSchemaType = { list: string[] }
-
-async function shouldReactToFileChange(
-	filepath: string,
-	opts: PluginConfig,
-	watchSchemaListref: WatchSchemaType
-): Promise<boolean> {
-	const config = await getConfig(opts)
-
-	// we need to watch some specific files
-	if (config.localSchema) {
-		const toWatch = watchSchemaListref.list
-		if (toWatch.includes(filepath)) {
-			// if it's a schema change, let's reload the config
-			await getConfig({ ...opts, forceReload: true })
-			return true
-		}
-	} else {
-		const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
-		if (minimatch(filepath, schemaPath)) {
-			// if it's a schema change, let's reload the config
-			await getConfig({ ...opts, forceReload: true })
-			return true
-		}
-	}
-
-	return config.includeFile(filepath, { root: process.cwd() })
-}
 
 export default function Plugin(
 	opts: PluginConfig = {},
@@ -70,14 +41,23 @@ export default function Plugin(
 		enforce: 'pre',
 
 		async hotUpdate({ file, server, modules }): Promise<EnvironmentModuleNode[]> {
+			// Check if directory, file type matches what's defined in houdini config
 			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
 			if (!shouldReact) {
 				return []
 			}
-			console.log('🎩 🔄 bundle HMR rebuild...')
 
 			// load the config file
 			const config = await getConfig(opts)
+
+			// if the file doesn't depend on $houdini, we don't need to do anything
+			const houdiniPath = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
+			if (!fileDependsOnHoudini(modules, houdiniPath)) {
+				return []
+			}
+
+			console.log('🎩 🔄 bundle HMR rebuild...')
+
 			if (config.localSchema) {
 				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
 					.default as graphql.GraphQLSchema
