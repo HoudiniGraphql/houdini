@@ -7,14 +7,7 @@ import * as generators from './generators'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
-interface ArtifactStats {
-	total: string[]
-	changed: string[]
-	new: string[]
-	deleted: string[]
-	hashSize: number[]
-	querySize: number[]
-}
+import type { ArtifactStats } from './generators/artifacts'
 
 // the main entry point of the compile script
 export default async function compile(config: Config): Promise<ArtifactStats | undefined> {
