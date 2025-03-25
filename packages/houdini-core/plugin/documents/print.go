@@ -105,7 +105,7 @@ func PreparePrintStatements(conn *sqlite.Conn) (*PrintStatements, error) {
         LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a ON a.selection_id = selections.id
       )
-    SELECT document_name, kind, field_name, alias, path, arguments, directives, document_id FROM selection_tree
+    SELECT document_name, kind, field_name, alias, path, arguments, directives, parent_id, document_id FROM selection_tree
   `)
 	if err != nil {
 		return nil, err
