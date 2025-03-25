@@ -36,7 +36,6 @@ export async function queryStore({ config, pluginRoot }: GenerateHookInput, doc:
 	const { store_class, statement } = store_import(config, which)
 	const storeData = `${statement}
 import artifact from '$houdini/artifacts/${artifactName}'
-import { initClient } from '$houdini/plugins/houdini-svelte/runtime/client'
 
 export class ${storeName} extends ${store_class} {
 	constructor() {
@@ -49,7 +48,6 @@ export class ${storeName} extends ${store_class} {
 }
 
 export async function load_${artifactName}(params) {
-	await initClient()
 
 	const store = new ${storeName}()
 
