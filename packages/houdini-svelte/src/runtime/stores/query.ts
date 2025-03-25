@@ -10,8 +10,11 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
+	CursorHandlers,
+	OffsetHandlers,
+	PageInfo,
 } from '$houdini/runtime/lib/types'
-import type { CursorHandlers, OffsetHandlers, PageInfo, ArtifactKind, CachePolicy, CompiledQueryKind  } from '$houdini/runtime/lib/types'
+import { CompiledQueryKind, CachePolicy, ArtifactKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
