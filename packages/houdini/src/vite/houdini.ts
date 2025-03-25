@@ -22,7 +22,12 @@ import {
 	isSecondaryBuild,
 	writeTsConfig,
 } from '../lib'
-import { fileDependsOnHoudini, shouldReactToFileChange, type WatchSchemaType } from './hmr'
+import {
+	isGraphQLFile,
+	fileDependsOnHoudini,
+	shouldReactToFileChange,
+	type WatchSchemaType,
+} from './hmr'
 
 let config: Config
 let viteConfig: ResolvedConfig
@@ -49,9 +54,13 @@ export default function Plugin(
 		enforce: 'pre',
 
 		async hotUpdate({ file, server, modules, timestamp }): Promise<EnvironmentModuleNode[]> {
+			// .gql files are not understood by vite, since they're not processed yet at this stage
+			const isGqlFile = isGraphQLFile(file)
+
+			// console.log(`trapped hmr event for ${file} with dependencies ${modules.map((m) => m.id).join(',')}`)
 			// Check if directory, file type matches what's defined in houdini config
 			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
-			if (!shouldReact) {
+			if (!shouldReact && !isGqlFile) {
 				return []
 			}
 
@@ -61,8 +70,9 @@ export default function Plugin(
 			const config = await getConfig(opts)
 
 			// if the file doesn't depend on $houdini, we don't need to do anything
+			// but if the file is a graphql file, it for sure depends on houdini
 			const houdiniPath = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
-			if (!fileDependsOnHoudini(modules, houdiniPath)) {
+			if (!isGqlFile && !fileDependsOnHoudini(modules, houdiniPath)) {
 				return []
 			}
 
