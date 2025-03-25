@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.1.10
+
+### Patch Changes
+
+-   [#1458](https://github.com/HoudiniGraphql/houdini/pull/1458) [`224b7653`](https://github.com/HoudiniGraphql/houdini/commit/224b7653018917a85ace5c6762b434882cd114da) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Avoid errors with module-scope class dependencies
+
 ## 2.1.9
 
 ### Patch Changes
