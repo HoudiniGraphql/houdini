@@ -54,20 +54,22 @@ export default function Plugin(
 		enforce: 'pre',
 
 		async hotUpdate({ file, server, modules, timestamp }): Promise<EnvironmentModuleNode[]> {
+			// load the config file
+			const config = await getConfig(opts)
+
 			// .gql files are not understood by vite, since they're not processed yet at this stage
 			const isGqlFile = isGraphQLFile(file)
 
-			// console.log(`trapped hmr event for ${file} with dependencies ${modules.map((m) => m.id).join(',')}`)
 			// Check if directory, file type matches what's defined in houdini config
 			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
-			if (!shouldReact && !isGqlFile) {
+
+			// Check if it's inside the generated directory. Ignore if it is
+			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? './$houdini/')
+			const isInGenerated = file.startsWith(runtimeDir)
+
+			if ((!shouldReact && !isGqlFile) || isInGenerated) {
 				return []
 			}
-
-			const environment = this.environment
-
-			// load the config file
-			const config = await getConfig(opts)
 
 			// if the file doesn't depend on $houdini, we don't need to do anything
 			// but if the file is a graphql file, it for sure depends on houdini
@@ -82,6 +84,8 @@ export default function Plugin(
 				// reload the schema
 				// config.schema = await loadLocalSchema(config)
 			}
+
+			const environment = this.environment
 
 			// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
 			config.pluginMode = true
@@ -115,9 +119,7 @@ export default function Plugin(
 			// TODO: return tainted files from generate()
 			// Instead, walk over the entire houdini directory and invalidate all modules
 			const taintedModules: EnvironmentModuleNode[] = []
-			for await (const file of fs.walk(
-				path.join(config.projectRoot, config.runtimeDir ?? './$houdini/index')
-			)) {
+			for await (const file of fs.walk(runtimeDir)) {
 				const module = environment.moduleGraph.getModuleById(file)
 				if (module) {
 					taintedModules.push(module)
