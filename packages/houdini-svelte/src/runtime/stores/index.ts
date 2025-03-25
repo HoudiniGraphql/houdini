@@ -1,5 +1,4 @@
-export * from './pagination'
-export { FragmentStore } from './fragment'
+export { FragmentStore, FragmentStoreCursor, FragmentStoreOffset } from './fragment'
 export { SubscriptionStore } from './subscription'
 export { MutationStore, type MutationConfig } from './mutation'
-export { QueryStore } from './query'
+export { QueryStore, QueryStoreCursor, QueryStoreOffset } from './query'

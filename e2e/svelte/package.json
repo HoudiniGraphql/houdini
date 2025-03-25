@@ -1,0 +1,38 @@
+{
+	"name": "e2e-svelte",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"web": "vite --port 3016",
+		"api": "cross-env TZ=utc e2e-api",
+		"dev": "concurrently \"pnpm run web\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+		"build:dev": "pnpm build: && pnpm dev",
+		"build:web": "pnpm build: && pnpm web",
+		"build:test": "pnpm build: && pnpm test",
+		"build:generate": "pnpm build: && pnpm houdini generate",
+		"build:build": "pnpm build: && pnpm build",
+		"build": "vite build",
+		"tests": "playwright test ",
+		"previewWeb": "vite preview --port 3006",
+		"preview": "concurrently \"pnpm run previewWeb\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"check": "svelte-check --tsconfig ./tsconfig.json"
+	},
+	"devDependencies": {
+		"@kitql/helpers": "^0.8.2",
+		"@playwright/test": "1.48.0",
+		"@sveltejs/vite-plugin-svelte": "^2.0.2",
+		"@tsconfig/svelte": "^3.0.0",
+		"concurrently": "7.1.0",
+		"cross-env": "^7.0.3",
+		"e2e-api": "workspace:^",
+		"houdini": "workspace:^",
+		"houdini-svelte": "workspace:^",
+		"svelte": "^3.57.0",
+		"svelte-check": "^2.10.3",
+		"tslib": "^2.5.0",
+		"typescript": "^4.9.3",
+		"vite": "^4.1.1"
+	}
+}
