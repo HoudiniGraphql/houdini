@@ -1,6 +1,8 @@
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
 import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import * as log from '$houdini/runtime/lib/log'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import type {
 	CachePolicies,
 	GraphQLVariables,
@@ -10,8 +12,7 @@ import type {
 	QueryResult,
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
-import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
+import type { CursorHandlers, OffsetHandlers, PageInfo } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
@@ -28,11 +29,6 @@ import type {
 	RequestEventFetchParams,
 } from '../types'
 import { BaseStore } from './base'
-import type {
-	CursorHandlers,
-	OffsetHandlers,
-	PageInfo,
-} from '$houdini/runtime/lib/types'
 
 export class QueryStore<
 	_Data extends GraphQLObject,
