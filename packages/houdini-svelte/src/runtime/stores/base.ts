@@ -94,7 +94,7 @@ export class BaseStore<
 	// we have. when this number is 0, we need to clear the store
 	#subscriberCount = 0
 
-  setup(init: boolean = true) {
+	setup(init: boolean = true) {
 		// if we have to initialize the client, do so
 		let initPromise: Promise<any> = Promise.resolve()
 
@@ -117,5 +117,4 @@ export class BaseStore<
 			}
 		})
 	}
-
 }
