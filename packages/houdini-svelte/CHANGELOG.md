@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.1.9
+
+### Patch Changes
+
+-   [#1453](https://github.com/HoudiniGraphql/houdini/pull/1453) [`9adf9b9b`](https://github.com/HoudiniGraphql/houdini/commit/9adf9b9b9ea645f01e259563f033d27328196926) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue causing client to lose initialization during HMR
+
 ## 2.1.8
 
 ### Patch Changes
