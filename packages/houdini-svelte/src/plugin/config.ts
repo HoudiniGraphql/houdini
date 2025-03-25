@@ -77,8 +77,8 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 			subscription: '../runtime/stores/subscription.SubscriptionStore',
 			queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
 			queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
-			fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
-			fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
+			fragmentCursor: '../runtime/stores/fragment.FragmentStoreCursor',
+			fragmentOffset: '../runtime/stores/fragment.FragmentStoreOffset',
 			...cfg?.customStores,
 		},
 	}

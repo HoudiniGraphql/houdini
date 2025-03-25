@@ -1,0 +1,217 @@
+type A {
+  a: String!
+  id: ID!
+}
+
+interface Animal implements Node {
+  id: ID!
+  name: String!
+}
+
+interface AnimalConnection {
+  edges: [AnimalEdge!]!
+  pageInfo: PageInfo!
+}
+
+interface AnimalEdge {
+  cursor: String
+  node: Animal
+}
+
+type B {
+  b: String!
+  id: ID!
+}
+
+type Book {
+  id: ID!
+  title: String!
+}
+
+type City {
+  id: ID!
+  libraries: [Library]!
+  name: String!
+}
+
+"""Date custom scalar type"""
+scalar DateTime
+
+scalar File
+
+enum ForceReturn {
+  """Some error"""
+  ERROR
+
+  """Normal"""
+  NORMAL
+
+  """No value"""
+  NULL
+}
+
+type Library {
+  books: [Book]!
+  id: ID!
+  name: String!
+}
+
+type Message1 {
+  message: String!
+}
+
+"""A monkey."""
+type Monkey implements Animal & Node {
+  """Whether the monkey has a banana or not"""
+  hasBanana: Boolean!
+  id: ID!
+  name: String!
+
+  """Whether the monkey has a banana or not"""
+  oldHasBanana: Boolean @deprecated(reason: "Use hasBanana")
+}
+
+type MonkeyConnection implements AnimalConnection {
+  edges: [MonkeyEdge!]!
+  pageInfo: PageInfo!
+}
+
+type MonkeyEdge implements AnimalEdge {
+  cursor: String
+  node: Monkey
+}
+
+type Mutation {
+  addBook(library: ID!, title: String!): Book!
+  addCity(name: String!): City!
+  addLibrary(city: ID!, name: String!): Library!
+  addNonNullUser(birthDate: DateTime!, delay: Int, enumValue: MyEnum, force: ForceReturn, name: String!, snapshot: String!, types: [TypeOfUser!]): User!
+  addUser(
+    """The users birth date"""
+    birthDate: DateTime!
+    delay: Int
+    enumValue: MyEnum
+    force: ForceReturn
+    name: String!
+    snapshot: String!
+    types: [TypeOfUser!]
+  ): User
+  createA(a: String!): A!
+  createB(b: String!): B!
+  deleteBook(book: ID!, delay: Int, force: ForceReturn): Book
+  deleteCity(city: ID!): City!
+  deleteLibrary(library: ID!): Library!
+  multipleUpload(files: [File!]!): [String!]!
+  singleUpload(file: File!): String!
+  updateRentedBook(bookId: Int!, rate: Int!, userId: String!): RentedBook
+  updateUser(avatarURL: String, birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
+  updateUserByID(avatarURL: String, birthDate: DateTime, delay: Int, id: ID!, name: String, snapshot: String!): User!
+}
+
+"""Can be Value1 or Value2."""
+enum MyEnum {
+  """The first value"""
+  Value1
+
+  """The second value"""
+  Value2 @deprecated(reason: "Use Value1 instead")
+}
+
+"""A node."""
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  aOrB: [UnionAorB!]!
+  animals: AnimalConnection!
+  avgYearsBirthDate: Float!
+  book(title: String!): Book
+  cities: [City]!
+  city(delay: Int, id: ID!): City
+  hello: String
+
+  """Get a monkey by its id"""
+  monkey(id: ID!): Monkey
+  monkeys: MonkeyConnection!
+  node(id: ID!): Node
+  rentedBooks: [RentedBook!]!
+  session: String
+  user(delay: Int, forceNullDate: Boolean, id: ID!, snapshot: String!, tmp: Boolean): User!
+  userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
+  userNodesResult(forceMessage: Boolean!, snapshot: String!): UserNodesResult!
+  userResult(forceMessage: Boolean!, id: ID!, snapshot: String!): UserResult!
+  userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
+  usersConnection(after: String, before: String, delay: Int, first: Int, last: Int, snapshot: String!): UserConnection!
+  usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+}
+
+type RentedBook {
+  bookId: Int!
+  rate: Int!
+  userId: String!
+}
+
+type Subscription {
+  userUpdate(id: ID!, snapshot: String): User
+}
+
+enum TypeOfUser {
+  COOL
+  NICE
+}
+
+union UnionAorB = A | B
+
+type User implements Node {
+  avatarURL(size: Int): String!
+  birthDate: DateTime
+  enumValue: MyEnum
+  friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+  friendsList(limit: Int, offset: Int): [User!]!
+  id: ID!
+  name: String!
+  testField(someParam: Boolean!): String
+  types: [TypeOfUser!]!
+
+  """
+  This is the same list as what's used globally. its here to tests fragments
+  """
+  userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
+
+  """
+  This is the same list as what's used globally. its here to tests fragments
+  """
+  usersConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+  usersConnectionSnapshot(after: String, before: String, first: Int, last: Int, snapshot: String!): UserConnection!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}
+
+input UserNameFilter {
+  name: String!
+}
+
+type UserNodes {
+  nodes: [User!]!
+  totalCount: Int
+}
+
+union UserNodesResult = Message1 | UserNodes
+
+union UserResult = Message1 | User
