@@ -94,21 +94,28 @@ export class BaseStore<
 	// we have. when this number is 0, we need to clear the store
 	#subscriberCount = 0
 
-	setup(init: boolean = true) {
-		if (this.#unsubscribe) {
-			return
-		}
+  setup(init: boolean = true) {
+		// if we have to initialize the client, do so
+		let initPromise: Promise<any> = Promise.resolve()
 
-		this.#unsubscribe = this.observer.subscribe((value) => {
-			this.#store.set(value)
-		})
+		initPromise.then(() => {
+			// if we've already setup, don't do anything
+			if (this.#unsubscribe) {
+				return
+			}
 
-		// only initialize when told to
-		if (init && this.#params.initialize) {
-			return this.observer.send({
-				setup: true,
-				variables: get(this.observer).variables,
+			this.#unsubscribe = this.observer.subscribe((value) => {
+				this.#store.set(value)
 			})
-		}
+
+			// only initialize when told to
+			if (init && this.#params.initialize) {
+				return this.observer.send({
+					setup: true,
+					variables: get(this.observer).variables,
+				})
+			}
+		})
 	}
+
 }
