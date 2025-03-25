@@ -33,6 +33,14 @@ export default function Plugin(
 	opts: PluginConfig = {},
 	watchSchemaListref: WatchSchemaType
 ): VitePlugin {
+	// Save last generation timestamp to avoid unnecessary HMR updates
+	// i.e. the same event in different environments
+	let lastHotUpdateEvent: {
+		environment: string
+		file: string
+		timestamp: number
+	}
+
 	return {
 		name: 'houdini',
 
@@ -40,12 +48,14 @@ export default function Plugin(
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
 
-		async hotUpdate({ file, server, modules }): Promise<EnvironmentModuleNode[]> {
+		async hotUpdate({ file, server, modules, timestamp }): Promise<EnvironmentModuleNode[]> {
 			// Check if directory, file type matches what's defined in houdini config
 			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
 			if (!shouldReact) {
 				return []
 			}
+
+			const environment = this.environment
 
 			// load the config file
 			const config = await getConfig(opts)
@@ -55,8 +65,6 @@ export default function Plugin(
 			if (!fileDependsOnHoudini(modules, houdiniPath)) {
 				return []
 			}
-
-			console.log('🎩 🔄 bundle HMR rebuild...')
 
 			if (config.localSchema) {
 				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
@@ -69,7 +77,23 @@ export default function Plugin(
 			config.pluginMode = true
 
 			// generate the runtime
-			const artifactStats = await generate(config)
+			// only if not debouncing
+			let artifactStats = undefined
+			if (!lastHotUpdateEvent || timestamp !== lastHotUpdateEvent.timestamp) {
+				console.log('🎩 🔄 bundle HMR rebuild...')
+
+				try {
+					artifactStats = await generate(config)
+				} catch (e) {
+					formatErrors(e)
+					throw e
+				}
+			}
+			lastHotUpdateEvent = {
+				environment: environment.name,
+				file,
+				timestamp,
+			}
 
 			// if there are no changes, don't trigger a reload
 			if (!artifactStats) {
@@ -80,25 +104,20 @@ export default function Plugin(
 
 			// TODO: return tainted files from generate()
 			// Instead, walk over the entire houdini directory and invalidate all modules
-			const taintedFiles: string[] = []
+			const taintedModules: EnvironmentModuleNode[] = []
 			for await (const file of fs.walk(
 				path.join(config.projectRoot, config.runtimeDir ?? './$houdini/index')
 			)) {
-				taintedFiles.push(file)
-			}
-
-			// filter out the files that are not in the runtime directory
-			const environment = server.environments.client
-			const taintedModules = taintedFiles.reduce((acc, file) => {
 				const module = environment.moduleGraph.getModuleById(file)
 				if (module) {
-					acc.push(module)
+					taintedModules.push(module)
 				}
-				return acc
-			}, [] as EnvironmentModuleNode[])
+			}
 
-			// invalidate the module that contains the runtime
-			return [...modules, ...taintedModules]
+			// invalidate all the codegenerated modules
+			// NOTE: not returning the original module here, we expect other plugins to handle
+			// their own dependencies (i.e sveltekit)
+			return taintedModules
 		},
 
 		// add watch-and-run to their vite config
