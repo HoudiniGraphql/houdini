@@ -98,7 +98,7 @@ export class BaseStore<
 		// if we have to initialize the client, do so
 		let initPromise: Promise<any> = Promise.resolve()
 
-    try {
+		try {
 			getClient()
 		} catch {
 			initPromise = initClient()

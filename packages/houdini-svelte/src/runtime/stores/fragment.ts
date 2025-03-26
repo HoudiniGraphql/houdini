@@ -224,7 +224,7 @@ export class FragmentStoreCursor<
 			getVariables,
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {
-        await initClient()
+				await initClient()
 				return observer.send({
 					session: await getSession(),
 					...args,
@@ -239,7 +239,7 @@ export class FragmentStoreCursor<
 				})
 			},
 			fetch: async (args) => {
-        await initClient()
+				await initClient()
 				return await observer.send({
 					session: await getSession(),
 					...args,
@@ -282,7 +282,7 @@ export class FragmentStoreOffset<
 			getVariables: () => store.variables as _Input,
 			artifact: this.paginationArtifact,
 			fetch: async (args) => {
-        await initClient()
+				await initClient()
 				return paginationStore.send({
 					...args,
 					session: await getSession(),
@@ -296,7 +296,7 @@ export class FragmentStoreOffset<
 				})
 			},
 			fetchUpdate: async (args) => {
-        await initClient()
+				await initClient()
 				return paginationStore.send({
 					session: await getSession(),
 					...args,

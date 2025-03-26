@@ -323,7 +323,7 @@ export class QueryStoreCursor<
 		}
 
 		// initialize the client before we compute the handlers
-    await initClient()
+		await initClient()
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
@@ -337,7 +337,7 @@ export class QueryStoreCursor<
 			fetch: super.fetch.bind(this),
 			getSession: getSession,
 			fetchUpdate: async (args, updates) => {
-        await initClient()
+				await initClient()
 				return paginationObserver.send({
 					...args,
 					cacheParams: {
@@ -438,8 +438,8 @@ export class QueryStoreOffset<
 			return this.#_handlers
 		}
 
-    // initialize the client
-    await initClient()
+		// initialize the client
+		await initClient()
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
@@ -453,7 +453,7 @@ export class QueryStoreOffset<
 			getVariables: () => get(this.observer).variables!,
 			getSession: getSession,
 			fetchUpdate: async (args) => {
-        await initClient()
+				await initClient()
 				return paginationObserver.send({
 					...args,
 					variables: {
