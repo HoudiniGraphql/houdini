@@ -6,6 +6,7 @@ import type {
 import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
 import type { GraphQLObject } from 'houdini'
 import { derived, writable, type Subscriber, type Writable } from 'svelte/store'
+import { initClient } from '../client'
 
 import { getSession } from '../session'
 import { BaseStore } from './base'
@@ -32,6 +33,7 @@ export class SubscriptionStore<
 	}
 
 	async unlisten() {
+    await initClient()
 		this.fetchingStore.set(false)
 		await this.observer.cleanup()
 	}

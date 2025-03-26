@@ -9,7 +9,7 @@ import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
-import { getClient } from '../client'
+import { getClient, initClient } from '../client'
 
 export class BaseStore<
 	_Data extends GraphQLObject,
@@ -97,6 +97,12 @@ export class BaseStore<
 	setup(init: boolean = true) {
 		// if we have to initialize the client, do so
 		let initPromise: Promise<any> = Promise.resolve()
+
+    try {
+			getClient()
+		} catch {
+			initPromise = initClient()
+		}
 
 		initPromise.then(() => {
 			// if we've already setup, don't do anything

@@ -22,7 +22,7 @@ import type { Subscriber } from 'svelte/store'
 import type { PluginArtifactData } from '../../plugin/artifactData'
 import type { HoudiniSvelteConfig } from '../../plugin/config'
 import { clientStarted, isBrowser } from '../adapter'
-import { getClient } from '../client'
+import { getClient, initClient } from '../client'
 import { getSession } from '../session'
 import type {
 	ClientFetchParams,
@@ -72,7 +72,7 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const client = getClient()
+		const client = await initClient()
 
 		this.setup(false)
 
@@ -323,6 +323,7 @@ export class QueryStoreCursor<
 		}
 
 		// initialize the client before we compute the handlers
+    await initClient()
 
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
@@ -336,6 +337,7 @@ export class QueryStoreCursor<
 			fetch: super.fetch.bind(this),
 			getSession: getSession,
 			fetchUpdate: async (args, updates) => {
+        await initClient()
 				return paginationObserver.send({
 					...args,
 					cacheParams: {
@@ -436,6 +438,9 @@ export class QueryStoreOffset<
 			return this.#_handlers
 		}
 
+    // initialize the client
+    await initClient()
+
 		// we're going to use a separate observer for the page loading
 		const paginationObserver = getClient().observe<_Data, _Input>({
 			artifact: this.artifact,
@@ -448,6 +453,7 @@ export class QueryStoreOffset<
 			getVariables: () => get(this.observer).variables!,
 			getSession: getSession,
 			fetchUpdate: async (args) => {
+        await initClient()
 				return paginationObserver.send({
 					...args,
 					variables: {
