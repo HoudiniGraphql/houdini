@@ -20,7 +20,3 @@ export function getClient(): HoudiniClient {
 	return client
 }
 
-if (import.meta.hot){ 
-  initClient()
-
-}
