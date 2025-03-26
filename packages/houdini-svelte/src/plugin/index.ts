@@ -68,7 +68,7 @@ export const redirect = svelteKitRedirect
 				path.join(config.projectRoot, plugin_config(config).client)
 			)
 
-			return content.replace('HOUDINI_CLIENT_PATH', relativePath)
+			return content.replaceAll('HOUDINI_CLIENT_PATH', relativePath)
 		},
 	},
 
