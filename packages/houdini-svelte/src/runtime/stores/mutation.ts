@@ -6,6 +6,7 @@ import type {
 } from '$houdini/runtime/lib/types'
 import type { RequestEvent } from '@sveltejs/kit'
 
+import { initClient } from '../client'
 import { BaseStore } from './base'
 import { fetchParams } from './query'
 
@@ -31,6 +32,8 @@ export class MutationStore<
 			event?: RequestEvent
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<QueryResult<_Data, _Input>> {
+		await initClient()
+
 		const { context } = await fetchParams(this.artifact, this.artifact.name, {
 			fetch,
 			metadata,

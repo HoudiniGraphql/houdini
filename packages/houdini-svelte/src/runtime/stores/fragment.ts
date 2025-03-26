@@ -19,7 +19,7 @@ import { get, derived } from 'svelte/store'
 import type { Readable, Subscriber } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
-import { getClient } from '../client'
+import { getClient, initClient } from '../client'
 import { getSession } from '../session'
 import type { FragmentStoreInstance, OffsetFragmentStoreInstance } from '../types'
 import { BaseStore } from './base'
@@ -224,6 +224,7 @@ export class FragmentStoreCursor<
 			getVariables,
 			artifact: this.paginationArtifact,
 			fetchUpdate: async (args, updates) => {
+				await initClient()
 				return observer.send({
 					session: await getSession(),
 					...args,
@@ -238,6 +239,7 @@ export class FragmentStoreCursor<
 				})
 			},
 			fetch: async (args) => {
+				await initClient()
 				return await observer.send({
 					session: await getSession(),
 					...args,
@@ -280,6 +282,7 @@ export class FragmentStoreOffset<
 			getVariables: () => store.variables as _Input,
 			artifact: this.paginationArtifact,
 			fetch: async (args) => {
+				await initClient()
 				return paginationStore.send({
 					...args,
 					session: await getSession(),
@@ -293,6 +296,7 @@ export class FragmentStoreOffset<
 				})
 			},
 			fetchUpdate: async (args) => {
+				await initClient()
 				return paginationStore.send({
 					session: await getSession(),
 					...args,
