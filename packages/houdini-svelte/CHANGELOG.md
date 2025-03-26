@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.1.11
+
+### Patch Changes
+
+-   [#1460](https://github.com/HoudiniGraphql/houdini/pull/1460) [`7a56f307`](https://github.com/HoudiniGraphql/houdini/commit/7a56f307ed497acb9f6eaf86dc531bdf91954279) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix undefined base stores
+
 ## 2.1.10
 
 ### Patch Changes
