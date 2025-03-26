@@ -24,6 +24,7 @@ export class SubscriptionStore<
 	}
 
 	async listen(variables?: _Input, args?: { metadata: App.Metadata }) {
+		await initClient()
 		this.fetchingStore.set(true)
 		this.observer.send({
 			variables,
