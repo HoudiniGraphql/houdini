@@ -1,9 +1,9 @@
+import { identifier } from '@babel/types'
 import * as recast from 'recast'
 
 import type { Config } from '../lib/config'
 import type { Script } from '../lib/types'
 import type { TransformPage } from './houdini'
-import { identifier } from '@babel/types'
 
 const AST = recast.types.builders
 
@@ -83,12 +83,12 @@ export function ensure_imports({
 
 	// add the import if it doesn't exist, add it
 	if (toImport.length > 0) {
-    const specifier = (identifier: Identifier, i: number) => (importKind !== 'module' ? 	
-      (!Array.isArray(importID)
+		const specifier = (identifier: Identifier, i: number) =>
+			importKind !== 'module'
+				? !Array.isArray(importID)
 					? AST.importDefaultSpecifier(identifier)
-					: AST.importSpecifier(identifier, as?.[i] ? AST.identifier(as[i]) : identifier))
-      : AST.importNamespaceSpecifier(identifier))
-
+					: AST.importSpecifier(identifier, as?.[i] ? AST.identifier(as[i]) : identifier)
+				: AST.importNamespaceSpecifier(identifier)
 
 		script.body.unshift({
 			type: 'ImportDeclaration',
