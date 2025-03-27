@@ -48,28 +48,35 @@ export default async function kit_init(page: SvelteTransformPage) {
 		script: page.script,
 		config: page.config,
 		sourceModule: '$app/stores',
-		import: ['page'],
-	}).ids[0]
+		importKind: 'module',
+		import: '__houdini__pageStores',
+	}).ids
 
 	page.script.body.push(
 		AST.expressionStatement(
-			AST.callExpression(AST.memberExpression(store_id, AST.identifier('subscribe')), [
-				AST.arrowFunctionExpression(
-					[AST.identifier('val')],
-					AST.blockStatement([
-						AST.expressionStatement(
-							AST.callExpression(set_session, [
-								AST.callExpression(extract_session, [
-									AST.memberExpression(
-										AST.identifier('val'),
-										AST.identifier('data')
-									),
-								]),
-							])
-						),
-					])
+			AST.callExpression(
+				AST.memberExpression(
+					AST.memberExpression(store_id, AST.identifier('page')),
+					AST.identifier('subscribe')
 				),
-			])
+				[
+					AST.arrowFunctionExpression(
+						[AST.identifier('val')],
+						AST.blockStatement([
+							AST.expressionStatement(
+								AST.callExpression(set_session, [
+									AST.callExpression(extract_session, [
+										AST.memberExpression(
+											AST.identifier('val'),
+											AST.identifier('data')
+										),
+									]),
+								])
+							),
+						])
+					),
+				]
+			)
 		)
 	)
 }
