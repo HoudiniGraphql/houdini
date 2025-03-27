@@ -57,24 +57,22 @@ export default function Plugin(
 			// load the config file
 			const config = await getConfig(opts)
 
-			// .gql files are not understood by vite, since they're not processed yet at this stage
-			const isGqlFile = isGraphQLFile(file)
-
 			// Check if directory, file type matches what's defined in houdini config
 			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
 
-			// Check if it's inside the generated directory. Ignore if it is
-			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? './$houdini/')
-			const isInGenerated = file.startsWith(runtimeDir)
-
-			if ((!shouldReact && !isGqlFile) || isInGenerated) {
-				return []
-			}
-
 			// if the file doesn't depend on $houdini, we don't need to do anything
-			// but if the file is a graphql file, it for sure depends on houdini
-			const houdiniPath = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
-			if (!isGqlFile && !fileDependsOnHoudini(modules, houdiniPath)) {
+			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
+
+			// .gql files are not understood by vite, since they're not processed yet at this stage
+			// Thus, we cannot get their dependencies.
+			// However, if it is a graphql file, it for sure depends on houdini
+			const isGqlFile = isGraphQLFile(file)
+
+			if (
+				!(shouldReact &&
+					(fileDependsOnHoudini(modules, runtimeDir) || isGqlFile)
+				)
+			) {
 				return []
 			}
 

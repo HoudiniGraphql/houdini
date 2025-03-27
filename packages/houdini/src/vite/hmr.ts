@@ -6,6 +6,9 @@ import { path, getConfig, type PluginConfig } from '../lib'
 export type WatchSchemaType = { list: string[] }
 
 export function isGraphQLFile(filepath: string): boolean {
+	if (!filepath) {
+		return false
+	}
 	// check if the file is a graphql file
 	const ext = path.extname(filepath)
 	return ext === '.graphql' || ext === '.gql'
