@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.1.12
+
+### Patch Changes
+
+-   [#1463](https://github.com/HoudiniGraphql/houdini/pull/1463) [`c472706e`](https://github.com/HoudiniGraphql/houdini/commit/c472706eece617af854756da9d0236d123be9c27) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue when import page state in root layout
+
 ## 2.1.11
 
 ### Patch Changes
