@@ -68,11 +68,7 @@ export default function Plugin(
 			// However, if it is a graphql file, it for sure depends on houdini
 			const isGqlFile = isGraphQLFile(file)
 
-			if (
-				!(shouldReact &&
-					(fileDependsOnHoudini(modules, runtimeDir) || isGqlFile)
-				)
-			) {
+			if (!(shouldReact && (fileDependsOnHoudini(modules, runtimeDir) || isGqlFile))) {
 				return []
 			}
 
