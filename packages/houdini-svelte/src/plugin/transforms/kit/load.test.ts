@@ -530,7 +530,7 @@ describe('kit route processor', function () {
 		`)
 
 		expect(route.layout).toMatchInlineSnapshot(`
-			import __houdini__pageStores from "$app/stores";
+			import * as __houdini__pageStores from "$app/stores";
 			import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 			import { onMount } from "svelte";
 			import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
@@ -567,7 +567,7 @@ describe('kit route processor', function () {
 		expect(route.script).toMatchInlineSnapshot('')
 
 		expect(route.layout).toMatchInlineSnapshot(`
-			import __houdini__pageStores from "$app/stores";
+			import * as __houdini__pageStores from "$app/stores";
 			import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 			import { onMount } from "svelte";
 			import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
@@ -1184,7 +1184,7 @@ test('layout loads', async function () {
 	`)
 
 	expect(route.layout).toMatchInlineSnapshot(`
-		import __houdini__pageStores from "$app/stores";
+		import * as __houdini__pageStores from "$app/stores";
 		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
@@ -1212,7 +1212,7 @@ test('layout inline query', async function () {
 	})
 
 	expect(route.layout).toMatchInlineSnapshot(`
-		import __houdini__pageStores from "$app/stores";
+		import * as __houdini__pageStores from "$app/stores";
 		import { extractSession, setClientSession } from "$houdini/plugins/houdini-svelte/runtime/session";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/plugins/houdini-svelte/runtime/adapter";
