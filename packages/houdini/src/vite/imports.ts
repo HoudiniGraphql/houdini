@@ -1,4 +1,3 @@
-import { identifier } from '@babel/types'
 import * as recast from 'recast'
 
 import type { Config } from '../lib/config'
