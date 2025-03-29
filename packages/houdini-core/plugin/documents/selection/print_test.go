@@ -9,6 +9,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/selection"
 	"code.houdinigraphql.com/plugins/tests"
 )
@@ -23,7 +24,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 
       interface Node {
         id: ID!
-      }
+}
 
       type User implements Node {
         id: ID!
@@ -47,7 +48,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
     `,
 		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			// load the documents into the database
-			err := p.AfterExtract(context.Background())
+			err := documents.LoadDocuments(context.Background(), p.DB)
 			if err != nil {
 				require.False(t, test.Pass, err.Error())
 				return
@@ -74,18 +75,27 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				require.Nil(t, err)
 				defer p.DB.Put(conn)
 
-				statements, err := selection.PreparePrintStatements(conn, 1)
+				// the first thing we have to do is collect the selections
+				collected, err := selection.CollectDocuments(context.Background(), p.DB)
 				require.Nil(t, err)
-				defer statements.Finalize()
 
 				// print the document we found
-				printed, err := selection.PrintDocument(
+				err = selection.EnsureDocumentsPrinted(
 					context.Background(),
 					conn,
-					documentID,
-					statements,
+					collected,
 				)
 				require.Nil(t, err)
+
+				// look up the printed document
+				statement, err := conn.Prepare(`select printed from documents where ID = $document`)
+				p.DB.BindStatement(statement, map[string]any{"document": documentID})
+				require.Nil(t, err)
+				var printed string
+				p.DB.StepStatement(context.Background(), statement, func() {
+					printed = statement.GetText("printed")
+				})
+
 				require.Equal(t, content, printed)
 			}
 		},
