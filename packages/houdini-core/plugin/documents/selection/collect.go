@@ -2,6 +2,7 @@ package selection
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"runtime"
 	"strings"
@@ -67,11 +68,11 @@ func CollectDocuments(
 	batchSize := max(1, min(100, len(docIDs)/runtime.NumCPU()))
 
 	// create a channel to send batches of ids to process
-	batchCh := make(chan []int64)
+	batchCh := make(chan []int64, len(docIDs))
 	// and a channel to send errors back
-	errCh := make(chan *plugins.Error)
+	errCh := make(chan *plugins.Error, len(docIDs))
 	// and a channel to send collected documents back
-	resultCh := make(chan *CollectedDocument)
+	resultCh := make(chan []*CollectedDocument, len(docIDs))
 
 	// create a pool of worker goroutines to process the documents
 	var wg sync.WaitGroup
@@ -101,8 +102,10 @@ func CollectDocuments(
 		errList.Append(err)
 	}
 	// collect the results
-	for doc := range resultCh {
-		result[doc.Name] = doc
+	for docs := range resultCh {
+		for _, doc := range docs {
+			result[doc.Name] = doc
+		}
 	}
 
 	// return any errors that were found
@@ -119,7 +122,7 @@ func collectDoc(
 	db plugins.DatabasePool[config.PluginConfig],
 	wg *sync.WaitGroup,
 	docIDs <-chan []int64,
-	resultCh chan<- *CollectedDocument,
+	resultCh chan<- []*CollectedDocument,
 	errCh chan<- *plugins.Error,
 ) {
 	defer wg.Done()
@@ -136,42 +139,245 @@ func collectDoc(
 		// wrap each processing in a function so we have a defer context to avoid deadlocking the connection
 		func(ids []int64) {
 			// prepare the search statemetns
-			statements, err := prepareCollectStatements(conn, len(ids))
+			statements, err := prepareCollectStatements(conn, ids)
 			if err != nil {
 				errCh <- plugins.WrapError(err)
 				return
 			}
 			defer statements.Finalize()
+
+			// first we need to recreate the selection set for every document that we were given in the batch
+
+			// build up a mapping of document name to the collected version
+			documents := map[string]*CollectedDocument{}
+			// and in order to build up the correct tree structure we need a mapping of selection ID
+			// to the actual selection
+			selections := map[int64]*CollectedSelection{}
+
+			// as a follow up, we need to recreate the arguments and directives that were assigned to the selection
+			argumentValues := map[int64]*CollectedArgumentValue{}
+			directiveArgumentsWithValues := []*CollectedDirectiveArgument{}
+			selectionArgumentsWithValues := []*CollectedArgument{}
+			documentArgumentsWithValues := []*CollectedOperationVariable{}
+
+			// step through the selections and build up the tree
+			err = db.StepStatement(ctx, statements.Search, func() {
+				// pull out the columns we care about
+				selectionID := statements.Search.GetInt64("id")
+				documentName := statements.Search.GetText("document_name")
+				documentID := statements.Search.GetInt64("document_id")
+				kind := statements.Search.GetText("kind")
+				fieldName := statements.Search.GetText("field_name")
+
+				var alias *string
+				if !statements.Search.IsNull("alias") {
+					aliasValue := statements.Search.GetText("alias")
+					alias = &aliasValue
+
+				}
+
+				// create the collected selection from the information we have
+				selection := &CollectedSelection{
+					FieldName: fieldName,
+					Alias:     alias,
+					Kind:      kind,
+				}
+
+				// save the ID in the selection map
+				selections[selectionID] = selection
+
+				// if there is no parent then we have a root selection
+				if statements.Search.IsNull("parent_id") {
+					// the selection is a root selection
+
+					// this could be the first time we see the document
+					doc, ok := documents[documentName]
+					if !ok {
+						doc = &CollectedDocument{
+							ID:   documentID,
+							Name: documentName,
+						}
+						documents[documentName] = doc
+					}
+
+				} else {
+					// if we have a parent then we need to save it in the parent's children
+					parentID := statements.Search.GetInt64("parent_id")
+					parent, ok := selections[parentID]
+					if !ok {
+						errCh <- plugins.WrapError(fmt.Errorf("parent selection %v not found for selection %v", parentID, selectionID))
+					}
+					parent.Children = append(parent.Children, selection)
+				}
+
+				// if the selection is a fragment, we need to save the ID in the document's list of referenced fragments
+				if kind == "fragment" {
+					documents[documentName].ReferencedFragments = append(
+						documents[documentName].ReferencedFragments,
+						fieldName,
+					)
+				}
+
+				// we need to build up any arguments and directives referenced but we will fill in the actual values later
+
+				// arguments
+				if !statements.Search.IsNull("arguments") {
+					arguments := statements.Search.GetText("arguments")
+
+					args := []*CollectedArgument{}
+					if err := json.Unmarshal([]byte(arguments), &args); err != nil {
+						errCh <- plugins.WrapError(err)
+						return
+					}
+
+					// hold onto the valueID. we'll fill in the value later
+					for _, arg := range args {
+						if arg.ValueID != nil {
+							argumentValues[*arg.ValueID] = nil
+							selectionArgumentsWithValues = append(selectionArgumentsWithValues, arg)
+						}
+					}
+
+					selection.Arguments = args
+				}
+
+				// directives get treated the same as arguments
+				if !statements.Search.IsNull("directives") {
+					directives := statements.Search.GetText("directives")
+
+					dirs := []*CollectedDirective{}
+					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
+						errCh <- plugins.WrapError(err)
+						return
+					}
+
+					// hold onto the valueID. we'll fill in the value later
+					for _, dir := range dirs {
+						for _, arg := range dir.Arguments {
+							if arg.ValueID != nil {
+								argumentValues[*arg.ValueID] = nil
+								directiveArgumentsWithValues = append(
+									directiveArgumentsWithValues,
+									arg,
+								)
+							}
+						}
+					}
+
+					selection.Directives = dirs
+				}
+			})
+			if err != nil {
+				errCh <- plugins.WrapError(err)
+				return
+			}
+
+			// the next thing we have to do is look for document variables
+			err = db.StepStatement(ctx, statements.DocumentVariables, func() {
+				// every row we get corresponds to a document variable we care about
+				name := statements.DocumentVariables.GetText("name")
+				variableType := statements.DocumentVariables.GetText("type")
+				modifiers := statements.DocumentVariables.GetText("type_modifiers")
+				documentName := statements.DocumentVariables.GetText("document_name")
+
+				// create the collected operation variable
+				variable := &CollectedOperationVariable{
+					Name:          name,
+					Type:          variableType,
+					TypeModifiers: modifiers,
+					Directives:    []*CollectedDirective{},
+				}
+
+				// if there is a default value, we need to save the ID in the argument values
+				if !statements.DocumentVariables.IsNull("default_value") {
+					valueID := statements.DocumentVariables.GetInt64("default_value")
+					argumentValues[valueID] = nil
+					variable.DefaultValueID = &valueID
+					documentArgumentsWithValues = append(documentArgumentsWithValues, variable)
+				}
+
+				// directives get treated the same as arguments
+				if !statements.DocumentVariables.IsNull("directives") {
+					directives := statements.DocumentVariables.GetText("directives")
+
+					dirs := []*CollectedDirective{}
+					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
+						errCh <- plugins.WrapError(err)
+						return
+					}
+
+					// hold onto the valueID. we'll fill in the value later
+					for _, dir := range dirs {
+						for _, arg := range dir.Arguments {
+							if arg.ValueID != nil {
+								argumentValues[*arg.ValueID] = nil
+								directiveArgumentsWithValues = append(
+									directiveArgumentsWithValues,
+									arg,
+								)
+							}
+						}
+					}
+
+					variable.Directives = dirs
+				}
+
+				// save the variable in the document's list of variables
+				doc, ok := documents[documentName]
+				if !ok {
+					errCh <- plugins.WrapError(fmt.Errorf("document %v not found for variable %v", documentName, name))
+				}
+				doc.Variables = append(doc.Variables, variable)
+			})
+			if err != nil {
+				errCh <- plugins.WrapError(err)
+			}
+
+			// if we've gotten this far then we have recreated the full selection apart from the nested argument structure
+
+			// build up the list of documents we collected
+			docs := []*CollectedDocument{}
+			for _, doc := range documents {
+				docs = append(docs, doc)
+			}
+
+			// send the result over the channel
+			resultCh <- docs
 		}(batch)
 	}
 }
 
 type CollectStatements struct {
-	PrintSearch *sqlite.Stmt
+	Search            *sqlite.Stmt
+	DocumentVariables *sqlite.Stmt
 }
 
-func prepareCollectStatements(conn *sqlite.Conn, nDocuments int) (*CollectStatements, error) {
+func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatements, error) {
 	// we are going to produce a version of the document that looks up a batch of documents
 	// which means we need to produce enough ?'s to create a WHERE IN
-	placeholders := make([]string, nDocuments)
-	for i := range nDocuments {
-		placeholders[i] = "?"
+	placeholders := make([]string, len(docIDs))
+	for i := range docIDs {
+		placeholders[i] = fmt.Sprintf("$document_%v", i)
 	}
 
 	// join the placeholders with commas and enclose in parentheses.
 	whereIn := "(" + strings.Join(placeholders, ", ") + ")"
 
-	printSearch, err := conn.Prepare(fmt.Sprintf(`
+	search, err := conn.Prepare(fmt.Sprintf(`
     WITH 
       directive_args AS (
         SELECT
           selection_directive_arguments.parent AS directive_id,
-          json_group_array(json_object('name', selection_directive_arguments.name, 'value', selection_directive_arguments.value)) AS directive_arguments
+          json_group_array(
+            json_object(
+            'name', selection_directive_arguments.name, 
+            'value', selection_directive_arguments.value
+            )
+          ) AS directive_arguments
         FROM
           selection_directive_arguments
           JOIN selection_directives ON selection_directive_arguments.parent = selection_directives.id
-          JOIN selections ON selection_directives.selection_id = selections.id
-          JOIN selection_refs ON selection_refs.child_id = selections.id
+          JOIN selection_refs ON selection_refs.child_id = selection_directives.selection_id
         WHERE
           selection_refs."document" IN %s
         GROUP BY
@@ -183,13 +389,13 @@ func prepareCollectStatements(conn *sqlite.Conn, nDocuments int) (*CollectStatem
           json_group_array(
             json_object(
               'id', sd.id,
-              'arguments', IFNULL(da.directive_arguments, '[]')
+              'name', sd.directive,
+              'arguments', json(IFNULL(da.directive_arguments, '[]'))
             )
           ) AS directives
         FROM selection_directives sd
           LEFT JOIN directive_args da ON da.directive_id = sd.id
-          JOIN selections ON sd.selection_id = selections.id
-          JOIN selection_refs ON selection_refs.child_id = selections.id
+          JOIN selection_refs ON selection_refs.child_id = sd.selection_id
         WHERE
           selection_refs."document" IN %s
         GROUP BY sd.selection_id
@@ -204,8 +410,7 @@ func prepareCollectStatements(conn *sqlite.Conn, nDocuments int) (*CollectStatem
             )
           ) AS arguments
         FROM selection_arguments
-          JOIN selections ON selection_arguments.selection_id = selections.id
-          JOIN selection_refs ON selection_refs.child_id = selections.id
+          JOIN selection_refs ON selection_refs.child_id = selection_arguments.selection_id
         WHERE
           selection_refs."document" IN %s
         GROUP BY selection_arguments.selection_id
@@ -219,8 +424,6 @@ func prepareCollectStatements(conn *sqlite.Conn, nDocuments int) (*CollectStatem
           selections.kind,
           d.id AS document_id,
           d.name AS document_name,
-          1 AS level,
-          selections.alias AS path,
           NULL AS parent_id,
           a.arguments,
           dct.directives
@@ -246,8 +449,6 @@ func prepareCollectStatements(conn *sqlite.Conn, nDocuments int) (*CollectStatem
           selections.kind,
           st.document_id AS document_id,
           st.document_name AS document_name,
-          st.level + 1 AS level,
-          st.path || ',' || selections.alias AS path,
           st.id AS parent_id,
           a.arguments,
           dct.directives
@@ -257,19 +458,78 @@ func prepareCollectStatements(conn *sqlite.Conn, nDocuments int) (*CollectStatem
         LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a ON a.selection_id = selections.id
       )
-    SELECT document_name, kind, field_name, alias, path, arguments, directives, parent_id, document_id FROM selection_tree
+    SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id FROM selection_tree
+    ORDER BY parent_id
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}
 
+	documentVariables, err := conn.Prepare(fmt.Sprintf(`
+    WITH 
+    directive_args AS (
+      SELECT
+        document_variable_directive_arguments.parent AS variable_id,
+        json_group_array(
+           json_object(
+             'name', document_variable_directive_arguments.name,
+             'value', document_variable_directive_arguments.value
+           )
+        ) AS arguments
+      FROM document_variable_directive_arguments
+        JOIN document_variable_directives ON 
+          document_variable_directive_arguments.parent = document_variable_directives.id
+        JOIN document_variables ON document_variable_directives.parent = document_variables.id
+      WHERE document_variables.document IN %s
+      GROUP BY document_variable_directive_arguments.parent
+    ),
+    doc_directives AS (
+      SELECT
+        document_variable_directives.parent AS variable_id,
+        json_group_array(
+          json_object(
+            'id', document_variable_directives.id,
+            'name', document_variable_directives.directive,
+            'arguments', json(IFNULL(directive_args.arguments, '[]'))
+          )
+        ) AS directives
+      FROM document_variable_directives
+        LEFT JOIN directive_args ON directive_args.variable_id = document_variable_directives.id
+        JOIN document_variables ON document_variable_directives.parent = document_variables.id
+      WHERE document_variables.document IN %s
+      GROUP BY document_variable_directives.parent
+    )
+    SELECT 
+      document_variables.*,
+      documents.name AS document_name,
+      doc_directives.directives AS directives
+    FROM 
+      document_variables 
+      JOIN documents ON document_variables.document = documents.id
+      LEFT JOIN doc_directives ON doc_directives.variable_id = document_variables.id
+    WHERE documents.id in %s
+    GROUP BY document_variables.id
+  `, whereIn, whereIn, whereIn))
+	if err != nil {
+		return nil, err
+	}
+
+	// bind each document ID to the variables that were prepared
+	for _, stmt := range []*sqlite.Stmt{search, documentVariables} {
+		for i, id := range docIDs {
+			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
+		}
+	}
+
 	return &CollectStatements{
-		PrintSearch: printSearch,
+		Search:            search,
+		DocumentVariables: documentVariables,
 	}, nil
 }
 
 func (s *CollectStatements) Finalize() {
-	s.PrintSearch.Finalize()
+	s.Search.Finalize()
+	s.DocumentVariables.Finalize()
 }
 
 type CollectedDocument struct {
@@ -277,41 +537,40 @@ type CollectedDocument struct {
 	Name                string
 	Kind                string // "query", "mutation", "subscription", or "fragment"
 	TypeCondition       *string
-	Variables           []CollectedOperationVariable
-	Selections          []CollectedSelection
-	Directives          []CollectedDirective
-	ReferencedFragments []int64
+	Variables           []*CollectedOperationVariable
+	Selections          []*CollectedSelection
+	Directives          []*CollectedDirective
+	ReferencedFragments []string
 }
 
 type CollectedSelection struct {
 	FieldName  string
 	Alias      *string
-	PathIndex  int
-	Kind       string // "field", "fragment", "inline_fragment", etc.
-	Arguments  []CollectedArgument
-	Directives []CollectedDirective
-	Children   []CollectedSelection
+	Kind       string
+	Arguments  []*CollectedArgument
+	Directives []*CollectedDirective
+	Children   []*CollectedSelection
 }
 
 type CollectedOperationVariable struct {
-	Document      int
-	Name          string
-	Type          string
-	TypeModifiers string
-	DefaultValue  *CollectedArgumentValue
-	Directives    []CollectedDirective
+	Name           string
+	Type           string
+	TypeModifiers  string
+	DefaultValue   *CollectedArgumentValue
+	DefaultValueID *int64
+	Directives     []*CollectedDirective
 }
 
 type CollectedArgument struct {
-	ID    int64
-	Name  string
-	Value *CollectedArgumentValue
+	Name    string `json:"name"`
+	ValueID *int64 `json:"value"`
+	Value   *CollectedArgumentValue
 }
 
 type CollectedArgumentValue struct {
 	Kind     string
 	Raw      string
-	Children []CollectedArgumentValueChildren
+	Children []*CollectedArgumentValueChildren
 }
 
 type CollectedArgumentValueChildren struct {
@@ -320,11 +579,12 @@ type CollectedArgumentValueChildren struct {
 }
 
 type CollectedDirectiveArgument struct {
-	Name  string
-	Value *CollectedArgumentValue
+	Name    string `json:"name"`
+	ValueID *int64 `json:"value"`
+	Value   *CollectedArgumentValue
 }
 
 type CollectedDirective struct {
-	Name      string
-	Arguments []CollectedDirectiveArgument
+	Name      string                        `json:"name"`
+	Arguments []*CollectedDirectiveArgument `json:"arguments"`
 }
