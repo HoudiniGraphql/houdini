@@ -5,13 +5,15 @@ import (
 	"path"
 	"testing"
 
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
 )
 
 var loadDocumentsTable = []testCase{
@@ -45,8 +47,18 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
-							{FieldName: "name", Alias: tests.StrPtr("name"), PathIndex: 1, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
+							{
+								FieldName: "name",
+								Alias:     tests.StrPtr("name"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
 						},
 						Arguments: []tests.ExpectedArgument{
 							{
@@ -120,8 +132,18 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
-							{FieldName: "name", Alias: tests.StrPtr("name"), PathIndex: 1, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
+							{
+								FieldName: "name",
+								Alias:     tests.StrPtr("name"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -157,8 +179,18 @@ var loadDocumentsTable = []testCase{
 								PathIndex: 0,
 								Kind:      "inline_fragment",
 								Children: []tests.ExpectedSelection{
-									{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
-									{FieldName: "email", Alias: tests.StrPtr("email"), PathIndex: 1, Kind: "field"},
+									{
+										FieldName: "id",
+										Alias:     tests.StrPtr("id"),
+										PathIndex: 0,
+										Kind:      "field",
+									},
+									{
+										FieldName: "email",
+										Alias:     tests.StrPtr("email"),
+										PathIndex: 1,
+										Kind:      "field",
+									},
 								},
 							},
 						},
@@ -219,7 +251,12 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -256,8 +293,18 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "name", Alias: tests.StrPtr("fn"), PathIndex: 0, Kind: "field"},
-							{FieldName: "age", Alias: tests.StrPtr("age"), PathIndex: 1, Kind: "field"},
+							{
+								FieldName: "name",
+								Alias:     tests.StrPtr("fn"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
+							{
+								FieldName: "age",
+								Alias:     tests.StrPtr("age"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -292,7 +339,12 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 						Arguments: []tests.ExpectedArgument{
 							{
@@ -362,7 +414,12 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -406,8 +463,18 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
-							{FieldName: "name", Alias: tests.StrPtr("name"), PathIndex: 1, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
+							{
+								FieldName: "name",
+								Alias:     tests.StrPtr("name"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -435,8 +502,18 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
-							{FieldName: "email", Alias: tests.StrPtr("email"), PathIndex: 1, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
+							{
+								FieldName: "email",
+								Alias:     tests.StrPtr("email"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -491,14 +568,24 @@ var loadDocumentsTable = []testCase{
 										PathIndex: 0,
 										Kind:      "field",
 										Children: []tests.ExpectedSelection{
-											{FieldName: "bio", Alias: tests.StrPtr("bio"), PathIndex: 0, Kind: "field"},
+											{
+												FieldName: "bio",
+												Alias:     tests.StrPtr("bio"),
+												PathIndex: 0,
+												Kind:      "field",
+											},
 											{
 												FieldName: "Profile",
 												Alias:     nil,
 												PathIndex: 1,
 												Kind:      "inline_fragment",
 												Children: []tests.ExpectedSelection{
-													{FieldName: "picture", Alias: tests.StrPtr("picture"), PathIndex: 0, Kind: "field"},
+													{
+														FieldName: "picture",
+														Alias:     tests.StrPtr("picture"),
+														PathIndex: 0,
+														Kind:      "field",
+													},
 												},
 											},
 										},
@@ -590,7 +677,12 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -605,7 +697,12 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "name", Alias: tests.StrPtr("name"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "name",
+								Alias:     tests.StrPtr("name"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -636,7 +733,13 @@ var loadDocumentsTable = []testCase{
 				Name: "TestVariableDirective",
 				Kind: "query",
 				Variables: []tests.ExpectedOperationVariable{
-					{Document: 1, Name: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
+					{
+						Document:      1,
+						Name:          "show",
+						Type:          "Boolean",
+						TypeModifiers: "!",
+						DefaultValue:  nil,
+					},
 				},
 				Selections: []tests.ExpectedSelection{
 					{
@@ -668,7 +771,12 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -690,7 +798,13 @@ var loadDocumentsTable = []testCase{
 				Kind:          "fragment",
 				TypeCondition: tests.StrPtr("Query"),
 				Variables: []tests.ExpectedOperationVariable{
-					{Document: 1, Name: "show", Type: "Boolean", TypeModifiers: "!", DefaultValue: nil},
+					{
+						Document:      1,
+						Name:          "show",
+						Type:          "Boolean",
+						TypeModifiers: "!",
+						DefaultValue:  nil,
+					},
 				},
 				Directives: []tests.ExpectedDirective{
 					{
@@ -752,7 +866,12 @@ var loadDocumentsTable = []testCase{
 							},
 						},
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -780,8 +899,18 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "__typename", Alias: tests.StrPtr("__typename"), PathIndex: 0, Kind: "field"},
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 1, Kind: "field"},
+							{
+								FieldName: "__typename",
+								Alias:     tests.StrPtr("__typename"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 1,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -817,7 +946,12 @@ var loadDocumentsTable = []testCase{
 								PathIndex: 0,
 								Kind:      "inline_fragment",
 								Children: []tests.ExpectedSelection{
-									{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+									{
+										FieldName: "id",
+										Alias:     tests.StrPtr("id"),
+										PathIndex: 0,
+										Kind:      "field",
+									},
 								},
 							},
 						},
@@ -1260,7 +1394,12 @@ var loadDocumentsTable = []testCase{
 									},
 								},
 								Children: []tests.ExpectedSelection{
-									{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+									{
+										FieldName: "id",
+										Alias:     tests.StrPtr("id"),
+										PathIndex: 0,
+										Kind:      "field",
+									},
 									{
 										FieldName: "email",
 										Alias:     tests.StrPtr("email"),
@@ -1307,7 +1446,12 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -1354,7 +1498,12 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -1391,7 +1540,12 @@ var loadDocumentsTable = []testCase{
 						PathIndex: 0,
 						Kind:      "field",
 						Children: []tests.ExpectedSelection{
-							{FieldName: "id", Alias: tests.StrPtr("id"), PathIndex: 0, Kind: "field"},
+							{
+								FieldName: "id",
+								Alias:     tests.StrPtr("id"),
+								PathIndex: 0,
+								Kind:      "field",
+							},
 						},
 					},
 				},
@@ -1449,7 +1603,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 
 			`
 			// create an in-memory db.
-			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
+			db, err := plugins.NewPoolInMemory[config.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
@@ -1477,7 +1631,12 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			}
 
 			// Use an in-memory file system.
-			afero.WriteFile(plugin.Fs, path.Join("/project", "schema.graphql"), []byte(schema), 0644)
+			afero.WriteFile(
+				plugin.Fs,
+				path.Join("/project", "schema.graphql"),
+				[]byte(schema),
+				0644,
+			)
 
 			// wire up the plugin
 			err = plugin.Schema(context.Background())
@@ -1487,7 +1646,9 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			}
 
 			// insert the raw document (assume id becomes 1).
-			insertRaw, err := conn.Prepare("insert into raw_documents (content, filepath) values ($content, 'foo')")
+			insertRaw, err := conn.Prepare(
+				"insert into raw_documents (content, filepath) values ($content, 'foo')",
+			)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
@@ -1510,7 +1671,14 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			typeCaches, err := documents.LoadTypeCache(context.Background(), db)
 			require.Nil(t, err)
 
-			pendingErr := documents.LoadPendingQuery(context.Background(), db, conn, pending, statements, typeCaches)
+			pendingErr := documents.LoadPendingQuery(
+				context.Background(),
+				db,
+				conn,
+				pending,
+				statements,
+				typeCaches,
+			)
 			if tc.expectError {
 				if pendingErr == nil {
 					t.Fatalf("expected an error for test %q but got none", tc.name)

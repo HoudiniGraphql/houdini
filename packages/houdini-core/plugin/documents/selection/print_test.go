@@ -1,4 +1,4 @@
-package documents_test
+package selection_test
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"zombiezen.com/go/sqlite"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/selection"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestDocumentCollectAndPrint(t *testing.T) {
-	tests.RunTable(t, tests.Table{
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
       type Query {
         user: User!
@@ -44,7 +45,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
       union Pet = Cat
 
     `,
-		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test) {
+		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			// load the documents into the database
 			err := p.AfterExtract(context.Background())
 			if err != nil {
@@ -73,12 +74,12 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				require.Nil(t, err)
 				defer p.DB.Put(conn)
 
-				statements, err := documents.PreparePrintStatements(conn)
+				statements, err := selection.PreparePrintStatements(conn, 1)
 				require.Nil(t, err)
 				defer statements.Finalize()
 
 				// print the document we found
-				printed, err := documents.PrintDocument(
+				printed, err := selection.PrintDocument(
 					context.Background(),
 					conn,
 					documentID,
@@ -88,7 +89,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				require.Equal(t, content, printed)
 			}
 		},
-		Tests: []tests.Test{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "Query with variable directive",
 				Input: []string{

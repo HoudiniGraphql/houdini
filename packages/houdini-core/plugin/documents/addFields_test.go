@@ -3,12 +3,13 @@ package documents_test
 import (
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestAddFields(t *testing.T) {
-	tests.RunTable(t, tests.Table{
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		ProjectConfig: plugins.ProjectConfig{
 			TypeConfig: map[string]plugins.TypeConfig{
 				"Ghost": {
@@ -61,7 +62,7 @@ func TestAddFields(t *testing.T) {
 			}
 
 		`,
-		Tests: []tests.Test{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "Adds ids to selection sets of objects with them",
 				Pass: true,

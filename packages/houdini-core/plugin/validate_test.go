@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidate_Houdini(t *testing.T) {
-	tests.RunTable(t, tests.Table{
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		ProjectConfig: plugins.ProjectConfig{
 			TypeConfig: map[string]plugins.TypeConfig{
 				"Ghost": {
@@ -154,7 +156,7 @@ func TestValidate_Houdini(t *testing.T) {
 			}
 
 		`,
-		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test) {
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			ctx := context.Background()
 
 			// load documents into the database
@@ -167,7 +169,12 @@ func TestValidate_Houdini(t *testing.T) {
 					if validationErr, ok := err.(*plugins.ErrorList); ok {
 						// make sure we received a validation error
 						err := validationErr.GetItems()[0]
-						require.Equal(t, plugins.ErrorKindValidation, err.Kind, fmt.Sprintf("%s: %s", err.Message, err.Detail))
+						require.Equal(
+							t,
+							plugins.ErrorKindValidation,
+							err.Kind,
+							fmt.Sprintf("%s: %s", err.Message, err.Detail),
+						)
 					} else {
 						t.Fatal("did not receive error list")
 					}
@@ -200,9 +207,8 @@ func TestValidate_Houdini(t *testing.T) {
 					t.Fatal("did not receive error list")
 				}
 			}
-
 		},
-		Tests: []tests.Test{
+		Tests: []tests.Test[config.PluginConfig]{
 			/*
 			 * These tests validate the default validation rules that are specified by the spec
 			 */
@@ -1133,7 +1139,6 @@ func TestValidate_Houdini(t *testing.T) {
 				Name: "Int as ID",
 				Pass: true,
 				Input: []string{
-
 					`
 					mutation Bar {
 						deleteUser(id: 2) {

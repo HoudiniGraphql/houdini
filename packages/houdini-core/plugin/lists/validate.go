@@ -6,12 +6,18 @@ import (
 	"strings"
 	"sync"
 
+	"zombiezen.com/go/sqlite"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite"
 )
 
-func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateConflictingPrependAppend(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 	SELECT
 	  rd.filepath,
@@ -39,8 +45,12 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 		documentName := stmt.ColumnText(3)
 		directives := stmt.ColumnText(4)
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("@prepend and @append cannot appear on the same fragment in document %q (found: %s)", documentName, directives),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"@prepend and @append cannot appear on the same fragment in document %q (found: %s)",
+				documentName,
+				directives,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
 			},
@@ -51,7 +61,11 @@ func ValidateConflictingPrependAppend[PluginConfig any](ctx context.Context, db 
 	}
 }
 
-func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateConflictingParentIDAllLists(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 		SELECT
 			rd.filepath,
@@ -79,8 +93,12 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 		documentName := stmt.ColumnText(3)
 		directives := stmt.ColumnText(4)
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("@parentID cannot appear alongside @allLists in document %q (found: %s)", documentName, directives),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"@parentID cannot appear alongside @allLists in document %q (found: %s)",
+				documentName,
+				directives,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
 			},
@@ -91,7 +109,11 @@ func ValidateConflictingParentIDAllLists[PluginConfig any](ctx context.Context, 
 	}
 }
 
-func validateConflictingPaginateListDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func validateConflictingPaginateListDirectives(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 		SELECT
 			rd.filepath,
@@ -115,8 +137,10 @@ func validateConflictingPaginateListDirectives[PluginConfig any](ctx context.Con
 		row := int(stmt.ColumnInt(1))
 		column := int(stmt.ColumnInt(2))
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("@list is unnecessary on a field annotated with @paginate, simply use the 'name' parameter on @paginate instead"),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"@list is unnecessary on a field annotated with @paginate, simply use the 'name' parameter on @paginate instead",
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
 			},
@@ -127,7 +151,11 @@ func validateConflictingPaginateListDirectives[PluginConfig any](ctx context.Con
 	}
 }
 
-func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidatePaginateTypeCondition(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query returns documents that use @paginate (via selection_directives)
 	// and that have a non-empty type_condition, but that are invalid—
 	// meaning the type condition neither implements Node nor has a valid resolve_query.
@@ -163,8 +191,13 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 		column := int(stmt.ColumnInt(4))
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Document %q uses @%s but its type condition %q is invalid. It must either implement Node or have a type_configs entry with a valid resolve_query", docName, schema.PaginationDirective, typeCondition),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"Document %q uses @%s but its type condition %q is invalid. It must either implement Node or have a type_configs entry with a valid resolve_query",
+				docName,
+				schema.PaginationDirective,
+				typeCondition,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
 			},
@@ -175,7 +208,11 @@ func ValidatePaginateTypeCondition[PluginConfig any](ctx context.Context, db plu
 	}
 }
 
-func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateSinglePaginateDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query retrieves every usage of the paginate directive along with document and location info.
 	query := `
 	SELECT
@@ -228,8 +265,14 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 			// Use the document name from the first
 			docName := usages[0].documentName
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("@%s can only appear once in a document; found %d occurrences in document %q at locations: %s", schema.PaginationDirective, len(usages), docName, strings.Join(locStrs, "; ")),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"@%s can only appear once in a document; found %d occurrences in document %q at locations: %s",
+					schema.PaginationDirective,
+					len(usages),
+					docName,
+					strings.Join(locStrs, "; "),
+				),
+				Kind: plugins.ErrorKindValidation,
 			})
 		}
 	}
@@ -244,7 +287,11 @@ func ValidateSinglePaginateDirective[PluginConfig any](ctx context.Context, db p
 //   - every fragment spread needs to reference a document with kind = fragment or end in one of the operation prefixes
 //   - every directive must be known or reference a delete operation
 
-func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateParentID(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -381,7 +428,11 @@ func ValidateParentID[PluginConfig any](ctx context.Context, db plugins.Database
 	}
 }
 
-func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func DiscoverListsThenValidate(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// if paginate and list appear on the same node then it will produce a confusing error message so let's check that first
 	validateConflictingPaginateListDirectives(ctx, db, errs)
 	if errs.Len() > 0 {
@@ -609,10 +660,17 @@ func DiscoverListsThenValidate[PluginConfig any](ctx context.Context, db plugins
 	wg.Wait()
 }
 
-var invalidConnectinErr = fmt.Sprintf(`Looks like you are trying to use the "%s" directive on a field but your field does not conform to the connection spec:
-your edge type does not have node as a field. For more information, visit this link: ${siteURL}/guides/pagination`, schema.PaginationDirective)
+var invalidConnectinErr = fmt.Sprintf(
+	`Looks like you are trying to use the "%s" directive on a field but your field does not conform to the connection spec:
+your edge type does not have node as a field. For more information, visit this link: ${siteURL}/guides/pagination`,
+	schema.PaginationDirective,
+)
 
-func validateDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func validateDirectives(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// we need a query that looks for references to directives in selection that don't exist in the database
 	selectionSearch := `
 		WITH discovered_directives AS (
@@ -672,7 +730,11 @@ func validateDirectives[PluginConfig any](ctx context.Context, db plugins.Databa
 	}
 }
 
-func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func validateFragmentSpreads(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// we need a query that looks for references to fragments in selection that don't exist in the database
 	query := `
 		WITH suffixes(sfx) AS (
@@ -725,7 +787,11 @@ func validateFragmentSpreads[PluginConfig any](ctx context.Context, db plugins.D
 	}
 }
 
-func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func validatePaginateArgs(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	conn, err := db.Take(ctx)
 	defer db.Put(conn)
 
@@ -869,8 +935,12 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 		if cursorPagination {
 			if !forwardApplied && !backwardsApplied {
 				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination must have either a 'first' or a 'last' argument", fieldName, documentName),
-					Kind:    plugins.ErrorKindValidation,
+					Message: fmt.Sprintf(
+						"Field %q in document %q with cursor-based pagination must have either a 'first' or a 'last' argument",
+						fieldName,
+						documentName,
+					),
+					Kind: plugins.ErrorKindValidation,
 					Locations: []*plugins.ErrorLocation{
 						{Filepath: filepath, Line: row, Column: column},
 					},
@@ -879,8 +949,12 @@ func validatePaginateArgs[PluginConfig any](ctx context.Context, db plugins.Data
 
 			if forwardApplied && backwardsApplied && paginateMode != "SinglePage" {
 				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode", fieldName, documentName),
-					Kind:    plugins.ErrorKindValidation,
+					Message: fmt.Sprintf(
+						"Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode",
+						fieldName,
+						documentName,
+					),
+					Kind: plugins.ErrorKindValidation,
 					Locations: []*plugins.ErrorLocation{
 						{Filepath: filepath, Line: row, Column: column},
 					},

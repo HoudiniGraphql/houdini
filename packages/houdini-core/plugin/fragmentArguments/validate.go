@@ -8,13 +8,14 @@ import (
 
 	"zombiezen.com/go/sqlite"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
 
-func ValidateFragmentArgumentsMissingWith[PluginConfig any](
+func ValidateFragmentArgumentsMissingWith(
 	ctx context.Context,
-	db plugins.DatabasePool[PluginConfig],
+	db plugins.DatabasePool[config.PluginConfig],
 	errs *plugins.ErrorList,
 ) {
 	// This query finds fragment spreads (in selections) that reference a fragment document (documents with kind = 'fragment')
@@ -65,9 +66,9 @@ func ValidateFragmentArgumentsMissingWith[PluginConfig any](
 	}
 }
 
-func ValidateFragmentArgumentValues[PluginConfig any](
+func ValidateFragmentArgumentValues(
 	ctx context.Context,
-	db plugins.DatabasePool[PluginConfig],
+	db plugins.DatabasePool[config.PluginConfig],
 	errs *plugins.ErrorList,
 ) {
 	// --- STEP 1. Build a flat map of argument values for the 'with' directive ---

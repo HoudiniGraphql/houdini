@@ -9,12 +9,18 @@ import (
 	"sort"
 	"strings"
 
+	"zombiezen.com/go/sqlite"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite"
 )
 
-func ValidateSubscriptionsWithMultipleRootFields[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateSubscriptionsWithMultipleRootFields(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	queryStr := `
 		SELECT
 			raw_documents.filepath,
@@ -37,7 +43,11 @@ func ValidateSubscriptionsWithMultipleRootFields[PluginConfig any](ctx context.C
 
 		locations := []*plugins.ErrorLocation{}
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations: %v. Raw: %s", err, locationsRaw)))
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf("error unmarshaling locations: %v. Raw: %s", err, locationsRaw),
+				),
+			)
 			return
 		}
 		// Set the file path for each location.
@@ -55,7 +65,11 @@ func ValidateSubscriptionsWithMultipleRootFields[PluginConfig any](ctx context.C
 	}
 }
 
-func ValidateDuplicateDocumentNames[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateDuplicateDocumentNames(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	queryStr := `
 		SELECT
 			documents.name,
@@ -78,7 +92,16 @@ func ValidateDuplicateDocumentNames[PluginConfig any](ctx context.Context, db pl
 
 		locations := []*plugins.ErrorLocation{}
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for document '%s': %v. Raw: %s", docName, err, locationsRaw)))
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf(
+						"error unmarshaling locations for document '%s': %v. Raw: %s",
+						docName,
+						err,
+						locationsRaw,
+					),
+				),
+			)
 			return
 		}
 		errs.Append(&plugins.Error{
@@ -92,7 +115,11 @@ func ValidateDuplicateDocumentNames[PluginConfig any](ctx context.Context, db pl
 	}
 }
 
-func ValidateFragmentUnknownType[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateFragmentUnknownType(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	queryStr := `
 		SELECT
 			documents.name,
@@ -117,7 +144,16 @@ func ValidateFragmentUnknownType[PluginConfig any](ctx context.Context, db plugi
 
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for fragment '%s': %v. Raw: %s", fragName, err, locationsRaw)))
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf(
+						"error unmarshaling locations for fragment '%s': %v. Raw: %s",
+						fragName,
+						err,
+						locationsRaw,
+					),
+				),
+			)
 			return
 		}
 		// set file path for each location
@@ -126,7 +162,11 @@ func ValidateFragmentUnknownType[PluginConfig any](ctx context.Context, db plugi
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Fragment '%s' references an unknown type '%s'", fragName, typeCond),
+			Message: fmt.Sprintf(
+				"Fragment '%s' references an unknown type '%s'",
+				fragName,
+				typeCond,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -136,7 +176,11 @@ func ValidateFragmentUnknownType[PluginConfig any](ctx context.Context, db plugi
 	}
 }
 
-func ValidateFragmentOnScalar[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateFragmentOnScalar(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	queryStr := `
 		SELECT
 			documents.name,
@@ -161,14 +205,27 @@ func ValidateFragmentOnScalar[PluginConfig any](ctx context.Context, db plugins.
 
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("error unmarshaling locations for fragment '%s': %v. Raw: %s", fragName, err, locationsRaw)))
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf(
+						"error unmarshaling locations for fragment '%s': %v. Raw: %s",
+						fragName,
+						err,
+						locationsRaw,
+					),
+				),
+			)
 			return
 		}
 		for _, loc := range locations {
 			loc.Filepath = filepath
 		}
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Fragment '%s' is defined on a scalar type '%s'", fragName, typeCond),
+			Message: fmt.Sprintf(
+				"Fragment '%s' is defined on a scalar type '%s'",
+				fragName,
+				typeCond,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -178,7 +235,11 @@ func ValidateFragmentOnScalar[PluginConfig any](ctx context.Context, db plugins.
 	}
 }
 
-func ValidateOutputTypeAsInput[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateOutputTypeAsInput(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	queryStr := `
 		SELECT
 			document_variables.name,
@@ -201,12 +262,17 @@ func ValidateOutputTypeAsInput[PluginConfig any](ctx context.Context, db plugins
 		column := row.ColumnInt(4)
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Variable '$%s' uses output type '%s' (must be an input type)", varName, varType),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"Variable '$%s' uses output type '%s' (must be an input type)",
+				varName,
+				varType,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
-				{Filepath: filepath,
-					Line:   line,
-					Column: column,
+				{
+					Filepath: filepath,
+					Line:     line,
+					Column:   column,
 				},
 			},
 		})
@@ -216,7 +282,11 @@ func ValidateOutputTypeAsInput[PluginConfig any](ctx context.Context, db plugins
 	}
 }
 
-func ValidateScalarWithSelection[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateScalarWithSelection(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	queryStr := `
 		SELECT
 			selections.alias,
@@ -242,9 +312,10 @@ func ValidateScalarWithSelection[PluginConfig any](ctx context.Context, db plugi
 			Message: fmt.Sprintf("'%s' cannot have a selection (its a scalar)", alias),
 			Kind:    plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
-				{Filepath: filepath,
-					Line:   line,
-					Column: column,
+				{
+					Filepath: filepath,
+					Line:     line,
+					Column:   column,
 				},
 			},
 		})
@@ -254,7 +325,11 @@ func ValidateScalarWithSelection[PluginConfig any](ctx context.Context, db plugi
 	}
 }
 
-func ValidateUnknownField[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateUnknownField(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 		SELECT
 			alias,
@@ -301,7 +376,11 @@ func ValidateUnknownField[PluginConfig any](ctx context.Context, db plugins.Data
 	}
 }
 
-func ValidateIncompatibleFragmentSpread[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateIncompatibleFragmentSpread(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 	SELECT
 		childSel.id AS fragmentSpreadId,
@@ -377,7 +456,11 @@ func ValidateIncompatibleFragmentSpread[PluginConfig any](ctx context.Context, d
 
 		if !compatible {
 			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("Fragment spread is incompatible: parent's type '%s' is not compatible with fragment type condition '%s'", parentFieldType, fragTypeCondition),
+				Message: fmt.Sprintf(
+					"Fragment spread is incompatible: parent's type '%s' is not compatible with fragment type condition '%s'",
+					parentFieldType,
+					fragTypeCondition,
+				),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: locations,
 			})
@@ -388,7 +471,11 @@ func ValidateIncompatibleFragmentSpread[PluginConfig any](ctx context.Context, d
 	}
 }
 
-func ValidateFragmentCycles[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateFragmentCycles(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// a structure to hold a fragment dependency
 	type edge struct {
 		source   string                 // The container fragment definition name.
@@ -524,7 +611,11 @@ func ValidateFragmentCycles[PluginConfig any](ctx context.Context, db plugins.Da
 	}
 }
 
-func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateDuplicateVariables(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 		SELECT
 			documents.name AS documentName,
@@ -553,8 +644,11 @@ func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugin
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for duplicate variable '%s'", varName),
-				Detail:  err.Error(),
+				Message: fmt.Sprintf(
+					"could not unmarshal locations for duplicate variable '%s'",
+					varName,
+				),
+				Detail: err.Error(),
 			})
 			return
 		}
@@ -565,7 +659,11 @@ func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugin
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Variable '$%s' is defined more than once in document '%s'", varName, docName),
+			Message: fmt.Sprintf(
+				"Variable '$%s' is defined more than once in document '%s'",
+				varName,
+				docName,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -575,7 +673,11 @@ func ValidateDuplicateVariables[PluginConfig any](ctx context.Context, db plugin
 	}
 }
 
-func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateUndefinedVariables(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 	SELECT
 		av.raw AS varUsage,
@@ -606,8 +708,11 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for undefined variable '%s'", varUsage),
-				Detail:  err.Error(),
+				Message: fmt.Sprintf(
+					"could not unmarshal locations for undefined variable '%s'",
+					varUsage,
+				),
+				Detail: err.Error(),
 			})
 			return
 		}
@@ -628,7 +733,11 @@ func ValidateUndefinedVariables[PluginConfig any](ctx context.Context, db plugin
 	}
 }
 
-func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateUnusedVariables(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 		SELECT
 			document_variables."name",
@@ -662,7 +771,11 @@ func ValidateUnusedVariables[PluginConfig any](ctx context.Context, db plugins.D
 	}
 }
 
-func ValidateRepeatingNonRepeatable[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateRepeatingNonRepeatable(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query finds fields where a non-repeatable directive is applied more than once.
 	// We join selection_directives (alias sd) to selections (s), then to selection_refs (sr)
 	// to obtain the document where the selection appears. That document (d) and its raw document (rd)
@@ -699,8 +812,11 @@ func ValidateRepeatingNonRepeatable[PluginConfig any](ctx context.Context, db pl
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for directive '@%s'", directive),
-				Detail:  err.Error(),
+				Message: fmt.Sprintf(
+					"could not unmarshal locations for directive '@%s'",
+					directive,
+				),
+				Detail: err.Error(),
 			})
 			return
 		}
@@ -711,7 +827,12 @@ func ValidateRepeatingNonRepeatable[PluginConfig any](ctx context.Context, db pl
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Non-repeatable directive '@%s' is used more than once on selection %s in document %s", directive, selectionID, documentID),
+			Message: fmt.Sprintf(
+				"Non-repeatable directive '@%s' is used more than once on selection %s in document %s",
+				directive,
+				selectionID,
+				documentID,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -720,7 +841,12 @@ func ValidateRepeatingNonRepeatable[PluginConfig any](ctx context.Context, db pl
 		errs.Append(plugins.WrapError(err))
 	}
 }
-func ValidateDuplicateArgumentInField[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+
+func ValidateDuplicateArgumentInField(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query finds cases where the same argument is provided more than once on a field.
 	// We join selection_arguments (sargs) with selections (s), then via selection_refs (sr)
 	// to determine the document (d) and its raw document (rd) for file path and location info.
@@ -759,7 +885,11 @@ func ValidateDuplicateArgumentInField[PluginConfig any](ctx context.Context, db 
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Argument '%s' is duplicated on selection '%s'", argName, selectionID),
+			Message: fmt.Sprintf(
+				"Argument '%s' is duplicated on selection '%s'",
+				argName,
+				selectionID,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{loc},
 		})
@@ -768,7 +898,12 @@ func ValidateDuplicateArgumentInField[PluginConfig any](ctx context.Context, db 
 		errs.Append(plugins.WrapError(err))
 	}
 }
-func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+
+func ValidateFieldArgumentIncompatibleType(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query retrieves each field argument variable usage along with:
 	//   - The expected type and modifiers (from the field argument definition).
 	//   - The provided type and modifiers (from the operation variable definition).
@@ -834,7 +969,12 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
 				"Variable used for argument '%s' is incompatible: expected type '%s%s' but got '%s%s'",
-				argName, expectedType, expectedModifiers, providedTypeRaw, providedModifiers),
+				argName,
+				expectedType,
+				expectedModifiers,
+				providedTypeRaw,
+				providedModifiers,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -844,7 +984,11 @@ func ValidateFieldArgumentIncompatibleType[PluginConfig any](ctx context.Context
 	}
 }
 
-func ValidateMissingRequiredArgument[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateMissingRequiredArgument(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 	SELECT
 		fad.name AS argName,
@@ -872,8 +1016,11 @@ func ValidateMissingRequiredArgument[PluginConfig any](ctx context.Context, db p
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for missing required argument '%s'", argName),
-				Detail:  err.Error(),
+				Message: fmt.Sprintf(
+					"could not unmarshal locations for missing required argument '%s'",
+					argName,
+				),
+				Detail: err.Error(),
 			})
 			return
 		}
@@ -894,7 +1041,11 @@ func ValidateMissingRequiredArgument[PluginConfig any](ctx context.Context, db p
 	}
 }
 
-func ValidateConflictingSelections[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateConflictingSelections(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query detects conflicting selections by grouping by the parent selection id (from selection_refs)
 	// and the alias (from selections). If more than one distinct field type is used for the same alias,
 	// we consider that a conflict.
@@ -929,8 +1080,11 @@ func ValidateConflictingSelections[PluginConfig any](ctx context.Context, db plu
 		var locations []*plugins.ErrorLocation
 		if err := json.Unmarshal([]byte(locationsRaw), &locations); err != nil {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("could not unmarshal locations for conflicting selections with alias '%s'", alias),
-				Detail:  err.Error(),
+				Message: fmt.Sprintf(
+					"could not unmarshal locations for conflicting selections with alias '%s'",
+					alias,
+				),
+				Detail: err.Error(),
 			})
 			return
 		}
@@ -939,7 +1093,13 @@ func ValidateConflictingSelections[PluginConfig any](ctx context.Context, db plu
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Conflicting selections for alias '%s': fields %s have differing types %s (parent selection %s)", alias, conflictingFields, types, parentSelectionID),
+			Message: fmt.Sprintf(
+				"Conflicting selections for alias '%s': fields %s have differing types %s (parent selection %s)",
+				alias,
+				conflictingFields,
+				types,
+				parentSelectionID,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -949,7 +1109,11 @@ func ValidateConflictingSelections[PluginConfig any](ctx context.Context, db plu
 	}
 }
 
-func ValidateDuplicateKeysInInputObject[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateDuplicateKeysInInputObject(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	query := `
 		SELECT
 			av.id AS parentID,
@@ -983,7 +1147,11 @@ func ValidateDuplicateKeysInInputObject[PluginConfig any](ctx context.Context, d
 			Column:   int(parentCol),
 		}
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Duplicate key '%s' appears %d times in an input object", keyName, keyCount),
+			Message: fmt.Sprintf(
+				"Duplicate key '%s' appears %d times in an input object",
+				keyName,
+				keyCount,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{location},
 		})
@@ -1041,7 +1209,10 @@ func parseModifiers(modifiers string) TypeModifiers {
 // loadUsedInputTypes loads only those input types that are used by structured arguments.
 // It first queries for distinct expected input type names from structured arguments, then
 // loads all matching type definitions (from the types table) and their fields (from type_fields).
-func loadUsedInputTypes[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) (map[string]*InputTypeDefinition, error) {
+func loadUsedInputTypes(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[string]*InputTypeDefinition, error) {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return nil, err
@@ -1168,7 +1339,11 @@ func loadUsedInputTypes[PluginConfig any](ctx context.Context, db plugins.Databa
 	return typeDefs, nil
 }
 
-func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateWrongTypesToArg(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// every argument value contains the type that it should be so we need to look at every scalar
 	// usage and make sure that it matches with the expectations
 	query := `
@@ -1330,7 +1505,12 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Argument '%s' has the wrong type: expected '%s', received %s", argumentName, expectedType, kind),
+			Message: fmt.Sprintf(
+				"Argument '%s' has the wrong type: expected '%s', received %s",
+				argumentName,
+				expectedType,
+				kind,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{loc},
 		})
@@ -1340,7 +1520,11 @@ func ValidateWrongTypesToArg[PluginConfig any](ctx context.Context, db plugins.D
 	}
 }
 
-func ValidateNoKeyAlias[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateNoKeyAlias(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query finds selections whose alias conflicts with an allowed key,
 	// but only if the alias is different from the underlying field name.
 	// Allowed keys are derived from two sources:
@@ -1397,7 +1581,11 @@ func ValidateNoKeyAlias[PluginConfig any](ctx context.Context, db plugins.Databa
 		}
 
 		errs.Append(&plugins.Error{
-			Message:   fmt.Sprintf("Alias '%s' is not allowed because it conflicts with a key for type '%s'", alias, typeName),
+			Message: fmt.Sprintf(
+				"Alias '%s' is not allowed because it conflicts with a key for type '%s'",
+				alias,
+				typeName,
+			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: locations,
 		})
@@ -1407,7 +1595,11 @@ func ValidateNoKeyAlias[PluginConfig any](ctx context.Context, db plugins.Databa
 	}
 }
 
-func ValidateKnownDirectiveArguments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateKnownDirectiveArguments(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// the @arguments, @with, @when, and @when_not do not have argumenst that are known to the schema
 	// so we need to looks for directive arguments (both at the selection level and document level)
 	// that do not have a matching entry in the directive_arguments table.
@@ -1458,8 +1650,12 @@ func ValidateKnownDirectiveArguments[PluginConfig any](ctx context.Context, db p
 		column := int(row.ColumnInt(4))
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("Unknown argument '%s' used with directive '@%s'", argName, directive),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"Unknown argument '%s' used with directive '@%s'",
+				argName,
+				directive,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{{
 				Filepath: filepath,
 				Line:     line,
@@ -1472,7 +1668,11 @@ func ValidateKnownDirectiveArguments[PluginConfig any](ctx context.Context, db p
 	}
 }
 
-func ValidateUnknownFieldArguments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateUnknownFieldArguments(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// we are looking for field arguments that are not known to the schema
 	query := `
 		SELECT
@@ -1513,7 +1713,11 @@ func ValidateUnknownFieldArguments[PluginConfig any](ctx context.Context, db plu
 	}
 }
 
-func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateMaskDirectives(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// We want to detect fragment spreads (selections of kind "fragment")
 	// that have both the mask-enable and mask-disable directives.
 	// We can do this by grouping by the selection (fragment spread)
@@ -1545,8 +1749,12 @@ func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.Da
 		column := int(stmt.ColumnInt(3))
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("You can't apply both @%s and @%s on the same fragment spread", schema.EnableMaskDirective, schema.DisableMaskDirective),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"You can't apply both @%s and @%s on the same fragment spread",
+				schema.EnableMaskDirective,
+				schema.DisableMaskDirective,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{
 					Filepath: filepath,
@@ -1561,7 +1769,11 @@ func ValidateMaskDirectives[PluginConfig any](ctx context.Context, db plugins.Da
 	}
 }
 
-func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateLoadingDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query selects selections (fields or fragment spreads) that have the loading directive,
 	// are not at the document root (i.e. they have a parent selection),
 	// whose parent selection does NOT also have the loading directive,
@@ -1601,8 +1813,12 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 		column := int(stmt.ColumnInt(4))
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("@%s can only be applied at the root of a document or on a field/fragment spread whose parent also has @%s", schema.LoadingDirective, schema.LoadingDirective),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"@%s can only be applied at the root of a document or on a field/fragment spread whose parent also has @%s",
+				schema.LoadingDirective,
+				schema.LoadingDirective,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{
 					Filepath: filepath,
@@ -1617,7 +1833,11 @@ func ValidateLoadingDirective[PluginConfig any](ctx context.Context, db plugins.
 	}
 }
 
-func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateRequiredDirective(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query selects all field selections that have the required directive,
 	// along with:
 	//  - The field's name.
@@ -1669,8 +1889,14 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 		// Rule 1: The field must be defined on an object type.
 		if parentKind != "OBJECT" {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("@%s may only be used on object fields, not on fields of %s type (field %q in document %s)", schema.RequiredDirective, parentKind, fieldName, docName),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"@%s may only be used on object fields, not on fields of %s type (field %q in document %s)",
+					schema.RequiredDirective,
+					parentKind,
+					fieldName,
+					docName,
+				),
+				Kind: plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: filepath, Line: row, Column: column},
 				},
@@ -1686,8 +1912,14 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 		// if at least one child selection already has @required.
 		if serverNonNull && childReqCount == 0 {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("@%s may only be used on fields that are nullable on the server or on fields whose child selections already carry @%s (field %q in document %s)", schema.RequiredDirective, schema.RequiredDirective, fieldName, docName),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"@%s may only be used on fields that are nullable on the server or on fields whose child selections already carry @%s (field %q in document %s)",
+					schema.RequiredDirective,
+					schema.RequiredDirective,
+					fieldName,
+					docName,
+				),
+				Kind: plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: filepath, Line: row, Column: column},
 				},
@@ -1699,7 +1931,11 @@ func ValidateRequiredDirective[PluginConfig any](ctx context.Context, db plugins
 	}
 }
 
-func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateOptimisticKeyOnScalar(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// This query selects every field selection that has the optimisticKey directive
 	// and whose declared type is not a scalar (i.e. its type's kind is not "SCALAR").
 	query := `
@@ -1735,8 +1971,14 @@ func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plu
 		docName := stmt.ColumnText(5)
 
 		errs.Append(&plugins.Error{
-			Message: fmt.Sprintf("@%s can only be applied on scalar fields, but field %q in document %q has type kind %q", schema.OptimisticKeyDirective, fieldName, docName, fieldTypeKind),
-			Kind:    plugins.ErrorKindValidation,
+			Message: fmt.Sprintf(
+				"@%s can only be applied on scalar fields, but field %q in document %q has type kind %q",
+				schema.OptimisticKeyDirective,
+				fieldName,
+				docName,
+				fieldTypeKind,
+			),
+			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
 				{Filepath: filepath, Line: row, Column: column},
 			},
@@ -1747,7 +1989,11 @@ func ValidateOptimisticKeyOnScalar[PluginConfig any](ctx context.Context, db plu
 	}
 }
 
-func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func ValidateOptimisticKeyFullSelection(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	optimisticDirective := schema.OptimisticKeyDirective
 
 	// Query returns one row per optimistic-key usage.
@@ -1850,8 +2096,11 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 		// Rule: Must have a defined parent type.
 		if strings.TrimSpace(rep.parentTypeName) == "" {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("@%s must be applied to a selection set with a defined parent type", optimisticDirective),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"@%s must be applied to a selection set with a defined parent type",
+					optimisticDirective,
+				),
+				Kind: plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
 				},
@@ -1873,7 +2122,15 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 		// Unmarshal expected keys from the JSON.
 		var expectedKeys []string
 		if err := json.Unmarshal([]byte(rep.expectedKeys), &expectedKeys); err != nil {
-			errs.Append(plugins.WrapError(fmt.Errorf("failed to unmarshal expectedKeys JSON for type %q: %w", rep.parentTypeName, err)))
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf(
+						"failed to unmarshal expectedKeys JSON for type %q: %w",
+						rep.parentTypeName,
+						err,
+					),
+				),
+			)
 			continue
 		}
 		sort.Strings(expectedKeys)
@@ -1881,8 +2138,14 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 		// Compare: if found keys do not exactly match expected keys, report error.
 		if len(foundKeys) != len(expectedKeys) {
 			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("@%s must be applied to every key field for type %q; expected keys %v but found %v", optimisticDirective, rep.parentTypeName, expectedKeys, foundKeys),
-				Kind:    plugins.ErrorKindValidation,
+				Message: fmt.Sprintf(
+					"@%s must be applied to every key field for type %q; expected keys %v but found %v",
+					optimisticDirective,
+					rep.parentTypeName,
+					expectedKeys,
+					foundKeys,
+				),
+				Kind: plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{
 					{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
 				},
@@ -1892,8 +2155,14 @@ func ValidateOptimisticKeyFullSelection[PluginConfig any](ctx context.Context, d
 		for i, key := range expectedKeys {
 			if key != foundKeys[i] {
 				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("@%s must be applied to every key field for type %q; expected keys %v but found %v", optimisticDirective, rep.parentTypeName, expectedKeys, foundKeys),
-					Kind:    plugins.ErrorKindValidation,
+					Message: fmt.Sprintf(
+						"@%s must be applied to every key field for type %q; expected keys %v but found %v",
+						optimisticDirective,
+						rep.parentTypeName,
+						expectedKeys,
+						foundKeys,
+					),
+					Kind: plugins.ErrorKindValidation,
 					Locations: []*plugins.ErrorLocation{
 						{Filepath: rep.filepath, Line: rep.row, Column: rep.column},
 					},

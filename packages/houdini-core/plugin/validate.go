@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/fragmentArguments"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/lists"
@@ -17,42 +18,42 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 	// build up all of the rules
 	rules := []RuleFunc{
 		// default GraphQL-js validation Rules
-		documents.ValidateSubscriptionsWithMultipleRootFields[PluginConfig],
-		documents.ValidateDuplicateDocumentNames[PluginConfig],
-		documents.ValidateFragmentUnknownType[PluginConfig],
-		documents.ValidateFragmentOnScalar[PluginConfig],
-		documents.ValidateOutputTypeAsInput[PluginConfig],
-		documents.ValidateScalarWithSelection[PluginConfig],
-		documents.ValidateUnknownField[PluginConfig],
-		documents.ValidateIncompatibleFragmentSpread[PluginConfig],
-		documents.ValidateFragmentCycles[PluginConfig],
-		documents.ValidateDuplicateVariables[PluginConfig],
-		documents.ValidateUndefinedVariables[PluginConfig],
-		documents.ValidateUnusedVariables[PluginConfig],
-		documents.ValidateRepeatingNonRepeatable[PluginConfig],
-		documents.ValidateUnknownFieldArguments[PluginConfig],
-		documents.ValidateDuplicateArgumentInField[PluginConfig],
-		documents.ValidateWrongTypesToArg[PluginConfig],
-		documents.ValidateMissingRequiredArgument[PluginConfig],
-		documents.ValidateFieldArgumentIncompatibleType[PluginConfig],
-		documents.ValidateConflictingSelections[PluginConfig],
-		documents.ValidateDuplicateKeysInInputObject[PluginConfig],
+		documents.ValidateSubscriptionsWithMultipleRootFields,
+		documents.ValidateDuplicateDocumentNames,
+		documents.ValidateFragmentUnknownType,
+		documents.ValidateFragmentOnScalar,
+		documents.ValidateOutputTypeAsInput,
+		documents.ValidateScalarWithSelection,
+		documents.ValidateUnknownField,
+		documents.ValidateIncompatibleFragmentSpread,
+		documents.ValidateFragmentCycles,
+		documents.ValidateDuplicateVariables,
+		documents.ValidateUndefinedVariables,
+		documents.ValidateUnusedVariables,
+		documents.ValidateRepeatingNonRepeatable,
+		documents.ValidateUnknownFieldArguments,
+		documents.ValidateDuplicateArgumentInField,
+		documents.ValidateWrongTypesToArg,
+		documents.ValidateMissingRequiredArgument,
+		documents.ValidateFieldArgumentIncompatibleType,
+		documents.ValidateConflictingSelections,
+		documents.ValidateDuplicateKeysInInputObject,
 		// Houdini-specific validation rules
-		documents.ValidateNoKeyAlias[PluginConfig],
-		documents.ValidateKnownDirectiveArguments[PluginConfig],
-		documents.ValidateMaskDirectives[PluginConfig],
-		documents.ValidateLoadingDirective[PluginConfig],
-		documents.ValidateRequiredDirective[PluginConfig],
-		documents.ValidateOptimisticKeyFullSelection[PluginConfig],
-		documents.ValidateOptimisticKeyOnScalar[PluginConfig],
-		lists.DiscoverListsThenValidate[PluginConfig],
-		lists.ValidateConflictingParentIDAllLists[PluginConfig],
-		lists.ValidateConflictingPrependAppend[PluginConfig],
-		lists.ValidatePaginateTypeCondition[PluginConfig],
-		lists.ValidateSinglePaginateDirective[PluginConfig],
-		lists.ValidateParentID[PluginConfig],
-		fragmentArguments.ValidateFragmentArgumentValues[PluginConfig],
-		fragmentArguments.ValidateFragmentArgumentsMissingWith[PluginConfig],
+		documents.ValidateNoKeyAlias,
+		documents.ValidateKnownDirectiveArguments,
+		documents.ValidateMaskDirectives,
+		documents.ValidateLoadingDirective,
+		documents.ValidateRequiredDirective,
+		documents.ValidateOptimisticKeyFullSelection,
+		documents.ValidateOptimisticKeyOnScalar,
+		lists.DiscoverListsThenValidate,
+		lists.ValidateConflictingParentIDAllLists,
+		lists.ValidateConflictingPrependAppend,
+		lists.ValidatePaginateTypeCondition,
+		lists.ValidateSinglePaginateDirective,
+		lists.ValidateParentID,
+		fragmentArguments.ValidateFragmentArgumentValues,
+		fragmentArguments.ValidateFragmentArgumentsMissingWith,
 	}
 
 	// run all of the rules concurrently
@@ -75,4 +76,4 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 	return nil
 }
 
-type RuleFunc = func(ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList)
+type RuleFunc = func(ctx context.Context, db plugins.DatabasePool[config.PluginConfig], errs *plugins.ErrorList)

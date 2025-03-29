@@ -3,11 +3,12 @@ package lists_test
 import (
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestInsertOperationInput(t *testing.T) {
-	tests.RunTable(t, tests.Table{
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
 			type Query {
 				users(limit: Int, offset: Int): [User!]!
@@ -18,7 +19,7 @@ func TestInsertOperationInput(t *testing.T) {
 				firstName: String!
 			}
 		`,
-		Tests: []tests.Test{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "Operation fragments",
 				Pass: true,

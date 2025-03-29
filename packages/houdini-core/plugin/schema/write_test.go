@@ -5,12 +5,13 @@ import (
 	"path"
 	"testing"
 
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	houdiniCore "code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
-
-	"github.com/spf13/afero"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSchema(t *testing.T) {
@@ -34,7 +35,12 @@ func TestSchema(t *testing.T) {
 			setupFs: func(fs afero.Fs) error {
 				// Write invalid schema content.
 				invalid := "this is not a valid graphql schema"
-				return afero.WriteFile(fs, path.Join("/project", "schema.graphql"), []byte(invalid), 0644)
+				return afero.WriteFile(
+					fs,
+					path.Join("/project", "schema.graphql"),
+					[]byte(invalid),
+					0644,
+				)
 			},
 			expectError: true,
 		},
@@ -54,7 +60,12 @@ func TestSchema(t *testing.T) {
 						user: User
 					}
 				`
-				return afero.WriteFile(fs, path.Join("/project", "schema.graphql"), []byte(schemaContent), 0644)
+				return afero.WriteFile(
+					fs,
+					path.Join("/project", "schema.graphql"),
+					[]byte(schemaContent),
+					0644,
+				)
 			},
 			expectError: false,
 			// Expected user types (we check only those not inserted as “internal”).
@@ -91,7 +102,7 @@ func TestSchema(t *testing.T) {
 			}
 
 			// Instantiate an in-memory database and set the project config.
-			db, _ := plugins.NewPoolInMemory[houdiniCore.PluginConfig]()
+			db, _ := plugins.NewPoolInMemory[config.PluginConfig]()
 			defer db.Close()
 			db.SetProjectConfig(plugins.ProjectConfig{
 				ProjectRoot: "/project",
@@ -155,10 +166,22 @@ func TestSchema(t *testing.T) {
 						continue
 					}
 					if gf.Type != ef.Type {
-						t.Errorf("for type %q field %q, expected base type %q but got %q", et.Name, ef.Name, ef.Type, gf.Type)
+						t.Errorf(
+							"for type %q field %q, expected base type %q but got %q",
+							et.Name,
+							ef.Name,
+							ef.Type,
+							gf.Type,
+						)
 					}
 					if gf.TypeModifier != ef.TypeModifier {
-						t.Errorf("for type %q field %q, expected type modifier %q but got %q", et.Name, ef.Name, ef.TypeModifier, gf.TypeModifier)
+						t.Errorf(
+							"for type %q field %q, expected type modifier %q but got %q",
+							et.Name,
+							ef.Name,
+							ef.TypeModifier,
+							gf.TypeModifier,
+						)
 					}
 				}
 			}
@@ -179,7 +202,7 @@ type expectedType struct {
 
 // queryTypes returns a map from type name to true for all types in the
 // "types" table that were imported as user types (i.e. not internal).
-func queryTypes(db plugins.DatabasePool[houdiniCore.PluginConfig]) (map[string]bool, error) {
+func queryTypes(db plugins.DatabasePool[config.PluginConfig]) (map[string]bool, error) {
 	typesMap := make(map[string]bool)
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -206,7 +229,9 @@ func queryTypes(db plugins.DatabasePool[houdiniCore.PluginConfig]) (map[string]b
 
 // queryTypeFields returns a map from a parent type name to a slice of expectedField
 // (populated from the "type_fields" table for user types).
-func queryTypeFields(db plugins.DatabasePool[houdiniCore.PluginConfig]) (map[string][]expectedField, error) {
+func queryTypeFields(
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[string][]expectedField, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
 		return nil, err
@@ -214,7 +239,9 @@ func queryTypeFields(db plugins.DatabasePool[houdiniCore.PluginConfig]) (map[str
 	defer db.Put(conn)
 
 	fieldsMap := make(map[string][]expectedField)
-	stmt, err := conn.Prepare("SELECT parent, name, type, type_modifiers FROM type_fields WHERE internal = false")
+	stmt, err := conn.Prepare(
+		"SELECT parent, name, type, type_modifiers FROM type_fields WHERE internal = false",
+	)
 	if err != nil {
 		return nil, err
 	}

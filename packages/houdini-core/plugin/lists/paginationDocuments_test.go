@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestPaginationDocumentGeneration(t *testing.T) {
-	tests.RunTable(t, tests.Table{
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
 			type Query {
 				users(limit: Int, offset: Int): [User!]!
@@ -53,7 +54,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				id: ID!
 			}
 		`,
-		Tests: []tests.Test{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "adds full cursor args to forward bidirectional connection",
 				Pass: true,
@@ -424,7 +425,11 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						}
 					`).WithVariables(
-						tests.ExpectedOperationVariable{Name: "first", Type: "Int", DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"}},
+						tests.ExpectedOperationVariable{
+							Name:         "first",
+							Type:         "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"},
+						},
 						tests.ExpectedOperationVariable{Name: "after", Type: "String"},
 						tests.ExpectedOperationVariable{Name: "before", Type: "String"},
 						tests.ExpectedOperationVariable{Name: "last", Type: "Int"},
@@ -478,7 +483,11 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						}
 					`).WithVariables(
-						tests.ExpectedOperationVariable{Name: "first", Type: "Int", DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"}},
+						tests.ExpectedOperationVariable{
+							Name:         "first",
+							Type:         "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"},
+						},
 						tests.ExpectedOperationVariable{Name: "after", Type: "String"},
 						tests.ExpectedOperationVariable{Name: "before", Type: "String"},
 						tests.ExpectedOperationVariable{Name: "last", Type: "Int"},
@@ -523,7 +532,11 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						}
 					`).WithVariables(
-						tests.ExpectedOperationVariable{Name: "limit", Type: "Int", DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"}},
+						tests.ExpectedOperationVariable{
+							Name:         "limit",
+							Type:         "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{Kind: "Int", Raw: "10"},
+						},
 						tests.ExpectedOperationVariable{Name: "offset", Type: "Int"},
 					),
 					tests.ExpectedDoc(

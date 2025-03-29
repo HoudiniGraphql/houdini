@@ -9,18 +9,19 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
 )
 
-type Table struct {
+type Table[PluginConfig any] struct {
 	Schema        string
 	ProjectConfig plugins.ProjectConfig
-	Tests         []Test
-	PerformTest   func(t *testing.T, plugin *plugin.HoudiniCore, test Test)
+	Tests         []Test[PluginConfig]
+	PerformTest   func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig])
 }
 
-type Test struct {
+type Test[PluginConfig any] struct {
 	Name          string
 	Pass          bool
 	Input         []string
@@ -29,10 +30,10 @@ type Test struct {
 	ProjectConfig func(config *plugins.ProjectConfig)
 }
 
-func RunTable(t *testing.T, table Table) {
+func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 	// if the table doesn't have a custom performance, then we should execute all steps
 	if table.PerformTest == nil {
-		table.PerformTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test) {
+		table.PerformTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
 			// wire up the plugin
 			err := plugin.AfterExtract(context.Background())
 			if err != nil {
@@ -87,7 +88,7 @@ func RunTable(t *testing.T, table Table) {
 			}
 
 			// create an in-memory db.
-			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
+			db, err := plugins.NewPoolInMemory[config.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}

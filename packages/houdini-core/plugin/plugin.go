@@ -3,17 +3,17 @@ package plugin
 import (
 	"fmt"
 
-	"code.houdinigraphql.com/plugins"
 	"github.com/joho/godotenv"
 	"github.com/spf13/afero"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/plugins"
 )
 
 type HoudiniCore struct {
-	plugins.Plugin[PluginConfig]
+	plugins.Plugin[config.PluginConfig]
 	Fs afero.Fs
 }
-
-type PluginConfig = any
 
 func (p *HoudiniCore) Name() string {
 	return "houdini-core"
