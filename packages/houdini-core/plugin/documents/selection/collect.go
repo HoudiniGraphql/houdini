@@ -157,7 +157,7 @@ func collectDoc(
 			// as a follow up, we need to recreate the arguments and directives that were assigned to the selection
 			argumentValues := map[int64]*CollectedArgumentValue{}
 			directiveArgumentsWithValues := []*CollectedDirectiveArgument{}
-			selectionArgumentsWithValues := []*CollectedArgument{}
+			selectionArgumentsWithValues := []*CollectedSelectionArgument{}
 			documentArgumentsWithValues := []*CollectedOperationVariable{}
 
 			// step through the selections and build up the tree
@@ -224,7 +224,7 @@ func collectDoc(
 				if !statements.Search.IsNull("arguments") {
 					arguments := statements.Search.GetText("arguments")
 
-					args := []*CollectedArgument{}
+					args := []*CollectedSelectionArgument{}
 					if err := json.Unmarshal([]byte(arguments), &args); err != nil {
 						errCh <- plugins.WrapError(err)
 						return
@@ -333,6 +333,46 @@ func collectDoc(
 				errCh <- plugins.WrapError(err)
 			}
 
+			// now we have to add document-level directives
+			err = db.StepStatement(ctx, statements.DocumentDirectives, func() {
+				directiveName := statements.DocumentDirectives.GetText("directive")
+				documentName := statements.DocumentDirectives.GetText("document_name")
+
+				// create the collected directive
+				directive := &CollectedDirective{
+					Name:      directiveName,
+					Arguments: []*CollectedDirectiveArgument{},
+				}
+
+				// if there are arguments then we need to add them
+				if !statements.DocumentDirectives.IsNull("directive_arguments") {
+					arguments := statements.DocumentDirectives.GetText("directive_arguments")
+					// unmarshal the string into the directive struct
+					if err := json.Unmarshal([]byte(arguments), &directive.Arguments); err != nil {
+						errCh <- plugins.WrapError(err)
+						return
+					}
+				}
+
+				// register any arguments that have values
+				for _, arg := range directive.Arguments {
+					if arg.ValueID != nil {
+						argumentValues[*arg.ValueID] = nil
+						directiveArgumentsWithValues = append(directiveArgumentsWithValues, arg)
+					}
+				}
+
+				// add the directive to the document
+				doc, ok := documents[documentName]
+				if !ok {
+					errCh <- plugins.WrapError(fmt.Errorf("document %v not found for directive %v", documentName, directiveName))
+				}
+				doc.Directives = append(doc.Directives, directive)
+			})
+			if err != nil {
+				errCh <- plugins.WrapError(err)
+			}
+
 			// if we've gotten this far then we have recreated the full selection apart from the nested argument structure
 
 			// build up the list of documents we collected
@@ -348,8 +388,9 @@ func collectDoc(
 }
 
 type CollectStatements struct {
-	Search            *sqlite.Stmt
-	DocumentVariables *sqlite.Stmt
+	Search             *sqlite.Stmt
+	DocumentVariables  *sqlite.Stmt
+	DocumentDirectives *sqlite.Stmt
 }
 
 func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatements, error) {
@@ -514,22 +555,55 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 		return nil, err
 	}
 
+	// we also need a query that looks up document-level directives
+	documentDirectives, err := conn.Prepare(fmt.Sprintf(`
+    WITH 
+      doc_dir_args AS (
+        SELECT
+          document_directive_arguments.parent AS directive_id,
+          json_group_array(
+             json_object(
+               'name', document_directive_arguments.name,
+               'value', document_directive_arguments.value
+             )
+          ) AS directive_arguments
+        FROM document_directive_arguments
+        GROUP BY document_directive_arguments.parent
+      )
+    SELECT 
+      dd.id,
+      dd.directive,
+      dd.row,
+      dd.column,
+      d.name AS document_name,
+      IFNULL(dda.directive_arguments, '[]') AS directive_arguments
+    FROM document_directives dd
+      JOIN documents d ON dd.document = d.id
+      LEFT JOIN doc_dir_args dda ON dda.directive_id = dd.id
+    WHERE d.id in %s
+  `, whereIn))
+	if err != nil {
+		return nil, err
+	}
+
 	// bind each document ID to the variables that were prepared
-	for _, stmt := range []*sqlite.Stmt{search, documentVariables} {
+	for _, stmt := range []*sqlite.Stmt{search, documentVariables, documentDirectives} {
 		for i, id := range docIDs {
 			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
 		}
 	}
 
 	return &CollectStatements{
-		Search:            search,
-		DocumentVariables: documentVariables,
+		Search:             search,
+		DocumentVariables:  documentVariables,
+		DocumentDirectives: documentDirectives,
 	}, nil
 }
 
 func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()
 	s.DocumentVariables.Finalize()
+	s.DocumentDirectives.Finalize()
 }
 
 type CollectedDocument struct {
@@ -547,7 +621,7 @@ type CollectedSelection struct {
 	FieldName  string
 	Alias      *string
 	Kind       string
-	Arguments  []*CollectedArgument
+	Arguments  []*CollectedSelectionArgument
 	Directives []*CollectedDirective
 	Children   []*CollectedSelection
 }
@@ -561,7 +635,18 @@ type CollectedOperationVariable struct {
 	Directives     []*CollectedDirective
 }
 
-type CollectedArgument struct {
+type CollectedSelectionArgument struct {
+	Name    string `json:"name"`
+	ValueID *int64 `json:"value"`
+	Value   *CollectedArgumentValue
+}
+
+type CollectedDirective struct {
+	Name      string                        `json:"name"`
+	Arguments []*CollectedDirectiveArgument `json:"arguments"`
+}
+
+type CollectedDirectiveArgument struct {
 	Name    string `json:"name"`
 	ValueID *int64 `json:"value"`
 	Value   *CollectedArgumentValue
@@ -576,15 +661,4 @@ type CollectedArgumentValue struct {
 type CollectedArgumentValueChildren struct {
 	Name  string
 	Value *CollectedArgumentValue
-}
-
-type CollectedDirectiveArgument struct {
-	Name    string `json:"name"`
-	ValueID *int64 `json:"value"`
-	Value   *CollectedArgumentValue
-}
-
-type CollectedDirective struct {
-	Name      string                        `json:"name"`
-	Arguments []*CollectedDirectiveArgument `json:"arguments"`
 }
