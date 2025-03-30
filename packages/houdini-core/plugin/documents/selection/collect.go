@@ -206,6 +206,7 @@ func collectDoc(
 					parent, ok := selections[parentID]
 					if !ok {
 						errCh <- plugins.WrapError(fmt.Errorf("parent selection %v not found for selection %v", parentID, selectionID))
+						return
 					}
 					parent.Children = append(parent.Children, selection)
 				}
@@ -373,7 +374,67 @@ func collectDoc(
 				errCh <- plugins.WrapError(err)
 			}
 
-			// if we've gotten this far then we have recreated the full selection apart from the nested argument structure
+			// if we've gotten this far then we have recreated the full selection apart from
+			// the nested argument structure
+			valueIDs := []int64{}
+			for id := range argumentValues {
+				valueIDs = append(valueIDs, id)
+			}
+			// recreating the nested structure means we need a mapping of id to values
+			values := map[int64]*CollectedArgumentValue{}
+			argumentValueSearch, err := prepareArgumentValuesSearch(conn, valueIDs)
+			if err != nil {
+				errCh <- plugins.WrapError(err)
+				return
+			}
+			defer argumentValueSearch.Finalize()
+
+			err = db.StepStatement(ctx, argumentValueSearch, func() {
+				// build up the argument value for the match
+				value := &CollectedArgumentValue{
+					Kind: argumentValueSearch.GetText("kind"),
+					Raw:  argumentValueSearch.GetText("raw"),
+				}
+
+				// save the value in the map
+				valueID := argumentValueSearch.GetInt64("id")
+				values[valueID] = value
+
+				// there is no parent so this ID must correspond to one of the values used in a document
+				if argumentValueSearch.IsNull("parent") {
+					_, ok := argumentValues[valueID]
+					if !ok {
+						errCh <- plugins.WrapError(fmt.Errorf(
+							"argument value %v not found for argument value %v",
+							valueID,
+							argumentValueSearch.GetInt64("id"),
+						))
+						return
+					}
+
+					argumentValues[valueID] = value
+				} else {
+					// if there is a parent, then we need to assign it with the field name
+					parentID := argumentValueSearch.GetInt64("parent")
+					parent, ok := values[parentID]
+					if !ok {
+						errCh <- plugins.WrapError(
+							fmt.Errorf("parent argument value %v not found for argument value %v",
+								parentID,
+								argumentValueSearch.GetInt64("id"),
+							))
+						return
+					}
+					parent.Children = append(parent.Children, &CollectedArgumentValueChildren{
+						Name:  argumentValueSearch.GetText("name"),
+						Value: value,
+					})
+				}
+			})
+			if err != nil {
+				errCh <- plugins.WrapError(err)
+				return
+			}
 
 			// build up the list of documents we collected
 			docs := []*CollectedDocument{}
@@ -604,6 +665,46 @@ func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()
 	s.DocumentVariables.Finalize()
 	s.DocumentDirectives.Finalize()
+}
+
+func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.Stmt, error) {
+	placeholders := make([]string, len(valueIDs))
+	for i := range valueIDs {
+		placeholders[i] = fmt.Sprintf("$value_%v", i)
+	}
+
+	// join the placeholders with commas and enclose in parentheses.
+	whereIn := "(" + strings.Join(placeholders, ", ") + ")"
+
+	stmt, err := conn.Prepare(fmt.Sprintf(`
+    SELECT
+        argument_value_children.name,
+        av.id,
+        av.kind,
+        av.raw,
+        av.row,
+        av.column,
+        av.expected_type,
+        av.expected_type_modifiers,
+        av.document,
+        documents.name as document_name,
+        argument_value_children.parent
+    FROM argument_values av
+      LEFT JOIN argument_value_children on argument_value_children."value" = av.id
+      JOIN documents on av.document = documents.id
+    WHERE av."document" IN %s
+    ORDER BY av.id    
+  `, whereIn))
+	if err != nil {
+		return nil, err
+	}
+
+	for i, id := range valueIDs {
+		stmt.SetInt64(fmt.Sprintf("$value_%v", i), id)
+	}
+
+	// we're done
+	return stmt, nil
 }
 
 type CollectedDocument struct {
