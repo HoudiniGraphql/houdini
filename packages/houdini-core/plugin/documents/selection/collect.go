@@ -436,6 +436,23 @@ func collectDoc(
 				return
 			}
 
+			// we now have collected values we can replace in our documents
+			for _, arg := range directiveArgumentsWithValues {
+				if arg.ValueID != nil {
+					arg.Value = argumentValues[*arg.ValueID]
+				}
+			}
+			for _, arg := range selectionArgumentsWithValues {
+				if arg.ValueID != nil {
+					arg.Value = argumentValues[*arg.ValueID]
+				}
+			}
+			for _, arg := range documentArgumentsWithValues {
+				if arg.DefaultValueID != nil {
+					arg.DefaultValue = argumentValues[*arg.DefaultValueID]
+				}
+			}
+
 			// build up the list of documents we collected
 			docs := []*CollectedDocument{}
 			for _, doc := range documents {
