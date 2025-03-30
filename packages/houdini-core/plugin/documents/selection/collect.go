@@ -439,17 +439,45 @@ func collectDoc(
 			// we now have collected values we can replace in our documents
 			for _, arg := range directiveArgumentsWithValues {
 				if arg.ValueID != nil {
-					arg.Value = argumentValues[*arg.ValueID]
+					if value, ok := argumentValues[*arg.ValueID]; ok {
+						arg.Value = value
+					} else {
+						errCh <- plugins.WrapError(
+							fmt.Errorf(
+								"argument value %v not found for directive argument %v",
+								*arg.ValueID,
+								arg.Name,
+							))
+						return
+					}
 				}
 			}
 			for _, arg := range selectionArgumentsWithValues {
 				if arg.ValueID != nil {
-					arg.Value = argumentValues[*arg.ValueID]
+					if value, ok := argumentValues[*arg.ValueID]; ok {
+						arg.Value = value
+					} else {
+						errCh <- plugins.WrapError(fmt.Errorf(
+							"argument value %v not found for selection argument %v",
+							*arg.ValueID,
+							arg.Name,
+						))
+						return
+					}
 				}
 			}
 			for _, arg := range documentArgumentsWithValues {
 				if arg.DefaultValueID != nil {
-					arg.DefaultValue = argumentValues[*arg.DefaultValueID]
+					if value, ok := argumentValues[*arg.DefaultValueID]; ok {
+						arg.DefaultValue = value
+					} else {
+						errCh <- plugins.WrapError(fmt.Errorf(
+							"default value %v not found for document argument %v",
+							*arg.DefaultValueID,
+							arg.Name,
+						))
+						return
+					}
 				}
 			}
 
