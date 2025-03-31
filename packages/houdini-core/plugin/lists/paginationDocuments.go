@@ -2,16 +2,20 @@ package lists
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"encoding/json"
+	"zombiezen.com/go/sqlite/sqlitex"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig]) error {
+func PreparePaginationDocuments(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) error {
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
 		return plugins.WrapError(err)
@@ -307,7 +311,10 @@ func PreparePaginationDocuments[PluginConfig any](ctx context.Context, db plugin
 				if existingArg.Argument == arg.Name {
 
 					// if the argument is already defined, we need to make sure that the type matches
-					err = db.ExecStatement(deleteSelectionArgument, map[string]any{"id": existingArg.ID})
+					err = db.ExecStatement(
+						deleteSelectionArgument,
+						map[string]any{"id": existingArg.ID},
+					)
 					if err != nil {
 						errs.Append(plugins.WrapError(err))
 						return

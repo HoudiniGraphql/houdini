@@ -7,13 +7,14 @@ import (
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
 
-func InsertOperationDocuments[PluginConfig any](
+func InsertOperationDocuments(
 	ctx context.Context,
-	db plugins.DatabasePool[PluginConfig],
+	db plugins.DatabasePool[config.PluginConfig],
 ) error {
 	// during validation, we might have discovered lists that cause new documents to be inserted
 	// into the database. we also need to insert internal directives so that we can strip them

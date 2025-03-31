@@ -13,13 +13,14 @@ import (
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
 
-func LoadDocuments[PluginConfig any](
+func LoadDocuments(
 	ctx context.Context,
-	db plugins.DatabasePool[PluginConfig],
+	db plugins.DatabasePool[config.PluginConfig],
 ) error {
 	// we want to process the documents in parallel so we'll pull down from the database
 	// in one goroutine and then pass it a pool of workers who will parse the documents
@@ -166,9 +167,9 @@ func LoadDocuments[PluginConfig any](
 
 // LoadPendingQuery parses the graphql query and inserts the ast into the database.
 // it handles both operations and fragment definitions.
-func LoadPendingQuery[PluginConfig any](
+func LoadPendingQuery(
 	ctx context.Context,
-	db plugins.DatabasePool[PluginConfig],
+	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
 	query PendingQuery,
 	statements DocumentInsertStatements,

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 )
 
 // the hooks that a plugin defines dictate a set of events that the plugin must repond to
-func pluginHooks[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[PluginConfig]) []string {
+func pluginHooks(ctx context.Context, plugin HoudiniPlugin[config.PluginConfig]) []string {
 	hooks := map[string]bool{}
 	if _, ok := plugin.(IncludeRuntime); ok {
 		hooks["Generate"] = true
@@ -131,7 +133,6 @@ func JSONHook[T any](hook func(ctx context.Context) (T, error)) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(data)
 	})
-
 }
 
 func EventHook(hook func(context.Context) error) http.Handler {
@@ -146,10 +147,11 @@ func EventHook(hook func(context.Context) error) http.Handler {
 		// write the response
 		w.WriteHeader(http.StatusOK)
 	})
-
 }
 
-func handleGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func(ctx context.Context) error {
+func handleGenerate[PluginConfig any](
+	plugin HoudiniPlugin[PluginConfig],
+) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		// if the plugin defines a runtime to include
 		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
@@ -165,7 +167,9 @@ func handleGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func(c
 	}
 }
 
-func handleAfterLoad[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func(ctx context.Context) error {
+func handleAfterLoad[PluginConfig any](
+	plugin HoudiniPlugin[PluginConfig],
+) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		// if the plugin defines a runtime to include
 		if staticRuntime, ok := plugin.(StaticRuntime); ok {
@@ -244,7 +248,9 @@ func handleTransformFile(plugin TransformFile) http.Handler {
 	})
 }
 
-func handleBeforeGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func(ctx context.Context) error {
+func handleBeforeGenerate[PluginConfig any](
+	plugin HoudiniPlugin[PluginConfig],
+) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		// if the plugin defines a runtime to include
 		if _, ok := plugin.(BeforeGenerate); ok {
@@ -260,7 +266,9 @@ func handleBeforeGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) 
 	}
 }
 
-func handleAfterGenerate[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) func(ctx context.Context) error {
+func handleAfterGenerate[PluginConfig any](
+	plugin HoudiniPlugin[PluginConfig],
+) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		// if the plugin defines a runtime to include
 		if _, ok := plugin.(ArtifactData); ok {
