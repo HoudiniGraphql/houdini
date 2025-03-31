@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"code.houdinigraphql.com/packages/houdini-core/config"
 )
 
 // the hooks that a plugin defines dictate a set of events that the plugin must repond to
-func pluginHooks(ctx context.Context, plugin HoudiniPlugin[config.PluginConfig]) []string {
+func pluginHooks[PluginConfig any](
+	ctx context.Context,
+	plugin HoudiniPlugin[PluginConfig],
+) []string {
 	hooks := map[string]bool{}
 	if _, ok := plugin.(IncludeRuntime); ok {
 		hooks["Generate"] = true

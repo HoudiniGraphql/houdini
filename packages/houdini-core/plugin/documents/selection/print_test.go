@@ -76,12 +76,13 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				defer p.DB.Put(conn)
 
 				// the first thing we have to do is collect the selections
-				collected, err := selection.CollectDocuments(context.Background(), p.DB)
+				collected, err := selection.CollectDocuments(context.Background(), p.DB, conn)
 				require.Nil(t, err)
 
 				// print the document we found
 				err = selection.EnsureDocumentsPrinted(
 					context.Background(),
+					p.DB,
 					conn,
 					collected,
 				)

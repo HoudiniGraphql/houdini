@@ -19,14 +19,9 @@ import (
 func CollectDocuments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
+	conn *sqlite.Conn,
 ) (map[string]*CollectedDocument, error) {
 	result := map[string]*CollectedDocument{}
-
-	conn, err := db.Take(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Put(conn)
 
 	// the first thing we have to do is id of every document that we care about
 	docIDs := []int64{}
@@ -199,6 +194,9 @@ func collectDoc(
 						}
 						documents[documentName] = doc
 					}
+
+					// add the selection to the doc
+					doc.Selections = append(doc.Selections, selection)
 
 				} else {
 					// if we have a parent then we need to save it in the parent's children

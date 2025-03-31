@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -109,4 +110,8 @@ func (s *ThreadSafeSlice[val]) Len() int {
 	s.Lock()
 	defer s.Unlock()
 	return len(s.items)
+}
+
+func Errorf(format string, args ...any) *Error {
+	return WrapError(fmt.Errorf(format, args...))
 }
