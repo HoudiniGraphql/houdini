@@ -125,3 +125,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 		},
 	})
 }
+
+// prints type condition on fragment
+
+// kitchen sink

@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestComponentFields_testTransform(t *testing.T) {
 	// print hello
-	tests.RunTable(t, tests.Table{
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
       type Query { 
         user: User  
@@ -21,7 +22,7 @@ func TestComponentFields_testTransform(t *testing.T) {
         avatar(size: Int): String! 
       }
     `,
-		Tests: []tests.Test{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "no args",
 				Input: []string{

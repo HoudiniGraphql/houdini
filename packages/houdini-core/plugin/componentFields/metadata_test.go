@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
@@ -28,7 +29,7 @@ func TestComponentFields(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
+	db, err := plugins.NewPoolInMemory[config.PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}
@@ -156,7 +157,7 @@ func TestComponentFieldChecks(t *testing.T) {
 	for _, test := range table {
 		t.Run(test.Title, func(t *testing.T) {
 			// create and wire up a database we can test against
-			db, err := plugins.NewPoolInMemory[plugin.PluginConfig]()
+			db, err := plugins.NewPoolInMemory[config.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}

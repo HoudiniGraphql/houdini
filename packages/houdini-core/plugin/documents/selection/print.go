@@ -105,8 +105,44 @@ func printDocWorker(
 			continue
 		}
 
-		for _, selection := range doc.Selections {
-			fmt.Println(selection)
+		// start building up the string
+		printed := fmt.Sprintf(`%s %s`, doc.Kind, doc.Name)
+
+		// add fragment type conditions
+		if doc.TypeCondition != nil {
+			printed += fmt.Sprintf(` on %s`, *doc.TypeCondition)
+		}
+
+		// add document directives
+		for _, directive := range doc.Directives {
+			printed += fmt.Sprintf(` @%s%s `, directive.Name, printArguments(directive.Arguments))
+		}
+
+		// update the document with the printed version
+		err = db.ExecStatement(update, map[string]any{"name": doc.Name, "printed": printed})
+		if err != nil {
+			errChan <- plugins.WrapError(err)
+			continue
 		}
 	}
+}
+
+func printArguments(args []*CollectedArgument) string {
+	if len(args) == 0 {
+		return ""
+	}
+	result := "("
+
+	// add directive arguments
+	for _, arg := range args {
+		result += fmt.Sprintf(`%s: %s`, arg.Name, printValue(arg.Value))
+	}
+
+	result += ")"
+
+	return result
+}
+
+func printValue(value *CollectedArgumentValue) string {
+	return ""
 }

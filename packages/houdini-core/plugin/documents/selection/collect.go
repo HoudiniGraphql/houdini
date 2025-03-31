@@ -151,8 +151,7 @@ func collectDoc(
 
 			// as a follow up, we need to recreate the arguments and directives that were assigned to the selection
 			argumentValues := map[int64]*CollectedArgumentValue{}
-			directiveArgumentsWithValues := []*CollectedDirectiveArgument{}
-			selectionArgumentsWithValues := []*CollectedSelectionArgument{}
+			argumentsWithValues := []*CollectedArgument{}
 			documentArgumentsWithValues := []*CollectedOperationVariable{}
 
 			// step through the selections and build up the tree
@@ -188,9 +187,16 @@ func collectDoc(
 					// this could be the first time we see the document
 					doc, ok := documents[documentName]
 					if !ok {
+						var typeCondition *string
+						if !statements.Search.IsNull("type_condition") {
+							typeConditionValue := statements.Search.GetText("type_condition")
+							typeCondition = &typeConditionValue
+						}
 						doc = &CollectedDocument{
-							ID:   documentID,
-							Name: documentName,
+							ID:            documentID,
+							Name:          documentName,
+							Kind:          statements.Search.GetText("document_kind"),
+							TypeCondition: typeCondition,
 						}
 						documents[documentName] = doc
 					}
@@ -223,7 +229,7 @@ func collectDoc(
 				if !statements.Search.IsNull("arguments") {
 					arguments := statements.Search.GetText("arguments")
 
-					args := []*CollectedSelectionArgument{}
+					args := []*CollectedArgument{}
 					if err := json.Unmarshal([]byte(arguments), &args); err != nil {
 						errCh <- plugins.WrapError(err)
 						return
@@ -233,7 +239,7 @@ func collectDoc(
 					for _, arg := range args {
 						if arg.ValueID != nil {
 							argumentValues[*arg.ValueID] = nil
-							selectionArgumentsWithValues = append(selectionArgumentsWithValues, arg)
+							argumentsWithValues = append(argumentsWithValues, arg)
 						}
 					}
 
@@ -255,10 +261,7 @@ func collectDoc(
 						for _, arg := range dir.Arguments {
 							if arg.ValueID != nil {
 								argumentValues[*arg.ValueID] = nil
-								directiveArgumentsWithValues = append(
-									directiveArgumentsWithValues,
-									arg,
-								)
+								argumentsWithValues = append(argumentsWithValues, arg)
 							}
 						}
 					}
@@ -310,10 +313,7 @@ func collectDoc(
 						for _, arg := range dir.Arguments {
 							if arg.ValueID != nil {
 								argumentValues[*arg.ValueID] = nil
-								directiveArgumentsWithValues = append(
-									directiveArgumentsWithValues,
-									arg,
-								)
+								argumentsWithValues = append(argumentsWithValues, arg)
 							}
 						}
 					}
@@ -340,7 +340,7 @@ func collectDoc(
 				// create the collected directive
 				directive := &CollectedDirective{
 					Name:      directiveName,
-					Arguments: []*CollectedDirectiveArgument{},
+					Arguments: []*CollectedArgument{},
 				}
 
 				// if there are arguments then we need to add them
@@ -357,7 +357,7 @@ func collectDoc(
 				for _, arg := range directive.Arguments {
 					if arg.ValueID != nil {
 						argumentValues[*arg.ValueID] = nil
-						directiveArgumentsWithValues = append(directiveArgumentsWithValues, arg)
+						argumentsWithValues = append(argumentsWithValues, arg)
 					}
 				}
 
@@ -435,7 +435,7 @@ func collectDoc(
 			}
 
 			// we now have collected values we can replace in our documents
-			for _, arg := range directiveArgumentsWithValues {
+			for _, arg := range argumentsWithValues {
 				if arg.ValueID != nil {
 					if value, ok := argumentValues[*arg.ValueID]; ok {
 						arg.Value = value
@@ -446,20 +446,6 @@ func collectDoc(
 								*arg.ValueID,
 								arg.Name,
 							))
-						return
-					}
-				}
-			}
-			for _, arg := range selectionArgumentsWithValues {
-				if arg.ValueID != nil {
-					if value, ok := argumentValues[*arg.ValueID]; ok {
-						arg.Value = value
-					} else {
-						errCh <- plugins.WrapError(fmt.Errorf(
-							"argument value %v not found for selection argument %v",
-							*arg.ValueID,
-							arg.Name,
-						))
 						return
 					}
 				}
@@ -569,6 +555,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           selections.kind,
           d.id AS document_id,
           d.name AS document_name,
+          d.kind AS document_kind,
+          d.type_condition AS type_condition,
           NULL AS parent_id,
           a.arguments,
           dct.directives
@@ -594,6 +582,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           selections.kind,
           st.document_id AS document_id,
           st.document_name AS document_name,
+          st.kind AS document_kind,
+          st.type_condition AS type_condition,
           st.id AS parent_id,
           a.arguments,
           dct.directives
@@ -603,7 +593,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a ON a.selection_id = selections.id
       )
-    SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id FROM selection_tree
+    SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id, document_kind, type_condition FROM selection_tree
     ORDER BY parent_id
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
@@ -765,7 +755,7 @@ type CollectedSelection struct {
 	FieldName  string
 	Alias      *string
 	Kind       string
-	Arguments  []*CollectedSelectionArgument
+	Arguments  []*CollectedArgument
 	Directives []*CollectedDirective
 	Children   []*CollectedSelection
 }
@@ -779,21 +769,15 @@ type CollectedOperationVariable struct {
 	Directives     []*CollectedDirective
 }
 
-type CollectedSelectionArgument struct {
+type CollectedArgument struct {
 	Name    string `json:"name"`
 	ValueID *int64 `json:"value"`
 	Value   *CollectedArgumentValue
 }
 
 type CollectedDirective struct {
-	Name      string                        `json:"name"`
-	Arguments []*CollectedDirectiveArgument `json:"arguments"`
-}
-
-type CollectedDirectiveArgument struct {
-	Name    string `json:"name"`
-	ValueID *int64 `json:"value"`
-	Value   *CollectedArgumentValue
+	Name      string               `json:"name"`
+	Arguments []*CollectedArgument `json:"arguments"`
 }
 
 type CollectedArgumentValue struct {
