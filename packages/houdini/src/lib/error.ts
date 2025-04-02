@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { styleText } from "node:util"
 
 import { readFileSync } from './fs'
 import * as path from './path'
@@ -66,43 +67,59 @@ type HookErrorLocation = {
 }
 
 export function format_hook_error(rootDir: string, error: HookError) {
-	let message = `-- ${error.kind} error -----------------------------\n`
+	let message = `-- ${styleText("red", error.kind + " error")} -----------------------------\n`
 	message += error.message + '\n'
 	message += '\n'
 
-  if (error.locations) {
-    // TODO: we probably don't need to read the *entire* file into memory at once.
-    error.locations.forEach((location) => {
-      const filepath = path.join(rootDir, location.filepath)
-      const contents = readFileSync(filepath)
-      if (!contents) {
-        throw Error(`failed to read file, '${filepath}'`)
-      }
+	if (error.locations) {
+		// TODO: we probably don't need to read the *entire* file into memory at once.
+		error.locations.forEach((location) => {
+			const filepath = path.join(rootDir, location.filepath)
+			const contents = readFileSync(filepath)
+			if (!contents) {
+				throw Error(`failed to read file, '${filepath}'`)
+			}
 
-      const lines = contents.split('\n')
+			const lines = contents.split('\n')
 
-      message += `${location.filepath}\n`
+			message += `${location.filepath}:${location.line}:${location.column}\n`
 
-      const extraLines = 2
-      // Make sure we don't go out of bounds
-      const startLine = Math.max(location.line - extraLines, 0)
-      for (let i = startLine; i <= location.line; i++) {
-        const requiredPadding = Math.max(`${i}`.length - `${startLine}`.length, 0)
-        const padding = ' '.repeat(requiredPadding)
+			const extraLines = 3
+			// Make sure we don't go out of bounds
+			const startLine = Math.max(location.line - extraLines, 0)
 
-        let line = lines[i - 1]
-        if (!line) continue
-        line = line.replaceAll('\t', '    ')
-        message += `${padding}${i} | ${line}\n`
-      }
+			const code = lines.slice(startLine - 1, location.line);
+			message += format_codeblock(code, startLine);
 
-      message += `${' '.repeat(location.line.toString().length)}   ${' '.repeat(
-        Math.max(location.column - 1, 0)
-      )}^`
+			// Calculate where to put the error indicators
+			const gutterOffset = ` ${location.line} | `.length;
+			message += " ".repeat(gutterOffset)
+			// column is 1-based, so take that into account
+			message += " ".repeat(location.column - 1)
+			// Print the indicator in red
+			message += styleText("red", "^^^^^")
 
-      message += '\n'
-    })
-  }
+			message += '\n'
+		})
+	}
 
 	console.log(message)
+}
+
+export function format_codeblock(code: string[], lineNrStart: number): string {
+	let output = "";
+
+	const maxLineNrWidth = (lineNrStart + code.length).toString().length
+
+	// Print each row of the code block
+	for (let i = 0; i < code.length; i++) {
+		// Replace tabs with 4 spaces to make sure we have the correct column?
+		const normalized = code[i].replaceAll("\t", "    ")
+
+		const lineNr = (lineNrStart + i).toString()
+		const spacing = " ".repeat(maxLineNrWidth - lineNr.length)
+		output += ` ${spacing}${lineNr} | ${normalized}\n`
+	}
+
+	return output;
 }

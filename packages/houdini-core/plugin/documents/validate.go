@@ -1356,6 +1356,8 @@ func ValidateWrongTypesToArg(
 		)
 		SELECT
 			raw_documents.filepath,
+			raw_documents.offset_line,
+			raw_documents.offset_column,
 			argument_values.row,
 			argument_values.column,
 			selection_arguments.name,
@@ -1477,10 +1479,12 @@ func ValidateWrongTypesToArg(
 
 	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
-		row := stmt.ColumnInt(1)
-		column := stmt.ColumnInt(2)
-		argumentName := stmt.ColumnText(3)
-		kind := stmt.ColumnText(6)
+		offsetLine := stmt.ColumnInt(1)
+		offsetColumn := stmt.ColumnInt(2)
+		row := stmt.ColumnInt(3) + offsetLine
+		column := stmt.ColumnInt(4) + offsetColumn
+		argumentName := stmt.ColumnText(5)
+		kind := stmt.ColumnText(8)
 
 		// Create a single error location from the representative row/column.
 		loc := &plugins.ErrorLocation{
@@ -1490,7 +1494,7 @@ func ValidateWrongTypesToArg(
 		}
 
 		// we want to show [[User!]!] instead of User!]!]
-		expectedType := stmt.ColumnText(4) + stmt.ColumnText(5)
+		expectedType := stmt.ColumnText(6) + stmt.ColumnText(7)
 		for range strings.Count(expectedType, "]") {
 			expectedType = "[" + expectedType
 		}
