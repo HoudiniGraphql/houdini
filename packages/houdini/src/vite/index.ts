@@ -16,8 +16,5 @@ export default function (opts?: PluginConfig): (Plugin | null)[] {
 
 	// a container of a list
 
-	return [
-		houdini_vite(opts),
-		watch_remote_schema(opts)
-	]
+	return [houdini_vite(opts), watch_remote_schema(opts)]
 }

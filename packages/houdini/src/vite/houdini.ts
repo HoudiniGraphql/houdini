@@ -22,20 +22,14 @@ import {
 	isSecondaryBuild,
 	writeTsConfig,
 } from '../lib'
-import {
-	isGraphQLFile,
-	fileDependsOnHoudini,
-	shouldReactToFileChange,
-} from './hmr'
+import { isGraphQLFile, fileDependsOnHoudini, shouldReactToFileChange } from './hmr'
 
 let config: Config
 let viteConfig: ResolvedConfig
 let viteEnv: ConfigEnv
 let devServer = false
 
-export default function Plugin(
-	opts: PluginConfig = {},
-): VitePlugin {
+export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	// Save last generation timestamp to avoid unnecessary HMR updates
 	// i.e. the same event in different environments
 	let lastHotUpdateEvent: {
