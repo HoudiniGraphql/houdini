@@ -59,7 +59,7 @@
         "recast": "^0.23.1"
     },
     "peerDependencies": {
-        "vite": "^5.3.3 || ^6.0.3"
+        "vite": "^6.0.3"
     },
     "files": [
         "build"
