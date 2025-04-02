@@ -1,7 +1,7 @@
 import minimatch from 'minimatch'
 import type { EnvironmentModuleNode } from 'vite'
 
-import { path, getConfig, type PluginConfig } from '../lib'
+import { path, getConfig, type PluginConfig, type Config } from '../lib'
 
 export function isGraphQLFile(filepath: string): boolean {
 	if (!filepath) {
@@ -14,20 +14,14 @@ export function isGraphQLFile(filepath: string): boolean {
 
 export async function shouldReactToFileChange(
 	filepath: string,
-	opts: PluginConfig,
-): Promise<boolean> {
-	const config = await getConfig(opts)
-	
+	config: Config,
+): Promise<boolean> {	
 	// if (filepath.endsWith('+schema.ts') || filepath.endsWith('+schema.js')) {
 	if (config.localSchema && minimatch(filepath, '**/api/+schema.*')) {
-		// if it's a schema change, let's reload the config
-		await getConfig({ ...opts, forceReload: true })
 		return true
 	} else {
 		const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
 		if (minimatch(filepath, schemaPath)) {
-			// if it's a schema change, let's reload the config
-			await getConfig({ ...opts, forceReload: true })
 			return true
 		}
 	}

@@ -56,7 +56,7 @@ export default function Plugin(
 			const config = await getConfig(opts)
 
 			// Check if directory, file type matches what's defined in houdini config
-			const shouldReact = await shouldReactToFileChange(file, opts)
+			const shouldReact = await shouldReactToFileChange(file, config)
 
 			// if the file doesn't depend on $houdini, we don't need to do anything
 			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
