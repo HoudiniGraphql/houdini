@@ -3,8 +3,6 @@ import type { EnvironmentModuleNode } from 'vite'
 
 import { path, getConfig, type PluginConfig } from '../lib'
 
-export type WatchSchemaType = { list: string[] }
-
 export function isGraphQLFile(filepath: string): boolean {
 	if (!filepath) {
 		return false
@@ -17,18 +15,14 @@ export function isGraphQLFile(filepath: string): boolean {
 export async function shouldReactToFileChange(
 	filepath: string,
 	opts: PluginConfig,
-	watchSchemaListref: WatchSchemaType
 ): Promise<boolean> {
 	const config = await getConfig(opts)
-
-	// we need to watch some specific files
-	if (config.localSchema) {
-		const toWatch = watchSchemaListref.list
-		if (toWatch.includes(filepath)) {
-			// if it's a schema change, let's reload the config
-			await getConfig({ ...opts, forceReload: true })
-			return true
-		}
+	
+	// if (filepath.endsWith('+schema.ts') || filepath.endsWith('+schema.js')) {
+	if (config.localSchema && minimatch(filepath, '**/api/+schema.*')) {
+		// if it's a schema change, let's reload the config
+		await getConfig({ ...opts, forceReload: true })
+		return true
 	} else {
 		const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
 		if (minimatch(filepath, schemaPath)) {

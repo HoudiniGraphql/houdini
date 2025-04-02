@@ -86,27 +86,5 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 	}
 }
 
-export function watch_local_schema(ref: { list: string[] }): Plugin {
-	let depOfSchema: string[] = []
-
-	return {
-		name: 'houdini-watch-local-schema',
-		apply: 'build',
-		async moduleParsed(module) {
-			if (module.id.endsWith('+schema.ts')) {
-				depOfSchema.push(module.id, ...module.importedIdResolutions.map((c) => c.id))
-			}
-			if (depOfSchema.includes(module.id)) {
-				depOfSchema.push(...module.importedIdResolutions.map((c) => c.id))
-			}
-		},
-		async closeBundle() {
-			ref.list = [
-				...new Set(
-					depOfSchema.filter((c) => !c.includes('node_modules') && c !== 'graphql')
-				),
-			]
-			depOfSchema = []
-		},
-	}
-}
+// Local schema is now watched by the houdini vite plugin on hotUpdate
+// export function watch_local_schema(ref: { list: string[] }): Plugin

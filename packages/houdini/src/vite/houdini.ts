@@ -26,7 +26,6 @@ import {
 	isGraphQLFile,
 	fileDependsOnHoudini,
 	shouldReactToFileChange,
-	type WatchSchemaType,
 } from './hmr'
 
 let config: Config
@@ -36,7 +35,6 @@ let devServer = false
 
 export default function Plugin(
 	opts: PluginConfig = {},
-	watchSchemaListref: WatchSchemaType
 ): VitePlugin {
 	// Save last generation timestamp to avoid unnecessary HMR updates
 	// i.e. the same event in different environments
@@ -58,7 +56,7 @@ export default function Plugin(
 			const config = await getConfig(opts)
 
 			// Check if directory, file type matches what's defined in houdini config
-			const shouldReact = await shouldReactToFileChange(file, opts, watchSchemaListref)
+			const shouldReact = await shouldReactToFileChange(file, opts)
 
 			// if the file doesn't depend on $houdini, we don't need to do anything
 			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
