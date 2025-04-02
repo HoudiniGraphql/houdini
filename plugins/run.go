@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"code.houdinigraphql.com/packages/houdini-core/config"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
@@ -32,7 +33,7 @@ func ParseFlags() {
 	}
 }
 
-func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
+func Run(plugin HoudiniPlugin[config.PluginConfig]) error {
 	ParseFlags()
 
 	// create context that we'll cancel on shutdown signal
@@ -40,7 +41,7 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	defer cancel()
 
 	// connect to the database
-	db, err := NewPool[PluginConfig]()
+	db, err := NewPool[config.PluginConfig]()
 	if err != nil {
 		return err
 	}
