@@ -221,19 +221,31 @@ func printSelection(level int, selections []*CollectedSelection) string {
 	indent := strings.Repeat("    ", level)
 	result := ""
 	for _, selection := range selections {
-		alias := ""
-		if selection.Alias != nil && *selection.Alias != selection.FieldName {
-			alias = fmt.Sprintf("%s: ", *selection.Alias)
+		// before we print children and directives we need
+		// to handle the specific selection type
+		switch selection.Kind {
+		case "fragment":
+			result += fmt.Sprintf("...%s", selection.FieldName)
+		case "inline_fragment":
+			result += fmt.Sprintf("... on %s", selection.FieldName)
+		case "field":
+			alias := ""
+			if selection.Alias != nil && *selection.Alias != selection.FieldName {
+				alias = fmt.Sprintf("%s: ", *selection.Alias)
+			}
+			// add the selection name
+			result += fmt.Sprintf(
+				"%s%s%s%s",
+				indent,
+				alias,
+				selection.FieldName,
+				printSelectionArguments(0, selection.Arguments),
+			)
 		}
-		// add the selection name
-		result += fmt.Sprintf(
-			"%s%s%s%s%s",
-			indent,
-			alias,
-			selection.FieldName,
-			printSelectionArguments(0, selection.Arguments),
-			printDirectives(selection.Directives),
-		)
+
+		// add the directives
+		result += printDirectives(selection.Directives)
+
 		// add the subselections
 		if len(selection.Children) > 0 {
 			result += fmt.Sprintf(
