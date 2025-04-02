@@ -106,18 +106,18 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				Input: []string{
 					`
             query MyQuery($foo: PetFilter = {age_gt: 123} @testDirective(if: true) @test) { 
-              user { 
-                id
-              } 
+                user { 
+                    id
+                } 
             }
           `,
 				},
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
             query MyQuery($foo: PetFilter = {age_gt: 123} @testDirective(if: true) @test) {
-              user {
-                id 
-              }
+                user {
+                    id
+                }
             }
           `),
 				},

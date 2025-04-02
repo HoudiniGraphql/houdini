@@ -770,9 +770,10 @@ type CollectedOperationVariable struct {
 }
 
 type CollectedArgument struct {
-	Name    string `json:"name"`
-	ValueID *int64 `json:"value"`
-	Value   *CollectedArgumentValue
+	Name       string `json:"name"`
+	ValueID    *int64 `json:"value"`
+	Value      *CollectedArgumentValue
+	Directives []*CollectedDirective
 }
 
 type CollectedDirective struct {

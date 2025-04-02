@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"strings"
 	"sync"
 
 	"zombiezen.com/go/sqlite"
@@ -108,15 +109,22 @@ func printDocWorker(
 		// start building up the string
 		printed := fmt.Sprintf(`%s %s`, doc.Kind, doc.Name)
 
+		// operations (non-fragments) get their arguments printed here
+		if doc.Kind != "fragment" {
+			printed += printDocumentVariables(doc.Variables)
+		}
+
 		// add fragment type conditions
 		if doc.TypeCondition != nil {
 			printed += fmt.Sprintf(` on %s`, *doc.TypeCondition)
 		}
 
 		// add document directives
-		for _, directive := range doc.Directives {
-			printed += fmt.Sprintf(` @%s%s `, directive.Name, printArguments(directive.Arguments))
-		}
+		printed += printDirectives(doc.Directives)
+
+		// we are now ready to start printing the selection
+		printed += fmt.Sprintf(` {
+%s}`, printSelection(1, doc.Selections))
 
 		// update the document with the printed version
 		err = db.ExecStatement(update, map[string]any{"name": doc.Name, "printed": printed})
@@ -127,15 +135,49 @@ func printDocWorker(
 	}
 }
 
-func printArguments(args []*CollectedArgument) string {
+func printDirectives(directives []*CollectedDirective) string {
+	printed := []string{}
+	for _, directive := range directives {
+		printed = append(printed, fmt.Sprintf(
+			`@%s%s`,
+			directive.Name,
+			printSelectionArguments(0, directive.Arguments),
+		))
+	}
+
+	return strings.Join(printed, " ")
+}
+
+func printSelectionArguments(level int, args []*CollectedArgument) string {
 	if len(args) == 0 {
 		return ""
 	}
 	result := "("
 
+	tab := ""
+	for range level {
+		tab += "    "
+	}
+
 	// add directive arguments
-	for _, arg := range args {
-		result += fmt.Sprintf(`%s: %s`, arg.Name, printValue(arg.Value))
+	for i, arg := range args {
+		newLine := ""
+		if i != len(args)-1 {
+			newLine = "\n"
+		}
+
+		result += fmt.Sprintf(
+			`%s%s: %s`,
+			tab,
+			arg.Name,
+			printValue(arg.Value),
+		)
+
+		if len(arg.Directives) > 0 {
+			result += " " + printDirectives(arg.Directives)
+		}
+
+		result += newLine
 	}
 
 	result += ")"
@@ -143,6 +185,99 @@ func printArguments(args []*CollectedArgument) string {
 	return result
 }
 
+func printDocumentVariables(vars []*CollectedOperationVariable) string {
+	// variables get wrapped in ()
+	printed := []string{}
+
+	for _, v := range vars {
+		// we need to wrap the type in modifiers
+		varType := v.Type + v.TypeModifiers
+		for range strings.Count(v.TypeModifiers, "]") {
+			varType = "[" + varType
+		}
+
+		defaultValue := ""
+		if v.DefaultValue != nil {
+			defaultValue = fmt.Sprintf("= %s", printValue(v.DefaultValue))
+		}
+
+		printed = append(
+			printed,
+			fmt.Sprintf(
+				"$%s: %s %s %s",
+				v.Name,
+				varType,
+				defaultValue,
+				printDirectives(v.Directives),
+			),
+		)
+	}
+
+	// wrap the printed result in parens
+	return fmt.Sprintf("(%s)", strings.Join(printed, ", "))
+}
+
+func printSelection(level int, selections []*CollectedSelection) string {
+	indent := strings.Repeat("    ", level)
+	result := ""
+	for _, selection := range selections {
+		alias := ""
+		if selection.Alias != nil && *selection.Alias != selection.FieldName {
+			alias = fmt.Sprintf("%s: ", *selection.Alias)
+		}
+		// add the selection name
+		result += fmt.Sprintf(
+			"%s%s%s%s%s",
+			indent,
+			alias,
+			selection.FieldName,
+			printSelectionArguments(0, selection.Arguments),
+			printDirectives(selection.Directives),
+		)
+		// add the subselections
+		if len(selection.Children) > 0 {
+			result += fmt.Sprintf(
+				" {\n%s%s}",
+				printSelection(level+1, selection.Children),
+				indent,
+			)
+		}
+
+		result += "\n"
+	}
+	return result
+}
+
 func printValue(value *CollectedArgumentValue) string {
-	return ""
+	if value == nil {
+		return "null"
+	}
+	// the only special cases are lists and objects
+	// everything else gets its raw value
+
+	switch value.Kind {
+	case "Object":
+		result := "{"
+		for i, v := range value.Children {
+			result += fmt.Sprintf("%s: %s", v.Name, printValue(v.Value))
+			if i != len(value.Children)-1 {
+				result += ", "
+			}
+		}
+
+		return result + "}"
+	case "List":
+		result := "["
+
+		for i, v := range value.Children {
+			result += printValue(v.Value)
+			if i != len(value.Children)-1 {
+				result += ", "
+			}
+		}
+
+		return result + "]"
+	default:
+		return value.Raw
+	}
 }
