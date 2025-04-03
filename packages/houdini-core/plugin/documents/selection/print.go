@@ -120,7 +120,9 @@ func printDocWorker(
 		}
 
 		// add document directives
-		printed += printDirectives(doc.Directives)
+		if len(doc.Directives) > 0 {
+			printed += " " + printDirectives(doc.Directives)
+		}
 
 		// we are now ready to start printing the selection
 		printed += fmt.Sprintf(` {
@@ -152,7 +154,6 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 	if len(args) == 0 {
 		return ""
 	}
-	result := "("
 
 	tab := ""
 	for range level {
@@ -160,13 +161,9 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 	}
 
 	// add directive arguments
-	for i, arg := range args {
-		newLine := ""
-		if i != len(args)-1 {
-			newLine = "\n"
-		}
-
-		result += fmt.Sprintf(
+	argsPrinted := []string{}
+	for _, arg := range args {
+		printed := fmt.Sprintf(
 			`%s%s: %s`,
 			tab,
 			arg.Name,
@@ -174,15 +171,12 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 		)
 
 		if len(arg.Directives) > 0 {
-			result += " " + printDirectives(arg.Directives)
+			printed += " " + printDirectives(arg.Directives)
 		}
-
-		result += newLine
+		argsPrinted = append(argsPrinted, printed)
 	}
 
-	result += ")"
-
-	return result
+	return fmt.Sprintf("(%s)", strings.Join(argsPrinted, ", "))
 }
 
 func printDocumentVariables(vars []*CollectedOperationVariable) string {
@@ -203,13 +197,12 @@ func printDocumentVariables(vars []*CollectedOperationVariable) string {
 
 		printed = append(
 			printed,
-			fmt.Sprintf(
-				"$%s: %s %s %s",
-				v.Name,
+			strings.TrimSpace((`$` + strings.Join([]string{
+				v.Name + ":",
 				varType,
 				defaultValue,
 				printDirectives(v.Directives),
-			),
+			}, " "))),
 		)
 	}
 
@@ -225,9 +218,9 @@ func printSelection(level int, selections []*CollectedSelection) string {
 		// to handle the specific selection type
 		switch selection.Kind {
 		case "fragment":
-			result += fmt.Sprintf("...%s", selection.FieldName)
+			result += fmt.Sprintf("%s...%s", indent, selection.FieldName)
 		case "inline_fragment":
-			result += fmt.Sprintf("... on %s", selection.FieldName)
+			result += fmt.Sprintf("%s... on %s", indent, selection.FieldName)
 		case "field":
 			alias := ""
 			if selection.Alias != nil && *selection.Alias != selection.FieldName {
@@ -244,7 +237,9 @@ func printSelection(level int, selections []*CollectedSelection) string {
 		}
 
 		// add the directives
-		result += printDirectives(selection.Directives)
+		if len(selection.Directives) > 0 {
+			result += " " + printDirectives(selection.Directives)
+		}
 
 		// add the subselections
 		if len(selection.Children) > 0 {
@@ -264,10 +259,12 @@ func printValue(value *CollectedArgumentValue) string {
 	if value == nil {
 		return "null"
 	}
-	// the only special cases are lists and objects
+	// the only special cases are lists, objects, and variables
 	// everything else gets its raw value
 
 	switch value.Kind {
+	case "Variable":
+		return "$" + value.Raw
 	case "Object":
 		result := "{"
 		for i, v := range value.Children {

@@ -103,6 +103,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "Query with variable directive",
+				Pass: true,
 				Input: []string{
 					`
             query MyQuery($foo: PetFilter = {age_gt: 123} @testDirective(if: true) @test) { 
@@ -120,6 +121,111 @@ func TestDocumentCollectAndPrint(t *testing.T) {
                 }
             }
           `),
+				},
+			},
+			{
+				Name: "Query Kitchen sink",
+				Pass: true,
+				Input: []string{
+					`
+            query queryName($foo: ComplexType, $site: Site = MOBILE) @onQuery {
+                whoever123is: node(id: [123, 456]) {
+                  id
+                  ... on User @onInlineFragment {
+                    field2 {
+                      id
+                      alias: field1(first: 10, after: $foo) @include(if: $foo) {
+                        id
+                        ...frag @onFragmentSpread
+                      }
+                    
+                  }
+                  ... @skip(if: $foo) {
+                    id
+                  }
+                  ... {
+                    id
+                  }
+                }
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"queryName": tests.Dedent(`
+              query queryName($foo: ComplexType, $site: Site = MOBILE) @onQuery {
+                  whoever123is: node(id: [123, 456]) {
+                      id
+                      ... on User @onInlineFragment {
+                          field2 {
+                              id
+                              alias: field1(after: $foo, first: 10) @include(if: $foo) {
+                                  id
+                                  ...frag @onFragmentSpread
+                              }
+                          }
+                      }
+                      ... @skip(unless: $foo) {
+                          id
+                      }
+                      ... {
+                          id
+                      }
+                  }
+              }
+            `),
+				},
+			},
+			{
+				Name: "Mutation Kitchen sink",
+				Pass: true,
+				Input: []string{
+					`
+            mutation likeStory @onMutation {
+              like(story: 123) @onField {
+                story {
+                  id @onField
+                }
+              }
+            }
+        `,
+				},
+			},
+			{
+				Name: "Subscription Kitchen sink",
+				Pass: true,
+				Input: []string{
+					`
+        subscription StoryLikeSubscription($input: StoryLikeSubscribeInput @onVariableDefinition) @onSubscription {
+          storyLikeSubscribe(input: $input) {
+            story {
+              likers {
+                count
+              }
+              likeSentence {
+                text
+              }
+            }
+          }
+        }
+        `,
+				},
+			},
+			{
+				Name: "Fragment Kitchen sink",
+				Pass: true,
+				Input: []string{
+					`
+          fragment frag on Friend @onFragmentDefinition {
+            foo(
+              size: $size
+              bar: $b
+              obj: {key: "value", block: """
+              block string uses \"""
+              """}
+            )
+          }
+          `,
 				},
 			},
 		},
