@@ -97,7 +97,7 @@ export function format_hook_error(rootDir: string, error: HookError) {
 			// column is 1-based, so take that into account
 			message += " ".repeat(location.column - 1)
 			// Print the indicator in red
-			message += styleText("red", "^^^^^")
+			message += styleText("red", "^---- error starts here")
 
 			message += '\n'
 		})
