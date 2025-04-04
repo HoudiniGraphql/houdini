@@ -32,6 +32,15 @@ import { operationsByPath } from './operations'
 import selection from './selection'
 import { serializeValue } from './utils'
 
+export interface ArtifactStats {
+	total: string[]
+	changed: string[]
+	new: string[]
+	deleted: string[]
+	hashSize: number[]
+	querySize: number[]
+}
+
 const AST = recast.types.builders
 
 // the artifact generator creates files in the runtime directory for each

@@ -542,11 +542,8 @@ importers:
         specifier: ^0.23.1
         version: 0.23.1
       vite:
-        specifier: ^5.3.3 || ^6.0.3
+        specifier: ^6.0.3
         version: 6.0.7(@types/node@18.11.15)(terser@5.16.1)
-      vite-plugin-watch-and-run:
-        specifier: ^1.7.0
-        version: 1.7.0
     devDependencies:
       '@babel/types':
         specifier: ^7.24.6
@@ -691,7 +688,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.2
       vite:
-        specifier: ^5.3.3 || ^6.0.3
+        specifier: ^6.0.3
         version: 6.0.7(@types/node@18.11.15)(terser@5.16.1)
     devDependencies:
       '@types/minimatch':
@@ -3021,11 +3018,6 @@ packages:
   acorn-walk@8.3.2:
     resolution: {integrity: sha512-cjkyv4OtNCIeqhHrfS81QWXoCBPExR/J62oyEqepVw8WaQeSqpW2uhuLPh1m9eWhDuOo/jUXVTlifvesOWp/4A==}
     engines: {node: '>=0.4.0'}
-
-  acorn@8.11.3:
-    resolution: {integrity: sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
 
   acorn@8.12.1:
     resolution: {integrity: sha512-tcpGyI9zbizT9JbV6oYE477V6mTlXvvi0T0G3SNIYE2apm/G5huBa1+K89VGeovbg+jycCrfhl3ADxErOuO6Jg==}
@@ -7832,10 +7824,6 @@ packages:
     resolution: {integrity: sha512-GJYcFZnqIND7aXnsKVtYNeVcUh/pSDQC5oriSR2n28iddNavHdSkNjWc7ReVXftV763vI+4Db7gPn0CDODFAAQ==}
     hasBin: true
 
-  vite-plugin-watch-and-run@1.7.0:
-    resolution: {integrity: sha512-f6TUUxDvOeFPMJ1/NDK8N1y/65w8h4jPZGsuOOYVnaK4lkutN95rTNAunsr0fcgTVo1BRUMxDTY7iFlsGuiCig==}
-    engines: {node: ^16.14 || >=18}
-
   vite@4.1.1:
     resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -9373,7 +9361,7 @@ snapshots:
 
   '@jridgewell/source-map@0.3.2':
     dependencies:
-      '@jridgewell/gen-mapping': 0.3.2
+      '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/sourcemap-codec@1.4.14': {}
@@ -10450,7 +10438,7 @@ snapshots:
       fflate: 0.8.2
       flatted: 3.3.1
       pathe: 1.1.2
-      picocolors: 1.0.0
+      picocolors: 1.1.1
       sirv: 2.0.4
       vitest: 1.6.0(@types/node@18.11.15)(@vitest/ui@1.6.0)(terser@5.16.1)
 
@@ -10533,8 +10521,6 @@ snapshots:
       acorn: 8.12.1
 
   acorn-walk@8.3.2: {}
-
-  acorn@8.11.3: {}
 
   acorn@8.12.1: {}
 
@@ -15851,7 +15837,7 @@ snapshots:
   terser@5.16.1:
     dependencies:
       '@jridgewell/source-map': 0.3.2
-      acorn: 8.11.3
+      acorn: 8.14.0
       commander: 2.20.3
       source-map-support: 0.5.21
 
@@ -16382,11 +16368,6 @@ snapshots:
     dependencies:
       '@kitql/helpers': 0.8.9
       terser: 5.16.1
-
-  vite-plugin-watch-and-run@1.7.0:
-    dependencies:
-      '@kitql/helpers': 0.8.9
-      micromatch: 4.0.5
 
   vite@4.1.1(@types/node@18.11.15)(terser@5.16.1):
     dependencies:
