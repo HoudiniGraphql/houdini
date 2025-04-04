@@ -180,6 +180,9 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 }
 
 func printDocumentVariables(vars []*CollectedOperationVariable) string {
+	if len(vars) == 0 {
+		return ""
+	}
 	// variables get wrapped in ()
 	printed := []string{}
 
@@ -195,15 +198,15 @@ func printDocumentVariables(vars []*CollectedOperationVariable) string {
 			defaultValue = fmt.Sprintf("= %s", printValue(v.DefaultValue))
 		}
 
-		printed = append(
-			printed,
-			strings.TrimSpace((`$` + strings.Join([]string{
-				v.Name + ":",
-				varType,
-				defaultValue,
-				printDirectives(v.Directives),
-			}, " "))),
-		)
+		printedVar := fmt.Sprintf("$%s: %s", v.Name, varType)
+		if defaultValue != "" {
+			printedVar += " " + defaultValue
+		}
+		if len(v.Directives) > 0 {
+			printedVar += " " + printDirectives(v.Directives)
+		}
+
+		printed = append(printed, printedVar)
 	}
 
 	// wrap the printed result in parens
@@ -263,10 +266,12 @@ func printValue(value *CollectedArgumentValue) string {
 	if value == nil {
 		return "null"
 	}
-	// the only special cases are lists, objects, and variables
-	// everything else gets its raw value
 
 	switch value.Kind {
+	case "String":
+		return fmt.Sprintf("%q", value.Raw)
+	case "Block":
+		return fmt.Sprintf(`"""%s"""`, value.Raw)
 	case "Variable":
 		return "$" + value.Raw
 	case "Object":

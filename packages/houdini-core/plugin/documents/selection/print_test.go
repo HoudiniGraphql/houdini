@@ -189,25 +189,52 @@ func TestDocumentCollectAndPrint(t *testing.T) {
             }
         `,
 				},
+				Extra: map[string]any{
+					"likeStory": tests.Dedent(`
+              mutation likeStory @onMutation {
+                  like(story: 123) @onField {
+                      story {
+                          id @onField
+                      }
+                  }
+              }
+          `),
+				},
 			},
 			{
 				Name: "Subscription Kitchen sink",
 				Pass: true,
 				Input: []string{
 					`
-        subscription StoryLikeSubscription($input: StoryLikeSubscribeInput @onVariableDefinition) @onSubscription {
-          storyLikeSubscribe(input: $input) {
-            story {
-              likers {
-                count
-              }
-              likeSentence {
-                text
+            subscription StoryLikeSubscription($input: StoryLikeSubscribeInput @onVariableDefinition) @onSubscription {
+              storyLikeSubscribe(input: $input) {
+                story {
+                  likers {
+                    count
+                  }
+                  likeSentence {
+                    text
+                  }
+                }
               }
             }
-          }
-        }
-        `,
+          `,
+				},
+				Extra: map[string]any{
+					"StoryLikeSubscription": tests.Dedent(`
+            subscription StoryLikeSubscription($input: StoryLikeSubscribeInput @onVariableDefinition) @onSubscription {
+                storyLikeSubscribe(input: $input) {
+                    story {
+                        likers {
+                            count
+                        }
+                        likeSentence {
+                            text
+                        }
+                    }
+                }
+            }
+          `),
 				},
 			},
 			{
@@ -215,16 +242,24 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				Pass: true,
 				Input: []string{
 					`
-          fragment frag on Friend @onFragmentDefinition {
-            foo(
-              size: $size
-              bar: $b
-              obj: {key: "value", block: """
-              block string uses \"""
-              """}
-            )
-          }
+            fragment frag on Friend @onFragmentDefinition {
+              foo(
+                size: $size
+                bar: $b
+                obj: {key: "value", block: """block string 
+                uses \"""
+                """}
+              )
+            }
           `,
+				},
+				Extra: map[string]any{
+					"frag": tests.Dedent(`
+            fragment frag on Friend @onFragmentDefinition {
+                foo(bar: $b, obj: {key: "value", block: """block string 
+                            uses """"""}, size: $size)
+            }
+          `),
 				},
 			},
 		},
