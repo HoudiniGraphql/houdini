@@ -1,0 +1,4 @@
+package artifacts
+
+func Generate() {
+}

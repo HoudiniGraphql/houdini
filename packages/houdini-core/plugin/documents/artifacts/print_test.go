@@ -1,4 +1,4 @@
-package selection_test
+package artifacts_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/selection"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -75,12 +75,12 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				require.Nil(t, err)
 				defer p.DB.Put(conn)
 
-				// the first thing we have to do is collect the selections
-				collected, err := selection.CollectDocuments(context.Background(), p.DB, conn)
+				// the first thing we have to do is collect the artifacts.
+				collected, err := artifacts.CollectDocuments(context.Background(), p.DB, conn)
 				require.Nil(t, err)
 
 				// print the document we found
-				err = selection.EnsureDocumentsPrinted(
+				err = artifacts.EnsureDocumentsPrinted(
 					context.Background(),
 					p.DB,
 					conn,
