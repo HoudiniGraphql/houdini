@@ -1032,10 +1032,10 @@ func processSelection[PluginConfig any](
 	case *ast.InlineFragment:
 		fragType := s.TypeCondition
 		if fragType == "" {
-			fragType = "inline_fragment"
+			fragType = parentType
 		}
 		if err := db.ExecStatement(statements.InsertSelection, map[string]any{
-			"field_name": fragType,
+			"field_name": s.TypeCondition,
 			"alias":      nil,
 			"kind":       "inline_fragment",
 		}); err != nil {

@@ -138,15 +138,14 @@ func TestDocumentCollectAndPrint(t *testing.T) {
                         id
                         ...frag @onFragmentSpread
                       }
-                    
+                    }
+                    ... @skip(if: $foo) {
+                      id
+                    }
+                    ... {
+                      id
+                    }
                   }
-                  ... @skip(if: $foo) {
-                    id
-                  }
-                  ... {
-                    id
-                  }
-                }
               }
             }
           `,
@@ -164,12 +163,12 @@ func TestDocumentCollectAndPrint(t *testing.T) {
                                   ...frag @onFragmentSpread
                               }
                           }
-                      }
-                      ... @skip(unless: $foo) {
-                          id
-                      }
-                      ... {
-                          id
+                          ... @skip(if: $foo) {
+                              id
+                          }
+                          ... {
+                              id
+                          }
                       }
                   }
               }

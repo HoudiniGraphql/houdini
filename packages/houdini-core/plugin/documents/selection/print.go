@@ -220,7 +220,11 @@ func printSelection(level int, selections []*CollectedSelection) string {
 		case "fragment":
 			result += fmt.Sprintf("%s...%s", indent, selection.FieldName)
 		case "inline_fragment":
-			result += fmt.Sprintf("%s... on %s", indent, selection.FieldName)
+			typeCondition := ""
+			if selection.FieldName != "" {
+				typeCondition = fmt.Sprintf(" on %s", selection.FieldName)
+			}
+			result += fmt.Sprintf("%s...%s", indent, typeCondition)
 		case "field":
 			alias := ""
 			if selection.Alias != nil && *selection.Alias != selection.FieldName {
