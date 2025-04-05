@@ -3,7 +3,6 @@ package documents
 import (
 	"context"
 	"fmt"
-	"runtime"
 	"sync"
 
 	"github.com/spf13/afero"
@@ -121,7 +120,7 @@ func extractDocuments[PluginConfig any](
 
 	// file processing workers
 	var procWG sync.WaitGroup
-	for i := 0; i < runtime.NumCPU(); i++ {
+	for range 1 {
 		procWG.Add(1)
 		go func() {
 			defer procWG.Done()

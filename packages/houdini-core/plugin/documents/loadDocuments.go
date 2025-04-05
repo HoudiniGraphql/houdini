@@ -3,7 +3,6 @@ package documents
 import (
 	"context"
 	"fmt"
-	"runtime"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -40,7 +39,7 @@ func LoadDocuments(
 
 	// start a pool of workers to process the documents
 	wg, _ := errgroup.WithContext(ctx)
-	for range runtime.NumCPU() {
+	for range 1 {
 		wg.Go(func() error {
 			conn, err := db.Take(context.Background())
 			if err != nil {
@@ -414,7 +413,7 @@ func LoadPendingQuery(
 			variableType, typeModifiers := schema.ParseFieldType(variable.Type.String())
 
 			// if there's a default value, bind it (we'll bind the rest later)
-			var defaultValue interface{}
+			var defaultValue any
 			if variable.DefaultValue != nil {
 				valueID, argErr := processArgumentValue(
 					ctx,
@@ -1428,7 +1427,7 @@ func processArgumentValue[PluginConfig any](
 
 			// For object children, use the provided field name.
 			// For list items, the parser may leave Name empty.
-			var nameParam interface{}
+			var nameParam any
 			if child.Name == "" {
 				nameParam = nil
 			} else {
