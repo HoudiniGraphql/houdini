@@ -121,7 +121,7 @@ func printDocWorker(
 
 		// add document directives
 		if len(doc.Directives) > 0 {
-			printed += " " + printDirectives(doc.Directives)
+			printed += printDirectives(doc.Directives)
 		}
 
 		// we are now ready to start printing the selection
@@ -140,14 +140,22 @@ func printDocWorker(
 func printDirectives(directives []*CollectedDirective) string {
 	printed := []string{}
 	for _, directive := range directives {
+		// don't print internal directives
+		if directive.Internal == 1 {
+			continue
+		}
+
 		printed = append(printed, fmt.Sprintf(
 			`@%s%s`,
 			directive.Name,
 			printSelectionArguments(0, directive.Arguments),
 		))
 	}
+	if len(printed) == 0 {
+		return ""
+	}
 
-	return strings.Join(printed, " ")
+	return " " + strings.Join(printed, " ")
 }
 
 func printSelectionArguments(level int, args []*CollectedArgument) string {
@@ -171,7 +179,7 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 		)
 
 		if len(arg.Directives) > 0 {
-			printed += " " + printDirectives(arg.Directives)
+			printed += printDirectives(arg.Directives)
 		}
 		argsPrinted = append(argsPrinted, printed)
 	}
@@ -203,7 +211,7 @@ func printDocumentVariables(vars []*CollectedOperationVariable) string {
 			printedVar += " " + defaultValue
 		}
 		if len(v.Directives) > 0 {
-			printedVar += " " + printDirectives(v.Directives)
+			printedVar += printDirectives(v.Directives)
 		}
 
 		printed = append(printed, printedVar)
@@ -245,7 +253,7 @@ func printSelection(level int, selections []*CollectedSelection) string {
 
 		// add the directives
 		if len(selection.Directives) > 0 {
-			result += " " + printDirectives(selection.Directives)
+			result += printDirectives(selection.Directives)
 		}
 
 		// add the subselections

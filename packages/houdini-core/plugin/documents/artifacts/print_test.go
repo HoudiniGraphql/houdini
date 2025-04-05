@@ -262,6 +262,28 @@ func TestDocumentCollectAndPrint(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "Ignore internal directives",
+				Pass: true,
+				Input: []string{
+					`
+            query TestQuery @loading {
+                testField @loading {
+                    id @loading
+                }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+            query TestQuery {
+                testField {
+                    id
+                }
+            }
+          `),
+				},
+			},
 		},
 	})
 }

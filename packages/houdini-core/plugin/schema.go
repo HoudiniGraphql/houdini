@@ -5,12 +5,12 @@ import (
 	"io"
 	"path"
 
-	"code.houdinigraphql.com/plugins"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"zombiezen.com/go/sqlite/sqlitex"
 
 	houdiniSchema "code.houdinigraphql.com/packages/houdini-core/plugin/schema"
+	"code.houdinigraphql.com/plugins"
 )
 
 // The core plugin is responsible for parsing the users schrma file and loading it into the database

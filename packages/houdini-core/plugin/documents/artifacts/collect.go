@@ -64,8 +64,8 @@ func CollectDocuments(
 
 	// create a channel to send batches of ids to process
 	batchCh := make(chan []int64, len(docIDs))
-	// and a channel to send errors back
-	errCh := make(chan *plugins.Error, len(docIDs))
+	// we need a thread safe list to collect errors
+	errList := &plugins.ErrorList{}
 	// and a channel to send collected documents back
 	resultCh := make(chan []*CollectedDocument, len(docIDs))
 
@@ -73,7 +73,7 @@ func CollectDocuments(
 	var wg sync.WaitGroup
 	for range runtime.NumCPU() {
 		wg.Add(1)
-		go collectDoc(ctx, db, &wg, batchCh, resultCh, errCh)
+		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList)
 	}
 
 	// partition the docIDs into batches and send them to the workers
@@ -88,14 +88,8 @@ func CollectDocuments(
 	wg.Wait()
 
 	// close the error channel since no more errors will be sent.
-	close(errCh)
 	close(resultCh)
 
-	// process any errors that occurred.
-	errList := &plugins.ErrorList{}
-	for err := range errCh {
-		errList.Append(err)
-	}
 	// collect the results
 	for docs := range resultCh {
 		for _, doc := range docs {
@@ -118,14 +112,14 @@ func collectDoc(
 	wg *sync.WaitGroup,
 	docIDs <-chan []int64,
 	resultCh chan<- []*CollectedDocument,
-	errCh chan<- *plugins.Error,
+	errs *plugins.ErrorList,
 ) {
 	defer wg.Done()
 
 	// hold onto a connection for the collection process
 	conn, err := db.Take(ctx)
 	if err != nil {
-		errCh <- plugins.WrapError(err)
+		errs.Append(plugins.WrapError(err))
 		return
 	}
 	defer db.Put(conn)
@@ -136,7 +130,7 @@ func collectDoc(
 			// prepare the search statemetns
 			statements, err := prepareCollectStatements(conn, ids)
 			if err != nil {
-				errCh <- plugins.WrapError(err)
+				errs.Append(plugins.WrapError(err))
 				return
 			}
 			defer statements.Finalize()
@@ -209,7 +203,9 @@ func collectDoc(
 					parentID := statements.Search.GetInt64("parent_id")
 					parent, ok := selections[parentID]
 					if !ok {
-						errCh <- plugins.WrapError(fmt.Errorf("parent selection %v not found for selection %v", parentID, selectionID))
+						errs.Append(
+							plugins.WrapError(fmt.Errorf("parent selection %v not found for selection %v", parentID, selectionID)),
+						)
 						return
 					}
 					parent.Children = append(parent.Children, selection)
@@ -231,7 +227,7 @@ func collectDoc(
 
 					args := []*CollectedArgument{}
 					if err := json.Unmarshal([]byte(arguments), &args); err != nil {
-						errCh <- plugins.WrapError(err)
+						errs.Append(plugins.WrapError(err))
 						return
 					}
 
@@ -252,7 +248,7 @@ func collectDoc(
 
 					dirs := []*CollectedDirective{}
 					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
-						errCh <- plugins.WrapError(err)
+						errs.Append(plugins.WrapError(err))
 						return
 					}
 
@@ -270,7 +266,10 @@ func collectDoc(
 				}
 			})
 			if err != nil {
-				errCh <- plugins.WrapError(err)
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			if errs.Len() > 0 {
 				return
 			}
 
@@ -304,7 +303,7 @@ func collectDoc(
 
 					dirs := []*CollectedDirective{}
 					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
-						errCh <- plugins.WrapError(err)
+						errs.Append(plugins.WrapError(err))
 						return
 					}
 
@@ -324,23 +323,34 @@ func collectDoc(
 				// save the variable in the document's list of variables
 				doc, ok := documents[documentName]
 				if !ok {
-					errCh <- plugins.WrapError(fmt.Errorf("document %v not found for variable %v", documentName, name))
+					errs.Append(
+						plugins.WrapError(
+							fmt.Errorf("document %v not found for variable %v", documentName, name),
+						),
+					)
+					return
 				}
 				doc.Variables = append(doc.Variables, variable)
 			})
 			if err != nil {
-				errCh <- plugins.WrapError(err)
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			if errs.Len() > 0 {
+				return
 			}
 
 			// now we have to add document-level directives
 			err = db.StepStatement(ctx, statements.DocumentDirectives, func() {
 				directiveName := statements.DocumentDirectives.GetText("directive")
 				documentName := statements.DocumentDirectives.GetText("document_name")
+				internal := statements.DocumentDirectives.GetInt64("internal")
 
 				// create the collected directive
 				directive := &CollectedDirective{
 					Name:      directiveName,
 					Arguments: []*CollectedArgument{},
+					Internal:  int(internal),
 				}
 
 				// if there are arguments then we need to add them
@@ -348,7 +358,7 @@ func collectDoc(
 					arguments := statements.DocumentDirectives.GetText("directive_arguments")
 					// unmarshal the string into the directive struct
 					if err := json.Unmarshal([]byte(arguments), &directive.Arguments); err != nil {
-						errCh <- plugins.WrapError(err)
+						errs.Append(plugins.WrapError(err))
 						return
 					}
 				}
@@ -364,12 +374,25 @@ func collectDoc(
 				// add the directive to the document
 				doc, ok := documents[documentName]
 				if !ok {
-					errCh <- plugins.WrapError(fmt.Errorf("document %v not found for directive %v", documentName, directiveName))
+					errs.Append(
+						plugins.WrapError(
+							fmt.Errorf(
+								"document %v not found for directive %v",
+								documentName,
+								directiveName,
+							),
+						),
+					)
+					return
 				}
 				doc.Directives = append(doc.Directives, directive)
 			})
 			if err != nil {
-				errCh <- plugins.WrapError(err)
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			if errs.Len() > 0 {
+				return
 			}
 
 			// if we've gotten this far then we have recreated the full selection apart from
@@ -382,7 +405,7 @@ func collectDoc(
 			values := map[int64]*CollectedArgumentValue{}
 			argumentValueSearch, err := prepareArgumentValuesSearch(conn, valueIDs)
 			if err != nil {
-				errCh <- plugins.WrapError(err)
+				errs.Append(plugins.WrapError(err))
 				return
 			}
 			defer argumentValueSearch.Finalize()
@@ -402,11 +425,13 @@ func collectDoc(
 				if argumentValueSearch.IsNull("parent") {
 					_, ok := argumentValues[valueID]
 					if !ok {
-						errCh <- plugins.WrapError(fmt.Errorf(
-							"argument value %v not found for argument value %v",
-							valueID,
-							argumentValueSearch.GetInt64("id"),
-						))
+						errs.Append(
+							plugins.WrapError(fmt.Errorf(
+								"argument value %v not found for argument value %v",
+								valueID,
+								argumentValueSearch.GetInt64("id"),
+							)),
+						)
 						return
 					}
 
@@ -416,11 +441,13 @@ func collectDoc(
 					parentID := argumentValueSearch.GetInt64("parent")
 					parent, ok := values[parentID]
 					if !ok {
-						errCh <- plugins.WrapError(
-							fmt.Errorf("parent argument value %v not found for argument value %v",
-								parentID,
-								argumentValueSearch.GetInt64("id"),
-							))
+						errs.Append(
+							plugins.WrapError(
+								fmt.Errorf("parent argument value %v not found for argument value %v",
+									parentID,
+									argumentValueSearch.GetInt64("id"),
+								)),
+						)
 						return
 					}
 					parent.Children = append(parent.Children, &CollectedArgumentValueChildren{
@@ -430,7 +457,10 @@ func collectDoc(
 				}
 			})
 			if err != nil {
-				errCh <- plugins.WrapError(err)
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			if errs.Len() > 0 {
 				return
 			}
 
@@ -440,12 +470,14 @@ func collectDoc(
 					if value, ok := argumentValues[*arg.ValueID]; ok {
 						arg.Value = value
 					} else {
-						errCh <- plugins.WrapError(
-							fmt.Errorf(
-								"argument value %v not found for directive argument %v",
-								*arg.ValueID,
-								arg.Name,
-							))
+						errs.Append(
+							plugins.WrapError(
+								fmt.Errorf(
+									"argument value %v not found for directive argument %v",
+									*arg.ValueID,
+									arg.Name,
+								)),
+						)
 						return
 					}
 				}
@@ -455,11 +487,13 @@ func collectDoc(
 					if value, ok := argumentValues[*arg.DefaultValueID]; ok {
 						arg.DefaultValue = value
 					} else {
-						errCh <- plugins.WrapError(fmt.Errorf(
-							"default value %v not found for document argument %v",
-							*arg.DefaultValueID,
-							arg.Name,
-						))
+						errs.Append(
+							plugins.WrapError(fmt.Errorf(
+								"default value %v not found for document argument %v",
+								*arg.DefaultValueID,
+								arg.Name,
+							)),
+						)
 						return
 					}
 				}
@@ -521,12 +555,14 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
             json_object(
               'id', sd.id,
               'name', sd.directive,
-              'arguments', json(IFNULL(da.directive_arguments, '[]'))
+              'arguments', json(IFNULL(da.directive_arguments, '[]')),
+              'internal', directives.internal
             )
           ) AS directives
         FROM selection_directives sd
           LEFT JOIN directive_args da ON da.directive_id = sd.id
           JOIN selection_refs ON selection_refs.child_id = sd.selection_id
+          LEFT JOIN directives on sd.directive = directives.name
         WHERE
           selection_refs."document" IN %s
         GROUP BY sd.selection_id
@@ -625,12 +661,14 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           json_object(
             'id', document_variable_directives.id,
             'name', document_variable_directives.directive,
-            'arguments', json(IFNULL(directive_args.arguments, '[]'))
+            'arguments', json(IFNULL(directive_args.arguments, '[]')),
+            'internal', directives.internal 
           )
         ) AS directives
       FROM document_variable_directives
         LEFT JOIN directive_args ON directive_args.variable_id = document_variable_directives.id
         JOIN document_variables ON document_variable_directives.parent = document_variables.id
+        LEFT JOIN directives on document_variable_directives.directive = directives.name
       WHERE document_variables.document IN %s
       GROUP BY document_variable_directives.parent
     )
@@ -670,10 +708,12 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       dd.row,
       dd.column,
       d.name AS document_name,
-      IFNULL(dda.directive_arguments, '[]') AS directive_arguments
+      IFNULL(dda.directive_arguments, '[]') AS directive_arguments,
+      directives.internal
     FROM document_directives dd
       JOIN documents d ON dd.document = d.id
       LEFT JOIN doc_dir_args dda ON dda.directive_id = dd.id
+      LEFT JOIN directives ON dd.directive = directives.name
     WHERE d.id in %s
   `, whereIn))
 	if err != nil {
@@ -755,6 +795,7 @@ type CollectedSelection struct {
 	FieldName  string
 	Alias      *string
 	Kind       string
+	Hidden     bool
 	Arguments  []*CollectedArgument
 	Directives []*CollectedDirective
 	Children   []*CollectedSelection
@@ -777,6 +818,7 @@ type CollectedArgument struct {
 }
 
 type CollectedDirective struct {
+	Internal  int                  `json:"internal"`
 	Name      string               `json:"name"`
 	Arguments []*CollectedArgument `json:"arguments"`
 }
