@@ -1454,21 +1454,35 @@ func ValidateWrongTypesToArg(
 			OR
 
 			-- For Variable kinds: compare the variable's modifiers to the expected modifiers,
-			-- but allow the case where the variable's modifiers end with '!' and, when removed, match.
+			-- but allow cases where non-null modifiers are allowed on null fields.
+			-- Consult the table below for info.
 			(
 				argument_values.kind = 'Variable'
 				AND NOT (
 					document_variables."type" = argument_values.expected_type
 					AND (
 						document_variables.type_modifiers = argument_values.expected_type_modifiers
+
+						-- Any non-null input is assignable to its nullable variant
 						OR (
-							document_variables.type_modifiers LIKE '%!'
+							document_variables.type_modifiers LIKE '%!%'
 							AND document_variables.default_value is null
-							AND SUBSTR(
-								document_variables.type_modifiers, 1,
-								LENGTH(document_variables.type_modifiers) - 1
-							) = argument_values.expected_type_modifiers
+							AND REPLACE(document_variables.type_modifiers, '!', '') = argument_values.expected_type_modifiers
 						)
+						-- Non-nullable list needs to have a non-null input
+						OR (
+							argument_values.expected_type_modifiers = ']!'
+							AND document_variables.default_value is null
+							AND document_variables.type_modifiers in (']!', '!]!')
+						)
+						-- Nullable list of non-null needs to have non-null type in list
+						OR (
+							argument_values.expected_type_modifiers = '!]'
+							AND document_variables.default_value is null
+							AND document_variables.type_modifiers in ('!]', '!]!')
+						)
+						-- Non-null list of non-null needs to match perfectly, so it's already handled.
+
 						OR document_variables.default_value is not null
 					)
 				)
@@ -1476,6 +1490,40 @@ func ValidateWrongTypesToArg(
 			)
 		)
 	`
+
+	/*
+			GraphQL non-null types can be valid on null fields.
+			Check the spec for more information on nullability and lists: https://spec.graphql.org/October2021/#sec-Combining-List-and-Non-Null
+
+			input | expected | matches
+			------+-----------+--------
+			single object modifiers:
+			      |          | true
+			!     |          | true
+			!     | !        | true
+		          | !        | false
+
+			list modifiers:
+			]     | ]        | true
+			]!    | ]        | true
+			!]    | ]        | true
+			!]!   | ]        | true
+
+			]     | ]!       | false
+			]!    | ]!       | true
+			!]    | ]!       | false
+			!]!   | ]!       | true
+
+			]     | !]       | false
+			]!    | !]       | false
+			!]    | !]       | true
+			!]!   | !]       | true
+
+			]     | !]!      | false
+			]!    | !]!      | false
+			!]    | !]!      | false
+			!]!   | !]!      | true
+	*/
 
 	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
