@@ -21,8 +21,10 @@ func ValidateConflictingPrependAppend(
 	query := `
 	SELECT
 	  rd.filepath,
-	  rd.offset_line AS row,
-	  rd.offset_column AS column,
+	  rd.offset_line,
+	  rd.offset_column,
+	  sd.row as line,
+	  sd.column,
 	  d.name AS documentName,
 	  GROUP_CONCAT(DISTINCT sd.directive) AS directives
 	FROM selection_directives sd
@@ -40,10 +42,10 @@ func ValidateConflictingPrependAppend(
 	}
 	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
-		row := int(stmt.ColumnInt(1))
-		column := int(stmt.ColumnInt(2))
-		documentName := stmt.ColumnText(3)
-		directives := stmt.ColumnText(4)
+		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
+		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
+		documentName := stmt.ColumnText(5)
+		directives := stmt.ColumnText(6)
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
 				"@prepend and @append cannot appear on the same fragment in document %q (found: %s)",
@@ -52,7 +54,7 @@ func ValidateConflictingPrependAppend(
 			),
 			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
-				{Filepath: filepath, Line: row, Column: column},
+				{Filepath: filepath, Line: line, Column: column},
 			},
 		})
 	})
@@ -69,8 +71,10 @@ func ValidateConflictingParentIDAllLists(
 	query := `
 		SELECT
 			rd.filepath,
-			rd.offset_line AS row,
-			rd.offset_column AS column,
+			rd.offset_line,
+			rd.offset_column,
+			sd.row as line,
+			sd.column,
 			d.name AS documentName,
 			GROUP_CONCAT(DISTINCT sd.directive) AS directives
 		FROM selection_directives sd
@@ -88,10 +92,10 @@ func ValidateConflictingParentIDAllLists(
 	}
 	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
-		row := int(stmt.ColumnInt(1))
-		column := int(stmt.ColumnInt(2))
-		documentName := stmt.ColumnText(3)
-		directives := stmt.ColumnText(4)
+		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
+		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
+		documentName := stmt.ColumnText(5)
+		directives := stmt.ColumnText(6)
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
 				"@parentID cannot appear alongside @allLists in document %q (found: %s)",
@@ -100,7 +104,7 @@ func ValidateConflictingParentIDAllLists(
 			),
 			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
-				{Filepath: filepath, Line: row, Column: column},
+				{Filepath: filepath, Line: line, Column: column},
 			},
 		})
 	})
@@ -117,8 +121,10 @@ func validateConflictingPaginateListDirectives(
 	query := `
 		SELECT
 			rd.filepath,
-			rd.offset_line AS row,
-			rd.offset_column AS column
+			rd.offset_line,
+			rd.offset_column,
+			sd.row as line,
+			sd.column
 		FROM selection_directives sd
 			JOIN selection_refs sr ON sr.child_id = sd.selection_id
 			JOIN documents d ON d.id = sr.document
@@ -134,15 +140,16 @@ func validateConflictingPaginateListDirectives(
 	}
 	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
 		filepath := stmt.ColumnText(0)
-		row := int(stmt.ColumnInt(1))
-		column := int(stmt.ColumnInt(2))
+		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
+		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
+
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
 				"@list is unnecessary on a field annotated with @paginate, simply use the 'name' parameter on @paginate instead",
 			),
 			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
-				{Filepath: filepath, Line: row, Column: column},
+				{Filepath: filepath, Line: line, Column: column},
 			},
 		})
 	})
@@ -164,7 +171,9 @@ func ValidatePaginateTypeCondition(
 			d.name AS documentName,
 			d.type_condition,
 			rd.filepath,
-			sd.row,
+			rd.offset_line,
+			rd.offset_column,
+			sd.row as line,
 			sd.column
 		FROM documents d
 			JOIN raw_documents rd ON rd.id = d.raw_document
@@ -187,9 +196,8 @@ func ValidatePaginateTypeCondition(
 		docName := stmt.ColumnText(0)
 		typeCondition := stmt.ColumnText(1)
 		filepath := stmt.ColumnText(2)
-		row := int(stmt.ColumnInt(3))
-		column := int(stmt.ColumnInt(4))
-
+		line := int(stmt.ColumnInt(3)) + int(stmt.ColumnInt(5))
+		column := int(stmt.ColumnInt(4)) + int(stmt.ColumnInt(6))
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf(
 				"Document %q uses @%s but its type condition %q is invalid. It must either implement Node or have a type_configs entry with a valid resolve_query",
@@ -199,7 +207,7 @@ func ValidatePaginateTypeCondition(
 			),
 			Kind: plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{
-				{Filepath: filepath, Line: row, Column: column},
+				{Filepath: filepath, Line: line, Column: column},
 			},
 		})
 	})
@@ -219,8 +227,10 @@ func ValidateSinglePaginateDirective(
 	  d.id AS documentID,
 	  d.name AS documentName,
 	  rd.filepath,
-	  rd.offset_line AS row,
-	  rd.offset_column AS column
+	  rd.offset_line,
+	  rd.offset_column,
+	  sd.row as line,
+	  sd.column
 	FROM selection_directives sd
 	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
 	  JOIN documents d ON d.id = sr.document
@@ -236,7 +246,7 @@ func ValidateSinglePaginateDirective(
 		documentID   int64
 		documentName string
 		filepath     string
-		row          int
+		line         int
 		column       int
 	}
 	groups := make(map[int64][]usage)
@@ -248,8 +258,8 @@ func ValidateSinglePaginateDirective(
 			documentID:   uid,
 			documentName: stmt.ColumnText(1),
 			filepath:     stmt.ColumnText(2),
-			row:          int(stmt.ColumnInt(3)),
-			column:       int(stmt.ColumnInt(4)),
+			line:         int(stmt.ColumnInt(3)) + int(stmt.ColumnInt(5)),
+			column:       int(stmt.ColumnInt(4)) + int(stmt.ColumnInt(6)),
 		}
 		groups[uid] = append(groups[uid], u)
 	})
@@ -257,22 +267,26 @@ func ValidateSinglePaginateDirective(
 	// Now, for each document that has more than one paginate directive, report an error.
 	for _, usages := range groups {
 		if len(usages) > 1 {
-			// Build a list of location strings.
-			var locStrs []string
+			// Build the list of locations
+			var locations []*plugins.ErrorLocation
 			for _, u := range usages {
-				locStrs = append(locStrs, fmt.Sprintf("%s:%d:%d", u.filepath, u.row, u.column))
+				locations = append(locations, &plugins.ErrorLocation{
+					Filepath: u.filepath,
+					Line:     u.line,
+					Column:   u.column,
+				})
 			}
 			// Use the document name from the first
 			docName := usages[0].documentName
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
-					"@%s can only appear once in a document; found %d occurrences in document %q at locations: %s",
+					"@%s can only appear once in a document; found %d occurrences in document %q",
 					schema.PaginationDirective,
 					len(usages),
 					docName,
-					strings.Join(locStrs, "; "),
 				),
-				Kind: plugins.ErrorKindValidation,
+				Locations: locations,
+				Kind:      plugins.ErrorKindValidation,
 			})
 		}
 	}

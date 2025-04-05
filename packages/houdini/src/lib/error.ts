@@ -95,9 +95,9 @@ export function format_hook_error(rootDir: string, error: HookError) {
 			const gutterOffset = ` ${location.line} | `.length;
 			message += " ".repeat(gutterOffset)
 			// column is 1-based, so take that into account
-			message += " ".repeat(location.column - 1)
+			message += " ".repeat(Math.max(location.column - 1, 0))
 			// Print the indicator in red
-			message += styleText("red", "^---- error starts here")
+			message += styleText("red", "^---- error reported here")
 
 			message += '\n'
 		})
