@@ -2,6 +2,7 @@ package documents
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -48,30 +49,26 @@ func LoadDocuments(
 			defer db.Put(conn)
 
 			// each query gets wrapped in its own transaction
-			close := sqlitex.Transaction(conn)
-			commit := func(err error) error {
-				close(&err)
-				return err
-			}
 			statements, err, finalize := PrepareDocumentInsertStatements(conn)
 			if err != nil {
 				return plugins.WrapError(err)
 			}
 			defer finalize()
 
-			var txErr error
 			// consume queries until the channel is closed
 			for query := range queries {
+				commit := sqlitex.Transaction(conn)
 				// load the document into the database
 				pluginErr := LoadPendingQuery(ctx, db, conn, query, statements, typeCache)
 				if pluginErr != nil {
-					txErr = err
 					errs.Append(pluginErr)
+					unwrapped := errors.New(pluginErr.Error())
+					commit(&unwrapped)
+				} else {
+					var nilErr error
+					commit(&nilErr)
 				}
 			}
-
-			// if we encountered any error, we need to rollback the transaction
-			commit(txErr)
 
 			// we're done
 			return nil
