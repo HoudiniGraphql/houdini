@@ -106,8 +106,8 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				Pass: true,
 				Input: []string{
 					`
-            query MyQuery($foo: PetFilter = {age_gt: 123} @testDirective(if: true) @test) { 
-                user { 
+            query MyQuery ($name: String! @testDirective(if: true) @test) {
+                user(name: $name) {
                     id
                 } 
             }
@@ -115,8 +115,8 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-            query MyQuery($foo: PetFilter = {age_gt: 123} @testDirective(if: true) @test) {
-                user {
+            query MyQuery($name: String! @testDirective(if: true) @test) {
+                user(name: $name) {
                     id
                 }
             }
@@ -129,7 +129,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				Input: []string{
 					`
             query queryName($foo: ComplexType, $site: Site = MOBILE) @onQuery {
-                whoever123is: node(id: [123, 456]) {
+                whoever123is: node(id: [123, 456], foo: $site) {
                   id
                   ... on User @onInlineFragment {
                     field2 {
@@ -153,7 +153,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				Extra: map[string]any{
 					"queryName": tests.Dedent(`
               query queryName($foo: ComplexType, $site: Site = MOBILE) @onQuery {
-                  whoever123is: node(id: [123, 456]) {
+                  whoever123is: node(foo: $site, id: [123, 456]) {
                       id
                       ... on User @onInlineFragment {
                           field2 {
@@ -284,10 +284,28 @@ func TestDocumentCollectAndPrint(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "Don't print variables only used in internal directives",
+				Pass: true,
+				Input: []string{
+					`
+            mutation UpdateUsers($parent: ID!) {
+                createUser {
+                    ...Users_insert @parentID(value: $parent)
+                }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"UpdateUsers": tests.Dedent(`
+            mutation UpdateUsers {
+                createUser {
+                    ...Users_insert
+                }
+            }
+          `),
+				},
+			},
 		},
 	})
 }
-
-// prints type condition on fragment
-
-// kitchen sink

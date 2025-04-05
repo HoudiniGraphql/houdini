@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 
@@ -107,11 +108,40 @@ func printDocWorker(
 		}
 
 		// start building up the string
+
+		// the big constraint here is that we need to scrub any unused variables
+		// which are assumed to be used in internal bits (ie directives)
+		usedVariables := map[string]bool{}
+
+		// which means we need to build up up the pieces and then join them later
+		documentDirectives := printDirectives(doc.Directives, usedVariables)
+		selection := printSelection(1, doc.Selections, usedVariables)
+
+		// we're now ready to buil up the query
 		printed := fmt.Sprintf(`%s %s`, doc.Kind, doc.Name)
 
 		// operations (non-fragments) get their arguments printed here
 		if doc.Kind != "fragment" {
-			printed += printDocumentVariables(doc.Variables)
+			// variables might get used in directives on variables so let's print every variable
+			// indenpendently and then we'll join the used ones together
+			printedVars := map[string]string{}
+			for _, arg := range doc.Variables {
+				printedVars[arg.Name] = printDocumentVariables(arg, usedVariables)
+			}
+
+			toPrint := []string{}
+			for v := range usedVariables {
+				toPrint = append(toPrint, v)
+			}
+			sort.Strings(toPrint)
+
+			if len(toPrint) > 0 {
+				printedArgs := []string{}
+				for _, arg := range toPrint {
+					printedArgs = append(printedArgs, printedVars[arg])
+				}
+				printed += fmt.Sprintf("(%s)", strings.Join(printedArgs, ", "))
+			}
 		}
 
 		// add fragment type conditions
@@ -119,14 +149,12 @@ func printDocWorker(
 			printed += fmt.Sprintf(` on %s`, *doc.TypeCondition)
 		}
 
-		// add document directives
-		if len(doc.Directives) > 0 {
-			printed += printDirectives(doc.Directives)
-		}
+		// add the document directives
+		printed += documentDirectives
 
-		// we are now ready to start printing the selection
+		// and finally the selection
 		printed += fmt.Sprintf(` {
-%s}`, printSelection(1, doc.Selections))
+%s}`, selection)
 
 		// update the document with the printed version
 		err = db.ExecStatement(update, map[string]any{"name": doc.Name, "printed": printed})
@@ -137,7 +165,10 @@ func printDocWorker(
 	}
 }
 
-func printDirectives(directives []*CollectedDirective) string {
+func printDirectives(directives []*CollectedDirective, usedVariables map[string]bool) string {
+	if len(directives) == 0 {
+		return ""
+	}
 	printed := []string{}
 	for _, directive := range directives {
 		// don't print internal directives
@@ -148,7 +179,7 @@ func printDirectives(directives []*CollectedDirective) string {
 		printed = append(printed, fmt.Sprintf(
 			`@%s%s`,
 			directive.Name,
-			printSelectionArguments(0, directive.Arguments),
+			printSelectionArguments(0, directive.Arguments, usedVariables),
 		))
 	}
 	if len(printed) == 0 {
@@ -158,7 +189,11 @@ func printDirectives(directives []*CollectedDirective) string {
 	return " " + strings.Join(printed, " ")
 }
 
-func printSelectionArguments(level int, args []*CollectedArgument) string {
+func printSelectionArguments(
+	level int,
+	args []*CollectedArgument,
+	usedVariables map[string]bool,
+) string {
 	if len(args) == 0 {
 		return ""
 	}
@@ -175,11 +210,11 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 			`%s%s: %s`,
 			tab,
 			arg.Name,
-			printValue(arg.Value),
+			printValue(arg.Value, usedVariables),
 		)
 
 		if len(arg.Directives) > 0 {
-			printed += printDirectives(arg.Directives)
+			printed += printDirectives(arg.Directives, usedVariables)
 		}
 		argsPrinted = append(argsPrinted, printed)
 	}
@@ -187,41 +222,37 @@ func printSelectionArguments(level int, args []*CollectedArgument) string {
 	return fmt.Sprintf("(%s)", strings.Join(argsPrinted, ", "))
 }
 
-func printDocumentVariables(vars []*CollectedOperationVariable) string {
-	if len(vars) == 0 {
-		return ""
-	}
-	// variables get wrapped in ()
-	printed := []string{}
-
-	for _, v := range vars {
-		// we need to wrap the type in modifiers
-		varType := v.Type + v.TypeModifiers
-		for range strings.Count(v.TypeModifiers, "]") {
-			varType = "[" + varType
-		}
-
-		defaultValue := ""
-		if v.DefaultValue != nil {
-			defaultValue = fmt.Sprintf("= %s", printValue(v.DefaultValue))
-		}
-
-		printedVar := fmt.Sprintf("$%s: %s", v.Name, varType)
-		if defaultValue != "" {
-			printedVar += " " + defaultValue
-		}
-		if len(v.Directives) > 0 {
-			printedVar += printDirectives(v.Directives)
-		}
-
-		printed = append(printed, printedVar)
+func printDocumentVariables(
+	variable *CollectedOperationVariable,
+	usedVariables map[string]bool,
+) string {
+	// we need to wrap the type in modifiers
+	varType := variable.Type + variable.TypeModifiers
+	for range strings.Count(variable.TypeModifiers, "]") {
+		varType = "[" + varType
 	}
 
-	// wrap the printed result in parens
-	return fmt.Sprintf("(%s)", strings.Join(printed, ", "))
+	defaultValue := ""
+	if variable.DefaultValue != nil {
+		defaultValue = fmt.Sprintf("= %s", printValue(variable.DefaultValue, usedVariables))
+	}
+
+	printedVar := fmt.Sprintf("$%s: %s", variable.Name, varType)
+	if defaultValue != "" {
+		printedVar += " " + defaultValue
+	}
+	if len(variable.Directives) > 0 {
+		printedVar += printDirectives(variable.Directives, usedVariables)
+	}
+
+	return printedVar
 }
 
-func printSelection(level int, selections []*CollectedSelection) string {
+func printSelection(
+	level int,
+	selections []*CollectedSelection,
+	usedVariables map[string]bool,
+) string {
 	indent := strings.Repeat("    ", level)
 	result := ""
 	for _, selection := range selections {
@@ -247,20 +278,20 @@ func printSelection(level int, selections []*CollectedSelection) string {
 				indent,
 				alias,
 				selection.FieldName,
-				printSelectionArguments(0, selection.Arguments),
+				printSelectionArguments(0, selection.Arguments, usedVariables),
 			)
 		}
 
 		// add the directives
 		if len(selection.Directives) > 0 {
-			result += printDirectives(selection.Directives)
+			result += printDirectives(selection.Directives, usedVariables)
 		}
 
 		// add the subselections
 		if len(selection.Children) > 0 {
 			result += fmt.Sprintf(
 				" {\n%s%s}",
-				printSelection(level+1, selection.Children),
+				printSelection(level+1, selection.Children, usedVariables),
 				indent,
 			)
 		}
@@ -270,7 +301,7 @@ func printSelection(level int, selections []*CollectedSelection) string {
 	return result
 }
 
-func printValue(value *CollectedArgumentValue) string {
+func printValue(value *CollectedArgumentValue, usedVariables map[string]bool) string {
 	if value == nil {
 		return "null"
 	}
@@ -281,11 +312,12 @@ func printValue(value *CollectedArgumentValue) string {
 	case "Block":
 		return fmt.Sprintf(`"""%s"""`, value.Raw)
 	case "Variable":
+		usedVariables[value.Raw] = true
 		return "$" + value.Raw
 	case "Object":
 		result := "{"
 		for i, v := range value.Children {
-			result += fmt.Sprintf("%s: %s", v.Name, printValue(v.Value))
+			result += fmt.Sprintf("%s: %s", v.Name, printValue(v.Value, usedVariables))
 			if i != len(value.Children)-1 {
 				result += ", "
 			}
@@ -296,7 +328,7 @@ func printValue(value *CollectedArgumentValue) string {
 		result := "["
 
 		for i, v := range value.Children {
-			result += printValue(v.Value)
+			result += printValue(v.Value, usedVariables)
 			if i != len(value.Children)-1 {
 				result += ", "
 			}
