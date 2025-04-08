@@ -1,7 +1,7 @@
 import minimatch from 'minimatch'
 import type { EnvironmentModuleNode } from 'vite'
 
-import { path, getConfig, type PluginConfig, type Config } from '../lib'
+import { path, type Config } from '../lib'
 
 export function isGraphQLFile(filepath: string): boolean {
 	if (!filepath) {
