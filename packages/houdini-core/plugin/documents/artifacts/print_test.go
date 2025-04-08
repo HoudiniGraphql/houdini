@@ -85,6 +85,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 					p.DB,
 					conn,
 					collected,
+					false,
 				)
 				require.Nil(t, err)
 

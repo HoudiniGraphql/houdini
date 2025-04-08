@@ -19,6 +19,7 @@ func EnsureDocumentsPrinted(
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
 	collectedDocuments map[string]*CollectedDocument,
+	includeHidden bool,
 ) error {
 	// we need to make sure that every document in the current task gets an updated stringified
 	// version
@@ -46,7 +47,7 @@ func EnsureDocumentsPrinted(
 	var wg sync.WaitGroup
 	for range runtime.NumCPU() {
 		wg.Add(1)
-		go printDocWorker(ctx, db, &wg, docCh, errCh, collectedDocuments)
+		go printDocWorker(ctx, db, &wg, docCh, errCh, collectedDocuments, includeHidden)
 	}
 
 	// walk through the documents that are part of the current task
@@ -76,6 +77,7 @@ func printDocWorker(
 	docChan <-chan string,
 	errChan chan<- *plugins.Error,
 	collectedDocuments map[string]*CollectedDocument,
+	includeHidden bool,
 ) {
 	// when we're done we need to signal the wait group
 	defer wg.Done()
@@ -107,54 +109,8 @@ func printDocWorker(
 			continue
 		}
 
-		// start building up the string
-
-		// the big constraint here is that we need to scrub any unused variables
-		// which are assumed to be used in internal bits (ie directives)
-		usedVariables := map[string]bool{}
-
-		// which means we need to build up up the pieces and then join them later
-		documentDirectives := printDirectives(doc.Directives, usedVariables)
-		selection := printSelection(1, doc.Selections, usedVariables)
-
-		// we're now ready to buil up the query
-		printed := fmt.Sprintf(`%s %s`, doc.Kind, doc.Name)
-
-		// operations (non-fragments) get their arguments printed here
-		if doc.Kind != "fragment" {
-			// variables might get used in directives on variables so let's print every variable
-			// indenpendently and then we'll join the used ones together
-			printedVars := map[string]string{}
-			for _, arg := range doc.Variables {
-				printedVars[arg.Name] = printDocumentVariables(arg, usedVariables)
-			}
-
-			toPrint := []string{}
-			for v := range usedVariables {
-				toPrint = append(toPrint, v)
-			}
-			sort.Strings(toPrint)
-
-			if len(toPrint) > 0 {
-				printedArgs := []string{}
-				for _, arg := range toPrint {
-					printedArgs = append(printedArgs, printedVars[arg])
-				}
-				printed += fmt.Sprintf("(%s)", strings.Join(printedArgs, ", "))
-			}
-		}
-
-		// add fragment type conditions
-		if doc.TypeCondition != nil {
-			printed += fmt.Sprintf(` on %s`, *doc.TypeCondition)
-		}
-
-		// add the document directives
-		printed += documentDirectives
-
-		// and finally the selection
-		printed += fmt.Sprintf(` {
-%s}`, selection)
+		// print the document
+		printed := PrintCollectedDocument(doc, includeHidden)
 
 		// update the document with the printed version
 		err = db.ExecStatement(update, map[string]any{"name": doc.Name, "printed": printed})
@@ -163,6 +119,59 @@ func printDocWorker(
 			continue
 		}
 	}
+}
+
+func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
+	// start building up the string
+
+	// the big constraint here is that we need to scrub any unused variables
+	// which are assumed to be used in internal bits (ie directives)
+	usedVariables := map[string]bool{}
+
+	// which means we need to build up up the pieces and then join them later
+	documentDirectives := printDirectives(doc.Directives, usedVariables)
+	selection := printSelection(1, doc.Selections, usedVariables, includeHidden)
+
+	// we're now ready to buil up the query
+	printed := fmt.Sprintf(`%s %s`, doc.Kind, doc.Name)
+
+	// operations (non-fragments) get their arguments printed here
+	if doc.Kind != "fragment" {
+		// variables might get used in directives on variables so let's print every variable
+		// indenpendently and then we'll join the used ones together
+		printedVars := map[string]string{}
+		for _, arg := range doc.Variables {
+			printedVars[arg.Name] = printDocumentVariables(arg, usedVariables)
+		}
+
+		toPrint := []string{}
+		for v := range usedVariables {
+			toPrint = append(toPrint, v)
+		}
+		sort.Strings(toPrint)
+
+		if len(toPrint) > 0 {
+			printedArgs := []string{}
+			for _, arg := range toPrint {
+				printedArgs = append(printedArgs, printedVars[arg])
+			}
+			printed += fmt.Sprintf("(%s)", strings.Join(printedArgs, ", "))
+		}
+	}
+
+	// add fragment type conditions
+	if doc.TypeCondition != nil {
+		printed += fmt.Sprintf(` on %s`, *doc.TypeCondition)
+	}
+
+	// add the document directives
+	printed += documentDirectives
+
+	// and finally the selection
+	printed += fmt.Sprintf(` {
+%s}`, selection)
+
+	return printed
 }
 
 func printDirectives(directives []*CollectedDirective, usedVariables map[string]bool) string {
@@ -252,10 +261,15 @@ func printSelection(
 	level int,
 	selections []*CollectedSelection,
 	usedVariables map[string]bool,
+	includeHidden bool,
 ) string {
 	indent := strings.Repeat("    ", level)
 	result := ""
 	for _, selection := range selections {
+		if selection.Hidden && !includeHidden {
+			continue
+		}
+
 		// before we print children and directives we need
 		// to handle the specific selection type
 		switch selection.Kind {
@@ -291,7 +305,7 @@ func printSelection(
 		if len(selection.Children) > 0 {
 			result += fmt.Sprintf(
 				" {\n%s%s}",
-				printSelection(level+1, selection.Children, usedVariables),
+				printSelection(level+1, selection.Children, usedVariables, includeHidden),
 				indent,
 			)
 		}

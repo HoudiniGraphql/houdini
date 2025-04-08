@@ -20,16 +20,10 @@ func Generate(ctx context.Context, db plugins.DatabasePool[config.PluginConfig])
 	}
 
 	//  make sure that the documents are printed
-	err = EnsureDocumentsPrinted(ctx, db, conn, collected)
+	err = EnsureDocumentsPrinted(ctx, db, conn, collected, false)
 	if err != nil {
 		return err
 	}
 
-	// now that we have all of the definitions loaded we need to merge the selections
-	// err = MergeSelections(ctx, db, conn, collected)
-	// if err != nil {
-	// 	return err
-	// }
-	//
 	return nil
 }
