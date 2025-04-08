@@ -1,4 +1,4 @@
-ximport * as t from '@babel/types'
+import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
 import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
