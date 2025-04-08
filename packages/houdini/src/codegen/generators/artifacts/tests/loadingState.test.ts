@@ -39,7 +39,7 @@ test('persists loading behavior in selection', async function () {
 		export default {
 		    "name": "MonkeyListQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "5e86edd84280f328c6e368f75bb1f19cfd2eff5876bc240cf98cca13daae05ad",
+		    "hash": "1e60729a73be7b6f70854fbc06993aea46eb6280c612b6c8f3ccf70fc0623c23",
 
 		    "raw": \`query MonkeyListQuery {
 		  monkeys {
@@ -63,8 +63,7 @@ test('persists loading behavior in selection', async function () {
 		    __typename
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -281,7 +280,7 @@ test('loading state on mixed abstract type', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "b673be99e3b55f079434a8e24acb3afe9e3a278d99e4e258a433eec0b21e6e39",
+		    "hash": "23d74f8d981206c3c2bc24cd3ef24545c4a95bd0ad40645a7168087e1b7cf80d",
 
 		    "raw": \`query Query {
 		  catOwners {
@@ -294,8 +293,7 @@ test('loading state on mixed abstract type', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -491,7 +489,7 @@ test('loading state on multiple branches of an abstract selection', async functi
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "567fd887397a9072784a6320f8609a66bdb69a3d3cbb791428c8cd342dccd67f",
+		    "hash": "5707874bda05a6d66fe7da44e6c39b7f5bb52ceea1052b273022ea24edd889d0",
 
 		    "raw": \`query Query {
 		  entities {
@@ -505,8 +503,7 @@ test('loading state on multiple branches of an abstract selection', async functi
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -652,7 +649,7 @@ test('loading state on inline fragments', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "ed0970b3886e2211f38a0a3d328601407380f13907c5a69a5bd462f7aca6741b",
+		    "hash": "386fb0c69c6729117ab22f0d1b680019af439336de45f1ff9942d1db64918448",
 
 		    "raw": \`query Query {
 		  entity {
@@ -667,8 +664,7 @@ test('loading state on inline fragments', async function () {
 		    id
 		  }
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -782,7 +778,7 @@ test('persist count in loading spec', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "567fd887397a9072784a6320f8609a66bdb69a3d3cbb791428c8cd342dccd67f",
+		    "hash": "5707874bda05a6d66fe7da44e6c39b7f5bb52ceea1052b273022ea24edd889d0",
 
 		    "raw": \`query Query {
 		  entities {
@@ -796,8 +792,7 @@ test('persist count in loading spec', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -937,7 +932,7 @@ test('loading state on definitions', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "567fd887397a9072784a6320f8609a66bdb69a3d3cbb791428c8cd342dccd67f",
+		    "hash": "5707874bda05a6d66fe7da44e6c39b7f5bb52ceea1052b273022ea24edd889d0",
 
 		    "raw": \`query Query {
 		  entities {
@@ -951,8 +946,7 @@ test('loading state on definitions', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -1108,7 +1102,7 @@ test('loading cascade', async function () {
 		export default {
 		    "name": "Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "10f12e15c7975a8f61f8d519aaf69dea273054da2d8feaf27803aceb7e4f3e1d",
+		    "hash": "0edec378728b5b131048027c879c169f5ab01b43f329cc31088b49bec88864b9",
 
 		    "raw": \`query Query {
 		  entities {
@@ -1129,8 +1123,7 @@ test('loading cascade', async function () {
 		    }
 		    __typename
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],

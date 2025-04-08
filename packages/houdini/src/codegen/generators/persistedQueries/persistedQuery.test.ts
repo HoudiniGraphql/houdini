@@ -27,17 +27,17 @@ test('Artifact hash values', async function () {
 
 	// Check if it changed
 	expect(docs[0].artifact?.hash).toMatchInlineSnapshot(
-		'"361432f464ed44eed788f3ea66c4dabc46437b88edbe7daccca87045fd31447f"'
+		`"5ba2c5763a93559769c84d7dd536becf80b4c7be6db9f6af232a4309ebff665c"`
 	)
 	expect(docs[1].artifact?.hash).toMatchInlineSnapshot(
-		'"7b6df0b58f32c599a8b07d36cdbdc21570f07b4b8a6819ebf457888be98798ad"'
+		`"3dd79e8e7d952e1ba8ee1d50a64c6a050810247ac2af56f9d310749f7d51fe1e"`
 	)
 	// we don't really care about fragment hashes (but let's keep this)
 	expect(docs[2].artifact?.hash).toMatchInlineSnapshot(
-		'"ff694171ced9bd7edc84a4a4a4201dadea30c0cdb8a8734c940872a673111bc1"'
+		`"084581b5154b8485bdbac1f29137b551205bf1ca4eca635a84199e16cbceb5f1"`
 	)
 	expect(docs[3].artifact?.hash).toMatchInlineSnapshot(
-		'"fe1a99181d15832006212f1d94483733e06a2a73b12ef7a167c980f7f484c2ee"'
+		`"f97dc26fb608bc65615987c24e4dd594bb52bf34b7bfa934d042f90941756a60"`
 	)
 })
 
@@ -57,25 +57,23 @@ test('Hash in generated file are found and has a good values', async function ()
 	expect(operations[docs[0].artifact?.hash ?? 'NOT GOOD']).toMatchInlineSnapshot(`
 		"query TestQuery1 {
 		  version
-		}
-		"
+		}"
 	`)
 
 	expect(operations[docs[1].artifact?.hash ?? 'NOT GOOD']).toMatchInlineSnapshot(`
-			"query TestQuery2 {
-			  user {
-			    ...TestFragment
-			    id
-			  }
-			}
+		"query TestQuery2 {
+		  user {
+		    ...TestFragment
+		    id
+		  }
+		}
 
-			fragment TestFragment on User {
-			  firstName
-			  id
-			  __typename
-			}
-			"
-		`)
+		fragment TestFragment on User {
+		  firstName
+		  id
+		  __typename
+		}"
+	`)
 
 	expect(operations[docs[3].artifact?.hash ?? 'NOT GOOD']).toMatchInlineSnapshot(`
 		"mutation Add {
@@ -85,7 +83,6 @@ test('Hash in generated file are found and has a good values', async function ()
 		      id
 		    }
 		  }
-		}
-		"
+		}"
 	`)
 })

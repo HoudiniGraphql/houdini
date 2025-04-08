@@ -78,7 +78,7 @@ test('@loading on fragment - happy path', async function () {
 		export type UserBase$artifact = {
 		    "name": "UserBase";
 		    "kind": "HoudiniFragment";
-		    "hash": "f3b27ed1e597b43045a4a70e3c163b01b4e73a9049714ae12cfe72f49356a3ca";
+		    "hash": "804efdc961c91ee475e10e36885000037cb849e9fa03bd5835677138c61cc23c";
 		    "raw": \`fragment UserBase on User {
 		  id
 		  firstName
@@ -89,8 +89,7 @@ test('@loading on fragment - happy path', async function () {
 		    }
 		  }
 		  __typename
-		}
-		\`;
+		}\`;
 		    "rootType": "User";
 		    "stripVariables": [];
 		    "selection": {
@@ -236,7 +235,7 @@ test('@loading on query - happy path', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "b006074a693174db5ac944de421fa6d91c93eecbd0182757b87f761a8f136d3e";
+		    "hash": "76caf0974dc9624ef6e86259654ec1b89ac5a43a57585d53fe475216566f1a51";
 		    "raw": \`query UserQuery {
 		  user {
 		    firstName
@@ -248,8 +247,7 @@ test('@loading on query - happy path', async function () {
 		    }
 		    id
 		  }
-		}
-		\`;
+		}\`;
 		    "rootType": "Query";
 		    "stripVariables": [];
 		    "selection": {
@@ -391,13 +389,12 @@ test('@loading on list', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "bed2ad01e11cc58eae893e8866fc2e7c895e4f99f71a4b627989c0d983ec436e";
+		    "hash": "b32722ef3875fa6a5913b1244198df6ccc0155c978b7af5e4fe850ce156382e3";
 		    "raw": \`query UserQuery {
 		  users {
 		    id
 		  }
-		}
-		\`;
+		}\`;
 		    "rootType": "Query";
 		    "stripVariables": [];
 		    "selection": {
@@ -490,7 +487,7 @@ test('generated types include fragment loading state', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "86082adf511d5a5985928ef1ca367422c3a9ce6d89e3c40f190635366c1e0cb7";
+		    "hash": "3ae38ce5b89395aa599412acd9aa84e16942ee4c4c9439705423fed0eca564cd";
 		    "raw": \`query UserQuery {
 		  users {
 		    ...UserBase
@@ -502,8 +499,7 @@ test('generated types include fragment loading state', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`;
+		}\`;
 		    "rootType": "Query";
 		    "stripVariables": [];
 		    "selection": {
@@ -613,7 +609,7 @@ test('global @loading on fragment', async function () {
 		export type UserQuery$artifact = {
 		    "name": "UserQuery";
 		    "kind": "HoudiniQuery";
-		    "hash": "86082adf511d5a5985928ef1ca367422c3a9ce6d89e3c40f190635366c1e0cb7";
+		    "hash": "3ae38ce5b89395aa599412acd9aa84e16942ee4c4c9439705423fed0eca564cd";
 		    "raw": \`query UserQuery {
 		  users {
 		    ...UserBase
@@ -625,8 +621,7 @@ test('global @loading on fragment', async function () {
 		  firstName
 		  id
 		  __typename
-		}
-		\`;
+		}\`;
 		    "rootType": "Query";
 		    "stripVariables": [];
 		    "selection": {

@@ -30,7 +30,7 @@ test('pagination arguments stripped from key', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "d06fb44a3b945dac99c82f58b6d422248493cc83dbdef0e159de034dc541b6f9",
+		    "hash": "51bb1961aef1ff7cdd8bd0f198d93e7c4e40734273a37dffac7e98759d907b7c",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -72,8 +72,7 @@ test('pagination arguments stripped from key', async function () {
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -239,7 +238,7 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "d06fb44a3b945dac99c82f58b6d422248493cc83dbdef0e159de034dc541b6f9",
+		    "hash": "51bb1961aef1ff7cdd8bd0f198d93e7c4e40734273a37dffac7e98759d907b7c",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -281,8 +280,7 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -450,7 +448,7 @@ test('offset based pagination marks appropriate field', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "8cad2e9b0ede72e9c7c19594289f9efba5340de90617b63231a57bbbfeef7fea",
+		    "hash": "eaf6501e3a27bedb58ffce7c5ebe86a4553288946e34501a9ea160d27493d2cb",
 
 		    "refetch": {
 		        "path": ["friendsByOffset"],
@@ -469,8 +467,7 @@ test('offset based pagination marks appropriate field', async function () {
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],
@@ -569,7 +566,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		export default {
 		    "name": "ScalarPagination",
 		    "kind": "HoudiniQuery",
-		    "hash": "476b5ddafe8444d071fb07db5852f9f364ff8ef9cf5ba361f0d0685c4e9bd241",
+		    "hash": "a928ac23dbd3a97ce2be06fbb905ec60de36b80090b50969bc5d696635e3e1c3",
 
 		    "refetch": {
 		        "path": ["user", "friendsByCursorScalar"],
@@ -619,8 +616,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		    }
 		    id
 		  }
-		}
-		\`,
+		}\`,
 
 		    "rootType": "Query",
 		    "stripVariables": [],
@@ -858,7 +854,7 @@ test("sibling aliases don't get marked", async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "7665f8fd8a0af62317c95868d5e018001152de84c95f653f5caba6b515e367d6",
+		    "hash": "cf59986564a8a956ef3a1c9e58bd3bd9f7aec3a468e9308e538aad59249cfeb0",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -921,8 +917,7 @@ test("sibling aliases don't get marked", async function () {
 		  }
 		  id
 		  __typename
-		}
-		\`,
+		}\`,
 
 		    "rootType": "User",
 		    "stripVariables": [],

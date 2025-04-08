@@ -132,15 +132,14 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "fceff6ae64f8fee7acbac56b4832696e9d3c126241ffbe70e47d4ac5cd74a3de";
+			    "hash": "41ed3aeda1667f41f70350748fd889ff611db8d9d2a733616d4b009a02cd44ee";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  nickname
 			  enumValue
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -217,15 +216,14 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "a78cd6407bf767a7a049685ac6d33ff81a49a349895c87e2cd796ff47802c339";
+			    "hash": "a35478bbc644887e0bb8103f83120f814390a64c4eaaeae4be2e0a77f7b43e8c";
 			    "raw": \`fragment TestFragment on Query {
 			  user(id: $name) {
 			    age
 			    id
 			  }
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -309,15 +307,14 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "a78cd6407bf767a7a049685ac6d33ff81a49a349895c87e2cd796ff47802c339";
+			    "hash": "a35478bbc644887e0bb8103f83120f814390a64c4eaaeae4be2e0a77f7b43e8c";
 			    "raw": \`fragment TestFragment on Query {
 			  user(id: $name) {
 			    age
 			    id
 			  }
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -400,7 +397,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "5d680d18e72a984f24a8ef0d2703ef8ce34ca0ee7abe3d171a31f3565c47f236";
+			    "hash": "925e2f135c7473e9eeef45213a91253c4d38e57567e231c7a76b3d2d1f7ba15e";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  parent {
@@ -409,8 +406,7 @@ describe('typescript', function () {
 			  }
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -495,7 +491,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "1a2c7e3a724ee77d1d482d538bb55515044050ab8d95e6e555d427e197e00132";
+			    "hash": "05be3633622d3c770395d2d776fbf5f94353e9fe95de6ecf121f02ae4839741e";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  admin
@@ -503,8 +499,7 @@ describe('typescript', function () {
 			  id
 			  weight
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -586,7 +581,7 @@ describe('typescript', function () {
 			export type TestFragment$artifact = {
 			    "name": "TestFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "684384697e73211447233755a41be7ac8628045b117eba9629f9ca71ab27c233";
+			    "hash": "3731d101bb5a9fc07c54e1e3b62bd0c18b9c773c2f5f4d6662bfa0da487ff0b7";
 			    "raw": \`fragment TestFragment on User {
 			  firstName
 			  friends {
@@ -595,8 +590,7 @@ describe('typescript', function () {
 			  }
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -675,14 +669,13 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "625c21946a71940431e5e1d11e48ea22ecb230839628cb66903198444a2f707d";
+			    "hash": "2a4df9f83db3a5177292924dccd6241243e0e38e5457352d3b51718c37349db7";
 			    "raw": \`query MyQuery {
 			  user {
 			    firstName
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -753,14 +746,13 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "6e6ba167260c6f741547299697b6d32fd3b071e1c2cab13adbb7e08c60c1c175";
+			    "hash": "deb1f2e71ee003e9bd0c59537841642b9518ab24f32b6bcba1881f9e50403597";
 			    "raw": \`query MyQuery {
 			  users {
 			    firstName
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -834,14 +826,13 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "41cbf2714e1b1f0786226f6d9b68be0873e46fe5ffd7d3c08ad7fd338feeacbd";
+			    "hash": "c2ba504f067ef622716e1390995c1e23f41e0d101dd78739caa94e04517b7c89";
 			    "raw": \`query MyQuery($id: ID!, $enum: MyEnum) {
 			  user(id: $id, enumArg: $enum) {
 			    firstName
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -928,7 +919,7 @@ describe('typescript', function () {
 			export type MyTestQuery$artifact = {
 			    "name": "MyTestQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "dab188c31e4d7e6f47afd6ddf9b0d38cbe4ff49d830c994e5ddcbb315520c59d";
+			    "hash": "fbd3fd8bc96a6a3d1cb83d54996128258ce52cef1f129de4d1b558ac3c289b5c";
 			    "raw": \`query MyTestQuery {
 			  entity {
 			    ... on Node {
@@ -936,8 +927,7 @@ describe('typescript', function () {
 			    }
 			    __typename
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -1072,7 +1062,7 @@ describe('typescript', function () {
 			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
-			    "hash": "26def2427df939fd86e8dc0c4b0ebb0904e32dd27a559eac7774dbe5f6a4de7b";
+			    "hash": "43d2d7ea422de93873be8955fde91b181153393b75f35bcea4187d55cbba8082";
 			    "raw": \`mutation MyMutation($filter: UserFilter, $filterList: [UserFilter!]!, $id: ID!, $firstName: String!, $admin: Boolean, $age: Int, $weight: Float) {
 			  doThing(
 			    filter: $filter
@@ -1086,8 +1076,7 @@ describe('typescript', function () {
 			    firstName
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Mutation";
 			    "stripVariables": [];
 			    "selection": {
@@ -1207,7 +1196,7 @@ describe('typescript', function () {
 			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
-			    "hash": "6afad439e9a1f5609430b141c04e5d6a0cf91b6360d5f240d83a0d8667b521b6";
+			    "hash": "b66a64c9983a9a057eecd801afbbbe3c33ea08d9a5f5018becff87a37f5c8403";
 			    "raw": \`mutation MyMutation {
 			  doThing(list: [], id: "1", firstName: "hello") {
 			    firstName
@@ -1220,8 +1209,7 @@ describe('typescript', function () {
 			  firstName
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Mutation";
 			    "stripVariables": [];
 			    "selection": {
@@ -1317,14 +1305,13 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "fe11f3b4897f5da3f4cdc38cfe353c575d071d694e78ccbd26a10b1e6eb3a8e1";
+			    "hash": "643b644016807a188e7e008b9c9fcb092c648b7dd4afc21108af71a28c316140";
 			    "raw": \`query MyQuery($filter: UserFilter!) {
 			  user(filter: $filter) {
 			    firstName
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -1441,7 +1428,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "2cc1c9e7df7c0a7fadb2f81f23bbc78211e7ae0adc217320b5fb47a66449fa09";
+			    "hash": "40bde3bdbf85b31185e48e207726b76dc7ceaf538db7b69f0276eeb3f5be45c1";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...Foo
@@ -1453,8 +1440,7 @@ describe('typescript', function () {
 			  firstName
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -1543,7 +1529,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "2cc1c9e7df7c0a7fadb2f81f23bbc78211e7ae0adc217320b5fb47a66449fa09";
+			    "hash": "40bde3bdbf85b31185e48e207726b76dc7ceaf538db7b69f0276eeb3f5be45c1";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...Foo
@@ -1555,8 +1541,7 @@ describe('typescript', function () {
 			  firstName
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -1650,7 +1635,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "f05dbc7de056c210dcd036ad418cd8ce1060b1c4d4600a96110773ee6b61eb3d";
+			    "hash": "64e07e68d6da6f9414c6c4a2e20f45c02099169e71f2511eec493e8d6ba8356a";
 			    "raw": \`query MyQuery {
 			  nodes {
 			    ... on User {
@@ -1662,8 +1647,7 @@ describe('typescript', function () {
 			    id
 			    __typename
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -1775,7 +1759,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "0bd8237c10df755d9ea5dbc3ed500e19ead68f43d13d50444439ac3bbb17bba4";
+			    "hash": "9521c4f7eaff8274d3687f408a4bcda455a702222bdb585beec6f453f00afcac";
 			    "raw": \`query MyQuery {
 			  entities {
 			    ... on User {
@@ -1786,8 +1770,7 @@ describe('typescript', function () {
 			    }
 			    __typename
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -1900,7 +1883,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "5ae658318d3b5025d17399231eec2b74785200f653dd4101ae36c019d025dab0";
+			    "hash": "51e30f91409e4be787675716c351ee93af23a447eaa6cd2dc2fc0db119b88e19";
 			    "raw": \`query MyQuery {
 			  nodes {
 			    id
@@ -1914,8 +1897,7 @@ describe('typescript', function () {
 			    }
 			    __typename
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -2041,7 +2023,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "05e98237e913172753be67c393d1b8c1257f7442f5a29935232ce1dfed733c4c";
+			    "hash": "d611ef43737097473f7965a5761feb626125e7a6ec64ab27245bf07488ae34f8";
 			    "raw": \`query MyQuery {
 			  entities {
 			    ... on Animal {
@@ -2057,8 +2039,7 @@ describe('typescript', function () {
 			    }
 			    __typename
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -2191,13 +2172,12 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "5a9bbd198f3c6a0f203b79d3fa07af7a395e82a03cd2046e1da740ff4eb1356a";
+			    "hash": "046ab23c2613444e9e84496b78b31a1c3e639a3459415053c9a1ea9ef2db4699";
 			    "raw": \`query MyQuery {
 			  allItems {
 			    createdAt
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -2288,13 +2268,12 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "c833b9ebd6847037d2435dcb03ebd7439d8e3a1e749ac242a530d589e9e2e0a1";
+			    "hash": "2fe84b673d47c7adc42816fe50de58f4097663fbe74cbb867c59530891a43d98";
 			    "raw": \`query MyQuery($date: DateTime!) {
 			  allItems(createdAt: $date) {
 			    createdAt
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -2372,15 +2351,14 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "4cb15eb98773616237ea21f31c9e29a714169520863e6e6b1357577418105323";
+			    "hash": "d90f665773767c623ed0425d680daff405fd9f3e598efb49c410409351675e8c";
 			    "raw": \`query MyQuery {
 			  listOfLists {
 			    firstName
 			    nickname
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -2464,7 +2442,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "5e605fac9ecffb118de5ff29e5c16c7c5ea2864ad69847c83131701bc311fb3c";
+			    "hash": "5c318b0d09cb1cc59e89aa4826aac2c982e065d4c2d3b1428888fc3c956cba4d";
 			    "raw": \`query MyQuery {
 			  user {
 			    parent {
@@ -2478,8 +2456,7 @@ describe('typescript', function () {
 			    }
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -2640,7 +2617,7 @@ describe('typescript', function () {
 			export type MyMutation$artifact = {
 			    "name": "MyMutation";
 			    "kind": "HoudiniMutation";
-			    "hash": "2e9d4fb27d8810e3df6f6841fb5c62795a29ab597bd9b72a48bf23bdc24254ba";
+			    "hash": "57e2672d9f64384cd159814b5c8f5482feda22ab1a0d980b727235b2de0f7dde";
 			    "raw": \`mutation MyMutation($filter: UserFilter, $filterList: [UserFilter!]!, $id: ID!, $firstName: String!, $admin: Boolean, $age: Int, $weight: Float) {
 			  doThing(
 			    filter: $filter
@@ -2663,8 +2640,7 @@ describe('typescript', function () {
 
 			fragment My_Users_insert on User {
 			  id
-			}
-			\`;
+			}\`;
 			    "rootType": "Mutation";
 			    "stripVariables": [];
 			    "selection": {
@@ -2759,7 +2735,7 @@ describe('typescript', function () {
 			export default {
 			    "name": "FragmentUpdateTestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "4434920e89b1bfe99299f1c866e3cdc8ef90d336e7e0f2127ab281d0795ebc1f",
+			    "hash": "bba4a703afd87c40d414c6b21f9561c063abafdf6fc229091587aaffb8f4011d",
 
 			    "raw": \`query FragmentUpdateTestQuery($id: ID!) {
 			  node(id: $id) {
@@ -2773,8 +2749,7 @@ describe('typescript', function () {
 			  name
 			  id
 			  __typename
-			}
-			\`,
+			}\`,
 
 			    "rootType": "Query",
 			    "stripVariables": [],
@@ -2932,7 +2907,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "a94ed9848e2dd8e4333e0c8a18758754b34f70f5a81a041637ab0f290e4842f3";
+			    "hash": "bf9b67917fc6ace870d237db01e46ec1c75c3b830aafecd875273a51d7308499";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...UserBase
@@ -2954,8 +2929,7 @@ describe('typescript', function () {
 			  }
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -3098,7 +3072,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "a94ed9848e2dd8e4333e0c8a18758754b34f70f5a81a041637ab0f290e4842f3";
+			    "hash": "bf9b67917fc6ace870d237db01e46ec1c75c3b830aafecd875273a51d7308499";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...UserBase
@@ -3120,8 +3094,7 @@ describe('typescript', function () {
 			  }
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -3219,7 +3192,7 @@ describe('typescript', function () {
 			export type UserMore$artifact = {
 			    "name": "UserMore";
 			    "kind": "HoudiniFragment";
-			    "hash": "05f8f02e7cfe5214be392f0710ecb2e4c214dbae2c496078888bb8ed7770bdb3";
+			    "hash": "00043bc128bcccc27570fce87dbc1fb0549c22842dbcc1017130acbe0d78b372";
 			    "raw": \`fragment UserMore on User {
 			  friends {
 			    ...UserBase
@@ -3233,8 +3206,7 @@ describe('typescript', function () {
 			  id
 			  firstName
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -3355,7 +3327,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "a94ed9848e2dd8e4333e0c8a18758754b34f70f5a81a041637ab0f290e4842f3";
+			    "hash": "bf9b67917fc6ace870d237db01e46ec1c75c3b830aafecd875273a51d7308499";
 			    "raw": \`query MyQuery {
 			  user {
 			    ...UserBase
@@ -3377,8 +3349,7 @@ describe('typescript', function () {
 			  }
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -3480,7 +3451,7 @@ describe('typescript', function () {
 			export type UserMore$artifact = {
 			    "name": "UserMore";
 			    "kind": "HoudiniFragment";
-			    "hash": "05f8f02e7cfe5214be392f0710ecb2e4c214dbae2c496078888bb8ed7770bdb3";
+			    "hash": "00043bc128bcccc27570fce87dbc1fb0549c22842dbcc1017130acbe0d78b372";
 			    "raw": \`fragment UserMore on User {
 			  friends {
 			    ...UserBase
@@ -3494,8 +3465,7 @@ describe('typescript', function () {
 			  id
 			  firstName
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -3585,15 +3555,14 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "43bc5d57ac3149cf1e85cd1ad9892f10c9439e8678898408a348cec3214facc3";
+			    "hash": "433ca4a5ae5c4d20371e4e7ba4b67c4702828f79c8af1188805763940df2fe1b";
 			    "raw": \`query MyQuery {
 			  user {
 			    id
 			    firstName @include(if: true)
 			    admin @skip(if: true)
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -3689,15 +3658,14 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "64aadd5da34f840d6aebd47dd935f24cf375b3cc0ae56cda9ed3f32a0c771513";
+			    "hash": "22c351c2fe68d3749be27efb60a0849c1618310b65d49d21179f09b9a012bfac";
 			    "raw": \`query MyQuery {
 			  user {
 			    id
 			    firstName
 			    nickname
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -3784,7 +3752,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "751e176aa2e6cd8e49b1fa3ad513a73fddef99bfff04217f42cd30b72430ee8f";
+			    "hash": "3f758e37c3d418e17f7b7c37d41b1114256941c712c7971ce6a59671aad38270";
 			    "raw": \`query MyQuery {
 			  user {
 			    parent {
@@ -3794,8 +3762,7 @@ describe('typescript', function () {
 			    }
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -3897,7 +3864,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "751e176aa2e6cd8e49b1fa3ad513a73fddef99bfff04217f42cd30b72430ee8f";
+			    "hash": "3f758e37c3d418e17f7b7c37d41b1114256941c712c7971ce6a59671aad38270";
 			    "raw": \`query MyQuery {
 			  user {
 			    parent {
@@ -3907,8 +3874,7 @@ describe('typescript', function () {
 			    }
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -4015,7 +3981,7 @@ describe('typescript', function () {
 			export type MyQuery$artifact = {
 			    "name": "MyQuery";
 			    "kind": "HoudiniQuery";
-			    "hash": "26993fab9f8e30de38fd328bd3914ce7688f0e795ce1c9d692146660cf5ae2cb";
+			    "hash": "c43ca416969c1205da2baaa685ef2fe450fe0c9f289d9acdec25283f6538d3cb";
 			    "raw": \`query MyQuery {
 			  user {
 			    parentRequired {
@@ -4025,8 +3991,7 @@ describe('typescript', function () {
 			    }
 			    id
 			  }
-			}
-			\`;
+			}\`;
 			    "rootType": "Query";
 			    "stripVariables": [];
 			    "selection": {
@@ -4146,7 +4111,7 @@ describe('typescript', function () {
 			export type MyFragment$artifact = {
 			    "name": "MyFragment";
 			    "kind": "HoudiniFragment";
-			    "hash": "6d0215530b0d99ef798e31dc8bc1e2a250de5c197868027f1452b5cf22410b0a";
+			    "hash": "122d50f617ca93a7ec325f07cccb379b0213d9d61ffb6475b68f5a732d49217d";
 			    "raw": \`fragment MyFragment on User {
 			  id
 			  firstName
@@ -4162,8 +4127,7 @@ describe('typescript', function () {
 			    nickname
 			  }
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "User";
 			    "stripVariables": [];
 			    "selection": {
@@ -4374,7 +4338,7 @@ describe('typescript', function () {
 			export type MyFragmentInterfaceA$artifact = {
 			    "name": "MyFragmentInterfaceA";
 			    "kind": "HoudiniFragment";
-			    "hash": "c62ecd0fa51af5f2bc2dc73b2a60a2c58a2b6ac417e2f6ceda865ac0642b522c";
+			    "hash": "01660889e0fce1ed6a0ebccb1716931947a7a072e184b4fc0d4c6979567c6e34";
 			    "raw": \`fragment MyFragmentInterfaceA on Node {
 			  ... on User {
 			    nickname
@@ -4382,8 +4346,7 @@ describe('typescript', function () {
 			  }
 			  id
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Node";
 			    "stripVariables": [];
 			    "selection": {
@@ -4478,7 +4441,7 @@ describe('typescript', function () {
 			export type MyFragmentA$artifact = {
 			    "name": "MyFragmentA";
 			    "kind": "HoudiniFragment";
-			    "hash": "e9d884df80d3f9867417dfb64d809dbed3d47b9a63928d1352db47aeff24898f";
+			    "hash": "78b137a2bff2862a2a1ddd946e0c26e4905055c080ae447d0d0aed6c162cff5c";
 			    "raw": \`fragment MyFragmentA on Entity {
 			  ... on User {
 			    id
@@ -4487,8 +4450,7 @@ describe('typescript', function () {
 			    id
 			  }
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Entity";
 			    "stripVariables": [];
 			    "selection": {
@@ -4582,7 +4544,7 @@ describe('typescript', function () {
 			export type MyFragmentA$artifact = {
 			    "name": "MyFragmentA";
 			    "kind": "HoudiniFragment";
-			    "hash": "ddfa83368ff067f75465fa482f1b76293ddfc22024fd6e992fd5b9cb73bbf69f";
+			    "hash": "0a8679cb4d5da1e3922c61825e71b061ba6269b255381f51e7f97d61ca62292f";
 			    "raw": \`fragment MyFragmentA on Entity {
 			  ... on User {
 			    nickname
@@ -4593,8 +4555,7 @@ describe('typescript', function () {
 			    id
 			  }
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Entity";
 			    "stripVariables": [];
 			    "selection": {
@@ -4705,14 +4666,13 @@ describe('typescript', function () {
 			export type MyFragmentA$artifact = {
 			    "name": "MyFragmentA";
 			    "kind": "HoudiniFragment";
-			    "hash": "36d5feb08afa95a2fb6784486f3fec8c92dfbeb2cf8602d365f55700c2a3ebec";
+			    "hash": "fff966f1480f676f5f28dda0b93b837b2b7532314232d1173236d7be6a48b4b8";
 			    "raw": \`fragment MyFragmentA on Entity {
 			  ... on User {
 			    id
 			  }
 			  __typename
-			}
-			\`;
+			}\`;
 			    "rootType": "Entity";
 			    "stripVariables": [];
 			    "selection": {
@@ -4809,7 +4769,7 @@ test('overlapping fragments', async function () {
 		export type UserBase$artifact = {
 		    "name": "UserBase";
 		    "kind": "HoudiniFragment";
-		    "hash": "15225d2e5cba866e1a588cd399a03d5b2124156ac7003d3510544f22b7b9262c";
+		    "hash": "9b42e711c6a2c6963081878055088332491c172b2d746036a355db2d148fc1eb";
 		    "raw": \`fragment UserBase on User {
 		  id
 		  firstName
@@ -4821,8 +4781,7 @@ test('overlapping fragments', async function () {
 		  id
 		  firstName
 		  __typename
-		}
-		\`;
+		}\`;
 		    "rootType": "User";
 		    "stripVariables": [];
 		    "selection": {
@@ -4906,7 +4865,7 @@ test('componentField scalars', async function () {
 		export type UserList$artifact = {
 		    "name": "UserList";
 		    "kind": "HoudiniQuery";
-		    "hash": "775ef37f0ec8b8fbace7d66b5e5f3d01bada17c0930e4dc2f54c1eda379ca8dd";
+		    "hash": "e2ed48f4842502ef1e6b3d4237cc375a769f090233af0b391fa3ea1a817819f1";
 		    "raw": \`query UserList {
 		  users {
 		    ...UserBase
@@ -4918,8 +4877,7 @@ test('componentField scalars', async function () {
 		  id
 		  firstName
 		  __typename
-		}
-		\`;
+		}\`;
 		    "rootType": "Query";
 		    "stripVariables": [];
 		    "selection": {

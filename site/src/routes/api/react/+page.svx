@@ -292,6 +292,20 @@ export default function EditShow({ AllShows }) {
 }
 ```
 
+The resulting function will throw if the server response contains an error. The resulting exception will have the `message`
+field of every error joined with a period. If you want access to the full error payload, you can access the `raw` field:
+
+```typescript
+import { type RuntimeGraphQLError } from '$houdini'
+
+try {
+    await mutate()
+} catch (e) {
+    const err = e as RuntimeGraphQLError
+    console.log(err.raw)
+}
+```
+
 ## Fragments
 
 There are two ways to use fragments in Houdini. The first is defining it inside of the `useFragment` hook and this

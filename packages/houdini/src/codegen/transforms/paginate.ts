@@ -448,7 +448,7 @@ export default async function paginate(config: Config, documents: Document[]): P
 							kind: graphql.Kind.NAME,
 							value: refetchQueryName,
 						},
-						operation: 'query',
+						operation: graphql.OperationTypeNode.QUERY,
 						variableDefinitions: requiredArgs
 							.map(
 								(arg) =>
@@ -705,7 +705,20 @@ function objectNode([type, defaultValue]: [
 	string,
 	number | string | undefined
 ]): graphql.ObjectValueNode {
-	const node = {
+	let defaultValueNode: graphql.ObjectFieldNode[] = []
+	if (defaultValue) {
+		defaultValueNode = [
+			{
+				kind: graphql.Kind.OBJECT_FIELD,
+				name: { kind: graphql.Kind.NAME, value: 'default' },
+				value: {
+					kind: typeof defaultValue === 'number' ? graphql.Kind.INT : graphql.Kind.STRING,
+					value: defaultValue.toString(),
+				},
+			},
+		]
+	}
+	const node: graphql.ObjectValueNode = {
 		kind: graphql.Kind.OBJECT,
 		fields: [
 			{
@@ -719,19 +732,8 @@ function objectNode([type, defaultValue]: [
 					value: type,
 				},
 			},
-		] as graphql.ObjectFieldNode[],
-	}
-
-	// if there's a default value, add it
-	if (defaultValue) {
-		node.fields.push({
-			kind: graphql.Kind.OBJECT_FIELD,
-			name: { kind: graphql.Kind.NAME, value: 'default' } as graphql.NameNode,
-			value: {
-				kind: typeof defaultValue === 'number' ? 'IntValue' : 'StringValue',
-				value: defaultValue.toString(),
-			},
-		} as graphql.ObjectFieldNode)
+			...defaultValueNode,
+		],
 	}
 
 	return node
