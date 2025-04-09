@@ -10,6 +10,8 @@
 
   export let id = '';
 
+  console.log(id)
+
   $: result = graphql(`
     query ComponentQueryTest($id: ID!) @load {
       user(id: $id, snapshot: "preprocess-query-variable") {
