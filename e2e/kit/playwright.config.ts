@@ -16,7 +16,7 @@ export default defineConfig({
   workers: 5,
   reporter: reporters,
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: 'pnpm run build && npm run preview',
     port: 3007,
     timeout: 120 * 1000
   }
