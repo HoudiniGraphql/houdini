@@ -97,8 +97,8 @@ importers:
         specifier: ^0.10.0
         version: 0.10.0(graphql@16.9.0)
       graphql-ws:
-        specifier: ^5.8.2
-        version: 5.8.2(graphql@16.9.0)
+        specifier: ^6.0.4
+        version: 6.0.4(graphql@16.9.0)(ws@8.8.1)
       graphql-yoga:
         specifier: ^4.0.4
         version: 4.0.4(graphql@16.9.0)
@@ -115,8 +115,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2(@sveltejs/kit@2.9.0)
       graphql-ws:
-        specifier: ^5.8.2
-        version: 5.8.2(graphql@16.10.0)
+        specifier: ^6.0.4
+        version: 6.0.4(graphql@16.10.0)
     devDependencies:
       '@kitql/helpers':
         specifier: ^0.8.2
@@ -8502,22 +8502,43 @@ packages:
       graphql: 16.9.0
     dev: false
 
-  /graphql-ws@5.8.2(graphql@16.10.0):
-    resolution: {integrity: sha512-hYo8kTGzxePFJtMGC7Y4cbypwifMphIJJ7n4TDcVUAfviRwQBnmZAbfZlC+XFwWDUaR7raEDQPxWctpccmE0JQ==}
-    engines: {node: '>=10'}
+  /graphql-ws@6.0.4(graphql@16.10.0):
+    resolution: {integrity: sha512-8b4OZtNOvv8+NZva8HXamrc0y1jluYC0+13gdh7198FKjVzXyTvVc95DCwGzaKEfn3YuWZxUqjJlHe3qKM/F2g==}
+    engines: {node: '>=20'}
     peerDependencies:
-      graphql: '>=0.11 <=16'
+      '@fastify/websocket': ^10 || ^11
+      graphql: ^15.10.1 || ^16
+      uWebSockets.js: ^20
+      ws: ^8
+    peerDependenciesMeta:
+      '@fastify/websocket':
+        optional: true
+      uWebSockets.js:
+        optional: true
+      ws:
+        optional: true
     dependencies:
       graphql: 16.10.0
     dev: false
 
-  /graphql-ws@5.8.2(graphql@16.9.0):
-    resolution: {integrity: sha512-hYo8kTGzxePFJtMGC7Y4cbypwifMphIJJ7n4TDcVUAfviRwQBnmZAbfZlC+XFwWDUaR7raEDQPxWctpccmE0JQ==}
-    engines: {node: '>=10'}
+  /graphql-ws@6.0.4(graphql@16.9.0)(ws@8.8.1):
+    resolution: {integrity: sha512-8b4OZtNOvv8+NZva8HXamrc0y1jluYC0+13gdh7198FKjVzXyTvVc95DCwGzaKEfn3YuWZxUqjJlHe3qKM/F2g==}
+    engines: {node: '>=20'}
     peerDependencies:
-      graphql: '>=0.11 <=16'
+      '@fastify/websocket': ^10 || ^11
+      graphql: ^15.10.1 || ^16
+      uWebSockets.js: ^20
+      ws: ^8
+    peerDependenciesMeta:
+      '@fastify/websocket':
+        optional: true
+      uWebSockets.js:
+        optional: true
+      ws:
+        optional: true
     dependencies:
       graphql: 16.9.0
+      ws: 8.8.1
     dev: false
 
   /graphql-yoga@4.0.4(graphql@16.10.0):

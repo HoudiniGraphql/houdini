@@ -53,6 +53,6 @@
   "dependencies": {
     "@sveltejs/adapter-node": "^5.0.1",
     "@sveltejs/adapter-static": "^3.0.2",
-    "graphql-ws": "^5.8.2"
+    "graphql-ws": "^6.0.4"
   }
 }
