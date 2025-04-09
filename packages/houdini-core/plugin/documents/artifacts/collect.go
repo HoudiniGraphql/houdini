@@ -156,6 +156,7 @@ func collectDoc(
 				documentID := statements.Search.GetInt64("document_id")
 				kind := statements.Search.GetText("kind")
 				fieldName := statements.Search.GetText("field_name")
+				fieldType := statements.Search.GetText("type")
 
 				var alias *string
 				if !statements.Search.IsNull("alias") {
@@ -167,6 +168,7 @@ func collectDoc(
 				// create the collected selection from the information we have
 				selection := &CollectedSelection{
 					FieldName: fieldName,
+					FieldType: fieldType,
 					Alias:     alias,
 					Kind:      kind,
 				}
@@ -595,7 +597,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           d.type_condition AS type_condition,
           NULL AS parent_id,
           a.arguments,
-          dct.directives
+          dct.directives,
+          type_fields.type
         FROM selections
         JOIN selection_refs 
           ON selection_refs.child_id = selections.id 
@@ -606,6 +609,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a 
           ON a.selection_id = selections.id
+        JOIN type_fields on selections.type = type_fields.id
         WHERE d.id IN %s
       
         UNION ALL
@@ -622,10 +626,12 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           st.type_condition AS type_condition,
           st.id AS parent_id,
           a.arguments,
-          dct.directives
+          dct.directives,
+          type_fields.type
         FROM selections
         JOIN selection_refs ON selection_refs.child_id = selections.id AND selection_refs.document IN %s
         JOIN selection_tree st ON selection_refs.parent_id = st.id
+        JOIN type_fields on selections.type = type_fields.id
         LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a ON a.selection_id = selections.id
       )
@@ -794,6 +800,7 @@ type CollectedDocument struct {
 type CollectedSelection struct {
 	FieldName  string
 	Alias      *string
+	FieldType  string
 	Kind       string
 	Hidden     bool
 	Arguments  []*CollectedArgument
