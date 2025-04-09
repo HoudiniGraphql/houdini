@@ -10,12 +10,12 @@
 	"license": "ISC",
 	"dependencies": {
 		"commander": "^9.4.0",
-		"esbuild": "^0.15.10",
+		"esbuild": "^0.25.2",
 		"esbuild-plugin-alias": "^0.2.1",
-		"esbuild-plugin-replace": "^1.2.0",
+		"esbuild-plugin-replace": "^1.4.0",
 		"glob": "^11.0.1",
-		"rollup": "4.30.1",
-		"rollup-plugin-typescript2": "^0.34.0",
+		"rollup": "^4.39.0",
+		"rollup-plugin-typescript2": "^0.36.0",
 		"typescript": "^4.9"
 	}
 }

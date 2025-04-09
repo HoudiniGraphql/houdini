@@ -28,7 +28,7 @@
         "@types/ungap__structured-clone": "^0.3.0",
         "kleur": "^4.1.5",
         "prettier": "^2.8.3",
-        "rollup": "^4.30.1",
+        "rollup": "^4.39.0",
         "scripts": "workspace:^",
         "vitest": "^1.6.0"
     },
@@ -38,7 +38,7 @@
         "@graphql-tools/merge": "^9.0.6",
         "@graphql-tools/schema": "^9.0.4",
         "@kitql/helpers": "^0.8.10",
-        "@types/estree": "^1.0.0",
+        "@types/estree": "^1.0.7",
         "@types/fs-extra": "^9.0.13",
         "@types/micromatch": "^4.0.2",
         "@ungap/structured-clone": "^1.0.2",
