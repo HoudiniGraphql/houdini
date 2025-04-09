@@ -61,7 +61,7 @@ export function useMutation<
 			throw err
 		}
 
-    return result
+		return result
 	}
 
 	return [pending, mutate]
