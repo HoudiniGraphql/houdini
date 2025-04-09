@@ -633,7 +633,7 @@ test('paginate over unions', async function () {
 		export default {
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "hash": "d644685ed2ad26a7c69aa180be5652e472b1b3a1a7e4f4ab0e17018a34a90b8f",
+		    "hash": "e1be854a9b8a951f7fa92a153f9325cb3959eb79e9405742172585c60aad1e18",
 
 		    "refetch": {
 		        "path": ["entitiesByCursor"],
@@ -4708,7 +4708,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "a57a6da89eddad15fc0da096bd4991490c8b77ae296669be79b8dbca3abb257b",
+			    "hash": "fff1b6c02ba485174642e4b721aed9d180f4784d0039ed6b8a98d0f838d7dbcf",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
@@ -4960,7 +4960,7 @@ describe('mutation artifacts', function () {
 			export default {
 			    "name": "TestQuery",
 			    "kind": "HoudiniQuery",
-			    "hash": "a57a6da89eddad15fc0da096bd4991490c8b77ae296669be79b8dbca3abb257b",
+			    "hash": "fff1b6c02ba485174642e4b721aed9d180f4784d0039ed6b8a98d0f838d7dbcf",
 
 			    "refetch": {
 			        "path": ["usersByCursor"],
