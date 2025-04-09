@@ -739,7 +739,7 @@ function objectNode([type, defaultValue]: [
 	return node
 }
 
-export const selectionConnectionInfo = [
+export const selectionConnectionInfo: Array<graphql.SelectionNode> = [
 	{
 		kind: graphql.Kind.FIELD,
 		name: {

@@ -55,7 +55,7 @@ export default async function addFields(config: Config, documents: Document[]): 
 						newNode = {
 							...newNode,
 							selectionSet: {
-								kind: 'SelectionSet',
+								kind: graphql.Kind.SELECTION_SET,
 								selections: [
 									...(newNode.selectionSet?.selections || []),
 									...selectionConnectionInfo,
