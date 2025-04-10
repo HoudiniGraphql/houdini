@@ -99,7 +99,7 @@ CREATE TABLE raw_documents (
 CREATE TABLE types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
-    operation BOOLEAN default false,
+    operation TEXT,
 	internal BOOLEAN default false,
 	built_in BOOLEAN default false
 );

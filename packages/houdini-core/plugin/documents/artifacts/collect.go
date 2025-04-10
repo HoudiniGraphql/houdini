@@ -183,16 +183,11 @@ func collectDoc(
 					// this could be the first time we see the document
 					doc, ok := documents[documentName]
 					if !ok {
-						var typeCondition *string
-						if !statements.Search.IsNull("type_condition") {
-							typeConditionValue := statements.Search.GetText("type_condition")
-							typeCondition = &typeConditionValue
-						}
 						doc = &CollectedDocument{
 							ID:            documentID,
 							Name:          documentName,
 							Kind:          statements.Search.GetText("document_kind"),
-							TypeCondition: typeCondition,
+							TypeCondition: statements.Search.GetText("type_condition"),
 						}
 						documents[documentName] = doc
 					}
@@ -594,7 +589,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           d.id AS document_id,
           d.name AS document_name,
           d.kind AS document_kind,
-          d.type_condition AS type_condition,
+          COALESCE(d.type_condition, types."name") AS type_condition,
           NULL AS parent_id,
           a.arguments,
           dct.directives,
@@ -609,7 +604,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a 
           ON a.selection_id = selections.id
-        JOIN type_fields on selections.type = type_fields.id
+        LEFT JOIN type_fields on selections.type = type_fields.id
+        LEFT JOIN types on d.kind = types.operation
         WHERE d.id IN %s
       
         UNION ALL
@@ -631,11 +627,11 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         FROM selections
         JOIN selection_refs ON selection_refs.child_id = selections.id AND selection_refs.document IN %s
         JOIN selection_tree st ON selection_refs.parent_id = st.id
-        JOIN type_fields on selections.type = type_fields.id
+        LEFT JOIN type_fields on selections.type = type_fields.id
         LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
         LEFT JOIN arguments_agg a ON a.selection_id = selections.id
       )
-    SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id, document_kind, type_condition FROM selection_tree
+    SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id, document_kind, type_condition, type FROM selection_tree
     ORDER BY parent_id
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
@@ -790,7 +786,7 @@ type CollectedDocument struct {
 	ID                  int64
 	Name                string
 	Kind                string // "query", "mutation", "subscription", or "fragment"
-	TypeCondition       *string
+	TypeCondition       string
 	Variables           []*CollectedOperationVariable
 	Selections          []*CollectedSelection
 	Directives          []*CollectedDirective

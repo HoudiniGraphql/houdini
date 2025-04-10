@@ -160,8 +160,8 @@ func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
 	}
 
 	// add fragment type conditions
-	if doc.TypeCondition != nil {
-		printed += fmt.Sprintf(` on %s`, *doc.TypeCondition)
+	if doc.Kind == "fragment" {
+		printed += fmt.Sprintf(` on %s`, doc.TypeCondition)
 	}
 
 	// add the document directives

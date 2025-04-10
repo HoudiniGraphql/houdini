@@ -74,6 +74,8 @@ func TestMergeSelections(t *testing.T) {
 					context.Background(),
 					collectedDocs,
 					name,
+					true,
+					true,
 				)
 				require.Nil(t, err)
 
@@ -84,7 +86,7 @@ func TestMergeSelections(t *testing.T) {
 		},
 		Tests: []tests.Test[config.PluginConfig]{
 			{
-				Name: "Query with variable directive",
+				Name: "Apply fragment selections",
 				Pass: true,
 				Input: []string{
 					`
@@ -111,12 +113,13 @@ func TestMergeSelections(t *testing.T) {
             query MyQuery($name: String) {
                 user(name: $name) {
                     id
-                    ...Foo
+                    name
                     pets {
                         ... on Cat {
                             id
                         }
                     }
+                    ...Foo
                 }
             }
           `),
@@ -187,21 +190,21 @@ func TestMergeSelections(t *testing.T) {
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
             query MyQuery {
-              friends {
-                ... on Friend {
-                  name
+                friends {
+                    ... on Cat {
+                        id
+                        name
+                    }
+                    ... on Friend {
+                        name
+                    }
+                    ... on Ghost {
+                        id
+                    }
+                    ... on User {
+                        id
+                    }
                 }
-                ... on User {
-                  id
-                }
-                ... on Ghost {
-                  id
-                }
-                ... on Cat {
-                  id
-                  name
-                }
-              }
             }
           `),
 				},
@@ -235,15 +238,16 @@ func TestMergeSelections(t *testing.T) {
 					"MyQuery": tests.Dedent(`
               query MyQuery {
                   friends {
-                      ... on Friend {
-                          name
-                      }
                       name
                       pets {
                           ... on Cat {
                               id
                           }
                       }
+                      ... on Friend {
+                          name
+                      }
+                      ...Foo
                   }
               }
           `),
@@ -271,11 +275,12 @@ func TestMergeSelections(t *testing.T) {
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
             query MyQuery {
-                user { 
-                    pets { 
+                user {
+                    pets {
                         ... on Cat {
                             id
                         }
+                        ...CatInfo
                     }
                 }
             }
@@ -326,18 +331,20 @@ func TestMergeSelections(t *testing.T) {
                       id
                       name
                       pets {
-                          ...CatInfo
-                          id
-                          name
-                          owner { 
-                              ...UserInfo
+                          ... on Cat {
                               id
                               name
-                              bestFriend { 
+                              owner {
+                                  bestFriend {
+                                      id
+                                      name
+                                  }
                                   id
                                   name
+                                  ...UserInfo
                               }
                           }
+                          ...CatInfo
                       }
                   }
               }
