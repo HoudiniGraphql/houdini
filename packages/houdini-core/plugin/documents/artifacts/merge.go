@@ -74,7 +74,7 @@ func (c *fieldCollection) Size() int {
 
 func (c *fieldCollection) Add(selection *CollectedSelection, external bool) error {
 	// we need to figur eout if we want to include the selection in the final result
-	hidden := external
+	hidden := external || selection.Kind == "fragment"
 
 	// look to see if masking was explicitly enabled
 	for _, directive := range selection.Directives {
