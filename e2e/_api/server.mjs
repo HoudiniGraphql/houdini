@@ -98,7 +98,7 @@ mutation AddUser {
 		{
 			execute: (args) => args.rootValue.execute(args),
 			subscribe: (args) => args.rootValue.subscribe(args),
-			onSubscribe: async (ctx, msg) => {
+			onSubscribe: async (ctx, _, msg) => {
 				// if it's a persisted query, use the stored document instead
 				if (with_persisted_queries) {
 					msg.payload.query = store[msg.payload.extensions.persistedQuery]
@@ -114,9 +114,9 @@ mutation AddUser {
 
 				const args = {
 					schema,
-					operationName: msg.payload.operationName,
-					document: parse(msg.payload.query),
-					variableValues: msg.payload.variables,
+					operationName: msg.operationName,
+					document: parse(msg.query),
+					variableValues: msg.variables,
 					contextValue: await contextFactory(),
 					rootValue: {
 						execute,
