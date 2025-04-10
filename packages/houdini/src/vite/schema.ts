@@ -86,5 +86,4 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 	}
 }
 
-// Local schema is now watched by the houdini vite plugin on hotUpdate
 // export function watch_local_schema(ref: { list: string[] }): Plugin

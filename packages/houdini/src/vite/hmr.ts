@@ -13,7 +13,6 @@ export function isGraphQLFile(filepath: string): boolean {
 }
 
 export async function shouldReactToFileChange(filepath: string, config: Config): Promise<boolean> {
-	// if (filepath.endsWith('+schema.ts') || filepath.endsWith('+schema.js')) {
 	if (config.localSchema && minimatch(filepath, '**/api/+schema.*')) {
 		return true
 	} else {
