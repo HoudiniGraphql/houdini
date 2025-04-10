@@ -33,8 +33,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	// Save last generation timestamp to avoid unnecessary HMR updates
 	// i.e. the same event in different environments
 	let lastHotUpdateEvent: {
-		environment: string
-		file: string
 		timestamp: number
 	}
 
@@ -90,9 +88,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				}
 			}
 			lastHotUpdateEvent = {
-				environment: environment.name,
-				file,
-				timestamp,
+				timestamp
 			}
 
 			// if there are no changes, don't trigger a reload
