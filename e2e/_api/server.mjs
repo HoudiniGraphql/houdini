@@ -1,7 +1,7 @@
 import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
 import { green } from '@kitql/helpers'
 import fs from 'fs-extra'
-import { useServer } from 'graphql-ws/lib/use/ws'
+import { useServer } from 'graphql-ws/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'
 import { createServer } from 'node:http'
 import path from 'path'

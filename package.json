@@ -37,7 +37,7 @@
 		"@types/react": "^19.0.7",
 		"@vitest/coverage-v8": "^1.6.0",
 		"@vitest/ui": "^1.6.0",
-		"graphql": "^16.9.0",
+		"graphql": "^16.10.0",
 		"eslint-plugin-unused-imports": "^3.2.0",
 		"lint-staged": "^12.3.4",
 		"madge": "^8.0.0",

@@ -32,7 +32,7 @@
         "@kitql/helpers": "^0.8.2",
         "ast-types": "^0.16.1",
         "estree-walker": "^3.0.1",
-        "graphql": "^16.9.0",
+        "graphql": "^16.10.0",
         "houdini": "workspace:^",
         "recast": "^0.23.1",
         "rollup": "^4.39.0"
