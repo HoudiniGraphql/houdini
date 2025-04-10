@@ -88,7 +88,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				}
 			}
 			lastHotUpdateEvent = {
-				timestamp
+				timestamp,
 			}
 
 			// if there are no changes, don't trigger a reload
