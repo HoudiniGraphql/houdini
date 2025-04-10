@@ -79,7 +79,9 @@ func TestMergeSelections(t *testing.T) {
 				)
 				require.Nil(t, err)
 
-				printed := artifacts.PrintCollectedDocument(collected, true)
+				// merge the selections and update the docs to test against
+				collectedDocs[name].Selections = collected
+				printed := artifacts.PrintCollectedDocument(collectedDocs[name], true)
 
 				require.Equal(t, content, printed)
 			}

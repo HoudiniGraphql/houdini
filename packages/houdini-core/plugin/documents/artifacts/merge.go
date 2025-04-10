@@ -16,7 +16,7 @@ func FlattenSelection(
 	name string,
 	defaultMask bool,
 	sortKeys bool,
-) (*CollectedDocument, error) {
+) ([]*CollectedSelection, error) {
 	// we need to flatten the selection of the document with the matching name
 	doc, ok := collectedDocuments[name]
 	if !ok {
@@ -31,11 +31,8 @@ func FlattenSelection(
 		fields.Add(selection, false)
 	}
 
-	// replace the selection set in the doc
-	doc.Selections = fields.ToSelectionSet()
-
-	// we're done
-	return collectedDocuments[name], nil
+	// transform the result into the flattened selection set
+	return fields.ToSelectionSet(), nil
 }
 
 func newFieldCollection(
