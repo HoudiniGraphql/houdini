@@ -1,15 +1,10 @@
 import { yellow } from '@kitql/helpers'
-import type {
-	ExpressionKind,
-	IdentifierKind,
-	StatementKind,
-	VariableDeclaratorKind,
-} from 'ast-types/lib/gen/kinds'
+import type { ExpressionKind, StatementKind, VariableDeclaratorKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import type { Config, Script } from 'houdini'
 import { find_graphql, formatErrors } from 'houdini'
 import type { TransformPage } from 'houdini/vite'
-import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
+import { ensure_imports, find_exported_fn, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { is_component } from '../kit'
@@ -41,7 +36,7 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 	}
 
 	// Find all props of the component
-	let props: (string | IdentifierKind)[] = []
+	let props: { key: string; value: string }[] = []
 
 	if (page.svelte5Runes) {
 		// In runes, we need to find props defined by the `$props` rune.
@@ -66,7 +61,14 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 			if (propsStatement && propsStatement.id.type === 'ObjectPattern') {
 				propsStatement.id.properties.forEach((property) => {
 					if (property.type === 'ObjectProperty' && property.key.type === 'Identifier') {
-						props.push(property.key.name)
+						const key = property.key.name
+						// If the prop was renamed, save the renamed name instead
+						const value =
+							property.value.type === 'Identifier'
+								? property.value.name
+								: property.key.name
+
+						props.push({ key, value })
 					}
 				})
 			}
@@ -77,17 +79,29 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 			page.script.body.filter(
 				(statement) =>
 					statement.type === 'ExportNamedDeclaration' &&
-					statement.declaration?.type === 'VariableDeclaration'
+					(!statement.declaration || statement.declaration.type === 'VariableDeclaration')
 			) as ExportNamedDeclaration[]
-		).flatMap(({ declaration }) =>
-			(declaration as VariableDeclaration)!.declarations.map((dec) => {
-				if (dec.type === 'VariableDeclarator') {
-					return dec.id.type === 'Identifier' ? dec.id.name : ''
-				}
+		).flatMap(({ declaration, specifiers }) => {
+			if (declaration?.type === 'VariableDeclaration') {
+				// Simple `export let myProp` declarations
+				return declaration.declarations.map((dec) => {
+					if (dec.type === 'VariableDeclarator') {
+						const name = dec.id.type === 'Identifier' ? dec.id.name : ''
+						return { key: name, value: name }
+					}
 
-				return dec.name
-			})
-		)
+					return { key: dec.name as string, value: dec.name as string }
+				})
+			}
+
+			// Handle `export { localName as externalName }` cases
+			return (
+				specifiers?.flatMap((spec) => ({
+					key: spec.exported.name as string,
+					value: (spec.local?.name ?? '') as string,
+				})) ?? []
+			)
+		})
 	}
 
 	ensure_imports({
@@ -200,10 +214,10 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 																	props.map((prop) =>
 																		AST.objectProperty(
 																			AST.identifier(
-																				prop as string
+																				prop.key
 																			),
 																			AST.identifier(
-																				prop as string
+																				prop.value
 																			)
 																		)
 																	)
