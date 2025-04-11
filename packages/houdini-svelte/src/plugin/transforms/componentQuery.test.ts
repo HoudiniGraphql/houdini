@@ -477,7 +477,12 @@ describe('Svelte 5 runes', function () {
 					}
 				}
 	
-				const { prop1: renamedProp } = $props();
+				const {
+                    prop1: renamedProp,
+                    prop2: alsoRenamed = "with default",
+                    prop3,
+                    prop4 = "some default"
+                } = $props();
 	
 				const result = $derived(
 					graphql\`
@@ -505,7 +510,10 @@ describe('Svelte 5 runes', function () {
 			}
 
 			const {
-			    prop1: renamedProp
+			    prop1: renamedProp,
+			    prop2: alsoRenamed = "with default",
+			    prop3,
+			    prop4 = "some default"
 			} = $props();
 
 			const result = $derived(_houdini_TestQuery);
@@ -518,7 +526,10 @@ describe('Svelte 5 runes', function () {
 
 			            input: _TestQueryVariables.call(new RequestContext(), {
 			                props: {
-			                    prop1: renamedProp
+			                    prop1: renamedProp,
+			                    prop2: alsoRenamed,
+			                    prop3: prop3,
+			                    prop4: prop4
 			                }
 			            })
 			        })
