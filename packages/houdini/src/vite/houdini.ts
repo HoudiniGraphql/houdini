@@ -84,7 +84,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					artifactStats = await generate(config)
 				} catch (e) {
 					formatErrors(e)
-					throw e
 				}
 			}
 			lastHotUpdateEvent = {
