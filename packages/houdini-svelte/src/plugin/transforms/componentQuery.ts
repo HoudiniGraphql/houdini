@@ -62,11 +62,25 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 				propsStatement.id.properties.forEach((property) => {
 					if (property.type === 'ObjectProperty' && property.key.type === 'Identifier') {
 						const key = property.key.name
-						// If the prop was renamed, save the renamed name instead
-						const value =
-							property.value.type === 'Identifier'
-								? property.value.name
-								: property.key.name
+						let value = property.key.name
+
+						// There's a difference between `prop: renamed` and `prop: renamed = "default"`!
+						switch (property.value.type) {
+							// `prop: renamed` - key is an Identifier
+							case 'Identifier':
+								value = property.value.name
+								break
+
+							// `prop: renamed = "default"` - key is an AssignmentPattern
+							case 'AssignmentPattern':
+								if (property.value.left.type === 'Identifier') {
+									value = property.value.left.name
+								}
+								break
+
+							default:
+								break
+						}
 
 						props.push({ key, value })
 					}
