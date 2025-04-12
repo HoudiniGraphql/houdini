@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.1.13
+
+### Patch Changes
+
+-   [#1469](https://github.com/HoudiniGraphql/houdini/pull/1469) [`239a6e83`](https://github.com/HoudiniGraphql/houdini/commit/239a6e8394ae9507dea31b7762c375db53da2a36) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Properly generate load function with renamed props for component queries with an `@load` directive
+
 ## 2.1.12
 
 ### Patch Changes
