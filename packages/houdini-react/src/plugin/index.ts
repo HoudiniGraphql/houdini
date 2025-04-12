@@ -9,7 +9,6 @@ import {
 	type Document,
 	type Config,
 	type Plugin,
-	type ProjectManifest,
 } from 'houdini'
 import path from 'node:path'
 import { loadEnv } from 'vite'
@@ -17,10 +16,9 @@ import { loadEnv } from 'vite'
 import generate from './codegen'
 import { format_router_manifest } from './codegen/router'
 import { extractDocuments } from './extract'
+import { manifest, setManifest } from './state'
 import { transformFile } from './transform'
 import vite_plugin from './vite'
-
-export let manifest: ProjectManifest
 
 export const hooks: Plugin = async () => ({
 	order: 'core',
@@ -32,7 +30,7 @@ export const hooks: Plugin = async () => ({
 	// we generate anything
 	async beforeGenerate({ config }) {
 		try {
-			manifest = await load_manifest({ config })
+			setManifest(await load_manifest({ config }))
 		} catch (e) {
 			console.log('something went wrong: ' + (e as Error).message)
 			return
@@ -327,7 +325,3 @@ ${
 export default plugin('houdini-react', hooks)
 
 export type HoudiniReactPluginConfig = {}
-
-export function setManifest(newManifest: ProjectManifest): void {
-	manifest = newManifest
-}

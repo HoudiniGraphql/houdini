@@ -39,7 +39,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Install dependencies
               run: pnpm install
@@ -69,7 +69,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -112,7 +112,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -142,7 +142,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest]
-                framework: [e2e-svelte, e2e-kit, e2e-react]
+                framework: [e2e-kit, e2e-react]
         runs-on: ${{ matrix.os }}
 
         steps:
@@ -162,7 +162,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -230,7 +230,7 @@ jobs:
               name: Install pnpm
               id: pnpm-install
               with:
-                version: 8
+                version: 9
 
             - name: Get pnpm store directory
               id: pnpm-cache

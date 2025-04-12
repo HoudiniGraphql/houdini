@@ -2,9 +2,11 @@ import * as graphql from 'graphql'
 
 import type { Config, Document } from '../../lib'
 import { parentTypeFromAncestors, unwrapType } from '../../lib'
+import { connectionSelection } from './list'
+import { selectionConnectionInfo } from './paginate'
 
 // typename adds __typename to the selection set of any unions or interfaces
-export default async function addID(config: Config, documents: Document[]): Promise<void> {
+export default async function addFields(config: Config, documents: Document[]): Promise<void> {
 	// visit every document
 	for (const doc of documents) {
 		// update the document (graphql.visit is pure)
@@ -28,7 +30,43 @@ export default async function addID(config: Config, documents: Document[]): Prom
 				const fieldType = unwrapType(config, field.type).type
 
 				// add the appropriate fields to the selection
-				return addKeysToSelection(config, node, fieldType)
+				let newNode = addKeysToSelection(config, node, fieldType)
+
+				// if the field is tagged with a list and is a connection we need to make sure
+				// the page info is included with it
+				if (
+					node.directives?.find(
+						(directive) =>
+							directive.name.value === config.listDirective ||
+							directive.name.value === config.paginateDirective
+					)
+				) {
+					const targetFieldDefinition = type.getFields()[
+						node.name.value
+					] as graphql.GraphQLField<any, any>
+					// we need to look if the field is a conneciton
+					const { connection } = connectionSelection(
+						config,
+						targetFieldDefinition,
+						targetFieldDefinition.type as graphql.GraphQLObjectType,
+						node.selectionSet
+					)
+					if (connection) {
+						newNode = {
+							...newNode,
+							selectionSet: {
+								kind: graphql.Kind.SELECTION_SET,
+								selections: [
+									...(newNode.selectionSet?.selections || []),
+									...selectionConnectionInfo,
+								],
+							},
+						}
+					}
+				}
+
+				// we're done processing the node
+				return newNode
 			},
 			InlineFragment(node) {
 				// if there is no selection, move on
@@ -66,20 +104,22 @@ function addKeysToSelection(
 ) {
 	// if there is no selection set, don't worry about it
 	if (!node.selectionSet || node.selectionSet.selections.length == 0) {
-		return
+		return node
 	}
 
 	// if the type does not have an id field ignore it
 	if (!graphql.isObjectType(fieldType) && !graphql.isInterfaceType(fieldType)) {
-		return
+		return node
 	}
+
+	// now we need to add the keys
 
 	// look up the key fields for a given type
 	const keyFields = config.keyFieldsForType(fieldType.name)
 
 	// if there is no id field of the type
 	if (keyFields.find((key) => !fieldType.getFields()[key])) {
-		return
+		return node
 	}
 
 	// add the id fields for the given type

@@ -1,6 +1,12 @@
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 import type { SourceMapInput } from 'rollup'
-import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
+import type {
+	Plugin as VitePlugin,
+	UserConfig,
+	ResolvedConfig,
+	ConfigEnv,
+	EnvironmentModuleNode,
+} from 'vite'
 
 import generate from '../codegen'
 import type { Config, PluginConfig } from '../lib'
@@ -16,6 +22,7 @@ import {
 	isSecondaryBuild,
 	writeTsConfig,
 } from '../lib'
+import { isGraphQLFile, fileDependsOnHoudini, shouldReactToFileChange } from './hmr'
 
 let config: Config
 let viteConfig: ResolvedConfig
@@ -23,12 +30,88 @@ let viteEnv: ConfigEnv
 let devServer = false
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
+	// Save last generation timestamp to avoid unnecessary HMR updates
+	// i.e. the same event in different environments
+	let lastHotUpdateEvent: {
+		timestamp: number
+	}
+
 	return {
 		name: 'houdini',
 
 		// houdini will always act as a "meta framework" and process the user's code before it
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
+
+		async hotUpdate({ file, server, modules, timestamp }): Promise<EnvironmentModuleNode[]> {
+			// load the config file
+			const config = await getConfig(opts)
+
+			// Check if directory, file type matches what's defined in houdini config
+			const shouldReact = await shouldReactToFileChange(file, config)
+
+			// if the file doesn't depend on $houdini, we don't need to do anything
+			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? '$houdini')
+
+			// .gql files are not understood by vite, since they're not processed yet at this stage
+			// Thus, we cannot get their dependencies.
+			// However, if it is a graphql file, it for sure depends on houdini
+			const isGqlFile = isGraphQLFile(file)
+
+			if (!(shouldReact && (fileDependsOnHoudini(modules, runtimeDir) || isGqlFile))) {
+				return []
+			}
+
+			if (config.localSchema) {
+				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
+					.default as graphql.GraphQLSchema
+				// reload the schema
+				// config.schema = await loadLocalSchema(config)
+			}
+
+			const environment = this.environment
+
+			// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
+			config.pluginMode = true
+
+			// generate the runtime
+			// only if not debouncing
+			let artifactStats = undefined
+			if (!lastHotUpdateEvent || timestamp !== lastHotUpdateEvent.timestamp) {
+				console.log('🎩 🔄 bundle HMR rebuild...')
+
+				try {
+					artifactStats = await generate(config)
+				} catch (e) {
+					formatErrors(e)
+				}
+			}
+			lastHotUpdateEvent = {
+				timestamp,
+			}
+
+			// if there are no changes, don't trigger a reload
+			if (!artifactStats) {
+				return []
+			}
+
+			console.log('🎩 ⬆️ bundle changed, triggering HMR update')
+
+			// TODO: return tainted files from generate()
+			// Instead, walk over the entire houdini directory and invalidate all modules
+			const taintedModules: EnvironmentModuleNode[] = []
+			for await (const file of fs.walk(runtimeDir)) {
+				const module = environment.moduleGraph.getModuleById(file)
+				if (module) {
+					taintedModules.push(module)
+				}
+			}
+
+			// invalidate all the codegenerated modules
+			// NOTE: not returning the original module here, we expect other plugins to handle
+			// their own dependencies (i.e sveltekit)
+			return taintedModules
+		},
 
 		// add watch-and-run to their vite config
 		async config(userConfig, env) {
@@ -220,8 +303,12 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 			// if there is a local schema we need to use that when generating
 			if (config.localSchema) {
-				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
-					.default as graphql.GraphQLSchema
+				try {
+					config.schema = (await server.ssrLoadModule(config.localSchemaPath))
+						.default as graphql.GraphQLSchema
+				} catch {
+					config.schema = graphql.buildSchema('type Query')
+				}
 				// make sure we watch the file for changes
 				server.watcher.add(config.localSchemaPath)
 			}
@@ -243,7 +330,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				await generate(config)
 			} catch (e) {
 				formatErrors(e)
-				throw e
 			}
 		},
 

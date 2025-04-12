@@ -1,5 +1,54 @@
 # houdini-adapter-cloudflare
 
+## 1.3.7
+
+### Patch Changes
+
+-   Updated dependencies [[`09bef6c9`](https://github.com/HoudiniGraphql/houdini/commit/09bef6c915a7143ce9895447303f942b93e89dbf)]:
+    -   houdini@1.5.4
+
+## 1.3.6
+
+### Patch Changes
+
+-   Updated dependencies [[`0eced73c`](https://github.com/HoudiniGraphql/houdini/commit/0eced73c7494c9409f3bb69f1766c02f555d30ca)]:
+    -   houdini@1.5.3
+
+## 1.3.5
+
+### Patch Changes
+
+-   Updated dependencies [[`0e02fa8a`](https://github.com/HoudiniGraphql/houdini/commit/0e02fa8a043cdb092515835bcc7d9e2c9546678c)]:
+    -   houdini@1.5.2
+
+## 1.3.4
+
+### Patch Changes
+
+-   Updated dependencies [[`faf0a5cb`](https://github.com/HoudiniGraphql/houdini/commit/faf0a5cb0f3cd5936923bf981a6022875b3ec1cb)]:
+    -   houdini@1.5.1
+
+## 1.3.3
+
+### Patch Changes
+
+-   Updated dependencies [[`142cc664`](https://github.com/HoudiniGraphql/houdini/commit/142cc664ff6581bdaf4433222f0bcc8cfe82fee1), [`ab8932e2`](https://github.com/HoudiniGraphql/houdini/commit/ab8932e22126a5b3c6f32e184eef53f15324e56f)]:
+    -   houdini@1.5.0
+
+## 1.3.2
+
+### Patch Changes
+
+-   Updated dependencies [[`711358eb`](https://github.com/HoudiniGraphql/houdini/commit/711358eb0bf368c46b5543c36342e506d4d898ae)]:
+    -   houdini@1.4.3
+
+## 1.3.1
+
+### Patch Changes
+
+-   Updated dependencies [[`1f11803e`](https://github.com/HoudiniGraphql/houdini/commit/1f11803e98ad9aada1b4fb068a51af7948e82da0), [`47f89581`](https://github.com/HoudiniGraphql/houdini/commit/47f895810a2340fe898f0c4fc4605e890f48fc9f), [`f07875bf`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f), [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432)]:
+    -   houdini@1.4.2
+
 ## 1.3.0
 
 ### Minor Changes

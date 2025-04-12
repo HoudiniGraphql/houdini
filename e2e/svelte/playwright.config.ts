@@ -14,7 +14,7 @@ const config = defineConfig({
 	reporter,
 	screenshot: 'only-on-failure',
 	webServer: {
-		command: 'npm run build && npm run preview',
+		command: 'pnpm run build && npm run preview',
 		port: 3006,
 		timeout: 120 * 1000,
 	},

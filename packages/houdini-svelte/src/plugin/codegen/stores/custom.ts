@@ -1,7 +1,6 @@
 import type { Config } from 'houdini'
 
-import type { HoudiniSvelteConfig } from '../../'
-import { plugin_config } from '../../kit'
+import { plugin_config, type HoudiniSvelteConfig } from '../../config'
 
 export function store_import(
 	cfg: Config,

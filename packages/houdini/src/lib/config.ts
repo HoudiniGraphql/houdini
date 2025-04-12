@@ -314,6 +314,7 @@ export class Config {
 					)
 				)
 					.flat()
+					.map((filepath) => path.posixify(filepath))
 					.filter((filepath) => this.includeFile(filepath))
 					// don't include the schema path as a source file
 					.filter((filepath) => {
@@ -544,11 +545,11 @@ export class Config {
 		)
 	}
 
-	excludeFile(filepath: string) {
+	excludeFile(filepath: string, { root = this.projectRoot }: { root?: string }) {
 		// if the configured exclude does not allow this file, we're done
 		if (
 			this.exclude.length > 0 &&
-			this.exclude.some((pattern) => minimatch(filepath, pattern))
+			this.exclude.some((pattern) => minimatch(filepath, path.join(root, pattern)))
 		) {
 			return true
 		}
@@ -596,7 +597,7 @@ export class Config {
 		}
 
 		// if there is an exclude, make sure the path doesn't match any of the exclude patterns
-		return !this.excludeFile(filepath)
+		return !this.excludeFile(filepath, { root })
 	}
 
 	pluginRuntimeDirectory(name: string) {

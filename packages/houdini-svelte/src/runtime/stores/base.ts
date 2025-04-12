@@ -94,16 +94,10 @@ export class BaseStore<
 	// we have. when this number is 0, we need to clear the store
 	#subscriberCount = 0
 
-	//
-	// ** WARNING: THERE IS UNTESTED BEHAVIOR HERE **
-	//
-	// it's tricky to set up the e2e tests to create a component
-	// that is isolated from any fetches so i'm just leaving this big
-	// ugly comment for future us. If we modify this block, we have to
-	// make sure that this scenario works: https://github.com/HoudiniGraphql/houdini/pull/871#issuecomment-1416808842
 	setup(init: boolean = true) {
 		// if we have to initialize the client, do so
 		let initPromise: Promise<any> = Promise.resolve()
+
 		try {
 			getClient()
 		} catch {

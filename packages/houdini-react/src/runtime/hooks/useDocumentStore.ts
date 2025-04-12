@@ -3,7 +3,7 @@ import type { DocumentStore, ObserveParams } from '$houdini/runtime/client'
 import type { GraphQLObject } from 'houdini'
 import * as React from 'react'
 
-import { useClient } from '../routing'
+import { useClient } from '../routing/hooks'
 import { useIsMountedRef } from './useIsMounted'
 
 export type UseDocumentStoreParams<

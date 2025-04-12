@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import type { Config, Document } from 'houdini'
 import { HoudiniError, definitionFromAncestors } from 'houdini'
 
-import { store_name } from './kit'
+import { store_name } from './storeConfig'
 
 // const directivesErrors: HoudiniError[] = []
 

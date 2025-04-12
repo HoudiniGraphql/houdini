@@ -52,6 +52,7 @@ By default, your config file can contain the following values:
 - `defaultListPosition` (optional, default: "first"): One of `"first"` or `"last"` to indicate the default location for list operations.
 - `plugins` (optional): An object containing the set of plugins you want to add to your houdini application. The keys are plugin names, the values are plugin-specific configuration. The actual plugin API is undocumented and considered unstable while we try out various things internally. For an overview of your framework plugin's specific configuration, see below.
 - `supressPaginationDeduplication` (optional, default `false): Prevents the runtime from deduplicating pagination requests
+- `runtimeDir` (optional, default: `'$houdini`): The name of the directory used to output the generated Houdini runtime, relative to `projectDir`.
 
 ## Svelte Plugin
 
@@ -74,7 +75,6 @@ Here is a summary of the possible configuration values:
 - `client` (optional, default: `"./src/client"`): a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
 - `defaultRouteBlocking` (optional, default: `false`): Specifies the default blocking behavior for client-side navigation. For more information, please visit [this section of the docs](https://houdinigraphql.com/api/query#loading-states).
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
-- `runtimeDir` (optional, default: `'$houdini`): The name of the directory used to output the generated Houdini runtime, relative to `projectDir`.
 - `pageQueryFilename` (optional, default: `"+page.gql"`): The name of the file used to define page queries.
 - `layoutQueryFilename` (optional, default: `"+layout.gql"`): The name of the file used to define layout queries.
 - `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the onError hook)

@@ -15,7 +15,7 @@ import type {
 } from '$houdini/runtime/lib/types'
 import React from 'react'
 
-import { useClient, useLocation, useSession } from '../routing/Router'
+import { useClient, useSession, useLocation } from '../routing/hooks'
 
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,

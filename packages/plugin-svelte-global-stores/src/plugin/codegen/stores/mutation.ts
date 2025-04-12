@@ -1,7 +1,10 @@
 import type { Document, GenerateHookInput } from 'houdini'
 import { fs, path } from 'houdini'
 
-import { store_name, stores_directory_name } from '../../../../../houdini-svelte/src/plugin/kit'
+import {
+	store_name,
+	stores_directory_name,
+} from '../../../../../houdini-svelte/src/plugin/storeConfig'
 import { global_stores_directory, global_store_name } from '../../kit'
 
 // import { store_import } from './custom'

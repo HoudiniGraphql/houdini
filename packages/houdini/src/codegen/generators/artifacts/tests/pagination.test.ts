@@ -30,7 +30,7 @@ test('pagination arguments stripped from key', async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "51bb1961aef1ff7cdd8bd0f198d93e7c4e40734273a37dffac7e98759d907b7c",
+		    "hash": "5ecb5d2cf01ef86471632c7bab8bb8a5e91df2b20414a0c3c9dfccb37e2d8ed2",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -56,16 +56,11 @@ test('pagination arguments stripped from key', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -243,7 +238,7 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "51bb1961aef1ff7cdd8bd0f198d93e7c4e40734273a37dffac7e98759d907b7c",
+		    "hash": "5ecb5d2cf01ef86471632c7bab8bb8a5e91df2b20414a0c3c9dfccb37e2d8ed2",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -269,16 +264,11 @@ test('pagination arguments stays in key as it s a SinglePage Mode', async functi
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -576,7 +566,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		export default {
 		    "name": "ScalarPagination",
 		    "kind": "HoudiniQuery",
-		    "hash": "a928ac23dbd3a97ce2be06fbb905ec60de36b80090b50969bc5d696635e3e1c3",
+		    "hash": "6060c0f9e29f57346d94c656bd83b0de070651af1bddb596b93b659a0de2644e",
 
 		    "refetch": {
 		        "path": ["user", "friendsByCursorScalar"],
@@ -610,16 +600,11 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 		          id
 		        }
 		      }
-		      pageInfo {
-		        hasPreviousPage
-		        hasNextPage
-		        startCursor
-		        endCursor
-		      }
 		      edges {
 		        cursor
 		        node {
 		          __typename
+		          id
 		        }
 		      }
 		      pageInfo {
@@ -869,7 +854,7 @@ test("sibling aliases don't get marked", async function () {
 		export default {
 		    "name": "PaginatedFragment",
 		    "kind": "HoudiniFragment",
-		    "hash": "cf59986564a8a956ef3a1c9e58bd3bd9f7aec3a468e9308e538aad59249cfeb0",
+		    "hash": "fb35aa5607c81205f36afd7e81bd53166a808d40f9ebe5b7b6521956bbcf6dbf",
 
 		    "refetch": {
 		        "path": ["friendsByCursor"],
@@ -902,16 +887,11 @@ test("sibling aliases don't get marked", async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {

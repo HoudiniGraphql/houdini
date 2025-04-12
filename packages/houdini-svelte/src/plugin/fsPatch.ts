@@ -3,15 +3,10 @@ import { fs, path } from 'houdini'
 import filesystem, { Dirent, type PathOrFileDescriptor, type PathLike } from 'node:fs'
 import filesystemPromises, { type FileHandle } from 'node:fs/promises'
 
-import { _config } from '.'
+import { plugin_config } from './config'
 import type { Framework } from './kit'
-import {
-	is_root_layout,
-	is_root_layout_server,
-	is_route_script,
-	plugin_config,
-	resolve_relative,
-} from './kit'
+import { is_root_layout, is_root_layout_server, is_route_script, resolve_relative } from './kit'
+import { _config } from './state'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default (getFramework: () => Framework) =>
@@ -24,8 +19,11 @@ export default (getFramework: () => Framework) =>
 				if (match) {
 					return path.join(config.projectRoot, filepath.substring(match[1].length))
 				}
+
 				// if there is no deep relative import, do the default thing
-				return
+				return filepath.startsWith('/src')
+					? { id: path.join(config.projectRoot, filepath) }
+					: null
 			}
 
 			// everything internal to houdini should assume posix paths

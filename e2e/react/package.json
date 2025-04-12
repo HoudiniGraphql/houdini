@@ -11,9 +11,9 @@
 		"build:build": "pnpm build: && pnpm build",
 		"dev": "vite dev",
 		"build": "vite build",
-		"tests": "npm run build && playwright test",
-		"test": "npm run tests",
-		"tw": "npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
+		"tests": "pnpm run build && playwright test",
+		"test": "pnpm run tests",
+		"tw": "pnpm npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
 		"preview": "vite dev"
 	},
 	"dependencies": {
@@ -48,7 +48,7 @@
 		"postcss": "^8.4.31",
 		"tailwindcss": "^3.3.3",
 		"typescript": "^4.9.3",
-		"vite": "^4.1.4",
-		"wrangler": "^3.7.0"
+		"wrangler": "^4.9.1",
+		"vite": "^6.0.3"
 	}
 }

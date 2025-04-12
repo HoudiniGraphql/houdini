@@ -1,5 +1,57 @@
 # houdini
 
+## 1.5.4
+
+### Patch Changes
+
+-   [#1450](https://github.com/HoudiniGraphql/houdini/pull/1450) [`09bef6c9`](https://github.com/HoudiniGraphql/houdini/commit/09bef6c915a7143ce9895447303f942b93e89dbf) Thanks [@rgon](https://github.com/rgon)! - fix internal circular dependencies
+
+## 1.5.3
+
+### Patch Changes
+
+-   [#1445](https://github.com/HoudiniGraphql/houdini/pull/1445) [`0eced73c`](https://github.com/HoudiniGraphql/houdini/commit/0eced73c7494c9409f3bb69f1766c02f555d30ca) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix config exclude not excluding absolute paths correctly
+
+## 1.5.2
+
+### Patch Changes
+
+-   [#1441](https://github.com/HoudiniGraphql/houdini/pull/1441) [`0e02fa8a`](https://github.com/HoudiniGraphql/houdini/commit/0e02fa8a043cdb092515835bcc7d9e2c9546678c) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Loosen typing requirements for SubscriptionClient to fix compatibility with graphql-sse
+
+## 1.5.1
+
+### Patch Changes
+
+-   [#1433](https://github.com/HoudiniGraphql/houdini/pull/1433) [`faf0a5cb`](https://github.com/HoudiniGraphql/houdini/commit/faf0a5cb0f3cd5936923bf981a6022875b3ec1cb) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Update init script to only update the necessary fields
+
+## 1.5.0
+
+### Minor Changes
+
+-   [#1430](https://github.com/HoudiniGraphql/houdini/pull/1430) [`142cc664`](https://github.com/HoudiniGraphql/houdini/commit/142cc664ff6581bdaf4433222f0bcc8cfe82fee1) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix vite peerdependency versions
+
+### Patch Changes
+
+-   [#1428](https://github.com/HoudiniGraphql/houdini/pull/1428) [`ab8932e2`](https://github.com/HoudiniGraphql/houdini/commit/ab8932e22126a5b3c6f32e184eef53f15324e56f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix document paths on windows not being properly posixified
+
+## 1.4.3
+
+### Patch Changes
+
+-   [#1426](https://github.com/HoudiniGraphql/houdini/pull/1426) [`711358eb`](https://github.com/HoudiniGraphql/houdini/commit/711358eb0bf368c46b5543c36342e506d4d898ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add abortController argument to query and mutation handles
+
+## 1.4.2
+
+### Patch Changes
+
+-   [#1421](https://github.com/HoudiniGraphql/houdini/pull/1421) [`1f11803e`](https://github.com/HoudiniGraphql/houdini/commit/1f11803e98ad9aada1b4fb068a51af7948e82da0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Ensure pageInfo is always included with connection selections
+
+-   [#1422](https://github.com/HoudiniGraphql/houdini/pull/1422) [`47f89581`](https://github.com/HoudiniGraphql/houdini/commit/47f895810a2340fe898f0c4fc4605e890f48fc9f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug causing dev serer to crash if there are syntax errors in a local schema
+
+-   [#1418](https://github.com/HoudiniGraphql/houdini/pull/1418) [`f07875bf`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump deprecated dependency version
+
+-   [#1398](https://github.com/HoudiniGraphql/houdini/pull/1398) [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Move svelte, sveltekit and vite into peerDependencies
+
 ## 1.4.1
 
 ### Patch Changes

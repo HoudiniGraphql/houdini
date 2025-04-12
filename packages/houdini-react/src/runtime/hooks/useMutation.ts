@@ -5,7 +5,7 @@ import type {
 	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 
-import { useSession } from '../routing/Router'
+import { useSession } from '../routing/hooks'
 import { useDocumentStore } from './useDocumentStore'
 
 export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = (args: {
@@ -14,6 +14,7 @@ export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> 
 	metadata?: App.Metadata
 	fetch?: typeof globalThis.fetch
 	optimisticResponse?: _Optimistic
+	abortController?: AbortController
 }) => Promise<QueryResult<_Result, _Input>>
 
 export function useMutation<
@@ -39,12 +40,14 @@ export function useMutation<
 		metadata,
 		fetch,
 		variables,
+		abortController,
 		...mutationConfig
 	}) => {
 		const result = await observer.send({
 			variables,
 			metadata,
 			session,
+			abortController,
 			stuff: {
 				...mutationConfig,
 			},
@@ -57,6 +60,8 @@ export function useMutation<
 			err.raw = result.errors
 			throw err
 		}
+
+		return result
 	}
 
 	return [pending, mutate]

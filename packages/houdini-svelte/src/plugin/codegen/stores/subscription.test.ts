@@ -8,7 +8,7 @@ import { test, expect } from 'vitest'
 import runPipeline from '..'
 import '../..'
 import { test_config } from '../../../test'
-import { stores_directory } from '../../kit'
+import { stores_directory } from '../../storeConfig'
 
 test('generates a store for every subscription', async function () {
 	const config = await test_config()

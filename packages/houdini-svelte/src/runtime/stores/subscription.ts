@@ -34,8 +34,8 @@ export class SubscriptionStore<
 	}
 
 	async unlisten() {
-		this.fetchingStore.set(false)
 		await initClient()
+		this.fetchingStore.set(false)
 		await this.observer.cleanup()
 	}
 

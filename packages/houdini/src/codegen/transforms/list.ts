@@ -5,7 +5,6 @@ import type { Config, Document } from '../../lib'
 import { parentTypeFromAncestors, HoudiniError, siteURL, TypeWrapper, unwrapType } from '../../lib'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { objectIdentificationSelection } from '../utils/objectIdentificationSelection'
-import { pageInfoSelection } from './paginate'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -159,17 +158,6 @@ export default async function addListFragments(
 					) as graphql.GraphQLObjectType,
 					node.selectionSet
 				)
-
-				// if the field is a connection, add the cursor
-				if (connection) {
-					return {
-						...node,
-						selectionSet: {
-							...node.selectionSet,
-							selections: [...node.selectionSet!.selections, ...pageInfoSelection],
-						},
-					}
-				}
 			},
 		})
 	}

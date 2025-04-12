@@ -1,9 +1,10 @@
-import type * as graphql from 'graphql'
+import * as graphql from 'graphql'
 import path from 'node:path'
 
-import { fs, routerConventions } from '..'
 import type { Config } from '../config'
+import * as fs from '../fs'
 import { localApiEndpoint, type ConfigFile } from '../types'
+import * as routerConventions from './conventions'
 
 export function isSecondaryBuild() {
 	return process.env.HOUDINI_SECONDARY_BUILD && process.env.HOUDINI_SECONDARY_BUILD !== 'false'
@@ -70,12 +71,19 @@ export async function loadLocalSchema(config: Config): Promise<graphql.GraphQLSc
 	}
 
 	// import the schema we just built
-	const { default: schema } = await import(
-		path.join(
-			routerConventions.temp_dir(config, 'schema'),
-			`schema.js?${Date.now().valueOf()}}`
+	try {
+		const { default: schema } = await import(
+			path.join(
+				routerConventions.temp_dir(config, 'schema'),
+				`schema.js?${Date.now().valueOf()}}`
+			)
 		)
-	)
 
-	return schema
+		return schema
+	} catch (e) {
+		const message = 'message' in (e as Error) ? (e as Error).message : e
+		// if we fail to load the schema, log a message to the user and just return an empty one
+		console.error('⚠️ Failed to load local schema: ', message)
+		return new graphql.GraphQLSchema({})
+	}
 }

@@ -317,6 +317,11 @@ export type FetchParams<_Input> = {
 	 */
 	// @ts-ignore
 	metadata?: App.Metadata
+
+	/**
+	 * An abort controller to abort the operation
+	 */
+	abortController?: AbortController
 }
 
 export type FetchFn<_Data extends GraphQLObject, _Input = any> = (

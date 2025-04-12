@@ -4,23 +4,27 @@ import type { Config, PluginHooks, Document, LogLevels } from '../lib'
 import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, path } from '../lib'
 import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 import * as generators from './generators'
+import type { ArtifactStats } from './generators/artifacts'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
 // the main entry point of the compile script
-export default async function compile(config: Config) {
+export default async function compile(config: Config): Promise<ArtifactStats | undefined> {
 	// grab the graphql documents
 	const documents = await collectDocuments(config)
 
 	// push the documents through the pipeline
-	await runPipeline(config, documents)
+	return await runPipeline(config, documents)
 }
 
 // the compiler's job can be broken down into a few different tasks after the documents have been collected:
 // - validate their structure
 // - perform a series of transformations
 // - write the corresponding artifacts to disk
-export async function runPipeline(config: Config, docs: Document[]) {
+export async function runPipeline(
+	config: Config,
+	docs: Document[]
+): Promise<ArtifactStats | undefined> {
 	// we need to create the runtime folder structure
 	config.createDirectories()
 
@@ -92,7 +96,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// this replaces wrapHook(validate) to group them up
 				validators.plugins,
 				...wrapHook(afterValidate),
-				transforms.addID,
+				transforms.addFields,
 				transforms.typename,
 				transforms.componentFields,
 				// list transform must go before fragment variables
@@ -202,6 +206,8 @@ export async function runPipeline(config: Config, docs: Document[]) {
 		// not gzipped!
 		console.log(`🪶  Network request size: ${querySize} (pesisted: ${hashSize})`)
 	}
+
+	return artifactStats
 }
 
 async function collectDocuments(config: Config): Promise<Document[]> {

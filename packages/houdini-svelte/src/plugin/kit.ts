@@ -4,9 +4,10 @@ import { find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
 import type * as recast from 'recast'
 
-import type { HoudiniSvelteConfig } from '.'
+import { plugin_config } from './config'
 import { parseSvelte } from './extract'
 import { extract_load_function } from './extractLoadFunction'
+import { store_import_path, store_name } from './storeConfig'
 import type { SvelteTransformPage } from './transforms/types'
 
 type Identifier = recast.types.namedTypes.Identifier
@@ -365,11 +366,6 @@ export type RouteVisitor = {
 
 type RouteVisitorHandler<_Payload> = (value: _Payload, filepath: string) => Promise<void> | void
 
-export type HoudiniRouteScript = {
-	houdini_load?: graphql.OperationDefinitionNode[]
-	exports: string[]
-}
-
 const routeQueryError = (filepath: string) => ({
 	filepath,
 	message: 'route query error',
@@ -377,58 +373,6 @@ const routeQueryError = (filepath: string) => ({
 
 export function route_page_path(config: Config, filename: string) {
 	return resolve_relative(config, filename).replace('.js', '.svelte').replace('.ts', '.svelte')
-}
-
-export function stores_directory_name() {
-	return 'stores'
-}
-
-// the directory where we put all of the stores
-export function stores_directory(pluginRoot: string) {
-	return path.join(pluginRoot, stores_directory_name())
-}
-
-export function type_route_dir(config: Config) {
-	return path.join(config.typeRootDir, 'src', 'routes')
-}
-
-// the path that the runtime can use to import a store
-export function store_import_path({ config, name }: { config: Config; name: string }): string {
-	return `$houdini/plugins/houdini-svelte/${stores_directory_name()}/${name}`
-}
-
-export function store_suffix(config: Config) {
-	// if config changes, we might have more forbiddenNames to add in the validator
-	return 'Store'
-}
-
-export function store_name({ config, name }: { config: Config; name: string }) {
-	return name + store_suffix(config)
-}
-
-export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
-	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
-
-	return {
-		client: './src/client',
-		defaultRouteBlocking: false,
-		pageQueryFilename: '+page.gql',
-		layoutQueryFilename: '+layout.gql',
-		static: false,
-		forceRunesMode: false,
-		...cfg,
-		customStores: {
-			query: '../runtime/stores/query.QueryStore',
-			mutation: '../runtime/stores/mutation.MutationStore',
-			fragment: '../runtime/stores/fragment.FragmentStore',
-			subscription: '../runtime/stores/subscription.SubscriptionStore',
-			queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
-			queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
-			fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
-			fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
-			...cfg?.customStores,
-		},
-	}
 }
 
 export function store_import({

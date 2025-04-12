@@ -33,16 +33,11 @@ test('adds pagination info to full', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -167,16 +162,11 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -221,16 +211,11 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -275,16 +260,11 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -329,16 +309,11 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -399,16 +374,11 @@ test('adds required fragment args to pagination query', async function () {
 		        name
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -455,16 +425,11 @@ test('sets before with default value', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -513,16 +478,11 @@ test('embeds pagination query as a separate document', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -563,7 +523,7 @@ test('embeds node pagination query as a separate document', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "d99ce9848ab53728007c86488e9a8500df9c0c3072cc4860c401ef2dbd66e531",
+		    "hash": "a32c13511f834d1d2522fb386c0440ce5bf724b19b373d24c8b1edd3ee134080",
 
 		    "refetch": {
 		        "path": ["friendsByForwardsCursor"],
@@ -591,16 +551,11 @@ test('embeds node pagination query as a separate document', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -852,7 +807,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		export default {
 		    "name": "UserGhost_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "ca206605b235222a04bda04ef858befdd65dce92909efe2c25f6f168acadbf04",
+		    "hash": "4bdff42af1277973a807450713e009a85cdc093c78c03595da3766f7c82c9355",
 
 		    "refetch": {
 		        "path": ["friendsConnection"],
@@ -882,16 +837,12 @@ test('embeds custom pagination query as a separate document', async function () 
 		        aka
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        name
+		        aka
 		      }
 		    }
 		    pageInfo {
@@ -1126,16 +1077,11 @@ test('query with forwards cursor paginate', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1181,16 +1127,11 @@ test('suppress pagination dedupe', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1234,16 +1175,11 @@ test('query with custom first args', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1287,16 +1223,11 @@ test('query with backwards cursor paginate', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1367,16 +1298,11 @@ test('query with backwards cursor on full paginate', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1420,16 +1346,11 @@ test('query with forwards cursor on full paginate', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1473,16 +1394,11 @@ test("don't generate unsupported directions", async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1526,16 +1442,11 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1579,16 +1490,11 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -1767,7 +1673,7 @@ test('generated query has same refetch spec', async function () {
 		export default {
 		    "name": "UserFriends_Pagination_Query",
 		    "kind": "HoudiniQuery",
-		    "hash": "64aad962389a2f74023331779c97bec95ad34c343223bc3193770f5e637fdf35",
+		    "hash": "d1ce99bd76416e8cee799e300044a0d7a8009af300ef7793848b544a58baa9ec",
 
 		    "refetch": {
 		        "path": ["usersByCursor"],
@@ -1792,16 +1698,11 @@ test('generated query has same refetch spec', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {
@@ -2086,7 +1987,7 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		export default {
 		    "name": "UserFriends",
 		    "kind": "HoudiniFragment",
-		    "hash": "abe3145a9845b49df034c589d794c5b91c35fd3d36c90044a7d2957ce93535f6",
+		    "hash": "64a7fc5f35d69ed44f3ad5c7da1d6cd2bd582a1118a35107cab486dbc1501512",
 
 		    "refetch": {
 		        "path": ["usersByCursor"],
@@ -2106,16 +2007,11 @@ test('default defaultPaginateMode to SinglePage', async function () {
 		        id
 		      }
 		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
 		    edges {
 		      cursor
 		      node {
 		        __typename
+		        id
 		      }
 		    }
 		    pageInfo {

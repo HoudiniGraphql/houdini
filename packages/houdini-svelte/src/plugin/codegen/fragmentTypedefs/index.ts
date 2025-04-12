@@ -4,7 +4,7 @@ import { printJS, fragmentKey, parseJS, path, fs, ArtifactKind, ensureImports } 
 import * as recast from 'recast'
 
 import type { PluginGenerateInput } from '..'
-import { stores_directory_name, store_name } from '../../kit'
+import { stores_directory_name, store_name } from '../../storeConfig'
 
 const AST = recast.types.builders
 

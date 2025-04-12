@@ -346,7 +346,7 @@ async function pullSchema(
 		if (content) {
 			console.warn(
 				`⚠️  Couldn't pull your schema.
-${'   Reponse:'} ${content}
+${'   Response:'} ${content}
 ${'   Error  :'} ${e.message}`
 			)
 		} else {

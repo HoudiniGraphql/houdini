@@ -4,9 +4,10 @@ import { runPipeline } from 'houdini/codegen'
 import { mockCollectedDoc, testConfig } from 'houdini/test'
 
 import { pluginHooks } from '../plugin'
+import { plugin_config } from '../plugin/config'
 import { parseSvelte } from '../plugin/extract'
 import type { Framework } from '../plugin/kit'
-import { layout_query_path, page_query_path, plugin_config, route_data_path } from '../plugin/kit'
+import { layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
 
 const schema = `
