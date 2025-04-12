@@ -1,5 +1,16 @@
 # houdini-adapter-node
 
+## 1.4.0-next.0
+
+### Minor Changes
+
+-   [#1470](https://github.com/HoudiniGraphql/houdini/pull/1470) [`cec37cdc`](https://github.com/HoudiniGraphql/houdini/commit/cec37cdc39561567cc142d399b02632d5151822b) Thanks [@github-actions](https://github.com/apps/github-actions)! - Bump GraphQL to v16
+
+### Patch Changes
+
+-   Updated dependencies [[`62ac9b07`](https://github.com/HoudiniGraphql/houdini/commit/62ac9b0703bbf1ee638f2ab8cb6da9c897f6df7c), [`ee62edf9`](https://github.com/HoudiniGraphql/houdini/commit/ee62edf97d145a0f189aa4bee49a39358761424c), [`cec37cdc`](https://github.com/HoudiniGraphql/houdini/commit/cec37cdc39561567cc142d399b02632d5151822b)]:
+    -   houdini@2.0.0-next.0
+
 ## 1.3.7
 
 ### Patch Changes

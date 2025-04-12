@@ -1,5 +1,17 @@
 # houdini
 
+## 2.0.0-next.0
+
+### Major Changes
+
+-   [`62ac9b07`](https://github.com/HoudiniGraphql/houdini/commit/62ac9b0703bbf1ee638f2ab8cb6da9c897f6df7c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Upgrade minimum vite version to 6
+
+-   [#1470](https://github.com/HoudiniGraphql/houdini/pull/1470) [`cec37cdc`](https://github.com/HoudiniGraphql/houdini/commit/cec37cdc39561567cc142d399b02632d5151822b) Thanks [@github-actions](https://github.com/apps/github-actions)! - Bump GraphQL to v16
+
+### Minor Changes
+
+-   [#1455](https://github.com/HoudiniGraphql/houdini/pull/1455) [`ee62edf9`](https://github.com/HoudiniGraphql/houdini/commit/ee62edf97d145a0f189aa4bee49a39358761424c) Thanks [@rgon](https://github.com/rgon)! - only run code generation pipeline if the modified file depends on $houdini
+
 ## 1.5.4
 
 ### Patch Changes
