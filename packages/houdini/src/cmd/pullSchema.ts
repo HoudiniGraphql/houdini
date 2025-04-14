@@ -6,7 +6,7 @@ export default async function (args: { headers: string[]; output?: string }) {
 	// Check if apiUrl is set in config
 	if (!apiURL) {
 		console.log(
-			'❌ Your project does not have a remote endpoint configured. Please provide one with the `apiUrl` value in your houdini.config.js file.'
+			'❌ Your project does not have a remote endpoint configured. Please provide one with the `watchSchema.url` value in your houdini.config.js file.'
 		)
 		process.exit(1)
 		return
