@@ -13,7 +13,7 @@
 		"compile:houdini:generate": "pnpm run compile:houdini && pnpm houdini generate",
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
-		"houdini": "houdini",
+		"houdini": "node ensureLinks.js && houdini",
 		"dev": "vite dev",
 		"build": "vite build",
 		"tests": "npm run build && playwright test",

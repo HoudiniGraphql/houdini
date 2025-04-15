@@ -19,7 +19,7 @@
     "compile:core:generate": "pnpm run compile:core && pnpm houdini generate",
     "compile:houdini:generate": "pnpm run compile:houdini && pnpm houdini generate",
     "compile:svelte:generate": "pnpm run compile:svelte && pnpm houdini generate",
-    "houdini": "houdini",
+    "houdini": "node ensureLinks.js && houdini",
     "previewWeb": "vite preview --port 3007",
     "preview": "concurrently \"pnpm run previewWeb\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
     "tests": "playwright test",
