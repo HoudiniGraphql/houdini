@@ -43,7 +43,9 @@ const fragmentExample = `$: data = fragment(user, graphql(\`
 \`))`
 
 const configExample = `export default {
-    apiUrl: 'http://localhost:4000',
+    watchSchema: {
+        url: 'http://localhost:4000',
+    },
     plugins: {
         'houdini-svelte': {}
     }

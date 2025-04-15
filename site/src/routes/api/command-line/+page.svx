@@ -40,8 +40,8 @@ Bootstraps a new project with the necessary files to start using houdini
 houdini pull-schema
 ```
 
-Pull the latest schema for your project. In order for this command to run, you must have an `apiUrl` value
-set in your [config file](/api/config).
+Pull the latest schema for your project. In order for this command to run, you must have a `watchSchema.url`
+value set in your [config file](/api/config).
 
 ### Flags:
 

@@ -1159,7 +1159,7 @@ export async function getConfig({
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
 				if (fs.glob.hasMagic(_config.schemaPath)) {
 					console.log(
-						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
+						`⚠️  Your houdini configuration contains a watchSchema url and a path pointing to multiple files.
 	This will prevent your schema from being pulled.`
 					)
 				}
