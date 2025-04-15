@@ -5,9 +5,6 @@ import fs from 'fs/promises';
 // get the list of directories in the build directory
 
 for (const pkg of ['houdini-core', 'houdini-svelte']) {
-  const buildDir = `../../packages/${pkg}/build`;
-  const dirs = await fs.readdir(buildDir);
-
   // make sure the node_modules directory exists
   try {
     await fs.mkdir('node_modules');
@@ -15,14 +12,16 @@ for (const pkg of ['houdini-core', 'houdini-svelte']) {
     // ignore
   }
 
-  // copy the directories to the node_modules
-  await Promise.all(
-    dirs.map(async (dir) => {
-      try {
-        await fs.symlink(`../${buildDir}/${dir}`, `node_modules/${dir}`, 'dir');
-      } catch (e) {
-        // ignore
-      }
-    })
-  );
+  // each package needs 2 packages to be coped over: the platform-generic package
+  // and the platform-specific ones
+  const suffix =
+    { linux: 'linux', win32: 'windows', darwin: 'darwin' }[process.platform] + `-${process.arch}`;
+
+  for (const target of [pkg, `${pkg}-${suffix}`]) {
+    try {
+      await fs.symlink(`../../../packages/${pkg}/build/${target}`, `node_modules/${target}`, 'dir');
+    } catch (e) {
+      // ignore
+    }
+  }
 }

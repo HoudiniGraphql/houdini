@@ -28,7 +28,7 @@
     "check:watch": "pnpm run check -- --watch",
     "lint": "prettier --ignore-path .gitignore --check . && eslint .",
     "format": "prettier --ignore-path .gitignore --write .",
-    "postinstall": "node postInstall.js"
+    "preinstall": "node preInstall.js"
   },
   "devDependencies": {
     "@kitql/helpers": "^0.8.2",
@@ -45,7 +45,6 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-svelte": "^2.39.0",
     "houdini": "workspace:^",
-    "houdini-plugin-svelte-global-stores": "workspace:^",
     "prettier": "^3.2.5",
     "prettier-plugin-svelte": "^3.2.3",
     "svelte": "^5.3.1",
