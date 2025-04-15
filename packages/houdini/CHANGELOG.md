@@ -1,5 +1,11 @@
 # houdini
 
+## 1.5.5
+
+### Patch Changes
+
+-   [#1476](https://github.com/HoudiniGraphql/houdini/pull/1476) [`3fe26b17`](https://github.com/HoudiniGraphql/houdini/commit/3fe26b17dfb758e329a5d24876862f238e8c71f2) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Replace mentions of apiUrl with watchSchema url to prevent confusion
+
 ## 1.5.4
 
 ### Patch Changes
