@@ -129,7 +129,7 @@ type IndexFile interface {
 
 /* A hook to generate custom files for every document in a project. */
 type Generate interface {
-	Generate(ctx context.Context) (string, error)
+	Generate(ctx context.Context) error
 }
 
 /* A hook to modify the generated artifact before it is persisted */

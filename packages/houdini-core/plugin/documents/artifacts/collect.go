@@ -60,7 +60,7 @@ func CollectDocuments(
 
 	// the batch size depends on how many there are. at the maximum, the batch size is nDocuments / nCpus
 	// but if that's above 100, then we should cap it at 100
-	batchSize := max(1, min(100, len(docIDs)/runtime.NumCPU()))
+	batchSize := max(1, min(100, len(docIDs)/runtime.NumCPU()+1))
 
 	// create a channel to send batches of ids to process
 	batchCh := make(chan []int64, len(docIDs))
@@ -148,6 +148,10 @@ func collectDoc(
 			argumentsWithValues := []*CollectedArgument{}
 			documentArgumentsWithValues := []*CollectedOperationVariable{}
 
+			// the insert order doesn't necessarily match the toposort order for fields when we've inserted fields
+			// after the original loading so we need to hold onto a list of selections that need to be patched
+			missingParents := map[int64][]*CollectedSelection{}
+
 			// step through the selections and build up the tree
 			err = db.StepStatement(ctx, statements.Search, func() {
 				// pull out the columns we care about
@@ -199,13 +203,15 @@ func collectDoc(
 					// if we have a parent then we need to save it in the parent's children
 					parentID := statements.Search.GetInt64("parent_id")
 					parent, ok := selections[parentID]
-					if !ok {
-						errs.Append(
-							plugins.WrapError(fmt.Errorf("parent selection %v not found for selection %v", parentID, selectionID)),
-						)
-						return
+					if ok {
+						parent.Children = append(parent.Children, selection)
+					} else {
+						if _, ok := missingParents[parentID]; !ok {
+							missingParents[parentID] = []*CollectedSelection{}
+						}
+
+						missingParents[parentID] = append(missingParents[parentID], selection)
 					}
-					parent.Children = append(parent.Children, selection)
 				}
 
 				// if the selection is a fragment, we need to save the ID in the document's list of referenced fragments
@@ -266,6 +272,18 @@ func collectDoc(
 				errs.Append(plugins.WrapError(err))
 				return
 			}
+
+			// patch any missing parents
+			for parentID, parentSelections := range missingParents {
+				parent, ok := selections[parentID]
+				if !ok {
+					errs.Append(plugins.Errorf("Missing parent selection"))
+				}
+				for _, selection := range parentSelections {
+					parent.Children = append(parent.Children, selection)
+				}
+			}
+
 			if errs.Len() > 0 {
 				return
 			}
@@ -424,9 +442,9 @@ func collectDoc(
 					if !ok {
 						errs.Append(
 							plugins.WrapError(fmt.Errorf(
-								"argument value %v not found for argument value %v",
+								"argument value %v not found in document %s",
 								valueID,
-								argumentValueSearch.GetInt64("id"),
+								argumentValueSearch.GetText("document_name"),
 							)),
 						)
 						return
@@ -593,20 +611,19 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           NULL AS parent_id,
           a.arguments,
           dct.directives,
-          type_fields.type
+          type_fields.type,
+          d.id as document_id
         FROM selections
-        JOIN selection_refs 
-          ON selection_refs.child_id = selections.id 
-         AND selection_refs.parent_id IS NULL
-        LEFT JOIN documents d 
-          ON d.id = selection_refs.document
-        LEFT JOIN directives_agg dct 
-          ON dct.selection_id = selections.id
-        LEFT JOIN arguments_agg a 
-          ON a.selection_id = selections.id
-        LEFT JOIN type_fields on selections.type = type_fields.id
-        LEFT JOIN types on d.kind = types.operation
-        WHERE d.id IN %s
+          JOIN selection_refs 
+            ON selection_refs.child_id = selections.id 
+           AND selection_refs.parent_id IS NULL
+           AND selection_refs.document IN %s
+
+          LEFT JOIN documents d ON d.id = selection_refs.document
+          LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
+          LEFT JOIN arguments_agg a ON a.selection_id = selections.id
+          LEFT JOIN type_fields on selections.type = type_fields.id
+          LEFT JOIN types on d.kind = types.operation
       
         UNION ALL
       
@@ -623,17 +640,20 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           st.id AS parent_id,
           a.arguments,
           dct.directives,
-          type_fields.type
-        FROM selections
-        JOIN selection_refs ON selection_refs.child_id = selections.id AND selection_refs.document IN %s
-        JOIN selection_tree st ON selection_refs.parent_id = st.id
-        LEFT JOIN type_fields on selections.type = type_fields.id
-        LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
-        LEFT JOIN arguments_agg a ON a.selection_id = selections.id
+          type_fields.type,
+          st.document_id AS document_id
+        FROM selection_refs 
+          JOIN selection_tree st ON selection_refs.parent_id = st.id
+          JOIN selections on selection_refs.child_id = selections.id
+
+          LEFT JOIN type_fields on selections.type = type_fields.id
+          LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
+          LEFT JOIN arguments_agg a ON a.selection_id = selections.id
+        WHERE selection_refs.document = st.document_id
       )
     SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id, document_kind, type_condition, type FROM selection_tree
-    ORDER BY parent_id
-  `, whereIn, whereIn, whereIn, whereIn, whereIn))
+    ORDER BY parent_id ASC
+  `, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}
@@ -767,7 +787,7 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
     FROM argument_values av
       LEFT JOIN argument_value_children on argument_value_children."value" = av.id
       JOIN documents on av.document = documents.id
-    WHERE av."document" IN %s
+    WHERE av.id IN %s
     ORDER BY av.id    
   `, whereIn))
 	if err != nil {

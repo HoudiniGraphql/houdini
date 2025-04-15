@@ -160,7 +160,16 @@ func handleGenerate[PluginConfig any](
 			if err != nil {
 				return err
 			}
+
 			fmt.Println("include runtime", runtimePath)
+		}
+
+		// invoke the generate hook
+		if generate, ok := plugin.(Generate); ok {
+			err := generate.Generate(ctx)
+			if err != nil {
+				return err
+			}
 		}
 
 		// nothing went wrong

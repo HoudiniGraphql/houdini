@@ -105,10 +105,10 @@ func TestArtifactGeneration(t *testing.T) {
                 "kind": "HoudiniQuery",
                 "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
 
-                "raw": \`query TestQuery {
+                "raw": ` + "`" + `query TestQuery {
               version
             }
-            \`,
+            ` + "`" + `,
 
                 "rootType": "Query",
                 "stripVariables": [],
