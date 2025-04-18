@@ -1,4 +1,4 @@
-package artifact_tests
+package artifacts_test
 
 import (
 	"context"

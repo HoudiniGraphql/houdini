@@ -25,5 +25,12 @@ func Generate(ctx context.Context, db plugins.DatabasePool[config.PluginConfig])
 		return err
 	}
 
+	// we now have everything we need to generate the document artifacts
+	err = GenerateDocumentArtifacts(ctx, db, conn, collected)
+	if err != nil {
+		return err
+	}
+
+	// we're done
 	return nil
 }

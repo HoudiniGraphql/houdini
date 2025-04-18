@@ -153,7 +153,8 @@ export async function codegen_setup(
 			if (response.status === 404) {
 				throw new Error(`Plugin ${name} does not support hook ${hook}`)
 			}
-			const errors: HookError[] = await response.json()
+			const responseJSON = await response.json()
+      const errors: HookError[]  = Array.isArray(responseJSON)  ? responseJSON : [responseJSON] 
 			errors.forEach((error) => {
 				format_hook_error(config.root_dir, error)
 			})

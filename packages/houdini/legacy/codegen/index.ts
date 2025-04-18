@@ -119,7 +119,7 @@ export async function runPipeline(config: Config, docs: Document[]) {
 				// transforms.paginate,
 				//transforms.componentFields,
 				//transforms.fragmentVariables,
-				transforms.collectDefinitions,
+				//transforms.collectDefinitions,
 
 				// ...wrapHook(beforeGenerate),
 

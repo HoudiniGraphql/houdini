@@ -256,7 +256,7 @@ func TestMergeSelections(t *testing.T) {
 				},
 			},
 			{
-				Name: "Fragments on mismatches types end up as inline fragments",
+				Name: "Fragments on mismatched types end up as inline fragments",
 				Pass: true,
 				Input: []string{
 					`
