@@ -7,7 +7,7 @@ export const create_schema = `
 CREATE TABLE plugins (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     port INTEGER NOT NULL,
-    hooks TEXT NOT NULL,
+    hooks JSON NOT NULL,
     plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
     config JSON
 );

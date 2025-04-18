@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -9,12 +10,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
-	"code.houdinigraphql.com/packages/houdini-core/config"
 	"zombiezen.com/go/sqlite/sqlitex"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
 )
 
 var (
@@ -57,6 +58,10 @@ func Run(plugin HoudiniPlugin[config.PluginConfig]) error {
 	db.ReloadProjectConfig(ctx)
 
 	hooks := pluginHooks(ctx, plugin)
+	hooksStr, err := json.Marshal(hooks)
+	if err != nil {
+		return fmt.Errorf("failed to marshal hooks: %w", err)
+	}
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -118,7 +123,7 @@ func Run(plugin HoudiniPlugin[config.PluginConfig]) error {
 				&sqlitex.ExecOptions{
 					Args: []interface{}{
 						plugin.Name(),
-						strings.Join(hooks, ","),
+						string(hooksStr),
 						port,
 						plugin.Order(),
 					},

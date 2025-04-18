@@ -81,7 +81,7 @@ export async function codegen_setup(
 					const spec: PluginSpec = {
 						name: row.name,
 						port: row.port,
-						hooks: new Set(row.hooks.split(',')),
+						hooks: new Set(JSON.parse(row.hooks)),
 						order: row.plugin_order as 'before' | 'after' | 'core',
 					}
 
