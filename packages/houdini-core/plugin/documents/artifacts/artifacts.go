@@ -22,7 +22,6 @@ func GenerateDocumentArtifacts(
 	if err != nil {
 		return err
 	}
-	defaultMasking := config.DefaultFragmentMasking
 
 	// there are a few things that we need to generate for each document:
 	// - the selection artifact
@@ -51,7 +50,7 @@ func GenerateDocumentArtifacts(
 					ctx,
 					collectedDefinitions,
 					name,
-					defaultMasking,
+					config.DefaultFragmentMasking,
 					false,
 				)
 				if err != nil {

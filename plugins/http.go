@@ -74,7 +74,7 @@ func pluginHooks[PluginConfig any](
 		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(Hash); ok {
-		hooks["BeforeGenerate"] = true
+		hooks["Hash"] = true
 		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleBeforeGenerate(plugin))))
 	}
 	if _, ok := plugin.(GraphQLTagReturn); ok {

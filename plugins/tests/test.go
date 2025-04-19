@@ -261,6 +261,7 @@ CREATE TABLE documents (
   	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
 	  raw_document INTEGER,
     printed TEXT,
+    hash TEXT,
     type_condition TEXT,
     FOREIGN KEY (type_condition) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED

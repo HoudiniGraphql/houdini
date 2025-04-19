@@ -192,6 +192,7 @@ func collectDoc(
 							Name:          documentName,
 							Kind:          statements.Search.GetText("document_kind"),
 							TypeCondition: statements.Search.GetText("type_condition"),
+							Hash:          statements.Search.GetText("hash"),
 						}
 						documents[documentName] = doc
 					}
@@ -612,7 +613,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           a.arguments,
           dct.directives,
           type_fields.type,
-          d.id as document_id
+          d.id as document_id,
+          d.hash
         FROM selections
           JOIN selection_refs 
             ON selection_refs.child_id = selections.id 
@@ -641,7 +643,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           a.arguments,
           dct.directives,
           type_fields.type,
-          st.document_id AS document_id
+          st.document_id AS document_id,
+          st.hash
         FROM selection_refs 
           JOIN selection_tree st ON selection_refs.parent_id = st.id
           JOIN selections on selection_refs.child_id = selections.id
@@ -807,6 +810,7 @@ type CollectedDocument struct {
 	Name                string
 	Kind                string // "query", "mutation", "subscription", or "fragment"
 	TypeCondition       string
+	Hash                string
 	Variables           []*CollectedOperationVariable
 	Selections          []*CollectedSelection
 	Directives          []*CollectedDirective

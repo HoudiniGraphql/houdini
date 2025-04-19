@@ -13,6 +13,12 @@ func Generate(ctx context.Context, db plugins.DatabasePool[config.PluginConfig])
 		return err
 	}
 
+	// before we generate artifacts we need to trigger a few hooks
+	_, err = plugins.TriggerHook(ctx, db, "Hash", map[string]any{})
+	if err != nil {
+		return err
+	}
+
 	// the first thing we need to do is collect the definitions of all of the necessary documents
 	collected, err := CollectDocuments(ctx, db, conn)
 	if err != nil {
