@@ -44,6 +44,16 @@ func GenerateDocumentArtifacts(
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+
+			// we'll need to look some things up while generating artifacts so grab a connection
+			// for this routine
+			conn, err := db.Take(ctx)
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			defer db.Put(conn)
+
 			for name := range docNames {
 				// we need to generate the flattened selection
 				selection, err := FlattenSelection(
@@ -59,7 +69,7 @@ func GenerateDocumentArtifacts(
 				}
 
 				// generate the selection artifact
-				err = generateSelectionDocument(collectedDefinitions, name, selection)
+				err = writeSelectionDocument(ctx, db, conn, collectedDefinitions, name, selection)
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
 					continue

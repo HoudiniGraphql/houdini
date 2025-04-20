@@ -70,8 +70,18 @@ func TestArtifactGeneration(t *testing.T) {
 				collectedDocs, err := artifacts.CollectDocuments(context.Background(), p.DB, conn)
 				require.Nil(t, err)
 
+				//  make sure that the documents are printed
+				err = artifacts.EnsureDocumentsPrinted(
+					context.Background(),
+					p.DB,
+					conn,
+					collectedDocs,
+					false,
+				)
+				require.Nil(t, err)
+
 				// merge the selection before we print so we can easily write the tests
-				collected, err := artifacts.FlattenSelection(
+				selection, err := artifacts.FlattenSelection(
 					context.Background(),
 					collectedDocs,
 					name,
@@ -80,9 +90,15 @@ func TestArtifactGeneration(t *testing.T) {
 				)
 				require.Nil(t, err)
 
-				// merge the selections and update the docs to test against
-				collectedDocs.Selections[name].Selections = collected
-				printed := artifacts.PrintCollectedDocument(collectedDocs.Selections[name], true)
+				// generate the selection document
+				printed, err := artifacts.GenerateSelectionDocument(
+					context.Background(),
+					p.DB,
+					conn,
+					collectedDocs,
+					name,
+					selection,
+				)
 
 				require.Equal(t, content, printed)
 			}
@@ -99,14 +115,13 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"MyQuery": tests.Dedent(`
-           	export default {
+					"TestQuery": tests.Dedent(`
+            export default {
                 "name": "TestQuery",
                 "kind": "HoudiniQuery",
-                "hash": "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
-
+                "hash": "399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777",
                 "raw": ` + "`" + `query TestQuery {
-              version
+                version
             }
             ` + "`" + `,
 
@@ -126,9 +141,9 @@ func TestArtifactGeneration(t *testing.T) {
                 "pluginData": {},
                 "policy": "CacheOrNetwork",
                 "partial": false
-            };
+            }
 
-            "HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
+            "HoudiniHash=399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777"
           `),
 				},
 			},
