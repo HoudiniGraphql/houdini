@@ -15,7 +15,7 @@ func GenerateDocumentArtifacts(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	collectedDefinitions map[string]*CollectedDocument,
+	collectedDefinitions *CollectedDocuments,
 ) error {
 	// load the project config to look up the default masking
 	config, err := db.ProjectConfig(ctx)
@@ -34,7 +34,7 @@ func GenerateDocumentArtifacts(
 	errs := &plugins.ErrorList{}
 
 	// a channel to push document names onto
-	docNames := make(chan string, len(collectedDefinitions))
+	docNames := make(chan string, len(collectedDefinitions.TaskDocuments))
 
 	// a wait group to orchestrate the draining
 	var wg sync.WaitGroup
@@ -76,19 +76,9 @@ func GenerateDocumentArtifacts(
 	}
 
 	// we need to look for every document in the current task
-	query := `
-    SELECT name
-    FROM documents
-      JOIN raw_documents on documents.raw_document = raw_documents.id
-		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
-  `
-	err = db.StepQuery(ctx, query, map[string]any{}, func(stmt *sqlite.Stmt) {
+	for _, doc := range collectedDefinitions.TaskDocuments {
 		// push the name from the query result onto the channel for processing
-		docNames <- stmt.GetText("name")
-	})
-	if err != nil {
-		close(docNames)
-		return err
+		docNames <- doc
 	}
 
 	// if we got this far then we're done processing the database so let's signal the workers

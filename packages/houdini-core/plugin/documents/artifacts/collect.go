@@ -20,8 +20,11 @@ func CollectDocuments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-) (map[string]*CollectedDocument, error) {
-	result := map[string]*CollectedDocument{}
+) (*CollectedDocuments, error) {
+	result := &CollectedDocuments{
+		Selections:    map[string]*CollectedDocument{},
+		TaskDocuments: []string{},
+	}
 
 	// the first thing we have to do is id of every document that we care about
 	docIDs := []int64{}
@@ -29,26 +32,44 @@ func CollectDocuments(
 	// the documents we care about are those that fall in the current task as well as
 	// any fragments that are referenced in a document that is in the current task
 	documentSearch, err := conn.Prepare(`
-    SELECT documents.id 
-    FROM documents 
-      JOIN raw_documents ON documents.raw_document = raw_documents.id
-    WHERE (raw_documents.current_task = $task_id OR $task_id is null)
+    SELECT documents.id,
+           documents.name,
+           true  AS current
+    FROM documents
+    JOIN raw_documents
+      ON documents.raw_document = raw_documents.id
+    WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 
-    UNION
+    UNION ALL
 
-    SELECT documents.id
-    FROM selections 
-      JOIN documents ON selections.field_name = documents."name" 
-      JOIN selection_refs ON selection_refs.child_id = selections.id
-      JOIN documents selection_docs ON selection_refs.document = selection_docs.id
-      JOIN raw_documents ON selection_docs.raw_document = raw_documents.id
-    WHERE selections.kind = 'fragment' AND (raw_documents.current_task = $task_id OR $task_id is null)
+    SELECT documents.id,
+           documents.name,
+           false AS current
+    FROM selections
+      JOIN documents
+        ON selections.field_name = documents.name
+      JOIN selection_refs
+        ON selection_refs.child_id = selections.id
+      JOIN documents AS selection_docs
+        ON selection_refs.document = selection_docs.id
+      -- only consider selections in documents within the current task
+      JOIN raw_documents
+        ON selection_docs.raw_document = raw_documents.id
+      -- but don't include any documents that were picked up because of the current task
+      JOIN raw_documents AS doc_raw
+        ON documents.raw_document = doc_raw.id
+    WHERE selections.kind = 'fragment'
+      AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+      AND NOT (doc_raw.current_task   = $task_id OR $task_id IS NULL)
   `)
 	if err != nil {
 		return nil, err
 	}
 	err = db.StepStatement(ctx, documentSearch, func() {
 		docIDs = append(docIDs, documentSearch.GetInt64("id"))
+		if documentSearch.GetBool("current") {
+			result.TaskDocuments = append(result.TaskDocuments, documentSearch.GetText("name"))
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -93,7 +114,7 @@ func CollectDocuments(
 	// collect the results
 	for docs := range resultCh {
 		for _, doc := range docs {
-			result[doc.Name] = doc
+			result.Selections[doc.Name] = doc
 		}
 	}
 
@@ -859,4 +880,9 @@ type CollectedArgumentValue struct {
 type CollectedArgumentValueChildren struct {
 	Name  string
 	Value *CollectedArgumentValue
+}
+
+type CollectedDocuments struct {
+	TaskDocuments []string
+	Selections    map[string]*CollectedDocument
 }

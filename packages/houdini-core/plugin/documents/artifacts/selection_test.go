@@ -81,8 +81,8 @@ func TestArtifactGeneration(t *testing.T) {
 				require.Nil(t, err)
 
 				// merge the selections and update the docs to test against
-				collectedDocs[name].Selections = collected
-				printed := artifacts.PrintCollectedDocument(collectedDocs[name], true)
+				collectedDocs.Selections[name].Selections = collected
+				printed := artifacts.PrintCollectedDocument(collectedDocs.Selections[name], true)
 
 				require.Equal(t, content, printed)
 			}

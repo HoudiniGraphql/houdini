@@ -12,13 +12,13 @@ import (
 
 func FlattenSelection(
 	ctx context.Context,
-	collectedDocuments map[string]*CollectedDocument,
+	collectedDocuments *CollectedDocuments,
 	name string,
 	defaultMask bool,
 	sortKeys bool,
 ) ([]*CollectedSelection, error) {
 	// we need to flatten the selection of the document with the matching name
-	doc, ok := collectedDocuments[name]
+	doc, ok := collectedDocuments.Selections[name]
 	if !ok {
 		return nil, fmt.Errorf("document not found: %s", name)
 	}
@@ -36,7 +36,7 @@ func FlattenSelection(
 }
 
 func newFieldCollection(
-	docs map[string]*CollectedDocument,
+	docs *CollectedDocuments,
 	defaultMask bool,
 	parentType string,
 	sortKeys bool,
@@ -60,7 +60,7 @@ type fieldCollectionField struct {
 type fieldCollection struct {
 	SortKeys           bool
 	ParentType         string
-	CollectedDocuments map[string]*CollectedDocument
+	CollectedDocuments *CollectedDocuments
 	DefaultMask        bool
 
 	Fields          map[string]*fieldCollectionField
@@ -137,7 +137,7 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		}
 
 		// and most include the fragment's sub selection
-		definition, ok := c.CollectedDocuments[selection.FieldName]
+		definition, ok := c.CollectedDocuments.Selections[selection.FieldName]
 		if !ok {
 			return plugins.WrapError(errors.New("fragment not found"))
 		}

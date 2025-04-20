@@ -1,7 +1,7 @@
 package artifacts
 
 func generateSelectionDocument(
-	docs map[string]*CollectedDocument,
+	docs *CollectedDocuments,
 	name string,
 	selection []*CollectedSelection,
 ) error {

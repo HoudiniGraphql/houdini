@@ -1,7 +1,7 @@
 package artifacts
 
 func generateTypescriptDefinition(
-	docs map[string]*CollectedDocument,
+	docs *CollectedDocuments,
 	name string,
 	selection []*CollectedSelection,
 ) error {

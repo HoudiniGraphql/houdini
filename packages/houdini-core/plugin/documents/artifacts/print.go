@@ -18,7 +18,7 @@ func EnsureDocumentsPrinted(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	collectedDocuments map[string]*CollectedDocument,
+	collectedDocuments *CollectedDocuments,
 	includeHidden bool,
 ) error {
 	// we need to make sure that every document in the current task gets an updated stringified
@@ -29,21 +29,10 @@ func EnsureDocumentsPrinted(
 	}
 	defer db.Put(conn)
 
-	// the documents we care about are those that fall in the current task
-	documentSearch, err := conn.Prepare(`
-    SELECT documents.name
-    FROM documents 
-      JOIN raw_documents ON documents.raw_document = raw_documents.id
-    WHERE (raw_documents.current_task = $task_id OR $task_id is null)
-  `)
-	if err != nil {
-		return plugins.WrapError(err)
-	}
-
 	// we want to parallelize the printing so we need a channel to push relevant document names
 	// that we discover are part of the task
-	docCh := make(chan string, len(collectedDocuments))
-	errCh := make(chan *plugins.Error, len(collectedDocuments))
+	docCh := make(chan string, len(collectedDocuments.TaskDocuments))
+	errCh := make(chan *plugins.Error, len(collectedDocuments.TaskDocuments))
 	var wg sync.WaitGroup
 	for range runtime.NumCPU() {
 		wg.Add(1)
@@ -51,11 +40,8 @@ func EnsureDocumentsPrinted(
 	}
 
 	// walk through the documents that are part of the current task
-	err = db.StepStatement(ctx, documentSearch, func() {
-		docCh <- documentSearch.ColumnText(0)
-	})
-	if err != nil {
-		return plugins.WrapError(err)
+	for _, doc := range collectedDocuments.TaskDocuments {
+		docCh <- doc
 	}
 
 	// close the doc channel since no more results will be sent
@@ -67,6 +53,16 @@ func EnsureDocumentsPrinted(
 	// close the error channel since no more errors will be sent.
 	close(errCh)
 
+	// drain the error channel and collect the results
+	errs := &plugins.ErrorList{}
+	for err := range errCh {
+		errs.Append(plugins.WrapError(err))
+	}
+
+	if errs.Len() > 0 {
+		return errs
+	}
+
 	return nil
 }
 
@@ -76,7 +72,7 @@ func printDocWorker(
 	wg *sync.WaitGroup,
 	docChan <-chan string,
 	errChan chan<- *plugins.Error,
-	collectedDocuments map[string]*CollectedDocument,
+	collectedDocuments *CollectedDocuments,
 	includeHidden bool,
 ) {
 	// when we're done we need to signal the wait group
@@ -103,7 +99,7 @@ func printDocWorker(
 	// consume document names from the channel
 	for docName := range docChan {
 		// look up the definition of the document we need to print
-		doc, ok := collectedDocuments[docName]
+		doc, ok := collectedDocuments.Selections[docName]
 		if !ok {
 			errChan <- plugins.Errorf("document %v not found in collected documents", docName)
 			continue
