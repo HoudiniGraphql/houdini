@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"context"
+	"path"
 
 	"github.com/spf13/afero"
 
@@ -34,6 +35,17 @@ func Generate(
 
 	//  make sure that the documents are printed
 	err = EnsureDocumentsPrinted(ctx, db, conn, collected, false)
+	if err != nil {
+		return err
+	}
+
+	// make sure the artifact directory exists
+	projectConfig, err := db.ProjectConfig(ctx)
+	if err != nil {
+		return err
+	}
+	artifactDirectory := path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
+	err = fs.MkdirAll(artifactDirectory, 0755)
 	if err != nil {
 		return err
 	}
