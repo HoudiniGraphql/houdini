@@ -146,6 +146,14 @@ func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
 		}
 		sort.Strings(toPrint)
 
+		// track the unused variables
+		doc.UnusedVariables = []string{}
+		for _, arg := range doc.Variables {
+			if _, ok := usedVariables[arg.Name]; !ok {
+				doc.UnusedVariables = append(doc.UnusedVariables, arg.Name)
+			}
+		}
+
 		if len(toPrint) > 0 {
 			printedArgs := []string{}
 			for _, arg := range toPrint {

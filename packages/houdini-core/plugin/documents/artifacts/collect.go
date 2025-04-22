@@ -836,6 +836,7 @@ type CollectedDocument struct {
 	Selections          []*CollectedSelection
 	Directives          []*CollectedDirective
 	ReferencedFragments []string
+	UnusedVariables     []string
 }
 
 type CollectedSelection struct {

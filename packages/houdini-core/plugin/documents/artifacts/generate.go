@@ -3,15 +3,22 @@ package artifacts
 import (
 	"context"
 
+	"github.com/spf13/afero"
+
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 )
 
-func Generate(ctx context.Context, db plugins.DatabasePool[config.PluginConfig]) error {
+func Generate(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	fs afero.Fs,
+) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return err
 	}
+	defer db.Put(conn)
 
 	// before we generate artifacts we need to trigger a few hooks
 	_, err = plugins.TriggerHook(ctx, db, "Hash", map[string]any{})
@@ -32,7 +39,7 @@ func Generate(ctx context.Context, db plugins.DatabasePool[config.PluginConfig])
 	}
 
 	// we now have everything we need to generate the document artifacts
-	err = GenerateDocumentArtifacts(ctx, db, conn, collected)
+	err = GenerateDocumentArtifacts(ctx, db, conn, collected, fs)
 	if err != nil {
 		return err
 	}

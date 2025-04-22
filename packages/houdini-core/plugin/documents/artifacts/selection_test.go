@@ -2,8 +2,10 @@ package artifacts_test
 
 import (
 	"context"
+	"path"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -58,49 +60,39 @@ func TestArtifactGeneration(t *testing.T) {
 				return
 			}
 
+			// generate the artifacts
+			err = artifacts.Generate(context.Background(), p.DB, p.Fs)
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+
+			projectConfig, err := p.DB.ProjectConfig(context.Background())
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+
 			// the extra test content defines what we should expect
 			for name, c := range test.Extra {
-				content := c.(string)
+				expected := c.(string)
 
-				conn, err := p.DB.Take(context.Background())
-				require.Nil(t, err)
-				defer p.DB.Put(conn)
-
-				// the first thing we have to do is collect the artifacts.
-				collectedDocs, err := artifacts.CollectDocuments(context.Background(), p.DB, conn)
-				require.Nil(t, err)
-
-				//  make sure that the documents are printed
-				err = artifacts.EnsureDocumentsPrinted(
-					context.Background(),
-					p.DB,
-					conn,
-					collectedDocs,
-					false,
-				)
-				require.Nil(t, err)
-
-				// merge the selection before we print so we can easily write the tests
-				selection, err := artifacts.FlattenSelection(
-					context.Background(),
-					collectedDocs,
-					name,
-					true,
-					true,
-				)
-				require.Nil(t, err)
-
-				// generate the selection document
-				printed, err := artifacts.GenerateSelectionDocument(
-					context.Background(),
-					p.DB,
-					conn,
-					collectedDocs,
-					name,
-					selection,
+				// the artifact is located at .houdini/artifacts/<name>.js
+				artifactPath := path.Join(
+					projectConfig.ProjectRoot,
+					projectConfig.RuntimeDir,
+					"artifacts",
+					name+".js",
 				)
 
-				require.Equal(t, content, printed)
+				// read the file
+				file, err := p.Fs.Open(artifactPath)
+				require.Nil(t, err)
+				fileContent, err := afero.ReadAll(file)
+				require.Nil(t, err)
+
+				// make sure it matches the expected value
+				require.Equal(t, expected, string(fileContent))
 			}
 		},
 		Tests: []tests.Test[config.PluginConfig]{
@@ -134,8 +126,8 @@ func TestArtifactGeneration(t *testing.T) {
                             "type": "Int",
                             "keyRaw": "version",
                             "visible": true
-                        }
-                    }
+                        },
+                    },
                 },
 
                 "pluginData": {},

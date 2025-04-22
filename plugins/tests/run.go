@@ -65,10 +65,12 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 	for _, test := range table.Tests {
 		t.Run(test.Name, func(t *testing.T) {
 			projectConfig := plugins.ProjectConfig{
-				ProjectRoot: "/project",
-				SchemaPath:  "schema.graphql",
-				DefaultKeys: []string{"id"},
-				TypeConfig:  make(map[string]plugins.TypeConfig),
+				ProjectRoot:        "/project",
+				SchemaPath:         "schema.graphql",
+				DefaultKeys:        []string{"id"},
+				TypeConfig:         make(map[string]plugins.TypeConfig),
+				DefaultCachePolicy: "CacheOrNetwork",
+				DefaultPartial:     false,
 			}
 
 			if table.ProjectConfig.TypeConfig != nil {

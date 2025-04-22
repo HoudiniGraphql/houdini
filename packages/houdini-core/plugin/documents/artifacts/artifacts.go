@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/spf13/afero"
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -16,6 +17,7 @@ func GenerateDocumentArtifacts(
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
 	collectedDefinitions *CollectedDocuments,
+	fs afero.Fs,
 ) error {
 	// load the project config to look up the default masking
 	config, err := db.ProjectConfig(ctx)
@@ -69,7 +71,15 @@ func GenerateDocumentArtifacts(
 				}
 
 				// generate the selection artifact
-				err = writeSelectionDocument(ctx, db, conn, collectedDefinitions, name, selection)
+				err = writeSelectionDocument(
+					ctx,
+					fs,
+					db,
+					conn,
+					collectedDefinitions,
+					name,
+					selection,
+				)
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
 					continue

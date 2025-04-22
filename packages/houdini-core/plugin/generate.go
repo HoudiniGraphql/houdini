@@ -8,7 +8,7 @@ import (
 
 func (p *HoudiniCore) Generate(ctx context.Context) error {
 	// the first thing to do is generate the artifacts
-	err := artifacts.Generate(ctx, p.DB)
+	err := artifacts.Generate(ctx, p.DB, p.Fs)
 	if err != nil {
 		return err
 	}

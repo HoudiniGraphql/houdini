@@ -35,6 +35,7 @@ export const default_config: ConfigFile = {
 	defaultKeys: ['id'],
 	defaultPaginateMode: 'Infinite',
   defaultFragmentMasking: 'enable',
+  defaultCachePolicy: 'CacheOrNetwork',
 }
 
 // a place to store the current configuration
