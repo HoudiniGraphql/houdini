@@ -91,6 +91,9 @@ func GenerateSelectionDocument(
 	}
 
 	// stringify the unused variables
+	if doc.UnusedVariables == nil {
+		doc.UnusedVariables = []string{}
+	}
 	stripVariables, err := json.Marshal(doc.UnusedVariables)
 	if err != nil {
 		return "", err

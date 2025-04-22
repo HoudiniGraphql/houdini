@@ -14,6 +14,7 @@ func Generate(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	fs afero.Fs,
+	sortKeys bool,
 ) error {
 	conn, err := db.Take(ctx)
 	if err != nil {
@@ -51,7 +52,7 @@ func Generate(
 	}
 
 	// we now have everything we need to generate the document artifacts
-	err = GenerateDocumentArtifacts(ctx, db, conn, collected, fs)
+	err = GenerateDocumentArtifacts(ctx, db, conn, collected, fs, sortKeys)
 	if err != nil {
 		return err
 	}

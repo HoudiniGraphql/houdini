@@ -18,6 +18,7 @@ func GenerateDocumentArtifacts(
 	conn *sqlite.Conn,
 	collectedDefinitions *CollectedDocuments,
 	fs afero.Fs,
+	sortKeys bool,
 ) error {
 	// load the project config to look up the default masking
 	config, err := db.ProjectConfig(ctx)
@@ -63,7 +64,7 @@ func GenerateDocumentArtifacts(
 					collectedDefinitions,
 					name,
 					config.DefaultFragmentMasking,
-					false,
+					sortKeys,
 				)
 				if err != nil {
 					errs.Append(plugins.WrapError(err))

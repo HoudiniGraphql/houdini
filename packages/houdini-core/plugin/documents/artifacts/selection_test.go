@@ -33,6 +33,7 @@ func TestArtifactGeneration(t *testing.T) {
         id: ID!
         name: String!
         bestFriend: User! 
+        firstName: String
         pets(name: String!, filter: PetFilter ): [Pet!]!
       }
 
@@ -61,7 +62,7 @@ func TestArtifactGeneration(t *testing.T) {
 			}
 
 			// generate the artifacts
-			err = artifacts.Generate(context.Background(), p.DB, p.Fs)
+			err = artifacts.Generate(context.Background(), p.DB, p.Fs, true)
 			if err != nil {
 				require.False(t, test.Pass, err.Error())
 				return
@@ -105,6 +106,12 @@ func TestArtifactGeneration(t *testing.T) {
               version
             } 
           `,
+					`
+            fragment TestFragment on User { 
+              firstName 
+              id
+            }
+          `,
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
@@ -136,6 +143,42 @@ func TestArtifactGeneration(t *testing.T) {
             }
 
             "HoudiniHash=399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777"
+          `),
+					"TestFragment": tests.Dedent(`
+            export default {
+                "name": "TestFragment",
+                "kind": "HoudiniFragment",
+                "hash": "9291c36c6e30ce6a058424b4a5e1f4191d8214df6109b927677071e60bb134ac",
+                "raw": ` + "`" + `fragment TestFragment on User {
+                firstName
+                id
+            }
+            ` + "`" + `,
+
+                "rootType": "User",
+                "stripVariables": [],
+
+                "selection": {
+                    "fields": {
+                        "firstName": {
+                            "type": "String",
+                            "keyRaw": "firstName",
+                            "visible": true
+                        },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true
+                        },
+                    },
+                },
+
+                "pluginData": {},
+                "policy": "CacheOrNetwork",
+                "partial": false
+            }
+
+            "HoudiniHash=9291c36c6e30ce6a058424b4a5e1f4191d8214df6109b927677071e60bb134ac"
           `),
 				},
 			},
