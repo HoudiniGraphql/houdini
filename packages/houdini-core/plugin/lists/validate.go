@@ -185,7 +185,7 @@ func ValidatePaginateTypeCondition(
 		WHERE d.kind = 'fragment'
 			AND sd.directive = $paginate_directive
 			AND pt.member IS NULL
-			AND (types.operation is false AND types.name IS NOT NULL)
+			AND (types.operation is null AND types.name IS NOT NULL)
 			AND tc.name IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 	`

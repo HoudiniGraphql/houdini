@@ -63,7 +63,7 @@ func PreparePaginationDocuments(
 			selections.type,
 			documents.name,
 			CASE
-				WHEN types.operation THEN null
+				WHEN types.operation is not null THEN null
 				WHEN documents.type_condition IS NOT NULL
 					THEN COALESCE(type_configs.resolve_query, 'node')
 				ELSE null

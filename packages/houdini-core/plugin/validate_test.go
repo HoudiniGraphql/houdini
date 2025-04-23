@@ -102,7 +102,7 @@ func TestValidate_Houdini(t *testing.T) {
 				bestFriend: User
 			}
 
-			type Ghost implements Entity{
+			type Ghost implements Entity {
 				aka: String!
 				name: String!
 				believers(first: Int, after: String, last: Int, before: String): UserConnection!

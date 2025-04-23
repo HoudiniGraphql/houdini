@@ -61,7 +61,7 @@ func AddDocumentFields[PluginConfig any](
 			)
 			JOIN documents d ON sr.document = d.id
 			JOIN raw_documents rd ON d.raw_document = rd.id
-			AND t.operation = false
+			AND t.operation is null
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		),
 

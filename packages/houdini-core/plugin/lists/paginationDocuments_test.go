@@ -463,6 +463,8 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						fragment Friends on User {
+              id
+              __typename
 							friends(first: $first, after: $after, last: $last, before: $before) @paginate {
 								edges {
 									node {
@@ -530,6 +532,8 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 								__typename
 								id
 							}
+              __typename
+              title
 						}
 					`).WithVariables(
 						tests.ExpectedOperationVariable{
