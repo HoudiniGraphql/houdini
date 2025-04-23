@@ -263,6 +263,88 @@ func TestArtifactGeneration(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "Overlapping selections aren't hidden",
+				Pass: true,
+				Input: []string{
+					`
+    query TestQuery {
+      user { 
+          firstName
+          ...TestFragment
+      }
+    } 
+  `,
+					`
+    fragment TestFragment on User { 
+      firstName 
+      id
+    }
+  `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "68a132637799d1b412ef63cc8365e2552b16e53d0fa5c6409514eea6706ef569",
+                  "raw": ` + "`" + `fragment TestFragment on User {
+                  firstName
+                  id
+              }
+              
+              query TestQuery {
+                  user {
+                      firstName
+                      ...TestFragment
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user",
+
+                              "selection": {
+                                  "fields": {
+                                      "firstName": {
+                                          "type": "String",
+                                          "keyRaw": "firstName",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                      },
+                                  },
+
+                                  "fragments": {
+                                      "TestFragment": {
+                                          "arguments": {}
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=68a132637799d1b412ef63cc8365e2552b16e53d0fa5c6409514eea6706ef569"
+  `),
+				},
+			},
 		},
 	})
 }
