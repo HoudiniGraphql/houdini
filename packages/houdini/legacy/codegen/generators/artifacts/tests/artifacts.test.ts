@@ -162,13 +162,11 @@ test('selection includes fragments', async function () {
 		                            "type": "String",
 		                            "keyRaw": "firstName"
 		                        },
-
 		                        "id": {
 		                            "type": "ID",
 		                            "keyRaw": "id",
 		                            "visible": true
 		                        },
-
 		                        "__typename": {
 		                            "type": "String",
 		                            "keyRaw": "__typename"

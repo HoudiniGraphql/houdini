@@ -53,6 +53,7 @@ func newFieldCollection(
 }
 
 type fieldCollectionField struct {
+	Hidden    bool
 	Field     *CollectedSelection
 	Selection *fieldCollection
 }
@@ -97,14 +98,20 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		// if we haven't seen the field before we need to add a place for the selection
 		if _, ok := c.Fields[selection.FieldName]; !ok {
 			c.Fields[*selection.Alias] = &fieldCollectionField{
-				Field: selection,
+				Field: selection.Clone(),
 				Selection: newFieldCollection(
 					c.CollectedDocuments,
 					c.DefaultMask,
 					selection.FieldType,
 					c.SortKeys,
 				),
+				Hidden: external,
 			}
+		}
+
+		// if we were told this field is hidden but the existing value isn't th
+		if c.Fields[*selection.Alias].Field.Hidden && !external {
+			c.Fields[*selection.Alias].Hidden = false
 		}
 
 		// its safe to add this fields selections if they exist
@@ -156,7 +163,7 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			return nil
 		}
 
-		// the fragment spread represents a new parent type so treat it like an inline fragment
+		// the fragment spread represents a new parent type so treat it like a hidden inline fragment
 		inlineFragment := &CollectedSelection{
 			Kind:      "inline_fragment",
 			FieldName: definition.TypeCondition,
@@ -164,7 +171,7 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			Children:  definition.Selections,
 		}
 
-		return c.Add(inlineFragment, hidden)
+		return c.Add(inlineFragment, true)
 	}
 
 	// its a field we don't recognize, we're done
@@ -235,9 +242,13 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 	// if we aren't supposed to sort the keys just add everything
 	if !c.SortKeys {
 		for _, f := range c.Fields {
-			field := f.Field
+			local := *f.Field
+			field := &local
 			if f.Selection != nil {
 				field.Children = f.Selection.ToSelectionSet()
+			}
+			if f.Hidden {
+				field.Hidden = true
 			}
 			result = append(result, field)
 		}
@@ -263,6 +274,9 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 			field := c.Fields[name]
 			if field.Selection != nil {
 				field.Field.Children = field.Selection.ToSelectionSet()
+			}
+			if field.Hidden {
+				field.Hidden = true
 			}
 			result = append(result, field.Field)
 		}

@@ -197,55 +197,96 @@ func printedValue(
 	defer query.Finalize()
 
 	err = db.StepStatement(ctx, query, func() {
-		printed += query.GetText("printed")
+		printed += query.GetText("printed") + "\n\n"
 	})
 	if err != nil {
 		return "", err
 	}
 
 	// we're done
-	return printed, nil
+	return printed[:len(printed)-2], nil
 }
 
 func stringifySelection(selections []*CollectedSelection, level int) string {
 	spacing := "    "
 
-	ident := strings.Repeat(spacing, level)
-	ident2 := strings.Repeat(spacing, level+1)
-	ident3 := strings.Repeat(spacing, level+2)
-	ident4 := strings.Repeat(spacing, level+3)
+	indent := strings.Repeat(spacing, level)
+	indent2 := strings.Repeat(spacing, level+1)
+	indent3 := strings.Repeat(spacing, level+2)
+	indent4 := strings.Repeat(spacing, level+3)
 
-	// we need to build up a stringified version of the fields
+	// we need to build up a stringified version of the selection set
 	fields := ""
+	fragments := ""
+
 	for _, selection := range selections {
 		switch selection.Kind {
+
 		// add field serialization
 		case "field":
+			// we need to generate the subselection
+			subSelection := ""
+			if len(selection.Children) > 0 {
+				subSelection += fmt.Sprintf(`
+
+%s"selection": %s,`, indent4, stringifySelection(selection.Children, level+3))
+
+				subSelection += "\n"
+			}
+
+			if len(fields) > 0 {
+				fields += "\n"
+			}
+
+			// we only want to include the visible key when its true
+			visible := fmt.Sprintf(`
+%s"visible": true,
+`, indent4)
+			if selection.Hidden {
+				visible = "\n"
+			}
+
 			fields += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": "%s",
-%s"visible": %v
-%s}`,
-				ident3,
+%s"keyRaw": "%s",%s%s%s}`,
+				indent3,
 				*selection.Alias,
-				ident4,
+				indent4,
 				selection.FieldType,
-				ident4,
+				indent4,
 				keyField(level, selection),
-				ident4,
-				!selection.Hidden,
-				ident3,
+				subSelection,
+				visible,
+				indent3,
 			)
 
 			// every field but the last needs a comma a new line
 			fields += ",\n"
+
+		case "fragment":
+			fragments += fmt.Sprintf(`%s"%s": {
+%s"arguments": {}
+%s},`, indent3, selection.FieldName, indent4, indent3)
 		}
 	}
 
+	result := ""
+	if len(fields) > 0 {
+		result += fmt.Sprintf(`%s"fields": {
+%s%s},`, indent2, fields, indent2)
+	}
+	if len(fragments) > 0 {
+		if len(result) > 0 {
+			result += "\n\n"
+		}
+		result += fmt.Sprintf(`%s"fragments": {
+%s
+%s},`, indent2, fragments, indent2)
+	}
+
 	return fmt.Sprintf(`{
-%s"fields": {
-%s%s},
-%s}`, ident2, fields, ident2, ident)
+%s
+%s}`, result, indent)
 }
 
 func keyField(level int, field *CollectedSelection) string {

@@ -796,24 +796,51 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
 	whereIn := "(" + strings.Join(placeholders, ", ") + ")"
 
 	stmt, err := conn.Prepare(fmt.Sprintf(`
-    SELECT
-        argument_value_children.name,
-        av.id,
-        av.kind,
-        av.raw,
-        av.row,
-        av.column,
-        av.expected_type,
-        av.expected_type_modifiers,
-        av.document,
-        documents.name as document_name,
-        argument_value_children.parent
-    FROM argument_values av
-      LEFT JOIN argument_value_children on argument_value_children."value" = av.id
-      JOIN documents on av.document = documents.id
-    WHERE av.id IN %s
-    ORDER BY av.id    
-  `, whereIn))
+      WITH RECURSIVE all_values AS (
+          -- Base case: Select the root argument values and their children
+          SELECT
+              argument_value_children.name,
+              av.id,
+              av.kind,
+              av.raw,
+              av.row,
+              av.column,
+              av.expected_type,
+              av.expected_type_modifiers,
+              av.document,
+              documents.name AS document_name,
+              argument_value_children.parent,
+              av.id AS root_id  -- Track the root of the nested structure
+          FROM argument_values av
+          LEFT JOIN argument_value_children ON argument_value_children."value" = av.id
+          JOIN documents ON av.document = documents.id
+
+          UNION
+
+          SELECT
+              argument_value_children.name,
+              av.id,
+              av.kind,
+              av.raw,
+              av.row,
+              av.column,
+              av.expected_type,
+              av.expected_type_modifiers,
+              av.document,
+              documents.name AS document_name,
+              argument_value_children.parent,
+              all_values.root_id  -- Carry over the root_id from the base case
+          FROM argument_value_children
+          JOIN all_values ON all_values.id = argument_value_children.parent  -- Join the recursive table to itself
+          LEFT JOIN argument_value_children AS children ON children."value" = argument_value_children.id
+          JOIN argument_values av ON argument_value_children."value" = av.id
+          JOIN documents ON av.document = documents.id
+      )
+      SELECT * 
+      FROM all_values 
+      WHERE all_values.root_id IN %s  
+      ORDER BY all_values.id
+    `, whereIn))
 	if err != nil {
 		return nil, err
 	}
@@ -848,6 +875,23 @@ type CollectedSelection struct {
 	Arguments  []*CollectedArgument
 	Directives []*CollectedDirective
 	Children   []*CollectedSelection
+}
+
+func (c *CollectedSelection) Clone() *CollectedSelection {
+	clone := &CollectedSelection{
+		FieldName:  c.FieldName,
+		Alias:      c.Alias,
+		FieldType:  c.FieldType,
+		Kind:       c.Kind,
+		Hidden:     c.Hidden,
+		Arguments:  c.Arguments,
+		Directives: c.Directives,
+		Children:   []*CollectedSelection{},
+	}
+
+	clone.Children = append(clone.Children, c.Children...)
+
+	return clone
 }
 
 type CollectedOperationVariable struct {

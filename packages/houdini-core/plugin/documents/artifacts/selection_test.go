@@ -132,7 +132,7 @@ func TestArtifactGeneration(t *testing.T) {
                         "version": {
                             "type": "Int",
                             "keyRaw": "version",
-                            "visible": true
+                            "visible": true,
                         },
                     },
                 },
@@ -163,12 +163,13 @@ func TestArtifactGeneration(t *testing.T) {
                         "firstName": {
                             "type": "String",
                             "keyRaw": "firstName",
-                            "visible": true
+                            "visible": true,
                         },
+
                         "id": {
                             "type": "ID",
                             "keyRaw": "id",
-                            "visible": true
+                            "visible": true,
                         },
                     },
                 },
@@ -179,6 +180,86 @@ func TestArtifactGeneration(t *testing.T) {
             }
 
             "HoudiniHash=9291c36c6e30ce6a058424b4a5e1f4191d8214df6109b927677071e60bb134ac"
+          `),
+				},
+			},
+			{
+				Name: "Selection includes fragments",
+				Pass: true,
+				Input: []string{
+					`
+            query TestQuery {
+              user { 
+                ...TestFragment
+              }
+            } 
+          `,
+					`
+            fragment TestFragment on User { 
+              firstName 
+              id
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+            export default {
+                "name": "TestQuery",
+                "kind": "HoudiniQuery",
+                "hash": "37cb2d430ff78e36f786c3100d36dc232240d4e469e1a6c7b90874330c6cdcb0",
+                "raw": ` + "`" + `fragment TestFragment on User {
+                firstName
+                id
+            }
+            
+            query TestQuery {
+                user {
+                    ...TestFragment
+                }
+            }
+            ` + "`" + `,
+
+                "rootType": "Query",
+                "stripVariables": [],
+
+                "selection": {
+                    "fields": {
+                        "user": {
+                            "type": "User",
+                            "keyRaw": "user",
+
+                            "selection": {
+                                "fields": {
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                    },
+
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
+
+                                "fragments": {
+                                    "TestFragment": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
+
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "pluginData": {},
+                "policy": "CacheOrNetwork",
+                "partial": false
+            }
+
+            "HoudiniHash=37cb2d430ff78e36f786c3100d36dc232240d4e469e1a6c7b90874330c6cdcb0"
+
           `),
 				},
 			},
