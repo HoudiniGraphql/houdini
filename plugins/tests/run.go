@@ -156,13 +156,17 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 			require.Nil(t, err)
 			defer insertCustomKeys.Finalize()
 			for typ, config := range projectConfig.TypeConfig {
+				var resolveQuery interface{}
+				if config.ResolveQuery != "" {
+					resolveQuery = config.ResolveQuery
+				}
 				keys, _ := json.Marshal(config.Keys)
 				err = db.ExecStatement(
 					insertCustomKeys,
 					map[string]any{
 						"name":          typ,
 						"keys":          string(keys),
-						"resolve_query": config.ResolveQuery,
+						"resolve_query": resolveQuery,
 					},
 				)
 				require.Nil(t, err)
