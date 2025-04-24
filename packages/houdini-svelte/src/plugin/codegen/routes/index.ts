@@ -68,10 +68,9 @@ export default async function svelteKitGenerator(
 				// Include path doesn't include js
 				!config.include.some((path) => path.includes('js')) &&
 				// And the plugin isn't configured to run in static mode
-				(!plugin_config(config).static ||
-					// User uses layout/page queries
-					uniquePageQueries.length > 0 ||
-					uniqueLayoutQueries.length > 0)
+				!plugin_config(config).static &&
+				// User uses layout/page queries
+				(uniquePageQueries.length > 0 || uniqueLayoutQueries.length > 0)
 			) {
 				console.error(
 					`⚠️ You are using at least one page/layout query but aren't "include"ing .js files in your config. \n 
