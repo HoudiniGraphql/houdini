@@ -312,6 +312,12 @@ export type WatchSchemaConfig = {
 	headers?:
 		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
+	
+	/**
+	 * Do not write the schema to disk on pull.
+	 * Useful when you have read only access to the schema or directory it's in.
+	*/
+	skipWriting?: boolean
 }
 
 export type ScalarSpec = {

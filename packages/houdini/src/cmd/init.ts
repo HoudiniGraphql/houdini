@@ -157,7 +157,7 @@ export async function init(
 				fetchTimeout,
 				schemaPath,
 				local_headers,
-				true
+				false
 			)
 
 			if (pullSchema_content === null) {

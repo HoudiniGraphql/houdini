@@ -9,7 +9,7 @@ export async function pullSchema(
 	fetchTimeout: number,
 	schemaPath: string,
 	headers?: Record<string, string>,
-	skipWriting?: boolean
+	writeToDisk: boolean = true
 ): Promise<string | null> {
 	let content = ''
 	try {
@@ -69,7 +69,7 @@ export async function pullSchema(
 		} else {
 			fileData = JSON.stringify(jsonSchema)
 		}
-		if (!skipWriting) {
+		if (writeToDisk) {
 			await fs.writeFile(schemaPath, fileData)
 		}
 
