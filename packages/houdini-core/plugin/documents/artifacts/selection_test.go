@@ -22,7 +22,7 @@ func TestArtifactGeneration(t *testing.T) {
         friends: [User!]!
         user: User!
         node(id: ID!): Node
-        version: Int
+        version: Int!
       } 
 
       interface Node {
@@ -33,7 +33,7 @@ func TestArtifactGeneration(t *testing.T) {
         id: ID!
         name: String!
         bestFriend: User! 
-        firstName: String
+        firstName: String!
         pets(name: String!, filter: PetFilter ): [Pet!]!
       }
 

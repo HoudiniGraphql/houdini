@@ -200,6 +200,11 @@ func collectDoc(
 				kind := statements.Search.GetText("kind")
 				fieldName := statements.Search.GetText("field_name")
 				fieldType := statements.Search.GetText("type")
+				var typeModifiers *string
+				if !statements.Search.IsNull("type_modifiers") {
+					mods := statements.Search.GetText("type_modifiers")
+					typeModifiers = &mods
+				}
 
 				var alias *string
 				if !statements.Search.IsNull("alias") {
@@ -210,10 +215,11 @@ func collectDoc(
 
 				// create the collected selection from the information we have
 				selection := &CollectedSelection{
-					FieldName: fieldName,
-					FieldType: fieldType,
-					Alias:     alias,
-					Kind:      kind,
+					FieldName:     fieldName,
+					FieldType:     fieldType,
+					TypeModifiers: typeModifiers,
+					Alias:         alias,
+					Kind:          kind,
 				}
 
 				// save the ID in the selection map
@@ -663,6 +669,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         SELECT 
           selections.id,
           selections.field_name,
+          type_fields.type_modifiers,
           selections.alias,
           selections.kind,
           d.id AS document_id,
@@ -693,6 +700,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         SELECT 
           selections.id,
           selections.field_name,
+          type_fields.type_modifiers,
           selections.alias,
           selections.kind,
           st.document_id AS document_id,
@@ -714,7 +722,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN arguments_agg a ON a.selection_id = selections.id
         WHERE selection_refs.document = st.document_id
       )
-    SELECT id, document_name, document_id, kind, field_name, alias, arguments, directives, parent_id, document_kind, type_condition, type FROM selection_tree
+    SELECT id, document_name, document_id, kind, field_name, type_modifiers, alias, arguments, directives, parent_id, document_kind, type_condition, type FROM selection_tree
     ORDER BY parent_id ASC
   `, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
@@ -928,26 +936,28 @@ type CollectedDocument struct {
 }
 
 type CollectedSelection struct {
-	FieldName  string
-	Alias      *string
-	FieldType  string
-	Kind       string
-	Hidden     bool
-	Arguments  []*CollectedArgument
-	Directives []*CollectedDirective
-	Children   []*CollectedSelection
+	FieldName     string
+	Alias         *string
+	FieldType     string
+	TypeModifiers *string
+	Kind          string
+	Hidden        bool
+	Arguments     []*CollectedArgument
+	Directives    []*CollectedDirective
+	Children      []*CollectedSelection
 }
 
 func (c *CollectedSelection) Clone() *CollectedSelection {
 	clone := &CollectedSelection{
-		FieldName:  c.FieldName,
-		Alias:      c.Alias,
-		FieldType:  c.FieldType,
-		Kind:       c.Kind,
-		Hidden:     c.Hidden,
-		Arguments:  c.Arguments,
-		Directives: c.Directives,
-		Children:   []*CollectedSelection{},
+		FieldName:     c.FieldName,
+		Alias:         c.Alias,
+		FieldType:     c.FieldType,
+		TypeModifiers: c.TypeModifiers,
+		Kind:          c.Kind,
+		Hidden:        c.Hidden,
+		Arguments:     c.Arguments,
+		Directives:    c.Directives,
+		Children:      []*CollectedSelection{},
 	}
 
 	clone.Children = append(clone.Children, c.Children...)

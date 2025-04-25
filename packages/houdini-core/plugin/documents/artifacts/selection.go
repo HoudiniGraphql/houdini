@@ -338,15 +338,22 @@ func stringifyFieldSelection(level int, selection *CollectedSelection) string {
 
 	// we only want to include the visible key when its true
 	visible := fmt.Sprintf(`
-%s"visible": true,
-`, indent4)
+%s"visible": true,`, indent4)
 	if selection.Hidden {
-		visible = "\n"
+		visible = ""
+	}
+
+	// if the field is nullable we need to include an optional value
+	nullable := ""
+	if selection.TypeModifiers != nil && !strings.HasSuffix(*selection.TypeModifiers, "!") {
+		nullable = fmt.Sprintf(`
+%s"nullable": true,`, indent4)
 	}
 
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": "%s",%s%s%s},
+%s"keyRaw": "%s",%s%s%s
+%s},
 `,
 		indent3,
 		*selection.Alias,
@@ -354,6 +361,7 @@ func stringifyFieldSelection(level int, selection *CollectedSelection) string {
 		selection.FieldType,
 		indent4,
 		keyField(selection),
+		nullable,
 		subSelection,
 		visible,
 		indent3,
