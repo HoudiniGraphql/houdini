@@ -55,8 +55,8 @@ export default async function writeIndexFile(config: Config, docs: Document[]) {
 				module: relative(config.pluginRuntimeDirectory(plugin.name)),
 			})
 		}
-		
-    // if the plugin generated a static runtime
+
+		// if the plugin generated a static runtime
 		if (plugin.staticRuntime) {
 			body += exportStar({
 				module: relative(config.pluginStaticRuntimeDirectory(plugin.name)),
