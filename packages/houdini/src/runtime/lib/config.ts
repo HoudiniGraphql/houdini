@@ -318,7 +318,7 @@ export type WatchSchemaConfig = {
 	 * Useful for IDE integration.
 	 * Set to false when you have read only access to the schema or directory it's in.
 	 */
-	writePulledSchema?: boolean
+	writePolledSchema?: boolean
 }
 
 export type ScalarSpec = {
