@@ -164,7 +164,7 @@ export class Config {
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
 		this.schemaPollTimeout = watchSchema?.timeout ?? 30000
-		this.schemaPollWriteToDisk = !(watchSchema?.skipWriting ?? false)
+		this.schemaPollWriteToDisk = !(watchSchema?.writePolledSchema ?? true)
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, this.runtimeDir)
 		this.persistedQueriesPath =
@@ -1162,7 +1162,7 @@ export async function getConfig({
 				if (fs.glob.hasMagic(_config.schemaPath) && _config.schemaPollWriteToDisk) {
 					console.log(
 						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
-	This will prevent your schema from being written to disk. If this is expected, please set the skipWriting value to true.`
+	This will prevent your schema from being written to disk. If this is expected, please set the writePolledSchema value to false.`
 					)
 
 					// Don't write the schema to disk, since it'll error out

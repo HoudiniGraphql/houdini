@@ -75,7 +75,7 @@ export async function pullSchema(
 			} catch (e) {
 				console.warn(
 					`⚠️  Couldn't write your pulled schema to disk: ${(e as Error).message}
-If this is expected, please set watchSchema.skipWriting to true in your config file.`
+	If this is expected, please set watchSchema.writePolledSchema to false in your config file.`
 				)
 			}
 		}
