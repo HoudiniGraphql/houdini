@@ -38,7 +38,7 @@ export async function generateStaticRuntimes({ config }: { config: Config }) {
 			.filter((plugin) => plugin.staticRuntime)
 			.map(async (plugin) => {
 				// a plugin has told us to include a runtime then the path is relative to the plugin file
-				const runtime_path = config.pluginRuntimeSource(plugin)
+				const runtime_path = config.pluginStaticRuntimeSource(plugin)
 				if (!runtime_path) {
 					return
 				}
