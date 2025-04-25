@@ -32,6 +32,9 @@ export async function generateStaticRuntimes({ config }: { config: Config }) {
 		return
 	}
 
+	// generate the import statements
+	const { importStatement, exportDefaultStatement, exportStarStatement } = moduleStatments(config)
+
 	// generate the runtime for each plugin
 	await Promise.all(
 		config.plugins
@@ -55,9 +58,29 @@ export async function generateStaticRuntimes({ config }: { config: Config }) {
 
 				// copy the runtime
 				const pluginDir = config.pluginStaticRuntimeDirectory(plugin.name)
+				let transformMap = plugin.transformRuntime ?? {}
+				if (transformMap && typeof transformMap === 'function') {
+					transformMap = transformMap([], { config })
+				}
 
 				await fs.mkdirp(pluginDir)
-				await fs.recursiveCopy(runtime_path, pluginDir)
+				await fs.recursiveCopy(
+					runtime_path,
+					pluginDir,
+					Object.fromEntries(
+						Object.entries(transformMap).map(([key, value]) => [
+							path.join(runtime_path, key),
+							(content) =>
+								value({
+									config,
+									content,
+									importStatement,
+									exportDefaultStatement,
+									exportStarStatement,
+								}),
+						])
+					)
+				)
 			})
 	)
 }
