@@ -22,8 +22,10 @@ func CollectDocuments(
 	conn *sqlite.Conn,
 ) (*CollectedDocuments, error) {
 	result := &CollectedDocuments{
-		Selections:    map[string]*CollectedDocument{},
-		TaskDocuments: []string{},
+		Selections:      map[string]*CollectedDocument{},
+		TaskDocuments:   []string{},
+		PossibleTypes:   map[string][]string{},
+		Implementations: map[string][]string{},
 	}
 
 	// the first thing we have to do is id of every document that we care about
@@ -88,7 +90,7 @@ func CollectDocuments(
 	// we need a thread safe list to collect errors
 	errList := &plugins.ErrorList{}
 	// and a channel to send collected documents back
-	resultCh := make(chan []*CollectedDocument, len(docIDs))
+	resultCh := make(chan collectResult, len(docIDs))
 
 	// create a pool of worker goroutines to process the documents
 	var wg sync.WaitGroup
@@ -113,8 +115,24 @@ func CollectDocuments(
 
 	// collect the results
 	for docs := range resultCh {
-		for _, doc := range docs {
+		for _, doc := range docs.Documents {
 			result.Selections[doc.Name] = doc
+		}
+		for typeName, members := range docs.PossibleTypes {
+			if _, ok := result.PossibleTypes[typeName]; !ok {
+				result.PossibleTypes[typeName] = []string{}
+			}
+			result.PossibleTypes[typeName] = append(result.PossibleTypes[typeName], members...)
+		}
+	}
+
+	// if we got this far we can reverse the type mappings to get the implementations
+	for typeName, members := range result.PossibleTypes {
+		for _, member := range members {
+			if _, ok := result.Implementations[member]; !ok {
+				result.Implementations[member] = []string{}
+			}
+			result.Implementations[member] = append(result.Implementations[member], typeName)
 		}
 	}
 
@@ -132,7 +150,7 @@ func collectDoc(
 	db plugins.DatabasePool[config.PluginConfig],
 	wg *sync.WaitGroup,
 	docIDs <-chan []int64,
-	resultCh chan<- []*CollectedDocument,
+	resultCh chan<- collectResult,
 	errs *plugins.ErrorList,
 ) {
 	defer wg.Done()
@@ -542,8 +560,28 @@ func collectDoc(
 				docs = append(docs, doc)
 			}
 
+			// and finally we need to look up the type mappings for any types included in the documents we processed
+			possibleTypes := map[string][]string{}
+			err = db.StepStatement(ctx, statements.PossibleTypes, func() {
+				typeName := statements.PossibleTypes.GetText("type")
+				memberType := statements.PossibleTypes.GetText("member")
+
+				if _, ok := possibleTypes[typeName]; !ok {
+					possibleTypes[typeName] = []string{}
+				}
+
+				possibleTypes[typeName] = append(possibleTypes[typeName], memberType)
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+
 			// send the result over the channel
-			resultCh <- docs
+			resultCh <- collectResult{
+				Documents:     docs,
+				PossibleTypes: possibleTypes,
+			}
 		}(batch)
 	}
 }
@@ -552,6 +590,7 @@ type CollectStatements struct {
 	Search             *sqlite.Stmt
 	DocumentVariables  *sqlite.Stmt
 	DocumentDirectives *sqlite.Stmt
+	PossibleTypes      *sqlite.Stmt
 }
 
 func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatements, error) {
@@ -766,8 +805,28 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 		return nil, err
 	}
 
+	// we need a query that looks up every abstract type that's used in
+	// the set of documents
+	possibleTypes, err := conn.Prepare(fmt.Sprintf(`
+    SELECT DISTINCT possible_types."type", possible_types."member"
+    FROM possible_types 
+      LEFT JOIN type_fields ON possible_types."type" = type_fields."type"
+      JOIN selections ON selections.type = type_fields.id 
+        OR (selections.kind = 'inline_fragment' 
+            AND (
+              selections.field_name = possible_types."member" 
+              OR selections.field_name = possible_types."type"
+            )
+        )
+      JOIN selection_refs ON selection_refs.child_id = selections.id
+    WHERE selection_refs.document IN %s
+  `, whereIn))
+	if err != nil {
+		return nil, err
+	}
+
 	// bind each document ID to the variables that were prepared
-	for _, stmt := range []*sqlite.Stmt{search, documentVariables, documentDirectives} {
+	for _, stmt := range []*sqlite.Stmt{search, documentVariables, documentDirectives, possibleTypes} {
 		for i, id := range docIDs {
 			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
 		}
@@ -777,6 +836,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 		Search:             search,
 		DocumentVariables:  documentVariables,
 		DocumentDirectives: documentDirectives,
+		PossibleTypes:      possibleTypes,
 	}, nil
 }
 
@@ -784,6 +844,7 @@ func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()
 	s.DocumentVariables.Finalize()
 	s.DocumentDirectives.Finalize()
+	s.PossibleTypes.Finalize()
 }
 
 func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.Stmt, error) {
@@ -928,6 +989,13 @@ type CollectedArgumentValueChildren struct {
 }
 
 type CollectedDocuments struct {
-	TaskDocuments []string
-	Selections    map[string]*CollectedDocument
+	TaskDocuments   []string
+	Selections      map[string]*CollectedDocument
+	PossibleTypes   map[string][]string
+	Implementations map[string][]string
+}
+
+type collectResult struct {
+	Documents     []*CollectedDocument
+	PossibleTypes map[string][]string
 }

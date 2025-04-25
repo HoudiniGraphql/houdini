@@ -26,16 +26,27 @@ func TestMergeSelections(t *testing.T) {
         id: ID!
       }
 
-      type User implements Node {
+      type User implements Node & Friend {
         id: ID!
         name: String!
         bestFriend: User! 
         pets(name: String!, filter: PetFilter ): [Pet!]!
       }
 
-      type Cat implements Node {
+      type Cat implements Node & Pet {
         id: ID!
         owner: User!
+        species: String!
+        name: String!
+      }
+
+      type Ghost implements Node & Friend {
+        id: ID!
+        name: String!
+      }
+
+      type Dog implements Friend { 
+        name: String!
       }
 
       input PetFilter {
@@ -46,7 +57,13 @@ func TestMergeSelections(t *testing.T) {
 
       directive @test on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
-      union Pet = Cat
+      interface Pet { 
+        owner: User!
+      }
+
+      interface Friend { 
+        name: String! 
+      }
 
     `,
 		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
@@ -174,12 +191,14 @@ func TestMergeSelections(t *testing.T) {
                   name
                   ... on User {
                     id
+                    bestFriend { name }
                   }
                   ... on Ghost {
                     id
                   }
                   ... on Cat {
                     id
+                    owner { name }
                   }
                 }
                 ... on Cat {
@@ -196,15 +215,23 @@ func TestMergeSelections(t *testing.T) {
                     ... on Cat {
                         id
                         name
+                        owner {
+                            name
+                        }
                     }
                     ... on Friend {
                         name
                     }
                     ... on Ghost {
                         id
+                        name
                     }
                     ... on User {
+                        bestFriend {
+                            name
+                        }
                         id
+                        name
                     }
                 }
             }
@@ -248,6 +275,11 @@ func TestMergeSelections(t *testing.T) {
                       }
                       ... on Friend {
                           name
+                          pets {
+                              ... on Cat {
+                                  id
+                              }
+                          }
                       }
                       ...Foo
                   }
@@ -347,6 +379,77 @@ func TestMergeSelections(t *testing.T) {
                               }
                           }
                           ...CatInfo
+                      }
+                  }
+              }
+          `),
+				},
+			},
+			{
+				Name: "Ensure a concrete selection per type",
+				Pass: true,
+				Input: []string{
+					`
+            query MyQuery {
+              node(id: "123") {
+                ... on User { 
+                    bestFriend { name }
+                }
+                ... on Cat {
+                    owner { 
+                        name
+                    }
+                }
+                ... on Friend { 
+                    name
+                }
+                ... on Pet { 
+                    name
+                    owner { 
+                        bestFriend { 
+                            name 
+                        }
+                    }
+                }
+                id
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+              query MyQuery {
+                  node(id: "123") {
+                      id
+                      ... on Cat {
+                          id
+                          name
+                          owner {
+                              bestFriend {
+                                  name
+                              }
+                              name
+                          }
+                      }
+                      ... on Friend {
+                          id
+                          name
+                      }
+                      ... on Pet {
+                          id
+                          name
+                          owner {
+                              bestFriend {
+                                  name
+                              }
+                          }
+                      }
+                      ... on User {
+                          bestFriend {
+                              name
+                          }
+                          id
+                          name
                       }
                   }
               }

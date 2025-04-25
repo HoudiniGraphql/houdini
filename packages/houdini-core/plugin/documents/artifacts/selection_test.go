@@ -345,6 +345,101 @@ func TestArtifactGeneration(t *testing.T) {
   `),
 				},
 			},
+			{
+				Name: "Interface to interface inline fragment",
+				Pass: true,
+				Input: []string{
+					`
+            query MyQuery($id: ID!) {
+              node(id: $id) {
+                id
+                ... on Friend {
+                  name
+                }
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+              export default {
+                  "name": "MyQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "2bf1a6f13b012901b2017ee8b44c24d39fe7aa0725d68deea5a3e08d7393d671",
+                  "raw": ` + "`" + `query MyQuery($id: ID!) {
+                  node(id: $id) {
+                      id
+                      ... on Friend {
+                          name
+                      }
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "node": {
+                              "type": "Node",
+                              "keyRaw": "node(id: $id)",
+                              "nullable": true,
+
+                              "selection": {
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Friend": {
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          }
+                                      },
+
+                                      "typeMap": {
+                                          "User": "Friend",
+                                          "Cat": "Friend",
+                                      }
+                                  },
+
+                                  "fields": {
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "id": "ID"
+                      },
+
+                      "types": {},
+                      "defaults": {},
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=2bf1a6f13b012901b2017ee8b44c24d39fe7aa0725d68deea5a3e08d7393d671"
+            
+          `),
+				},
+			},
 		},
 	})
 }

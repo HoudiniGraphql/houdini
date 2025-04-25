@@ -122,6 +122,11 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			}
 		}
 
+		// we also want to make sure that the field is present in any inline fragments we've seen
+		for _, frag := range c.InlineFragments {
+			frag.Selection.Add(c.Fields[*selection.Alias].Field, hidden)
+		}
+
 		// we're done
 		return nil
 
@@ -231,6 +236,48 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 		case "inline_fragment":
 			c.WalkInlineFragment(child, hidden)
 		}
+	}
+
+	// we want to apply the selection set to every type that could
+	// implement the abstract type condition of the inline fragment
+
+	// this means that we need to consider cases where the field name is a concrete type
+	if abstractTypes, ok := c.CollectedDocuments.Implementations[selection.FieldName]; ok {
+		// if we've seen the abstract type already then we need to add each of the abstract types
+		// selectiosn to the inline fragment for the concrete type
+		for _, abstractType := range abstractTypes {
+			if frag, ok := c.InlineFragments[abstractType]; ok {
+				// add every child field to the concrete inline fragment
+				for _, child := range frag.Field.Children {
+					switch child.Kind {
+					case "field":
+						c.InlineFragments[selection.FieldName].Selection.Add(child, hidden)
+					}
+				}
+			}
+		}
+	}
+
+	// or the field type could itself be an abstract type with concrete types we've already seen
+	if concreteTypes, ok := c.CollectedDocuments.PossibleTypes[selection.FieldName]; ok {
+		for _, concreteType := range concreteTypes {
+			// if we've seen the concrete type before then we need to add this selection set to
+			// the selection for the inline fragment for the concrete type
+			if _, ok := c.InlineFragments[concreteType]; ok {
+				// add every child field to the concrete inline fragment
+				for _, child := range selection.Children {
+					switch child.Kind {
+					case "field":
+						c.InlineFragments[concreteType].Selection.Add(child, hidden)
+					}
+				}
+			}
+		}
+	}
+
+	// also if there is a concrete selection already present we want to include that in the inline framgment
+	for _, field := range c.Fields {
+		c.InlineFragments[selection.FieldName].Selection.Add(field.Field, hidden)
 	}
 
 	return nil

@@ -295,8 +295,8 @@ func keyField(level int, field *CollectedSelection) string {
 	}
 
 	return fmt.Sprintf(
-		"%s(%s)",
+		"%s%s",
 		*field.Alias,
-		printSelectionArguments(level, field.Arguments, map[string]bool{}),
+		printSelectionArguments(0, field.Arguments, map[string]bool{}),
 	)
 }
