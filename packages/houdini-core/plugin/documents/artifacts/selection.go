@@ -17,6 +17,8 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
+const spacing = "    "
+
 func writeSelectionDocument(
 	ctx context.Context,
 	fs afero.Fs,
@@ -208,8 +210,6 @@ func printedValue(
 }
 
 func stringifySelection(selections []*CollectedSelection, level int) string {
-	spacing := "    "
-
 	indent := strings.Repeat(spacing, level)
 	indent2 := strings.Repeat(spacing, level+1)
 	indent3 := strings.Repeat(spacing, level+2)
@@ -218,63 +218,58 @@ func stringifySelection(selections []*CollectedSelection, level int) string {
 	// we need to build up a stringified version of the selection set
 	fields := ""
 	fragments := ""
+	abstractFields := ""
+	abstractTypeMap := ""
 
 	for _, selection := range selections {
 		switch selection.Kind {
 
 		// add field serialization
 		case "field":
-			// we need to generate the subselection
-			subSelection := ""
-			if len(selection.Children) > 0 {
-				subSelection += fmt.Sprintf(`
-
-%s"selection": %s,`, indent4, stringifySelection(selection.Children, level+3))
-
-				subSelection += "\n"
-			}
 
 			if len(fields) > 0 {
 				fields += "\n"
 			}
 
-			// we only want to include the visible key when its true
-			visible := fmt.Sprintf(`
-%s"visible": true,
-`, indent4)
-			if selection.Hidden {
-				visible = "\n"
-			}
-
-			fields += fmt.Sprintf(`%s"%s": {
-%s"type": "%s",
-%s"keyRaw": "%s",%s%s%s}`,
-				indent3,
-				*selection.Alias,
-				indent4,
-				selection.FieldType,
-				indent4,
-				keyField(level, selection),
-				subSelection,
-				visible,
-				indent3,
-			)
-
-			// every field but the last needs a comma a new line
-			fields += ",\n"
+			fields += stringifyFieldSelection(level, selection)
 
 		case "fragment":
 			fragments += fmt.Sprintf(`%s"%s": {
 %s"arguments": {}
 %s},`, indent3, selection.FieldName, indent4, indent3)
+
+		case "inline_fragment":
+			// we need to generate the subselection
+			subSelection := "{\n"
+			if len(selection.Children) > 0 {
+				for _, field := range selection.Children {
+					if field.Kind == "field" {
+						subSelection += stringifyFieldSelection(level+2, field)
+					}
+				}
+				subSelection += fmt.Sprintf("%s},\n", indent4)
+			}
+
+			// every inline fragment represents a new abstract selection
+			abstractFields += fmt.Sprintf(
+				`%s"%s": %s`,
+				indent4,
+				selection.FieldName,
+				subSelection,
+			)
 		}
 	}
 
+	// build up the final result
 	result := ""
+
+	// if there were concrete fields include them
 	if len(fields) > 0 {
 		result += fmt.Sprintf(`%s"fields": {
 %s%s},`, indent2, fields, indent2)
 	}
+
+	// then add any fragment specifications we ran into
 	if len(fragments) > 0 {
 		if len(result) > 0 {
 			result += "\n\n"
@@ -284,12 +279,36 @@ func stringifySelection(selections []*CollectedSelection, level int) string {
 %s},`, indent2, fragments, indent2)
 	}
 
+	// and finally include any abstract selections we ran into
+	if len(abstractFields) > 0 {
+		if len(result) > 0 {
+			result += "\n"
+		}
+
+		result += fmt.Sprintf(`%s"abstractFields": {
+%s"fields": {
+%s%s},
+
+%s"typeMap": {
+%s
+%s}
+%s},`, indent2,
+			indent3,
+			abstractFields,
+			indent3,
+			indent3,
+			abstractTypeMap,
+			indent3,
+			indent2,
+		)
+	}
+
 	return fmt.Sprintf(`{
 %s
 %s}`, result, indent)
 }
 
-func keyField(level int, field *CollectedSelection) string {
+func keyField(field *CollectedSelection) string {
 	if len(field.Arguments) == 0 {
 		return *field.Alias
 	}
@@ -299,4 +318,46 @@ func keyField(level int, field *CollectedSelection) string {
 		*field.Alias,
 		printSelectionArguments(0, field.Arguments, map[string]bool{}),
 	)
+}
+
+func stringifyFieldSelection(level int, selection *CollectedSelection) string {
+	indent3 := strings.Repeat(spacing, level+2)
+	indent4 := strings.Repeat(spacing, level+3)
+
+	// we need to generate the subselection
+	subSelection := ""
+	if len(selection.Children) > 0 {
+		subSelection += fmt.Sprintf(`
+
+%s"selection": %s,`, indent4, stringifySelection(selection.Children, level+3))
+
+		subSelection += "\n"
+	}
+
+	result := ""
+
+	// we only want to include the visible key when its true
+	visible := fmt.Sprintf(`
+%s"visible": true,
+`, indent4)
+	if selection.Hidden {
+		visible = "\n"
+	}
+
+	result += fmt.Sprintf(`%s"%s": {
+%s"type": "%s",
+%s"keyRaw": "%s",%s%s%s},
+`,
+		indent3,
+		*selection.Alias,
+		indent4,
+		selection.FieldType,
+		indent4,
+		keyField(selection),
+		subSelection,
+		visible,
+		indent3,
+	)
+
+	return result
 }

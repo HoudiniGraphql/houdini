@@ -29,7 +29,7 @@ func TestArtifactGeneration(t *testing.T) {
         id: ID!
       }
 
-      type User implements Node {
+      type User implements Node & Friend {
         id: ID!
         name: String!
         bestFriend: User! 
@@ -37,9 +37,14 @@ func TestArtifactGeneration(t *testing.T) {
         pets(name: String!, filter: PetFilter ): [Pet!]!
       }
 
-      type Cat implements Node {
+      type Cat implements Node & Friend {
         id: ID!
+        name: String!
         owner: User!
+      }
+
+      interface Friend {
+        name: String!
       }
 
       input PetFilter {
@@ -387,29 +392,33 @@ func TestArtifactGeneration(t *testing.T) {
                               "nullable": true,
 
                               "selection": {
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Friend": {
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          }
-                                      },
-
-                                      "typeMap": {
-                                          "User": "Friend",
-                                          "Cat": "Friend",
-                                      }
-                                  },
-
                                   "fields": {
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
                                           "visible": true,
                                       },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Friend": {
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {
+                                          "User": "Friend",
+                                          "Cat": "Friend",
+                                      }
                                   },
                               },
 
