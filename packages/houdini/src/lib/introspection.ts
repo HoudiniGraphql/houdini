@@ -70,7 +70,14 @@ export async function pullSchema(
 			fileData = JSON.stringify(jsonSchema)
 		}
 		if (writeToDisk) {
-			await fs.writeFile(schemaPath, fileData)
+			try {
+				await fs.writeFile(schemaPath, fileData)
+			} catch (e) {
+				console.warn(
+					`⚠️  Couldn't write your pulled schema to disk: ${(e as Error).message}
+If this is expected, please set watchSchema.skipWriting to true in your config file.`
+				)
+			}
 		}
 
 		return fileData
