@@ -317,6 +317,7 @@ export type WatchSchemaConfig = {
 	 * Write the schema to disk on pull.
 	 * Useful for IDE integration.
 	 * Set to false when you have read only access to the schema or directory it's in.
+	 * Defaults to true
 	 */
 	writePolledSchema?: boolean
 }

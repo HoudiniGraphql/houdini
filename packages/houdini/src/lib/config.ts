@@ -164,7 +164,7 @@ export class Config {
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
 		this.schemaPollTimeout = watchSchema?.timeout ?? 30000
-		this.schemaPollWriteToDisk = !(watchSchema?.writePolledSchema ?? true)
+		this.schemaPollWriteToDisk = watchSchema?.writePolledSchema ?? true
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, this.runtimeDir)
 		this.persistedQueriesPath =
