@@ -59,6 +59,7 @@ export class Config {
 	routesDir: string
 	schemaPollInterval: number | null
 	schemaPollTimeout: number
+	schemaPollWriteToDisk: boolean = false
 	schemaPollHeaders:
 		| ((env: any) => Record<string, string>)
 		| Record<string, string | ((env: any) => string)>
@@ -163,6 +164,7 @@ export class Config {
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval
 		this.schemaPollTimeout = watchSchema?.timeout ?? 30000
+		this.schemaPollWriteToDisk = watchSchema?.writePolledSchema ?? true
 		this.schemaPollHeaders = watchSchema?.headers ?? {}
 		this.rootDir = path.join(this.projectRoot, this.runtimeDir)
 		this.persistedQueriesPath =
@@ -1157,11 +1159,14 @@ export async function getConfig({
 			// we might have to pull the schema first
 			if (apiURL) {
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
-				if (fs.glob.hasMagic(_config.schemaPath)) {
+				if (fs.glob.hasMagic(_config.schemaPath) && _config.schemaPollWriteToDisk) {
 					console.log(
 						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
-	This will prevent your schema from being pulled.`
+	This will prevent your schema from being written to disk. If this is expected, please set the writePolledSchema value to false.`
 					)
+
+					// Don't write the schema to disk, since it'll error out
+					_config.schemaPollWriteToDisk = false
 				}
 				// we might have to create the file
 				else if (!(await fs.readFile(_config.schemaPath))) {
@@ -1170,7 +1175,9 @@ export async function getConfig({
 						(await pullSchema(
 							apiURL,
 							_config.schemaPollTimeout,
-							_config.schemaPath
+							_config.schemaPath,
+							{},
+							_config.schemaPollWriteToDisk
 						)) !== null
 				}
 			}

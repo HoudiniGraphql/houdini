@@ -312,6 +312,14 @@ export type WatchSchemaConfig = {
 	headers?:
 		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
+
+	/**
+	 * Write the schema to disk on pull.
+	 * Useful for IDE integration.
+	 * Set to false when you have read only access to the schema or directory it's in.
+	 * Defaults to true
+	 */
+	writePolledSchema?: boolean
 }
 
 export type ScalarSpec = {

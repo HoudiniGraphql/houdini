@@ -42,7 +42,8 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 						apiURL!,
 						config.schemaPollTimeout,
 						config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
-						await config.pullHeaders()
+						await config.pullHeaders(),
+						config.schemaPollWriteToDisk
 					)
 
 					nbPullError = schemaState ? 0 : nbPullError + 1
