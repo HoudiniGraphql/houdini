@@ -245,7 +245,7 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 	if abstractTypes, ok := c.CollectedDocuments.Implementations[selection.FieldName]; ok {
 		// if we've seen the abstract type already then we need to add each of the abstract types
 		// selectiosn to the inline fragment for the concrete type
-		for _, abstractType := range abstractTypes {
+		for abstractType := range abstractTypes {
 			if frag, ok := c.InlineFragments[abstractType]; ok {
 				// add every child field to the concrete inline fragment
 				for _, child := range frag.Field.Children {
@@ -258,9 +258,51 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 		}
 	}
 
+	// overlapping abstract types could necessitate concrete inline fragments but we dont want to
+	// process fields that we've already added to a concrete <-> abstract overlap so let's track
+	// which concrete types we've added because we ran into an abstract type
+
 	// or the field type could itself be an abstract type with concrete types we've already seen
 	if concreteTypes, ok := c.CollectedDocuments.PossibleTypes[selection.FieldName]; ok {
-		for _, concreteType := range concreteTypes {
+		for concreteType := range concreteTypes {
+			// we need to look for any inline fragments that have already been applied that point to abstract selections
+			// that the concrete type implements and if we find anything the we need to add a concrete selection even if
+			// one is not already present
+			if abstractTypes, ok := c.CollectedDocuments.Implementations[concreteType]; ok {
+				// if we have an inline fragment for the abstract type implemented by the concrete type we need to merge
+				// them into one
+				for abstractType := range abstractTypes {
+					if abstractType == selection.FieldName {
+						continue
+					}
+					if frag, ok := c.InlineFragments[abstractType]; ok {
+						// we need a new inline fragment for the concrete type if its doesn't already exist
+						_, ok := c.InlineFragments[concreteType]
+						if !ok {
+							c.InlineFragments[concreteType] = &fieldCollectionField{
+								Field: &CollectedSelection{
+									Kind:      "inline_fragment",
+									FieldName: concreteType,
+									Children:  frag.Field.Children,
+								},
+								Selection: newFieldCollection(
+									c.CollectedDocuments,
+									hidden,
+									concreteType,
+									c.SortKeys,
+								),
+							}
+
+							// just add one field, we'll do the rest when we copy over the abstract selection into the concrete one
+							c.InlineFragments[concreteType].Selection.Add(
+								frag.Field.Children[0],
+								hidden,
+							)
+						}
+					}
+				}
+			}
+
 			// if we've seen the concrete type before then we need to add this selection set to
 			// the selection for the inline fragment for the concrete type
 			if _, ok := c.InlineFragments[concreteType]; ok {

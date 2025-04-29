@@ -33,7 +33,7 @@ func TestMergeSelections(t *testing.T) {
         pets(name: String!, filter: PetFilter ): [Pet!]!
       }
 
-      type Cat implements Node & Pet {
+      type Cat implements Node & Pet & Friend {
         id: ID!
         owner: User!
         species: String!
@@ -450,6 +450,59 @@ func TestMergeSelections(t *testing.T) {
                           }
                           id
                           name
+                      }
+                  }
+              }
+          `),
+				},
+			},
+			{
+				Name: "Overlaping interfaces add entry for concrete type",
+				Pass: true,
+				Input: []string{
+					`
+            query MyQuery {
+              node(id: "123") {
+                ... on Friend { 
+                    name
+                }
+                ... on Pet { 
+                    owner { 
+                        bestFriend { 
+                            name 
+                        }
+                    }
+                }
+                id
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+              query MyQuery {
+                  node(id: "123") {
+                      id
+                      ... on Cat {
+                          id
+                          name
+                          owner {
+                              bestFriend {
+                                  name
+                              }
+                          }
+                      }
+                      ... on Friend {
+                          id
+                          name
+                      }
+                      ... on Pet {
+                          id
+                          owner {
+                              bestFriend {
+                                  name
+                              }
+                          }
                       }
                   }
               }

@@ -24,8 +24,8 @@ func CollectDocuments(
 	result := &CollectedDocuments{
 		Selections:      map[string]*CollectedDocument{},
 		TaskDocuments:   []string{},
-		PossibleTypes:   map[string][]string{},
-		Implementations: map[string][]string{},
+		PossibleTypes:   map[string]map[string]bool{},
+		Implementations: map[string]map[string]bool{},
 	}
 
 	// the first thing we have to do is id of every document that we care about
@@ -120,19 +120,21 @@ func CollectDocuments(
 		}
 		for typeName, members := range docs.PossibleTypes {
 			if _, ok := result.PossibleTypes[typeName]; !ok {
-				result.PossibleTypes[typeName] = []string{}
+				result.PossibleTypes[typeName] = map[string]bool{}
 			}
-			result.PossibleTypes[typeName] = append(result.PossibleTypes[typeName], members...)
+			for _, member := range members {
+				result.PossibleTypes[typeName][member] = true
+			}
 		}
 	}
 
 	// if we got this far we can reverse the type mappings to get the implementations
-	for typeName, members := range result.PossibleTypes {
-		for _, member := range members {
+	for typeName := range result.PossibleTypes {
+		for member := range result.PossibleTypes[typeName] {
 			if _, ok := result.Implementations[member]; !ok {
-				result.Implementations[member] = []string{}
+				result.Implementations[member] = map[string]bool{}
 			}
-			result.Implementations[member] = append(result.Implementations[member], typeName)
+			result.Implementations[member][typeName] = true
 		}
 	}
 
@@ -200,6 +202,7 @@ func collectDoc(
 				kind := statements.Search.GetText("kind")
 				fieldName := statements.Search.GetText("field_name")
 				fieldType := statements.Search.GetText("type")
+
 				var typeModifiers *string
 				if !statements.Search.IsNull("type_modifiers") {
 					mods := statements.Search.GetText("type_modifiers")
@@ -722,7 +725,20 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN arguments_agg a ON a.selection_id = selections.id
         WHERE selection_refs.document = st.document_id
       )
-    SELECT id, document_name, document_id, kind, field_name, type_modifiers, alias, arguments, directives, parent_id, document_kind, type_condition, type FROM selection_tree
+    SELECT 
+      id,
+      document_name, 
+      document_id, 
+      kind, 
+      field_name, 
+      type_modifiers, 
+      alias, 
+      arguments, 
+      directives, 
+      parent_id, 
+      document_kind, 
+      type_condition, 
+      type FROM selection_tree
     ORDER BY parent_id ASC
   `, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
@@ -999,10 +1015,12 @@ type CollectedArgumentValueChildren struct {
 }
 
 type CollectedDocuments struct {
-	TaskDocuments   []string
-	Selections      map[string]*CollectedDocument
-	PossibleTypes   map[string][]string
-	Implementations map[string][]string
+	TaskDocuments []string
+	Selections    map[string]*CollectedDocument
+	// PossibleTypes maps abtract types to concrete types that implement them
+	PossibleTypes map[string]map[string]bool
+	// Implementations maps concrete types to the abstract types it implements (its the inverse of PossibleTypes)
+	Implementations map[string]map[string]bool
 }
 
 type collectResult struct {
