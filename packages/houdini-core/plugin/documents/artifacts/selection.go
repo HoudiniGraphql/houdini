@@ -350,8 +350,6 @@ func stringifySelection(
 			}
 		}
 
-		fmt.Println(typeMap)
-
 		result += fmt.Sprintf(`%s"abstractFields": {
 %s"fields": {
 %s%s},
