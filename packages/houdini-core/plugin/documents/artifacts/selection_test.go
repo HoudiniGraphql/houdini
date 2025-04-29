@@ -416,8 +416,8 @@ func TestArtifactGeneration(t *testing.T) {
                                       },
 
                                       "typeMap": {
-                                          "User": "Friend",
                                           "Cat": "Friend",
+                                          "User": "Friend",
                                       }
                                   },
                               },

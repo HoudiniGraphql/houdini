@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -27,12 +28,13 @@ func writeSelectionDocument(
 	docs *CollectedDocuments,
 	name string,
 	selection []*CollectedSelection,
+	sortKeys bool,
 ) error {
 	// load the project config
 	projectConfig, err := db.ProjectConfig(ctx)
 
 	// generate the artifact content
-	artifact, err := GenerateSelectionDocument(ctx, db, conn, docs, name, selection)
+	artifact, err := GenerateSelectionDocument(ctx, db, conn, docs, name, selection, sortKeys)
 	if err != nil {
 		return err
 	}
@@ -62,6 +64,7 @@ func GenerateSelectionDocument(
 	docs *CollectedDocuments,
 	name string,
 	selection []*CollectedSelection,
+	sortKeys bool,
 ) (string, error) {
 	doc := docs.Selections[name]
 
@@ -135,7 +138,7 @@ func GenerateSelectionDocument(
 	}
 
 	// build up the selection string
-	selectionValues := stringifySelection(selection, 1)
+	selectionValues := stringifySelection(docs, doc.TypeCondition, selection, 1, sortKeys)
 
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
@@ -209,7 +212,13 @@ func printedValue(
 	return printed[:len(printed)-2], nil
 }
 
-func stringifySelection(selections []*CollectedSelection, level int) string {
+func stringifySelection(
+	docs *CollectedDocuments,
+	parentType string,
+	selections []*CollectedSelection,
+	level int,
+	sortKeys bool,
+) string {
 	indent := strings.Repeat(spacing, level)
 	indent2 := strings.Repeat(spacing, level+1)
 	indent3 := strings.Repeat(spacing, level+2)
@@ -219,7 +228,6 @@ func stringifySelection(selections []*CollectedSelection, level int) string {
 	fields := ""
 	fragments := ""
 	abstractFields := ""
-	abstractTypeMap := ""
 
 	for _, selection := range selections {
 		switch selection.Kind {
@@ -231,7 +239,7 @@ func stringifySelection(selections []*CollectedSelection, level int) string {
 				fields += "\n"
 			}
 
-			fields += stringifyFieldSelection(level, selection)
+			fields += stringifyFieldSelection(docs, level, selection, sortKeys)
 
 		case "fragment":
 			fragments += fmt.Sprintf(`%s"%s": {
@@ -244,7 +252,7 @@ func stringifySelection(selections []*CollectedSelection, level int) string {
 			if len(selection.Children) > 0 {
 				for _, field := range selection.Children {
 					if field.Kind == "field" {
-						subSelection += stringifyFieldSelection(level+2, field)
+						subSelection += stringifyFieldSelection(docs, level+2, field, sortKeys)
 					}
 				}
 				subSelection += fmt.Sprintf("%s},\n", indent4)
@@ -285,19 +293,77 @@ func stringifySelection(selections []*CollectedSelection, level int) string {
 			result += "\n"
 		}
 
+		// we need to compute the mapping from runtime types to which inline fragment we need to consider (if it exists)
+		// to do this, we need to look at the selection for inline fragments, if there is an inline fragment on a concrete
+		// type then the mapping is just ConcreteType -> ConcreteType. If the inline fragments are an abstract type then we
+		// can assume there is only one possible intersection between the two abstract types (this is baked into the collection algorithm)
+		// and every concrete type that implements the abstract type of the fragment that also implements the abstract type of the
+		// parent needs to be mapped to the abstract inline fragment
+		typeMap := map[string]string{}
+		// we'll do this in 2 passes, once looking for concrete types and then once looking for abstract types
+		for _, selection := range selections {
+			if selection.Kind != "inline_fragment" {
+				continue
+			}
+
+			// identify concrete types by looking for types that don't have any possible members
+			if _, ok := docs.PossibleTypes[selection.FieldName]; !ok {
+				// we have found a concrete type
+				typeMap[selection.FieldName] = selection.FieldName
+			}
+		}
+
+		// now we need to look at every inline fragment we found and see if it corresponds to an abstract type
+		// that a concrete type of the parent implements
+		for _, selection := range selections {
+			if selection.Kind != "inline_fragment" {
+				continue
+			}
+
+			// identify concrete types by looking for types that do have possible members
+			if concreteTypes, ok := docs.PossibleTypes[selection.FieldName]; ok {
+				for concreteType := range concreteTypes {
+					if possibles, ok := docs.PossibleTypes[parentType]; ok {
+						if _, ok := possibles[concreteType]; ok {
+							typeMap[concreteType] = selection.FieldName
+						}
+					}
+				}
+			}
+		}
+
+		typeMapStr := ""
+		if !sortKeys {
+			for key, value := range typeMap {
+				typeMapStr += fmt.Sprintf(`%s"%s": "%s",
+`, indent4, key, value)
+			}
+		} else {
+			keys := []string{}
+			for key := range typeMap {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+			for _, key := range keys {
+				typeMapStr += fmt.Sprintf(`%s"%s": "%s",
+`, indent4, key, typeMap[key])
+			}
+		}
+
+		fmt.Println(typeMap)
+
 		result += fmt.Sprintf(`%s"abstractFields": {
 %s"fields": {
 %s%s},
 
 %s"typeMap": {
-%s
-%s}
+%s%s}
 %s},`, indent2,
 			indent3,
 			abstractFields,
 			indent3,
 			indent3,
-			abstractTypeMap,
+			typeMapStr,
 			indent3,
 			indent2,
 		)
@@ -320,7 +386,12 @@ func keyField(field *CollectedSelection) string {
 	)
 }
 
-func stringifyFieldSelection(level int, selection *CollectedSelection) string {
+func stringifyFieldSelection(
+	docs *CollectedDocuments,
+	level int,
+	selection *CollectedSelection,
+	sortKeys bool,
+) string {
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
 
@@ -329,7 +400,7 @@ func stringifyFieldSelection(level int, selection *CollectedSelection) string {
 	if len(selection.Children) > 0 {
 		subSelection += fmt.Sprintf(`
 
-%s"selection": %s,`, indent4, stringifySelection(selection.Children, level+3))
+%s"selection": %s,`, indent4, stringifySelection(docs, selection.FieldType, selection.Children, level+3, sortKeys))
 
 		subSelection += "\n"
 	}
@@ -343,6 +414,24 @@ func stringifyFieldSelection(level int, selection *CollectedSelection) string {
 		visible = ""
 	}
 
+	// only show the abstract field when its true
+	abstract := ""
+	isAbstract := false
+	switch selection.Kind {
+	case "inline_fragment":
+		if len(docs.PossibleTypes[selection.FieldName]) > 0 {
+			isAbstract = true
+		}
+	case "field":
+		if len(docs.PossibleTypes[selection.FieldType]) > 0 {
+			isAbstract = true
+		}
+	}
+	if isAbstract {
+		abstract = fmt.Sprintf(`
+%s"abstract": true,`, indent4)
+	}
+
 	// if the field is nullable we need to include an optional value
 	nullable := ""
 	if selection.TypeModifiers != nil && !strings.HasSuffix(*selection.TypeModifiers, "!") {
@@ -352,7 +441,7 @@ func stringifyFieldSelection(level int, selection *CollectedSelection) string {
 
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": "%s",%s%s%s
+%s"keyRaw": "%s",%s%s%s%s
 %s},
 `,
 		indent3,
@@ -363,6 +452,7 @@ func stringifyFieldSelection(level int, selection *CollectedSelection) string {
 		keyField(selection),
 		nullable,
 		subSelection,
+		abstract,
 		visible,
 		indent3,
 	)

@@ -80,6 +80,7 @@ func GenerateDocumentArtifacts(
 					collectedDefinitions,
 					name,
 					selection,
+					sortKeys,
 				)
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
