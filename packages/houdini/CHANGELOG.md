@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.1
+
+### Minor Changes
+
+-   [#1485](https://github.com/HoudiniGraphql/houdini/pull/1485) [`83db8ab2`](https://github.com/HoudiniGraphql/houdini/commit/83db8ab2678d5e86c325890f6f3608f16ea3c81f) Thanks [@rgon](https://github.com/rgon)! - allow configuring schemaPolling to write the pulled schema to a file
+
 ## 2.0.0-next.0
 
 ### Major Changes
