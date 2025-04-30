@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"runtime"
 	"strings"
 	"sync"
@@ -26,6 +27,8 @@ func CollectDocuments(
 		TaskDocuments:   []string{},
 		PossibleTypes:   map[string]map[string]bool{},
 		Implementations: map[string]map[string]bool{},
+		InputTypes:      map[string]map[string]string{},
+		EnumValues:      map[string][]string{},
 	}
 
 	// the first thing we have to do is id of every document that we care about
@@ -126,6 +129,10 @@ func CollectDocuments(
 				result.PossibleTypes[typeName][member] = true
 			}
 		}
+
+		// copy the two input type maps
+		maps.Copy(result.InputTypes, docs.InputTypes)
+		maps.Copy(result.EnumValues, docs.EnumValues)
 	}
 
 	// if we got this far we can reverse the type mappings to get the implementations
@@ -569,7 +576,7 @@ func collectDoc(
 				docs = append(docs, doc)
 			}
 
-			// and finally we need to look up the type mappings for any types included in the documents we processed
+			// now we need to look up the type mappings for any types included in the documents we processed
 			possibleTypes := map[string][]string{}
 			err = db.StepStatement(ctx, statements.PossibleTypes, func() {
 				typeName := statements.PossibleTypes.GetText("type")
@@ -586,10 +593,43 @@ func collectDoc(
 				return
 			}
 
+			// up next, lets look up the input types
+			inputTypes := map[string]map[string]string{}
+			enumValues := map[string][]string{}
+			err = db.StepStatement(ctx, statements.InputTypes, func() {
+				typeName := statements.InputTypes.GetText("parent")
+				fieldType := statements.InputTypes.GetText("type")
+				fieldName := statements.InputTypes.GetText("name")
+				kind := statements.InputTypes.GetText("kind")
+
+				// depending on the kind we have to treat the result different
+				switch kind {
+				case "input":
+					// the row could designate an input field
+
+					// if this is the first time we've seen this type we need to initialize the map
+					if _, ok := inputTypes[typeName]; !ok {
+						inputTypes[typeName] = map[string]string{}
+					}
+
+					// add the field to the map
+					inputTypes[typeName][fieldName] = fieldType
+
+				case "enum":
+					// the row could also mean an enum value
+					enumValues[typeName] = append(enumValues[typeName], fieldName)
+				}
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+			}
+
 			// send the result over the channel
 			resultCh <- collectResult{
 				Documents:     docs,
 				PossibleTypes: possibleTypes,
+				InputTypes:    inputTypes,
+				EnumValues:    enumValues,
 			}
 		}(batch)
 	}
@@ -600,6 +640,7 @@ type CollectStatements struct {
 	DocumentVariables  *sqlite.Stmt
 	DocumentDirectives *sqlite.Stmt
 	PossibleTypes      *sqlite.Stmt
+	InputTypes         *sqlite.Stmt
 }
 
 func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatements, error) {
@@ -849,8 +890,27 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 		return nil, err
 	}
 
+	// a query to look up the type fields and enum values for every input used in the
+	// documents we're interested in
+	inputTypes, err := conn.Prepare(fmt.Sprintf(`
+    SELECT parent, name, type, type_modifiers, 'input' as kind
+    FROM type_fields 
+      JOIN argument_values ON type_fields.parent = argument_values.expected_type
+    WHERE argument_values."document" in %s
+
+    UNION ALL
+
+    SELECT parent, value as name, null as type, null as type_modifiers, 'enum' as kind 
+    FROM enum_values
+      JOIN argument_values ON enum_values.parent = argument_values.expected_type
+    WHERE argument_values."document" in %s
+  `, whereIn, whereIn))
+	if err != nil {
+		return nil, err
+	}
+
 	// bind each document ID to the variables that were prepared
-	for _, stmt := range []*sqlite.Stmt{search, documentVariables, documentDirectives, possibleTypes} {
+	for _, stmt := range []*sqlite.Stmt{search, documentVariables, documentDirectives, possibleTypes, inputTypes} {
 		for i, id := range docIDs {
 			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
 		}
@@ -861,6 +921,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 		DocumentVariables:  documentVariables,
 		DocumentDirectives: documentDirectives,
 		PossibleTypes:      possibleTypes,
+		InputTypes:         inputTypes,
 	}, nil
 }
 
@@ -869,6 +930,7 @@ func (s *CollectStatements) Finalize() {
 	s.DocumentVariables.Finalize()
 	s.DocumentDirectives.Finalize()
 	s.PossibleTypes.Finalize()
+	s.InputTypes.Finalize()
 }
 
 func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.Stmt, error) {
@@ -1021,9 +1083,17 @@ type CollectedDocuments struct {
 	PossibleTypes map[string]map[string]bool
 	// Implementations maps concrete types to the abstract types it implements (its the inverse of PossibleTypes)
 	Implementations map[string]map[string]bool
+	// InputTypes holds a description of every field of every type used as an input
+	// for every collected doc
+	InputTypes map[string]map[string]string
+
+	// EnumValues holds a list of enum values for every enum type used as an input
+	EnumValues map[string][]string
 }
 
 type collectResult struct {
 	Documents     []*CollectedDocument
 	PossibleTypes map[string][]string
+	InputTypes    map[string]map[string]string
+	EnumValues    map[string][]string
 }

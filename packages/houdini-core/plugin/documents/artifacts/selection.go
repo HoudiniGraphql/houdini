@@ -140,6 +140,28 @@ func GenerateSelectionDocument(
 	// build up the selection string
 	selectionValues := stringifySelection(docs, doc.TypeCondition, selection, 1, sortKeys)
 
+	// build up the input specification
+	inputTypes := ""
+	if len(doc.Variables) > 0 {
+		variableTypes := ""
+		for _, variable := range doc.Variables {
+			variableTypes += fmt.Sprintf(`
+            "%s": "%s"
+`, variable.Name, variable.Type)
+		}
+
+		inputTypes = fmt.Sprintf(`
+
+    "input": {
+        "fields": {%s        },
+
+        "types": {},
+        "defaults": {},
+        "runtimeScalars": {},
+    },
+`, variableTypes)
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
     "name": "%s",
@@ -152,7 +174,7 @@ export default {
 
     "selection": %s,
 
-    "pluginData": %s,
+    "pluginData": %s,%s
     "policy": "%s",
     "partial": %v
 }
@@ -166,6 +188,7 @@ export default {
 		string(stripVariables),
 		selectionValues,
 		string(marshaledData),
+		inputTypes,
 		cachePolicy,
 		partial,
 		hash,
