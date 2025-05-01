@@ -19,8 +19,13 @@ func TestArtifactGeneration(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
       type Query {
+			  user(
+          id: ID, 
+          filter: UserFilter, 
+          filterList: [UserFilter!], 
+          enumArg: MyEnum
+        ): User!
         friends: [User!]!
-        user: User!
         node(id: ID!): Node
         version: Int!
       } 
@@ -57,6 +62,25 @@ func TestArtifactGeneration(t *testing.T) {
 
       union Pet = Cat
 
+      enum MyEnum {
+        Hello
+      }
+
+      input UserFilter {
+        middle: NestedUserFilter
+        listRequired: [String!]!
+        nullList: [String]
+        recursive: UserFilter
+        enum: MyEnum
+      }
+
+      input NestedUserFilter {
+        id: ID!
+        firstName: String!
+        admin: Boolean
+        age: Int
+        weight: Float
+      }
     `,
 		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			// load the documents into the database
@@ -432,11 +456,13 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "input": {
                       "fields": {
-                          "id": "ID"
+                          "id": "ID",
                       },
 
                       "types": {},
+
                       "defaults": {},
+
                       "runtimeScalars": {},
                   },
 
@@ -446,6 +472,108 @@ func TestArtifactGeneration(t *testing.T) {
 
               "HoudiniHash=2bf1a6f13b012901b2017ee8b44c24d39fe7aa0725d68deea5a3e08d7393d671"
             
+          `),
+				},
+			},
+			{
+				Name: "Operation inputs",
+				Pass: true,
+				Input: []string{
+					`
+            query TestQuery(
+              $id: ID = "123",
+              $filter: UserFilter,
+              $filterList: [UserFilter!],
+              $enumArg: MyEnum
+            ) {
+              user(
+                id: $id,
+                filter: $filter,
+                filterList: $filterList,
+                enumArg: $enumArg,
+              ) {
+                id
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "6f309527d440ef50e63cd0c7f20a2f8d17856c439f57ddfff52625749ca9e720",
+                  "raw": ` + "`" + `query TestQuery($enumArg: MyEnum, $filter: UserFilter, $filterList: [UserFilter!], $id: ID = "123") {
+                  user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id) {
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id)",
+
+                              "selection": {
+                                  "fields": {
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "id": "ID",
+                          "filter": "UserFilter",
+                          "filterList": "UserFilter",
+                          "enumArg": "MyEnum",
+                      },
+
+                      "types": {
+                          "NestedUserFilter": {
+                              "admin": "Boolean",
+                              "age": "Int",
+                              "firstName": "String",
+                              "id": "ID",
+                              "weight": "Float",
+                          },
+                          "UserFilter": {
+                              "enum": "MyEnum",
+                              "listRequired": "String",
+                              "middle": "NestedUserFilter",
+                              "nullList": "String",
+                              "recursive": "UserFilter",
+                          },
+                      },
+
+                      "defaults": {
+                          "id": "123",
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=6f309527d440ef50e63cd0c7f20a2f8d17856c439f57ddfff52625749ca9e720"
+	
           `),
 				},
 			},

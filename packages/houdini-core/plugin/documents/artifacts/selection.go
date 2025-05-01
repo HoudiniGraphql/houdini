@@ -143,23 +143,71 @@ func GenerateSelectionDocument(
 	// build up the input specification
 	inputTypes := ""
 	if len(doc.Variables) > 0 {
+		defaults := ""
 		variableTypes := ""
 		for _, variable := range doc.Variables {
 			variableTypes += fmt.Sprintf(`
-            "%s": "%s"
-`, variable.Name, variable.Type)
+            "%s": "%s",`, variable.Name, variable.Type)
+			if variable.DefaultValue != nil {
+				defaults += fmt.Sprintf(`
+            "%s": %s,`, variable.Name, printValue(variable.DefaultValue, map[string]bool{}))
+			}
+		}
+
+		if len(defaults) > 0 {
+			defaults += "\n        "
+		}
+
+		// the input type defs include a description for every input object
+		// that is used in the query so we can correctly marshal the scalar values
+		typeDefs := ""
+		usedTypes := findUsedTypes(docs, doc.Variables)
+
+		if sortKeys {
+			sort.Strings(usedTypes)
+		}
+		for _, inputType := range usedTypes {
+			fields := ""
+
+			// we might have to sort the keys in the input type
+			if sortKeys {
+				inputKeys := []string{}
+				for key := range docs.InputTypes[inputType] {
+					inputKeys = append(inputKeys, key)
+				}
+				sort.Strings(inputKeys)
+				for _, key := range inputKeys {
+					fields += fmt.Sprintf(`
+                "%s": "%s",`, key, docs.InputTypes[inputType][key])
+				}
+			} else {
+				for key, value := range docs.InputTypes[inputType] {
+					fields += fmt.Sprintf(`
+                "%s": "%s",`, key, value)
+				}
+			}
+
+			typeDefs += fmt.Sprintf(`
+            "%s": {%s
+            },`, inputType, fields)
+		}
+		if len(usedTypes) > 0 {
+			typeDefs += "\n        "
 		}
 
 		inputTypes = fmt.Sprintf(`
 
     "input": {
-        "fields": {%s        },
+        "fields": {%s
+        },
 
-        "types": {},
-        "defaults": {},
+        "types": {%s},
+
+        "defaults": {%s},
+
         "runtimeScalars": {},
     },
-`, variableTypes)
+`, variableTypes, typeDefs, defaults)
 	}
 
 	result := strings.TrimSpace(fmt.Sprintf(`
@@ -479,4 +527,45 @@ func stringifyFieldSelection(
 	)
 
 	return result
+}
+
+func findUsedTypes(docs *CollectedDocuments, variables []*CollectedOperationVariable) []string {
+	// we need a way to ensure we dont find ourselves in cyclic types
+	foundTypes := map[string]bool{}
+
+	queue := []string{}
+	for _, vars := range variables {
+		queue = append(queue, vars.Type)
+	}
+
+	for len(queue) > 0 {
+		// dequeue
+		target := queue[0]
+		queue = queue[1:]
+
+		// if we've already processed the type, dont worry about it
+		if _, ok := foundTypes[target]; ok {
+			continue
+		}
+
+		inputType, ok := docs.InputTypes[target]
+		if !ok {
+			continue
+		}
+
+		// record we encountered a used input type
+		foundTypes[target] = true
+
+		// the next thing to do is walk through the fields of the input type
+		for _, fieldType := range inputType {
+			queue = append(queue, fieldType)
+		}
+	}
+
+	// build up the list of found types
+	found := []string{}
+	for key := range foundTypes {
+		found = append(found, key)
+	}
+	return found
 }

@@ -597,9 +597,9 @@ func collectDoc(
 			inputTypes := map[string]map[string]string{}
 			enumValues := map[string][]string{}
 			err = db.StepStatement(ctx, statements.InputTypes, func() {
-				typeName := statements.InputTypes.GetText("parent")
-				fieldType := statements.InputTypes.GetText("type")
-				fieldName := statements.InputTypes.GetText("name")
+				typeName := statements.InputTypes.GetText("parent_type")
+				fieldType := statements.InputTypes.GetText("field_type")
+				fieldName := statements.InputTypes.GetText("field_name")
 				kind := statements.InputTypes.GetText("kind")
 
 				// depending on the kind we have to treat the result different
@@ -893,17 +893,73 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	// a query to look up the type fields and enum values for every input used in the
 	// documents we're interested in
 	inputTypes, err := conn.Prepare(fmt.Sprintf(`
-    SELECT parent, name, type, type_modifiers, 'input' as kind
-    FROM type_fields 
-      JOIN argument_values ON type_fields.parent = argument_values.expected_type
-    WHERE argument_values."document" in %s
+      WITH RECURSIVE
+        -- define our columns (including a “visited” string to track cycles)
+        argumentTypes(
+          parent_type,
+          field_name,
+          field_type,
+          type_modifiers,
+          kind,
+          visited_types
+        ) AS (
 
-    UNION ALL
+          -- ─── base case 1: input‐object fields of the starting expected types ───
+          SELECT
+            tf.parent,                   -- parent_type
+            tf.name,                     -- field_name
+            tf.type,                     -- field_type
+            tf.type_modifiers,           -- type_modifiers
+            'input'     AS kind,         
+            '|' || tf.parent || '|'      AS visited_types
+          FROM argument_values av
+          JOIN type_fields tf
+            ON av.expected_type = tf.parent
+          WHERE av."document" in %s
 
-    SELECT parent, value as name, null as type, null as type_modifiers, 'enum' as kind 
-    FROM enum_values
-      JOIN argument_values ON enum_values.parent = argument_values.expected_type
-    WHERE argument_values."document" in %s
+          UNION ALL
+
+          -- ─── base case 2: enum values for those same starting types ───
+          SELECT
+            ev.parent,                   -- parent_type
+            ev.value    AS field_name,   -- field_name (enum value)
+            NULL        AS field_type,   -- enums don’t have nested fields
+            NULL        AS type_modifiers,
+            'enum'      AS kind,
+            '|' || ev.parent || '|'      AS visited_types
+          FROM argument_values av
+          JOIN enum_values ev
+            ON av.expected_type = ev.parent
+          WHERE av."document" in %s
+
+          UNION ALL
+
+          -- ─── recursive step: for each discovered input‐object type, pull its fields ───
+          SELECT
+            tf.parent,
+            tf.name, 
+            tf.type, 
+            tf.type_modifiers,
+            'input'     AS kind,
+            at.visited_types
+              || tf.parent || '|'     
+          FROM argumentTypes AS at
+          JOIN type_fields tf
+            ON tf.parent = at.field_type
+          -- only recurse into types we haven’t seen yet
+          WHERE instr(
+            at.visited_types,
+            '|' || tf.parent || '|'
+          ) = 0
+        )
+
+      SELECT DISTINCT
+        parent_type,
+        field_name,
+        field_type,
+        type_modifiers,
+        kind
+      FROM argumentTypes
   `, whereIn, whereIn))
 	if err != nil {
 		return nil, err
