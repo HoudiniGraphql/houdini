@@ -213,17 +213,24 @@ export class Config {
 		// documents
 		for (const plugin of this.plugins) {
 			const runtimeDir = this.pluginRuntimeSource(plugin)
+			const staticDir = this.pluginStaticRuntimeSource(plugin)
 
 			// skip plugins that dont' include runtimes
-			if (!runtimeDir) {
+			if (!runtimeDir && !staticDir) {
 				continue
 			}
 
-			// the include path is relative to root of the vite project
-			const includePath = path.relative(this.projectRoot, runtimeDir)
+			for (const dir of [runtimeDir, staticDir]) {
+				if (!dir) {
+					continue
+				}
 
-			// add the plugin's directory to the include pile
-			include.push(`${includePath}/**/*{${extensions.join(',')}}`)
+				// the include path is relative to root of the vite project
+				const includePath = path.relative(this.projectRoot, dir)
+
+				// add the plugin's directory to the include pile
+				include.push(`${includePath}/**/*{${extensions.join(',')}}`)
+			}
 		}
 
 		return include
@@ -302,6 +309,19 @@ export class Config {
 			typeof plugin.includeRuntime === 'string'
 				? plugin.includeRuntime
 				: plugin.includeRuntime?.[this.module]
+		)
+	}
+
+	pluginStaticRuntimeSource(plugin: PluginMeta) {
+		if (!plugin.staticRuntime) {
+			return null
+		}
+
+		return path.join(
+			path.dirname(plugin.filepath),
+			typeof plugin.staticRuntime === 'string'
+				? plugin.staticRuntime
+				: plugin.staticRuntime?.[this.module]
 		)
 	}
 
@@ -604,6 +624,10 @@ export class Config {
 
 	pluginRuntimeDirectory(name: string) {
 		return path.join(this.pluginDirectory(name), 'runtime')
+	}
+
+	pluginStaticRuntimeDirectory(name: string) {
+		return path.join(this.pluginDirectory(name), 'static')
 	}
 
 	get pluginRootDirectory() {
