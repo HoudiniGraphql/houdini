@@ -25,7 +25,8 @@ func TestArtifactGeneration(t *testing.T) {
           filterList: [UserFilter!], 
           enumArg: MyEnum
         ): User!
-        friends: [User!]!
+        friends: [Friend!]!
+        pets: [Pet!]!
         node(id: ID!): Node
         version: Int!
       } 
@@ -39,6 +40,7 @@ func TestArtifactGeneration(t *testing.T) {
         name: String!
         bestFriend: User! 
         firstName: String!
+        friends: [User!]!
         pets(name: String!, filter: PetFilter ): [Pet!]!
       }
 
@@ -46,6 +48,11 @@ func TestArtifactGeneration(t *testing.T) {
         id: ID!
         name: String!
         owner: User!
+      }
+
+      type Dog implements Node & Friend {
+        id: ID!
+        name: String!
       }
 
       interface Friend {
@@ -441,6 +448,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                                       "typeMap": {
                                           "Cat": "Friend",
+                                          "Dog": "Friend",
                                           "User": "Friend",
                                       }
                                   },
@@ -574,6 +582,457 @@ func TestArtifactGeneration(t *testing.T) {
 
               "HoudiniHash=6f309527d440ef50e63cd0c7f20a2f8d17856c439f57ddfff52625749ca9e720"
 	
+          `),
+				},
+			},
+			{
+				Name: "Overlapping query and fragment nested selection",
+				Pass: true,
+				Input: []string{
+					`fragment A on User { friends { ... on User { id } } }`,
+					`query TestQuery {  friends {... on User { firstName } ...A } }`,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "eb04a29974f886fc36008ccb90ce8a7d132a553cc3a7c58ef385deda38de9b5f",
+                  "raw": ` + "`" + `fragment A on User {
+                  friends {
+                      ... on User {
+                          id
+                      }
+                  }
+              }
+
+              query TestQuery {
+                  friends {
+                      ... on User {
+                          firstName
+                      }
+                      ...A
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "friends": {
+                              "type": "Friend",
+                              "keyRaw": "friends",
+
+                              "selection": {
+                                  "fragments": {
+                                      "A": {
+                                          "arguments": {}
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "User": {
+                                              "firstName": {
+                                                  "type": "String",
+                                                  "keyRaw": "firstName",
+                                                  "visible": true,
+                                              },
+                                              "friends": {
+                                                  "type": "User",
+                                                  "keyRaw": "friends",
+
+                                                  "selection": {
+                                                      "abstractFields": {
+                                                          "fields": {
+                                                              "User": {
+                                                                  "id": {
+                                                                      "type": "ID",
+                                                                      "keyRaw": "id",
+                                                                  },
+                                                              },
+                                                          },
+
+                                                          "typeMap": {
+                                                              "User": "User",
+                                                          }
+                                                      },
+                                                  },
+
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {
+                                          "User": "User",
+                                      }
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=eb04a29974f886fc36008ccb90ce8a7d132a553cc3a7c58ef385deda38de9b5f"
+            
+          `),
+				},
+			},
+			{
+				Name: "Selections with interfaces",
+				Pass: true,
+				Input: []string{
+					`query Friends {
+              friends {
+                  __typename
+                  ... on Cat {
+                      id
+                      owner {
+                          firstName
+                      }
+                  }
+                  ... on User {
+                      name
+                  }
+              }
+          }`,
+				},
+				Extra: map[string]any{
+					"Friends": tests.Dedent(`
+              export default {
+                  "name": "Friends",
+                  "kind": "HoudiniQuery",
+                  "hash": "5657a4184497c4a629f3d69a88a0a8cfc824bc09c5b04a6b46b6054fd8f6c9b2",
+                  "raw": ` + "`" + `query Friends {
+                  friends {
+                      __typename
+                      ... on Cat {
+                          id
+                          owner {
+                              firstName
+                          }
+                      }
+                      ... on User {
+                          name
+                      }
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "friends": {
+                              "type": "Friend",
+                              "keyRaw": "friends",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Cat": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "owner": {
+                                                  "type": "User",
+                                                  "keyRaw": "owner",
+
+                                                  "selection": {
+                                                      "fields": {
+                                                          "firstName": {
+                                                              "type": "String",
+                                                              "keyRaw": "firstName",
+                                                              "visible": true,
+                                                          },
+                                                      },
+                                                  },
+
+                                                  "visible": true,
+                                              },
+                                          },
+                                          "User": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {
+                                          "Cat": "Cat",
+                                          "User": "User",
+                                      }
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=5657a4184497c4a629f3d69a88a0a8cfc824bc09c5b04a6b46b6054fd8f6c9b2"
+          `),
+				},
+			},
+			{
+				Name: "Selections with unions",
+				Pass: true,
+				Input: []string{
+					`query Friends {
+              pets {
+                  __typename
+                  ... on Cat {
+                      id
+                      owner {
+                          firstName
+                      }
+                  }
+                  ... on Dog {
+                      name
+                  }
+              }
+          }`,
+				},
+				Extra: map[string]any{
+					"Friends": tests.Dedent(`
+              export default {
+                  "name": "Friends",
+                  "kind": "HoudiniQuery",
+                  "hash": "13b3f9bf2d4a8d9ceb7a9b4ae0e14e09a223994115f5427cbcd81095e729996d",
+                  "raw": ` + "`" + `query Friends {
+                  pets {
+                      __typename
+                      ... on Cat {
+                          id
+                          owner {
+                              firstName
+                          }
+                      }
+                      ... on Dog {
+                          name
+                      }
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "pets": {
+                              "type": "Pet",
+                              "keyRaw": "pets",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Cat": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "owner": {
+                                                  "type": "User",
+                                                  "keyRaw": "owner",
+
+                                                  "selection": {
+                                                      "fields": {
+                                                          "firstName": {
+                                                              "type": "String",
+                                                              "keyRaw": "firstName",
+                                                              "visible": true,
+                                                          },
+                                                      },
+                                                  },
+
+                                                  "visible": true,
+                                              },
+                                          },
+                                          "Dog": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {
+                                          "Cat": "Cat",
+                                          "Dog": "Dog",
+                                      }
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=13b3f9bf2d4a8d9ceb7a9b4ae0e14e09a223994115f5427cbcd81095e729996d"
+          `),
+				},
+			},
+			{
+				Name: "Selections with overlapping unions",
+				Pass: true,
+				Input: []string{
+					`query Friends {
+              pets {
+                  __typename
+                  ... on Cat {
+                      id
+                  }
+                  ... on Dog {
+                      name
+                  }
+              }
+          }`,
+				},
+				Extra: map[string]any{
+					"Friends": tests.Dedent(`
+              export default {
+                  "name": "Friends",
+                  "kind": "HoudiniQuery",
+                  "hash": "ffa486fffb01e8d030ab8444796db47ed7a9a283750b17e053b286506ec89086",
+                  "raw": ` + "`" + `query Friends {
+                  pets {
+                      __typename
+                      ... on Cat {
+                          id
+                      }
+                      ... on Dog {
+                          name
+                      }
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "pets": {
+                              "type": "Pet",
+                              "keyRaw": "pets",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Cat": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                          },
+                                          "Dog": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {
+                                          "Cat": "Cat",
+                                          "Dog": "Dog",
+                                      }
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=ffa486fffb01e8d030ab8444796db47ed7a9a283750b17e053b286506ec89086"
           `),
 				},
 			},
