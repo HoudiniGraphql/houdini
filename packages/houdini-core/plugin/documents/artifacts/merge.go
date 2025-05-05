@@ -96,7 +96,11 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 	switch selection.Kind {
 	case "field":
 		// if we haven't seen the field before we need to add a place for the selection
-		if _, ok := c.Fields[selection.FieldName]; !ok {
+		if sel, ok := c.Fields[selection.FieldName]; ok {
+			sel.Hidden = hidden && sel.Hidden
+			sel.Field.Hidden = sel.Hidden
+			hidden = sel.Hidden
+		} else {
 			c.Fields[*selection.Alias] = &fieldCollectionField{
 				Field: selection.Clone(),
 				Selection: newFieldCollection(
@@ -105,16 +109,10 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 					selection.FieldType,
 					c.SortKeys,
 				),
-				Hidden: external,
+				Hidden: hidden,
 			}
 		}
 
-		// if we were told this field is hidden but the existing value isn't th
-		if c.Fields[*selection.Alias].Field.Hidden && !external {
-			c.Fields[*selection.Alias].Hidden = false
-		}
-
-		// its safe to add this fields selections if they exist
 		for _, subSel := range selection.Children {
 			err := c.Fields[*selection.Alias].Selection.Add(subSel, hidden)
 			if err != nil {
@@ -365,7 +363,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 				field.Field.Children = field.Selection.ToSelectionSet()
 			}
 			if field.Hidden {
-				field.Hidden = true
+				field.Field.Hidden = true
 			}
 			result = append(result, field.Field)
 		}

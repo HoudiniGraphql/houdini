@@ -89,49 +89,7 @@ func TestArtifactGeneration(t *testing.T) {
         weight: Float
       }
     `,
-		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
-			// load the documents into the database
-			err := documents.LoadDocuments(context.Background(), p.DB)
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
-			}
-
-			// generate the artifacts
-			err = artifacts.Generate(context.Background(), p.DB, p.Fs, true)
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
-			}
-
-			projectConfig, err := p.DB.ProjectConfig(context.Background())
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
-			}
-
-			// the extra test content defines what we should expect
-			for name, c := range test.Extra {
-				expected := c.(string)
-
-				// the artifact is located at .houdini/artifacts/<name>.js
-				artifactPath := path.Join(
-					projectConfig.ProjectRoot,
-					projectConfig.RuntimeDir,
-					"artifacts",
-					name+".js",
-				)
-
-				// read the file
-				file, err := p.Fs.Open(artifactPath)
-				require.Nil(t, err)
-				fileContent, err := afero.ReadAll(file)
-				require.Nil(t, err)
-
-				// make sure it matches the expected value
-				require.Equal(t, expected, string(fileContent))
-			}
-		},
+		PerformTest: performArtifactTest,
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "Adds kind, name, raw, response and selection",
@@ -184,9 +142,11 @@ func TestArtifactGeneration(t *testing.T) {
             export default {
                 "name": "TestFragment",
                 "kind": "HoudiniFragment",
-                "hash": "9291c36c6e30ce6a058424b4a5e1f4191d8214df6109b927677071e60bb134ac",
+                "hash": "f16f17ca970d9631a408c829217f5ee1883a16dc72dbdbac018a789ab7a951ba",
                 "raw": ` + "`" + `fragment TestFragment on User {
                 firstName
+                id
+                __typename
                 id
             }
             ` + "`" + `,
@@ -196,6 +156,12 @@ func TestArtifactGeneration(t *testing.T) {
 
                 "selection": {
                     "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "visible": true,
+                        },
+
                         "firstName": {
                             "type": "String",
                             "keyRaw": "firstName",
@@ -215,7 +181,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "partial": false
             }
 
-            "HoudiniHash=9291c36c6e30ce6a058424b4a5e1f4191d8214df6109b927677071e60bb134ac"
+            "HoudiniHash=f16f17ca970d9631a408c829217f5ee1883a16dc72dbdbac018a789ab7a951ba"
           `),
 				},
 			},
@@ -233,7 +199,6 @@ func TestArtifactGeneration(t *testing.T) {
 					`
             fragment TestFragment on User { 
               firstName 
-              id
             }
           `,
 				},
@@ -242,15 +207,18 @@ func TestArtifactGeneration(t *testing.T) {
             export default {
                 "name": "TestQuery",
                 "kind": "HoudiniQuery",
-                "hash": "37cb2d430ff78e36f786c3100d36dc232240d4e469e1a6c7b90874330c6cdcb0",
+                "hash": "2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275",
                 "raw": ` + "`" + `fragment TestFragment on User {
                 firstName
+                __typename
                 id
             }
             
             query TestQuery {
                 user {
                     ...TestFragment
+                    __typename
+                    id
                 }
             }
             ` + "`" + `,
@@ -266,6 +234,12 @@ func TestArtifactGeneration(t *testing.T) {
 
                             "selection": {
                                 "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                        "visible": true,
+                                    },
+
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
@@ -274,6 +248,7 @@ func TestArtifactGeneration(t *testing.T) {
                                     "id": {
                                         "type": "ID",
                                         "keyRaw": "id",
+                                        "visible": true,
                                     },
                                 },
 
@@ -294,7 +269,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "partial": false
             }
 
-            "HoudiniHash=37cb2d430ff78e36f786c3100d36dc232240d4e469e1a6c7b90874330c6cdcb0"
+            "HoudiniHash=2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275"
 
           `),
 				},
@@ -314,7 +289,6 @@ func TestArtifactGeneration(t *testing.T) {
 					`
     fragment TestFragment on User { 
       firstName 
-      id
     }
   `,
 				},
@@ -323,9 +297,10 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "68a132637799d1b412ef63cc8365e2552b16e53d0fa5c6409514eea6706ef569",
+                  "hash": "a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee",
                   "raw": ` + "`" + `fragment TestFragment on User {
                   firstName
+                  __typename
                   id
               }
               
@@ -333,6 +308,8 @@ func TestArtifactGeneration(t *testing.T) {
                   user {
                       firstName
                       ...TestFragment
+                      __typename
+                      id
                   }
               }
               ` + "`" + `,
@@ -348,6 +325,12 @@ func TestArtifactGeneration(t *testing.T) {
 
                               "selection": {
                                   "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
                                       "firstName": {
                                           "type": "String",
                                           "keyRaw": "firstName",
@@ -357,6 +340,7 @@ func TestArtifactGeneration(t *testing.T) {
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
+                                          "visible": true,
                                       },
                                   },
 
@@ -377,7 +361,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=68a132637799d1b412ef63cc8365e2552b16e53d0fa5c6409514eea6706ef569"
+              "HoudiniHash=a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee"
   `),
 				},
 			},
@@ -388,7 +372,6 @@ func TestArtifactGeneration(t *testing.T) {
 					`
             query MyQuery($id: ID!) {
               node(id: $id) {
-                id
                 ... on Friend {
                   name
                 }
@@ -401,13 +384,15 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "MyQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "2bf1a6f13b012901b2017ee8b44c24d39fe7aa0725d68deea5a3e08d7393d671",
+                  "hash": "42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae",
                   "raw": ` + "`" + `query MyQuery($id: ID!) {
                   node(id: $id) {
-                      id
                       ... on Friend {
                           name
+                          __typename
                       }
+                      __typename
+                      id
                   }
               }
               ` + "`" + `,
@@ -424,6 +409,12 @@ func TestArtifactGeneration(t *testing.T) {
 
                               "selection": {
                                   "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
@@ -433,6 +424,11 @@ func TestArtifactGeneration(t *testing.T) {
                                   "abstractFields": {
                                       "fields": {
                                           "Friend": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
@@ -478,7 +474,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=2bf1a6f13b012901b2017ee8b44c24d39fe7aa0725d68deea5a3e08d7393d671"
+              "HoudiniHash=42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae"
             
           `),
 				},
@@ -500,7 +496,7 @@ func TestArtifactGeneration(t *testing.T) {
                 filterList: $filterList,
                 enumArg: $enumArg,
               ) {
-                id
+                name
               }
             }
           `,
@@ -510,9 +506,11 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "6f309527d440ef50e63cd0c7f20a2f8d17856c439f57ddfff52625749ca9e720",
+                  "hash": "fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7",
                   "raw": ` + "`" + `query TestQuery($enumArg: MyEnum, $filter: UserFilter, $filterList: [UserFilter!], $id: ID = "123") {
                   user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id) {
+                      name
+                      __typename
                       id
                   }
               }
@@ -529,9 +527,21 @@ func TestArtifactGeneration(t *testing.T) {
 
                               "selection": {
                                   "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
+                                          "visible": true,
+                                      },
+
+                                      "name": {
+                                          "type": "String",
+                                          "keyRaw": "name",
                                           "visible": true,
                                       },
                                   },
@@ -580,7 +590,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=6f309527d440ef50e63cd0c7f20a2f8d17856c439f57ddfff52625749ca9e720"
+              "HoudiniHash=fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7"
 	
           `),
 				},
@@ -597,21 +607,30 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "eb04a29974f886fc36008ccb90ce8a7d132a553cc3a7c58ef385deda38de9b5f",
+                  "hash": "c5f86d99ea9ca1b6b598e05ce1c898425c9f085a6841462672d65b30b491b317",
                   "raw": ` + "`" + `fragment A on User {
                   friends {
                       ... on User {
                           id
+                          __typename
+                          id
                       }
+                      __typename
+                      id
                   }
+                  __typename
+                  id
               }
 
               query TestQuery {
                   friends {
                       ... on User {
                           firstName
+                          __typename
+                          id
                       }
                       ...A
+                      __typename
                   }
               }
               ` + "`" + `,
@@ -626,6 +645,14 @@ func TestArtifactGeneration(t *testing.T) {
                               "keyRaw": "friends",
 
                               "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+                                  },
+
                                   "fragments": {
                                       "A": {
                                           "arguments": {}
@@ -634,6 +661,11 @@ func TestArtifactGeneration(t *testing.T) {
                                   "abstractFields": {
                                       "fields": {
                                           "User": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
                                               "firstName": {
                                                   "type": "String",
                                                   "keyRaw": "firstName",
@@ -644,9 +676,24 @@ func TestArtifactGeneration(t *testing.T) {
                                                   "keyRaw": "friends",
 
                                                   "selection": {
+                                                      "fields": {
+                                                          "__typename": {
+                                                              "type": "String",
+                                                              "keyRaw": "__typename",
+                                                          },
+
+                                                          "id": {
+                                                              "type": "ID",
+                                                              "keyRaw": "id",
+                                                          },
+                                                      },
                                                       "abstractFields": {
                                                           "fields": {
                                                               "User": {
+                                                                  "__typename": {
+                                                                      "type": "String",
+                                                                      "keyRaw": "__typename",
+                                                                  },
                                                                   "id": {
                                                                       "type": "ID",
                                                                       "keyRaw": "id",
@@ -660,6 +707,11 @@ func TestArtifactGeneration(t *testing.T) {
                                                       },
                                                   },
 
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
                                               },
                                           },
                                       },
@@ -681,7 +733,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=eb04a29974f886fc36008ccb90ce8a7d132a553cc3a7c58ef385deda38de9b5f"
+              "HoudiniHash=c5f86d99ea9ca1b6b598e05ce1c898425c9f085a6841462672d65b30b491b317"
             
           `),
 				},
@@ -710,7 +762,7 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "Friends",
                   "kind": "HoudiniQuery",
-                  "hash": "5657a4184497c4a629f3d69a88a0a8cfc824bc09c5b04a6b46b6054fd8f6c9b2",
+                  "hash": "8d4f14f66b2387a8a8778486fdfe6c0cf6923c60973f9586d543108da374f713",
                   "raw": ` + "`" + `query Friends {
                   friends {
                       __typename
@@ -718,11 +770,18 @@ func TestArtifactGeneration(t *testing.T) {
                           id
                           owner {
                               firstName
+                              __typename
+                              id
                           }
+                          __typename
+                          id
                       }
                       ... on User {
                           name
+                          __typename
+                          id
                       }
+                      __typename
                   }
               }
               ` + "`" + `,
@@ -763,9 +822,21 @@ func TestArtifactGeneration(t *testing.T) {
 
                                                   "selection": {
                                                       "fields": {
+                                                          "__typename": {
+                                                              "type": "String",
+                                                              "keyRaw": "__typename",
+                                                              "visible": true,
+                                                          },
+
                                                           "firstName": {
                                                               "type": "String",
                                                               "keyRaw": "firstName",
+                                                              "visible": true,
+                                                          },
+
+                                                          "id": {
+                                                              "type": "ID",
+                                                              "keyRaw": "id",
                                                               "visible": true,
                                                           },
                                                       },
@@ -778,6 +849,11 @@ func TestArtifactGeneration(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
                                                   "visible": true,
                                               },
                                               "name": {
@@ -806,7 +882,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=5657a4184497c4a629f3d69a88a0a8cfc824bc09c5b04a6b46b6054fd8f6c9b2"
+              "HoudiniHash=8d4f14f66b2387a8a8778486fdfe6c0cf6923c60973f9586d543108da374f713"
           `),
 				},
 			},
@@ -816,7 +892,6 @@ func TestArtifactGeneration(t *testing.T) {
 				Input: []string{
 					`query Friends {
               pets {
-                  __typename
                   ... on Cat {
                       id
                       owner {
@@ -834,19 +909,25 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "Friends",
                   "kind": "HoudiniQuery",
-                  "hash": "13b3f9bf2d4a8d9ceb7a9b4ae0e14e09a223994115f5427cbcd81095e729996d",
+                  "hash": "bc12a484d03051a7bc129c6721546e9a4726dcd753da49f2224f89e0b1d6acaa",
                   "raw": ` + "`" + `query Friends {
                   pets {
-                      __typename
                       ... on Cat {
                           id
                           owner {
                               firstName
+                              __typename
+                              id
                           }
+                          __typename
+                          id
                       }
                       ... on Dog {
                           name
+                          __typename
+                          id
                       }
+                      __typename
                   }
               }
               ` + "`" + `,
@@ -887,9 +968,21 @@ func TestArtifactGeneration(t *testing.T) {
 
                                                   "selection": {
                                                       "fields": {
+                                                          "__typename": {
+                                                              "type": "String",
+                                                              "keyRaw": "__typename",
+                                                              "visible": true,
+                                                          },
+
                                                           "firstName": {
                                                               "type": "String",
                                                               "keyRaw": "firstName",
+                                                              "visible": true,
+                                                          },
+
+                                                          "id": {
+                                                              "type": "ID",
+                                                              "keyRaw": "id",
                                                               "visible": true,
                                                           },
                                                       },
@@ -902,6 +995,11 @@ func TestArtifactGeneration(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
                                                   "visible": true,
                                               },
                                               "name": {
@@ -930,7 +1028,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=13b3f9bf2d4a8d9ceb7a9b4ae0e14e09a223994115f5427cbcd81095e729996d"
+              "HoudiniHash=bc12a484d03051a7bc129c6721546e9a4726dcd753da49f2224f89e0b1d6acaa"
           `),
 				},
 			},
@@ -955,16 +1053,21 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "Friends",
                   "kind": "HoudiniQuery",
-                  "hash": "ffa486fffb01e8d030ab8444796db47ed7a9a283750b17e053b286506ec89086",
+                  "hash": "904ac35930c3920b2aa20644f342c6794a4ef3caac783cad5589a97b0a5eeb2c",
                   "raw": ` + "`" + `query Friends {
                   pets {
                       __typename
                       ... on Cat {
                           id
+                          __typename
+                          id
                       }
                       ... on Dog {
                           name
+                          __typename
+                          id
                       }
+                      __typename
                   }
               }
               ` + "`" + `,
@@ -1006,6 +1109,11 @@ func TestArtifactGeneration(t *testing.T) {
                                                   "keyRaw": "__typename",
                                                   "visible": true,
                                               },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
                                               "name": {
                                                   "type": "String",
                                                   "keyRaw": "name",
@@ -1032,10 +1140,64 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=ffa486fffb01e8d030ab8444796db47ed7a9a283750b17e053b286506ec89086"
+              "HoudiniHash=904ac35930c3920b2aa20644f342c6794a4ef3caac783cad5589a97b0a5eeb2c"
           `),
 				},
 			},
 		},
 	})
+}
+
+func performArtifactTest(
+	t *testing.T,
+	p *plugin.HoudiniCore,
+	test tests.Test[config.PluginConfig],
+) {
+	// load the documents into the database
+	err := documents.LoadDocuments(context.Background(), p.DB)
+	if err != nil {
+		require.False(t, test.Pass, err.Error())
+		return
+	}
+
+	err = p.AfterValidate(context.Background())
+	if err != nil {
+		require.False(t, test.Pass, err.Error())
+		return
+	}
+
+	// generate the artifacts
+	err = artifacts.Generate(context.Background(), p.DB, p.Fs, true)
+	if err != nil {
+		require.False(t, test.Pass, err.Error())
+		return
+	}
+
+	projectConfig, err := p.DB.ProjectConfig(context.Background())
+	if err != nil {
+		require.False(t, test.Pass, err.Error())
+		return
+	}
+
+	// the extra test content defines what we should expect
+	for name, c := range test.Extra {
+		expected := c.(string)
+
+		// the artifact is located at .houdini/artifacts/<name>.js
+		artifactPath := path.Join(
+			projectConfig.ProjectRoot,
+			projectConfig.RuntimeDir,
+			"artifacts",
+			name+".js",
+		)
+
+		// read the file
+		file, err := p.Fs.Open(artifactPath)
+		require.Nil(t, err)
+		fileContent, err := afero.ReadAll(file)
+		require.Nil(t, err)
+
+		// make sure it matches the expected value
+		require.Equal(t, expected, string(fileContent))
+	}
 }

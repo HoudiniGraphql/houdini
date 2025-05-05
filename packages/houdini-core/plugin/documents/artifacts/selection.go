@@ -210,6 +210,16 @@ func GenerateSelectionDocument(
 `, variableTypes, typeDefs, defaults)
 	}
 
+	// we only consider policy and partial values for queries
+	policyValue := ""
+	partialValue := ""
+	if kind == "HoudiniQuery" || kind == "HoudiniFragment" {
+		policyValue = fmt.Sprintf(`
+    "policy": "%s",`, cachePolicy)
+		partialValue = fmt.Sprintf(`
+    "partial": %v`, partial)
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
     "name": "%s",
@@ -222,9 +232,7 @@ export default {
 
     "selection": %s,
 
-    "pluginData": %s,%s
-    "policy": "%s",
-    "partial": %v
+    "pluginData": %s,%s%s%s
 }
 
 "HoudiniHash=%s"
@@ -237,8 +245,8 @@ export default {
 		selectionValues,
 		string(marshaledData),
 		inputTypes,
-		cachePolicy,
-		partial,
+		policyValue,
+		partialValue,
 		hash,
 	))
 
