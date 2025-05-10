@@ -38,7 +38,7 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 		return DocumentInsertStatements{}, err, nil
 	}
 	insertSelectionArgument, err := conn.Prepare(
-		"INSERT INTO selection_arguments (selection_id, name, value, row, column, field_argument) VALUES ($selection_id, $name, $value, $row, $column, $field_argument)",
+		"INSERT INTO selection_arguments (selection_id, name, value, row, column, field_argument, document) VALUES ($selection_id, $name, $value, $row, $column, $field_argument, $document)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
@@ -68,7 +68,7 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 		return DocumentInsertStatements{}, err, nil
 	}
 	insertSelectionDirectiveArgument, err := conn.Prepare(
-		"INSERT INTO selection_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)",
+		"INSERT INTO selection_directive_arguments (parent, name, value, document) VALUES ($parent, $name, $value, $document)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil

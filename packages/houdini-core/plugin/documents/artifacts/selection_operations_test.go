@@ -14,9 +14,14 @@ func TestArtifactOperationsGeneration(t *testing.T) {
          addFriend: AddFriendOutput!
       }
 
+      type Query { 
+        users: [User!]!
+      }
+
       type User { 
         id: ID!
         firstName: String!
+        field(filter: String): String
       }
 
       type AddFriendOutput {
@@ -128,7 +133,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
               }
             }`,
 					`query TestQuery {
-              users(stringValue: "foo") @list(name: "All_Users") {
+              users @list(name: "All_Users") {
                 firstName
               }
             }`,
@@ -138,7 +143,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
               export default {
                   "name": "A",
                   "kind": "HoudiniMutation",
-                  "hash": "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
                   "raw": ` + "`" + `mutation A {
                   addFriend {
                       friend {
@@ -152,6 +157,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 
               fragment All_Users_insert on User {
                   firstName
+                  __typename
                   id
               }
               ` + "`" + `,
@@ -185,16 +191,22 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 
                                           "selection": {
                                               "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
                                                   "firstName": {
                                                       "type": "String",
-                                                      "keyRaw": "firstName"
+                                                      "keyRaw": "firstName",
                                                   },
 
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true
-                                                  }
+                                                      "visible": true,
+                                                  },
                                               },
 
                                               "fragments": {
@@ -217,7 +229,133 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   "pluginData": {},
               }
 
-              "HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b"
+              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+
+          `),
+				},
+			},
+			{
+				Name: "Insert operations and @with directive",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+              addFriend {
+                friend {
+                    ...All_Users_insert @with(filter: "Hello World")
+                }
+              }
+            }`,
+					`query TestQuery($filter: String) {
+              users @list(name: "All_Users") {
+                firstName
+                field(filter: $filter)
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6",
+                  "raw": ` + "`" + `mutation A {
+                  addFriend {
+                      friend {
+                          ...All_Users_insert_kVR6H
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+              }
+
+              fragment All_Users_insert_kVR6H on User {
+                  firstName
+                  __typename
+                  id
+                  field(filter: "Hello World")
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "addFriend": {
+                              "type": "AddFriendOutput",
+                              "keyRaw": "addFriend",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friend": {
+                                          "type": "User",
+                                          "keyRaw": "friend",
+
+                                          "operations": [{
+                                              "action": "insert",
+                                              "list": "All_Users",
+                                              "position": "last"
+                                          }],
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "field": {
+                                                      "type": "String",
+                                                      "keyRaw": "field(filter: \"Hello World\")",
+                                                      "nullable": true,
+                                                  },
+
+                                                  "firstName": {
+                                                      "type": "String",
+                                                      "keyRaw": "firstName",
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+
+                                              "fragments": {
+                                                  "All_Users_insert": {
+                                                      "arguments": {
+                                                          "filter": {
+                                                              "kind": "StringValue",
+                                                              "value": "Hello World"
+                                                          }
+                                                      }
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"
 
           `),
 				},

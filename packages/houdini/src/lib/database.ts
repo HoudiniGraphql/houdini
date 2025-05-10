@@ -228,6 +228,7 @@ CREATE TABLE selections (
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
+    fragment_ref TEXT, -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
     FOREIGN KEY (type) REFERENCES type_fields(id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -246,9 +247,11 @@ CREATE TABLE selection_directive_arguments (
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
     value INTEGER NOT NULL,
+    document INTEGER NOT NULL,
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (parent) REFERENCES selection_directives(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE document_directives (
@@ -287,6 +290,7 @@ CREATE TABLE selection_refs (
 CREATE TABLE selection_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
+    document INTEGER NOT NULL,
     name TEXT NOT NULL,
     value INTEGER NOT NULL,
 	row INTEGER NOT NULL,
@@ -295,6 +299,7 @@ CREATE TABLE selection_arguments (
 
     FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (field_argument) REFERENCES type_field_arguments(id) DEFERRABLE INITIALLY DEFERRED
 );
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"maps"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 
@@ -21,6 +22,7 @@ func CollectDocuments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
+	sortKeys bool,
 ) (*CollectedDocuments, error) {
 	result := &CollectedDocuments{
 		Selections:      map[string]*CollectedDocument{},
@@ -99,7 +101,7 @@ func CollectDocuments(
 	var wg sync.WaitGroup
 	for range runtime.NumCPU() {
 		wg.Add(1)
-		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList)
+		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList, sortKeys)
 	}
 
 	// partition the docIDs into batches and send them to the workers
@@ -161,6 +163,7 @@ func collectDoc(
 	docIDs <-chan []int64,
 	resultCh chan<- collectResult,
 	errs *plugins.ErrorList,
+	sortKeys bool,
 ) {
 	defer wg.Done()
 
@@ -209,6 +212,7 @@ func collectDoc(
 				kind := statements.Search.GetText("kind")
 				fieldName := statements.Search.GetText("field_name")
 				fieldType := statements.Search.GetText("type")
+				fragmentRef := statements.Search.GetText("fragment_ref")
 
 				var typeModifiers *string
 				if !statements.Search.IsNull("type_modifiers") {
@@ -230,6 +234,9 @@ func collectDoc(
 					TypeModifiers: typeModifiers,
 					Alias:         alias,
 					Kind:          kind,
+				}
+				if fragmentRef != "" {
+					selection.FragmentRef = &fragmentRef
 				}
 
 				// save the ID in the selection map
@@ -296,6 +303,12 @@ func collectDoc(
 							argumentValues[*arg.ValueID] = nil
 							argumentsWithValues = append(argumentsWithValues, arg)
 						}
+					}
+
+					if sortKeys {
+						sort.Slice(args, func(i, j int) bool {
+							return args[i].Name < args[j].Name
+						})
 					}
 
 					selection.Arguments = args
@@ -670,7 +683,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           JOIN selection_directives ON selection_directive_arguments.parent = selection_directives.id
           JOIN selection_refs ON selection_refs.child_id = selection_directives.selection_id
         WHERE
-          selection_refs."document" IN %s
+          selection_refs."document" IN %s AND selection_directive_arguments.document in %s
         GROUP BY
           selection_directive_arguments.parent
       ),
@@ -704,6 +717,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           ) AS arguments
         FROM selection_arguments
           JOIN selection_refs ON selection_refs.child_id = selection_arguments.selection_id
+               AND selection_refs.document = selection_arguments.document
         WHERE
           selection_refs."document" IN %s
         GROUP BY selection_arguments.selection_id
@@ -713,6 +727,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         SELECT 
           selections.id,
           selections.field_name,
+          selections.fragment_ref,
           type_fields.type_modifiers,
           selections.alias,
           selections.kind,
@@ -744,6 +759,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         SELECT 
           selections.id,
           selections.field_name,
+          selections.fragment_ref,
           type_fields.type_modifiers,
           selections.alias,
           selections.kind,
@@ -772,6 +788,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       document_id, 
       kind, 
       field_name, 
+      fragment_ref,
       type_modifiers, 
       alias, 
       arguments, 
@@ -781,7 +798,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       type_condition, 
       type FROM selection_tree
     ORDER BY parent_id ASC
-  `, whereIn, whereIn, whereIn, whereIn))
+  `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}
@@ -1073,6 +1090,7 @@ type CollectedSelection struct {
 	FieldName     string
 	Alias         *string
 	FieldType     string
+	FragmentRef   *string
 	TypeModifiers *string
 	Kind          string
 	Hidden        bool

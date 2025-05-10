@@ -18,6 +18,7 @@ type dbSelection struct {
 	Alias     *string
 	PathIndex int
 	Kind      string
+	Arguments []ExpectedArgument
 }
 
 type documentRow struct {
@@ -115,7 +116,7 @@ func ValidateExpectedDocuments[PluginConfig any](
 					}
 					if expectedVar.DefaultValue != nil && actualVar.DefaultValue == nil {
 						t.Errorf(
-							"for document %s, operation variable %s expected nil default value, got %+v",
+							"for document %s, operation variable %s expected non-nil default value, got %+v",
 							expDoc.Name,
 							expectedVar.Name,
 							actualVar.DefaultValue,
@@ -278,6 +279,7 @@ ORDER BY s.id`
 			Alias:     alias,
 			PathIndex: int(stmt.ColumnInt(3)),
 			Kind:      kind,
+			Arguments: findSelectionArguments(t, db, id, document),
 		}
 	}
 	stmt.Finalize()
@@ -322,7 +324,7 @@ ORDER BY s.id`
 		}
 	}
 
-	return buildExpectedFromDB(t, db, filteredSelections, parentToChildren, roots)
+	return buildExpectedFromDB(t, db, filteredSelections, parentToChildren, roots, document)
 }
 
 // buildExpectedFromDB converts the db selection tree into a nested ExpectedSelection structure.
@@ -332,18 +334,20 @@ func buildExpectedFromDB[PluginConfig any](
 	selections map[int]dbSelection,
 	rel map[int][]int,
 	rootIDs []int,
+	documentID int64,
 ) []ExpectedSelection {
 	var result []ExpectedSelection
 	for _, id := range rootIDs {
 		sel := selections[id]
 		result = append(result, ExpectedSelection{
+			ID:         int64(sel.ID),
 			FieldName:  sel.FieldName,
 			Alias:      sel.Alias,
 			PathIndex:  sel.PathIndex,
 			Kind:       sel.Kind,
-			Arguments:  findSelectionArguments(t, db, id),
-			Directives: findSelectionDirectives(t, db, id),
-			Children:   buildExpectedFromDB(t, db, selections, rel, rel[sel.ID]),
+			Arguments:  findSelectionArguments(t, db, id, documentID),
+			Directives: findSelectionDirectives(t, db, id, documentID),
+			Children:   buildExpectedFromDB(t, db, selections, rel, rel[sel.ID], documentID),
 		})
 	}
 	return result
@@ -444,11 +448,11 @@ func findDocumentVariables[PluginConfig any](
 		}
 
 		if defaultValue != nil {
-			opVar.DefaultValue = findArgumentValue(t, db, *defaultValue)
+			opVar.DefaultValue = findArgumentValue(t, db, *defaultValue, int64(documentID))
 		}
 
 		// Look up any directives attached to this variable.
-		directives := findOperationVariableDirectives(t, db, varID)
+		directives := findOperationVariableDirectives(t, db, varID, int64(documentID))
 		if err != nil {
 			t.Fatalf("failed to lookup directives for variable %s: %v", opVar.Name, err)
 		}
@@ -464,6 +468,7 @@ func findOperationVariableDirectives[PluginConfig any](
 	t *testing.T,
 	db plugins.DatabasePool[PluginConfig],
 	variableID int,
+	documentID int64,
 ) []ExpectedDirective {
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -500,7 +505,7 @@ func findOperationVariableDirectives[PluginConfig any](
 		dirName := stmt.ColumnText(1)
 
 		// Now look up any arguments for this directive.
-		args, err := findOperationVariableDirectiveArguments(t, db, dirID)
+		args, err := findOperationVariableDirectiveArguments(t, db, dirID, documentID)
 		if err != nil {
 			t.Fatalf("failed to fetch arguments for directive %s: %v", dirName, err)
 		}
@@ -518,6 +523,7 @@ func findOperationVariableDirectiveArguments[PluginConfig any](
 	t *testing.T,
 	db plugins.DatabasePool[PluginConfig],
 	directiveID int,
+	documentID int64,
 ) ([]ExpectedDirectiveArgument, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -556,7 +562,7 @@ func findOperationVariableDirectiveArguments[PluginConfig any](
 
 		args = append(args, ExpectedDirectiveArgument{
 			Name:  stmt.ColumnText(0),
-			Value: findArgumentValue(t, db, stmt.ColumnInt(1)),
+			Value: findArgumentValue(t, db, stmt.ColumnInt(1), documentID),
 		})
 	}
 	return args, nil
@@ -567,6 +573,7 @@ func findSelectionArguments[PluginConfig any](
 	t *testing.T,
 	db plugins.DatabasePool[PluginConfig],
 	selectionID int,
+	documentID int64,
 ) []ExpectedArgument {
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -577,7 +584,7 @@ func findSelectionArguments[PluginConfig any](
 	stmt, err := conn.Prepare(`
 		SELECT name, value, id
 		FROM selection_arguments
-		WHERE selection_id = ?
+		WHERE selection_id = ? AND document = $document
 		ORDER BY id
 	`)
 	if err != nil {
@@ -586,6 +593,7 @@ func findSelectionArguments[PluginConfig any](
 	defer stmt.Finalize()
 
 	stmt.BindInt64(1, int64(selectionID))
+	stmt.SetInt64("$document", documentID)
 
 	var args []ExpectedArgument
 	for {
@@ -600,7 +608,7 @@ func findSelectionArguments[PluginConfig any](
 		args = append(args, ExpectedArgument{
 			ID:    stmt.ColumnInt64(2),
 			Name:  stmt.ColumnText(0),
-			Value: findArgumentValue(t, db, stmt.ColumnInt(1)),
+			Value: findArgumentValue(t, db, stmt.ColumnInt(1), documentID),
 		})
 	}
 	return args
@@ -611,6 +619,7 @@ func findSelectionDirectives[PluginConfig any](
 	t *testing.T,
 	db plugins.DatabasePool[PluginConfig],
 	selectionID int,
+	documentID int64,
 ) []ExpectedDirective {
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -647,7 +656,7 @@ func findSelectionDirectives[PluginConfig any](
 		dirName := stmt.ColumnText(1)
 
 		// Now look up any arguments for this directive.
-		args, err := findSelectionDirectiveArguments(t, db, dirID)
+		args, err := findSelectionDirectiveArguments(t, db, dirID, documentID)
 		if err != nil {
 			t.Fatalf("failed to fetch arguments for directive %s: %v", dirName, err)
 		}
@@ -665,6 +674,7 @@ func findSelectionDirectiveArguments[PluginConfig any](
 	t *testing.T,
 	db plugins.DatabasePool[PluginConfig],
 	directiveID int,
+	documentID int64,
 ) ([]ExpectedDirectiveArgument, error) {
 	conn, err := db.Take(context.Background())
 	if err != nil {
@@ -675,7 +685,7 @@ func findSelectionDirectiveArguments[PluginConfig any](
 	stmt, err := conn.Prepare(`
 		SELECT name, value
 		FROM selection_directive_arguments
-		WHERE parent = ?
+		WHERE parent = ? and document = ?
 		ORDER BY id
 	`)
 	if err != nil {
@@ -687,6 +697,7 @@ func findSelectionDirectiveArguments[PluginConfig any](
 	defer stmt.Finalize()
 
 	stmt.BindInt64(1, int64(directiveID))
+	stmt.BindInt64(2, int64(documentID))
 
 	var args []ExpectedDirectiveArgument
 	for {
@@ -703,7 +714,7 @@ func findSelectionDirectiveArguments[PluginConfig any](
 
 		args = append(args, ExpectedDirectiveArgument{
 			Name:  stmt.ColumnText(0),
-			Value: findArgumentValue(t, db, stmt.ColumnInt(1)),
+			Value: findArgumentValue(t, db, stmt.ColumnInt(1), documentID),
 		})
 	}
 	return args, nil
@@ -905,7 +916,7 @@ func fetchDocumentDirectives[PluginConfig any](
 			}
 			args = append(args, ExpectedDirectiveArgument{
 				Name:  argStmt.ColumnText(0),
-				Value: findArgumentValue(t, db, argStmt.ColumnInt(1)),
+				Value: findArgumentValue(t, db, argStmt.ColumnInt(1), document),
 			})
 		}
 		argStmt.Finalize()
@@ -977,6 +988,7 @@ func findArgumentValue[PluginConfig any](
 	t *testing.T,
 	db plugins.DatabasePool[PluginConfig],
 	valueID int,
+	documentID int64,
 ) *ExpectedArgumentValue {
 	// Recursive query to build the argument tree.
 	query := `
@@ -991,7 +1003,7 @@ func findArgumentValue[PluginConfig any](
 	    0 AS level,
 	    CAST(av.id AS TEXT) AS path
 	  FROM argument_values av
-	  WHERE av.id = $value_id
+	  WHERE av.id = $value_id AND av.document = $document
 
 	  UNION ALL
 
@@ -1028,7 +1040,7 @@ func findArgumentValue[PluginConfig any](
 	err := db.StepQuery(
 		context.Background(),
 		query,
-		map[string]any{"value_id": valueID},
+		map[string]any{"value_id": valueID, "document": documentID},
 		func(s *sqlite.Stmt) {
 			id := int(s.ColumnInt(0))
 			kind := s.ColumnText(1)

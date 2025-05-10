@@ -1160,6 +1160,12 @@ func performArtifactTest(
 		return
 	}
 
+	err = p.Validate(context.Background())
+	if err != nil {
+		require.False(t, test.Pass, err.Error())
+		return
+	}
+
 	err = p.AfterValidate(context.Background())
 	if err != nil {
 		require.False(t, test.Pass, err.Error())

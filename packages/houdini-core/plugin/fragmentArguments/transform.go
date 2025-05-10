@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"runtime"
 	"sync"
 
 	"golang.org/x/sync/syncmap"
@@ -77,8 +76,8 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 	}
 	docs := make(chan docWithScope, 100)
 
-	// sort a worker for each cpu
-	for range runtime.NumCPU() {
+	// TODO: serialize this a bit better
+	for range 1 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -113,6 +112,10 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 					commit := sqlitex.Transaction(conn)
 					err = processDocument(ctx, db, conn, statements, doc.DocID, doc.Scope, processedFragments)
 					commit(&err)
+					if err != nil {
+						errs.Append(plugins.WrapError(err))
+						return
+					}
 				}
 			}
 		}()
@@ -218,6 +221,18 @@ func processDocument[PluginConfig any](
 	if err != nil {
 		return err
 	}
+	err = statements.ReplaceVariables(
+		ctx,
+		db,
+		conn,
+		statements.DirectiveArgumentSearch,
+		statements.UpdateDirectiveArgument,
+		documentID,
+		scope,
+	)
+	if err != nil {
+		return err
+	}
 
 	errs := &plugins.ErrorList{}
 
@@ -308,7 +323,7 @@ func processDocument[PluginConfig any](
 		newFragmentName := fragmentName + "_" + murmurHash(string(args))
 
 		// clone the fragment document with the new name
-		fragmentID, err := cloneDocument(
+		fragmentID, fragmentScope, err := cloneDocument(
 			ctx,
 			db,
 			conn,
@@ -317,6 +332,7 @@ func processDocument[PluginConfig any](
 			newFragmentName,
 			typeCondition,
 			statements,
+			fragmentScope,
 		)
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -334,9 +350,9 @@ func processDocument[PluginConfig any](
 		err = db.ExecStatement(statements.UpdateSelectionFieldName, map[string]any{
 			"selection_id": selectionID,
 			"field_name":   newFragmentName,
+			"fragment_ref": fragmentName,
 		})
 		if err != nil {
-			fmt.Println(err)
 			errs.Append(plugins.WrapError(err))
 			return
 		}
@@ -391,7 +407,8 @@ func cloneDocument[PluginConfig any](
 	name string,
 	typeCondition string,
 	statements *transformStatements[PluginConfig],
-) (int64, error) {
+	fragmentScope map[string]int64,
+) (int64, map[string]int64, error) {
 	// the first thing we have to do is create a new document with the correct name
 	err := db.ExecStatement(statements.InsertFragment, map[string]any{
 		"name":           name,
@@ -399,7 +416,7 @@ func cloneDocument[PluginConfig any](
 		"raw_document":   sourceRawDocument,
 	})
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	documentID := conn.LastInsertRowID()
 
@@ -411,16 +428,11 @@ func cloneDocument[PluginConfig any](
 		"to":   documentID,
 	})
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	// now we need to copy the argument values for this document which requires recreating the nested
 	// structure with  the rows we create
-	type FoundChildValue struct {
-		Name     string
-		Value    int64
-		Filepath string
-	}
 	foundRows := map[int64][]FoundChildValue{}
 
 	errs := &plugins.ErrorList{}
@@ -428,23 +440,25 @@ func cloneDocument[PluginConfig any](
 	// we need a mapping of old argument value to new argument value
 	valueMap := map[int64]int64{}
 
-	err = db.BindStatement(statements.ArgumentValueSearch, map[string]any{
+	err = db.BindStatement(statements.DocumentArgumentValueSearch, map[string]any{
 		"document": sourceDocument,
 	})
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
-	err = db.StepStatement(ctx, statements.ArgumentValueSearch, func() {
-		id := statements.ArgumentValueSearch.GetInt64("id")
-		kind := statements.ArgumentValueSearch.GetText("kind")
-		raw := statements.ArgumentValueSearch.GetText("raw")
-		row := statements.ArgumentValueSearch.GetInt64("row")
-		column := statements.ArgumentValueSearch.GetInt64("column")
-		expectedType := statements.ArgumentValueSearch.GetText("expected_type")
-		expectedTypeModifiers := statements.ArgumentValueSearch.GetText("expected_type_modifiers")
+	err = db.StepStatement(ctx, statements.DocumentArgumentValueSearch, func() {
+		id := statements.DocumentArgumentValueSearch.GetInt64("id")
+		kind := statements.DocumentArgumentValueSearch.GetText("kind")
+		raw := statements.DocumentArgumentValueSearch.GetText("raw")
+		row := statements.DocumentArgumentValueSearch.GetInt64("row")
+		column := statements.DocumentArgumentValueSearch.GetInt64("column")
+		expectedType := statements.DocumentArgumentValueSearch.GetText("expected_type")
+		expectedTypeModifiers := statements.DocumentArgumentValueSearch.GetText(
+			"expected_type_modifiers",
+		)
 
 		var children []FoundChildValue
-		argValues := statements.ArgumentValueSearch.GetText("children")
+		argValues := statements.DocumentArgumentValueSearch.GetText("children")
 		if argValues != "" {
 			err = json.Unmarshal([]byte(argValues), &children)
 			if err != nil {
@@ -476,10 +490,10 @@ func cloneDocument[PluginConfig any](
 		valueMap[id] = newValue
 	})
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	if errs.Len() > 0 {
-		return 0, errors.New(errs.Error())
+		return 0, nil, errors.New(errs.Error())
 	}
 
 	// we now have a mapping from old argument value to their copy for the new document
@@ -495,7 +509,7 @@ func cloneDocument[PluginConfig any](
 				})
 			}
 
-			return 0, plugins.Error{
+			return 0, nil, plugins.Error{
 				Message: fmt.Sprintf(
 					"could not find value when copying document argument values: %v",
 					oldValue,
@@ -508,7 +522,7 @@ func cloneDocument[PluginConfig any](
 		for _, child := range children {
 			newChild, ok := valueMap[child.Value]
 			if !ok {
-				return 0, plugins.Error{
+				return 0, nil, plugins.Error{
 					Message: fmt.Sprintf(
 						"could not find child value when copying document argument values: %v",
 						child.Value,
@@ -528,7 +542,7 @@ func cloneDocument[PluginConfig any](
 				"column":   0,
 			})
 			if err != nil {
-				return 0, plugins.Error{
+				return 0, nil, plugins.Error{
 					Message: fmt.Sprintf(
 						"encountered error inserting argument value children: %v",
 						err,
@@ -540,6 +554,32 @@ func cloneDocument[PluginConfig any](
 			}
 		}
 	}
+
+	// now we can copy the directive arguments for the selections without args
+	err = db.BindStatement(
+		statements.NoSelectionArgsDirectiveArgsSearch,
+		map[string]any{"from": sourceDocument},
+	)
+	if err != nil {
+		return 0, nil, plugins.WrapError(err)
+	}
+	err = db.StepStatement(ctx,
+		statements.NoSelectionArgsDirectiveArgsSearch,
+		func() {
+			parent := statements.NoSelectionArgsDirectiveArgsSearch.GetInt64("parent")
+			name := statements.NoSelectionArgsDirectiveArgsSearch.GetText("name")
+			value := statements.NoSelectionArgsDirectiveArgsSearch.GetInt64("value")
+
+			// insert a directive document for the new document with the mapped value
+			err = db.ExecStatement(statements.InsertSelectionDirectiveArgument,
+				map[string]any{
+					"name":     name,
+					"parent":   parent,
+					"value":    valueMap[value],
+					"document": documentID,
+				})
+		},
+	)
 
 	// we need to build up a mapping of source selection IDs with args
 	// to the selection we insert when copying it so that we can patch selection refs
@@ -555,8 +595,13 @@ func cloneDocument[PluginConfig any](
 		},
 	)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
+
+	// there are a few instances where we need to copy argument values (scope and directive arguments)
+	// in order to do this in a single pass we're going to build up a list of directiveIDs, argument name,
+	// and values to copy and then patch the directives once we've copied the value along with the scope
+
 	err = db.StepStatement(ctx, statements.SearchSelectionsWithArgs, func() {
 		// every row we get here is a selection with an argument that we need to copy
 		selectionID := statements.SearchSelectionsWithArgs.GetInt64("id")
@@ -626,6 +671,7 @@ func cloneDocument[PluginConfig any](
 				"row":            0,
 				"column":         0,
 				"field_argument": arg.FieldArgument,
+				"document":       documentID,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -649,50 +695,268 @@ func cloneDocument[PluginConfig any](
 				return
 			}
 		}
+
+		for _, directive := range directives {
+			// copy the directive information
+			err = db.ExecStatement(statements.InsertSelectionDirective, map[string]any{
+				"selection_id": newSelectionID,
+				"directive":    directive.Name,
+				"row":          0,
+				"column":       0,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			directiveID := conn.LastInsertRowID()
+
+			for _, arg := range directive.Arguments {
+				// add the corresponding directive argument
+				err = db.ExecStatement(
+					statements.InsertSelectionDirectiveArgument,
+					map[string]any{
+						"parent":   directiveID,
+						"name":     arg.Name,
+						"value":    valueMap[arg.Value],
+						"document": documentID,
+					},
+				)
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+			}
+		}
 	})
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	if errs.Len() > 0 {
-		return 0, errors.New(errs.Error())
+		return 0, nil, errors.New(errs.Error())
 	}
 
 	// the only thing left to do is patch the selection refs whose parents have args
 	for from, to := range selectionMap {
 		err = db.ExecStatement(statements.UpdateSelectionRef, map[string]any{
-			"from": from,
-			"to":   to,
+			"from":     from,
+			"to":       to,
+			"document": documentID,
 		})
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 	}
 
-	return documentID, nil
+	// before we finish lets figure out the new scope
+	newScope, err := statements.CopyScope(ctx, db, conn, fragmentScope, documentID)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return documentID, newScope, nil
 }
 
 type transformStatements[PluginConfig any] struct {
-	WithSpreadsInDocument            *sqlite.Stmt
-	DeleteValue                      *sqlite.Stmt
-	InsertNullValue                  *sqlite.Stmt
-	ArgumentValueVariableSearch      *sqlite.Stmt
-	SelectionArgumentVariableSearch  *sqlite.Stmt
-	UpdateArgumentValue              *sqlite.Stmt
-	UpdateSelectionArgument          *sqlite.Stmt
-	CopySelectionsNoArgs             *sqlite.Stmt
-	InsertFragment                   *sqlite.Stmt
-	ArgumentValueSearch              *sqlite.Stmt
-	InsertArgumentValue              *sqlite.Stmt
-	InsertArgumentValueChildren      *sqlite.Stmt
-	SearchSelectionsWithArgs         *sqlite.Stmt
-	InsertSelection                  *sqlite.Stmt
-	InsertSelectionRef               *sqlite.Stmt
-	InsertSelectionArgument          *sqlite.Stmt
-	InsertSelectionDirective         *sqlite.Stmt
-	InsertSelectionDirectiveArgument *sqlite.Stmt
-	UpdateSelectionRef               *sqlite.Stmt
-	UpdateSelectionFieldName         *sqlite.Stmt
-	nullValue                        int64
+	WithSpreadsInDocument              *sqlite.Stmt
+	DeleteValue                        *sqlite.Stmt
+	InsertNullValue                    *sqlite.Stmt
+	ArgumentValueVariableSearch        *sqlite.Stmt
+	InsertCopyArgumentValues           *sqlite.Stmt
+	InsertCopyArgumentValueChildren    *sqlite.Stmt
+	SelectionArgumentVariableSearch    *sqlite.Stmt
+	UpdateArgumentValue                *sqlite.Stmt
+	UpdateSelectionArgument            *sqlite.Stmt
+	CopySelectionsNoArgs               *sqlite.Stmt
+	InsertFragment                     *sqlite.Stmt
+	DocumentArgumentValueSearch        *sqlite.Stmt
+	InsertArgumentValue                *sqlite.Stmt
+	InsertArgumentValueChildren        *sqlite.Stmt
+	SearchSelectionsWithArgs           *sqlite.Stmt
+	InsertSelection                    *sqlite.Stmt
+	InsertSelectionRef                 *sqlite.Stmt
+	InsertSelectionArgument            *sqlite.Stmt
+	InsertSelectionDirective           *sqlite.Stmt
+	InsertSelectionDirectiveArgument   *sqlite.Stmt
+	UpdateSelectionRef                 *sqlite.Stmt
+	UpdateSelectionFieldName           *sqlite.Stmt
+	DirectiveArgumentSearch            *sqlite.Stmt
+	UpdateDirectiveArgument            *sqlite.Stmt
+	NoSelectionArgsDirectiveArgsSearch *sqlite.Stmt
+	nullValue                          int64
+}
+
+func (s *transformStatements[PluginConfig]) CopyScope(
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	conn *sqlite.Conn,
+	fragmentScope map[string]int64,
+	documentID int64,
+) (map[string]int64, error) {
+	// copying the fragment scope for a document is 2 steps. one grabs the
+	// argument values and another recreates the nested structure
+	whereIn := "("
+	for _, id := range fragmentScope {
+		whereIn += fmt.Sprintf("%d,", id)
+	}
+	whereIn = whereIn[:len(whereIn)-1] + ")"
+
+	search, err := conn.Prepare(fmt.Sprintf(`
+      WITH RECURSIVE args as (
+        SELECT * from argument_values
+          WHERE id in %s
+        
+        UNION 
+        
+        SELECT argument_values.* 
+        FROM argument_value_children as parent_refs
+          JOIN args ON args.id = parent_refs.parent
+          JOIN argument_values on parent_refs."value" = argument_values.id
+          LEFT JOIN argument_value_children ON argument_value_children.parent = argument_values.id
+      )
+
+      SELECT 
+        args.* ,
+        CASE WHEN argument_value_children."value" IS NULL 
+          THEN null
+          ELSE 
+            json_group_array(
+              json_object (
+                'name', argument_value_children."name",
+                'value', argument_value_children."value"
+            )
+          )
+        END as children
+      FROM args 
+        LEFT JOIN argument_value_children on argument_value_children.parent = args.id
+      GROUP BY args.id 
+      ORDER BY args.id DESC
+  `, whereIn))
+	if err != nil {
+		return nil, err
+	}
+	defer search.Finalize()
+
+	// step through the search results and add the relevant arguments to the target document
+	// we need a mapping of old values to new values
+	foundRows := map[int64][]FoundChildValue{}
+	valueMap := map[int64]int64{}
+	errs := &plugins.ErrorList{}
+
+	err = db.StepStatement(ctx, search, func() {
+		id := search.GetInt64("id")
+		kind := search.GetText("kind")
+		raw := search.GetText("raw")
+		row := search.GetInt64("row")
+		column := search.GetInt64("column")
+		expectedType := search.GetText("expected_type")
+		expectedTypeModifiers := search.GetText(
+			"expected_type_modifiers",
+		)
+
+		var children []FoundChildValue
+		argValues := search.GetText("children")
+		if argValues != "" {
+			err = json.Unmarshal([]byte(argValues), &children)
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+		}
+
+		// insert the new argument value
+		err := db.ExecStatement(s.InsertArgumentValue, map[string]any{
+			"kind":           kind,
+			"raw":            raw,
+			"row":            row,
+			"column":         column,
+			"type":           expectedType,
+			"type_modifiers": expectedTypeModifiers,
+			"document":       documentID,
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+
+		newValue := conn.LastInsertRowID()
+
+		// add the found child to the list
+		foundRows[id] = children
+		// and keep track of the mapping
+		valueMap[id] = newValue
+	})
+	if err != nil {
+		return nil, err
+	}
+	if errs.Len() > 0 {
+		return nil, errors.New(errs.Error())
+	}
+
+	// we now have a mapping from old argument value to their copy for the new document
+	for oldValue, children := range foundRows {
+		newParent, ok := valueMap[oldValue]
+		if !ok {
+			locations := []*plugins.ErrorLocation{}
+			if len(children) > 0 {
+				locations = append(locations, &plugins.ErrorLocation{
+					Line:     0,
+					Column:   0,
+					Filepath: children[0].Filepath,
+				})
+			}
+
+			return nil, plugins.Error{
+				Message: fmt.Sprintf(
+					"could not find value when copying document argument values: %v",
+					oldValue,
+				),
+				Locations: locations,
+			}
+		}
+
+		// insert the argument value child
+		for _, child := range children {
+			newChild, ok := valueMap[child.Value]
+			if !ok {
+				return nil, plugins.Error{
+					Message: fmt.Sprintf(
+						"could not find child value when copying document argument values: %v",
+						child.Value,
+					),
+					Locations: []*plugins.ErrorLocation{
+						{Line: 0, Column: 0, Filepath: children[0].Filepath},
+					},
+				}
+			}
+
+			err = db.ExecStatement(s.InsertArgumentValueChildren, map[string]any{
+				"name":     child.Name,
+				"parent":   newParent,
+				"value":    newChild,
+				"document": documentID,
+				"row":      0,
+				"column":   0,
+			})
+			if err != nil {
+				return nil, plugins.Error{
+					Message: fmt.Sprintf(
+						"encountered error inserting argument value children: %v",
+						err,
+					),
+					Locations: []*plugins.ErrorLocation{
+						{Line: 0, Column: 0, Filepath: child.Filepath},
+					},
+				}
+			}
+		}
+	}
+
+	// convert the scope
+	newScope := map[string]int64{}
+	for key, value := range fragmentScope {
+		newScope[key] = valueMap[value]
+	}
+	return newScope, nil
 }
 
 func prepareTransformStatements[PluginConfig any](
@@ -729,8 +993,8 @@ func prepareTransformStatements[PluginConfig any](
     FROM selection_directives
       JOIN selections ON selection_directives.selection_id = selections.id
       JOIN selection_refs ON selection_refs.child_id = selections.id
-      JOIN selection_directive_arguments ON selection_directives.id = selection_directive_arguments.parent
-      JOIN argument_values as selection_arg_values ON selection_directive_arguments."value" = selection_arg_values.id
+      JOIN selection_directive_arguments ON selection_directives.id = selection_directive_arguments.parent AND selection_directive_arguments.document = $document
+      JOIN argument_values as selection_arg_values ON selection_directive_arguments."value" = selection_arg_values.id AND selection_arg_values.document = $document
       JOIN documents as parent_doc ON selection_refs."document" = parent_doc.id
       JOIN documents as fragment_doc on selections.field_name = fragment_doc.name
       LEFT JOIN document_variables on fragment_doc.id = document_variables."document"
@@ -753,7 +1017,7 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	insertNullValue, err := conn.Prepare(`
-    INSERT INTO argument_values (kind, raw) VALUES ('Null', 'null')
+    INSERT INTO argument_values (kind, raw, row, column, expected_type, document) VALUES ('Null', 'null', 0, 0, 'null', $document)
   `)
 	if err != nil {
 		return nil, err
@@ -779,7 +1043,27 @@ func prepareTransformStatements[PluginConfig any](
       raw as variable
     FROM selection_arguments
       JOIN argument_values on selection_arguments.value = argument_values.id
-    WHERE kind = 'Variable' AND document = $document
+    WHERE kind = 'Variable' AND argument_values.document = $document AND selection_arguments.document = $document
+  `)
+	if err != nil {
+		return nil, err
+	}
+
+	directiveArgVariables, err := conn.Prepare(`
+    SELECT
+      selection_directive_arguments.id as parent,
+      argument_values.id as value,
+      raw as variable
+    FROM selection_directive_arguments
+      JOIN argument_values on selection_directive_arguments.value = argument_values.id
+    WHERE kind = 'Variable' AND argument_values.document = $document AND selection_directive_arguments.document = $document
+  `)
+	if err != nil {
+		return nil, err
+	}
+
+	updateDirectiveArgument, err := conn.Prepare(`
+    UPDATE selection_directive_arguments SET value = $value WHERE id = $id
   `)
 	if err != nil {
 		return nil, err
@@ -817,6 +1101,19 @@ func prepareTransformStatements[PluginConfig any](
 		return nil, err
 	}
 
+	noArgSelectionsDirectiveArgsSearch, err := conn.Prepare(`
+    SELECT 
+      selection_directive_arguments.*
+    FROM selection_directive_arguments
+      JOIN selection_directives on selection_directives.id = selection_directive_arguments.parent
+      LEFT JOIN selection_arguments on selection_arguments.selection_id = selection_directives.selection_id
+    WHERE selection_directive_arguments.document = $from 
+      AND selection_arguments.selection_id IS NULL
+  `)
+	if err != nil {
+		return nil, err
+	}
+
 	insertFragment, err := conn.Prepare(`
     INSERT INTO documents (name, type_condition, raw_document, kind) VALUES  ($name, $type_condition, $raw_document, 'fragment')
   `)
@@ -824,7 +1121,7 @@ func prepareTransformStatements[PluginConfig any](
 		return nil, err
 	}
 
-	argumentValueSearch, err := conn.Prepare(`
+	documentArgumentValueSearch, err := conn.Prepare(`
     SELECT 
       argument_values.*, 
       CASE WHEN argument_value_children."value" IS NULL 
@@ -905,7 +1202,8 @@ func prepareTransformStatements[PluginConfig any](
                 )
               )
               FROM selection_directive_arguments
-              WHERE selection_directive_arguments.parent = selection_directives.id
+              WHERE selection_directive_arguments.parent = selection_directives.id 
+                AND selection_directive_arguments.document = $document
             )
           )
         )
@@ -915,6 +1213,7 @@ func prepareTransformStatements[PluginConfig any](
     FROM selection_refs
       JOIN selections ON selection_refs.child_id = selections.id
       JOIN selection_arguments ON selections.id = selection_arguments.selection_id
+          AND selection_arguments.document = $document
     WHERE selection_refs.document = $document
     GROUP BY selections.id
   `)
@@ -937,7 +1236,7 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	insertSelectionArgument, err := conn.Prepare(`
-    INSERT INTO selection_arguments (selection_id, name, value, row, column, field_argument) VALUES ($selection_id, $name, $value, $row, $column, $field_argument)
+    INSERT INTO selection_arguments (selection_id, name, value, row, column, field_argument, document) VALUES ($selection_id, $name, $value, $row, $column, $field_argument, $document)
   `)
 	if err != nil {
 		return nil, err
@@ -949,47 +1248,50 @@ func prepareTransformStatements[PluginConfig any](
 		return nil, err
 	}
 	insertSelectionDirectiveArgument, err := conn.Prepare(`
-    INSERT INTO selection_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)
+    INSERT INTO selection_directive_arguments (parent, name, value, document) VALUES ($parent, $name, $value, $document)
   `)
 	if err != nil {
 		return nil, err
 	}
 
 	updateSelectionRef, err := conn.Prepare(`
-    UPDATE selection_refs SET parent_id = $to WHERE parent_id = $from
+    UPDATE selection_refs SET parent_id = $to WHERE parent_id = $from AND document = $document
   `)
 	if err != nil {
 		return nil, err
 	}
 
 	updateSelectionFieldName, err := conn.Prepare(`
-    UPDATE selections SET field_name = $field_name WHERE id = $selection_id
+    UPDATE selections SET field_name = $field_name, fragment_ref = $fragment_ref WHERE id = $selection_id
   `)
 	if err != nil {
 		return nil, err
 	}
 
 	return &transformStatements[PluginConfig]{
-		WithSpreadsInDocument:            withSpreadsInDocument,
-		DeleteValue:                      deleteValue,
-		InsertNullValue:                  insertNullValue,
-		ArgumentValueVariableSearch:      variableSearch,
-		UpdateArgumentValue:              updateArgumentValue,
-		SelectionArgumentVariableSearch:  selectionArgVariables,
-		UpdateSelectionArgument:          updateSelectionArgument,
-		CopySelectionsNoArgs:             copySelectionsNoArgs,
-		InsertFragment:                   insertFragment,
-		ArgumentValueSearch:              argumentValueSearch,
-		InsertArgumentValue:              insertArgumentValue,
-		InsertArgumentValueChildren:      insertArgumentValueChildren,
-		SearchSelectionsWithArgs:         searchSelectionsWithArgs,
-		InsertSelection:                  insertSelection,
-		InsertSelectionRef:               insertSelectionRef,
-		InsertSelectionArgument:          insertSelectionArgument,
-		InsertSelectionDirective:         insertSelectionDirective,
-		InsertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
-		UpdateSelectionRef:               updateSelectionRef,
-		UpdateSelectionFieldName:         updateSelectionFieldName,
+		WithSpreadsInDocument:              withSpreadsInDocument,
+		DeleteValue:                        deleteValue,
+		InsertNullValue:                    insertNullValue,
+		ArgumentValueVariableSearch:        variableSearch,
+		UpdateArgumentValue:                updateArgumentValue,
+		SelectionArgumentVariableSearch:    selectionArgVariables,
+		UpdateSelectionArgument:            updateSelectionArgument,
+		CopySelectionsNoArgs:               copySelectionsNoArgs,
+		InsertFragment:                     insertFragment,
+		DocumentArgumentValueSearch:        documentArgumentValueSearch,
+		DirectiveArgumentSearch:            directiveArgVariables,
+		UpdateDirectiveArgument:            updateDirectiveArgument,
+		NoSelectionArgsDirectiveArgsSearch: noArgSelectionsDirectiveArgsSearch,
+		InsertArgumentValue:                insertArgumentValue,
+		InsertArgumentValueChildren:        insertArgumentValueChildren,
+		SearchSelectionsWithArgs:           searchSelectionsWithArgs,
+		InsertSelection:                    insertSelection,
+		InsertSelectionRef:                 insertSelectionRef,
+		InsertSelectionArgument:            insertSelectionArgument,
+		InsertSelectionDirective:           insertSelectionDirective,
+		InsertSelectionDirectiveArgument:   insertSelectionDirectiveArgument,
+		UpdateSelectionRef:                 updateSelectionRef,
+		UpdateSelectionFieldName:           updateSelectionFieldName,
 	}, nil
 }
 
@@ -1003,7 +1305,7 @@ func (s *transformStatements[PluginConfig]) Finalize() {
 	s.UpdateArgumentValue.Finalize()
 	s.CopySelectionsNoArgs.Finalize()
 	s.InsertFragment.Finalize()
-	s.ArgumentValueSearch.Finalize()
+	s.DocumentArgumentValueSearch.Finalize()
 	s.InsertArgumentValue.Finalize()
 	s.InsertArgumentValueChildren.Finalize()
 	s.SearchSelectionsWithArgs.Finalize()
@@ -1013,6 +1315,9 @@ func (s *transformStatements[PluginConfig]) Finalize() {
 	s.InsertSelectionDirective.Finalize()
 	s.InsertSelectionDirectiveArgument.Finalize()
 	s.UpdateSelectionRef.Finalize()
+	s.DirectiveArgumentSearch.Finalize()
+	s.UpdateDirectiveArgument.Finalize()
+	s.NoSelectionArgsDirectiveArgsSearch.Finalize()
 }
 
 func (s *transformStatements[PluginConfig]) ReplaceVariables(
@@ -1046,7 +1351,7 @@ func (s *transformStatements[PluginConfig]) ReplaceVariables(
 		if !ok {
 			if s.nullValue == 0 {
 				// and we only want to insert a single null value per document
-				err := db.ExecStatement(s.InsertNullValue, nil)
+				err := db.ExecStatement(s.InsertNullValue, map[string]any{"document": documentID})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
 					return
@@ -1085,4 +1390,10 @@ type FragmentSpec struct {
 	Name  string
 	ID    int64
 	Scope map[string]int64
+}
+
+type FoundChildValue struct {
+	Name     string
+	Value    int64
+	Filepath string
 }

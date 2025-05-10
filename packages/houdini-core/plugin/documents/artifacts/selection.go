@@ -34,7 +34,15 @@ func writeSelectionDocument(
 	projectConfig, err := db.ProjectConfig(ctx)
 
 	// generate the artifact content
-	artifact, err := GenerateSelectionDocument(ctx, db, conn, docs, name, selection, sortKeys)
+	artifact, err := GenerateSelectionDocument(
+		ctx,
+		db,
+		conn,
+		docs,
+		name,
+		selection,
+		sortKeys,
+	)
 	if err != nil {
 		return err
 	}
@@ -138,7 +146,14 @@ func GenerateSelectionDocument(
 	}
 
 	// build up the selection string
-	selectionValues := stringifySelection(docs, doc.TypeCondition, selection, 1, sortKeys)
+	selectionValues := stringifySelection(
+		docs,
+		projectConfig,
+		doc.TypeCondition,
+		selection,
+		1,
+		sortKeys,
+	)
 
 	// build up the input specification
 	inputTypes := ""
@@ -273,7 +288,7 @@ func printedValue(
 	whereIn := strings.Join(dependentDocs, ", ")
 
 	query, err := conn.Prepare(fmt.Sprintf(`
-    SELECT printed FROM documents WHERE name in (%s) ORDER BY name
+    SELECT printed, name FROM documents WHERE name in (%s) ORDER BY name
   `, whereIn))
 	if err != nil {
 		return "", err
@@ -293,6 +308,7 @@ func printedValue(
 
 func stringifySelection(
 	docs *CollectedDocuments,
+	projectConfig plugins.ProjectConfig,
 	parentType string,
 	selections []*CollectedSelection,
 	level int,
@@ -302,6 +318,7 @@ func stringifySelection(
 	indent2 := strings.Repeat(spacing, level+1)
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
+	indent5 := strings.Repeat(spacing, level+4)
 
 	// we need to build up a stringified version of the selection set
 	fields := ""
@@ -318,12 +335,30 @@ func stringifySelection(
 				fields += "\n"
 			}
 
-			fields += stringifyFieldSelection(docs, level, selection, sortKeys)
+			fields += stringifyFieldSelection(projectConfig, docs, level, selection, sortKeys)
 
 		case "fragment":
+			// the applied fragment might have arguments
+			arguments := ""
+			for _, directive := range selection.Directives {
+				if directive.Name == schema.WithDirective {
+					for _, arg := range directive.Arguments {
+						arguments += fmt.Sprintf(`
+%s"%s": %s`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
+					}
+				}
+			}
+			if arguments != "" {
+				arguments += "\n" + indent4
+			}
+			fragmentName := selection.FieldName
+			if selection.FragmentRef != nil {
+				fragmentName = *selection.FragmentRef
+			}
+
 			fragments += fmt.Sprintf(`%s"%s": {
-%s"arguments": {}
-%s},`, indent3, selection.FieldName, indent4, indent3)
+%s"arguments": {%s}
+%s},`, indent3, fragmentName, indent4, arguments, indent3)
 
 		case "inline_fragment":
 			// we need to generate the subselection
@@ -331,7 +366,13 @@ func stringifySelection(
 			if len(selection.Children) > 0 {
 				for _, field := range selection.Children {
 					if field.Kind == "field" {
-						subSelection += stringifyFieldSelection(docs, level+2, field, sortKeys)
+						subSelection += stringifyFieldSelection(
+							projectConfig,
+							docs,
+							level+2,
+							field,
+							sortKeys,
+						)
 					}
 				}
 				subSelection += fmt.Sprintf("%s},\n", indent4)
@@ -453,17 +494,19 @@ func stringifySelection(
 
 func keyField(field *CollectedSelection) string {
 	if len(field.Arguments) == 0 {
-		return *field.Alias
+		return `"` + *field.Alias + `"`
 	}
 
-	return fmt.Sprintf(
+	escaped, _ := json.Marshal(fmt.Sprintf(
 		"%s%s",
 		*field.Alias,
 		printSelectionArguments(0, field.Arguments, map[string]bool{}),
-	)
+	))
+	return string(escaped)
 }
 
 func stringifyFieldSelection(
+	projectConfig plugins.ProjectConfig,
 	docs *CollectedDocuments,
 	level int,
 	selection *CollectedSelection,
@@ -471,13 +514,14 @@ func stringifyFieldSelection(
 ) string {
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
+	indent5 := strings.Repeat(spacing, level+4)
 
 	// we need to generate the subselection
 	subSelection := ""
 	if len(selection.Children) > 0 {
 		subSelection += fmt.Sprintf(`
 
-%s"selection": %s,`, indent4, stringifySelection(docs, selection.FieldType, selection.Children, level+3, sortKeys))
+%s"selection": %s,`, indent4, stringifySelection(docs, projectConfig, selection.FieldType, selection.Children, level+3, sortKeys))
 
 		subSelection += "\n"
 	}
@@ -509,6 +553,29 @@ func stringifyFieldSelection(
 %s"abstract": true,`, indent4)
 	}
 
+	// we might need to look for operations
+	operations := ""
+	// look for fragments on the field for any indications of an operation
+	for _, subSel := range selection.Children {
+		operation := extractOperation(projectConfig, subSel)
+		if operation == nil {
+			continue
+		}
+
+		operations += fmt.Sprintf(`{
+%s"action": "%s",
+%s"list": "%s",
+%s"position": "%s"
+%s},
+`, indent5, operation.Action, indent5, operation.ListName, indent5, operation.Position, indent4)
+
+	}
+	if operations != "" {
+		operations = fmt.Sprintf(`
+
+%s"operations": [%s],`, indent4, operations[:len(operations)-2])
+	}
+
 	// if the field is nullable we need to include an optional value
 	nullable := ""
 	if selection.TypeModifiers != nil && !strings.HasSuffix(*selection.TypeModifiers, "!") {
@@ -518,7 +585,7 @@ func stringifyFieldSelection(
 
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": "%s",%s%s%s%s
+%s"keyRaw": %s,%s%s%s%s%s
 %s},
 `,
 		indent3,
@@ -528,6 +595,7 @@ func stringifyFieldSelection(
 		indent4,
 		keyField(selection),
 		nullable,
+		operations,
 		subSelection,
 		abstract,
 		visible,
@@ -576,4 +644,121 @@ func findUsedTypes(docs *CollectedDocuments, variables []*CollectedOperationVari
 		found = append(found, key)
 	}
 	return found
+}
+
+func extractOperation(
+	config plugins.ProjectConfig,
+	selection *CollectedSelection,
+) *CollectedOperation {
+	if selection.Kind != "fragment" {
+		return nil
+	}
+
+	listName := ""
+	action := ""
+	position := config.DefaultListPosition
+	if position == "" {
+		position = "last"
+	}
+
+	// we found a fragment so now we should look for one of the magic suffix
+	switch {
+	case strings.Contains(selection.FieldName, schema.ListOperationSuffixInsert):
+		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixInsert)
+		action = "insert"
+	case strings.Contains(selection.FieldName, schema.ListOperationSuffixDelete):
+		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixDelete)
+		action = "delete"
+	case strings.Contains(selection.FieldName, schema.ListOperationSuffixRemove):
+		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixRemove)
+		action = "remove"
+	case strings.Contains(selection.FieldName, schema.ListOperationSuffixToggle):
+		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixToggle)
+		action = "toggle"
+
+	default:
+		// the fragment doesn't end in one of the magic prefixes
+		return nil
+	}
+
+	// to find the position we need to look at directives applied to the fragment
+	for _, dir := range selection.Directives {
+		switch dir.Name {
+		case schema.PrependDirective:
+			position = "first"
+		case schema.AppendDirective:
+			position = "last"
+		}
+	}
+
+	return &CollectedOperation{
+		ListName: listName,
+		Action:   action,
+		Position: position,
+	}
+}
+
+type CollectedOperation struct {
+	ListName string
+	Action   string
+	Position string
+}
+
+func stripSuffix(s string, suffix string) string {
+	if i := strings.Index(s, suffix); i >= 0 {
+		return s[:i]
+	}
+	return s
+}
+
+func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
+	indent0 := strings.Repeat(spacing, level)
+	indent1 := strings.Repeat(spacing, level+1)
+	// the first thing we need to do is figure out the kind
+	var kind string
+	switch arg.Kind {
+	case "Variable":
+		kind = "Variable"
+	default:
+		kind = arg.Kind + "Value"
+	}
+
+	// the attributes that define the node depend on the kind
+	attrs := ""
+	switch arg.Kind {
+	case "Variable", "Int", "Float", "String", "Boolean", "Enum":
+		attrs = fmt.Sprintf(`
+%s"value": "%s"`, indent1, arg.Raw)
+	case "Null":
+		attrs = fmt.Sprintf(`
+%s"value": null`, indent1)
+	case "List":
+		children := ""
+		for _, child := range arg.Children {
+			if len(children) > 0 {
+				children += ", "
+			}
+			children += serializeFragmentArgument(child.Value, level+1)
+		}
+
+		attrs = fmt.Sprintf(`
+%s"values": [%s]`, indent1, children,
+		)
+	case "Object":
+		fields := ""
+		for _, child := range arg.Children {
+			if len(fields) > 0 {
+				fields += ", "
+			}
+			fields += fmt.Sprintf(
+				`{"%s": %s}`,
+				child.Name,
+				serializeFragmentArgument(child.Value, level+1),
+			)
+		}
+	}
+
+	return fmt.Sprintf(`{
+%s"kind": "%s",%s
+%s}`, indent1, kind, attrs, indent0)
 }

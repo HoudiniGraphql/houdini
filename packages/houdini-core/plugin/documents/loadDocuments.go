@@ -785,32 +785,83 @@ func LoadPendingQuery(
 
 					// the values we need to extract are the name, the type, and a default value
 					argName := arg.Name
-					var argType string
-					var argDefault string
-					var argDefaultValue *ast.Value
 
 					// walk the object value and extract the values we need
+					var argDefault interface{}
+					var argDefaultValue *ast.Value
+
+					// first, lets look for type information
+					var argType string
+					var argTypeModifiers string
 					for _, field := range arg.Value.Children {
-						switch field.Name {
-						case "type":
-							if field.Value.Kind != ast.StringValue {
-								return &plugins.Error{
-									Message: "fragment argument type must be a string",
-									Kind:    plugins.ErrorKindValidation,
-									Locations: []*plugins.ErrorLocation{
-										{
-											Filepath: query.Filepath,
-											Line:     query.RowOffset + field.Position.Line,
-											Column:   query.ColumnOffset + field.Position.Column,
-										},
-									},
-								}
-							}
-							argType = field.Value.Raw
-						case "default":
-							argDefault = field.Value.Raw
-							argDefaultValue = field.Value
+						if field.Name != "type" {
+							continue
 						}
+						if field.Value.Kind != ast.StringValue {
+							return &plugins.Error{
+								Message: "fragment argument type must be a string",
+								Kind:    plugins.ErrorKindValidation,
+								Locations: []*plugins.ErrorLocation{
+									{
+										Filepath: query.Filepath,
+										Line:     query.RowOffset + field.Position.Line,
+										Column:   query.ColumnOffset + field.Position.Column,
+									},
+								},
+							}
+						}
+
+						argType, argTypeModifiers = schema.ParseFieldType(field.Value.Raw)
+					}
+
+					if argType == "" {
+						return &plugins.Error{
+							Message: "Missing type for fragment argument",
+							Kind:    plugins.ErrorKindValidation,
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+
+					// now look for a default value
+					for _, field := range arg.Value.Children {
+						if field.Name != "default" {
+							continue
+						}
+
+						argValueID, err := processArgumentValue(
+							ctx,
+							db,
+							conn,
+							query,
+							fragmentID,
+							field.Value,
+							statements,
+							typeCache.TypeFields,
+							argType,
+							argTypeModifiers,
+						)
+						if err != nil {
+							return &plugins.Error{
+								Message: "Error parsing argument value",
+								Detail:  err.Error(),
+								Locations: []*plugins.ErrorLocation{
+									{
+										Filepath: query.Filepath,
+										Line:     query.RowOffset + arg.Position.Line,
+										Column:   query.ColumnOffset + arg.Position.Column,
+									},
+								},
+							}
+						}
+
+						argDefault = argValueID
+						argDefaultValue = field.Value
 					}
 
 					// if we got this far and didn't find a name or type, we have a problem
@@ -826,21 +877,9 @@ func LoadPendingQuery(
 							},
 						}
 					}
-					if argType == "" {
-						return &plugins.Error{
-							Message: "fragment arguments must have a type",
-							Locations: []*plugins.ErrorLocation{
-								{
-									Filepath: query.Filepath,
-									Line:     query.RowOffset + arg.Position.Line,
-									Column:   query.ColumnOffset + arg.Position.Column,
-								},
-							},
-						}
-					}
 
 					// before we insert the argument definition we need to confirm that the default value is valid
-					if argDefault != "" {
+					if argDefault != 0 {
 						match, err := schema.ValueMatchesType(argType, argDefaultValue)
 						if err != nil {
 							return plugins.WrapError(err)
@@ -859,23 +898,18 @@ func LoadPendingQuery(
 								},
 							}
 						}
-
 					}
 
 					// we can now insert the argument into the database
 
-					// parse the type of the variable.
-					variableType, typeModifiers := schema.ParseFieldType(argType)
-					if argDefault != "" {
-						statements.InsertDocumentVariable.SetText("$default_value", argDefault)
-					}
 					if err := db.ExecStatement(statements.InsertDocumentVariable, map[string]any{
 						"document":       fragmentID,
 						"name":           argName,
-						"type":           variableType,
-						"type_modifiers": typeModifiers,
+						"type":           argType,
+						"type_modifiers": argTypeModifiers,
 						"row":            int64(arg.Position.Line),
 						"column":         int64(arg.Position.Column),
+						"default_value":  argDefault,
 					}); err != nil {
 						return &plugins.Error{
 							Message: "could not associate document variable",
@@ -984,6 +1018,7 @@ func processSelection[PluginConfig any](
 					"row":            int64(arg.Position.Line),
 					"column":         int64(arg.Position.Column),
 					"field_argument": fmt.Sprintf("%s.%s", fieldID, arg.Name),
+					"document":       operationID,
 				}); err != nil {
 				return &plugins.Error{
 					Message: fmt.Sprintf("could not add selection argument %s to database: ", arg.Name) + err.Error(),
@@ -1233,9 +1268,10 @@ func processDirectives[PluginConfig any](
 			if err := db.ExecStatement(
 				statements.InsertSelectionDirectiveArgument,
 				map[string]any{
-					"parent": dirID,
-					"name":   dArg.Name,
-					"value":  argValueID,
+					"parent":   dirID,
+					"name":     dArg.Name,
+					"value":    argValueID,
+					"document": operationID,
 				}); err != nil {
 				return &plugins.Error{
 					Message: "could not insert directive argument",

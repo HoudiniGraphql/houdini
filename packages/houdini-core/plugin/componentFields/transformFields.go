@@ -28,6 +28,7 @@ func TransformFields[PluginConfig any](
 	if err != nil {
 		return plugins.WrapError(err)
 	}
+	defer convertToSpread.Finalize()
 
 	// a query to insert selection directives
 	insertSelectionDirective, err := conn.Prepare(`
@@ -37,15 +38,17 @@ func TransformFields[PluginConfig any](
 	if err != nil {
 		return plugins.WrapError(err)
 	}
+	defer insertSelectionDirective.Finalize()
 
 	// as a query to insert directive arguments
 	insertDirectiveArgument, err := conn.Prepare(`
-    insert into selection_directive_arguments (parent, name, value)
-    values ($parent, $name, $value)
+    insert into selection_directive_arguments (parent, name, value, document)
+    values ($parent, $name, $value, $document)
   `)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
+	defer insertDirectiveArgument.Finalize()
 
 	// and a query to delete the hanging selection arguments so we don't confuse ourselves later
 	deleteArguments, err := conn.Prepare(`
@@ -54,6 +57,7 @@ func TransformFields[PluginConfig any](
 	if err != nil {
 		return plugins.WrapError(err)
 	}
+	defer deleteArguments.Finalize()
 
 	errs := &plugins.ErrorList{}
 
@@ -73,19 +77,22 @@ func TransformFields[PluginConfig any](
         )
       END,
       component_fields.type,
-      component_fields.field
+      component_fields.field,
+      documents.id as document_id
     FROM component_fields
       JOIN selections ON selections."type" = component_fields.type_field
       JOIN selection_refs ON selection_refs.child_id = selections.id 
       JOIN documents on selection_refs."document" = documents.id
       JOIN raw_documents ON raw_documents.id = documents.raw_document
-      LEFT JOIN selection_arguments ON selection_arguments.selection_id = selections.id
+      LEFT JOIN selection_arguments ON selection_arguments.selection_id = selections.id AND selection_arguments.document = documents.id
       WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
     GROUP BY selections.id
   `)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
+	defer selectionSearch.Finalize()
+
 	// walk through the results
 	err = db.StepStatement(ctx, selectionSearch, func() {
 		selectionID := selectionSearch.ColumnInt(0)
@@ -93,6 +100,7 @@ func TransformFields[PluginConfig any](
 		typ := selectionSearch.ColumnText(2)
 		field := selectionSearch.ColumnText(3)
 		fragmentName := schema.ComponentFieldFragmentName(typ, field)
+		documentID := selectionSearch.GetInt64("document_id")
 
 		// parse the arguments into something we can work with
 		args := []struct {
@@ -144,9 +152,10 @@ func TransformFields[PluginConfig any](
 		// insert each argument
 		for _, arg := range args {
 			err = db.ExecStatement(insertDirectiveArgument, map[string]any{
-				"parent": withID,
-				"name":   arg.Arg,
-				"value":  arg.Value,
+				"parent":   withID,
+				"name":     arg.Arg,
+				"value":    arg.Value,
+				"document": documentID,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))

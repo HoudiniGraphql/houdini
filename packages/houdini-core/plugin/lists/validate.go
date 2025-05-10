@@ -836,7 +836,7 @@ func validatePaginateArgs(
 				ON selection_directive_arguments.parent = selection_directives.id
 				AND selection_directive_arguments.name = $paginate_mode_arg
 			LEFT JOIN argument_values ON selection_directive_arguments.value = argument_values.id
-			LEFT JOIN selection_arguments sa ON sa.selection_id = s.id
+			LEFT JOIN selection_arguments sa ON sa.selection_id = s.id AND sa.document = d.id
 			LEFT JOIN selections parent_ref ON parent_ref.id = sr.parent_id
 			LEFT JOIN type_fields ON type_fields.id = parent_ref.type
 			LEFT JOIN type_field_arguments field_args ON field_args.field = s.type

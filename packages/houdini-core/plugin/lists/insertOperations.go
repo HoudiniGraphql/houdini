@@ -53,6 +53,78 @@ func InsertOperationDocuments(
 	}
 	defer copySelection.Finalize()
 
+	searchSelectionArguments, err := conn.Prepare(`
+    SELECT 
+      selection_id, name, value, row, column, field_argument 
+    FROM selection_arguments WHERE document = $document
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer searchSelectionArguments.Finalize()
+
+	insertSelectionArguments, err := conn.Prepare(`
+    INSERT INTO selection_arguments 
+      (name, value, row, column, field_argument, selection_id, document)
+    VALUES 
+      ($name, $value, $row, $column, $field_argument, $selection_id, $document)
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertSelectionArguments.Finalize()
+
+	// copying argument values has to happen in multiple steps since we need to recreate the
+	// nested structure with each parent value
+	searchArgumentValues, err := conn.Prepare(`
+    SELECT 
+    	argument_values.*,
+    	CASE 
+	    	WHEN 
+	    		argument_value_children.id is null THEN json('[]')
+	    	ELSE 
+		    	COALESCE(json_group_array(
+		    		json_object(
+		    			'name', argument_value_children."name",
+		    			'value', argument_value_children."value",
+		    			'row', argument_value_children."row",
+		    			'column', argument_value_children."column"
+		    		)
+		    	), json('[]'))
+		END as children
+    FROM argument_values 
+      LEFT JOIN argument_value_children ON argument_values.id = argument_value_children.parent
+    WHERE argument_values.document = $document
+    GROUP BY argument_values.id ORDER BY id DESC
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer searchArgumentValues.Finalize()
+
+	// once we have an argument value we need to insert a matching row with a different document
+	insertArgumentValue, err := conn.Prepare(`
+      INSERT INTO argument_values 
+          (kind, raw, row, column, expected_type, expected_type_modifiers, document)
+      VALUES
+          ($kind, $raw, $row, $column, $expected_type, $expected_type_modifiers, $document)
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertArgumentValue.Finalize()
+
+	insertArgumentValueChildren, err := conn.Prepare(`
+      INSERT INTO argument_value_children
+        (name, parent, value, row, column, document)
+      VALUES
+        ($name, $parent, $value, $row, $column, $document)
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertArgumentValueChildren.Finalize()
+
 	insertDocument, err := conn.Prepare(
 		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
 	)
@@ -90,22 +162,62 @@ func InsertOperationDocuments(
 
 	// now we can step through each discovered list and insert the necessary documents
 	errs := &plugins.ErrorList{}
-	insertStatement, err := conn.Prepare(`
-		SELECT name, type, node, raw_document
+	searchLists, err := conn.Prepare(`
+		SELECT 
+      discovered_lists.name, 
+      discovered_lists.type, 
+      discovered_lists.node, 
+      discovered_lists.raw_document, 
+      documents.id as document_id,
+      CASE 
+        WHEN document_variables.id IS NULL THEN json('[]')
+        ELSE json_group_array(
+          json_object(
+            'name', document_variables.name,
+            'type', document_variables.type,
+            'type_modifiers', document_variables.type_modifiers
+          )
+        )
+      END as document_arguments
 		FROM discovered_lists
 			JOIN raw_documents ON raw_documents.id = discovered_lists.raw_document
+      JOIN documents ON documents.raw_document = raw_documents.id
+      LEFT JOIN document_variables ON document_variables.document = documents.id
 		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
+    GROUP BY discovered_lists.name
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
-	defer insertStatement.Finalize()
+	defer searchLists.Finalize()
 
-	err = db.StepStatement(ctx, insertStatement, func() {
-		name := insertStatement.ColumnText(0)
-		listType := insertStatement.ColumnText(1)
-		selectionParent := insertStatement.ColumnInt64(2)
-		rawDocument := insertStatement.ColumnInt64(3)
+	insertDocumentArgument, err := conn.Prepare(`
+    INSERT INTO document_variables (document, name, type, row, column, type_modifiers)
+    VALUES ($document, $name, $type, 0, 0, $type_modifiers)
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertDocumentArgument.Finalize()
+
+	err = db.StepStatement(ctx, searchLists, func() {
+		name := searchLists.ColumnText(0)
+		listType := searchLists.ColumnText(1)
+		selectionParent := searchLists.ColumnInt64(2)
+		rawDocument := searchLists.ColumnInt64(3)
+		documentID := searchLists.GetInt64("document_id")
+		documentArgmentsString := searchLists.GetText("document_arguments")
+
+		arguments := []struct {
+			Name          string `json:"name"`
+			Type          string `json:"type"`
+			TypeModifiers string `json:"type_modifiers"`
+		}{}
+		err = json.Unmarshal([]byte(documentArgmentsString), &arguments)
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
 
 		// if the document doesn't have a name then we dont need to generate documents for it
 		if name == "" {
@@ -114,6 +226,9 @@ func InsertOperationDocuments(
 
 		// the first thing we have to do is insert a document with the correct names
 		// and then we'll copy over the selection_refs from the selection_parent
+
+		// let's collect the documents we inserted so we can copy the argument values over to both documents
+		copyTargets := []int64{}
 
 		// _insert and _toggle both get the full selection set
 		for _, suffixes := range []string{schema.ListOperationSuffixInsert, schema.ListOperationSuffixToggle} {
@@ -128,15 +243,130 @@ func InsertOperationDocuments(
 				return
 			}
 
+			fragmentID := conn.LastInsertRowID()
+			copyTargets = append(copyTargets, fragmentID)
+
 			// copy the selection from the selection parent to the new document
 			err = db.ExecStatement(copySelection, map[string]any{
-				"document":         conn.LastInsertRowID(),
+				"document":         fragmentID,
 				"selection_parent": selectionParent,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
 				return
 			}
+
+			for _, arg := range arguments {
+				err = db.ExecStatement(insertDocumentArgument, map[string]any{
+					"name":           arg.Name,
+					"type":           arg.Type,
+					"type_modifiers": arg.TypeModifiers,
+					"document":       fragmentID,
+				})
+			}
+		}
+
+		// now we need to copy argument values that show up. to recreate the nested structure we need a mapping
+		// of old values to the copied ones
+		valueMap := map[int64]map[int64]int64{}
+		searchArgumentValues.SetInt64("$document", documentID)
+		err = db.StepStatement(ctx, searchArgumentValues, func() {
+			// every row that we get in the query needs to be inserted as an argument value
+			id := searchArgumentValues.GetInt64("id")
+			kind := searchArgumentValues.GetText("kind")
+			raw := searchArgumentValues.GetText("raw")
+			row := searchArgumentValues.GetInt64("row")
+			column := searchArgumentValues.GetInt64("column")
+			expectedType := searchArgumentValues.GetText("expected_type")
+			expectedTypeModifiers := searchArgumentValues.GetText("expected_type_modifiers")
+			childrenString := searchArgumentValues.GetText("children")
+
+			children := []struct {
+				Name   string `json:"name"`
+				Value  int64  `json:"value"`
+				Row    int64  `json:"row"`
+				Column int64  `json:"column"`
+			}{}
+			err = json.Unmarshal([]byte(childrenString), &children)
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+
+			for _, target := range copyTargets {
+				// insert a new argument value
+				err = db.ExecStatement(insertArgumentValue, map[string]any{
+					"kind":                    kind,
+					"raw":                     raw,
+					"row":                     row,
+					"column":                  column,
+					"expected_type":           expectedType,
+					"expected_type_modifiers": expectedTypeModifiers,
+					"document":                target,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+				newID := conn.LastInsertRowID()
+
+				// register the mapping
+				if _, ok := valueMap[target]; !ok {
+					valueMap[target] = map[int64]int64{}
+				}
+
+				valueMap[target][id] = newID
+
+				// process any children
+				for _, child := range children {
+					err = db.ExecStatement(insertArgumentValueChildren, map[string]any{
+						"name":     child.Name,
+						"row":      child.Row,
+						"column":   child.Column,
+						"value":    newID,
+						"document": target,
+					})
+					if err != nil {
+						errs.Append(plugins.WrapError(err))
+						return
+					}
+				}
+			}
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+
+		// now we need to apply the selection arguments with the new values
+		searchSelectionArguments.SetInt64("$document", documentID)
+		err = db.StepStatement(ctx, searchSelectionArguments, func() {
+			selectionID := searchSelectionArguments.GetText("selection_id")
+			name := searchSelectionArguments.GetText("name")
+			value := searchSelectionArguments.GetInt64("value")
+			row := searchSelectionArguments.GetInt64("row")
+			column := searchSelectionArguments.GetInt64("column")
+			fieldArgument := searchSelectionArguments.GetText("field_argument")
+
+			for _, target := range copyTargets {
+				err = db.ExecStatement(insertSelectionArguments, map[string]any{
+					"name":           name,
+					"value":          valueMap[target][value],
+					"row":            row,
+					"column":         column,
+					"field_argument": fieldArgument,
+					"selection_id":   selectionID,
+					"document":       target,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+			}
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
 		}
 	})
 	if err != nil {

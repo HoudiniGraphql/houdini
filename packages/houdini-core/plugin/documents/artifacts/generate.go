@@ -29,7 +29,7 @@ func Generate(
 	}
 
 	// the first thing we need to do is collect the definitions of all of the necessary documents
-	collected, err := CollectDocuments(ctx, db, conn)
+	collected, err := CollectDocuments(ctx, db, conn, sortKeys)
 	if err != nil {
 		return err
 	}

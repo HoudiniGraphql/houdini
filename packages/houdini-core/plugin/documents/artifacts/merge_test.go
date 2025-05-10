@@ -83,7 +83,12 @@ func TestMergeSelections(t *testing.T) {
 				defer p.DB.Put(conn)
 
 				// the first thing we have to do is collect the artifacts.
-				collectedDocs, err := artifacts.CollectDocuments(context.Background(), p.DB, conn)
+				collectedDocs, err := artifacts.CollectDocuments(
+					context.Background(),
+					p.DB,
+					conn,
+					true,
+				)
 				require.Nil(t, err)
 
 				// merge the selection before we print so we can easily write the tests

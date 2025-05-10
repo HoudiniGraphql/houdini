@@ -803,7 +803,10 @@ var loadDocumentsTable = []testCase{
 						Name:          "show",
 						Type:          "Boolean",
 						TypeModifiers: "!",
-						DefaultValue:  nil,
+						DefaultValue: &tests.ExpectedArgumentValue{
+							Kind: "Boolean",
+							Raw:  "true",
+						},
 					},
 				},
 				Directives: []tests.ExpectedDirective{

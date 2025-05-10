@@ -17,6 +17,7 @@ func TestInsertOperationInput(t *testing.T) {
 			type User {
 				id: ID!
 				firstName: String!
+        field(filter: String): String
 			}
 		`,
 		Tests: []tests.Test[config.PluginConfig]{
@@ -62,6 +63,30 @@ func TestInsertOperationInput(t *testing.T) {
 							__typename
 						}
 					`),
+				},
+			},
+			{
+				Name: "Operation fragments with variables in selection",
+				Pass: true,
+				Input: []string{
+					`
+          query AllUsers($filter: String) {
+							users @list(name: "All_Users") {
+                field(filter: $filter)
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment All_Users_insert on User {
+              field(filter: $filter)
+							id
+							__typename
+						}
+					`).WithVariables(tests.ExpectedOperationVariable{
+						Name: "filter", Type: "String",
+					}),
 				},
 			},
 			{

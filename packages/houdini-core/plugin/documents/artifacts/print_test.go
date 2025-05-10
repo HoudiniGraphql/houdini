@@ -76,7 +76,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				defer p.DB.Put(conn)
 
 				// the first thing we have to do is collect the artifacts.
-				collected, err := artifacts.CollectDocuments(context.Background(), p.DB, conn)
+				collected, err := artifacts.CollectDocuments(context.Background(), p.DB, conn, true)
 				require.Nil(t, err)
 
 				// print the document we found

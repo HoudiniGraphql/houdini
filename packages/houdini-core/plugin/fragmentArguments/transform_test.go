@@ -150,6 +150,85 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				},
 			},
 			{
+				Name: "Arguments to directives on field with args",
+				Pass: true,
+				Input: []string{
+					`
+            fragment ParentInfo on User {
+              ...UserInfo @with(name: "Hello")
+            }
+          `,
+					`
+            fragment UserInfo on User
+            @arguments(name: {type: "String!"} ) {
+            friends(name:"John") @deprecated(reason: $name) {
+                firstName
+              }           
+            }
+          `,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+            fragment ParentInfo on User {
+              __typename
+              id
+              ...UserInfo_g8N34 @with(name: "Hello")
+            }
+          `),
+					tests.ExpectedDoc(`
+            fragment UserInfo_g8N34 on User {
+                friends(name:"John") @deprecated(reason: "Hello") {
+                    firstName
+                    id
+                    __typename
+                }
+                id
+                __typename
+            }
+          `),
+				},
+			},
+			{
+				Name: "Arguments to directives on field without args",
+				Pass: true,
+				Input: []string{
+					`
+            fragment ParentInfo on User {
+              ...UserInfo @with(name: "Hello")
+            }
+          `,
+					`
+            fragment UserInfo on User
+            @arguments(name: {type: "String!"} ) {
+            friends @deprecated(reason: $name) {
+                firstName
+              }           
+            }
+          `,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+            fragment ParentInfo on User {
+              __typename
+              id
+              ...UserInfo_g8N34 @with(name: "Hello")
+            }
+          `),
+					tests.ExpectedDoc(`
+            fragment UserInfo_g8N34 on User {
+                friends @deprecated(reason: "Hello") {
+                    firstName
+                    id
+                    __typename
+                }
+                id
+                __typename
+            }
+          `),
+				},
+			},
+
+			{
 				Name: "Multiple arguments",
 				Pass: true,
 				Input: []string{

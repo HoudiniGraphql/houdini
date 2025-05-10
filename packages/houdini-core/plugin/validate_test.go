@@ -1917,6 +1917,20 @@ func TestValidate_Houdini(t *testing.T) {
 						`,
 				},
 			},
+			{
+				Name: "Concrete fragment on an abstract parent",
+				Pass: true,
+				Input: []string{
+					`fragment frag on User {
+				   id
+			   }`,
+					`query A {
+            node(id:"1") {
+					    ...frag
+				    }
+			   }`,
+				},
+			},
 		},
 	})
 }

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -391,7 +392,8 @@ func ValidateIncompatibleFragmentSpread(
 		  json_object('line', refs.row, 'column', refs.column, 'filepath', raw_documents.filepath)
 		) AS locations,
 		-- LEFT JOIN possible_types on the fragment's declared type condition.
-		COALESCE(json_group_array(possible_types.member), json('[]')) AS possible_types
+		COALESCE(json_group_array(possible_fragment_types.member), json('[]')) AS possible_fragment_types,
+		COALESCE(json_group_array(possible_parent_types.member), json('[]')) AS possible_parent_types
 	FROM selection_refs AS refs
 		-- The fragment spread selection (child)
 		JOIN selections AS childSel ON refs.child_id = childSel.id
@@ -407,7 +409,8 @@ func ValidateIncompatibleFragmentSpread(
 		JOIN documents AS doc ON doc.id = refs.document
 		JOIN raw_documents ON raw_documents.id = doc.raw_document
 		-- LEFT JOIN possible_types using the fragment's type condition.
-		LEFT JOIN possible_types ON possible_types.type = fragDoc.type_condition
+		LEFT JOIN possible_types as possible_fragment_types ON possible_fragment_types.type = fragDoc.type_condition
+		LEFT JOIN possible_types as possible_parent_types ON possible_parent_types.type = parentTF.type
 	WHERE childSel.kind = 'fragment'
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY childSel.id
@@ -417,7 +420,8 @@ func ValidateIncompatibleFragmentSpread(
 		parentFieldType := row.ColumnText(1)
 		fragTypeCondition := row.ColumnText(2)
 		locationsRaw := row.ColumnText(3)
-		possibleTypesRaw := row.ColumnText(4)
+		possibleFragmentsTypesRaw := row.ColumnText(4)
+		possibleParentTypesRaw := row.ColumnText(5)
 
 		// Unmarshal the aggregated locations.
 		locations := []*plugins.ErrorLocation{}
@@ -431,8 +435,16 @@ func ValidateIncompatibleFragmentSpread(
 		// (The file path is already included via the JSON object.)
 
 		// Unmarshal possible types.
-		possibleTypes := []string{}
-		if err := json.Unmarshal([]byte(possibleTypesRaw), &possibleTypes); err != nil {
+		possibleFragmentsTypes := []string{}
+		if err := json.Unmarshal([]byte(possibleFragmentsTypesRaw), &possibleFragmentsTypes); err != nil {
+			errs.Append(&plugins.Error{
+				Message: "could not unmarshal possible types for fragment spread",
+				Detail:  err.Error(),
+			})
+			return
+		}
+		possibleParentTypes := []string{}
+		if err := json.Unmarshal([]byte(possibleParentTypesRaw), &possibleParentTypes); err != nil {
 			errs.Append(&plugins.Error{
 				Message: "could not unmarshal possible types for fragment spread",
 				Detail:  err.Error(),
@@ -445,12 +457,14 @@ func ValidateIncompatibleFragmentSpread(
 		//  - The fragment's declared type condition exactly equals the parent's resolved type, OR
 		//  - The parent's resolved type appears in the list of possible types (i.e. the fragment type is an interface/union).
 		compatible := (fragTypeCondition == parentFieldType)
-		if !compatible && len(possibleTypes) > 0 {
-			for _, pt := range possibleTypes {
-				if pt == parentFieldType {
-					compatible = true
-					break
-				}
+		if !compatible && len(possibleFragmentsTypes) > 0 {
+			if slices.Contains(possibleFragmentsTypes, parentFieldType) {
+				compatible = true
+			}
+		}
+		if !compatible && len(possibleParentTypes) > 0 {
+			if slices.Contains(possibleParentTypes, fragTypeCondition) {
+				compatible = true
 			}
 		}
 
@@ -1363,11 +1377,17 @@ func ValidateWrongTypesToArg(
 			selection_arguments.name,
 			selection_directive_arguments.name,
 			argument_value_children.name,
-			COALESCE(selection_arguments.name, selection_directive_arguments.name, argument_value_children.name) AS argument_name,
+			COALESCE(
+          selection_arguments.name, 
+          selection_directive_arguments.name, 
+          argument_value_children.name
+      ) AS argument_name,
 			argument_values.expected_type,
 			argument_values.expected_type_modifiers,
 			argument_values.kind,
-			input_types.name
+			input_types.name,
+      document_variables.type AS variable_type,
+      document_variables.type_modifiers AS variable_type_modifiers
 		FROM argument_values
 		JOIN documents on argument_values."document" = documents.id
 		JOIN raw_documents on documents.raw_document = raw_documents.id
@@ -1532,7 +1552,7 @@ func ValidateWrongTypesToArg(
 		row := stmt.ColumnInt(3) + offsetLine
 		column := stmt.ColumnInt(4) + offsetColumn
 		argumentName := stmt.ColumnText(5)
-		kind := stmt.ColumnText(8)
+		kind := stmt.GetText("kind")
 
 		// Create a single error location from the representative row/column.
 		loc := &plugins.ErrorLocation{
@@ -1542,18 +1562,27 @@ func ValidateWrongTypesToArg(
 		}
 
 		// we want to show [[User!]!] instead of User!]!]
-		expectedType := stmt.ColumnText(6) + stmt.ColumnText(7)
+		expectedType := stmt.GetText("expected_type") + stmt.GetText("expected_type_modifiers")
 		for range strings.Count(expectedType, "]") {
 			expectedType = "[" + expectedType
 		}
 
 		if expectedType == "" {
 			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("Unexpected field in '%s'", argumentName),
+				Message:   fmt.Sprintf("Unexpected field: %s", argumentName),
 				Kind:      plugins.ErrorKindValidation,
 				Locations: []*plugins.ErrorLocation{loc},
 			})
 			return
+		}
+
+		valueKind := kind
+		if valueKind == "Variable" {
+			valueKind += " of kind " + stmt.GetText(
+				"variable_type",
+			) + stmt.GetText(
+				"variable_type_modifiers",
+			)
 		}
 
 		errs.Append(&plugins.Error{
@@ -1561,7 +1590,7 @@ func ValidateWrongTypesToArg(
 				"Argument '%s' has the wrong type: expected '%s', received %s",
 				argumentName,
 				expectedType,
-				kind,
+				valueKind,
 			),
 			Kind:      plugins.ErrorKindValidation,
 			Locations: []*plugins.ErrorLocation{loc},

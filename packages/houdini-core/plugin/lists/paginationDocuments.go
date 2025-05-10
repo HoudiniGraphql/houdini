@@ -86,6 +86,7 @@ func PreparePaginationDocuments(
 			JOIN documents on selection_refs.document = documents.id
 			LEFT JOIN document_variables on document_variables."document" = selection_refs.document
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
+          AND selection_arguments.document = documents.id
 			LEFT JOIN argument_values on selection_arguments.value = argument_values.id
 			LEFT JOIN types on documents.type_condition = types."name"
 			LEFT JOIN type_configs on documents.type_condition = type_configs."name"
@@ -139,7 +140,7 @@ func PreparePaginationDocuments(
 	}
 	defer insertDocumentVariable.Finalize()
 	insertSelectionArgument, err := conn.Prepare(`
-		INSERT INTO selection_arguments (selection_id, "name", "value", row, column, field_argument) VALUES ($selection_id, $name, $value, 0, 0, $field_argument)
+		INSERT INTO selection_arguments (selection_id, "name", "value", row, column, field_argument, document) VALUES ($selection_id, $name, $value, 0, 0, $field_argument, $document)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -200,14 +201,24 @@ func PreparePaginationDocuments(
 	defer insertSelectionDirective.Finalize()
 	// we'll need to add selection directive arguments
 	insertSelectionDirectiveArgument, err := conn.Prepare(`
-		INSERT INTO selection_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)
+		INSERT INTO selection_directive_arguments (parent, name, value, document) VALUES ($parent, $name, $value, $document)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer insertSelectionDirectiveArgument.Finalize()
+	// a query to copy argument values for defaults in generated query
+	copyArgumentValue, err := conn.Prepare(`
+    INSERT INTO argument_values (kind, raw, row, column, expected_type, document)
+    SELECT kind, raw, row, column, expected_type, $document
+    FROM argument_values where id = $id
+  `)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer copyArgumentValue.Finalize()
 
-	// iterate over the rows
+	// iterate over the rows. each row represents a field that is tagged with @paginate
 	errs := &plugins.ErrorList{}
 	err = db.StepStatement(ctx, query, func() {
 		// pull out the row values
@@ -224,12 +235,8 @@ func PreparePaginationDocuments(
 		documentName := query.ColumnText(10)
 		resolveQuery := query.ColumnText(11)
 		resolveKeys := query.ColumnText(12)
-		paginate := false
-		if !query.IsNull("paginate") {
-			paginate = true
-		}
 
-		if !paginate {
+		if query.IsNull("paginate") {
 			return
 		}
 
@@ -300,57 +307,6 @@ func PreparePaginationDocuments(
 			}
 		}
 
-		// we can reuse argument values that point to the variables
-		variableIDs := map[string]int64{}
-
-		// loop over the arguments and add them to the document
-		for _, arg := range argumentsToAdd {
-			// the argument might already be defined on the field, in which case we can just delete the row in the database
-			// we'll replace it with the variable reference later
-			for _, existingArg := range arguments {
-				if existingArg.Argument == arg.Name {
-
-					// if the argument is already defined, we need to make sure that the type matches
-					err = db.ExecStatement(
-						deleteSelectionArgument,
-						map[string]any{"id": existingArg.ID},
-					)
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-
-					break
-				}
-			}
-
-			// create the variable value
-			err = db.ExecStatement(insertArgumentValue, map[string]any{
-				"kind":          "Variable",
-				"raw":           arg.Name,
-				"expected_type": arg.Kind,
-				"document":      document,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			valueID := conn.LastInsertRowID()
-			variableIDs[arg.Name] = valueID
-
-			// add the argument to the field
-			err = db.ExecStatement(insertSelectionArgument, map[string]any{
-				"selection_id":   listField,
-				"name":           arg.Name,
-				"value":          valueID,
-				"field_argument": fmt.Sprintf("%s.%s", fieldName, arg.Name),
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-		}
-
 		// now that the field has all of the arguments we need to define the corresponding variables
 		// on the document
 	ARGUMENTS:
@@ -386,9 +342,62 @@ func PreparePaginationDocuments(
 			}
 		}
 
-		// we need to apply the dedupe directive to the document that holds the query
-		// if we are looking at a paginated fragment then it needs to point to the generated document
-		dedupeTarget := document
+		// loop over the arguments and make sure the field document has the necessary variables defined
+		for _, arg := range argumentsToAdd {
+			// the argument might already be defined on the field, in which case we can just delete the row in the database
+			// we'll replace it with the variable reference later
+			for _, existingArg := range arguments {
+				if existingArg.Argument == arg.Name {
+
+					// if the argument is already defined, we need to make sure that the type matches
+					err = db.ExecStatement(
+						deleteSelectionArgument,
+						map[string]any{"id": existingArg.ID},
+					)
+					if err != nil {
+						errs.Append(plugins.WrapError(err))
+						return
+					}
+
+					break
+				}
+			}
+
+			// create the variable value and make sure it is used inside of the document
+			// with the paginated field
+			err = db.ExecStatement(insertArgumentValue, map[string]any{
+				"kind":          "Variable",
+				"raw":           arg.Name,
+				"expected_type": arg.Kind,
+				"document":      document,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			// add the argument to the field
+			err = db.ExecStatement(insertSelectionArgument, map[string]any{
+				"selection_id":   listField,
+				"name":           arg.Name,
+				"value":          conn.LastInsertRowID(),
+				"field_argument": fmt.Sprintf("%s.%s", fieldName, arg.Name),
+				"document":       document,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+		}
+
+		// the arguments that we want to add have to show up in 2 different documents:
+		// - the paginated document needs them passed to the specific field
+		// - the query document needs them added to hold their top-level definition
+
+		// the document that performs the query changes between queries and fragments. this document will get
+		// the dedupe directive as well as require new variables
+		queryDocument := document
+
+		// if we processing a fragment with the pagination directive then we need to insert a document with the fragment embedded
 		if docType == "fragment" {
 			// insert a document with a name derived from the fragment name
 			err = db.ExecStatement(insertDocument, map[string]any{
@@ -399,33 +408,9 @@ func PreparePaginationDocuments(
 				errs.Append(plugins.WrapError(err))
 				return
 			}
-			dedupeTarget = conn.LastInsertRowID()
 
-			// add the variables to the document
-			for _, arg := range argumentsToAdd {
-				// if the variable is already defined then we have a value ID to use as the default value
-				var defaultValue interface{}
-				for _, appliedArg := range arguments {
-					if appliedArg.Argument == arg.Name {
-						if appliedArg.Kind != "Variable" {
-							defaultValue = appliedArg.Value
-						}
-						break
-					}
-				}
-
-				// add the variable definition
-				err = db.ExecStatement(insertDocumentVariable, map[string]any{
-					"document":      dedupeTarget,
-					"name":          arg.Name,
-					"type":          arg.Kind,
-					"default_value": defaultValue,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-			}
+			// this new document should now be considered the one that needs a dedupe directive
+			queryDocument = conn.LastInsertRowID()
 
 			// we need to embed the fragment in the document selection
 			err = db.ExecStatement(insertSelection, map[string]any{
@@ -449,13 +434,64 @@ func PreparePaginationDocuments(
 			}
 			withID := conn.LastInsertRowID()
 
-			// for each argument we drive pagination with, we need to add an argument to the directive
+			// since we are create the document that embeds the paginated fields we know that every argument
+			// that we want to add needs a new variable in the generated document
 			for _, arg := range argumentsToAdd {
+				// create the variable value and make sure it is used inside of the document
+				// with the paginated field
+				err = db.ExecStatement(insertArgumentValue, map[string]any{
+					"kind":          "Variable",
+					"raw":           arg.Name,
+					"expected_type": arg.Kind,
+					"document":      queryDocument,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+
 				// if the argument is already defined, we need to make sure that the type matches
 				err = db.ExecStatement(insertSelectionDirectiveArgument, map[string]any{
-					"parent": withID,
-					"name":   arg.Name,
-					"value":  variableIDs[arg.Name],
+					"parent":   withID,
+					"name":     arg.Name,
+					"value":    conn.LastInsertRowID(),
+					"document": queryDocument,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+
+				// if the variable is already defined then we have a value ID to use as the default value
+				var defaultValue interface{}
+				for _, appliedArg := range arguments {
+					if appliedArg.Argument == arg.Name {
+						if appliedArg.Kind != "Variable" {
+							defaultValue = appliedArg.Value
+						}
+						break
+					}
+				}
+
+				// if we found a default value then we need to create a copy of the argument value for the generated document
+				if defaultValue != nil {
+					err = db.ExecStatement(
+						copyArgumentValue,
+						map[string]any{"id": defaultValue, "document": queryDocument},
+					)
+					if err != nil {
+						errs.Append(plugins.WrapError(err))
+						return
+					}
+					defaultValue = conn.LastInsertRowID()
+				}
+
+				// add the variable to the document
+				err = db.ExecStatement(insertDocumentVariable, map[string]any{
+					"document":      queryDocument,
+					"name":          arg.Name,
+					"type":          arg.Kind,
+					"default_value": defaultValue,
 				})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
@@ -467,7 +503,7 @@ func PreparePaginationDocuments(
 			if resolveQuery == "" {
 				// insert a selection ref with the fragment spread as a child
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"document": dedupeTarget,
+					"document": queryDocument,
 					"child_id": fragmentSpreadID,
 				})
 				if err != nil {
@@ -489,7 +525,7 @@ func PreparePaginationDocuments(
 
 				// add the selection to the document
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"document": dedupeTarget,
+					"document": queryDocument,
 					"child_id": resolveSelection,
 				})
 				if err != nil {
@@ -499,7 +535,7 @@ func PreparePaginationDocuments(
 
 				// and add the fragment spread to the resolve selection
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"document":  dedupeTarget,
+					"document":  queryDocument,
 					"child_id":  fragmentSpreadID,
 					"parent_id": resolveSelection,
 				})
@@ -515,7 +551,7 @@ func PreparePaginationDocuments(
 						"kind":          "Variable",
 						"raw":           key.Name,
 						"expected_type": key.Kind,
-						"document":      dedupeTarget,
+						"document":      queryDocument,
 					})
 					if err != nil {
 						errs.Append(plugins.WrapError(err))
@@ -528,6 +564,7 @@ func PreparePaginationDocuments(
 						"name":           key.Name,
 						"value":          conn.LastInsertRowID(),
 						"field_argument": fmt.Sprintf("%s.%s.%s", "Query", resolveQuery, key.Name),
+						"document":       queryDocument,
 					})
 					if err != nil {
 						errs.Append(plugins.WrapError(err))
@@ -536,7 +573,7 @@ func PreparePaginationDocuments(
 
 					// we also need a document variable
 					err = db.ExecStatement(insertDocumentVariable, map[string]any{
-						"document":       dedupeTarget,
+						"document":       queryDocument,
 						"name":           key.Name,
 						"type":           key.Kind,
 						"type_modifiers": "!",
@@ -553,7 +590,7 @@ func PreparePaginationDocuments(
 		if !projectConfig.SuppressPaginationDeduplication {
 			// add the dedupe directive to the document
 			err = db.ExecStatement(insertDocumentDirectives, map[string]any{
-				"document":  dedupeTarget,
+				"document":  queryDocument,
 				"directive": schema.DedupeDirective,
 			})
 			if err != nil {
@@ -568,7 +605,7 @@ func PreparePaginationDocuments(
 				"kind":          "Enum",
 				"raw":           "Variables",
 				"expected_type": "DedupeMatchMode",
-				"document":      dedupeTarget,
+				"document":      queryDocument,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
