@@ -336,7 +336,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                           "filter": {
                                                               "kind": "StringValue",
                                                               "value": "Hello World"
-                                                          }
+                                                          },
                                                       }
                                                   },
                                               },

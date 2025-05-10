@@ -344,7 +344,7 @@ func stringifySelection(
 				if directive.Name == schema.WithDirective {
 					for _, arg := range directive.Arguments {
 						arguments += fmt.Sprintf(`
-%s"%s": %s`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
+%s"%s": %s,`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
 					}
 				}
 			}
