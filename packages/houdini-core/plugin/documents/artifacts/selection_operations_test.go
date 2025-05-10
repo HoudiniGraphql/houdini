@@ -452,6 +452,121 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 		`),
 				},
 			},
+			{
+				Name: "Insert operation allList",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+              addFriend {
+                friend {
+                  ...All_Users_insert @allLists
+                }
+              }
+            }`,
+					`query TestQuery {
+              users @list(name: "All_Users") {
+                firstName
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+                  "raw": ` + "`" + `mutation A {
+                  addFriend {
+                      friend {
+                          ...All_Users_insert
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+              }
+
+              fragment All_Users_insert on User {
+                  firstName
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "addFriend": {
+                              "type": "AddFriendOutput",
+                              "keyRaw": "addFriend",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friend": {
+                                          "type": "User",
+                                          "keyRaw": "friend",
+
+                                          "operations": [{
+                                              "action": "insert",
+                                              "list": "All_Users",
+                                              "position": "last",
+                                              "target": "all"
+                                          }],
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "firstName": {
+                                                      "type": "String",
+                                                      "keyRaw": "firstName",
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+
+                                              "fragments": {
+                                                  "All_Users_insert": {
+                                                      "arguments": {}
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+
+              
+   		    `),
+				},
+			},
 		},
 	})
 }

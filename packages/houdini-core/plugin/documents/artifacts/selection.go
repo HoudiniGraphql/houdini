@@ -584,12 +584,18 @@ func stringifyFieldSelection(
 			continue
 		}
 
+		target := ""
+		if operation.Target != "" {
+			target = fmt.Sprintf(`,
+%s"target": "%s"`, indent5, operation.Target)
+		}
+
 		operations += fmt.Sprintf(`{
 %s"action": "%s",
 %s"list": "%s",
-%s"position": "%s"
+%s"position": "%s"%s
 %s},
-`, indent5, operation.Action, indent5, operation.ListName, indent5, operation.Position, indent4)
+`, indent5, operation.Action, indent5, operation.ListName, indent5, operation.Position, target, indent4)
 
 	}
 	if operations != "" {
@@ -711,6 +717,7 @@ func extractOperation(
 	listName := ""
 	action := ""
 	position := config.DefaultListPosition
+	target := ""
 	if position == "" {
 		position = "last"
 	}
@@ -742,6 +749,8 @@ func extractOperation(
 			position = "first"
 		case schema.AppendDirective:
 			position = "last"
+		case schema.AllListsDirective:
+			target = "all"
 		}
 	}
 
@@ -749,6 +758,7 @@ func extractOperation(
 		ListName: listName,
 		Action:   action,
 		Position: position,
+		Target:   target,
 	}
 }
 
@@ -756,6 +766,7 @@ type CollectedOperation struct {
 	ListName string
 	Action   string
 	Position string
+	Target   string
 }
 
 func stripSuffix(s string, suffix string) string {
