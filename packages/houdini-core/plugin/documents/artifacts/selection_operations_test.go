@@ -694,6 +694,230 @@ func TestArtifactOperationsGeneration(t *testing.T) {
    		    `),
 				},
 			},
+			{
+				Name: "remove operation allList",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+              addFriend {
+                friend {
+                  ...All_Users_remove @allLists
+                }
+              }
+            }`,
+					`query TestQuery {
+              users @list(name: "All_Users") {
+                firstName
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e",
+                  "raw": ` + "`" + `mutation A {
+                  addFriend {
+                      friend {
+                          ...All_Users_remove
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+              }
+
+              fragment All_Users_remove on User {
+                  id
+                  __typename
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "addFriend": {
+                              "type": "AddFriendOutput",
+                              "keyRaw": "addFriend",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friend": {
+                                          "type": "User",
+                                          "keyRaw": "friend",
+
+                                          "operations": [{
+                                              "action": "remove",
+                                              "list": "All_Users",
+                                              "position": "last",
+                                              "target": "all"
+                                          }],
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+
+                                              "fragments": {
+                                                  "All_Users_remove": {
+                                                      "arguments": {}
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"
+
+              
+   		    `),
+				},
+			},
+			{
+				Name: "toggle operation allList",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+              addFriend {
+                friend {
+                  ...All_Users_toggle @allLists @prepend
+                }
+              }
+            }`,
+					`query TestQuery {
+              users @list(name: "All_Users") {
+                firstName
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
+                  "raw": ` + "`" + `mutation A {
+                  addFriend {
+                      friend {
+                          ...All_Users_toggle
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+              }
+
+              fragment All_Users_toggle on User {
+                  firstName
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "addFriend": {
+                              "type": "AddFriendOutput",
+                              "keyRaw": "addFriend",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friend": {
+                                          "type": "User",
+                                          "keyRaw": "friend",
+
+                                          "operations": [{
+                                              "action": "toggle",
+                                              "list": "All_Users",
+                                              "position": "first",
+                                              "target": "all"
+                                          }],
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "firstName": {
+                                                      "type": "String",
+                                                      "keyRaw": "firstName",
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+
+                                              "fragments": {
+                                                  "All_Users_toggle": {
+                                                      "arguments": {}
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
+
+              
+   		    `),
+				},
+			},
 		},
 	})
 }
