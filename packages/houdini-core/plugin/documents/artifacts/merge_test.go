@@ -186,6 +186,29 @@ func TestMergeSelections(t *testing.T) {
 				},
 			},
 			{
+				Name: "Merges directives applied to fields",
+				Pass: true,
+				Input: []string{
+					`
+            query MyQuery {
+              user {
+                id @deprecated(reason:"Test")
+                id @optimisticKey
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+            query MyQuery {
+                user {
+                    id @deprecated(reason: "Test") @optimisticKey
+                }
+            }
+          `),
+				},
+			},
+			{
 				Name: "Flattens nested inline fragments",
 				Pass: true,
 				Input: []string{

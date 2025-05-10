@@ -125,7 +125,7 @@ func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
 	usedVariables := map[string]bool{}
 
 	// which means we need to build up up the pieces and then join them later
-	documentDirectives := printDirectives(doc.Directives, usedVariables)
+	documentDirectives := printDirectives(doc.Directives, usedVariables, includeHidden)
 	selection := printSelection(1, doc.Selections, usedVariables, includeHidden)
 
 	// we're now ready to buil up the query
@@ -137,7 +137,7 @@ func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
 		// indenpendently and then we'll join the used ones together
 		printedVars := map[string]string{}
 		for _, arg := range doc.Variables {
-			printedVars[arg.Name] = printDocumentVariables(arg, usedVariables)
+			printedVars[arg.Name] = printDocumentVariables(arg, usedVariables, includeHidden)
 		}
 
 		toPrint := []string{}
@@ -178,21 +178,25 @@ func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
 	return printed
 }
 
-func printDirectives(directives []*CollectedDirective, usedVariables map[string]bool) string {
+func printDirectives(
+	directives []*CollectedDirective,
+	usedVariables map[string]bool,
+	includeHidden bool,
+) string {
 	if len(directives) == 0 {
 		return ""
 	}
 	printed := []string{}
 	for _, directive := range directives {
 		// don't print internal directives
-		if directive.Internal == 1 {
+		if directive.Internal == 1 && !includeHidden {
 			continue
 		}
 
 		printed = append(printed, fmt.Sprintf(
 			`@%s%s`,
 			directive.Name,
-			printSelectionArguments(0, directive.Arguments, usedVariables),
+			printSelectionArguments(0, directive.Arguments, usedVariables, includeHidden),
 		))
 	}
 	if len(printed) == 0 {
@@ -206,6 +210,7 @@ func printSelectionArguments(
 	level int,
 	args []*CollectedArgument,
 	usedVariables map[string]bool,
+	includeHidden bool,
 ) string {
 	if len(args) == 0 {
 		return ""
@@ -227,7 +232,7 @@ func printSelectionArguments(
 		)
 
 		if len(arg.Directives) > 0 {
-			printed += printDirectives(arg.Directives, usedVariables)
+			printed += printDirectives(arg.Directives, usedVariables, includeHidden)
 		}
 		argsPrinted = append(argsPrinted, printed)
 	}
@@ -238,6 +243,7 @@ func printSelectionArguments(
 func printDocumentVariables(
 	variable *CollectedOperationVariable,
 	usedVariables map[string]bool,
+	includeHidden bool,
 ) string {
 	// we need to wrap the type in modifiers
 	varType := variable.Type + variable.TypeModifiers
@@ -255,7 +261,7 @@ func printDocumentVariables(
 		printedVar += " " + defaultValue
 	}
 	if len(variable.Directives) > 0 {
-		printedVar += printDirectives(variable.Directives, usedVariables)
+		printedVar += printDirectives(variable.Directives, usedVariables, includeHidden)
 	}
 
 	return printedVar
@@ -296,13 +302,13 @@ func printSelection(
 				indent,
 				alias,
 				selection.FieldName,
-				printSelectionArguments(0, selection.Arguments, usedVariables),
+				printSelectionArguments(0, selection.Arguments, usedVariables, includeHidden),
 			)
 		}
 
 		// add the directives
 		if len(selection.Directives) > 0 {
-			result += printDirectives(selection.Directives, usedVariables)
+			result += printDirectives(selection.Directives, usedVariables, includeHidden)
 		}
 
 		// add the subselections

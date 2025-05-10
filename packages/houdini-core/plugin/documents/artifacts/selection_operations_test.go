@@ -360,6 +360,98 @@ func TestArtifactOperationsGeneration(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "Optimistic keys",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+            addFriend {
+              friend {
+                id @optimisticKey
+              }
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "f150d5d0f2fa4fd0b86ec6b9c832f31d385e1e14141d2c0edc18e21df16b4c93",
+                  "raw": ` + "`" + `mutation A {
+                  addFriend {
+                      friend {
+                          id
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "addFriend": {
+                              "type": "AddFriendOutput",
+                              "keyRaw": "addFriend",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friend": {
+                                          "type": "User",
+                                          "keyRaw": "friend",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+
+                                                      "directives": [{
+                                                          "name": "optimisticKey",
+                                                          "arguments": {}
+                                                      }],
+
+                                                      "optimisticKey": true,
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "optimisticKeys": true
+              }
+
+              "HoudiniHash=f150d5d0f2fa4fd0b86ec6b9c832f31d385e1e14141d2c0edc18e21df16b4c93"
+		`),
+				},
+			},
 		},
 	})
 }

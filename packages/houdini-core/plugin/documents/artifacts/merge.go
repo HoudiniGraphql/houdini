@@ -95,12 +95,19 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 	// process the selection
 	switch selection.Kind {
 	case "field":
-		// if we haven't seen the field before we need to add a place for the selection
+		// if we've seen the field before then we need to make sure some metadata
+		// overlaps correctly
 		if sel, ok := c.Fields[selection.FieldName]; ok {
 			sel.Hidden = hidden && sel.Hidden
 			sel.Field.Hidden = sel.Hidden
 			hidden = sel.Hidden
+
+			// we need to make sure every directive shows up
+			for _, dir := range selection.Directives {
+				sel.Field.Directives = append(sel.Field.Directives, dir)
+			}
 		} else {
+			// if we haven't seen the field before we need to add a place for the selection
 			c.Fields[*selection.Alias] = &fieldCollectionField{
 				Field: selection.Clone(),
 				Selection: newFieldCollection(

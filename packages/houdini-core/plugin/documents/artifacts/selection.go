@@ -145,6 +145,9 @@ func GenerateSelectionDocument(
 		}
 	}
 
+	// track some artifact-level flags
+	flags := &ArtifactFlags{}
+
 	// build up the selection string
 	selectionValues := stringifySelection(
 		docs,
@@ -153,6 +156,7 @@ func GenerateSelectionDocument(
 		selection,
 		1,
 		sortKeys,
+		flags,
 	)
 
 	// build up the input specification
@@ -235,6 +239,13 @@ func GenerateSelectionDocument(
     "partial": %v`, partial)
 	}
 
+	// we need to track the optimistic keys
+	optimistic := ""
+	if flags.OptimisticKeys {
+		optimistic = `
+    "optimisticKeys": true`
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
     "name": "%s",
@@ -247,7 +258,7 @@ export default {
 
     "selection": %s,
 
-    "pluginData": %s,%s%s%s
+    "pluginData": %s,%s%s%s%s
 }
 
 "HoudiniHash=%s"
@@ -262,6 +273,7 @@ export default {
 		inputTypes,
 		policyValue,
 		partialValue,
+		optimistic,
 		hash,
 	))
 
@@ -313,6 +325,7 @@ func stringifySelection(
 	selections []*CollectedSelection,
 	level int,
 	sortKeys bool,
+	flags *ArtifactFlags,
 ) string {
 	indent := strings.Repeat(spacing, level)
 	indent2 := strings.Repeat(spacing, level+1)
@@ -335,7 +348,14 @@ func stringifySelection(
 				fields += "\n"
 			}
 
-			fields += stringifyFieldSelection(projectConfig, docs, level, selection, sortKeys)
+			fields += stringifyFieldSelection(
+				projectConfig,
+				docs,
+				level,
+				selection,
+				sortKeys,
+				flags,
+			)
 
 		case "fragment":
 			// the applied fragment might have arguments
@@ -372,6 +392,7 @@ func stringifySelection(
 							level+2,
 							field,
 							sortKeys,
+							flags,
 						)
 					}
 				}
@@ -500,7 +521,7 @@ func keyField(field *CollectedSelection) string {
 	escaped, _ := json.Marshal(fmt.Sprintf(
 		"%s%s",
 		*field.Alias,
-		printSelectionArguments(0, field.Arguments, map[string]bool{}),
+		printSelectionArguments(0, field.Arguments, map[string]bool{}, false),
 	))
 	return string(escaped)
 }
@@ -511,6 +532,7 @@ func stringifyFieldSelection(
 	level int,
 	selection *CollectedSelection,
 	sortKeys bool,
+	flags *ArtifactFlags,
 ) string {
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
@@ -521,7 +543,7 @@ func stringifyFieldSelection(
 	if len(selection.Children) > 0 {
 		subSelection += fmt.Sprintf(`
 
-%s"selection": %s,`, indent4, stringifySelection(docs, projectConfig, selection.FieldType, selection.Children, level+3, sortKeys))
+%s"selection": %s,`, indent4, stringifySelection(docs, projectConfig, selection.FieldType, selection.Children, level+3, sortKeys, flags))
 
 		subSelection += "\n"
 	}
@@ -583,9 +605,39 @@ func stringifyFieldSelection(
 %s"nullable": true,`, indent4)
 	}
 
+	// summarize directives applied to the field
+	optimisticKey := ""
+	directives := ""
+
+	for _, directive := range selection.Directives {
+		if directive.Name == schema.OptimisticKeyDirective {
+			optimisticKey = fmt.Sprintf(`
+%s"optimisticKey": true,`, indent4)
+			flags.OptimisticKeys = true
+		}
+		// the applied fragment might have arguments
+		arguments := "{}"
+		for _, arg := range directive.Arguments {
+			arguments += fmt.Sprintf(`
+%s"%s": %s,`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
+		}
+
+		directives += fmt.Sprintf(`{
+%s"name": "%s",
+%s"arguments": %s
+%s},
+`, indent5, directive.Name, indent5, arguments, indent4)
+	}
+	if directives != "" {
+		directives = fmt.Sprintf(`
+
+%s"directives": [%s],
+`, indent4, directives[:len(directives)-2])
+	}
+
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": %s,%s%s%s%s%s
+%s"keyRaw": %s,%s%s%s%s%s%s%s
 %s},
 `,
 		indent3,
@@ -598,6 +650,8 @@ func stringifyFieldSelection(
 		operations,
 		subSelection,
 		abstract,
+		directives,
+		optimisticKey,
 		visible,
 		indent3,
 	)
@@ -761,4 +815,8 @@ func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
 	return fmt.Sprintf(`{
 %s"kind": "%s",%s
 %s}`, indent1, kind, attrs, indent0)
+}
+
+type ArtifactFlags struct {
+	OptimisticKeys bool
 }
