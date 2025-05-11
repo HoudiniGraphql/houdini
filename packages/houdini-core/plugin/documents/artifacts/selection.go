@@ -781,7 +781,7 @@ func extractOperation(
 					printValue(arg.Value, map[string]bool{}),
 				)
 			}
-			when = fmt.Sprintf(`
+			when += fmt.Sprintf(`
 %s"must": {%s
 %s},`, indent1, attrs, indent1)
 		}
@@ -798,7 +798,7 @@ func extractOperation(
 					printValue(arg.Value, map[string]bool{}),
 				)
 			}
-			when = fmt.Sprintf(`
+			when += fmt.Sprintf(`
 %s"must_not": {%s
 %s},`, indent1, attrs, indent1)
 		}
