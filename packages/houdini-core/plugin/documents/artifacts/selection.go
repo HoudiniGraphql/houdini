@@ -741,11 +741,17 @@ func stringifyOperations(
 %s"when": {%s
 %s},`, indent5, operation.When, indent5)
 		}
+		parentID := ""
+		if operation.ParentID != "" {
+			parentID = fmt.Sprintf(`,
+
+%s"parentID": %s`, indent5, operation.ParentID)
+		}
 
 		operationString += fmt.Sprintf(`{
-%s"action": "%s"%s%s%s%s%s
+%s"action": "%s"%s%s%s%s%s%s
 %s},
-`, indent5, operation.Action, list, typ, position, target, when, indent4)
+`, indent5, operation.Action, list, typ, position, target, when, parentID, indent4)
 
 	}
 	if operationString != "" {
@@ -767,9 +773,12 @@ func extractOperation(
 	indent2 := strings.Repeat(spacing, level+1)
 	// we might have to include a when condition on the operation
 	when := ""
+	// along with a parentID specification
+	parentID := ""
 	for _, directive := range selection.Directives {
+		switch directive.Name {
 		// if we encounter a when directive
-		if directive.Name == schema.WhenDirective {
+		case schema.WhenDirective:
 			attrs := ""
 			// each arg contributes a condition that needs to be matched against
 			for _, arg := range directive.Arguments {
@@ -784,9 +793,9 @@ func extractOperation(
 			when += fmt.Sprintf(`
 %s"must": {%s
 %s},`, indent1, attrs, indent1)
-		}
-		// if we encounter a when_not directive
-		if directive.Name == schema.WhenNotDirective {
+
+			// if we encounter a when_not directive
+		case schema.WhenNotDirective:
 			attrs := ""
 			// each arg contributes a condition that needs to be matched against
 			for _, arg := range directive.Arguments {
@@ -801,8 +810,11 @@ func extractOperation(
 			when += fmt.Sprintf(`
 %s"must_not": {%s
 %s},`, indent1, attrs, indent1)
-		}
 
+			// parentID directive
+		case schema.ParentIDDirective:
+			parentID = serializeFragmentArgument(directive.Arguments[0].Value, level-1)
+		}
 	}
 
 	switch selection.Kind {
@@ -815,9 +827,10 @@ func extractOperation(
 			if strings.HasSuffix(directive.Name, schema.ListOperationSuffixDelete) {
 				targetType := stripSuffix(directive.Name, schema.ListOperationSuffixDelete)
 				return &CollectedOperation{
-					Type:   targetType,
-					Action: "delete",
-					When:   when,
+					Type:     targetType,
+					Action:   "delete",
+					When:     when,
+					ParentID: parentID,
 				}
 			}
 		}
@@ -877,6 +890,7 @@ func extractOperation(
 			Position: position,
 			Target:   target,
 			When:     when,
+			ParentID: parentID,
 		}
 	}
 
@@ -890,6 +904,7 @@ type CollectedOperation struct {
 	Target   string
 	Type     string
 	When     string
+	ParentID string
 }
 
 func stripSuffix(s string, suffix string) string {
