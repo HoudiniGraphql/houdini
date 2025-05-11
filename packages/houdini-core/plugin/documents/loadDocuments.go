@@ -1220,6 +1220,11 @@ func processDirectives[PluginConfig any](
 						Type:      "ArgumentSpecification",
 						Modifiers: "!",
 					}
+				} else if directive.Name == schema.WhenDirective ||
+					directive.Name == schema.WhenNotDirective {
+					dArgType = TypeWithModifiers{
+						Type: "__HOUDINI__PASSTHROUGH__",
+					}
 				} else {
 					return &plugins.Error{
 						Message: "could not process directive argument value: " + fmt.Sprintf("%s.%s", directive.Name, dArg.Name),

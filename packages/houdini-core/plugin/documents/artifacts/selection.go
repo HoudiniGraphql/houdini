@@ -537,6 +537,7 @@ func stringifyFieldSelection(
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
 	indent5 := strings.Repeat(spacing, level+4)
+	indent6 := strings.Repeat(spacing, level+5)
 
 	// we need to generate the subselection
 	subSelection := ""
@@ -596,23 +597,31 @@ func stringifyFieldSelection(
 			flags.OptimisticKeys = true
 		}
 		// the applied fragment might have arguments
-		arguments := "{}"
-		for _, arg := range directive.Arguments {
+		arguments := ""
+		for i, arg := range directive.Arguments {
 			arguments += fmt.Sprintf(`
-%s"%s": %s,`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
+%s"%s": %s,`, indent6, arg.Name, serializeFragmentArgument(arg.Value, level+5))
+			if i < len(directive.Arguments)-1 {
+				arguments += indent5
+			}
+		}
+		if arguments == "" {
+			arguments = "{}"
+		} else {
+			arguments = fmt.Sprintf(`{%s
+%s}`, arguments[:len(arguments)-1], indent5)
 		}
 
 		directives += fmt.Sprintf(`{
 %s"name": "%s",
 %s"arguments": %s
-%s},
-`, indent5, directive.Name, indent5, arguments, indent4)
+%s},`, indent5, directive.Name, indent5, arguments, indent4)
 	}
 	if directives != "" {
 		directives = fmt.Sprintf(`
 
 %s"directives": [%s],
-`, indent4, directives[:len(directives)-2])
+`, indent4, directives[:len(directives)-1])
 	}
 
 	result += fmt.Sprintf(`%s"%s": {
@@ -691,13 +700,13 @@ func stringifyOperations(
 	// collect the list of operations that apply
 	operations := []CollectedOperation{}
 	for _, subSel := range selection.Children {
-		operation := extractOperation(projectConfig, subSel, true)
+		operation := extractOperation(projectConfig, subSel, true, level+5)
 		if operation == nil {
 			continue
 		}
 		operations = append(operations, *operation)
 	}
-	if op := extractOperation(projectConfig, selection, false); op != nil {
+	if op := extractOperation(projectConfig, selection, false, level+5); op != nil {
 		operations = append(operations, *op)
 	}
 
@@ -725,11 +734,18 @@ func stringifyOperations(
 			typ = fmt.Sprintf(`,
 %s"type": "%s"`, indent5, operation.Type)
 		}
+		when := ""
+		if operation.When != "" {
+			when = fmt.Sprintf(`,
+
+%s"when": {%s
+%s},`, indent5, operation.When, indent5)
+		}
 
 		operationString += fmt.Sprintf(`{
-%s"action": "%s"%s%s%s%s
+%s"action": "%s"%s%s%s%s%s
 %s},
-`, indent5, operation.Action, list, typ, position, target, indent4)
+`, indent5, operation.Action, list, typ, position, target, when, indent4)
 
 	}
 	if operationString != "" {
@@ -745,7 +761,50 @@ func extractOperation(
 	config plugins.ProjectConfig,
 	selection *CollectedSelection,
 	fragments bool,
+	level int,
 ) *CollectedOperation {
+	indent1 := strings.Repeat(spacing, level)
+	indent2 := strings.Repeat(spacing, level+1)
+	// we might have to include a when condition on the operation
+	when := ""
+	for _, directive := range selection.Directives {
+		// if we encounter a when directive
+		if directive.Name == schema.WhenDirective {
+			attrs := ""
+			// each arg contributes a condition that needs to be matched against
+			for _, arg := range directive.Arguments {
+				attrs += fmt.Sprintf(
+					`
+%s"%s": %s,`,
+					indent2,
+					arg.Name,
+					printValue(arg.Value, map[string]bool{}),
+				)
+			}
+			when = fmt.Sprintf(`
+%s"must": {%s
+%s},`, indent1, attrs, indent1)
+		}
+		// if we encounter a when_not directive
+		if directive.Name == schema.WhenNotDirective {
+			attrs := ""
+			// each arg contributes a condition that needs to be matched against
+			for _, arg := range directive.Arguments {
+				attrs += fmt.Sprintf(
+					`
+%s"%s": %s,`,
+					indent2,
+					arg.Name,
+					printValue(arg.Value, map[string]bool{}),
+				)
+			}
+			when = fmt.Sprintf(`
+%s"must_not": {%s
+%s},`, indent1, attrs, indent1)
+		}
+
+	}
+
 	switch selection.Kind {
 	// if we have a field, then we need to look for a delete directive
 	case "field":
@@ -758,6 +817,7 @@ func extractOperation(
 				return &CollectedOperation{
 					Type:   targetType,
 					Action: "delete",
+					When:   when,
 				}
 			}
 		}
@@ -816,6 +876,7 @@ func extractOperation(
 			Action:   action,
 			Position: position,
 			Target:   target,
+			When:     when,
 		}
 	}
 
@@ -828,6 +889,7 @@ type CollectedOperation struct {
 	Position string
 	Target   string
 	Type     string
+	When     string
 }
 
 func stripSuffix(s string, suffix string) string {

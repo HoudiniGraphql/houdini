@@ -1457,6 +1457,190 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 		`),
 				},
 			},
+			{
+				Name: "delete operation with condition",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+              deleteUser(id: "1234") {
+                userID @User_delete @when(stringValue:"foo")
+              }
+            }`,
+					`query TestQuery {
+              users @list(name: "All_Users") {
+                firstName
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
+                  "raw": ` + "`" + `mutation A {
+                  deleteUser(id: "1234") {
+                      userID
+                      __typename
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "deleteUser": {
+                              "type": "DeleteUserOutput",
+                              "keyRaw": "deleteUser(id: \"1234\")",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "userID": {
+                                          "type": "ID",
+                                          "keyRaw": "userID",
+                                          "nullable": true,
+
+                                          "directives": [{
+                                              "name": "User_delete",
+                                              "arguments": {}
+                                          },{
+                                              "name": "when",
+                                              "arguments": {
+                                                  "stringValue": {
+                                                      "kind": "StringValue",
+                                                      "value": "foo"
+                                                  }
+                                              }
+                                          }],
+
+
+                                          "operations": [{
+                                              "action": "delete",
+                                              "type": "User",
+
+                                              "when": {
+                                                  "must": {
+                                                      "stringValue": "foo",
+                                                  },
+                                              },
+                                          }],
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
+		`),
+				},
+			},
+			{
+				Name: "must_not directive",
+				Pass: true,
+				Input: []string{
+					`mutation A {
+              deleteUser(id: "1234") {
+                userID @User_delete @when_not(stringValue:"foo")
+              }
+            }`,
+					`query TestQuery {
+              users @list(name: "All_Users") {
+                firstName
+              }
+            }`,
+				},
+				Extra: map[string]any{
+					"A": tests.Dedent(`
+              export default {
+                  "name": "A",
+                  "kind": "HoudiniMutation",
+                  "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
+                  "raw": ` + "`" + `mutation A {
+                  deleteUser(id: "1234") {
+                      userID
+                      __typename
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Mutation",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "deleteUser": {
+                              "type": "DeleteUserOutput",
+                              "keyRaw": "deleteUser(id: \"1234\")",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "userID": {
+                                          "type": "ID",
+                                          "keyRaw": "userID",
+                                          "nullable": true,
+
+                                          "directives": [{
+                                              "name": "User_delete",
+                                              "arguments": {}
+                                          },{
+                                              "name": "when_not",
+                                              "arguments": {
+                                                  "stringValue": {
+                                                      "kind": "StringValue",
+                                                      "value": "foo"
+                                                  }
+                                              }
+                                          }],
+
+
+                                          "operations": [{
+                                              "action": "delete",
+                                              "type": "User",
+
+                                              "when": {
+                                                  "must_not": {
+                                                      "stringValue": "foo",
+                                                  },
+                                              },
+                                          }],
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
+		`),
+				},
+			},
 		},
 	})
 }
