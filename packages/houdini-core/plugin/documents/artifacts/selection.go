@@ -575,34 +575,8 @@ func stringifyFieldSelection(
 %s"abstract": true,`, indent4)
 	}
 
-	// we might need to look for operations
-	operations := ""
-	// look for fragments on the field for any indications of an operation
-	for _, subSel := range selection.Children {
-		operation := extractOperation(projectConfig, subSel)
-		if operation == nil {
-			continue
-		}
-
-		target := ""
-		if operation.Target != "" {
-			target = fmt.Sprintf(`,
-%s"target": "%s"`, indent5, operation.Target)
-		}
-
-		operations += fmt.Sprintf(`{
-%s"action": "%s",
-%s"list": "%s",
-%s"position": "%s"%s
-%s},
-`, indent5, operation.Action, indent5, operation.ListName, indent5, operation.Position, target, indent4)
-
-	}
-	if operations != "" {
-		operations = fmt.Sprintf(`
-
-%s"operations": [%s],`, indent4, operations[:len(operations)-2])
-	}
+	// extra any operations for the field
+	operations := stringifyOperations(projectConfig, selection, level)
 
 	// if the field is nullable we need to include an optional value
 	nullable := ""
@@ -653,10 +627,10 @@ func stringifyFieldSelection(
 		indent4,
 		keyField(selection),
 		nullable,
+		directives,
 		operations,
 		subSelection,
 		abstract,
-		directives,
 		optimisticKey,
 		visible,
 		indent3,
@@ -706,60 +680,146 @@ func findUsedTypes(docs *CollectedDocuments, variables []*CollectedOperationVari
 	return found
 }
 
+func stringifyOperations(
+	projectConfig plugins.ProjectConfig,
+	selection *CollectedSelection,
+	level int,
+) string {
+	indent4 := strings.Repeat(spacing, level+3)
+	indent5 := strings.Repeat(spacing, level+4)
+
+	// collect the list of operations that apply
+	operations := []CollectedOperation{}
+	for _, subSel := range selection.Children {
+		operation := extractOperation(projectConfig, subSel, true)
+		if operation == nil {
+			continue
+		}
+		operations = append(operations, *operation)
+	}
+	if op := extractOperation(projectConfig, selection, false); op != nil {
+		operations = append(operations, *op)
+	}
+
+	// we might need to look for operationString
+	operationString := ""
+	// look for fragments on the field for any indications of an operation
+	for _, operation := range operations {
+		list := ""
+		if operation.ListName != "" {
+			list = fmt.Sprintf(`,
+%s"list": "%s"`, indent5, operation.ListName)
+		}
+		target := ""
+		if operation.Target != "" {
+			target = fmt.Sprintf(`,
+%s"target": "%s"`, indent5, operation.Target)
+		}
+		position := ""
+		if operation.Position != "" {
+			position = fmt.Sprintf(`,
+%s"position": "%s"`, indent5, operation.Position)
+		}
+		typ := ""
+		if operation.Type != "" {
+			typ = fmt.Sprintf(`,
+%s"type": "%s"`, indent5, operation.Type)
+		}
+
+		operationString += fmt.Sprintf(`{
+%s"action": "%s"%s%s%s%s
+%s},
+`, indent5, operation.Action, list, typ, position, target, indent4)
+
+	}
+	if operationString != "" {
+		operationString = fmt.Sprintf(`
+
+%s"operations": [%s],`, indent4, operationString[:len(operationString)-2])
+	}
+
+	return operationString
+}
+
 func extractOperation(
 	config plugins.ProjectConfig,
 	selection *CollectedSelection,
+	fragments bool,
 ) *CollectedOperation {
-	if selection.Kind != "fragment" {
+	switch selection.Kind {
+	// if we have a field, then we need to look for a delete directive
+	case "field":
+		if fragments {
+			return nil
+		}
+		for _, directive := range selection.Directives {
+			if strings.HasSuffix(directive.Name, schema.ListOperationSuffixDelete) {
+				targetType := stripSuffix(directive.Name, schema.ListOperationSuffixDelete)
+				return &CollectedOperation{
+					Type:   targetType,
+					Action: "delete",
+				}
+			}
+		}
+
+		// if we got this far then there isn't an operation
 		return nil
-	}
+	case "fragment":
 
-	listName := ""
-	action := ""
-	position := config.DefaultListPosition
-	target := ""
-	if position == "" {
-		position = "last"
-	}
-
-	// we found a fragment so now we should look for one of the magic suffix
-	switch {
-	case strings.Contains(selection.FieldName, schema.ListOperationSuffixInsert):
-		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixInsert)
-		action = "insert"
-	case strings.Contains(selection.FieldName, schema.ListOperationSuffixDelete):
-		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixDelete)
-		action = "delete"
-	case strings.Contains(selection.FieldName, schema.ListOperationSuffixRemove):
-		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixRemove)
-		action = "remove"
-	case strings.Contains(selection.FieldName, schema.ListOperationSuffixToggle):
-		listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixToggle)
-		action = "toggle"
-
-	default:
-		// the fragment doesn't end in one of the magic prefixes
-		return nil
-	}
-
-	// to find the position we need to look at directives applied to the fragment
-	for _, dir := range selection.Directives {
-		switch dir.Name {
-		case schema.PrependDirective:
-			position = "first"
-		case schema.AppendDirective:
+		listName := ""
+		action := ""
+		position := config.DefaultListPosition
+		target := config.DefaultListTarget
+		if position == "" {
 			position = "last"
-		case schema.AllListsDirective:
-			target = "all"
+		}
+
+		// we found a fragment so now we should look for one of the magic suffix
+		switch {
+		case strings.Contains(selection.FieldName, schema.ListOperationSuffixInsert):
+			listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixInsert)
+			action = "insert"
+		case strings.Contains(selection.FieldName, schema.ListOperationSuffixDelete):
+			listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixDelete)
+			action = "delete"
+		case strings.Contains(selection.FieldName, schema.ListOperationSuffixRemove):
+			listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixRemove)
+			action = "remove"
+		case strings.Contains(selection.FieldName, schema.ListOperationSuffixToggle):
+			listName = stripSuffix(selection.FieldName, schema.ListOperationSuffixToggle)
+			action = "toggle"
+
+		default:
+			// the fragment doesn't end in one of the magic prefixes
+			return nil
+		}
+
+		// there is no position for remove operations
+		if action == "remove" {
+			position = ""
+		}
+
+		// to find the position we need to look at directives applied to the fragment
+		for _, dir := range selection.Directives {
+			switch dir.Name {
+			case schema.PrependDirective:
+				position = "first"
+			case schema.AppendDirective:
+				position = "last"
+			case schema.AllListsDirective:
+				target = "all"
+			}
+		}
+
+		return &CollectedOperation{
+			ListName: listName,
+			Action:   action,
+			Position: position,
+			Target:   target,
 		}
 	}
 
-	return &CollectedOperation{
-		ListName: listName,
-		Action:   action,
-		Position: position,
-		Target:   target,
-	}
+	return nil
 }
 
 type CollectedOperation struct {
@@ -767,6 +827,7 @@ type CollectedOperation struct {
 	Action   string
 	Position string
 	Target   string
+	Type     string
 }
 
 func stripSuffix(s string, suffix string) string {
