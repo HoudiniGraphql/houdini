@@ -213,6 +213,9 @@ func collectDoc(
 				fieldName := statements.Search.GetText("field_name")
 				fieldType := statements.Search.GetText("type")
 				fragmentRef := statements.Search.GetText("fragment_ref")
+				listName := statements.Search.GetText("list_name")
+				listType := statements.Search.GetText("list_type")
+				listConnection := statements.Search.GetBool("list_connection")
 
 				var typeModifiers *string
 				if !statements.Search.IsNull("type_modifiers") {
@@ -237,6 +240,14 @@ func collectDoc(
 				}
 				if fragmentRef != "" {
 					selection.FragmentRef = &fragmentRef
+				}
+
+				if listName != "" {
+					selection.List = &CollectedList{
+						Name:       listName,
+						Type:       listType,
+						Connection: listConnection,
+					}
 				}
 
 				// save the ID in the selection map
@@ -740,7 +751,10 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           dct.directives,
           type_fields.type,
           d.id as document_id,
-          d.hash
+          d.hash,
+          discovered_lists.name as list_name,
+          discovered_lists.type as list_type,
+          discovered_lists.connection as list_connection
         FROM selections
           JOIN selection_refs 
             ON selection_refs.child_id = selections.id 
@@ -752,6 +766,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN arguments_agg a ON a.selection_id = selections.id
           LEFT JOIN type_fields on selections.type = type_fields.id
           LEFT JOIN types on d.kind = types.operation
+          LEFT JOIN discovered_lists on discovered_lists.list_field = selections.id
       
         UNION ALL
       
@@ -772,7 +787,10 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           dct.directives,
           type_fields.type,
           st.document_id AS document_id,
-          st.hash
+          st.hash,
+          discovered_lists.name as list_name,
+          discovered_lists.type as list_type,
+          discovered_lists.connection as list_connection
         FROM selection_refs 
           JOIN selection_tree st ON selection_refs.parent_id = st.id
           JOIN selections on selection_refs.child_id = selections.id
@@ -780,6 +798,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN type_fields on selections.type = type_fields.id
           LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
           LEFT JOIN arguments_agg a ON a.selection_id = selections.id
+          LEFT JOIN discovered_lists on discovered_lists.list_field = selections.id
         WHERE selection_refs.document = st.document_id
       )
     SELECT 
@@ -796,7 +815,11 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       parent_id, 
       document_kind, 
       type_condition, 
-      type FROM selection_tree
+      type,
+      list_name,
+      list_type,
+      list_connection
+    FROM selection_tree
     ORDER BY parent_id ASC
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
@@ -1094,9 +1117,16 @@ type CollectedSelection struct {
 	TypeModifiers *string
 	Kind          string
 	Hidden        bool
+	List          *CollectedList
 	Arguments     []*CollectedArgument
 	Directives    []*CollectedDirective
 	Children      []*CollectedSelection
+}
+
+type CollectedList struct {
+	Name       string
+	Type       string
+	Connection bool
 }
 
 func (c *CollectedSelection) Clone() *CollectedSelection {
@@ -1109,6 +1139,7 @@ func (c *CollectedSelection) Clone() *CollectedSelection {
 		Hidden:        c.Hidden,
 		Arguments:     c.Arguments,
 		Directives:    c.Directives,
+		List:          c.List,
 		Children:      []*CollectedSelection{},
 	}
 

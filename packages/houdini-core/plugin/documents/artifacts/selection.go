@@ -624,9 +624,50 @@ func stringifyFieldSelection(
 `, indent4, directives[:len(directives)-1])
 	}
 
+	// extract the list information
+	list := ""
+	filters := ""
+	if selection.List != nil {
+		// we need to record the list specification
+		list = fmt.Sprintf(`
+%s"list": {
+%s"name": "%s",
+%s"connection": %v,
+%s"type": "%s"
+%s},`,
+			indent4,
+			indent5,
+			selection.List.Name,
+			indent5,
+			selection.List.Connection,
+			indent5,
+			selection.List.Type,
+			indent4,
+		)
+
+		// we also need to record which filters are currently being applied to the list field
+		for _, arg := range selection.Arguments {
+			value := printValue(arg.Value, map[string]bool{})
+			if arg.Value.Kind == "Variable" {
+				value = `"` + arg.Value.Raw + `"`
+			}
+			filters += fmt.Sprintf(`
+%s"%s": {
+%s"kind": "%s",
+%s"value": %s
+%s},`, indent5, arg.Name, indent6, arg.Value.Kind, indent6, value, indent5)
+		}
+
+		if filters != "" {
+			filters = fmt.Sprintf(`
+%s"filters": {%s
+%s},`, indent4, filters, indent4)
+		}
+	}
+
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": %s,%s%s%s%s%s%s%s
+%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s
 %s},
 `,
 		indent3,
@@ -637,8 +678,10 @@ func stringifyFieldSelection(
 		keyField(selection),
 		nullable,
 		directives,
+		list,
 		operations,
 		subSelection,
+		filters,
 		abstract,
 		optimisticKey,
 		visible,
