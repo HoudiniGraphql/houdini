@@ -193,28 +193,9 @@ export default async function svelteKitGenerator(
 					.concat(pageTypeImports)
 					.concat(componentQueryTypeImports)
 
-				// if we need Page/LayoutParams, generate this type.
-				// verify if necessary. might not be.
-				const layoutParams = `${
-					layoutQueries.length > 0 && !utilityTypes.includes('LayoutParams')
-						? "\ntype LayoutParams = LayoutLoadEvent['params'];"
-						: ''
-				}`
-
-				//page params are necessary though.
-				const pageParams = `${
-					pageQueries.length > 0 && !utilityTypes.includes('PageParams')
-						? "\ntype PageParams = PageLoadEvent['params'];"
-						: ''
-				}`
-
-				// mutate utilityTypes with our layoutParams, pageParams.
-				utilityTypes = utilityTypes
-					.concat(layoutParams)
-					.concat(pageParams)
-					//replace all instances of $types.js with $houdini to ensure type inheritence.
-					//any type imports will always be in the utilityTypes block
-					.replaceAll(/\$types\.js/gm, '$houdini')
+				//replace all instances of $types.js with $houdini to ensure type inheritence.
+				//any type imports will always be in the utilityTypes block
+				utilityTypes = utilityTypes.replaceAll(/\$types\.js/gm, '$houdini')
 
 				// main bulk of the work done here.
 				typeExports = typeExports
@@ -364,7 +345,7 @@ function append_VariablesFunction(
 			// define the variable function
 			return `\nexport type ${config.variableFunctionName(
 				name
-			)} = VariableFunction<${type}Params, ${input_type}>;`
+			)} = VariableFunction<${type}LoadEvent, ${input_type}>;`
 		})
 		.join('\n')
 }
