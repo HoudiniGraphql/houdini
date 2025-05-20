@@ -103,7 +103,7 @@ config value:
 -        method: 'POST',
 -        headers: {
 -            'Content-Type': 'application/json',
--            'Authentication': `Bearer ${session.user?.token}`
+-            'Authorization': `Bearer ${session.user?.token}`
 -        },
 -        body: JSON.stringify({
 -            query: text,
@@ -121,7 +121,7 @@ config value:
 +    fetchParams({ session }) {
 +        return {
 +            headers: {
-+                'Authentication': `Bearer ${session.user?.token}`
++                'Authorization': `Bearer ${session.user?.token}`
 +            }
 +        }
 +    }
@@ -155,7 +155,7 @@ If your application uses subscriptions, you'll need to import the
 +             url: 'ws://api.url',
 +             connectionParams: {
 +                 headers: {
-+                     Authentication: `Bearer ${session.user?.token}`
++                     Authorization: `Bearer ${session.user?.token}`
 +                 }
 +             }
 +  	      }))

@@ -137,7 +137,7 @@ export default {
 	watchSchema: {
 		url: 'http://localhost:4000/graphql',
 		headers: {
-			Authentication(env) {
+			Authorization(env) {
 				return `Bearer ${env.AUTH_TOKEN}`
 			}
 		}
@@ -163,7 +163,7 @@ export default {
 	watchSchema: {
 		url: '...',
 		headers: {
-			Authentication: 'env:AUTH_TOKEN'
+			Authorization: 'env:AUTH_TOKEN'
 		}
 	}
 }
@@ -178,7 +178,7 @@ export default {
 	watchSchema: {
 		url: '...',
 		headers: {
-			Authentication(env) {
+			Authorization(env) {
 				return `Bearer ${env.AUTH_TOKEN}`
 			}
 		}
