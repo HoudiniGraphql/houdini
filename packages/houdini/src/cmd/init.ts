@@ -389,7 +389,7 @@ export default new HoudiniClient({
     // fetchParams({ session }) {
     //     return {
     //         headers: {
-    //             Authentication: \`Bearer \${session.token}\`,
+    //             Authorization: \`Bearer \${session.token}\`,
     //         }
     //     }
     // }
