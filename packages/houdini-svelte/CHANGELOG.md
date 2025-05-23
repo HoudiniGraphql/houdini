@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.2.0-next.3
+
+### Patch Changes
+
+-   [#1491](https://github.com/HoudiniGraphql/houdini/pull/1491) [`0d0725f8`](https://github.com/HoudiniGraphql/houdini/commit/0d0725f8e1377b5029bc815135e3a2c08e745595) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix incorrect typings for automatic load event parameter
+
 ## 2.2.0-next.2
 
 ### Patch Changes
