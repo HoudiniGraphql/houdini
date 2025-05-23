@@ -1,5 +1,11 @@
 # houdini
 
+## 1.5.6
+
+### Patch Changes
+
+-   [#1482](https://github.com/HoudiniGraphql/houdini/pull/1482) [`31108851`](https://github.com/HoudiniGraphql/houdini/commit/31108851d4a0c0480530807f4de751520fe35278) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix static runtime generation
+
 ## 1.5.5
 
 ### Patch Changes
