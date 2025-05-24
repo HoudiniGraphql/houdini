@@ -168,7 +168,10 @@ func AddDocumentFields[PluginConfig any](
 		SELECT
 			list_field,
 			selection_refs.parent_id as edges_field,
-			document
+			document,
+      edge_type,
+      connection_type,
+      node_type
 		FROM discovered_lists
 			JOIN selection_refs ON selection_refs.child_id = discovered_lists.node
 			JOIN raw_documents ON raw_documents.id = discovered_lists.raw_document
@@ -189,6 +192,8 @@ func AddDocumentFields[PluginConfig any](
 		listField := connectionWalk.ColumnInt64(0)
 		edgesField := connectionWalk.ColumnInt64(1)
 		docID := connectionWalk.ColumnInt64(2)
+		connectionType := connectionWalk.GetText("connection_type")
+		edgeType := connectionWalk.GetText("edge_type")
 
 		// if we haven't generate a page info selection, do it now
 		if pageInfoSelection == 0 {
@@ -197,7 +202,7 @@ func AddDocumentFields[PluginConfig any](
 				"field_name": "pageInfo",
 				"alias":      "pageInfo",
 				"kind":       "field",
-				"type":       "PageInfo",
+				"type":       fmt.Sprintf("%s.pageInfo", connectionType),
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -207,16 +212,11 @@ func AddDocumentFields[PluginConfig any](
 
 			// we need to add the fields to the pageInfo selection
 			for _, field := range []string{"hasNextPage", "hasPreviousPage", "startCursor", "endCursor"} {
-				fieldType := "Boolean"
-				if field == "startCursor" || field == "endCursor" {
-					fieldType = "String"
-				}
-
 				err = db.ExecStatement(insertSelection, map[string]any{
 					"field_name": field,
 					"alias":      field,
 					"kind":       "field",
-					"type":       fieldType,
+					"type":       fmt.Sprintf("PageInfo.%s", field),
 				})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
@@ -264,7 +264,7 @@ func AddDocumentFields[PluginConfig any](
 			"field_name": "cursor",
 			"alias":      "cursor",
 			"kind":       "field",
-			"type":       "String",
+			"type":       fmt.Sprintf("%s.cursor", edgeType),
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

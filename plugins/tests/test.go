@@ -221,18 +221,24 @@ CREATE TABLE document_variable_directive_arguments (
 CREATE TABLE discovered_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    type TEXT NOT NULL,
+    node_type TEXT NOT NULL,
+    edge_type TEXT NOT NULL,
+    connection_type TEXT NOT NULL,
     node INTEGER NOT NULL,
     raw_document INTEGER NOT NULL,
     connection BOOLEAN default false,
     list_field INTEGER NOT NULL,
+    page_size INTEGER NOT NULL,
+    mode TEXT NOT NULL,
+    embedded BOOLEAN NOT NULL,
+    target_type TEXT NOT NULL,
     paginate TEXT,
     supports_forward BOOLEAN default false,
     supports_backward BOOLEAN default false,
 
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (node_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 

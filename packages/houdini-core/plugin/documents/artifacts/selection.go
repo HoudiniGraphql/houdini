@@ -122,6 +122,9 @@ func GenerateSelectionDocument(
 		return "", err
 	}
 
+	// dedupe config
+	dedupe := ""
+
 	// we need to compute the cache policy for the document
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
@@ -130,7 +133,28 @@ func GenerateSelectionDocument(
 	cachePolicy := projectConfig.DefaultCachePolicy
 	partial := projectConfig.DefaultPartial
 	for _, directive := range doc.Directives {
-		if directive.Name == schema.CacheDirective {
+		switch directive.Name {
+		case schema.DedupeDirective:
+			cancel := "last"
+			match := "Variables"
+			for _, arg := range directive.Arguments {
+				switch arg.Name {
+				case "cancelFirst":
+					if arg.Value.Raw == "true" {
+						cancel = "first"
+					}
+				case "match":
+					match = arg.Value.Raw
+				}
+				dedupe = fmt.Sprintf(`
+
+    "dedupe": {
+        "cancel": "%s",
+        "match": "%s"
+    },`, cancel, match)
+			}
+
+		case schema.CacheDirective:
 			for _, arg := range directive.Arguments {
 				if arg.Name == "policy" {
 					cachePolicy = arg.Value.Raw
@@ -157,15 +181,23 @@ func GenerateSelectionDocument(
 		1,
 		sortKeys,
 		flags,
+		false,
+		[]string{},
+		"",
 	)
 
 	// build up the input specification
 	inputTypes := ""
 	if len(doc.Variables) > 0 {
 		defaults := ""
-		variableTypes := ""
+		inputSpecs := ""
+		if sortKeys {
+			sort.Slice(doc.Variables, func(i int, j int) bool {
+				return doc.Variables[i].Name < doc.Variables[j].Name
+			})
+		}
 		for _, variable := range doc.Variables {
-			variableTypes += fmt.Sprintf(`
+			inputSpecs += fmt.Sprintf(`
             "%s": "%s",`, variable.Name, variable.Type)
 			if variable.DefaultValue != nil {
 				defaults += fmt.Sprintf(`
@@ -226,7 +258,7 @@ func GenerateSelectionDocument(
 
         "runtimeScalars": {},
     },
-`, variableTypes, typeDefs, defaults)
+`, inputSpecs, typeDefs, defaults)
 	}
 
 	// we only consider policy and partial values for queries
@@ -246,11 +278,38 @@ func GenerateSelectionDocument(
     "optimisticKeys": true`
 	}
 
+	// there might a refetch spec associated with the document
+	refetch := ""
+	if flags.Refetch != nil {
+		refetch = fmt.Sprintf(`
+
+    "refetch": {
+        "path": %s,
+        "method": "%s",
+        "pageSize": %v,
+        "embedded": %v,
+        "targetType": "%s",
+        "paginated": %v,
+        "direction": "%s",
+        "mode": "%s"
+    },
+`,
+			"["+flags.Refetch.Path[1:]+"]",
+			flags.Refetch.Method,
+			flags.Refetch.PageSize,
+			flags.Refetch.Embedded,
+			flags.Refetch.TargetType,
+			flags.Refetch.Paginated,
+			flags.Refetch.Direction,
+			flags.Refetch.Mode,
+		)
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
     "name": "%s",
     "kind": "%s",
-    "hash": "%s",
+    "hash": "%s",%s
     "raw": `+"`"+printed+"\n`"+`,
 
     "rootType": "%s",
@@ -258,7 +317,7 @@ export default {
 
     "selection": %s,
 
-    "pluginData": %s,%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s
 }
 
 "HoudiniHash=%s"
@@ -266,10 +325,12 @@ export default {
 		name,
 		kind,
 		hash,
+		refetch,
 		doc.TypeCondition,
 		string(stripVariables),
 		selectionValues,
 		string(marshaledData),
+		dedupe,
 		inputTypes,
 		policyValue,
 		partialValue,
@@ -326,6 +387,9 @@ func stringifySelection(
 	level int,
 	sortKeys bool,
 	flags *ArtifactFlags,
+	paginatedField bool,
+	updates []string,
+	path string,
 ) string {
 	indent := strings.Repeat(spacing, level)
 	indent2 := strings.Repeat(spacing, level+1)
@@ -348,6 +412,20 @@ func stringifySelection(
 				fields += "\n"
 			}
 
+			// we only want to keep the updates alive if we run into a pagination field
+			if !paginatedField {
+				switch *selection.Alias {
+				case "edges",
+					"pageInfo",
+					"hasNextPage",
+					"hasPreviousPage",
+					"startCursor",
+					"endCursor":
+				default:
+					updates = []string{}
+				}
+			}
+
 			fields += stringifyFieldSelection(
 				projectConfig,
 				docs,
@@ -355,6 +433,8 @@ func stringifySelection(
 				selection,
 				sortKeys,
 				flags,
+				updates,
+				path+`,"`+*selection.Alias+`"`,
 			)
 
 		case "fragment":
@@ -393,6 +473,8 @@ func stringifySelection(
 							field,
 							sortKeys,
 							flags,
+							[]string{},
+							path,
 						)
 					}
 				}
@@ -513,9 +595,13 @@ func stringifySelection(
 %s}`, result, indent)
 }
 
-func keyField(field *CollectedSelection) string {
+func keyField(field *CollectedSelection, paginated bool) string {
 	if len(field.Arguments) == 0 {
 		return `"` + *field.Alias + `"`
+	}
+
+	if paginated {
+		return `"` + *field.Alias + `::paginated"`
 	}
 
 	escaped, _ := json.Marshal(fmt.Sprintf(
@@ -533,18 +619,77 @@ func stringifyFieldSelection(
 	selection *CollectedSelection,
 	sortKeys bool,
 	flags *ArtifactFlags,
+	updates []string,
+	path string,
 ) string {
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
 	indent5 := strings.Repeat(spacing, level+4)
 	indent6 := strings.Repeat(spacing, level+5)
 
+	// figure out the pagination state
+	paginated := false
+	if selection.List != nil {
+		paginated = selection.List.Paginated
+		updates = []string{}
+		if selection.List.SupportsForward {
+			updates = append(updates, "append")
+		}
+		if selection.List.SupportsBackward {
+			updates = append(updates, "prepend")
+		}
+
+		// if the list is paginated then it requires a refetch spec
+		if selection.List.Paginated {
+			flags.Refetch = &RefetchSpec{
+				Path:       path,
+				Paginated:  selection.List.Paginated,
+				PageSize:   selection.List.PageSize,
+				Mode:       RefetchMode(selection.List.Mode),
+				TargetType: selection.List.TargetType,
+				Embedded:   selection.List.Embedded,
+			}
+
+			// track the pagination type
+			if selection.List.Connection {
+				flags.Refetch.Method = RefetchMethodCursor
+			} else {
+				flags.Refetch.Method = RefetchMethodOffset
+			}
+
+			// figure out the Direction
+			if selection.List.SupportsForward && selection.List.SupportsBackward {
+				flags.Refetch.Direction = RefetchDirectionBoth
+			} else if selection.List.SupportsBackward {
+				flags.Refetch.Direction = RefetchDirectionBackward
+			} else if selection.List.SupportsForward {
+				flags.Refetch.Direction = RefetchDirectionForward
+			}
+
+		}
+	}
+
 	// we need to generate the subselection
 	subSelection := ""
 	if len(selection.Children) > 0 {
-		subSelection += fmt.Sprintf(`
+		subSelection += fmt.Sprintf(
+			`
 
-%s"selection": %s,`, indent4, stringifySelection(docs, projectConfig, selection.FieldType, selection.Children, level+3, sortKeys, flags))
+%s"selection": %s,`,
+			indent4,
+			stringifySelection(
+				docs,
+				projectConfig,
+				selection.FieldType,
+				selection.Children,
+				level+3,
+				sortKeys,
+				flags,
+				paginated,
+				updates,
+				path,
+			),
+		)
 
 		subSelection += "\n"
 	}
@@ -665,9 +810,22 @@ func stringifyFieldSelection(
 		}
 	}
 
+	updateStr := ""
+	// dont add any updates if there aren't any, the field isn't paginated or if the
+	// field is not pageInfo or __typename
+	if len(updates) > 0 && !paginated && *selection.Alias != "pageInfo" &&
+		*selection.Alias != "__typename" {
+		updateVals := []string{}
+		for _, update := range updates {
+			updateVals = append(updateVals, `"`+update+`"`)
+		}
+		updateStr = fmt.Sprintf(`
+%s"updates": [%s],`, indent4, strings.Join(updateVals, ", "))
+	}
+
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s
+%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s%s
 %s},
 `,
 		indent3,
@@ -675,7 +833,8 @@ func stringifyFieldSelection(
 		indent4,
 		selection.FieldType,
 		indent4,
-		keyField(selection),
+		keyField(selection, paginated),
+		updateStr,
 		nullable,
 		directives,
 		list,
@@ -1011,4 +1170,39 @@ func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
 
 type ArtifactFlags struct {
 	OptimisticKeys bool
+	Refetch        *RefetchSpec
 }
+
+type RefetchSpec struct {
+	Path       string
+	Method     RefetchMethod
+	PageSize   int
+	Start      any
+	Embedded   bool
+	TargetType string
+	Paginated  bool
+	Direction  RefetchDirection
+	Mode       RefetchMode
+}
+
+type RefetchMode string
+
+const (
+	RefetchModeInfinite   RefetchMode = "Infinite"
+	RefetchModeSinglePage RefetchMode = "SinglePage"
+)
+
+type RefetchDirection string
+
+const (
+	RefetchDirectionForward  RefetchDirection = "forward"
+	RefetchDirectionBackward RefetchDirection = "backward"
+	RefetchDirectionBoth     RefetchDirection = "both"
+)
+
+type RefetchMethod string
+
+const (
+	RefetchMethodCursor RefetchMethod = "cursor"
+	RefetchMethodOffset RefetchMethod = "offset"
+)

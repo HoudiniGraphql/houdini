@@ -556,10 +556,10 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "input": {
                       "fields": {
-                          "id": "ID",
+                          "enumArg": "MyEnum",
                           "filter": "UserFilter",
                           "filterList": "UserFilter",
-                          "enumArg": "MyEnum",
+                          "id": "ID",
                       },
 
                       "types": {

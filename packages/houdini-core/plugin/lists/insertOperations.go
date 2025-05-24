@@ -165,7 +165,7 @@ func InsertOperationDocuments(
 	searchLists, err := conn.Prepare(`
 		SELECT 
       discovered_lists.name, 
-      discovered_lists.type, 
+      discovered_lists.node_type, 
       discovered_lists.node, 
       discovered_lists.raw_document, 
       documents.id as document_id,
@@ -387,15 +387,15 @@ func InsertOperationDocuments(
 			WHERE raw_documents.current_task = $task_id or $task_id is NULL
 		)
 
-		SELECT b.name, b.type, tc.keys, b.raw_document
+		SELECT b.name, b.node_type, tc.keys, b.raw_document
 		FROM base b
-		JOIN type_configs tc ON tc.name = b.type
+		JOIN type_configs tc ON tc.name = b.node_type
 
 		UNION
 
-		SELECT b.name, b.type, default_config.default_keys, b.raw_document
+		SELECT b.name, b.node_type, default_config.default_keys, b.raw_document
 		FROM base b
-			LEFT JOIN type_configs tc ON tc.name = b.type
+			LEFT JOIN type_configs tc ON tc.name = b.node_type
 			JOIN default_config
 		WHERE tc.name IS NULL
 	`)
@@ -405,16 +405,18 @@ func InsertOperationDocuments(
 	defer statementWithKeys.Finalize()
 
 	err = db.StepStatement(ctx, statementWithKeys, func() {
-		listName := statementWithKeys.ColumnText(0)
-		typeName := statementWithKeys.ColumnText(1)
-		keysStr := statementWithKeys.ColumnText(2)
-		rawDocument := statementWithKeys.ColumnInt64(3)
+		listName := statementWithKeys.GetText("name")
+		typeName := statementWithKeys.GetText("node_type")
+		keysStr := statementWithKeys.GetText("default_keys")
+		rawDocument := statementWithKeys.GetText("raw_document")
 
 		keys := []string{}
-		err = json.Unmarshal([]byte(keysStr), &keys)
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
+		if keysStr != "" {
+			err = json.Unmarshal([]byte(keysStr), &keys)
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 		}
 
 		if ok := insertedDirectives[typeName]; !ok {

@@ -216,6 +216,14 @@ func collectDoc(
 				listName := statements.Search.GetText("list_name")
 				listType := statements.Search.GetText("list_type")
 				listConnection := statements.Search.GetBool("list_connection")
+				listPageSize := statements.Search.GetInt64("list_page_size")
+				listTargetType := statements.Search.GetText("list_target_type")
+				listEmbedded := statements.Search.GetBool("list_embedded")
+				listMode := statements.Search.GetText("list_mode")
+
+				if listMode == "" {
+					listMode = "Infinite"
+				}
 
 				var typeModifiers *string
 				if !statements.Search.IsNull("type_modifiers") {
@@ -227,7 +235,6 @@ func collectDoc(
 				if !statements.Search.IsNull("alias") {
 					aliasValue := statements.Search.GetText("alias")
 					alias = &aliasValue
-
 				}
 
 				// create the collected selection from the information we have
@@ -238,6 +245,7 @@ func collectDoc(
 					Alias:         alias,
 					Kind:          kind,
 				}
+
 				if fragmentRef != "" {
 					selection.FragmentRef = &fragmentRef
 				}
@@ -247,6 +255,19 @@ func collectDoc(
 						Name:       listName,
 						Type:       listType,
 						Connection: listConnection,
+						PageSize:   int(listPageSize),
+						Mode:       listMode,
+						Embedded:   listEmbedded,
+						TargetType: listTargetType,
+					}
+					if !statements.Search.IsNull("list_paginated") {
+						selection.List.Paginated = true
+						selection.List.SupportsBackward = statements.Search.GetBool(
+							"list_supports_backward",
+						)
+						selection.List.SupportsForward = statements.Search.GetBool(
+							"list_supports_forward",
+						)
 					}
 				}
 
@@ -753,8 +774,15 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           d.id as document_id,
           d.hash,
           discovered_lists.name as list_name,
-          discovered_lists.type as list_type,
-          discovered_lists.connection as list_connection
+          discovered_lists.node_type as list_type,
+          discovered_lists.connection as list_connection,
+          discovered_lists.paginate as list_paginated,
+          discovered_lists.supports_forward as list_supports_forward,
+          discovered_lists.supports_backward as list_supports_backward,
+          discovered_lists.page_size as list_page_size,
+          discovered_lists.embedded as list_embedded,
+          discovered_lists.mode as list_mode,
+          discovered_lists.target_type as list_target_type
         FROM selections
           JOIN selection_refs 
             ON selection_refs.child_id = selections.id 
@@ -789,8 +817,15 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           st.document_id AS document_id,
           st.hash,
           discovered_lists.name as list_name,
-          discovered_lists.type as list_type,
-          discovered_lists.connection as list_connection
+          discovered_lists.node_type as list_type,
+          discovered_lists.connection as list_connection,
+          discovered_lists.paginate as list_paginated,
+          discovered_lists.supports_forward as list_supports_forward,
+          discovered_lists.supports_backward as list_supports_backward,
+          discovered_lists.page_size as list_page_size,
+          discovered_lists.embedded as list_embedded,
+          discovered_lists.mode as list_mode,
+          discovered_lists.target_type as list_target_type
         FROM selection_refs 
           JOIN selection_tree st ON selection_refs.parent_id = st.id
           JOIN selections on selection_refs.child_id = selections.id
@@ -818,7 +853,14 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       type,
       list_name,
       list_type,
-      list_connection
+      list_connection,
+      list_paginated,
+      list_supports_forward,
+      list_supports_backward,
+      list_page_size,
+      list_embedded,
+      list_mode,
+      list_target_type
     FROM selection_tree
     ORDER BY parent_id ASC
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
@@ -1124,9 +1166,16 @@ type CollectedSelection struct {
 }
 
 type CollectedList struct {
-	Name       string
-	Type       string
-	Connection bool
+	Name             string
+	Type             string
+	Connection       bool
+	Paginated        bool
+	SupportsForward  bool
+	SupportsBackward bool
+	PageSize         int
+	Mode             string
+	TargetType       string
+	Embedded         bool
 }
 
 func (c *CollectedSelection) Clone() *CollectedSelection {

@@ -456,86 +456,128 @@ func DiscoverListsThenValidate(
 	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
 	// directives
 	query := `
-		WITH list_names AS (
-			SELECT
-				argument_values.raw AS list_name,
-				selection_directives.row,
-				selection_directives.column,
-				raw_documents.filepath as filepath,
-				selections.id AS selection_id,
-				selection_directives.directive as directive,
-				raw_documents.id as raw_document_id
-			FROM selection_directives
-				JOIN selections ON selection_directives.selection_id = selections.id
-				JOIN selection_refs ON selections.id = selection_refs.child_id
-				JOIN documents ON selection_refs.document = documents.id
-				JOIN raw_documents ON documents.raw_document = raw_documents.id
-				LEFT JOIN selection_directive_arguments
-					ON selection_directives.id = selection_directive_arguments.parent
-					AND selection_directive_arguments.name = 'name'
-				LEFT JOIN argument_values ON selection_directive_arguments.value = argument_values.id
-			WHERE selection_directives.directive in ($paginate_directive, $list_directive)
-				AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-		),
-		base AS (
-			-- Get the declared type (and its type_modifiers) for the original selection.
-			SELECT
-				ln.*,
-				s.type AS base_type,
-				tf.type_modifiers,
-				tf.type AS base_list_type,
-				ln.filepath,
-				ln.directive as directive,
-				ln.raw_document_id
-			FROM list_names ln
-			JOIN selections s ON ln.selection_id = s.id
-			JOIN type_fields tf ON s.type = tf.id
-		),
-		edges AS (
-			-- If the base type is not already a list (i.e. no ']' in type_modifiers),
-			-- then find the child selection with field_name = 'edges'.
-			SELECT
-				b.selection_id,
-				s_edges.id AS edges_id,
-				b.raw_document_id
-			FROM base b
-			JOIN selection_refs sr ON sr.parent_id = b.selection_id
-			JOIN selections s_edges ON s_edges.id = sr.child_id
-			WHERE s_edges.field_name = 'edges' AND b.type_modifiers NOT LIKE '%]%'
-		),
-		-- From the "edges" selection, find the child selection with field_name = 'node'
-		-- and join to type_fields to get its type.
-		node AS (
-			SELECT
-				e.selection_id,
-				s_node.id AS node_id,
-				tf_node.type AS node_list_type,
-				e.raw_document_id
-			FROM edges e
-			JOIN selection_refs sr2 ON sr2.parent_id = e.edges_id
-			JOIN selections s_node ON s_node.id = sr2.child_id
-			JOIN type_fields tf_node ON s_node.type = tf_node.id
-			WHERE s_node.field_name = 'node'
-		)
-		SELECT
-			b.list_name,
-			b.row,
-			b.column,
-			b.filepath,
-			CASE
-				WHEN b.type_modifiers LIKE '%]%' THEN b.base_list_type
-				ELSE n.node_list_type
-			END AS final_list_type,
-			CASE
-				WHEN b.type_modifiers LIKE '%]%' THEN b.selection_id
-				ELSE n.node_id
-			END as node_id,
-			b.raw_document_id,
-			b.type_modifiers NOT LIKE '%]%' as connection,
-			b.selection_id,
-			b.directive
-		FROM base b
-			LEFT JOIN node n ON b.selection_id = n.selection_id
+    WITH
+      list_names AS (
+        SELECT
+            argument_values.raw     AS list_name,
+            selection_directives.row,
+            selection_directives.column,
+            raw_documents.filepath  AS filepath,
+            selections.id           AS selection_id,
+            selection_directives.directive,
+            raw_documents.id        AS raw_document_id,
+            CAST(COALESCE(document_values.raw, page_argument.raw) AS INTEGER) AS page_size,
+            documents.kind == 'fragment' as embedded,
+          	documents.type_condition as target_type,
+          	mode_argument_value.raw as "mode"
+          FROM selection_directives
+            JOIN selections       ON selection_directives.selection_id = selections.id
+            JOIN selection_refs   ON selections.id = selection_refs.child_id
+            JOIN documents        ON selection_refs.document = documents.id
+            JOIN raw_documents    ON documents.raw_document = raw_documents.id
+            LEFT JOIN selection_directive_arguments
+              ON selection_directives.id = selection_directive_arguments.parent
+             AND selection_directive_arguments.name = 'name'
+            LEFT JOIN argument_values
+              ON selection_directive_arguments.value = argument_values.id
+            JOIN selection_arguments ON selection_arguments.selection_id = selections.id 
+              AND selection_arguments."name" IN ('first', 'last', 'limit') 
+              AND selection_arguments."document" = documents.id
+            JOIN argument_values AS page_argument ON selection_arguments."value" = page_argument.id
+            LEFT JOIN document_variables ON document_variables."document" = documents.id 
+              AND page_argument.raw = document_variables."name"
+            LEFT JOIN argument_values AS document_values 
+                ON document_variables.default_value = document_values.id 
+                AND document_values."document" = documents.id
+            LEFT JOIN selection_directive_arguments AS mode_argument ON mode_argument."name" = 'mode'
+            LEFT JOIN argument_values as mode_argument_value ON mode_argument."value" = mode_argument_value.id
+          WHERE selection_directives.directive IN ($paginate_directive, $list_directive)
+            AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+            AND page_size != 0
+      ),
+
+      base AS (
+        SELECT
+          ln.*,
+          s.type            AS base_type,
+          tf.type_modifiers,
+          tf.type           AS base_list_type,
+          ln.filepath,
+          ln.directive,
+          ln.raw_document_id
+        FROM list_names ln
+          JOIN selections   s  ON ln.selection_id = s.id
+          JOIN type_fields  tf ON s.type = tf.id
+      ),
+
+      edges AS (
+        -- when this field isn’t already a plain list, drill into “edges”
+        SELECT
+          b.selection_id,
+          s_edges.id       AS edges_id,
+          b.raw_document_id,
+          tf_edges.type    AS edge_type
+        FROM base b
+          JOIN selection_refs sr
+            ON sr.parent_id = b.selection_id
+          JOIN selections s_edges
+            ON s_edges.id = sr.child_id
+          JOIN type_fields tf_edges
+            ON s_edges.type = tf_edges.id
+        WHERE s_edges.field_name = 'edges'
+          AND b.type_modifiers NOT LIKE '%]%'
+      ),
+
+      node AS (
+        -- from “edges” drill into “node,” and carry edge_type forward
+        SELECT
+          e.selection_id,
+          s_node.id        AS node_id,
+          tf_node.type     AS node_list_type,
+          e.raw_document_id,
+          e.edge_type
+        FROM edges e
+          JOIN selection_refs sr2
+            ON sr2.parent_id = e.edges_id
+          JOIN selections   s_node
+            ON s_node.id = sr2.child_id
+          JOIN type_fields  tf_node
+            ON s_node.type = tf_node.id
+        WHERE s_node.field_name = 'node'
+      )
+
+    SELECT
+      b.list_name,
+      b.row,
+      b.column,
+      b.filepath,
+
+      CASE
+        WHEN b.type_modifiers LIKE '%]%' THEN b.base_list_type
+        ELSE n.node_list_type
+      END AS final_list_type,
+
+      CASE
+        WHEN b.type_modifiers LIKE '%]%' THEN b.selection_id
+        ELSE n.node_id
+      END AS node_id,
+
+      b.raw_document_id,
+      (b.type_modifiers NOT LIKE '%]%')    AS connection,  -- still your “is‐connection” flag
+
+      b.selection_id,
+      b.directive,
+
+      n.edge_type,                        
+      b.base_list_type AS connection_type,
+      b.page_size,
+      b.embedded,
+      b.mode,
+      b.target_type
+
+    FROM base b
+    LEFT JOIN node n
+      ON b.selection_id = n.selection_id
 	`
 	bindings := map[string]any{
 		"list_directive":     schema.ListDirective,
@@ -545,15 +587,21 @@ func DiscoverListsThenValidate(
 	// as we step through the results we'll need to keep track of operation names
 	// we've already seen so we can identify duplicates
 	type DiscoveredList struct {
-		ListName    string
-		SelectionID int
-		ListField   int
-		Filepath    string
-		RawDocument int
-		Type        string
-		Locations   []*plugins.ErrorLocation
-		Connection  bool
-		Paginate    bool
+		ListName       string
+		SelectionID    int
+		ListField      int
+		Filepath       string
+		RawDocument    int
+		NodeType       string
+		EdgeType       any
+		ConnectionType any
+		Locations      []*plugins.ErrorLocation
+		Connection     bool
+		Paginate       bool
+		PageSize       int
+		Mode           string
+		Emebedded      bool
+		TargetType     string
 	}
 	lists := map[int]*DiscoveredList{}
 
@@ -569,19 +617,38 @@ func DiscoverListsThenValidate(
 		connection := nameStatement.ColumnBool(7)
 		listField := nameStatement.ColumnInt(8)
 		directive := nameStatement.ColumnText(9)
+		pageSize := nameStatement.GetInt64("page_size")
+		embedded := nameStatement.GetBool("embedded")
+		mode := nameStatement.GetText("mode")
+		targetType := nameStatement.GetText("target_type")
+
+		var edgeType any
+		if !nameStatement.ColumnIsNull(10) {
+			edgeType = nameStatement.ColumnText(10)
+		}
+		var connectionType any
+		if !nameStatement.ColumnIsNull(11) {
+			connectionType = nameStatement.ColumnText(11)
+		}
 
 		// if we haven't seen the name before, create a new entry
 		if _, ok := lists[listField]; !ok {
 			lists[listField] = &DiscoveredList{
-				ListName:    listName,
-				SelectionID: selectionID,
-				Filepath:    filepath,
-				RawDocument: rawDocument,
-				Type:        finalType,
-				Locations:   []*plugins.ErrorLocation{},
-				Connection:  connection,
-				ListField:   listField,
-				Paginate:    directive == schema.PaginationDirective,
+				ListName:       listName,
+				SelectionID:    selectionID,
+				Filepath:       filepath,
+				RawDocument:    rawDocument,
+				NodeType:       finalType,
+				EdgeType:       edgeType,
+				ConnectionType: connectionType,
+				Locations:      []*plugins.ErrorLocation{},
+				Connection:     connection,
+				ListField:      listField,
+				Paginate:       directive == schema.PaginationDirective,
+				PageSize:       int(pageSize),
+				Emebedded:      embedded,
+				TargetType:     targetType,
+				Mode:           mode,
 			}
 		}
 
@@ -607,7 +674,36 @@ func DiscoverListsThenValidate(
 	// - we'll consider them when validating directive and fragment spreads
 	// - we'll use them to insert the operation schema items
 	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists (name, type, node, raw_document, connection, list_field, paginate) VALUES ($name, $type, $node, $raw_document, $connection, $list_field, $paginate)
+		INSERT INTO discovered_lists 
+      (
+        name, 
+        node_type, 
+        edge_type, 
+        connection_type, 
+        raw_document, 
+        connection, 
+        list_field,
+        paginate, 
+        node,
+        page_size,
+        mode,
+        embedded,
+        target_type
+      ) VALUES (
+        $name,
+        $node_type, 
+        $edge_type, 
+        $connection_type, 
+        $raw_document,
+        $connection, 
+        $list_field, 
+        $paginate, 
+        $node,
+        $page_size,
+        $mode,
+        $embedded,
+        $target_type
+      )
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -628,7 +724,7 @@ func DiscoverListsThenValidate(
 		}
 
 		// if the list type doesn't exist then its an invalid placement of a list directive
-		if list.Type == "" || list.SelectionID == 0 {
+		if list.NodeType == "" || list.SelectionID == 0 {
 			errs.Append(&plugins.Error{
 				Message:   invalidConnectinErr,
 				Locations: list.Locations,
@@ -637,14 +733,24 @@ func DiscoverListsThenValidate(
 			continue
 		}
 
+		if list.TargetType == "" {
+			list.TargetType = "Query"
+		}
+
 		// insert the discovered list into the database
 		err = db.ExecStatement(insertDiscoveredLists, map[string]any{
-			"name":         list.ListName,
-			"type":         list.Type,
-			"node":         list.SelectionID,
-			"raw_document": list.RawDocument,
-			"connection":   list.Connection,
-			"list_field":   list.ListField,
+			"name":            list.ListName,
+			"node_type":       list.NodeType,
+			"connection_type": list.ConnectionType,
+			"edge_type":       list.EdgeType,
+			"node":            list.SelectionID,
+			"raw_document":    list.RawDocument,
+			"connection":      list.Connection,
+			"list_field":      list.ListField,
+			"page_size":       list.PageSize,
+			"mode":            list.Mode,
+			"embedded":        list.Emebedded,
+			"target_type":     list.TargetType,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -689,7 +795,7 @@ func validateDirectives(
 	selectionSearch := `
 		WITH discovered_directives AS (
 			SELECT
-				type || $delete_prefix AS key
+				node_type || $delete_prefix AS key
 			FROM discovered_lists
 		)
 		SELECT
