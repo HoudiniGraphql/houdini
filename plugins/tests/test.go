@@ -222,7 +222,7 @@ CREATE TABLE discovered_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     node_type TEXT NOT NULL,
-    edge_type TEXT NOT NULL,
+    edge_type TEXT,
     connection_type TEXT NOT NULL,
     node INTEGER NOT NULL,
     raw_document INTEGER NOT NULL,

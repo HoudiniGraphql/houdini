@@ -480,10 +480,10 @@ func DiscoverListsThenValidate(
              AND selection_directive_arguments.name = 'name'
             LEFT JOIN argument_values
               ON selection_directive_arguments.value = argument_values.id
-            JOIN selection_arguments ON selection_arguments.selection_id = selections.id 
+            LEFT JOIN selection_arguments ON selection_arguments.selection_id = selections.id 
               AND selection_arguments."name" IN ('first', 'last', 'limit') 
               AND selection_arguments."document" = documents.id
-            JOIN argument_values AS page_argument ON selection_arguments."value" = page_argument.id
+            LEFT JOIN argument_values AS page_argument ON selection_arguments."value" = page_argument.id
             LEFT JOIN document_variables ON document_variables."document" = documents.id 
               AND page_argument.raw = document_variables."name"
             LEFT JOIN argument_values AS document_values 
@@ -493,7 +493,6 @@ func DiscoverListsThenValidate(
             LEFT JOIN argument_values as mode_argument_value ON mode_argument."value" = mode_argument_value.id
           WHERE selection_directives.directive IN ($paginate_directive, $list_directive)
             AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-            AND page_size != 0
       ),
 
       base AS (
@@ -501,10 +500,7 @@ func DiscoverListsThenValidate(
           ln.*,
           s.type            AS base_type,
           tf.type_modifiers,
-          tf.type           AS base_list_type,
-          ln.filepath,
-          ln.directive,
-          ln.raw_document_id
+          tf.type           AS base_list_type
         FROM list_names ln
           JOIN selections   s  ON ln.selection_id = s.id
           JOIN type_fields  tf ON s.type = tf.id
@@ -563,7 +559,7 @@ func DiscoverListsThenValidate(
       END AS node_id,
 
       b.raw_document_id,
-      (b.type_modifiers NOT LIKE '%]%')    AS connection,  -- still your “is‐connection” flag
+      (b.type_modifiers NOT LIKE '%]%')    AS connection, 
 
       b.selection_id,
       b.directive,
@@ -578,6 +574,7 @@ func DiscoverListsThenValidate(
     FROM base b
     LEFT JOIN node n
       ON b.selection_id = n.selection_id
+    GROUP BY b.selection_id
 	`
 	bindings := map[string]any{
 		"list_directive":     schema.ListDirective,
@@ -716,7 +713,7 @@ func DiscoverListsThenValidate(
 		// if we saw the name more than once, we need to report an error
 		if len(list.Locations) > 1 {
 			errs.Append(&plugins.Error{
-				Message:   fmt.Sprintf("encountered duplicate operation name %s", list.ListName),
+				Message:   fmt.Sprintf("encountered duplicate list name %s", list.ListName),
 				Locations: list.Locations,
 				Kind:      plugins.ErrorKindValidation,
 			})

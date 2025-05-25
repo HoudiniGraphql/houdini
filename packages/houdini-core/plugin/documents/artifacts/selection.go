@@ -665,7 +665,6 @@ func stringifyFieldSelection(
 			} else if selection.List.SupportsForward {
 				flags.Refetch.Direction = RefetchDirectionForward
 			}
-
 		}
 	}
 
@@ -743,12 +742,9 @@ func stringifyFieldSelection(
 		}
 		// the applied fragment might have arguments
 		arguments := ""
-		for i, arg := range directive.Arguments {
+		for _, arg := range directive.Arguments {
 			arguments += fmt.Sprintf(`
 %s"%s": %s,`, indent6, arg.Name, serializeFragmentArgument(arg.Value, level+5))
-			if i < len(directive.Arguments)-1 {
-				arguments += indent5
-			}
 		}
 		if arguments == "" {
 			arguments = "{}"

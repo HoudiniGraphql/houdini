@@ -373,31 +373,21 @@ func InsertOperationDocuments(
 		return commit(plugins.WrapError(err))
 	}
 
+	projectConfig, err := db.ProjectConfig(ctx)
+	if err != nil {
+		return err
+	}
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
-		WITH default_config AS (
-			SELECT default_keys
-			FROM config
-			LIMIT 1
-		),
-
-		base AS (
+		WITH lists AS (
 			select * from discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
 			WHERE raw_documents.current_task = $task_id or $task_id is NULL
 		)
 
-		SELECT b.name, b.node_type, tc.keys, b.raw_document
-		FROM base b
-		JOIN type_configs tc ON tc.name = b.node_type
-
-		UNION
-
-		SELECT b.name, b.node_type, default_config.default_keys, b.raw_document
-		FROM base b
-			LEFT JOIN type_configs tc ON tc.name = b.node_type
-			JOIN default_config
-		WHERE tc.name IS NULL
+		SELECT lists.name, lists.node_type, tc.keys, lists.raw_document
+		FROM lists
+		LEFT JOIN type_configs tc ON tc.name = lists.node_type
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -417,6 +407,8 @@ func InsertOperationDocuments(
 				errs.Append(plugins.WrapError(err))
 				return
 			}
+		} else {
+			keys = projectConfig.DefaultKeys
 		}
 
 		if ok := insertedDirectives[typeName]; !ok {
@@ -437,7 +429,7 @@ func InsertOperationDocuments(
 		// if the list isn't named we dont need to generate  delete directive
 		if listName != "" {
 			// we also need to insert a remove fragment for each type that has a list
-			db.ExecStatement(insertDocument, map[string]any{
+			err = db.ExecStatement(insertDocument, map[string]any{
 				"name":           fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove),
 				"kind":           "fragment",
 				"type_condition": typeName,
