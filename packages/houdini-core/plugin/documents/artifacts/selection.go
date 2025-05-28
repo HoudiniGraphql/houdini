@@ -545,6 +545,14 @@ func stringifySelection(
 				}
 			}
 		}
+
+		// no need to map a type to itself
+		for key, value := range typeMap {
+			if key == value {
+				delete(typeMap, key)
+			}
+		}
+
 		typeMapStr := ""
 		if !sortKeys {
 			for key, value := range typeMap {
@@ -563,19 +571,22 @@ func stringifySelection(
 			}
 		}
 
+		if len(typeMapStr) > 0 {
+			typeMapStr = fmt.Sprintf(`
+%s%s`, typeMapStr, indent3)
+		}
+
 		result += fmt.Sprintf(`%s"abstractFields": {
 %s"fields": {
 %s%s},
 
-%s"typeMap": {
-%s%s},
+%s"typeMap": {%s},
 %s},`, indent2,
 			indent3,
 			abstractFields,
 			indent3,
 			indent3,
 			typeMapStr,
-			indent3,
 			indent2,
 		)
 	}
@@ -1125,9 +1136,12 @@ func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
 	// the attributes that define the node depend on the kind
 	attrs := ""
 	switch arg.Kind {
-	case "Variable", "Int", "Float", "String", "Boolean", "Enum":
+	case "Variable", "String", "Enum":
 		attrs = fmt.Sprintf(`
 %s"value": "%s"`, indent1, arg.Raw)
+	case "Int", "Float", "Boolean":
+		attrs = fmt.Sprintf(`
+%s"value": %s`, indent1, arg.Raw)
 	case "Null":
 		attrs = fmt.Sprintf(`
 %s"value": null`, indent1)

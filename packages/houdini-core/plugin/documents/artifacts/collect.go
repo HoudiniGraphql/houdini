@@ -1219,6 +1219,10 @@ type CollectedDirective struct {
 	Arguments []*CollectedArgument `json:"arguments"`
 }
 
+// func (c *CollectedDirective) Diff(target *CollectedDirective) bool {
+//
+// }
+
 type CollectedArgumentValue struct {
 	Kind     string
 	Raw      string

@@ -717,9 +717,7 @@ func TestArtifactGeneration(t *testing.T) {
                                                               },
                                                           },
 
-                                                          "typeMap": {
-                                                              "User": "User",
-                                                          },
+                                                          "typeMap": {},
                                                       },
                                                   },
 
@@ -732,9 +730,7 @@ func TestArtifactGeneration(t *testing.T) {
                                           },
                                       },
 
-                                      "typeMap": {
-                                          "User": "User",
-                                      },
+                                      "typeMap": {},
                                   },
 
                                   "fragments": {
@@ -886,10 +882,7 @@ func TestArtifactGeneration(t *testing.T) {
                                           },
                                       },
 
-                                      "typeMap": {
-                                          "Cat": "Cat",
-                                          "User": "User",
-                                      },
+                                      "typeMap": {},
                                   },
                               },
 
@@ -1032,10 +1025,7 @@ func TestArtifactGeneration(t *testing.T) {
                                           },
                                       },
 
-                                      "typeMap": {
-                                          "Cat": "Cat",
-                                          "Dog": "Dog",
-                                      },
+                                      "typeMap": {},
                                   },
                               },
 
@@ -1144,10 +1134,7 @@ func TestArtifactGeneration(t *testing.T) {
                                           },
                                       },
 
-                                      "typeMap": {
-                                          "Cat": "Cat",
-                                          "Dog": "Dog",
-                                      },
+                                      "typeMap": {},
                                   },
                               },
 
@@ -1556,9 +1543,7 @@ func TestArtifactGeneration(t *testing.T) {
                                           },
                                       },
 
-                                      "typeMap": {
-                                          "User": "User",
-                                      },
+                                      "typeMap": {},
                                   },
 
                                   "fragments": {
@@ -1584,6 +1569,142 @@ func TestArtifactGeneration(t *testing.T) {
 
               "HoudiniHash=ba8ea3a311642f195ad5a9181f84d7ff3b098ca6e0951263d76f8fa20e984862"
 	      `),
+				},
+			},
+			{
+				Name: "leave @include and @skip alone",
+				Pass: true,
+				Input: []string{
+					`query TestQuery {
+            node(id: "some_id") {
+              id @skip(if: true)
+
+              ...NodeDetails @include(if:true)
+            }
+          }`,
+					`
+          fragment NodeDetails on Node {
+            id
+
+            ... on User {
+              id
+            }
+          }
+          `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+            export default {
+                "name": "TestQuery",
+                "kind": "HoudiniQuery",
+                "hash": "a8731124dd26213d475ec6bf6c8fb65cbc280da96a98bcdc45194024ab3be287",
+                "raw": ` + "`" + `fragment NodeDetails on Node {
+                id
+                ... on User {
+                    id
+                    __typename
+                    id
+                }
+                __typename
+                id
+            }
+
+            query TestQuery {
+                node(id: "some_id") {
+                    id @skip(if: true)
+                    ...NodeDetails @include(if: true)
+                    __typename
+                    id
+                }
+            }
+            ` + "`" + `,
+
+                "rootType": "Query",
+                "stripVariables": [],
+
+                "selection": {
+                    "fields": {
+                        "node": {
+                            "type": "Node",
+                            "keyRaw": "node(id: \"some_id\")",
+                            "nullable": true,
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                        "visible": true,
+                                    },
+
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+
+                                        "directives": [{
+                                            "name": "skip",
+                                            "arguments": {
+                                                "if": {
+                                                    "kind": "BooleanValue",
+                                                    "value": true
+                                                }
+                                            }
+                                        }],
+
+                                        "visible": true,
+                                    },
+                                },
+                                "abstractFields": {
+                                    "fields": {
+                                        "User": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                                "visible": true,
+                                            },
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
+
+                                                "directives": [{
+                                                    "name": "skip",
+                                                    "arguments": {
+                                                        "if": {
+                                                            "kind": "BooleanValue",
+                                                            "value": true
+                                                        }
+                                                    }
+                                                }],
+
+                                                "visible": true,
+                                            },
+                                        },
+                                    },
+
+                                    "typeMap": {},
+                                },
+
+                                "fragments": {
+                                    "NodeDetails": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
+
+                            "abstract": true,
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "pluginData": {},
+                "policy": "CacheOrNetwork",
+                "partial": false
+            }
+
+            "HoudiniHash=a8731124dd26213d475ec6bf6c8fb65cbc280da96a98bcdc45194024ab3be287"
+
+          `),
 				},
 			},
 		},

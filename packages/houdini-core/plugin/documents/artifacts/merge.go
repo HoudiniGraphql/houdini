@@ -99,9 +99,11 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			sel.Field.Hidden = sel.Hidden
 			hidden = sel.Hidden
 
-			// we need to make sure every directive shows up
+			// only append directives we haven't seen yet
 			for _, dir := range selection.Directives {
-				sel.Field.Directives = append(sel.Field.Directives, dir)
+				if !containsDirective(sel.Field.Directives, dir) {
+					sel.Field.Directives = append(sel.Field.Directives, dir)
+				}
 			}
 		} else {
 			// if we haven't seen the field before we need to add a place for the selection
@@ -397,4 +399,32 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 	}
 
 	return result
+}
+
+// helper to decide if two directives are “equal”
+// (you can expand this to also compare argument values, etc.)
+func sameDirective(a, b *CollectedDirective) bool {
+	if a.Name != b.Name {
+		return false
+	}
+	if len(a.Arguments) != len(b.Arguments) {
+		return false
+	}
+	for i := range a.Arguments {
+		ai, bi := a.Arguments[i], b.Arguments[i]
+		if ai.Name != bi.Name || ai.Value != bi.Value {
+			return false
+		}
+	}
+	return true
+}
+
+// returns true if dir is already in the slice
+func containsDirective(list []*CollectedDirective, dir *CollectedDirective) bool {
+	for _, existing := range list {
+		if sameDirective(existing, dir) {
+			return true
+		}
+	}
+	return false
 }
