@@ -264,7 +264,7 @@ func GenerateSelectionDocument(
 	// we only consider policy and partial values for queries
 	policyValue := ""
 	partialValue := ""
-	if kind == "HoudiniQuery" || kind == "HoudiniFragment" {
+	if kind == "HoudiniQuery" {
 		policyValue = fmt.Sprintf(`
     "policy": "%s",`, cachePolicy)
 		partialValue = fmt.Sprintf(`

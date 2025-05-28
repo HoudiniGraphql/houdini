@@ -56,6 +56,7 @@ func TestArtifactGeneration(t *testing.T) {
         firstName: String!
         friends: [User!]!
         pets(name: String!, filter: PetFilter ): [Pet!]!
+        field(filter: String): String
       }
 
       type Cat implements Node & Friend {
@@ -199,8 +200,6 @@ func TestArtifactGeneration(t *testing.T) {
                 },
 
                 "pluginData": {},
-                "policy": "CacheOrNetwork",
-                "partial": false
             }
 
             "HoudiniHash=f16f17ca970d9631a408c829217f5ee1883a16dc72dbdbac018a789ab7a951ba"
@@ -1703,6 +1702,207 @@ func TestArtifactGeneration(t *testing.T) {
             }
 
             "HoudiniHash=a8731124dd26213d475ec6bf6c8fb65cbc280da96a98bcdc45194024ab3be287"
+
+          `),
+				},
+			},
+			{
+				Name: "fragment variables are embedded in artifact",
+				Pass: true,
+				Input: []string{
+					`
+            query TestQuery {
+              node(id: "some_id") {
+                id
+                ...NodeDetails @with(name: "Foo")
+
+              }
+            }
+          `,
+					`
+            fragment NodeDetails on Node @arguments(name: { type: "String" }){
+              ... on User {
+                field(filter: $name)
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "f0a41849268b29defc9cf3fda4a9df1d09f65946338169f99b7d51019101b624",
+                  "raw": ` + "`" + `fragment NodeDetails_33ZDpt on Node {
+                  ... on User {
+                      __typename
+                      id
+                      field(filter: "Foo")
+                  }
+                  __typename
+                  id
+              }
+
+              query TestQuery {
+                  node(id: "some_id") {
+                      id
+                      ...NodeDetails_33ZDpt
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "node": {
+                              "type": "Node",
+                              "keyRaw": "node(id: \"some_id\")",
+                              "nullable": true,
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "User": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "field": {
+                                                  "type": "String",
+                                                  "keyRaw": "field(filter: \"Foo\")",
+                                                  "nullable": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {},
+                                  },
+
+                                  "fragments": {
+                                      "NodeDetails": {
+                                          "arguments": {
+                                              "name": {
+                                                  "kind": "StringValue",
+                                                  "value": "Foo"
+                                              },
+                                          }
+                                      },
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=f0a41849268b29defc9cf3fda4a9df1d09f65946338169f99b7d51019101b624"
+          `),
+				},
+			},
+			{
+				Name: "fragment variables are embedded in artifact",
+				Pass: true,
+				Input: []string{
+					`
+            fragment UserBase on User {
+              id
+              firstName
+              ...UserMore
+            }
+          `,
+					`
+            fragment UserMore on User {
+              id
+              firstName
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"UserBase": tests.Dedent(`
+              export default {
+                  "name": "UserBase",
+                  "kind": "HoudiniFragment",
+                  "hash": "362236cc6faafb62f3994052dcb4082866d18ca0d7f3633d15e23e49a3f22fbd",
+                  "raw": ` + "`" + `fragment UserBase on User {
+                  id
+                  firstName
+                  ...UserMore
+                  __typename
+                  id
+              }
+
+              fragment UserMore on User {
+                  id
+                  firstName
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "User",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "__typename": {
+                              "type": "String",
+                              "keyRaw": "__typename",
+                              "visible": true,
+                          },
+
+                          "firstName": {
+                              "type": "String",
+                              "keyRaw": "firstName",
+                              "visible": true,
+                          },
+
+                          "id": {
+                              "type": "ID",
+                              "keyRaw": "id",
+                              "visible": true,
+                          },
+                      },
+
+                      "fragments": {
+                          "UserMore": {
+                              "arguments": {}
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+              }
+
+              "HoudiniHash=362236cc6faafb62f3994052dcb4082866d18ca0d7f3633d15e23e49a3f22fbd"
 
           `),
 				},
