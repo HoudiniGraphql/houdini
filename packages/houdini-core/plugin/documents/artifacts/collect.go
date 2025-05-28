@@ -1251,3 +1251,75 @@ type collectResult struct {
 	InputTypes    map[string]map[string]string
 	EnumValues    map[string][]string
 }
+
+// CloneDeep creates a full, independent copy of a CollectedSelection tree,
+// including all fields: Alias, FragmentRef, TypeModifiers, List, Arguments,
+// Directives, and Children.
+func (s *CollectedSelection) CloneDeep() *CollectedSelection {
+	clone := &CollectedSelection{
+		FieldName:     s.FieldName,
+		Alias:         nil,
+		FieldType:     s.FieldType,
+		FragmentRef:   nil,
+		TypeModifiers: nil,
+		Kind:          s.Kind,
+		Hidden:        s.Hidden,
+		List:          nil,
+		Arguments:     nil,
+		Directives:    nil,
+		Children:      nil,
+	}
+	// clone pointer fields
+	if s.Alias != nil {
+		alias := *s.Alias
+		clone.Alias = &alias
+	}
+	if s.FragmentRef != nil {
+		frag := *s.FragmentRef
+		clone.FragmentRef = &frag
+	}
+	if s.TypeModifiers != nil {
+		mods := *s.TypeModifiers
+		clone.TypeModifiers = &mods
+	}
+	// clone list (shallow copy; adjust if List has its own CloneDeep)
+	if s.List != nil {
+		// assuming List has CloneDeep; if not, shallow copy
+		if cList, ok := interface{}(s.List).(interface{ CloneDeep() *CollectedList }); ok {
+			clone.List = cList.CloneDeep()
+		} else {
+			clone.List = s.List
+		}
+	}
+	// clone arguments
+	if len(s.Arguments) > 0 {
+		clone.Arguments = make([]*CollectedArgument, len(s.Arguments))
+		for i, arg := range s.Arguments {
+			if arg != nil {
+				// assume Argument has deep copy via struct literal
+				argClone := *arg
+				clone.Arguments[i] = &argClone
+			}
+		}
+	}
+	// clone directives
+	if len(s.Directives) > 0 {
+		clone.Directives = make([]*CollectedDirective, len(s.Directives))
+		for i, dir := range s.Directives {
+			if dir != nil {
+				dClone := *dir
+				clone.Directives[i] = &dClone
+			}
+		}
+	}
+	// clone children recursively
+	if len(s.Children) > 0 {
+		clone.Children = make([]*CollectedSelection, len(s.Children))
+		for i, c := range s.Children {
+			if c != nil {
+				clone.Children[i] = c.CloneDeep()
+			}
+		}
+	}
+	return clone
+}

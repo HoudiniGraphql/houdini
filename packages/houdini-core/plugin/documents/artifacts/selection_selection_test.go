@@ -29,7 +29,21 @@ func TestArtifactGeneration(t *testing.T) {
         pets: [Pet!]!
         node(id: ID!): Node
         version: Int!
+        users(
+          stringValue: String
+          boolValue: Boolean
+          floatValue: Float
+          intValue: Int
+        ): [User!]! 
+				allItems: [TodoItem!]!
       } 
+
+    	scalar DateTime
+			type TodoItem {
+				text: String!
+				createdAt: DateTime!
+			}
+
 
       interface Node {
         id: ID!
@@ -87,6 +101,14 @@ func TestArtifactGeneration(t *testing.T) {
         admin: Boolean
         age: Int
         weight: Float
+      }
+
+      type NewUserResult { 
+        user: User!
+      }
+
+      type Subscription { 
+        newUser: NewUserResult!
       }
     `,
 		PerformTest: performArtifactTest,
@@ -446,7 +468,7 @@ func TestArtifactGeneration(t *testing.T) {
                                           "Cat": "Friend",
                                           "Dog": "Friend",
                                           "User": "Friend",
-                                      }
+                                      },
                                   },
                               },
 
@@ -652,12 +674,6 @@ func TestArtifactGeneration(t *testing.T) {
                                           "visible": true,
                                       },
                                   },
-
-                                  "fragments": {
-                                      "A": {
-                                          "arguments": {}
-                                      },
-                                  },
                                   "abstractFields": {
                                       "fields": {
                                           "User": {
@@ -703,7 +719,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                                                           "typeMap": {
                                                               "User": "User",
-                                                          }
+                                                          },
                                                       },
                                                   },
 
@@ -718,7 +734,13 @@ func TestArtifactGeneration(t *testing.T) {
 
                                       "typeMap": {
                                           "User": "User",
-                                      }
+                                      },
+                                  },
+
+                                  "fragments": {
+                                      "A": {
+                                          "arguments": {}
+                                      },
                                   },
                               },
 
@@ -867,7 +889,7 @@ func TestArtifactGeneration(t *testing.T) {
                                       "typeMap": {
                                           "Cat": "Cat",
                                           "User": "User",
-                                      }
+                                      },
                                   },
                               },
 
@@ -1013,7 +1035,7 @@ func TestArtifactGeneration(t *testing.T) {
                                       "typeMap": {
                                           "Cat": "Cat",
                                           "Dog": "Dog",
-                                      }
+                                      },
                                   },
                               },
 
@@ -1125,7 +1147,7 @@ func TestArtifactGeneration(t *testing.T) {
                                       "typeMap": {
                                           "Cat": "Cat",
                                           "Dog": "Dog",
-                                      }
+                                      },
                                   },
                               },
 
@@ -1142,6 +1164,426 @@ func TestArtifactGeneration(t *testing.T) {
 
               "HoudiniHash=904ac35930c3920b2aa20644f342c6794a4ef3caac783cad5589a97b0a5eeb2c"
           `),
+				},
+			},
+			{
+				Name: "field args",
+				Pass: true,
+				Input: []string{
+					`query TestQuery($value: String!) {
+            users(
+              stringValue: $value,
+              boolValue: true,
+              floatValue: 1.2,
+              intValue: 1,
+            ) @list(name: "All_Users") {
+              firstName
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
+                  "raw": ` + "`" + `query TestQuery($value: String!) {
+                  users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+                      firstName
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "users": {
+                              "type": "User",
+                              "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+
+                              "directives": [{
+                                  "name": "list",
+                                  "arguments": {
+                                      "name": {
+                                          "kind": "StringValue",
+                                          "value": "All_Users"
+                                      }
+                                  }
+                              }],
+
+                              "list": {
+                                  "name": "All_Users",
+                                  "connection": false,
+                                  "type": "User"
+                              },
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "firstName": {
+                                          "type": "String",
+                                          "keyRaw": "firstName",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "filters": {
+                                  "boolValue": {
+                                      "kind": "Boolean",
+                                      "value": true
+                                  },
+                                  "floatValue": {
+                                      "kind": "Float",
+                                      "value": 1.2
+                                  },
+                                  "intValue": {
+                                      "kind": "Int",
+                                      "value": 1
+                                  },
+                                  "stringValue": {
+                                      "kind": "Variable",
+                                      "value": "value"
+                                  },
+                              },
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "value": "String",
+                      },
+
+                      "types": {},
+
+                      "defaults": {},
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
+          `),
+				},
+			},
+			{
+				Name: "custom scalars show up in artifact",
+				Pass: true,
+				Input: []string{
+					`query TestQuery { allItems { createdAt } }`,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178",
+                  "raw": ` + "`" + `query TestQuery {
+                  allItems {
+                      createdAt
+                      __typename
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "allItems": {
+                              "type": "TodoItem",
+                              "keyRaw": "allItems",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "createdAt": {
+                                          "type": "DateTime",
+                                          "keyRaw": "createdAt",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178"
+          `),
+				},
+			},
+			{
+				Name: "subscription happy path",
+				Pass: true,
+				Input: []string{
+					`subscription B {
+            newUser {
+              user {
+                firstName
+              }
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"B": tests.Dedent(`
+            export default {
+                "name": "B",
+                "kind": "HoudiniSubscription",
+                "hash": "296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be",
+                "raw": ` + "`" + `subscription B {
+                newUser {
+                    user {
+                        firstName
+                        __typename
+                        id
+                    }
+                    __typename
+                }
+            }
+            ` + "`" + `,
+
+                "rootType": "Subscription",
+                "stripVariables": [],
+
+                "selection": {
+                    "fields": {
+                        "newUser": {
+                            "type": "NewUserResult",
+                            "keyRaw": "newUser",
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                        "visible": true,
+                                    },
+
+                                    "user": {
+                                        "type": "User",
+                                        "keyRaw": "user",
+
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                    "visible": true,
+                                                },
+
+                                                "firstName": {
+                                                    "type": "String",
+                                                    "keyRaw": "firstName",
+                                                    "visible": true,
+                                                },
+
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                    "visible": true,
+                                                },
+                                            },
+                                        },
+
+                                        "visible": true,
+                                    },
+                                },
+                            },
+
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "pluginData": {},
+            }
+
+            "HoudiniHash=296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be"
+          `),
+				},
+			},
+			{
+				Name: "nested recursive fragments",
+				Pass: true,
+				Input: []string{
+					`
+            query NestedQuery {
+              node(id: "some_id") {
+                id
+
+                ...NodeDetails
+
+                ... on User {
+                  ...UserThings
+                }
+              }
+            }
+          `,
+					`
+            fragment UserThings on User {
+              id
+              name
+
+              ...NodeDetails
+            }
+          `,
+					`
+            fragment NodeDetails on Node {
+              id
+
+              ... on User {
+                id
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"NestedQuery": tests.Dedent(`
+              export default {
+                  "name": "NestedQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "ba8ea3a311642f195ad5a9181f84d7ff3b098ca6e0951263d76f8fa20e984862",
+                  "raw": ` + "`" + `query NestedQuery {
+                  node(id: "some_id") {
+                      id
+                      ...NodeDetails
+                      ... on User {
+                          ...UserThings
+                          __typename
+                          id
+                      }
+                      __typename
+                      id
+                  }
+              }
+
+              fragment NodeDetails on Node {
+                  id
+                  ... on User {
+                      id
+                      __typename
+                      id
+                  }
+                  __typename
+                  id
+              }
+
+              fragment UserThings on User {
+                  id
+                  name
+                  ...NodeDetails
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "node": {
+                              "type": "Node",
+                              "keyRaw": "node(id: \"some_id\")",
+                              "nullable": true,
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "User": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {
+                                          "User": "User",
+                                      },
+                                  },
+
+                                  "fragments": {
+                                      "NodeDetails": {
+                                          "arguments": {}
+                                      },
+                                      "UserThings": {
+                                          "arguments": {}
+                                      },
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=ba8ea3a311642f195ad5a9181f84d7ff3b098ca6e0951263d76f8fa20e984862"
+	      `),
 				},
 			},
 		},

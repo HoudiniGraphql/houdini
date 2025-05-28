@@ -456,7 +456,8 @@ func stringifySelection(
 				fragmentName = *selection.FragmentRef
 			}
 
-			fragments += fmt.Sprintf(`%s"%s": {
+			fragments += fmt.Sprintf(`
+%s"%s": {
 %s"arguments": {%s}
 %s},`, indent3, fragmentName, indent4, arguments, indent3)
 
@@ -498,16 +499,6 @@ func stringifySelection(
 	if len(fields) > 0 {
 		result += fmt.Sprintf(`%s"fields": {
 %s%s},`, indent2, fields, indent2)
-	}
-
-	// then add any fragment specifications we ran into
-	if len(fragments) > 0 {
-		if len(result) > 0 {
-			result += "\n\n"
-		}
-		result += fmt.Sprintf(`%s"fragments": {
-%s
-%s},`, indent2, fragments, indent2)
 	}
 
 	// and finally include any abstract selections we ran into
@@ -554,7 +545,6 @@ func stringifySelection(
 				}
 			}
 		}
-
 		typeMapStr := ""
 		if !sortKeys {
 			for key, value := range typeMap {
@@ -578,7 +568,7 @@ func stringifySelection(
 %s%s},
 
 %s"typeMap": {
-%s%s}
+%s%s},
 %s},`, indent2,
 			indent3,
 			abstractFields,
@@ -590,9 +580,17 @@ func stringifySelection(
 		)
 	}
 
+	// then add any fragment specifications we ran into
+	if len(fragments) > 0 {
+		fragments = fmt.Sprintf(`
+
+%s"fragments": {%s
+%s},`, indent2, fragments, indent2)
+	}
+
 	return fmt.Sprintf(`{
-%s
-%s}`, result, indent)
+%s%s
+%s}`, result, fragments, indent)
 }
 
 func keyField(field *CollectedSelection, paginated bool) string {

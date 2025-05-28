@@ -17,21 +17,18 @@ func FlattenSelection(
 	defaultMask bool,
 	sortKeys bool,
 ) ([]*CollectedSelection, error) {
-	// we need to flatten the selection of the document with the matching name
+	// lookup original document
 	doc, ok := collectedDocuments.Selections[name]
 	if !ok {
 		return nil, fmt.Errorf("document not found: %s", name)
 	}
 
-	// create a place to collect field
+	// build on fresh clones of the root selections
 	fields := newFieldCollection(collectedDocuments, defaultMask, doc.TypeCondition, sortKeys)
-
-	for _, selection := range doc.Selections {
-		// add the selection to the field collection
-		fields.Add(selection, false)
+	for _, orig := range doc.Selections {
+		clone := orig.CloneDeep()
+		fields.Add(clone, false)
 	}
-
-	// transform the result into the flattened selection set
 	return fields.ToSelectionSet(), nil
 }
 
