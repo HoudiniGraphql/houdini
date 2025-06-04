@@ -276,9 +276,6 @@ func printSelection(
 	indent := strings.Repeat("    ", level)
 	result := ""
 	for _, selection := range selections {
-		if selection.Hidden && !includeHidden {
-			continue
-		}
 
 		// before we print children and directives we need
 		// to handle the specific selection type

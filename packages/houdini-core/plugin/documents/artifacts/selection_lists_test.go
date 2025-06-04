@@ -22,6 +22,7 @@ func TestPaginationArtifacts(t *testing.T) {
           intValue: Int
         ): [User!]!
         usersByCursor(first: Int, last: Int, after: String, before: String): UserConnection!
+				animals(first: Int, after: String): AnimalConnection
       }
 
       type User { 
@@ -33,6 +34,37 @@ func TestPaginationArtifacts(t *testing.T) {
         edges: [UserEdge!]!
         pageInfo: PageInfo!
       }
+
+			interface Animal {
+				id: ID!
+				name: String!
+			}
+
+			type Monkey implements Animal {
+				id: ID!
+				name: String!
+				hasBanana: Boolean!
+			}
+
+			interface AnimalConnection {
+				edges: [AnimalEdge!]!
+				pageInfo: PageInfo!
+			}
+
+			interface AnimalEdge {
+				cursor: String
+				node: Animal
+			}
+
+			type MonkeyConnection implements AnimalConnection {
+				edges: [MonkeyEdge!]!
+				pageInfo: PageInfo!
+			}
+
+			type MonkeyEdge implements AnimalEdge {
+				cursor: String
+				node: Monkey
+			}
 
       type PageInfo {
         hasNextPage: Boolean!
@@ -663,6 +695,295 @@ func TestPaginationArtifacts(t *testing.T) {
 
               "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
 
+          `),
+				},
+			},
+			{
+				Name: "nested abstract fragment on connection",
+				Pass: true,
+				Input: []string{
+					`
+            query AnimalQuery {
+              animals {
+                pageInfo {
+                  hasPreviousPage
+                  hasNextPage
+                  startCursor
+                  endCursor
+                }
+                ...MonkeyList
+              }
+            }
+          `,
+					`
+            fragment MonkeyList on MonkeyConnection {
+              edges {
+                node {
+                  hasBanana
+                }
+              }
+              ...AnimalList
+            }
+          `,
+					`
+            fragment AnimalList on AnimalConnection {
+              edges {
+                node {
+                  id
+                  ...AnimalProps
+                }
+              }
+            }
+          `,
+					`
+            fragment AnimalProps on Animal {
+              name
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"AnimalQuery": tests.Dedent(`
+              export default {
+                  "name": "AnimalQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "e76887c811b180334dc6bb6b692d39f0266f892db639d5753996e9c84ab1a4bf",
+                  "raw": ` + "`" + `fragment AnimalList on AnimalConnection {
+                  edges {
+                      node {
+                          id
+                          ...AnimalProps
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+                  __typename
+              }
+
+              fragment AnimalProps on Animal {
+                  name
+                  __typename
+                  id
+              }
+
+              query AnimalQuery {
+                  animals {
+                      pageInfo {
+                          hasPreviousPage
+                          hasNextPage
+                          startCursor
+                          endCursor
+                          __typename
+                      }
+                      ...MonkeyList
+                      __typename
+                  }
+              }
+
+              fragment MonkeyList on MonkeyConnection {
+                  edges {
+                      node {
+                          hasBanana
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+                  ...AnimalList
+                  __typename
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "animals": {
+                              "type": "AnimalConnection",
+                              "keyRaw": "animals",
+                              "nullable": true,
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "pageInfo": {
+                                          "type": "PageInfo",
+                                          "keyRaw": "pageInfo",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "endCursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "endCursor",
+                                                      "nullable": true,
+                                                      "visible": true,
+                                                  },
+
+                                                  "hasNextPage": {
+                                                      "type": "Boolean",
+                                                      "keyRaw": "hasNextPage",
+                                                      "visible": true,
+                                                  },
+
+                                                  "hasPreviousPage": {
+                                                      "type": "Boolean",
+                                                      "keyRaw": "hasPreviousPage",
+                                                      "visible": true,
+                                                  },
+
+                                                  "startCursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "startCursor",
+                                                      "nullable": true,
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "MonkeyConnection": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "edges": {
+                                                  "type": "MonkeyEdge",
+                                                  "keyRaw": "edges",
+
+                                                  "selection": {
+                                                      "fields": {
+                                                          "__typename": {
+                                                              "type": "String",
+                                                              "keyRaw": "__typename",
+                                                          },
+
+                                                          "node": {
+                                                              "type": "Monkey",
+                                                              "keyRaw": "node",
+                                                              "nullable": true,
+
+                                                              "selection": {
+                                                                  "fields": {
+                                                                      "__typename": {
+                                                                          "type": "String",
+                                                                          "keyRaw": "__typename",
+                                                                      },
+
+                                                                      "hasBanana": {
+                                                                          "type": "Boolean",
+                                                                          "keyRaw": "hasBanana",
+                                                                      },
+
+                                                                      "id": {
+                                                                          "type": "ID",
+                                                                          "keyRaw": "id",
+                                                                      },
+
+                                                                      "name": {
+                                                                          "type": "String",
+                                                                          "keyRaw": "name",
+                                                                      },
+                                                                  },
+
+                                                                  "fragments": {
+                                                                      "AnimalProps": {
+                                                                          "arguments": {}
+                                                                      },
+                                                                  },
+                                                              },
+
+                                                          },
+                                                      },
+                                                  },
+
+                                              },
+                                              "pageInfo": {
+                                                  "type": "PageInfo",
+                                                  "keyRaw": "pageInfo",
+
+                                                  "selection": {
+                                                      "fields": {
+                                                          "__typename": {
+                                                              "type": "String",
+                                                              "keyRaw": "__typename",
+                                                              "visible": true,
+                                                          },
+
+                                                          "endCursor": {
+                                                              "type": "String",
+                                                              "keyRaw": "endCursor",
+                                                              "nullable": true,
+                                                              "visible": true,
+                                                          },
+
+                                                          "hasNextPage": {
+                                                              "type": "Boolean",
+                                                              "keyRaw": "hasNextPage",
+                                                              "visible": true,
+                                                          },
+
+                                                          "hasPreviousPage": {
+                                                              "type": "Boolean",
+                                                              "keyRaw": "hasPreviousPage",
+                                                              "visible": true,
+                                                          },
+
+                                                          "startCursor": {
+                                                              "type": "String",
+                                                              "keyRaw": "startCursor",
+                                                              "nullable": true,
+                                                              "visible": true,
+                                                          },
+                                                      },
+                                                  },
+
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {},
+                                  },
+
+                                  "fragments": {
+                                      "AnimalList": {
+                                          "arguments": {}
+                                      },
+                                      "MonkeyList": {
+                                          "arguments": {}
+                                      },
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=e76887c811b180334dc6bb6b692d39f0266f892db639d5753996e9c84ab1a4bf"
           `),
 				},
 			},

@@ -50,7 +50,7 @@ func newFieldCollection(
 }
 
 type fieldCollectionField struct {
-	Hidden    bool
+	Visible   bool
 	Field     *CollectedSelection
 	Selection *fieldCollection
 }
@@ -72,7 +72,7 @@ func (c *fieldCollection) Size() int {
 
 func (c *fieldCollection) Add(selection *CollectedSelection, external bool) error {
 	// we need to figur eout if we want to include the selection in the final result
-	hidden := external || selection.Kind == "fragment"
+	hidden := external
 
 	// look to see if masking was explicitly enabled
 	for _, directive := range selection.Directives {
@@ -86,18 +86,16 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		}
 	}
 
-	// track the hidden state of the field
-	selection.Hidden = hidden
-
 	// process the selection
 	switch selection.Kind {
 	case "field":
 		// if we've seen the field before then we need to make sure some metadata
 		// overlaps correctly
 		if sel, ok := c.Fields[selection.FieldName]; ok {
-			sel.Hidden = hidden && sel.Hidden
-			sel.Field.Hidden = sel.Hidden
-			hidden = sel.Hidden
+			if !sel.Visible && !hidden {
+				sel.Visible = true
+				sel.Field.Visible = true
+			}
 
 			// only append directives we haven't seen yet
 			for _, dir := range selection.Directives {
@@ -108,14 +106,14 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		} else {
 			// if we haven't seen the field before we need to add a place for the selection
 			c.Fields[*selection.Alias] = &fieldCollectionField{
-				Field: selection.Clone(),
+				Field: selection,
 				Selection: newFieldCollection(
 					c.CollectedDocuments,
 					c.DefaultMask,
 					selection.FieldType,
 					c.SortKeys,
 				),
-				Hidden: hidden,
+				Visible: !hidden,
 			}
 		}
 
@@ -158,11 +156,12 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			return plugins.WrapError(errors.New("fragment not found"))
 		}
 
+		_, abstractParent := c.CollectedDocuments.PossibleTypes[c.ParentType]
 		// if the selections parent type is the same as the fragment type condition then
 		// we should just add every field directly
-		if definition.TypeCondition == c.ParentType {
+		if definition.TypeCondition == c.ParentType || !abstractParent {
 			for _, sel := range definition.Selections {
-				err := c.Add(sel, hidden)
+				err := c.Add(sel, true)
 				if err != nil {
 					return err
 				}
@@ -187,31 +186,6 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 	return nil
 }
 
-func (c *fieldCollection) CollectFragmentSpreads(
-	selections []*CollectedSelection,
-) []*CollectedSelection {
-	// perform a breadth-first search for fragment spreads
-	result := []*CollectedSelection{}
-	leftToProcess := selections
-
-	// walk through what's left to process
-	for _, selection := range leftToProcess {
-		switch selection.Kind {
-		case "field":
-			continue
-		case "fragment":
-			result = append(result, selection)
-		case "inline_fragment":
-			for _, sel := range selection.Children {
-				leftToProcess = append(leftToProcess, sel)
-			}
-		}
-	}
-
-	// we're done walking through the selections
-	return result
-}
-
 func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidden bool) error {
 	// if we haven't seen the inline fragment yet then add it
 	if _, ok := c.InlineFragments[selection.FieldName]; !ok {
@@ -232,9 +206,13 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 		case "field":
 			c.InlineFragments[selection.FieldName].Selection.Add(child, hidden)
 		case "fragment":
-			err := c.Add(child, hidden)
+			err := c.InlineFragments[selection.FieldName].Selection.Add(child, true)
 			if err != nil {
 				return err
+			}
+
+			c.FragmentSpreads[selection.FieldName] = &fieldCollectionField{
+				Field: child,
 			}
 
 		case "inline_fragment":
@@ -300,7 +278,7 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 							// just add one field, we'll do the rest when we copy over the abstract selection into the concrete one
 							c.InlineFragments[concreteType].Selection.Add(
 								frag.Field.Children[0],
-								hidden,
+								!frag.Field.Children[0].Visible,
 							)
 						}
 					}
@@ -340,8 +318,8 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 			if f.Selection != nil {
 				field.Children = f.Selection.ToSelectionSet()
 			}
-			if f.Hidden {
-				field.Hidden = true
+			if f.Visible {
+				field.Visible = true
 			}
 			result = append(result, field)
 		}
@@ -368,8 +346,8 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 			if field.Selection != nil {
 				field.Field.Children = field.Selection.ToSelectionSet()
 			}
-			if field.Hidden {
-				field.Field.Hidden = true
+			if field.Visible {
+				field.Field.Visible = true
 			}
 			result = append(result, field.Field)
 		}

@@ -295,19 +295,17 @@ func TestMergeSelections(t *testing.T) {
 					"MyQuery": tests.Dedent(`
               query MyQuery {
                   friends {
-                      name
-                      pets {
-                          ... on Cat {
-                              id
-                          }
-                      }
                       ... on Friend {
                           name
-                          pets {
-                              ... on Cat {
-                                  id
+                          ... on User {
+                              name
+                              pets {
+                                  ... on Cat {
+                                      id
+                                  }
                               }
                           }
+                          ...Foo
                       }
                       ...Foo
                   }
@@ -481,6 +479,46 @@ func TestMergeSelections(t *testing.T) {
                       }
                   }
               }
+          `),
+				},
+			},
+			{
+				Name: "Fragment on abstract type inside of inline fragment doesn't affect global selection",
+				Pass: true,
+				Input: []string{
+					`
+          query CatInfo {
+            node(id: "123") {
+              id
+              ... on Cat {
+                ...AnimalInfo
+              }
+            }
+          }
+          `,
+					`
+          fragment AnimalInfo on Pet {
+            owner {
+               name
+            }
+          }
+          `,
+				},
+				Extra: map[string]any{
+					"CatInfo": tests.Dedent(`
+            query CatInfo {
+                node(id: "123") {
+                    id
+                    ... on Cat {
+                        id
+                        owner {
+                            name
+                        }
+                        ...AnimalInfo
+                    }
+                    ...AnimalInfo
+                }
+            }
           `),
 				},
 			},

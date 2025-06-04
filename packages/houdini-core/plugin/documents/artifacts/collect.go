@@ -1158,7 +1158,7 @@ type CollectedSelection struct {
 	FragmentRef   *string
 	TypeModifiers *string
 	Kind          string
-	Hidden        bool
+	Visible       bool
 	List          *CollectedList
 	Arguments     []*CollectedArgument
 	Directives    []*CollectedDirective
@@ -1176,25 +1176,6 @@ type CollectedList struct {
 	Mode             string
 	TargetType       string
 	Embedded         bool
-}
-
-func (c *CollectedSelection) Clone() *CollectedSelection {
-	clone := &CollectedSelection{
-		FieldName:     c.FieldName,
-		Alias:         c.Alias,
-		FieldType:     c.FieldType,
-		TypeModifiers: c.TypeModifiers,
-		Kind:          c.Kind,
-		Hidden:        c.Hidden,
-		Arguments:     c.Arguments,
-		Directives:    c.Directives,
-		List:          c.List,
-		Children:      []*CollectedSelection{},
-	}
-
-	clone.Children = append(clone.Children, c.Children...)
-
-	return clone
 }
 
 type CollectedOperationVariable struct {
@@ -1260,6 +1241,16 @@ type collectResult struct {
 // including all fields: Alias, FragmentRef, TypeModifiers, List, Arguments,
 // Directives, and Children.
 func (s *CollectedSelection) CloneDeep() *CollectedSelection {
+	return s.cloneDeep(make(map[*CollectedSelection]*CollectedSelection))
+}
+
+func (s *CollectedSelection) cloneDeep(
+	clones map[*CollectedSelection]*CollectedSelection,
+) *CollectedSelection {
+	if existing, ok := clones[s]; ok {
+		return existing
+	}
+
 	clone := &CollectedSelection{
 		FieldName:     s.FieldName,
 		Alias:         nil,
@@ -1267,12 +1258,14 @@ func (s *CollectedSelection) CloneDeep() *CollectedSelection {
 		FragmentRef:   nil,
 		TypeModifiers: nil,
 		Kind:          s.Kind,
-		Hidden:        s.Hidden,
+		Visible:       s.Visible,
 		List:          nil,
 		Arguments:     nil,
 		Directives:    nil,
 		Children:      nil,
 	}
+	clones[s] = clone
+
 	// clone pointer fields
 	if s.Alias != nil {
 		alias := *s.Alias
@@ -1286,27 +1279,28 @@ func (s *CollectedSelection) CloneDeep() *CollectedSelection {
 		mods := *s.TypeModifiers
 		clone.TypeModifiers = &mods
 	}
-	// clone list (shallow copy; adjust if List has its own CloneDeep)
+
+	// clone List (shallow or deep if supported)
 	if s.List != nil {
-		// assuming List has CloneDeep; if not, shallow copy
 		if cList, ok := interface{}(s.List).(interface{ CloneDeep() *CollectedList }); ok {
 			clone.List = cList.CloneDeep()
 		} else {
 			clone.List = s.List
 		}
 	}
-	// clone arguments
+
+	// clone Arguments
 	if len(s.Arguments) > 0 {
 		clone.Arguments = make([]*CollectedArgument, len(s.Arguments))
 		for i, arg := range s.Arguments {
 			if arg != nil {
-				// assume Argument has deep copy via struct literal
 				argClone := *arg
 				clone.Arguments[i] = &argClone
 			}
 		}
 	}
-	// clone directives
+
+	// clone Directives
 	if len(s.Directives) > 0 {
 		clone.Directives = make([]*CollectedDirective, len(s.Directives))
 		for i, dir := range s.Directives {
@@ -1316,14 +1310,16 @@ func (s *CollectedSelection) CloneDeep() *CollectedSelection {
 			}
 		}
 	}
-	// clone children recursively
+
+	// clone Children (handle cycles)
 	if len(s.Children) > 0 {
-		clone.Children = make([]*CollectedSelection, len(s.Children))
-		for i, c := range s.Children {
-			if c != nil {
-				clone.Children[i] = c.CloneDeep()
+		clone.Children = make([]*CollectedSelection, 0, len(s.Children))
+		for _, child := range s.Children {
+			if child != nil {
+				clone.Children = append(clone.Children, child.cloneDeep(clones))
 			}
 		}
 	}
+
 	return clone
 }

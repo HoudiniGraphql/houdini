@@ -702,22 +702,6 @@ func TestArtifactGeneration(t *testing.T) {
                                                               "keyRaw": "id",
                                                           },
                                                       },
-                                                      "abstractFields": {
-                                                          "fields": {
-                                                              "User": {
-                                                                  "__typename": {
-                                                                      "type": "String",
-                                                                      "keyRaw": "__typename",
-                                                                  },
-                                                                  "id": {
-                                                                      "type": "ID",
-                                                                      "keyRaw": "id",
-                                                                  },
-                                                              },
-                                                          },
-
-                                                          "typeMap": {},
-                                                      },
                                                   },
 
                                               },
@@ -1903,7 +1887,6 @@ func TestArtifactGeneration(t *testing.T) {
               }
 
               "HoudiniHash=362236cc6faafb62f3994052dcb4082866d18ca0d7f3633d15e23e49a3f22fbd"
-
           `),
 				},
 			},

@@ -352,8 +352,8 @@ func printedValue(
 	// of the parent doc and every referenced fragment
 	printed := ""
 
-	dependentDocs := []string{fmt.Sprintf("'%s'", name)}
-	for _, fragment := range docs.Selections[name].ReferencedFragments {
+	dependentDocs := []string{}
+	for fragment := range walkReferencedDocs(docs, name) {
 		dependentDocs = append(dependentDocs, fmt.Sprintf("'%s'", fragment))
 	}
 
@@ -501,8 +501,9 @@ func stringifySelection(
 %s%s},`, indent2, fields, indent2)
 	}
 
-	// and finally include any abstract selections we ran into
-	if len(abstractFields) > 0 {
+	// and finally include any abstract selections we ran into if the parent is also abstract
+	_, abstractParent := docs.PossibleTypes[parentType]
+	if len(abstractFields) > 0 && abstractParent {
 		if len(result) > 0 {
 			result += "\n"
 		}
@@ -707,7 +708,7 @@ func stringifyFieldSelection(
 	// we only want to include the visible key when its true
 	visible := fmt.Sprintf(`
 %s"visible": true,`, indent4)
-	if selection.Hidden {
+	if !selection.Visible {
 		visible = ""
 	}
 
@@ -1214,3 +1215,34 @@ const (
 	RefetchMethodCursor RefetchMethod = "cursor"
 	RefetchMethodOffset RefetchMethod = "offset"
 )
+
+func walkReferencedDocs(docs *CollectedDocuments, start string) map[string]bool {
+	// we need to make sure the printed value has every document thats referenced
+	// which might include cycles so we need a way to track which documents we've already
+	refs := map[string]bool{}
+	// we're going to do a breadth first search
+	targets := []string{start}
+	for len(targets) > 0 {
+		// dequeue
+		head := targets[0]
+		targets = targets[1:]
+
+		// track the visit
+		refs[head] = true
+
+		// look for new references
+		if sel, ok := docs.Selections[head]; ok {
+			for _, ref := range sel.ReferencedFragments {
+				// avoid cycles
+				if _, ok := refs[ref]; ok {
+					continue
+				}
+
+				// add the new reference to the list
+				targets = append(targets, ref)
+			}
+		}
+	}
+
+	return refs
+}
