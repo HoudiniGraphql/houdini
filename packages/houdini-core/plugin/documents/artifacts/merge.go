@@ -26,7 +26,7 @@ func FlattenSelection(
 	// build on fresh clones of the root selections
 	fields := newFieldCollection(collectedDocuments, defaultMask, doc.TypeCondition, sortKeys)
 	for _, orig := range doc.Selections {
-		clone := orig.CloneDeep()
+		clone := orig.Clone(true)
 		fields.Add(clone, false)
 	}
 	return fields.ToSelectionSet(), nil
@@ -306,14 +306,13 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 	return nil
 }
 
-// TODO: replace all the clone deeps with something better
 func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 	result := []*CollectedSelection{}
 
 	// if we aren't supposed to sort the keys just add everything
 	if !c.SortKeys {
 		for _, f := range c.Fields {
-			local := *f.Field.CloneDeep()
+			local := *f.Field.Clone(false)
 			field := &local
 			if f.Selection != nil {
 				field.Children = f.Selection.ToSelectionSet()
@@ -325,7 +324,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 
 		for _, f := range c.InlineFragments {
-			field := f.Field.CloneDeep()
+			field := f.Field.Clone(false)
 			field.Children = f.Selection.ToSelectionSet()
 			result = append(result, field)
 		}
@@ -343,7 +342,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		sort.Strings(fieldNames)
 		for _, name := range fieldNames {
 			field := c.Fields[name]
-			selectionField := field.Field.CloneDeep()
+			selectionField := field.Field.Clone(false)
 			if field.Selection != nil {
 				selectionField.Children = field.Selection.ToSelectionSet()
 			}
@@ -360,7 +359,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 		sort.Strings(typeConditions)
 		for _, name := range typeConditions {
-			field := c.InlineFragments[name].Field.CloneDeep()
+			field := c.InlineFragments[name].Field.Clone(false)
 			field.Children = c.InlineFragments[name].Selection.ToSelectionSet()
 			result = append(result, field)
 		}
@@ -372,7 +371,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 		sort.Strings(fragmentNames)
 		for _, name := range fragmentNames {
-			field := c.FragmentSpreads[name].Field.CloneDeep()
+			field := c.FragmentSpreads[name].Field.Clone(false)
 			result = append(result, field)
 		}
 	}

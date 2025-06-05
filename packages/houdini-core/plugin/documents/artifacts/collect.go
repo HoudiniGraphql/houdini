@@ -1237,10 +1237,10 @@ type collectResult struct {
 	EnumValues    map[string][]string
 }
 
-// CloneDeep creates a full, independent copy of a CollectedSelection tree,
+// Clone creates a full, independent copy of a CollectedSelection tree,
 // including all fields: Alias, FragmentRef, TypeModifiers, List, Arguments,
 // Directives, and Children.
-func (s *CollectedSelection) CloneDeep() *CollectedSelection {
+func (s *CollectedSelection) Clone(includeChildren bool) *CollectedSelection {
 	clone := &CollectedSelection{
 		FieldName:     s.FieldName,
 		Alias:         nil,
@@ -1297,11 +1297,11 @@ func (s *CollectedSelection) CloneDeep() *CollectedSelection {
 	}
 
 	// clone Children (handle cycles)
-	if len(s.Children) > 0 {
+	if len(s.Children) > 0 && includeChildren {
 		clone.Children = make([]*CollectedSelection, 0, len(s.Children))
 		for _, child := range s.Children {
 			if child != nil {
-				clone.Children = append(clone.Children, child.CloneDeep())
+				clone.Children = append(clone.Children, child.Clone(includeChildren))
 			}
 		}
 	}
