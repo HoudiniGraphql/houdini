@@ -1241,16 +1241,6 @@ type collectResult struct {
 // including all fields: Alias, FragmentRef, TypeModifiers, List, Arguments,
 // Directives, and Children.
 func (s *CollectedSelection) CloneDeep() *CollectedSelection {
-	return s.cloneDeep(make(map[*CollectedSelection]*CollectedSelection))
-}
-
-func (s *CollectedSelection) cloneDeep(
-	clones map[*CollectedSelection]*CollectedSelection,
-) *CollectedSelection {
-	if existing, ok := clones[s]; ok {
-		return existing
-	}
-
 	clone := &CollectedSelection{
 		FieldName:     s.FieldName,
 		Alias:         nil,
@@ -1264,7 +1254,6 @@ func (s *CollectedSelection) cloneDeep(
 		Directives:    nil,
 		Children:      nil,
 	}
-	clones[s] = clone
 
 	// clone pointer fields
 	if s.Alias != nil {
@@ -1282,11 +1271,7 @@ func (s *CollectedSelection) cloneDeep(
 
 	// clone List (shallow or deep if supported)
 	if s.List != nil {
-		if cList, ok := interface{}(s.List).(interface{ CloneDeep() *CollectedList }); ok {
-			clone.List = cList.CloneDeep()
-		} else {
-			clone.List = s.List
-		}
+		clone.List = s.List
 	}
 
 	// clone Arguments
@@ -1316,7 +1301,7 @@ func (s *CollectedSelection) cloneDeep(
 		clone.Children = make([]*CollectedSelection, 0, len(s.Children))
 		for _, child := range s.Children {
 			if child != nil {
-				clone.Children = append(clone.Children, child.cloneDeep(clones))
+				clone.Children = append(clone.Children, child.CloneDeep())
 			}
 		}
 	}

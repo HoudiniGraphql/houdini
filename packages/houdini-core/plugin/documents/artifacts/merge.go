@@ -94,7 +94,6 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		if sel, ok := c.Fields[selection.FieldName]; ok {
 			if !sel.Visible && !hidden {
 				sel.Visible = true
-				sel.Field.Visible = true
 			}
 
 			// only append directives we haven't seen yet
@@ -307,13 +306,14 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 	return nil
 }
 
+// TODO: replace all the clone deeps with something better
 func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 	result := []*CollectedSelection{}
 
 	// if we aren't supposed to sort the keys just add everything
 	if !c.SortKeys {
 		for _, f := range c.Fields {
-			local := *f.Field
+			local := *f.Field.CloneDeep()
 			field := &local
 			if f.Selection != nil {
 				field.Children = f.Selection.ToSelectionSet()
@@ -325,7 +325,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 
 		for _, f := range c.InlineFragments {
-			field := f.Field
+			field := f.Field.CloneDeep()
 			field.Children = f.Selection.ToSelectionSet()
 			result = append(result, field)
 		}
@@ -343,13 +343,14 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		sort.Strings(fieldNames)
 		for _, name := range fieldNames {
 			field := c.Fields[name]
+			selectionField := field.Field.CloneDeep()
 			if field.Selection != nil {
-				field.Field.Children = field.Selection.ToSelectionSet()
+				selectionField.Children = field.Selection.ToSelectionSet()
 			}
 			if field.Visible {
-				field.Field.Visible = true
+				selectionField.Visible = true
 			}
-			result = append(result, field.Field)
+			result = append(result, selectionField)
 		}
 
 		// then inline fragments
@@ -359,7 +360,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 		sort.Strings(typeConditions)
 		for _, name := range typeConditions {
-			field := c.InlineFragments[name].Field
+			field := c.InlineFragments[name].Field.CloneDeep()
 			field.Children = c.InlineFragments[name].Selection.ToSelectionSet()
 			result = append(result, field)
 		}
@@ -371,7 +372,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 		sort.Strings(fragmentNames)
 		for _, name := range fragmentNames {
-			field := c.FragmentSpreads[name].Field
+			field := c.FragmentSpreads[name].Field.CloneDeep()
 			result = append(result, field)
 		}
 	}
