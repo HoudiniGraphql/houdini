@@ -54,6 +54,7 @@ func TestArtifactGeneration(t *testing.T) {
         name: String!
         bestFriend: User! 
         firstName: String!
+        lastName: String!
         friends: [User!]!
         pets(name: String!, filter: PetFilter ): [Pet!]!
         field(filter: String): String
@@ -620,7 +621,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "Overlapping query and fragment nested selection",
 				Pass: true,
 				Input: []string{
-					`fragment A on User { friends { ... on User { id } } }`,
+					`fragment A on User { friends { ... on User { lastName } } }`,
 					`query TestQuery {  friends {... on User { firstName } ...A } }`,
 				},
 				Extra: map[string]any{
@@ -628,11 +629,11 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "c5f86d99ea9ca1b6b598e05ce1c898425c9f085a6841462672d65b30b491b317",
+                  "hash": "8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733",
                   "raw": ` + "`" + `fragment A on User {
                   friends {
                       ... on User {
-                          id
+                          lastName
                           __typename
                           id
                       }
@@ -695,11 +696,18 @@ func TestArtifactGeneration(t *testing.T) {
                                                           "__typename": {
                                                               "type": "String",
                                                               "keyRaw": "__typename",
+                                                              "visible": true,
                                                           },
 
                                                           "id": {
                                                               "type": "ID",
                                                               "keyRaw": "id",
+                                                              "visible": true,
+                                                          },
+
+                                                          "lastName": {
+                                                              "type": "String",
+                                                              "keyRaw": "lastName",
                                                           },
                                                       },
                                                   },
@@ -734,7 +742,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=c5f86d99ea9ca1b6b598e05ce1c898425c9f085a6841462672d65b30b491b317"
+              "HoudiniHash=8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733"
             
           `),
 				},

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
@@ -24,21 +25,29 @@ func FlattenSelection(
 	}
 
 	// build on fresh clones of the root selections
-	fields := newFieldCollection(collectedDocuments, defaultMask, doc.TypeCondition, sortKeys)
+	fields := newFieldCollection(
+		doc.Name,
+		collectedDocuments,
+		defaultMask,
+		doc.TypeCondition,
+		sortKeys,
+	)
 	for _, orig := range doc.Selections {
 		clone := orig.Clone(true)
-		fields.Add(clone, false)
+		fields.Add(clone, false, doc.Selections)
 	}
 	return fields.ToSelectionSet(), nil
 }
 
 func newFieldCollection(
+	name string,
 	docs *CollectedDocuments,
 	defaultMask bool,
 	parentType string,
 	sortKeys bool,
 ) *fieldCollection {
 	return &fieldCollection{
+		DocumentName:       name,
 		SortKeys:           sortKeys,
 		ParentType:         parentType,
 		CollectedDocuments: docs,
@@ -50,12 +59,14 @@ func newFieldCollection(
 }
 
 type fieldCollectionField struct {
-	Visible   bool
-	Field     *CollectedSelection
-	Selection *fieldCollection
+	Visible    bool
+	Field      *CollectedSelection
+	Selection  *fieldCollection
+	Directives []*CollectedDirective
 }
 
 type fieldCollection struct {
+	DocumentName       string
 	SortKeys           bool
 	ParentType         string
 	CollectedDocuments *CollectedDocuments
@@ -70,7 +81,11 @@ func (c *fieldCollection) Size() int {
 	return len(c.Fields) + len(c.InlineFragments) + len(c.FragmentSpreads)
 }
 
-func (c *fieldCollection) Add(selection *CollectedSelection, external bool) error {
+func (c *fieldCollection) Add(
+	selection *CollectedSelection,
+	external bool,
+	visibilityMask []*CollectedSelection,
+) error {
 	// we need to figur eout if we want to include the selection in the final result
 	hidden := external
 
@@ -89,6 +104,15 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 	// process the selection
 	switch selection.Kind {
 	case "field":
+		// lets see if the field shows up in the visibilityMask
+		for _, field := range visibilityMask {
+			if field.Alias != nil && *field.Alias == selection.FieldName {
+				// if the field is in the visibility mask then we should not hide it
+				hidden = false
+				break
+			}
+		}
+
 		// if we've seen the field before then we need to make sure some metadata
 		// overlaps correctly
 		if sel, ok := c.Fields[selection.FieldName]; ok {
@@ -99,14 +123,16 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			// only append directives we haven't seen yet
 			for _, dir := range selection.Directives {
 				if !containsDirective(sel.Field.Directives, dir) {
-					sel.Field.Directives = append(sel.Field.Directives, dir)
+					sel.Directives = append(sel.Field.Directives, dir)
 				}
 			}
 		} else {
 			// if we haven't seen the field before we need to add a place for the selection
 			c.Fields[*selection.Alias] = &fieldCollectionField{
-				Field: selection,
+				Field:      selection,
+				Directives: slices.Clone(selection.Directives),
 				Selection: newFieldCollection(
+					c.DocumentName,
 					c.CollectedDocuments,
 					c.DefaultMask,
 					selection.FieldType,
@@ -117,7 +143,17 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		}
 
 		for _, subSel := range selection.Children {
-			err := c.Fields[*selection.Alias].Selection.Add(subSel, hidden)
+			mask := visibilityMask
+			if visibilityMask != nil {
+				for _, field := range visibilityMask {
+					if field.Alias != nil && *field.Alias == subSel.FieldName {
+						mask = field.Children
+						hidden = false
+					}
+				}
+			}
+
+			err := c.Fields[*selection.Alias].Selection.Add(subSel, hidden, mask)
 			if err != nil {
 				return nil
 			}
@@ -125,7 +161,7 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 
 		// we also want to make sure that the field is present in any inline fragments we've seen
 		for _, frag := range c.InlineFragments {
-			frag.Selection.Add(c.Fields[*selection.Alias].Field, hidden)
+			frag.Selection.Add(c.Fields[*selection.Alias].Field, hidden, visibilityMask)
 		}
 
 		// we're done
@@ -133,15 +169,15 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 
 	case "inline_fragment":
 		// if the inline fragment doesn't have a type condition then just add every field
-		if selection.FieldName == "" {
+		if selection.FieldName == "" || selection.FieldName == c.ParentType {
 			for _, sel := range selection.Children {
-				c.Add(sel, hidden)
+				c.Add(sel, hidden, visibilityMask)
 			}
 			return nil
 		}
 
 		// if the inline fragment has a type condition then it changes the parent type
-		return c.WalkInlineFragment(selection, hidden)
+		return c.WalkInlineFragment(selection, hidden, visibilityMask)
 
 	case "fragment":
 		// add the fragment spread
@@ -160,7 +196,7 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 		// we should just add every field directly
 		if definition.TypeCondition == c.ParentType || !abstractParent {
 			for _, sel := range definition.Selections {
-				err := c.Add(sel, true)
+				err := c.Add(sel, true, visibilityMask)
 				if err != nil {
 					return err
 				}
@@ -178,19 +214,24 @@ func (c *fieldCollection) Add(selection *CollectedSelection, external bool) erro
 			Children:  definition.Selections,
 		}
 
-		return c.Add(inlineFragment, true)
+		return c.Add(inlineFragment, true, visibilityMask)
 	}
 
 	// its a field we don't recognize, we're done
 	return nil
 }
 
-func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidden bool) error {
+func (c *fieldCollection) WalkInlineFragment(
+	selection *CollectedSelection,
+	hidden bool,
+	visibilityMask []*CollectedSelection,
+) error {
 	// if we haven't seen the inline fragment yet then add it
 	if _, ok := c.InlineFragments[selection.FieldName]; !ok {
 		c.InlineFragments[selection.FieldName] = &fieldCollectionField{
 			Field: selection,
 			Selection: newFieldCollection(
+				c.DocumentName,
 				c.CollectedDocuments,
 				hidden,
 				selection.FieldName,
@@ -203,9 +244,17 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 	for _, child := range selection.Children {
 		switch child.Kind {
 		case "field":
-			c.InlineFragments[selection.FieldName].Selection.Add(child, hidden)
+			var mask []*CollectedSelection
+			if visibilityMask != nil {
+				for _, field := range visibilityMask {
+					if field.Alias != nil && *field.Alias == child.FieldName {
+						mask = field.Children
+					}
+				}
+			}
+			c.InlineFragments[selection.FieldName].Selection.Add(child, hidden, mask)
 		case "fragment":
-			err := c.InlineFragments[selection.FieldName].Selection.Add(child, true)
+			err := c.InlineFragments[selection.FieldName].Selection.Add(child, true, visibilityMask)
 			if err != nil {
 				return err
 			}
@@ -215,7 +264,7 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 			}
 
 		case "inline_fragment":
-			c.WalkInlineFragment(child, hidden)
+			c.WalkInlineFragment(child, hidden, visibilityMask)
 		}
 	}
 
@@ -230,9 +279,19 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 			if frag, ok := c.InlineFragments[abstractType]; ok {
 				// add every child field to the concrete inline fragment
 				for _, child := range frag.Field.Children {
+					var mask []*CollectedSelection
+					for _, field := range visibilityMask {
+						if field.Alias != nil && *field.Alias == child.FieldName {
+							mask = field.Children
+						}
+					}
 					switch child.Kind {
 					case "field":
-						c.InlineFragments[selection.FieldName].Selection.Add(child, hidden)
+						c.InlineFragments[selection.FieldName].Selection.Add(
+							child,
+							hidden,
+							mask,
+						)
 					}
 				}
 			}
@@ -267,6 +326,7 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 									Children:  frag.Field.Children,
 								},
 								Selection: newFieldCollection(
+									c.DocumentName,
 									c.CollectedDocuments,
 									hidden,
 									concreteType,
@@ -278,6 +338,7 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 							c.InlineFragments[concreteType].Selection.Add(
 								frag.Field.Children[0],
 								!frag.Field.Children[0].Visible,
+								visibilityMask,
 							)
 						}
 					}
@@ -289,9 +350,19 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 			if _, ok := c.InlineFragments[concreteType]; ok {
 				// add every child field to the concrete inline fragment
 				for _, child := range selection.Children {
+					var mask []*CollectedSelection
+					for _, field := range visibilityMask {
+						if field.Alias != nil && *field.Alias == child.FieldName {
+							mask = field.Children
+						}
+					}
 					switch child.Kind {
 					case "field":
-						c.InlineFragments[concreteType].Selection.Add(child, hidden)
+						c.InlineFragments[concreteType].Selection.Add(
+							child,
+							hidden,
+							mask,
+						)
 					}
 				}
 			}
@@ -300,7 +371,19 @@ func (c *fieldCollection) WalkInlineFragment(selection *CollectedSelection, hidd
 
 	// also if there is a concrete selection already present we want to include that in the inline framgment
 	for _, field := range c.Fields {
-		c.InlineFragments[selection.FieldName].Selection.Add(field.Field, hidden)
+		var mask []*CollectedSelection
+		if visibilityMask != nil {
+			for _, field := range visibilityMask {
+				if field.Alias != nil && *field.Alias == field.FieldName {
+					mask = field.Children
+				}
+			}
+		}
+		c.InlineFragments[selection.FieldName].Selection.Add(
+			field.Field,
+			hidden,
+			mask,
+		)
 	}
 
 	return nil
@@ -314,6 +397,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		for _, f := range c.Fields {
 			local := *f.Field.Clone(false)
 			field := &local
+			field.Directives = f.Directives
 			if f.Selection != nil {
 				field.Children = f.Selection.ToSelectionSet()
 			}
@@ -343,6 +427,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		for _, name := range fieldNames {
 			field := c.Fields[name]
 			selectionField := field.Field.Clone(false)
+			selectionField.Directives = field.Directives
 			if field.Selection != nil {
 				selectionField.Children = field.Selection.ToSelectionSet()
 			}
