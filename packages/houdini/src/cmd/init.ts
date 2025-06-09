@@ -722,6 +722,7 @@ async function packageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkIn
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_PACKAGE_VERSION',
+    "@sveltejs/kit": "<=2.21.0"
 	}
 
 	if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'kit') {
