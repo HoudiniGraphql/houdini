@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"testing"
 
@@ -155,6 +156,7 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 			)
 			require.Nil(t, err)
 			defer insertCustomKeys.Finalize()
+
 			for typ, config := range projectConfig.TypeConfig {
 				var resolveQuery interface{}
 				if config.ResolveQuery != "" {
@@ -169,6 +171,20 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 						"resolve_query": resolveQuery,
 					},
 				)
+				require.Nil(t, err)
+			}
+
+			insertRuntimeScalarConfig, err := conn.Prepare(`
+        insert into runtime_scalar_definitions (name, "type") values ($name, $type)
+      `)
+			require.Nil(t, err)
+			fmt.Println(projectConfig.RuntimeScalars)
+			defer insertRuntimeScalarConfig.Finalize()
+			for key, value := range projectConfig.RuntimeScalars {
+				err = db.ExecStatement(insertRuntimeScalarConfig, map[string]any{
+					"name": key,
+					"type": value,
+				})
 				require.Nil(t, err)
 			}
 

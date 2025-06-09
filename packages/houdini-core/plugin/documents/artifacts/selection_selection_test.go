@@ -10,8 +10,8 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -1898,6 +1898,93 @@ func TestArtifactGeneration(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "runtimeScalars",
+				Pass: true,
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.RuntimeScalars = map[string]string{
+						"ViewerIDFromSession": "ID",
+					}
+				},
+				Input: []string{
+					`
+            query AnimalsOverview($id: ViewerIDFromSession!) {
+              node(id: $id) {
+                id
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"AnimalsOverview": tests.Dedent(`
+              export default {
+                  "name": "AnimalsOverview",
+                  "kind": "HoudiniQuery",
+                  "hash": "7bdf3fd75d58f53835443b251587e4ccc3c4e5bcb7e9e8b41e8b15fca19cb82e",
+
+                  "raw": ` + "`" + `query AnimalsOverview($id: ID!) {
+                  node(id: $id) {
+                      id
+                      __typename
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "node": {
+                              "type": "Node",
+                              "keyRaw": "node(id: $id)",
+                              "nullable": true,
+
+                              "selection": {
+                                  "fields": {
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true
+                                      },
+
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true
+                                      }
+                                  }
+                              },
+
+                              "abstract": true,
+                              "visible": true
+                          }
+                      }
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "id": "ID"
+                      },
+
+                      "types": {},
+                      "defaults": {},
+
+                      "runtimeScalars": {
+                          "id": "ViewerIDFromSession"
+                      }
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=df81d1ede64bedbd8a57467683fe68a9366e29a2ed240465ad0c8a9cb4302242"
+            `),
+				},
+			},
 		},
 	})
 }
@@ -1908,7 +1995,7 @@ func performArtifactTest(
 	test tests.Test[config.PluginConfig],
 ) {
 	// load the documents into the database
-	err := documents.LoadDocuments(context.Background(), p.DB)
+	err := p.AfterExtract(context.Background())
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return

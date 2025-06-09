@@ -4,13 +4,18 @@ import (
 	"context"
 	"fmt"
 
+	"zombiezen.com/go/sqlite/sqlitex"
+
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
-	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 // we need to replace runtime scalars with their static equivalents and add the runtime scalar directive
-func TransformVariables[PluginConfig any](ctx context.Context, db plugins.DatabasePool[PluginConfig], errs *plugins.ErrorList) {
+func TransformVariables[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	errs *plugins.ErrorList,
+) {
 	// load the project configuration
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
@@ -69,7 +74,9 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 	defer updateType.Finalize()
 
 	// and some statements to insert the runtime scalar directives
-	insertDocumentVariableDirective, err := conn.Prepare("INSERT INTO document_variable_directives (parent, directive, row, column) VALUES ($parent, $directive, $row, $column)")
+	insertDocumentVariableDirective, err := conn.Prepare(
+		"INSERT INTO document_variable_directives (parent, directive, row, column) VALUES ($parent, $directive, $row, $column)",
+	)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)
@@ -77,7 +84,9 @@ func TransformVariables[PluginConfig any](ctx context.Context, db plugins.Databa
 	}
 	defer insertDocumentVariableDirective.Finalize()
 	// and scalar directive arguments
-	insertDocumentVariableDirectiveArgument, err := conn.Prepare("INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)")
+	insertDocumentVariableDirectiveArgument, err := conn.Prepare(
+		"INSERT INTO document_variable_directive_arguments (parent, name, value) VALUES ($parent, $name, $value)",
+	)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
 		commit(err)

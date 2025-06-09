@@ -987,6 +987,183 @@ func TestPaginationArtifacts(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "fragment variables are embedded in artifact",
+				Pass: true,
+				Input: []string{
+					`
+            query AnimalsOverview {
+              animals {
+                ...AnimalsOverviewList
+              }
+            }
+          `,
+					`
+            fragment AnimalsOverviewList on AnimalConnection {
+              edges {
+                node {
+                  ... on Monkey {
+                    ...MonkeyFragment
+                  }
+                }
+              }
+            }
+          `,
+					`
+            fragment MonkeyFragment on Monkey {
+              id
+              name
+              hasBanana
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"AnimalsOverview": tests.Dedent(`
+              export default {
+                  "name": "AnimalsOverview",
+                  "kind": "HoudiniQuery",
+                  "hash": "9e4e0eccf7705d19f99168a9cee083cb3b0c442987f8de2fb32af0c419d9268f",
+                  "raw": ` + "`" + `query AnimalsOverview {
+                  animals {
+                      ...AnimalsOverviewList
+                      __typename
+                  }
+              }
+
+              fragment AnimalsOverviewList on AnimalConnection {
+                  edges {
+                      node {
+                          ... on Monkey {
+                              ...MonkeyFragment
+                              __typename
+                              id
+                          }
+                          __typename
+                          id
+                      }
+                      __typename
+                  }
+                  __typename
+              }
+
+              fragment MonkeyFragment on Monkey {
+                  id
+                  name
+                  hasBanana
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "animals": {
+                              "type": "AnimalConnection",
+                              "keyRaw": "animals",
+                              "nullable": true,
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "edges": {
+                                          "type": "AnimalEdge",
+                                          "keyRaw": "edges",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                  },
+
+                                                  "node": {
+                                                      "type": "Animal",
+                                                      "keyRaw": "node",
+                                                      "nullable": true,
+
+                                                      "selection": {
+                                                          "fields": {
+                                                              "__typename": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "__typename",
+                                                              },
+
+                                                              "id": {
+                                                                  "type": "ID",
+                                                                  "keyRaw": "id",
+                                                              },
+                                                          },
+                                                          "abstractFields": {
+                                                              "fields": {
+                                                                  "Monkey": {
+                                                                      "__typename": {
+                                                                          "type": "String",
+                                                                          "keyRaw": "__typename",
+                                                                      },
+                                                                      "hasBanana": {
+                                                                          "type": "Boolean",
+                                                                          "keyRaw": "hasBanana",
+                                                                      },
+                                                                      "id": {
+                                                                          "type": "ID",
+                                                                          "keyRaw": "id",
+                                                                      },
+                                                                      "name": {
+                                                                          "type": "String",
+                                                                          "keyRaw": "name",
+                                                                      },
+                                                                  },
+                                                              },
+
+                                                              "typeMap": {},
+                                                          },
+
+                                                          "fragments": {
+                                                              "MonkeyFragment": {
+                                                                  "arguments": {}
+                                                              },
+                                                          },
+                                                      },
+
+                                                      "abstract": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "abstract": true,
+                                      },
+                                  },
+
+                                  "fragments": {
+                                      "AnimalsOverviewList": {
+                                          "arguments": {}
+                                      },
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=9e4e0eccf7705d19f99168a9cee083cb3b0c442987f8de2fb32af0c419d9268f"
+        `),
+				},
+			},
 		},
 	})
 }
