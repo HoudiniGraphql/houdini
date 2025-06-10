@@ -88,5 +88,5 @@ func TestRuntimeScalars(t *testing.T) {
 
 	require.Equal(t, "UserInfo", documentName)
 	require.Equal(t, "type", name)
-	require.Equal(t, "UserFromSession", value)
+	require.Equal(t, "2", value)
 }

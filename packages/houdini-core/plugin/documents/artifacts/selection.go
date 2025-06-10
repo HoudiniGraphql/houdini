@@ -146,13 +146,13 @@ func GenerateSelectionDocument(
 				case "match":
 					match = arg.Value.Raw
 				}
-				dedupe = fmt.Sprintf(`
+			}
+			dedupe = fmt.Sprintf(`
 
     "dedupe": {
         "cancel": "%s",
         "match": "%s"
     },`, cancel, match)
-			}
 
 		case schema.CacheDirective:
 			for _, arg := range directive.Arguments {

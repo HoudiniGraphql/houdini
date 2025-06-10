@@ -34,6 +34,8 @@ func TestArtifactGeneration(t *testing.T) {
           boolValue: Boolean
           floatValue: Float
           intValue: Int
+          offset: Int
+          filter: UserFilter
         ): [User!]! 
 				allItems: [TodoItem!]!
       } 
@@ -57,6 +59,7 @@ func TestArtifactGeneration(t *testing.T) {
         lastName: String!
         friends: [User!]!
         pets(name: String!, filter: PetFilter ): [Pet!]!
+        friendsByOffset(offset: Int, filter: String): [User!]!
         field(filter: String): String
       }
 
@@ -90,6 +93,7 @@ func TestArtifactGeneration(t *testing.T) {
       }
 
       input UserFilter {
+        name: String
         middle: NestedUserFilter
         listRequired: [String!]!
         nullList: [String]
@@ -596,6 +600,7 @@ func TestArtifactGeneration(t *testing.T) {
                               "enum": "MyEnum",
                               "listRequired": "String",
                               "middle": "NestedUserFilter",
+                              "name": "String",
                               "nullList": "String",
                               "recursive": "UserFilter",
                           },
@@ -1984,6 +1989,551 @@ func TestArtifactGeneration(t *testing.T) {
 
               "HoudiniHash=f22b0a14822ca0a8b66db1ba5a6c0fc948f13999a795f08306fccb42cefd16fa"
             `),
+				},
+			},
+			{
+				Name: "default argument",
+				Pass: true,
+				Input: []string{
+					`	
+            query UserFriends($count: Int = 10, $search: String = "bob") {
+              user {
+                friendsByOffset(offset: $count, filter: $search) {
+                  name
+                }
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"UserFriends": tests.Dedent(`
+              export default {
+                  "name": "UserFriends",
+                  "kind": "HoudiniQuery",
+                  "hash": "1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73",
+                  "raw": ` + "`" + `query UserFriends($count: Int = 10, $search: String = "bob") {
+                  user {
+                      friendsByOffset(filter: $search, offset: $count) {
+                          name
+                          __typename
+                          id
+                      }
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friendsByOffset": {
+                                          "type": "User",
+                                          "keyRaw": "friendsByOffset(filter: $search, offset: $count)",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+
+                                                  "name": {
+                                                      "type": "String",
+                                                      "keyRaw": "name",
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "count": "Int",
+                          "search": "String",
+                      },
+
+                      "types": {},
+
+                      "defaults": {
+                          "count": 10,
+                          "search": "bob",
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73"
+          `),
+				},
+			},
+			{
+				Name: "default argument handles base scalars correctly",
+				Pass: true,
+				Input: []string{
+					`	
+            query ListUsers($bool: Boolean = true, $int: Int = 5, $float: Float = 3.14, $string: String = "hello world") {
+              users(boolValue: $bool, intValue: $int, floatValue: $float, stringValue: $string) {
+                name
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"ListUsers": tests.Dedent(`
+              export default {
+                  "name": "ListUsers",
+                  "kind": "HoudiniQuery",
+                  "hash": "459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b",
+                  "raw": ` + "`" + `query ListUsers($bool: Boolean = true, $float: Float = 3.14, $int: Int = 5, $string: String = "hello world") {
+                  users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string) {
+                      name
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "users": {
+                              "type": "User",
+                              "keyRaw": "users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string)",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+
+                                      "name": {
+                                          "type": "String",
+                                          "keyRaw": "name",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "bool": "Boolean",
+                          "float": "Float",
+                          "int": "Int",
+                          "string": "String",
+                      },
+
+                      "types": {},
+
+                      "defaults": {
+                          "bool": true,
+                          "float": 3.14,
+                          "int": 5,
+                          "string": "hello world",
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b"
+          `),
+				},
+			},
+			{
+				Name: "default argument handles complex default arguments",
+				Pass: true,
+				Input: []string{
+					`	
+            query FindUser($filter: UserFilter = { name: "bob" }) {
+              users(offset: 5, filter: $filter) {
+                name
+              }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"FindUser": tests.Dedent(`
+              export default {
+                  "name": "FindUser",
+                  "kind": "HoudiniQuery",
+                  "hash": "f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7",
+                  "raw": ` + "`" + `query FindUser($filter: UserFilter = {name: "bob"}) {
+                  users(filter: $filter, offset: 5) {
+                      name
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "users": {
+                              "type": "User",
+                              "keyRaw": "users(filter: $filter, offset: 5)",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+
+                                      "name": {
+                                          "type": "String",
+                                          "keyRaw": "name",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "filter": "UserFilter",
+                      },
+
+                      "types": {
+                          "NestedUserFilter": {
+                              "admin": "Boolean",
+                              "age": "Int",
+                              "firstName": "String",
+                              "id": "ID",
+                              "weight": "Float",
+                          },
+                          "UserFilter": {
+                              "enum": "MyEnum",
+                              "listRequired": "String",
+                              "middle": "NestedUserFilter",
+                              "name": "String",
+                              "nullList": "String",
+                              "recursive": "UserFilter",
+                          },
+                      },
+
+                      "defaults": {
+                          "filter": {name: "bob"},
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7"
+          `),
+				},
+			},
+			{
+				Name: "default dedupe arguments",
+				Pass: true,
+				Input: []string{
+					`	
+          query FindUser @dedupe {
+                users {
+                  name
+                }
+              }
+          `,
+				},
+				Extra: map[string]any{
+					"FindUser": tests.Dedent(`
+              export default {
+                  "name": "FindUser",
+                  "kind": "HoudiniQuery",
+                  "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
+                  "raw": ` + "`" + `query FindUser {
+                  users {
+                      name
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "users": {
+                              "type": "User",
+                              "keyRaw": "users",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+
+                                      "name": {
+                                          "type": "String",
+                                          "keyRaw": "name",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "dedupe": {
+                      "cancel": "last",
+                      "match": "Variables"
+                  },
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
+	        `),
+				},
+			},
+			{
+				Name: "persists dedupe which",
+				Pass: true,
+				Input: []string{
+					`	
+          query FindUser @dedupe(match: Operation) {
+                users {
+                  name
+                }
+              }
+          `,
+				},
+				Extra: map[string]any{
+					"FindUser": tests.Dedent(`
+              export default {
+                  "name": "FindUser",
+                  "kind": "HoudiniQuery",
+                  "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
+                  "raw": ` + "`" + `query FindUser {
+                  users {
+                      name
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "users": {
+                              "type": "User",
+                              "keyRaw": "users",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+
+                                      "name": {
+                                          "type": "String",
+                                          "keyRaw": "name",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "dedupe": {
+                      "cancel": "last",
+                      "match": "Operation"
+                  },
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
+	        `),
+				},
+			},
+			{
+				Name: "persists dedupe first",
+				Pass: true,
+				Input: []string{
+					`	
+          query FindUser @dedupe(cancelFirst: true) {
+                users {
+                  name
+                }
+              }
+          `,
+				},
+				Extra: map[string]any{
+					"FindUser": tests.Dedent(`
+              export default {
+                  "name": "FindUser",
+                  "kind": "HoudiniQuery",
+                  "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
+                  "raw": ` + "`" + `query FindUser {
+                  users {
+                      name
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "users": {
+                              "type": "User",
+                              "keyRaw": "users",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+
+                                      "name": {
+                                          "type": "String",
+                                          "keyRaw": "name",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "dedupe": {
+                      "cancel": "first",
+                      "match": "Variables"
+                  },
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
+	        `),
 				},
 			},
 		},
