@@ -246,6 +246,28 @@ func GenerateSelectionDocument(
 			typeDefs += "\n        "
 		}
 
+		runtimeScalars := ""
+	variable_search:
+		for _, variable := range doc.Variables {
+			for _, directive := range variable.Directives {
+				if directive.Name != schema.RuntimeScalarDirective {
+					continue
+				}
+				for _, arg := range directive.Arguments {
+					if arg.Name != "type" {
+						continue
+					}
+
+					runtimeScalars += fmt.Sprintf(`
+            "%s": "%s",`, variable.Name, arg.Value.Raw)
+					break variable_search
+				}
+			}
+		}
+		if len(runtimeScalars) > 0 {
+			runtimeScalars += "\n        "
+		}
+
 		inputTypes = fmt.Sprintf(`
 
     "input": {
@@ -256,9 +278,9 @@ func GenerateSelectionDocument(
 
         "defaults": {%s},
 
-        "runtimeScalars": {},
+        "runtimeScalars": {%s},
     },
-`, inputSpecs, typeDefs, defaults)
+`, inputSpecs, typeDefs, defaults, runtimeScalars)
 	}
 
 	// we only consider policy and partial values for queries

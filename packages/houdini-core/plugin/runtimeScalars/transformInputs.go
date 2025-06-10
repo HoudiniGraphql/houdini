@@ -73,6 +73,16 @@ func TransformVariables[PluginConfig any](
 	}
 	defer updateType.Finalize()
 
+	insertStringArgumentValue, err := conn.Prepare(`
+    INSERT INTO argument_values (kind, expected_type, raw, document, row, column) VALUES ('String', 'String', $value, $document, 0, 0)
+  `)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		commit(err)
+		return
+	}
+	defer insertStringArgumentValue.Finalize()
+
 	// and some statements to insert the runtime scalar directives
 	insertDocumentVariableDirective, err := conn.Prepare(
 		"INSERT INTO document_variable_directives (parent, directive, row, column) VALUES ($parent, $directive, $row, $column)",
@@ -136,11 +146,22 @@ func TransformVariables[PluginConfig any](
 		}
 		directiveID := conn.LastInsertRowID()
 
+		// we need to store a string with the mapped value
+		err = db.ExecStatement(insertStringArgumentValue, map[string]any{
+			"document": variablesID,
+			"value":    variableType,
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			commit(err)
+			return
+		}
+
 		// and the arguments to the directive
 		err = db.ExecStatement(insertDocumentVariableDirectiveArgument, map[string]any{
 			"parent": directiveID,
 			"name":   "type",
-			"value":  variableType,
+			"value":  conn.LastInsertRowID(),
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

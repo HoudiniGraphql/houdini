@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"path"
 	"testing"
 
@@ -178,7 +177,6 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
         insert into runtime_scalar_definitions (name, "type") values ($name, $type)
       `)
 			require.Nil(t, err)
-			fmt.Println(projectConfig.RuntimeScalars)
 			defer insertRuntimeScalarConfig.Finalize()
 			for key, value := range projectConfig.RuntimeScalars {
 				err = db.ExecStatement(insertRuntimeScalarConfig, map[string]any{

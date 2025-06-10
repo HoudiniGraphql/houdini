@@ -1899,7 +1899,7 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 			},
 			{
-				Name: "runtimeScalars",
+				Name: "runtime scalars",
 				Pass: true,
 				ProjectConfig: func(config *plugins.ProjectConfig) {
 					config.RuntimeScalars = map[string]string{
@@ -1920,12 +1920,12 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "AnimalsOverview",
                   "kind": "HoudiniQuery",
-                  "hash": "7bdf3fd75d58f53835443b251587e4ccc3c4e5bcb7e9e8b41e8b15fca19cb82e",
-
+                  "hash": "f22b0a14822ca0a8b66db1ba5a6c0fc948f13999a795f08306fccb42cefd16fa",
                   "raw": ` + "`" + `query AnimalsOverview($id: ID!) {
                   node(id: $id) {
                       id
                       __typename
+                      id
                   }
               }
               ` + "`" + `,
@@ -1942,46 +1942,47 @@ func TestArtifactGeneration(t *testing.T) {
 
                               "selection": {
                                   "fields": {
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                          "visible": true
-                                      },
-
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true
-                                      }
-                                  }
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
                               },
 
                               "abstract": true,
-                              "visible": true
-                          }
-                      }
+                              "visible": true,
+                          },
+                      },
                   },
 
                   "pluginData": {},
 
                   "input": {
                       "fields": {
-                          "id": "ID"
+                          "id": "ID",
                       },
 
                       "types": {},
+
                       "defaults": {},
 
                       "runtimeScalars": {
-                          "id": "ViewerIDFromSession"
-                      }
+                          "id": "ViewerIDFromSession",
+                      },
                   },
 
                   "policy": "CacheOrNetwork",
                   "partial": false
               }
 
-              "HoudiniHash=df81d1ede64bedbd8a57467683fe68a9366e29a2ed240465ad0c8a9cb4302242"
+              "HoudiniHash=f22b0a14822ca0a8b66db1ba5a6c0fc948f13999a795f08306fccb42cefd16fa"
             `),
 				},
 			},
