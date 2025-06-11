@@ -26,7 +26,7 @@
     "@kitql/helpers": "^0.8.2",
     "@playwright/test": "1.48.0",
     "@sveltejs/adapter-auto": "^3.2.1",
-    "@sveltejs/kit": "^2.9.0",
+    "@sveltejs/kit": "<=2.21.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^7.11.0",
     "@typescript-eslint/parser": "^7.11.0",
