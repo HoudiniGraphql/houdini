@@ -1968,7 +1968,7 @@ func ValidateRequiredDirective(
 		childReqCount := stmt.ColumnInt(8)
 
 		// Rule 1: The field must be defined on an object type.
-		if parentKind != "OBJECT" {
+		if parentKind != "OBJECT" && parentKind != "INTERFACE" {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(
 					"@%s may only be used on object fields, not on fields of %s type (field %q in document %s)",

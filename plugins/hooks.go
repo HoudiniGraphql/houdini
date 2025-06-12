@@ -33,9 +33,9 @@ func TriggerHook[PluginConfig any](
     )
   `
 
-	pluginPorts := []int{}
+	pluginPorts := map[string]int64{}
 	err := db.StepQuery(ctx, query, map[string]any{"hook": hook}, func(stmt *sqlite.Stmt) {
-		pluginPorts = append(pluginPorts, int(stmt.GetInt64("port")))
+		pluginPorts[stmt.GetText("name")] = stmt.GetInt64("port")
 	})
 	if err != nil {
 		return nil, err
@@ -53,10 +53,10 @@ func TriggerHook[PluginConfig any](
 	errs := &ErrorList{}
 	var wg sync.WaitGroup
 
-	for _, port := range pluginPorts {
+	for name, port := range pluginPorts {
 		wg.Add(1)
 
-		go func(port int) {
+		go func(name string, port int64) {
 			defer wg.Done()
 
 			resp, err := http.Post(
@@ -83,9 +83,9 @@ func TriggerHook[PluginConfig any](
 
 			// merge result safely
 			resultMu.Lock()
-			maps.Copy(result, pluginResult)
+			maps.Copy(result, map[string]any{name: pluginResult})
 			resultMu.Unlock()
-		}(port)
+		}(name, port)
 	}
 
 	wg.Wait()

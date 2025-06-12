@@ -754,23 +754,22 @@ func stringifyFieldSelection(
 
 	// extra any operations for the field
 	operations := stringifyOperations(projectConfig, selection, level)
-
-	// if the field is nullable we need to include an optional value
-	nullable := ""
-	if selection.TypeModifiers != nil && !strings.HasSuffix(*selection.TypeModifiers, "!") {
-		nullable = fmt.Sprintf(`
-%s"nullable": true,`, indent4)
-	}
-
 	// summarize directives applied to the field
 	optimisticKey := ""
 	directives := ""
+	required := ""
+	hasRequiredDirective := false
 
 	for _, directive := range selection.Directives {
 		if directive.Name == schema.OptimisticKeyDirective {
 			optimisticKey = fmt.Sprintf(`
 %s"optimisticKey": true,`, indent4)
 			flags.OptimisticKeys = true
+		}
+		if directive.Name == schema.RequiredDirective {
+			hasRequiredDirective = true
+			required = fmt.Sprintf(`
+%s"required": true,`, indent4)
 		}
 		// the applied fragment might have arguments
 		arguments := ""
@@ -795,6 +794,59 @@ func stringifyFieldSelection(
 
 %s"directives": [%s],
 `, indent4, directives[:len(directives)-1])
+	}
+
+	// create the nullable string
+	nullable := ""
+
+	// if the field is nullable we need to include an optional value
+	isNullable := selection.TypeModifiers == nil ||
+		!strings.HasSuffix(*selection.TypeModifiers, "!")
+	if hasRequiredDirective {
+		isNullable = false
+	}
+
+	childHasRequired := false
+	// if there is no required directive then our nullability can be set true by our children
+	if !hasRequiredDirective {
+		for _, child := range selection.Children {
+			switch child.Kind {
+
+			case "field":
+				for _, childDirective := range child.Directives {
+					if childDirective.Name == schema.RequiredDirective {
+						isNullable = true
+						childHasRequired = true
+					}
+				}
+			case "fragment":
+				definition := docs.Selections[child.FieldName]
+				for _, definitionDirective := range definition.Directives {
+					if definitionDirective.Name == schema.RequiredDirective {
+						isNullable = true
+						childHasRequired = true
+					}
+				}
+				for _, subSel := range definition.Selections {
+					for _, childDirective := range subSel.Directives {
+						if childDirective.Name == schema.RequiredDirective {
+							isNullable = true
+							childHasRequired = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if isNullable {
+		nullable = fmt.Sprintf(`
+%s"nullable": true,`, indent4)
+	}
+	abstractRequired := ""
+	if isAbstract && childHasRequired {
+		abstractRequired = fmt.Sprintf(`
+%s"abstractHasRequired": true,`, indent4)
 	}
 
 	// extract the list information
@@ -853,7 +905,7 @@ func stringifyFieldSelection(
 
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s%s
+%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s%s%s%s
 %s},
 `,
 		indent3,
@@ -871,6 +923,8 @@ func stringifyFieldSelection(
 		filters,
 		abstract,
 		optimisticKey,
+		required,
+		abstractRequired,
 		visible,
 		indent3,
 	)
@@ -1202,6 +1256,10 @@ func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
 type ArtifactFlags struct {
 	OptimisticKeys bool
 	Refetch        *RefetchSpec
+}
+
+type SelectionFlags struct {
+	HasRequired bool
 }
 
 type RefetchSpec struct {
