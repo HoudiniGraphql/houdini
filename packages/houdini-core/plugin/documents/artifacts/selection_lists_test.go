@@ -12,6 +12,7 @@ func TestPaginationArtifacts(t *testing.T) {
 		Schema: `
       type Mutation { 
          addFriend: AddFriendOutput!
+        catMutation: Cat
       }
 
       type Query { 
@@ -23,11 +24,18 @@ func TestPaginationArtifacts(t *testing.T) {
         ): [User!]!
         usersByCursor(first: Int, last: Int, after: String, before: String): UserConnection!
 				animals(first: Int, after: String): AnimalConnection
+        entities: [Entity!]!
       }
 
-      type User { 
+      type User implements Entity { 
         id: ID!
+        name: String!
         firstName: String!
+      }
+
+      type Cat implements Entity { 
+        name: String!
+        id: ID!
       }
 
       type UserConnection { 
@@ -45,6 +53,10 @@ func TestPaginationArtifacts(t *testing.T) {
 				name: String!
 				hasBanana: Boolean!
 			}
+
+      interface Entity { 
+        id: ID!
+      }
 
 			interface AnimalConnection {
 				edges: [AnimalEdge!]!
@@ -1162,6 +1174,146 @@ func TestPaginationArtifacts(t *testing.T) {
 
               "HoudiniHash=9e4e0eccf7705d19f99168a9cee083cb3b0c442987f8de2fb32af0c419d9268f"
         `),
+				},
+			},
+			{
+				Name: "list of fragment unions",
+				Pass: true,
+				Input: []string{
+					`query Entities {
+            entities @list(name: "list_entities") {
+              ... on User {
+                name
+              }
+              ... on Cat {
+                name
+              }
+            }
+          }`,
+					`mutation CatMutation {
+            catMutation {
+              ...list_entities_insert
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"Entities": tests.Dedent(`
+              export default {
+                  "name": "Entities",
+                  "kind": "HoudiniQuery",
+                  "hash": "0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da",
+                  "raw": ` + "`" + `query Entities {
+                  entities {
+                      ... on User {
+                          name
+                          __typename
+                          id
+                      }
+                      ... on Cat {
+                          name
+                          __typename
+                          id
+                      }
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "entities": {
+                              "type": "Entity",
+                              "keyRaw": "entities",
+
+                              "directives": [{
+                                  "name": "list",
+                                  "arguments": {
+                                      "name": {
+                                          "kind": "StringValue",
+                                          "value": "list_entities"
+                                      }
+                                  }
+                              }],
+
+                              "list": {
+                                  "name": "list_entities",
+                                  "connection": false,
+                                  "type": "Entity"
+                              },
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Cat": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          },
+                                          "User": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {},
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da"
+            `),
 				},
 			},
 		},

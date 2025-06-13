@@ -38,6 +38,7 @@ func TestArtifactGeneration(t *testing.T) {
           filter: UserFilter
         ): [User!]! 
 				allItems: [TodoItem!]!
+        entities: [Entity!]!
       } 
 
     	scalar DateTime
@@ -47,11 +48,15 @@ func TestArtifactGeneration(t *testing.T) {
 			}
 
 
+      interface Entity { 
+        id: ID!
+      }
+
       interface Node {
         id: ID!
       }
 
-      type User implements Node & Friend {
+      type User implements Node & Friend & Entity {
         id: ID!
         name: String!
         bestFriend: User! 
@@ -63,7 +68,7 @@ func TestArtifactGeneration(t *testing.T) {
         field(filter: String): String
       }
 
-      type Cat implements Node & Friend {
+      type Cat implements Node & Friend & Entity {
         id: ID!
         name: String!
         owner: User!
@@ -91,6 +96,7 @@ func TestArtifactGeneration(t *testing.T) {
       enum MyEnum {
         Hello
       }
+
 
       input UserFilter {
         name: String
@@ -2919,6 +2925,142 @@ func TestArtifactGeneration(t *testing.T) {
               }
 
               "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+            `),
+				},
+			},
+			{
+				Name: "fragments of unions inject correctly",
+				Pass: true,
+				Input: []string{
+					` 
+            query EntityList {
+                entities {
+                    ...EntityInfo
+                }
+            }
+          `,
+					`
+            fragment EntityInfo on Entity {
+                ... on User {
+                    firstName
+                }
+                ... on Cat {
+                    name
+                }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"EntityList": tests.Dedent(`
+              export default {
+                  "name": "EntityList",
+                  "kind": "HoudiniQuery",
+                  "hash": "41abe068027a3e99325fd911b69effe90a0a3aabbb2e1cdfed73dd37dd73677e",
+                  "raw": ` + "`" + `fragment EntityInfo on Entity {
+                  ... on User {
+                      firstName
+                      __typename
+                      id
+                  }
+                  ... on Cat {
+                      name
+                      __typename
+                      id
+                  }
+                  __typename
+                  id
+              }
+
+              query EntityList {
+                  entities {
+                      ...EntityInfo
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "entities": {
+                              "type": "Entity",
+                              "keyRaw": "entities",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                                  "abstractFields": {
+                                      "fields": {
+                                          "Cat": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                              "name": {
+                                                  "type": "String",
+                                                  "keyRaw": "name",
+                                              },
+                                          },
+                                          "User": {
+                                              "__typename": {
+                                                  "type": "String",
+                                                  "keyRaw": "__typename",
+                                                  "visible": true,
+                                              },
+                                              "firstName": {
+                                                  "type": "String",
+                                                  "keyRaw": "firstName",
+                                              },
+                                              "id": {
+                                                  "type": "ID",
+                                                  "keyRaw": "id",
+                                                  "visible": true,
+                                              },
+                                          },
+                                      },
+
+                                      "typeMap": {},
+                                  },
+
+                                  "fragments": {
+                                      "EntityInfo": {
+                                          "arguments": {}
+                                      },
+                                  },
+                              },
+
+                              "abstract": true,
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=41abe068027a3e99325fd911b69effe90a0a3aabbb2e1cdfed73dd37dd73677e"
             `),
 				},
 			},
