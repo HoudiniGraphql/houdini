@@ -2536,6 +2536,392 @@ func TestArtifactGeneration(t *testing.T) {
 	        `),
 				},
 			},
+			{
+				Name: "cache policy is persisted in artifact",
+				Pass: true,
+				Input: []string{
+					`	
+            query CachedFriends @cache(policy: CacheAndNetwork) {
+                user {
+                    friends {
+                        id
+                    }
+                }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"CachedFriends": tests.Dedent(`
+              export default {
+                  "name": "CachedFriends",
+                  "kind": "HoudiniQuery",
+                  "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                  "raw": ` + "`" + `query CachedFriends {
+                  user {
+                      friends {
+                          id
+                          __typename
+                          id
+                      }
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friends": {
+                                          "type": "User",
+                                          "keyRaw": "friends",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheAndNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+            `),
+				},
+			},
+			{
+				Name: "can change default cache policy",
+				Pass: true,
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.DefaultCachePolicy = "NetworkOnly"
+				},
+				Input: []string{
+					`	
+            query CachedFriends {
+                user {
+                    friends {
+                        id
+                    }
+                }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"CachedFriends": tests.Dedent(`
+            export default {
+                "name": "CachedFriends",
+                "kind": "HoudiniQuery",
+                "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                "raw": ` + "`" + `query CachedFriends {
+                user {
+                    friends {
+                        id
+                        __typename
+                        id
+                    }
+                    __typename
+                    id
+                }
+            }
+            ` + "`" + `,
+
+                "rootType": "Query",
+                "stripVariables": [],
+
+                "selection": {
+                    "fields": {
+                        "user": {
+                            "type": "User",
+                            "keyRaw": "user",
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                        "visible": true,
+                                    },
+
+                                    "friends": {
+                                        "type": "User",
+                                        "keyRaw": "friends",
+
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                    "visible": true,
+                                                },
+
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                    "visible": true,
+                                                },
+                                            },
+                                        },
+
+                                        "visible": true,
+                                    },
+
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                        "visible": true,
+                                    },
+                                },
+                            },
+
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "pluginData": {},
+                "policy": "NetworkOnly",
+                "partial": false
+            }
+
+            "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+          `),
+				},
+			},
+			{
+				Name: "partial opt-in is persisted",
+				Pass: true,
+				Input: []string{
+					`	
+            query CachedFriends @cache(policy: CacheAndNetwork, partial: true) {
+                user {
+                    friends {
+                        id
+                    }
+                }
+            }
+          `,
+				},
+				Extra: map[string]any{
+					"CachedFriends": tests.Dedent(`
+              export default {
+                  "name": "CachedFriends",
+                  "kind": "HoudiniQuery",
+                  "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                  "raw": ` + "`" + `query CachedFriends {
+                  user {
+                      friends {
+                          id
+                          __typename
+                          id
+                      }
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friends": {
+                                          "type": "User",
+                                          "keyRaw": "friends",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheAndNetwork",
+                  "partial": true
+              }
+
+              "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+            `),
+				},
+			},
+			{
+				Name: "can set default partial opt-in",
+				Pass: true,
+				ProjectConfig: func(config *plugins.ProjectConfig) {
+					config.DefaultPartial = true
+				},
+				Input: []string{
+					`
+            query CachedFriends @cache(policy: CacheAndNetwork) {
+                user {
+                    friends {
+                        id
+                    }
+                }
+            }	
+          `,
+				},
+				Extra: map[string]any{
+					"CachedFriends": tests.Dedent(`
+              export default {
+                  "name": "CachedFriends",
+                  "kind": "HoudiniQuery",
+                  "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                  "raw": ` + "`" + `query CachedFriends {
+                  user {
+                      friends {
+                          id
+                          __typename
+                          id
+                      }
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friends": {
+                                          "type": "User",
+                                          "keyRaw": "friends",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "id": {
+                                                      "type": "ID",
+                                                      "keyRaw": "id",
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheAndNetwork",
+                  "partial": true
+              }
+
+              "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+            `),
+				},
+			},
 		},
 	})
 }
