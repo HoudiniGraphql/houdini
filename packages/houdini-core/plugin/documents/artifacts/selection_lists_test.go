@@ -25,6 +25,7 @@ func TestPaginationArtifacts(t *testing.T) {
         usersByCursor(first: Int, last: Int, after: String, before: String): UserConnection!
 				animals(first: Int, after: String): AnimalConnection
         entities: [Entity!]!
+        monkeys: MonkeyConnection!
       }
 
       type User implements Entity { 
@@ -1313,6 +1314,201 @@ func TestPaginationArtifacts(t *testing.T) {
               }
 
               "HoudiniHash=0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da"
+            `),
+				},
+			},
+			{
+				Name: "fragments in lists",
+				Pass: true,
+				Input: []string{
+					`query TestQuery {
+              usersByCursor @list(name: "All_Users") {
+                edges {
+                  node {
+                    ...UserTest
+                  }
+                }
+              }
+            }`,
+					`fragment UserTest on User {
+              firstName
+            }`,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b",
+                  "raw": ` + "`" + `query TestQuery {
+                  usersByCursor {
+                      edges {
+                          node {
+                              ...UserTest
+                              __typename
+                              id
+                          }
+                          __typename
+                          cursor
+                      }
+                      __typename
+                      pageInfo {
+                          hasNextPage
+                          hasPreviousPage
+                          startCursor
+                          endCursor
+                      }
+                  }
+              }
+
+              fragment UserTest on User {
+                  firstName
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "usersByCursor": {
+                              "type": "UserConnection",
+                              "keyRaw": "usersByCursor",
+
+                              "directives": [{
+                                  "name": "list",
+                                  "arguments": {
+                                      "name": {
+                                          "kind": "StringValue",
+                                          "value": "All_Users"
+                                      }
+                                  }
+                              }],
+
+                              "list": {
+                                  "name": "All_Users",
+                                  "connection": true,
+                                  "type": "User"
+                              },
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "edges": {
+                                          "type": "UserEdge",
+                                          "keyRaw": "edges",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "cursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "cursor",
+                                                      "visible": true,
+                                                  },
+
+                                                  "node": {
+                                                      "type": "User",
+                                                      "keyRaw": "node",
+                                                      "nullable": true,
+
+                                                      "selection": {
+                                                          "fields": {
+                                                              "__typename": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "__typename",
+                                                                  "visible": true,
+                                                              },
+
+                                                              "firstName": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "firstName",
+                                                              },
+
+                                                              "id": {
+                                                                  "type": "ID",
+                                                                  "keyRaw": "id",
+                                                                  "visible": true,
+                                                              },
+                                                          },
+
+                                                          "fragments": {
+                                                              "UserTest": {
+                                                                  "arguments": {}
+                                                              },
+                                                          },
+                                                      },
+
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "pageInfo": {
+                                          "type": "PageInfo",
+                                          "keyRaw": "pageInfo",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "endCursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "endCursor",
+                                                      "nullable": true,
+                                                      "visible": true,
+                                                  },
+
+                                                  "hasNextPage": {
+                                                      "type": "Boolean",
+                                                      "keyRaw": "hasNextPage",
+                                                      "visible": true,
+                                                  },
+
+                                                  "hasPreviousPage": {
+                                                      "type": "Boolean",
+                                                      "keyRaw": "hasPreviousPage",
+                                                      "visible": true,
+                                                  },
+
+                                                  "startCursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "startCursor",
+                                                      "nullable": true,
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b"
             `),
 				},
 			},
