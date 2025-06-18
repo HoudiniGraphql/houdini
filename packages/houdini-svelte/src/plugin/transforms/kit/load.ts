@@ -13,8 +13,6 @@ import {
 	is_layout,
 	is_route,
 	is_route_script,
-	layout_query_path,
-	page_query_path,
 	route_data_path,
 	route_page_path,
 } from '../../kit'
@@ -55,9 +53,7 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 			  }).id
 
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, layout_query, inline_queries, page_info] = await Promise.all([
-		find_special_query('Page', page),
-		find_special_query('Layout', page),
+	const [inline_queries, page_info] = await Promise.all([
 		find_inline_queries(
 			page,
 			// if we are currently on the route file, there's nothing to parse
@@ -84,12 +80,6 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		const queries_that_needs_a_load = [...houdini_load_queries, ...inline_queries]
 		// Add special queries files to the list only if we are in the good context
 		const isLayout = is_layout(page.framework, page.filepath)
-		if (isLayout && layout_query) {
-			queries_that_needs_a_load.push(layout_query)
-		}
-		if (!isLayout && page_query) {
-			queries_that_needs_a_load.push(page_query)
-		}
 
 		add_load({
 			page,
@@ -405,39 +395,6 @@ function add_load({
 		)
 	}
 }
-
-async function find_special_query(
-	type: `Page` | `Layout`,
-	page: SvelteTransformPage
-): Promise<LoadTarget | null> {
-	// figure out the filepath for the page query
-	const query_path =
-		type === 'Page'
-			? page_query_path(page.config, page.filepath)
-			: layout_query_path(page.config, page.filepath)
-
-	// if the file doesn't exist, we're done
-	const contents = await fs.readFile(query_path)
-	if (!contents) {
-		return null
-	}
-
-	// we have a page query, make sure it contains a query
-	const parsed = graphql.parse(contents)
-
-	// find the query definition
-	const definition = parsed.definitions.find(
-		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
-	) as graphql.OperationDefinitionNode
-	// if it doesn't exist, there is an error, but no discovered query either
-	if (!definition) {
-		formatErrors({ message: 'gql file must contain a query.', filepath: query_path })
-		return null
-	}
-
-	return definition
-}
-
 function load_hook_statements(
 	name: 'before' | 'after',
 	request_context: namedTypes.Identifier,

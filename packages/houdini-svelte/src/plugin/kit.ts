@@ -95,20 +95,6 @@ export function is_component(config: Config, framework: Framework, filename: str
 	)
 }
 
-export function page_query_path(config: Config, filename: string) {
-	return path.join(
-		path.dirname(resolve_relative(config, filename)),
-		plugin_config(config).pageQueryFilename
-	)
-}
-
-export function layout_query_path(config: Config, filename: string) {
-	return path.join(
-		path.dirname(resolve_relative(config, filename)),
-		plugin_config(config).layoutQueryFilename
-	)
-}
-
 export function resolve_relative(config: Config, filename: string) {
 	// kit generates relative import for our generated files. we need to fix that so that
 	// vites importer can find the file.
