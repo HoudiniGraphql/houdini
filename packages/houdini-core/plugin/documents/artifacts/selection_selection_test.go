@@ -3064,6 +3064,133 @@ func TestArtifactGeneration(t *testing.T) {
             `),
 				},
 			},
+			{
+				Name: "componentFields",
+				Pass: true,
+				Input: []string{
+					` 
+            query UserWithAvatar {
+              user {
+                Avatar
+              }
+            }
+          `,
+					`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
+            firstName
+            FriendList
+          }`,
+					`fragment FriendList on User @componentField(field: "FriendList", prop: "user") {
+            firstName
+          }`,
+				},
+				Extra: map[string]any{
+					"UserWithAvatar": tests.Dedent(`
+		export default {
+		    "name": "UserWithAvatar",
+		    "kind": "HoudiniQuery",
+		    "hash": "30e4c52e63f8d5ce74e8b8545a099d29e877df195141d1c67221b480f0840014",
+
+		    "raw": ` + "`" + `fragment FriendList on User {
+        firstName
+        id
+        __typename
+		}
+
+		fragment UserAvatar on User {
+        firstName
+        ...FriendList
+        id
+        __typename
+		}
+
+    query UserWithAvatar {
+        user {
+            ...UserAvatar
+            id
+        }
+		}
+		` + "`" + `",
+
+		    "rootType": "Query",
+		    "stripVariables": [],
+
+		    "selection": {
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
+
+		                "selection": {
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id",
+		                            "visible": true
+		                        },
+
+		                        "__typename": {
+		                            "type": "String",
+		                            "keyRaw": "__typename"
+		                        },
+
+		                        "Avatar": {
+		                            "keyRaw": "Avatar",
+		                            "type": "Component",
+
+		                            "component": {
+		                                "prop": "user",
+		                                "key": "User.Avatar",
+		                                "fragment": "UserAvatar",
+		                                "variables": {}
+		                            },
+
+		                            "visible": true
+		                        },
+
+		                        "FriendList": {
+		                            "keyRaw": "FriendList",
+		                            "type": "Component",
+
+		                            "component": {
+		                                "prop": "user",
+		                                "key": "User.FriendList",
+		                                "fragment": "FriendList",
+		                                "variables": {}
+		                            }
+		                        }
+		                    },
+
+		                    "fragments": {
+		                        "UserAvatar": {
+		                            "arguments": {}
+		                        },
+
+		                        "FriendList": {
+		                            "arguments": {}
+		                        }
+		                    }
+		                },
+
+		                "visible": true
+		            }
+		        }
+		    },
+
+		    "pluginData": {},
+		    "hasComponents": true,
+		    "policy": "CacheOrNetwork",
+		    "partial": false
+		};
+
+		"HoudiniHash=bb8055518b549496d9673bb3a0ff9091e20fbe760670c589f689a1dc416211dd";
+	`),
+				},
+			},
 		},
 	})
 }
