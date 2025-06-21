@@ -720,30 +720,6 @@ class CacheInternal {
 				if (applyUpdates && updates) {
 					// if we are updating the edges field, we might need to do a little more than just
 					// append/prepend to the field value. we might need to wrap the values in extra references
-					if (key === 'edges') {
-						// build up a list of the ids found in the new list
-						const newNodeIDs: string[] = []
-						for (const id of newIDs) {
-							if (!id) {
-								continue
-							}
-
-							// look up the lined node record
-							const { value: node } = this.storage.get(id, 'node')
-							// node should be a reference
-							if (typeof node !== 'string') {
-								continue
-							}
-
-							// if we dont have type information or a valid reference
-							if (!node || !this.storage.get(node, '__typename')) {
-								continue
-							}
-
-							newNodeIDs.push(node)
-						}
-					}
-
 					const filterIDs = (keep: (string | null)[], insert: (string | null)[]) => {
 						const existingIDs = new Set<string>()
 						for (const id of keep) {
