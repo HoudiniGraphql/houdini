@@ -666,23 +666,22 @@ class CacheInternal {
 
 				// if we are updating a list then we dont want to consider inserted values as coming from the cache
 				if (updates?.includes('append') || updates?.includes('prepend')) {
-          oldIDs = oldIDs.filter((id) => {
-            // look through the available layers 
-            for (const layer of this.storage.data) {
-              for (const operation of Object.values(layer.operations)) {
-                // if the operation is a list and the id is in the list, then we know that this id
-                // was inserted into the list and we should ignore it
-                if (operation.fields?.[key])
-                  for (const listOperation of operation.fields[key]) {
-                    if ('id' in listOperation && listOperation.id === id) {
-                      return false
-                    }
-                  }
-                }
-              }
-              return true
-            }
-          )
+					oldIDs = oldIDs.filter((id) => {
+						// look through the available layers
+						for (const layer of this.storage.data) {
+							for (const operation of Object.values(layer.operations)) {
+								// if the operation is a list and the id is in the list, then we know that this id
+								// was inserted into the list and we should ignore it
+								if (operation.fields?.[key])
+									for (const listOperation of operation.fields[key]) {
+										if ('id' in listOperation && listOperation.id === id) {
+											return false
+										}
+									}
+							}
+						}
+						return true
+					})
 				}
 
 				// if we are supposed to prepend or append and the mutation is enabled
