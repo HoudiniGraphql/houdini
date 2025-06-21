@@ -715,9 +715,42 @@ class CacheInternal {
 				})
 
 				// we have to do something different if we are writing to an optimistic layer or not
+				// if we aren't writing to an optimistic layer than we need to make sure that we aren't
+				// adding any values that were previously only included because of an insert operation
 				let action = () => {
-					// update the cached value
-					layer.writeLink(parent, key, linkedIDs)
+					// if we aren't apply any updates then we use the value directly
+					const nonEmptyLinks: NestedList = !updates
+						? linkedIDs
+						: linkedIDs.flatMap<NestedList>((id) => {
+								// nested lists aren't connections so we dont need to worry about updates from operations
+								if (Array.isArray(id)) {
+									return [id]
+								}
+
+								// leave nulls alone
+								if (!id) {
+									return [id]
+								}
+
+								// now we need to look up the corresponding node id for the edge we are adding
+
+								// if we found a cursor field we know its not an inserted record
+								const { value: cursorField } = this.storage.get(id, 'cursor')
+								if (cursorField) {
+									return [id]
+								}
+
+								// if there is no node fields its not a connection
+								const { value: node } = this.storage.get(id, 'node')
+								if (!node) {
+									return [id]
+								}
+
+								// check if the node is in the empty edges list
+								return emptyEdges.includes(node) ? [] : [id]
+						  })
+
+					layer.writeLink(parent, key, nonEmptyLinks)
 				}
 
 				// if we're supposed to apply this write as an update, we need to figure out how
