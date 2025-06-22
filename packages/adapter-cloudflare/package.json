@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-cloudflare",
-    "version": "1.3.10",
+    "version": "1.3.11",
     "description": "The adapter for deploying your Houdini application to Cloudflare Pages",
     "keywords": [
         "houdini",
