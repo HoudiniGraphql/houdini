@@ -656,38 +656,32 @@ class CacheInternal {
 					previousValue === null ||
 					Array.isArray(previousValue))
 			) {
-				// make a shallow copy of the previous value we can  mutate
-				let oldIDs = [...(previousValue || [])] as (string | null)[]
-
 				// this field could be a connection (a list of references to edge objects).
 				// inserts in this list might insert objects into the connection that
 				// have already been added as part of a list operation. if that happens
 				// we will need to filter out ids that refer to these fake-edges which
 				// can be idenfitied as not having a cursor or node value
-				const emptyEdges = !updates
-					? []
-					: oldIDs.map((id) => {
-							if (!id) {
-								return ''
-							}
+				let oldIDs = [...(previousValue || [])] as (string | null)[]
 
-							// look up the edge record
-							const { value: cursorField } = this.storage.get(id, 'cursor')
-							// if there is a value for the cursor, it needs to remain
-							if (cursorField) {
-								return ''
+				// if we are updating a list then we dont want to consider inserted values as coming from the cache
+				if (updates?.includes('append') || updates?.includes('prepend')) {
+					oldIDs = oldIDs.filter((id) => {
+						// look through the available layers
+						for (const layer of this.storage.data) {
+							for (const operation of Object.values(layer.operations)) {
+								// if the operation is a list and the id is in the list, then we know that this id
+								// was inserted into the list and we should ignore it
+								if (operation.fields?.[key])
+									for (const listOperation of operation.fields[key]) {
+										if ('id' in listOperation && listOperation.id === id) {
+											return false
+										}
+									}
 							}
-
-							// look up the node reference
-							const { value: node } = this.storage.get(id, 'node')
-							// if there one, keep the edge
-							if (!node) {
-								return ''
-							}
-
-							// there is no cursor so the edge is empty
-							return node
-					  })
+						}
+						return true
+					})
+				}
 
 				// if we are supposed to prepend or append and the mutation is enabled
 				// the new list of IDs for this link will start with an existing value
@@ -715,8 +709,9 @@ class CacheInternal {
 				})
 
 				// we have to do something different if we are writing to an optimistic layer or not
+				// if we aren't writing to an optimistic layer than we need to make sure that we aren't
+				// adding any values that were previously only included because of an insert operation
 				let action = () => {
-					// update the cached value
 					layer.writeLink(parent, key, linkedIDs)
 				}
 
@@ -724,45 +719,44 @@ class CacheInternal {
 				if (applyUpdates && updates) {
 					// if we are updating the edges field, we might need to do a little more than just
 					// append/prepend to the field value. we might need to wrap the values in extra references
-					if (key === 'edges') {
-						// build up a list of the ids found in the new list
-						const newNodeIDs: string[] = []
-						for (const id of newIDs) {
+					const filterIDs = (keep: (string | null)[], insert: (string | null)[]) => {
+						const existingIDs = new Set<string>()
+						for (const id of keep) {
 							if (!id) {
 								continue
-							}
-
-							// look up the lined node record
-							const { value: node } = this.storage.get(id, 'node')
-							// node should be a reference
-							if (typeof node !== 'string') {
-								continue
-							}
-
-							// if we dont have type information or a valid reference
-							if (!node || !this.storage.get(node, '__typename')) {
-								continue
-							}
-
-							newNodeIDs.push(node)
-						}
-
-						// only save a previous ID if the id shows up in the new list and was previously empty,
-						oldIDs = oldIDs.filter((id) => {
-							if (!id) {
-								return true
 							}
 
 							// look up the node reference
-							const { value } = this.storage.get(id, 'node')
-							const node = value as string
-							// if the id is being adding and is part of the empty edges, don't include it
-							if (newNodeIDs.includes(node) && emptyEdges.includes(node)) {
-								return false
+							const { value: node } = this.storage.get(id, 'node')
+							// if there one, keep the edge
+							if (!node) {
+								continue
 							}
 
-							// the id is not being replaced by a "real" version
-							return true
+							const nodeID = this.storage.get(node as string, 'id')
+							if (!nodeID) {
+								continue
+							}
+							existingIDs.add(nodeID.value as string)
+						}
+
+						return insert.filter((id) => {
+							if (!id) {
+								return true
+							}
+							// look up the node reference
+							const { value: node } = this.storage.get(id, 'node')
+							// if there one, keep the edge
+							if (!node) {
+								return true
+							}
+
+							const nodeID = this.storage.get(node as string, 'id')
+							if (!nodeID) {
+								return true
+							}
+
+							return !existingIDs.has(nodeID.value as string)
 						})
 					}
 
@@ -775,7 +769,9 @@ class CacheInternal {
 
 						// if we have to prepend it, do so
 						if (update === 'prepend') {
-							linkedIDs = newIDs.concat(oldIDs as (string | null)[])
+							linkedIDs = newIDs.concat(
+								filterIDs(newIDs, oldIDs) as (string | null)[]
+							)
 							if (layer?.optimistic) {
 								action = () => {
 									for (const id of newIDs) {
@@ -788,7 +784,7 @@ class CacheInternal {
 						}
 						// otherwise we might have to append it
 						else if (update === 'append') {
-							linkedIDs = oldIDs.concat(newIDs)
+							linkedIDs = filterIDs(newIDs, oldIDs).concat(newIDs)
 							if (layer?.optimistic) {
 								action = () => {
 									for (const id of newIDs) {
