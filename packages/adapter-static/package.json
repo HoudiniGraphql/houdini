@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-static",
-    "version": "1.5.5-next.1",
+    "version": "1.5.5-next.2",
     "description": "The adapter for deploying your Houdini application as a single-page application without a server component",
     "keywords": [
         "houdini",
