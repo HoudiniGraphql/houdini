@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.2
+
+### Patch Changes
+
+-   [#1502](https://github.com/HoudiniGraphql/houdini/pull/1502) [`23f56f35`](https://github.com/HoudiniGraphql/houdini/commit/23f56f35f8fadcd5ee45e500460b6387a68dd6df) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue causing operation targets to be duplicated with paginated requests
+
 ## 2.0.0-next.1
 
 ### Minor Changes
