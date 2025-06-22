@@ -473,7 +473,6 @@ class CacheInternal {
 				operations,
 				abstract: isAbstract,
 				updates,
-				list,
 			} = targetSelection[field]
 			const key = evaluateKey(keyRaw, variables)
 
