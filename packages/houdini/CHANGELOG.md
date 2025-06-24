@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.3
+
+### Patch Changes
+
+-   [#1504](https://github.com/HoudiniGraphql/houdini/pull/1504) [`20bbeeda`](https://github.com/HoudiniGraphql/houdini/commit/20bbeedae7e586191dcc0d51685017de659df5bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix hmr when ssr is set to false in sveltekit
+
 ## 2.0.0-next.2
 
 ### Patch Changes
