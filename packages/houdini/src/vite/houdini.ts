@@ -59,7 +59,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			const isGqlFile = isGraphQLFile(file)
 
 			if (!(shouldReact && (fileDependsOnHoudini(modules, runtimeDir) || isGqlFile))) {
-				return []
+				return modules
 			}
 
 			if (config.localSchema) {
@@ -92,7 +92,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 			// if there are no changes, don't trigger a reload
 			if (!artifactStats) {
-				return []
+				return modules
 			}
 
 			console.log('🎩 ⬆️ bundle changed, triggering HMR update')
@@ -108,9 +108,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			}
 
 			// invalidate all the codegenerated modules
-			// NOTE: not returning the original module here, we expect other plugins to handle
-			// their own dependencies (i.e sveltekit)
-			return taintedModules
+			return taintedModules.concat(modules)
 		},
 
 		// add watch-and-run to their vite config
