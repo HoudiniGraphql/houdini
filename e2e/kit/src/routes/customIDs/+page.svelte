@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphql } from '$houdini';
-  import { PageData } from './$houdini';
+  import type { PageData } from './$houdini';
 
   export let data: Data
 

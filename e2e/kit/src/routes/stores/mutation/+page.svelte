@@ -1,7 +1,7 @@
 <script lang="ts">
   import { graphql, GQL_UpdateUser } from '$houdini';
   import { stry } from '@kitql/helpers';
-  import { PageData } from './$houdini';
+  import type { PageData } from './$houdini';
 
   export let data: PageData;
 

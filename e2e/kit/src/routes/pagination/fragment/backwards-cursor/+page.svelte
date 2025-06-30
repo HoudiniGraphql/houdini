@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphql, paginatedFragment } from '$houdini';
-  import { PageData } from './$houdini'
+  import type { PageData } from './$houdini'
 
   export let data: PageData;
 

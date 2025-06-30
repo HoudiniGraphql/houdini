@@ -1,5 +1,5 @@
 <script>
-  import { PageData } from './$houdini';
+  import type { PageData } from './$houdini';
   export let data: PageData;
 
   $: ({ PreprocessorTestQueryScalars: result } = data);
