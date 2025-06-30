@@ -7,7 +7,7 @@ import { pluginHooks } from '../plugin'
 import { plugin_config } from '../plugin/config'
 import { parseSvelte } from '../plugin/extract'
 import type { Framework } from '../plugin/kit'
-import { layout_query_path, page_query_path, route_data_path } from '../plugin/kit'
+import { route_data_path } from '../plugin/kit'
 import runTransforms from '../plugin/transforms'
 
 const schema = `
@@ -100,8 +100,6 @@ export async function route_test({
 	await Promise.all([
 		fs.writeFile(page_path, component),
 		fs.writeFile(route_data_path(config, page_path), script),
-		fs.writeFile(page_query_path(config, page_path), page_query),
-		fs.writeFile(layout_query_path(config, page_path), layout_query),
 		fs.writeFile(layout_path, layout),
 		fs.writeFile(layout_script_path, layout_script),
 	])

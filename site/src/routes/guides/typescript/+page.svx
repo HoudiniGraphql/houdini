@@ -71,7 +71,7 @@ Your `PageData` type will also come from `./$houdini` since SvelteKit's generate
 
 ```svelte:title=src/routes/myProfile/+page.svelte -->
 <script lang="ts">
-	import { PageData } from './$houdini'
+	import type { PageData } from './$houdini'
 
 	export let data: PageData
 

@@ -1,9 +1,0 @@
-query Directives {
-  user(id: "1", snapshot: "directives") {
-    name
-  }
-  cities @include(if: false) {
-    name
-  }
-  hello @skip(if: true)
-}

@@ -22,19 +22,6 @@ const table: Row[] = [
 		pass: true,
 		documents: [`query Version { version }`],
 	},
-	{
-		title: '@blocking @blocking_disable on a query',
-		pass: false,
-		documents: [
-			`query TestQuery @blocking @blocking_disable {
-					version
-			}`,
-			`query TestQuery2 @blocking @blocking_disable {
-				version
-		}`,
-		],
-		nb_of_fail: 4,
-	},
 ]
 
 describe('validate checks', async function () {

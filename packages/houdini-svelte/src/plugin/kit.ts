@@ -95,20 +95,6 @@ export function is_component(config: Config, framework: Framework, filename: str
 	)
 }
 
-export function page_query_path(config: Config, filename: string) {
-	return path.join(
-		path.dirname(resolve_relative(config, filename)),
-		plugin_config(config).pageQueryFilename
-	)
-}
-
-export function layout_query_path(config: Config, filename: string) {
-	return path.join(
-		path.dirname(resolve_relative(config, filename)),
-		plugin_config(config).layoutQueryFilename
-	)
-}
-
 export function resolve_relative(config: Config, filename: string) {
 	// kit generates relative import for our generated files. we need to fix that so that
 	// vites importer can find the file.
@@ -264,38 +250,6 @@ export async function walk_routes(
 					componentQueries.push({ query: definition, componentPath: childPath })
 				},
 			})
-		} else if (child === plugin_config(config).layoutQueryFilename) {
-			validRoute = true
-			const contents = await fs.readFile(childPath)
-			if (!contents) {
-				continue
-			}
-			//parse content
-			try {
-				const query = config.extractQueryDefinition(graphql.parse(contents))
-				// mutate with optional routeLayoutQuery. Takes an OperationDefinitionNode
-				await visitor.routeLayoutQuery?.(query, childPath)
-				// push to layoutQueries since once again adding to same file anyway
-				layoutQueries.push(query)
-			} catch (e) {
-				throw routeQueryError(childPath)
-			}
-		} else if (child === plugin_config(config).pageQueryFilename) {
-			validRoute = true
-			const contents = await fs.readFile(childPath)
-			if (!contents) {
-				continue
-			}
-
-			try {
-				const query = config.extractQueryDefinition(graphql.parse(contents))
-				// mutate with optional routePageQuery. Takes an OperationDefinitionNode
-				await visitor.routePageQuery?.(query, childPath)
-				// push to pageQueries since once again adding to same file anyway
-				pageQueries.push(query)
-			} catch (e) {
-				throw routeQueryError(childPath)
-			}
 		} else {
 			continue
 		}

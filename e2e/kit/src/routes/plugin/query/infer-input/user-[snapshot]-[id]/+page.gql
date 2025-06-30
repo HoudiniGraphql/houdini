@@ -1,5 +1,0 @@
-query RouteParamsUserQuery($snapshot: String!, $id: ID!) {
-  user(id: $id, snapshot: $snapshot) {
-    name
-  }
-}

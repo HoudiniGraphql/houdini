@@ -7,7 +7,6 @@ import { artifactData } from './artifactData'
 import generate from './codegen'
 import { plugin_config, type HoudiniSvelteConfig } from './config'
 import extract from './extract'
-import fs_patch from './fsPatch'
 import { resolve_relative, type Framework } from './kit'
 import { setConfig } from './state'
 import { store_import_path, store_name, stores_directory } from './storeConfig'
@@ -78,25 +77,6 @@ export const redirect = svelteKitRedirect
 	// custom logic to pull a graphql document out of a svelte file
 	extractDocuments: extract,
 
-	schema({ config }) {
-		return `
-"""
-	@${config.loadDirective} is used to enable automatic fetch on inline queries.
-"""
-directive @${config.loadDirective} on QUERY
-
-"""
-	@${config.blockingDirective} is used to always await the fetch.
-"""
-directive @${config.blockingDirective} on QUERY
-
-"""
-	@${config.blockingDisableDirective} is used to not always await the fetch (in CSR for example). Note that "throwOnError" will not throw in this case.
-"""
-directive @${config.blockingDisableDirective} on QUERY
-`
-	},
-
 	// we have some custom document validation logic
 	validate,
 
@@ -148,11 +128,6 @@ directive @${config.blockingDisableDirective} on QUERY
 		// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
 		// fix the include path and try again
 		return config.includeFile(resolve_relative(config, filepath), { ignore_plugins: true })
-	},
-
-	// add custom vite config
-	vite: {
-		...fs_patch(() => framework),
 	},
 
 	/**

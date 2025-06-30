@@ -1,5 +1,0 @@
-query CustomFunctionRouteParamsUserQuery($snapshot: String! = "test", $id: ID! = "1") {
-  user(id: $id, snapshot: $snapshot) {
-    name
-  }
-}

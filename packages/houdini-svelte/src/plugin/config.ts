@@ -13,18 +13,6 @@ export type HoudiniSvelteConfig = {
 	defaultRouteBlocking?: boolean
 
 	/**
-	 * The name of the file used to define page queries.
-	 * @default +page.gql
-	 */
-	pageQueryFilename?: string
-
-	/**
-	 * The name of the file used to define layout queries.
-	 * @default +layout.gql
-	 */
-	layoutQueryFilename?: string
-
-	/**
 	 * A flag to treat every component as a non-route. This is useful for projects built with the static-adapter
 	 * @default false
 	 */
@@ -65,8 +53,6 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 	return {
 		client: './src/client',
 		defaultRouteBlocking: false,
-		pageQueryFilename: '+page.gql',
-		layoutQueryFilename: '+layout.gql',
 		static: false,
 		forceRunesMode: false,
 		...cfg,
