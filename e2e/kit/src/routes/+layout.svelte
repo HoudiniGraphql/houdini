@@ -17,11 +17,8 @@
     return { key, value: (routes as Record<string, string>)[key] };
   });
 
-  $: info = graphql(`
-    query LayoutSession @load {
-      session
-    }
-  `);
+  export let data 
+  $: ({LayoutSession: info } = data)
 </script>
 
 <slot />
@@ -37,5 +34,5 @@
 </nav>
 
 <div id="layout-session">
-  {$info.data?.session}
+  {$info?.data?.session}
 </div>

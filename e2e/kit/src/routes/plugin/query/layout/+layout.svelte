@@ -1,13 +1,10 @@
 <script lang="ts">
   import { graphql } from '$houdini';
+  import { PageData } from './$houdini';
 
-  $: result = graphql(`
-    query LayoutTestQuery @load {
-      user(id: "1", snapshot: "preprocess-query-simple") {
-        name
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $: ({ LayoutTestQuery: result} = data)
 </script>
 
 <div id="result">

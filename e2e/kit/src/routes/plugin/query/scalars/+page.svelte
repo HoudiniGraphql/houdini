@@ -1,14 +1,8 @@
 <script>
-  import { graphql } from '$houdini';
+  import { PageData } from './$houdini';
+  export let data: PageData;
 
-  $: result = graphql`
-    query PreprocessorTestQueryScalars @load {
-      user(id: "1", snapshot: "preprocess-query-scalars") {
-        id
-        birthDate
-      }
-    }
-  `;
+  $: ({ PreprocessorTestQueryScalars: result } = data);
 </script>
 
 ISO:

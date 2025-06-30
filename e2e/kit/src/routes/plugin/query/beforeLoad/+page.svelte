@@ -4,13 +4,7 @@
 
   export let data: PageData;
 
-  $: result = graphql(`
-    query PreprocessorBeforeLoadTestQuery @load {
-      user(id: "1", snapshot: "preprocess-before-load-test-simple") {
-        name
-      }
-    }
-  `);
+  $: ({ PreprocessorBeforeLoadTestQuery: result } = data);
 </script>
 
 <div id="result">

@@ -1,13 +1,10 @@
 <script lang="ts">
   import { paginatedFragment, graphql } from '$houdini';
+  import { PageData } from './$houdini';
 
-  $: queryResult = graphql(`
-    query UserFragmentForwardsCursorQuery @load {
-      user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
-        ...ForwardsCursorFragment
-      }
-    }
-  `);
+  export let data: PageData
+
+  $: ({ UserFragmentForwardsCursorQuery: queryResult } = data);
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

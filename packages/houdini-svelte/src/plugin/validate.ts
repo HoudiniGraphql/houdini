@@ -40,42 +40,6 @@ export async function validate({
 				})
 			)
 		}
-
-		// Validation => Directives
-		graphql.visit(doc.document, {
-			Directive(node, _, __, ___, ancestors) {
-				const blockingDirectives = [
-					config.blockingDirective,
-					config.blockingDisableDirective,
-				]
-
-				// If we don't have blockingDirectives, let's go out
-				if (!blockingDirectives.includes(node.name.value)) {
-					return
-				}
-
-				// get definition
-				const { definition } = definitionFromAncestors(ancestors)
-
-				// list directives
-				const listDirective = definition.directives?.map((c) => c.name.value) ?? []
-
-				// if we have both blocking and no blocking directives let's report an error
-				if (
-					listDirective.includes(config.blockingDirective) &&
-					listDirective.includes(config.blockingDisableDirective)
-				) {
-					errors.push(
-						new HoudiniError({
-							filepath: doc.filename,
-							message: `You can't apply both @${config.blockingDirective} and @${config.blockingDisableDirective} at the same time`,
-						})
-					)
-				}
-
-				return
-			},
-		})
 	}
 
 	if (errors.length > 0) {

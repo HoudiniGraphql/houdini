@@ -1,16 +1,11 @@
 <script lang="ts">
   import { graphql } from '$houdini';
+  import { PageData } from './$houdini'
 
-  $: store = graphql(`
-    query LayoutCity @load {
-      city(id: "1") {
-        id
-        name
+  export let data: Data
 
-        # ...CityDetails
-      }
-    }
-  `);
+  $: ({LayoutCity: store} = data)
+
 </script>
 
 <h3>inside +layout.svelte: (try disabling this query, or enabling <code>...CityDetails</code>)</h3>

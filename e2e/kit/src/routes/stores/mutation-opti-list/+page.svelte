@@ -1,13 +1,11 @@
 <script lang="ts">
   import { graphql, type ForceReturn$options } from '$houdini';
 
-  $: query = graphql(`
-    query OptimisticUsersList @load {
-      usersList(snapshot: "mutation-opti-list", limit: 15) @list(name: "OptimisticUsersList") {
-        name
-      }
-    }
-  `);
+  import { PageData } from './$houdini';
+
+  export let data
+
+  $: ({OptimisticUsersList: query} = data)
 
   const addUser = graphql(`
     mutation AddUserOptiList($name: String!, $birthDate: DateTime!, $force: ForceReturn = NORMAL) {

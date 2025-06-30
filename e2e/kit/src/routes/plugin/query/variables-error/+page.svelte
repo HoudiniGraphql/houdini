@@ -1,13 +1,11 @@
 <script lang="ts">
   import { graphql } from '$houdini';
+  import { PageData} from './$types';
 
-  $: result = graphql(`
-    query PreprocessorTestQueryError($id: ID!) @load {
-      user(id: $id, snapshot: "preprocess-query-variable") {
-        name
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $:({ PreprocessorTestQueryError: result } = data)
+
 </script>
 
 <div id="result">
