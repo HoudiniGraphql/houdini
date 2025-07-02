@@ -4,7 +4,7 @@
 
   export let data: PageData;
 
-  $:({ UserFragmentBackwardsCursorQuery} = data);
+  $:({ UserFragmentBackwardsCursorQuery: queryResult } = data);
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

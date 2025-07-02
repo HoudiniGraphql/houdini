@@ -4,7 +4,7 @@
 
   export let data: PageData;
 
-  $:({ UserFragmentOffsetQuery: $queryResult } = data);
+  $:({ UserFragmentOffsetQuery: queryResult } = data);
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
