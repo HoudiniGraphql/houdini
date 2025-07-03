@@ -496,38 +496,7 @@ describe('kit route processor', function () {
 
 		expect(route.component).toMatchInlineSnapshot('')
 
-		expect(route.script).toMatchInlineSnapshot(`
-			import { load_TestPageQuery } from "$houdini/plugins/houdini-svelte/stores/TestPageQuery";
-			import { getCurrentConfig } from "$houdini/runtime/lib/config";
-			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-
-			export async function load(context) {
-			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = getCurrentConfig();
-			    const promises = [];
-			    const inputs = {};
-			    inputs["TestPageQuery"] = {};
-
-			    promises.push(load_TestPageQuery({
-			        "variables": inputs["TestPageQuery"],
-			        "event": context,
-			        "blocking": undefined
-			    }));
-
-			    let result = {};
-
-			    try {
-			        result = Object.assign({}, ...(await Promise.all(promises)));
-			    } catch (err) {
-			        throw err;
-			    }
-
-			    return {
-			        ...houdini_context.returnValue,
-			        ...result
-			    };
-			}
-		`)
+		expect(route.script).toMatchInlineSnapshot(``)
 
 		expect(route.layout).toMatchInlineSnapshot(`
 			import * as __houdini__pageStores from "$app/stores";
@@ -579,38 +548,10 @@ describe('kit route processor', function () {
 		`)
 
 		expect(route.layout_script).toMatchInlineSnapshot(`
-			import { load_TestLayoutQuery } from "$houdini/plugins/houdini-svelte/stores/TestLayoutQuery";
-			import { getCurrentConfig } from "$houdini/runtime/lib/config";
-			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
-
-			export async function load(context) {
-			    const houdini_context = new RequestContext(context);
-			    const houdiniConfig = getCurrentConfig();
-			    const promises = [];
-			    const inputs = {};
-			    inputs["TestLayoutQuery"] = {};
-
-			    promises.push(load_TestLayoutQuery({
-			        "variables": inputs["TestLayoutQuery"],
-			        "event": context,
-			        "blocking": undefined
-			    }));
-
-			    let result = {};
-
-			    try {
-			        result = Object.assign({}, ...(await Promise.all(promises)));
-			    } catch (err) {
-			        throw err;
-			    }
-
+			export async function load(event) {
 			    return {
-			        ...context.data,
-
-			        ...{
-			            ...houdini_context.returnValue,
-			            ...result
-			        }
+			        ...event.data,
+			        ...{}
 			    };
 			}
 		`)
