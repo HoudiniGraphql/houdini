@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphql, CachePolicy } from '$houdini';
-  import type { PageData } from './$types';
+  import type { PageData } from './$houdini';
   export let data: PageData;
 
   $: ({ OffsetVariablePaginationQuery: result } = data)

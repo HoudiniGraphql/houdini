@@ -7,12 +7,12 @@
 
 ISO:
 <div id="result-date">
-  {$result.data?.user.birthDate.toISOString()}
+  {$result.data?.user.birthDate?.toISOString()}
 </div>
 
 <br />
 
 Local:
 <div id="result-date-local">
-  {$result.data?.user.birthDate.toLocaleString()}
+  {$result.data?.user.birthDate?.toLocaleString()}
 </div>

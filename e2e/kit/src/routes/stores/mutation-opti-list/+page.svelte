@@ -3,7 +3,7 @@
 
   import type { PageData } from './$houdini';
 
-  export let data
+  export let data: PageData
 
   $: ({OptimisticUsersList: query} = data)
 
@@ -79,5 +79,5 @@
 <button id="mutate-error" on:click={() => addNonNull('ERROR')}>Add User (error)</button>
 
 <div id="result">
-  {$query.data?.usersList.map((user) => user.name).join(', ')}
+  {$query.data?.usersList.map((user) => user?.name).join(', ')}
 </div>

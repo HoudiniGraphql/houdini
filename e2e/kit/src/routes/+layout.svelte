@@ -3,6 +3,7 @@
   import { graphql } from '$houdini';
   import cache from '$houdini/runtime/cache';
   import { routes } from '$lib/utils/routes.js';
+  import { LayoutData } from './$houdini'
 
   // leave this in to make sure we don't break relative imports from
   // the root layout. see: https://github.com/HoudiniGraphql/houdini/issues/629
@@ -17,7 +18,7 @@
     return { key, value: (routes as Record<string, string>)[key] };
   });
 
-  export let data 
+  export let data: LayoutData
   $: ({LayoutSession: info } = data)
 </script>
 
