@@ -1,8 +1,8 @@
 <script lang="ts">
   import { graphql } from '$houdini';
-  import type { PageData } from './$houdini'
+  import type { LayoutData } from './$houdini'
 
-  export let data: Data
+  export let data: LayoutData
 
   $: ({LayoutCity: store} = data)
 

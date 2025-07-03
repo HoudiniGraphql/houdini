@@ -2,7 +2,7 @@
   import { graphql } from '$houdini';
   import type { PageData } from './$houdini';
 
-  export let data: Data
+  export let data: PageData
 
   $:({RentedBooks: store} = data)
   

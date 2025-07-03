@@ -1,6 +1,6 @@
 import { graphql } from '$houdini';
 
-export let _houdini_load = graphql(`
+export const _houdini_load = graphql(`
   query LayoutCity {
     city(id: "1") {
       id

@@ -3,7 +3,7 @@
   import CityDetails from './CityDetails.svelte';
   import type { PageData } from './$houdini';
 
-  export let data: Data
+  export let data: PageData
 
   $: ({ FragmentDataNullPageQuery: store} = data)
 </script>
