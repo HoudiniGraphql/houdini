@@ -1,10 +1,7 @@
-import * as graphql from 'graphql'
 import type { Config, Document } from 'houdini'
-import { HoudiniError, definitionFromAncestors } from 'houdini'
+import { HoudiniError } from 'houdini'
 
 import { store_name } from './storeConfig'
-
-// const directivesErrors: HoudiniError[] = []
 
 // uniqueDocumentNames verifies that the documents all have unique names
 export async function validate({

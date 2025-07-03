@@ -1,7 +1,7 @@
 import { yellow } from '@kitql/helpers'
 import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'

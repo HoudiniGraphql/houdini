@@ -1,4 +1,4 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 import type { Config } from 'houdini'
 import { find_graphql, fs, path } from 'houdini'
 import { ensure_imports } from 'houdini/vite'
