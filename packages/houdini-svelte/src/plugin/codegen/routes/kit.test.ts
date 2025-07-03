@@ -42,7 +42,6 @@ export type PageLoadEvent = Parameters<PageLoad>[0];
 export type PageData = Expand<Omit<PageParentData, keyof PageParentData & EnsureDefined<PageServerData>> & OptionalUnion<EnsureDefined<PageParentData & EnsureDefined<PageServerData>>>>;
 `
 
-
 test('generates types for component queries defined in a route', async function () {
 	await fs.mock({
 		[config.routesDir]: {
@@ -266,7 +265,7 @@ test('generates types for layout onError', async function () {
 		    error: Kit.HttpError;
 		};
 
-		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
+		export type MyPageLoad1QueryVariables = VariableFunction<LayoutLoadEvent, MyPageLoad1Query$input>;
 	`)
 })
 
@@ -362,7 +361,6 @@ test('generates types for page onError', async function () {
 		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
-		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
 		export type PageLoadEvent = Parameters<PageLoad>[0];
@@ -384,7 +382,7 @@ test('generates types for page onError', async function () {
 		    error: Kit.HttpError;
 		};
 
-		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
+		export type MyPageLoad1QueryVariables = VariableFunction<PageLoadEvent, MyPageLoad1Query$input>;
 	`)
 })
 
@@ -496,7 +494,7 @@ test('generates types for layout beforeLoad', async function () {
 
 		export type BeforeLoadEvent = LayoutLoadEvent;
 		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+layout")._houdini_beforeLoad>>;
-		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
+		export type MyPageLoad1QueryVariables = VariableFunction<LayoutLoadEvent, MyPageLoad1Query$input>;
 	`)
 })
 
@@ -592,7 +590,6 @@ test('generates types for page beforeLoad', async function () {
 		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
-		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
 		export type PageLoadEvent = Parameters<PageLoad>[0];
@@ -608,7 +605,7 @@ test('generates types for page beforeLoad', async function () {
 
 		export type BeforeLoadEvent = PageLoadEvent;
 		type BeforeLoadReturn = Awaited<ReturnType<typeof import("./+page")._houdini_beforeLoad>>;
-		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
+		export type MyPageLoad1QueryVariables = VariableFunction<PageLoadEvent, MyPageLoad1Query$input>;
 	`)
 })
 
@@ -731,7 +728,7 @@ test('generates types for layout afterLoad', async function () {
 		    input: LoadInput;
 		};
 
-		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MyPageLoad1Query$input>;
+		export type MyPageLoad1QueryVariables = VariableFunction<LayoutLoadEvent, MyPageLoad1Query$input>;
 	`)
 })
 
@@ -827,7 +824,6 @@ test('generates types for page afterLoad', async function () {
 		    [Key in Keys]?: Target[Key] | undefined | null;
 		};
 
-		type PageParams = PageLoadEvent["params"];
 		export type PageServerData = null;
 		export type PageLoad<OutputData extends OutputDataShape<PageParentData> = OutputDataShape<PageParentData>> = Kit.Load<RouteParams, PageServerData, PageParentData, OutputData>;
 		export type PageLoadEvent = Parameters<PageLoad>[0];
@@ -854,7 +850,7 @@ test('generates types for page afterLoad', async function () {
 		    input: LoadInput;
 		};
 
-		export type MyPageLoad1QueryVariables = VariableFunction<PageParams, MyPageLoad1Query$input>;
+		export type MyPageLoad1QueryVariables = VariableFunction<PageLoadEvent, MyPageLoad1Query$input>;
 	`)
 })
 
@@ -942,6 +938,6 @@ test('Marks required query arguments as optional if the url param provides it', 
 		    MyPageLoad1Query: MyPageLoad1Query$input;
 		};
 
-		export type MyPageLoad1QueryVariables = VariableFunction<LayoutParams, MakeOptional<MyPageLoad1Query$input, "userID">>;
+		export type MyPageLoad1QueryVariables = VariableFunction<LayoutLoadEvent, MakeOptional<MyPageLoad1Query$input, "userID">>;
 	`)
 })

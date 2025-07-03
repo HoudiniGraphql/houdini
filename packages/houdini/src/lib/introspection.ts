@@ -9,7 +9,7 @@ export async function pullSchema(
 	fetchTimeout: number,
 	schemaPath: string,
 	headers?: Record<string, string>,
-	skipWriting?: boolean
+	writeToDisk: boolean = true
 ): Promise<string | null> {
 	let content = ''
 	try {
@@ -69,8 +69,15 @@ export async function pullSchema(
 		} else {
 			fileData = JSON.stringify(jsonSchema)
 		}
-		if (!skipWriting) {
-			await fs.writeFile(schemaPath, fileData)
+		if (writeToDisk) {
+			try {
+				await fs.writeFile(schemaPath, fileData)
+			} catch (e) {
+				console.warn(
+					`⚠️  Couldn't write your pulled schema to disk: ${(e as Error).message}
+	If this is expected, please set watchSchema.writePolledSchema to false in your config file.`
+				)
+			}
 		}
 
 		return fileData

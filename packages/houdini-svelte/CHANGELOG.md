@@ -1,5 +1,38 @@
 # houdini-svelte
 
+## 2.2.0-next.5
+
+### Patch Changes
+
+-   Updated dependencies [[`20bbeeda`](https://github.com/HoudiniGraphql/houdini/commit/20bbeedae7e586191dcc0d51685017de659df5bd)]:
+    -   houdini@2.0.0-next.3
+
+## 2.2.0-next.4
+
+### Patch Changes
+
+-   Updated dependencies [[`23f56f35`](https://github.com/HoudiniGraphql/houdini/commit/23f56f35f8fadcd5ee45e500460b6387a68dd6df)]:
+    -   houdini@2.0.0-next.2
+
+## 2.2.0-next.3
+
+### Patch Changes
+
+-   [#1491](https://github.com/HoudiniGraphql/houdini/pull/1491) [`0d0725f8`](https://github.com/HoudiniGraphql/houdini/commit/0d0725f8e1377b5029bc815135e3a2c08e745595) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix incorrect typings for automatic load event parameter
+
+## 2.2.0-next.2
+
+### Patch Changes
+
+-   Updated dependencies [[`e92beaf4`](https://github.com/HoudiniGraphql/houdini/commit/e92beaf4a680082a644726abfb719cfeda72ab8e), [`83db8ab2`](https://github.com/HoudiniGraphql/houdini/commit/83db8ab2678d5e86c325890f6f3608f16ea3c81f)]:
+    -   houdini@2.0.0-next.1
+
+## 2.2.0-next.1
+
+### Patch Changes
+
+-   [#1472](https://github.com/HoudiniGraphql/houdini/pull/1472) [`a078f0ba`](https://github.com/HoudiniGraphql/houdini/commit/a078f0baac07da040dd6bb000c40f54092d31759) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Properly generate load function with renamed props for component queries with an `@load` directive
+
 ## 2.2.0-next.0
 
 ### Minor Changes

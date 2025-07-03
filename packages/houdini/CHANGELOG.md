@@ -1,5 +1,27 @@
 # houdini
 
+## 2.0.0-next.3
+
+### Patch Changes
+
+-   [#1504](https://github.com/HoudiniGraphql/houdini/pull/1504) [`20bbeeda`](https://github.com/HoudiniGraphql/houdini/commit/20bbeedae7e586191dcc0d51685017de659df5bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix hmr when ssr is set to false in sveltekit
+
+## 2.0.0-next.2
+
+### Patch Changes
+
+-   [#1502](https://github.com/HoudiniGraphql/houdini/pull/1502) [`23f56f35`](https://github.com/HoudiniGraphql/houdini/commit/23f56f35f8fadcd5ee45e500460b6387a68dd6df) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue causing operation targets to be duplicated with paginated requests
+
+## 2.0.0-next.1
+
+### Minor Changes
+
+-   [#1485](https://github.com/HoudiniGraphql/houdini/pull/1485) [`83db8ab2`](https://github.com/HoudiniGraphql/houdini/commit/83db8ab2678d5e86c325890f6f3608f16ea3c81f) Thanks [@rgon](https://github.com/rgon)! - allow configuring schemaPolling to write the pulled schema to a file
+
+### Patch Changes
+
+-   [#1481](https://github.com/HoudiniGraphql/houdini/pull/1481) [`e92beaf4`](https://github.com/HoudiniGraphql/houdini/commit/e92beaf4a680082a644726abfb719cfeda72ab8e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix static runtime generation
+
 ## 2.0.0-next.0
 
 ### Major Changes

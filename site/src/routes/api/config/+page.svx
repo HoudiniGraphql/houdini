@@ -151,6 +151,7 @@ You can pass the following parameters to `watchSchema`:
 - `headers` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a strings or a function that takes the current `process.env` and returns the the value to use. If you want to access an environment variable, prefix your string with `env:`, ie `env:API_KEY`. For more information see the [section below](#environment-variables).
 - `interval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command](/api/cli#pull-schema) to get updates.
 - `timeout` (optional, default: `30000`): Sets a custom timeout in milliseconds which is used to cancel fetching the schema. If the timeout is reached before the remote API has responded, the request is cancelled and an error is displayed. The default is 30 seconds.
+- `writePolledSchema` (optional, default: `true`): Save the updated schema to `schemaPath` locally whenever it is updated (on watchSchema pull).
 
 ### Environment Variables
 

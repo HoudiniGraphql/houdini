@@ -198,11 +198,6 @@ export async function init(
 		schemaPath = answers.schema_path
 	}
 
-	// Let's write the schema only now (after the function "after_questions" where the project has been created)
-	if (is_remote_endpoint && pullSchema_content) {
-		await fs.writeFile(path.join(targetPath, schemaPath), pullSchema_content)
-	}
-
 	// try to detect which tools they are using
 	const { frameworkInfo, typescript, module, package_manager } = await detectTools(targetPath)
 

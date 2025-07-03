@@ -14,8 +14,8 @@ import type { Readable } from 'svelte/store'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
-export type VariableFunction<_Params extends Record<string, string>, _Input> = (
-	event: LoadEvent<_Params>
+export type VariableFunction<_Event extends LoadEvent, _Input> = (
+	event: _Event
 ) => _Input | Promise<_Input>
 
 export type AfterLoadFunction<

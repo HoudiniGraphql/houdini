@@ -5,11 +5,14 @@ import { runPipeline as run, LogLevel, find_graphql, parseJS, HoudiniError, fs, 
 import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
 import * as generators from './generators'
 import type { ArtifactStats } from './generators/artifacts'
+import { generateStaticRuntimes } from './generators/runtime/pluginRuntime'
 import * as transforms from './transforms'
 import * as validators from './validators'
 
 // the main entry point of the compile script
 export default async function compile(config: Config): Promise<ArtifactStats | undefined> {
+	await generateStaticRuntimes({ config })
+
 	// grab the graphql documents
 	const documents = await collectDocuments(config)
 

@@ -1,4 +1,4 @@
-import { test, expect, vi, describe } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 
 import { component_test } from '../../test'
 
@@ -95,6 +95,64 @@ test('with variables', async function () {
 		                prop2: prop2,
 		                prop3: prop3,
 		                prop4: prop4
+		            }
+		        })
+		    })
+		});
+	`)
+})
+
+test('renamed variables', async function () {
+	const route = await component_test(
+		`
+            export function _TestQueryVariables() {
+                return {
+                    hello: 'world'
+                }
+            }
+
+            let className = ""
+            export { className as class }
+
+            $: result = graphql\`
+                query TestQuery($test: String!) @load {
+                    users(stringValue: $test) {
+                        id
+                    }
+                }
+            \`
+		`
+	)
+
+	expect(route).toMatchInlineSnapshot(`
+		import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+		import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+		import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { marshalInputs } from "$houdini/runtime/lib/scalars";
+		const _houdini_TestQuery = new TestQueryStore();
+
+		export function _TestQueryVariables() {
+		    return {
+		        hello: "world"
+		    };
+		}
+
+		let className = "";
+		export { className as class };
+
+		$:
+		result = _houdini_TestQuery;
+
+		$:
+		isBrowser && _houdini_TestQuery.fetch({
+		    variables: marshalInputs({
+		        config: getCurrentConfig(),
+		        artifact: _houdini_TestQuery.artifact,
+
+		        input: _TestQueryVariables.call(new RequestContext(), {
+		            props: {
+		                class: className
 		            }
 		        })
 		    })
@@ -405,6 +463,75 @@ describe('Svelte 5 runes', function () {
 			            config: getCurrentConfig(),
 			            artifact: _houdini_TestQuery.artifact,
 			            input: {}
+			        })
+			    });
+			});
+		`)
+	})
+
+	test('renamed props', async function () {
+		const route = await component_test(`
+				export function _TestQueryVariables() {
+					return {
+						hello: 'world'
+					}
+				}
+	
+				const {
+                    prop1: renamedProp,
+                    prop2: alsoRenamed = "with default",
+                    prop3,
+                    prop4 = "some default"
+                } = $props();
+	
+				const result = $derived(
+					graphql\`
+						query TestQuery($test: String!) @load {
+							users(stringValue: $test) {
+								id
+							}
+						}
+					\`
+				)
+			`)
+
+		expect(route).toMatchInlineSnapshot(`
+			import { TestQueryStore } from "$houdini/plugins/houdini-svelte/stores/TestQuery";
+			import { isBrowser } from "$houdini/plugins/houdini-svelte/runtime/adapter";
+			import { RequestContext } from "$houdini/plugins/houdini-svelte/runtime/session";
+			import { getCurrentConfig } from "$houdini/runtime/lib/config";
+			import { marshalInputs } from "$houdini/runtime/lib/scalars";
+			const _houdini_TestQuery = new TestQueryStore();
+
+			export function _TestQueryVariables() {
+			    return {
+			        hello: "world"
+			    };
+			}
+
+			const {
+			    prop1: renamedProp,
+			    prop2: alsoRenamed = "with default",
+			    prop3,
+			    prop4 = "some default"
+			} = $props();
+
+			const result = $derived(_houdini_TestQuery);
+
+			$effect(() => {
+			    _houdini_TestQuery.fetch({
+			        variables: marshalInputs({
+			            config: getCurrentConfig(),
+			            artifact: _houdini_TestQuery.artifact,
+
+			            input: _TestQueryVariables.call(new RequestContext(), {
+			                props: {
+			                    prop1: renamedProp,
+			                    prop2: alsoRenamed,
+			                    prop3: prop3,
+			                    prop4: prop4
+			                }
+			            })
 			        })
 			    });
 			});
