@@ -5,7 +5,7 @@
 
   export let data: PageData;
 
-  $: ({ UserConnectonFragmentPageQuery: queryResult } = data);
+  $: ({ UserConnectionFragmentQuery: queryResult } = data);
 
   $: frag = fragment(
     $queryResult.data?.user?.friendsConnection ?? null,

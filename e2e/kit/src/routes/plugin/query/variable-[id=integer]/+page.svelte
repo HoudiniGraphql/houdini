@@ -4,7 +4,7 @@
 
   export let data: PageData
 
-  $: ({PreprocessorTestQueryVars: result} = $data);
+  $: ({PreprocessorTestQueryVars: result} = data);
 </script>
 
 <div id="result">
