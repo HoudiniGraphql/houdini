@@ -3,8 +3,6 @@ import { test, expect, describe } from 'vitest'
 import { route_test } from '../../../test'
 
 describe('kit route processor', function () {
-
-
 	test('inline query, no ssr', async function () {
 		const route = await route_test({
 			component: `
@@ -29,7 +27,6 @@ describe('kit route processor', function () {
 		`)
 		expect(route.script).toMatchInlineSnapshot('')
 	})
-
 
 	test('compute variables', async function () {
 		const route = await route_test({
@@ -73,7 +70,6 @@ describe('kit route processor', function () {
 			          \`);
 		`)
 	})
-
 
 	test.todo('fails if variable function is not present')
 })
@@ -171,7 +167,6 @@ test('beforeLoad hook', async function () {
 	`)
 })
 
-
 test('afterLoad hook', async function () {
 	const route = await route_test({
 		script: `
@@ -260,7 +255,6 @@ test('afterLoad hook', async function () {
 		}
 	`)
 })
-
 
 test('both beforeLoad and afterLoad hooks', async function () {
 	const route = await route_test({
@@ -468,7 +462,6 @@ test('layout loads', async function () {
 		});
 	`)
 })
-
 
 test('onError hook', async function () {
 	const route = await route_test({
@@ -695,4 +688,3 @@ test('route params with variable function', async function () {
 		}
 	`)
 })
-
