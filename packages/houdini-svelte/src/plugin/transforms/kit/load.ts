@@ -9,13 +9,7 @@ import * as recast from 'recast'
 import { plugin_config } from '../../config'
 import { parseSvelte } from '../../extract'
 import { extract_load_function, type HoudiniRouteScript } from '../../extractLoadFunction'
-import {
-	is_layout,
-	is_route,
-	is_route_script,
-	route_data_path,
-	route_page_path,
-} from '../../kit'
+import { is_layout, is_route, is_route_script, route_data_path, route_page_path } from '../../kit'
 import {
 	houdini_afterLoad_fn,
 	houdini_before_load_fn,

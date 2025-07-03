@@ -132,7 +132,7 @@ test('generates types for paginated fragments', async function () {
 			`,
 				{
 					refetch: {
-            mode: 'Infinite',
+						mode: 'Infinite',
 						method: 'cursor',
 						direction: 'forward',
 						embedded: true,
