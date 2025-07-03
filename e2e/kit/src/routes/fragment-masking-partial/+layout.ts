@@ -1,14 +1,12 @@
-import { graphql } from '$houdini'
+import { graphql } from '$houdini';
 
 export let _houdini_load = graphql(`
-   query LayoutCity {
-      city(id: "1") {
-        id
-        name
+  query LayoutCity {
+    city(id: "1") {
+      id
+      name
 
-        # ...CityDetails
-      }
+      # ...CityDetails
     }
-`)
-
-
+  }
+`);

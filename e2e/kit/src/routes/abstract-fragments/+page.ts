@@ -10,4 +10,4 @@ export const _houdini_load = graphql(`
       ...AnimalsList
     }
   }
-`)
+`);

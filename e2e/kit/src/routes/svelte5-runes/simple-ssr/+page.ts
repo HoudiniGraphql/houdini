@@ -1,4 +1,4 @@
-import { graphql } from '$houdini'
+import { graphql } from '$houdini';
 
 export const _houdini_load = graphql(`
   query Svelte5SimpleSSR {
@@ -7,4 +7,4 @@ export const _houdini_load = graphql(`
       birthDate
     }
   }
-`)
+`);

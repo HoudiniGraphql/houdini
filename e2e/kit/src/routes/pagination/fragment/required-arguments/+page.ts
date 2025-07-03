@@ -1,4 +1,4 @@
-import { graphql } from '$houdini'
+import { graphql } from '$houdini';
 
 export const _houdini_load = graphql(`
   query UserFragmentRequiredArgsQuery(
@@ -11,4 +11,4 @@ export const _houdini_load = graphql(`
       ...TestFragment @with(snapshot: $snapshot)
     }
   }
-`)
+`);

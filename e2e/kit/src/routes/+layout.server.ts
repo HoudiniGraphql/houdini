@@ -1,1 +1,1 @@
-export const _houdini_session = true
+export const _houdini_session = true;

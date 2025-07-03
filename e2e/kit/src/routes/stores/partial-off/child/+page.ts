@@ -1,4 +1,4 @@
-import { graphql } from '$houdini'
+import { graphql } from '$houdini';
 
 export const _houdini_load = graphql(`
   query PartialOffChild @cache(partial: false) {
@@ -7,5 +7,4 @@ export const _houdini_load = graphql(`
       name
     }
   }
-`)
-
+`);

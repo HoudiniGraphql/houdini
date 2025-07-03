@@ -1,4 +1,4 @@
-import { graphql } from '$houdini'
+import { graphql } from '$houdini';
 import type { CustomFunctionRouteParamsUserQueryVariables } from './$houdini';
 
 export const _houdini_load = graphql(`
@@ -7,7 +7,7 @@ export const _houdini_load = graphql(`
       name
     }
   }
-`)
+`);
 
 export const _CustomFunctionRouteParamsUserQueryVariables: CustomFunctionRouteParamsUserQueryVariables =
   () => {
