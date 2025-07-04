@@ -12,6 +12,7 @@ This section contains posts that cover fundamental principles to help you build 
 - [Release Notes](/guides/release-notes) - A summary of the updates for every major and minor
   version
 - [F.A.Q.](/guides/faq) - Answers to common questions such as "Why Houdini?"
+- [Migrating to 2.0](/guides/migrateTo20) - A description of what's necessary when migrating to 2.0
 - [Plugin Directory](/guides/plugin-directory) - A list of plugins you can add to your houdini project
 - [Working with GraphQL](/guides/working-with-graphql) - An overview of the different ways you can leverage GraphQL
 - [Setting up Your Project](/guides/setting-up-your-project) - Instructions for setting up your project

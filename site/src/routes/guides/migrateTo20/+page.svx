@@ -1,0 +1,58 @@
+---
+title: Migrating to 2.0
+description: A description of everything necessary to migration to Houdini 2.0
+---
+<script>
+    import { Warning } from '~/components'
+</script>
+
+# Migrating to 2.0
+
+Welcome to the upgrade guide for Houdini 2.0! This update is the largest release in Houdini's history and so there
+are a number of things to keep in mind and go over when migrating your application to 2.0.
+
+## New Dependency Versions
+
+Hopefully this one is easy. There are a few major version updates to Houdini's dependencies:
+
+```json
+"vite": "^6.0.3"
+"graphql": "^16.10.0."
+```
+
+## Removal of `+page.gql` in SvelteKit projects
+
+<Warning>
+
+If you are using React, you should skip this section.
+
+</Warning>
+
+In short, `+page.gql` and `+layout.gql` are no longer supported due to a regression in SvelteKit's logic.
+This is somewhat of a double-edged sword: on one hand we've lost a relatively streamlined 
+integration in SvelteKit however that integration was a relatively significant 
+limitation when it came time to integrate with some of Kit's powerful features like 
+[streaming promises](https://svelte.dev/docs/kit/load#Streaming-with-promises) or the upcoming [asynchronous features in svelte](https://github.com/sveltejs/svelte/discussions/15845).
+
+You've got 2 options: either, [define your loads manually](/api/query#manual-loading) or rely on [automatic loading via _houdini_load](/api/query#automatic-loading).
+
+
+## Session Support in SvelteKit 
+
+<Warning>
+
+If you are using React, you should skip this section.
+
+</Warning>
+
+The same regression that affected `+page.gql` support has also made it more complicated to support session information. Whereas before things "Just Worked", you must now define 2 different files: `src/routes/+layout.js` and `src/routes/+layout.server.js`:
+
+```javascript:title=src/routes/+layout.js
+export const _houdini_sessions = true
+```
+
+```javascript:title=src/routes/+layout.server.js
+export const _houdini_sessions = true
+```
+
+You can also define these as `.ts` if you prefer.
