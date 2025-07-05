@@ -1,18 +1,10 @@
 <script lang="ts">
   import { graphql, paginatedFragment } from '$houdini';
+  import type { PageData } from './$houdini';
 
-  $: queryResult = graphql(`
-    query UserFragmentRequiredArgsQuery(
-      $snapshot: String! = "pagination-fragment-required-arguments"
-    ) @load {
-      user(id: "1", snapshot: $snapshot) {
-        id
-        name
+  export let data: PageData;
 
-        ...TestFragment @with(snapshot: $snapshot)
-      }
-    }
-  `);
+  $: ({ UserFragmentRequiredArgsQuery: queryResult } = data);
 
   $: fragmentResult = paginatedFragment(
     $queryResult.data?.user ?? null,

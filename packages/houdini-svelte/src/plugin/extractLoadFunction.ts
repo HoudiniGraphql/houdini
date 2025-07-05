@@ -200,7 +200,9 @@ async function processScript(
 					element.callee.name !== 'graphql' ||
 					element.arguments.length !== 1
 				) {
-					throw new Error(`only graphql function can be passed to ${houdini_load_fn}`)
+					throw new Error(
+						`only graphql function can be passed to ${houdini_load_fn}. Filepath: ${filepath}`
+					)
 				}
 				let documentString: string
 				const argument = element.arguments[0]

@@ -446,18 +446,18 @@
 
 	.logos {
 		display: grid;
-        grid-template-columns: repeat(3, auto);
+		grid-template-columns: repeat(3, auto);
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
 		gap: 64px;
 	}
 
-    .logos a {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+	.logos a {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
 	.logos-container h2 {
 		text-align: center;

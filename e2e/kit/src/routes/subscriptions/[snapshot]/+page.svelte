@@ -1,17 +1,14 @@
-<script>
+<script lang="ts">
   import { graphql } from '$houdini';
+  import type { PageData } from './$houdini';
+
+  export let data: PageData;
+
+  $: ({ SubscriptionTestUserList: List } = data)
 
   const updates = graphql(`
     subscription UserUpdates {
       userUpdate(id: "1", snapshot: "subscription-test") {
-        name
-      }
-    }
-  `);
-
-  const List = graphql(`
-    query SubscriptionTestUserList @load {
-      user(id: "1", snapshot: "subscription-test") {
         name
       }
     }

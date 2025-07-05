@@ -1,16 +1,11 @@
 <script lang="ts">
   import { graphql } from '$houdini';
+  import type { PageData } from './$houdini';
 
-  const store = graphql(`
-    query RentedBooks @load {
-      rentedBooks {
-        userId
-        bookId
-        rate
-      }
-    }
-  `);
+  export let data: PageData
 
+  $:({RentedBooks: store} = data)
+  
   const update = graphql(`
     mutation updateRentedBook($rate: Int!) {
       updateRentedBook(userId: "1", bookId: 1, rate: $rate) {

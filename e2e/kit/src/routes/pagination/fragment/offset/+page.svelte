@@ -1,13 +1,10 @@
 <script lang="ts">
   import { paginatedFragment, graphql } from '$houdini';
+  import type { PageData } from './$houdini';
 
-  $: queryResult = graphql(`
-    query UserFragmentOffsetQuery @load {
-      user(id: "1", snapshot: "pagination-fragment-offset") {
-        ...OffsetFragment
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $:({ UserFragmentOffsetQuery: queryResult } = data);
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -5,9 +5,6 @@ export const routes = {
   // edge cases
 
   nested_routes: '/nested-routes',
-  fetching_with_load: '/fetching/with_load',
-  fetching_without_load: '/fetching/without_load',
-  fetching_route_1: '/fetching/route_1',
   union_result: '/union-result',
   customIDs: '/customIDs',
   subscriptions_happyPath: '/subscriptions/happyPath',
@@ -21,7 +18,6 @@ export const routes = {
   Lists_all: '/lists/all?limit=15',
   Lists_fragment: '/lists/fragment',
   Lists_mutation_insert: '/lists/mutation-insert',
-  blocking: '/blocking',
 
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',

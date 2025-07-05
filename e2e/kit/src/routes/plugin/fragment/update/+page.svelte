@@ -1,15 +1,10 @@
 <script lang="ts">
   import { fragment, graphql } from '$houdini';
+  import type { PageData } from './$houdini'
 
-  $: userInfo = graphql(`
-    query FragmentUpdateTestQuery($id: ID!) @load {
-      node(id: $id) {
-        ... on User {
-          ...UserFragmentTestFragment
-        }
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $: ({FragmentUpdateTestQuery: userInfo } = data)
 
   $: user = fragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

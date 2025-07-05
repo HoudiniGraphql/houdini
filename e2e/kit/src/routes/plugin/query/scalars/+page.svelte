@@ -1,24 +1,18 @@
-<script>
-  import { graphql } from '$houdini';
+<script lang="ts">
+  import type { PageData } from './$houdini';
+  export let data: PageData;
 
-  $: result = graphql`
-    query PreprocessorTestQueryScalars @load {
-      user(id: "1", snapshot: "preprocess-query-scalars") {
-        id
-        birthDate
-      }
-    }
-  `;
+  $: ({ PreprocessorTestQueryScalars: result } = data);
 </script>
 
 ISO:
 <div id="result-date">
-  {$result.data?.user.birthDate.toISOString()}
+  {$result.data?.user.birthDate?.toISOString()}
 </div>
 
 <br />
 
 Local:
 <div id="result-date-local">
-  {$result.data?.user.birthDate.toLocaleString()}
+  {$result.data?.user.birthDate?.toLocaleString()}
 </div>

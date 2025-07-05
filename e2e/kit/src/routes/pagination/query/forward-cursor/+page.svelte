@@ -1,17 +1,10 @@
 <script lang="ts">
   import { CachePolicy, graphql } from '$houdini';
+  import type { PageData } from './$houdini';
 
-  $: result = graphql(`
-    query ForwardCursorPaginationQuery @load {
-      usersConnection(first: 2, snapshot: "pagination-query-forwards-cursor") @paginate {
-        edges {
-          node {
-            name
-          }
-        }
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $: ({ ForwardCursorPaginationQuery: result } = data);
 </script>
 
 <div id="result">

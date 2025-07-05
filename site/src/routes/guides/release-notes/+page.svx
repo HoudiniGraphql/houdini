@@ -9,6 +9,13 @@ description: A guide to migrating your application to each breaking version of h
 
 # Release Notes
 
+## 2.0
+
+`2.0` is the largest release of Houdini in the last 3 years. Thanks so much to everyone involved with testing and contributing to this massive effort.
+
+Given the scale of the rewrite, we've written [a guide](/guides/migrateTo20) that details all of the necessary changes so please head over there for more information. 
+
+
 ## 1.2.0
 
 `1.2` brings a bunch of new directives to the pile:
