@@ -38,11 +38,12 @@ CREATE TABLE runtime_scalar_definitions (
 CREATE TABLE component_fields (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	document INTEGER NOT NULL,
-    type TEXT,
+  type TEXT,
 	prop TEXT,
-    field TEXT,
+  field TEXT,
 	inline BOOLEAN default false,
   type_field TEXT,
+  fragment TEXT,
 	UNIQUE (document),
 	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );

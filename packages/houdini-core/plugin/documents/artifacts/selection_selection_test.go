@@ -3085,110 +3085,110 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"UserWithAvatar": tests.Dedent(`
-		export default {
-		    "name": "UserWithAvatar",
-		    "kind": "HoudiniQuery",
-		    "hash": "30e4c52e63f8d5ce74e8b8545a099d29e877df195141d1c67221b480f0840014",
+            export default {
+                "name": "UserWithAvatar",
+                "kind": "HoudiniQuery",
+                "hash": "51262f47df33c40c18a8f4b081242dedd62c8ffb0fd94595ee122afb0e83ad71",
+                "raw": ` + "`" + `fragment FriendList on User {
+                firstName
+                __typename
+                id
+            }
 
-		    "raw": ` + "`" + `fragment FriendList on User {
-        firstName
-        id
-        __typename
-		}
+            fragment UserAvatar on User {
+                firstName
+                ...FriendList
+                __typename
+                id
+            }
 
-		fragment UserAvatar on User {
-        firstName
-        ...FriendList
-        id
-        __typename
-		}
+            query UserWithAvatar {
+                user {
+                    ...UserAvatar
+                    __typename
+                    id
+                }
+            }
+            ` + "`" + `,
 
-    query UserWithAvatar {
-        user {
-            ...UserAvatar
-            id
-        }
-		}
-		` + "`" + `",
+                "rootType": "Query",
+                "stripVariables": [],
 
-		    "rootType": "Query",
-		    "stripVariables": [],
+                "selection": {
+                    "fields": {
+                        "user": {
+                            "type": "User",
+                            "keyRaw": "user",
 
-		    "selection": {
-		        "fields": {
-		            "user": {
-		                "type": "User",
-		                "keyRaw": "user",
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                        "visible": true,
+                                    },
 
-		                "selection": {
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                    },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id",
-		                            "visible": true
-		                        },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                        "visible": true,
+                                    },
 
-		                        "__typename": {
-		                            "type": "String",
-		                            "keyRaw": "__typename"
-		                        },
+                                    "Avatar": {
+                                        "keyRaw": "Avatar",
+                                        "type": "Component",
 
-		                        "Avatar": {
-		                            "keyRaw": "Avatar",
-		                            "type": "Component",
+                                        "component": {
+                                            "prop": "user",
+                                            "key": "User.Avatar",
+                                            "fragment": "UserAvatar",
+                                            "variables": {}
+                                        },
 
-		                            "component": {
-		                                "prop": "user",
-		                                "key": "User.Avatar",
-		                                "fragment": "UserAvatar",
-		                                "variables": {}
-		                            },
+                                        "visible": true,
+                                    },
 
-		                            "visible": true
-		                        },
+                                    "FriendList": {
+                                        "keyRaw": "FriendList",
+                                        "type": "Component",
 
-		                        "FriendList": {
-		                            "keyRaw": "FriendList",
-		                            "type": "Component",
+                                        "component": {
+                                            "prop": "user",
+                                            "key": "User.FriendList",
+                                            "fragment": "FriendList",
+                                            "variables": {}
+                                        },
+                                    },
+                                },
 
-		                            "component": {
-		                                "prop": "user",
-		                                "key": "User.FriendList",
-		                                "fragment": "FriendList",
-		                                "variables": {}
-		                            }
-		                        }
-		                    },
+                                "fragments": {
+                                    "FriendList": {
+                                        "arguments": {}
+                                    },
+                                    "UserAvatar": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-		                    "fragments": {
-		                        "UserAvatar": {
-		                            "arguments": {}
-		                        },
+                            "visible": true,
+                        },
+                    },
+                },
 
-		                        "FriendList": {
-		                            "arguments": {}
-		                        }
-		                    }
-		                },
+                "pluginData": {},
+                "hasComponents": true,
+                "policy": "CacheOrNetwork",
+                "partial": false
+            }
 
-		                "visible": true
-		            }
-		        }
-		    },
-
-		    "pluginData": {},
-		    "hasComponents": true,
-		    "policy": "CacheOrNetwork",
-		    "partial": false
-		};
-
-		"HoudiniHash=bb8055518b549496d9673bb3a0ff9091e20fbe760670c589f689a1dc416211dd";
-	`),
+            "HoudiniHash=51262f47df33c40c18a8f4b081242dedd62c8ffb0fd94595ee122afb0e83ad71"
+          `),
 				},
 			},
 		},

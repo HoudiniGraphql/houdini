@@ -78,7 +78,8 @@ func TransformFields[PluginConfig any](
       END,
       component_fields.type,
       component_fields.field,
-      documents.id as document_id
+      documents.id as document_id,
+      component_fields.fragment
     FROM component_fields
       JOIN selections ON selections."type" = component_fields.type_field
       JOIN selection_refs ON selection_refs.child_id = selections.id 
@@ -97,9 +98,7 @@ func TransformFields[PluginConfig any](
 	err = db.StepStatement(ctx, selectionSearch, func() {
 		selectionID := selectionSearch.ColumnInt(0)
 		argStr := selectionSearch.ColumnText(1)
-		typ := selectionSearch.ColumnText(2)
-		field := selectionSearch.ColumnText(3)
-		fragmentName := schema.ComponentFieldFragmentName(typ, field)
+		fragmentName := selectionSearch.GetText("fragment")
 		documentID := selectionSearch.GetInt64("document_id")
 
 		// parse the arguments into something we can work with

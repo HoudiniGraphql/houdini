@@ -1,11 +1,9 @@
 package componentFields_test
 
 import (
-	"fmt"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -44,14 +42,14 @@ func TestComponentFields_testTransform(t *testing.T) {
 				},
 				Pass: true,
 				Expected: []tests.ExpectedDocument{
-					tests.ExpectedDoc(fmt.Sprintf(`
+					tests.ExpectedDoc(`
             query UserInfo {
               user {
-                ...%s
+                ...UserAvatar
                 __typename
               }
             }
-          `, schema.ComponentFieldFragmentName("User", "Avatar"))),
+          `),
 				},
 			},
 			{
@@ -75,14 +73,14 @@ func TestComponentFields_testTransform(t *testing.T) {
 				},
 				Pass: true,
 				Expected: []tests.ExpectedDocument{
-					tests.ExpectedDoc(fmt.Sprintf(`
+					tests.ExpectedDoc(`
             query UserInfo {
               user {
-                ...%s @with(size: 100)
+                ...UserAvatar_2OTosk @with(size: 100)
                 __typename
               }
             }
-          `, schema.ComponentFieldFragmentName("User", "Avatar"))),
+          `),
 				},
 			},
 		},

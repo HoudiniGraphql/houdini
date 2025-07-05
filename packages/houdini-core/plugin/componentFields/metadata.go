@@ -34,6 +34,7 @@ func WriteMetadata[PluginConfig any](
 		Filepath      string
 		Row           int
 		Column        int
+		Fragment      string
 		Arguments     []struct {
 			Name    string `json:"name"`
 			Type    string `json:"type"`
@@ -60,7 +61,8 @@ func WriteMetadata[PluginConfig any](
 				) END
 				) || ']',
 				''
-			) AS component_field_args
+			) AS component_field_args,
+      docs.name as fragment
 		FROM document_directives AS doc_directives
 			JOIN documents AS docs
 				ON doc_directives.document = docs.id
@@ -121,6 +123,7 @@ func WriteMetadata[PluginConfig any](
 		document.Type = search.ColumnText(4)
 		document.Field = search.ColumnText(5)
 		document.Prop = search.ColumnText(6)
+		document.Fragment = search.GetText("fragment")
 
 		// marshal the arguments spec into the document
 		argJSON := search.ColumnText(7)
@@ -283,14 +286,15 @@ func WriteMetadata[PluginConfig any](
 	// Prepare statements to insert (or upsert) component fields and internal type fields.
 	insertComponentField, err := conn.Prepare(`
 		INSERT INTO component_fields
-			(document, prop, field, type, inline, type_field)
+			(document, prop, field, type, inline, type_field, fragment)
 		VALUES
-			($document, $prop, $field, $type, false, $type_field)
+			($document, $prop, $field, $type, false, $type_field, $fragment)
 		ON CONFLICT(document) DO UPDATE SET
   			prop = excluded.prop,
   			field = excluded.field,
   			type = excluded.type,
-        type_field = excluded.type_field
+        type_field = excluded.type_field,
+        fragment = excluded.fragment
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -332,6 +336,7 @@ func WriteMetadata[PluginConfig any](
 			"field":      data.Field,
 			"type":       data.Type,
 			"type_field": fmt.Sprintf("%s.%s", data.Type, data.Field),
+			"fragment":   data.Fragment,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

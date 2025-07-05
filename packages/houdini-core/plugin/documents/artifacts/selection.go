@@ -1256,6 +1256,7 @@ func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
 type ArtifactFlags struct {
 	OptimisticKeys bool
 	Refetch        *RefetchSpec
+	Components     bool
 }
 
 type SelectionFlags struct {
