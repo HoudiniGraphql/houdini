@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 3.0.0-next.6
+
+### Major Changes
+
+-   [#1506](https://github.com/HoudiniGraphql/houdini/pull/1506) [`6d0f5c68`](https://github.com/HoudiniGraphql/houdini/commit/6d0f5c686a62f5ed25c79d9d43aa24661ab82e89) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove support for +page.gql and @load
+
 ## 2.2.0-next.5
 
 ### Patch Changes
