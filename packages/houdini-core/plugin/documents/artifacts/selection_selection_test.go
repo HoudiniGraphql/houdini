@@ -3139,30 +3139,27 @@ func TestArtifactGeneration(t *testing.T) {
                                         "visible": true,
                                     },
 
-                                    "Avatar": {
-                                        "keyRaw": "Avatar",
-                                        "type": "Component",
-
-                                        "component": {
-                                            "prop": "user",
-                                            "key": "User.Avatar",
-                                            "fragment": "UserAvatar",
-                                            "variables": {}
-                                        },
-
-                                        "visible": true,
-                                    },
-
                                     "FriendList": {
                                         "keyRaw": "FriendList",
                                         "type": "Component",
-
                                         "component": {
                                             "prop": "user",
                                             "key": "User.FriendList",
                                             "fragment": "FriendList",
                                             "variables": {}
                                         },
+                                    },
+
+                                    "Avatar": {
+                                        "keyRaw": "Avatar",
+                                        "type": "Component",
+                                        "component": {
+                                            "prop": "user",
+                                            "key": "User.Avatar",
+                                            "fragment": "UserAvatar",
+                                            "variables": {}
+                                        },
+                                        "visible": true,
                                     },
                                 },
 

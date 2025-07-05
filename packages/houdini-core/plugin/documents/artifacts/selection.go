@@ -327,6 +327,13 @@ func GenerateSelectionDocument(
 		)
 	}
 
+	// if we detected a component field we need to add it to the artifact
+	componentFields := ""
+	if flags.ComponentFields {
+		componentFields = `
+    "hasComponents": true,`
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
     "name": "%s",
@@ -339,7 +346,7 @@ export default {
 
     "selection": %s,
 
-    "pluginData": %s,%s%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s%s
 }
 
 "HoudiniHash=%s"
@@ -352,6 +359,7 @@ export default {
 		string(stripVariables),
 		selectionValues,
 		string(marshaledData),
+		componentFields,
 		dedupe,
 		inputTypes,
 		policyValue,
@@ -482,6 +490,54 @@ func stringifySelection(
 %s"%s": {
 %s"arguments": {%s}
 %s},`, indent3, fragmentName, indent4, arguments, indent3)
+
+			// if the fragment points to a component field
+			if selection.ComponentField != nil {
+				// make sure the flag is enabled
+				flags.ComponentFields = true
+
+				visible := ""
+				if selection.Visible {
+					visible = fmt.Sprintf("\n" + indent4 + `"visible": true,`)
+				}
+
+				// make sure the component field is added to the selection object
+				fields += fmt.Sprintf(
+					`
+%s"%s": {
+%s"keyRaw": "%s",
+%s"type": "Component",
+%s"component": {
+%s"prop": "%s",
+%s"key": "%s",
+%s"fragment": "%s",
+%s"variables": {%s}
+%s},%s
+%s},
+`,
+					indent3,
+					selection.ComponentField.Field,
+					indent4,
+					selection.ComponentField.Field,
+					indent4,
+					indent4,
+					indent5,
+					selection.ComponentField.Prop,
+					indent5,
+					fmt.Sprintf(
+						"%s.%s",
+						selection.ComponentField.Type,
+						selection.ComponentField.Field,
+					),
+					indent5,
+					selection.ComponentField.Fragment,
+					indent5,
+					arguments,
+					indent4,
+					visible,
+					indent3,
+				)
+			}
 
 		case "inline_fragment":
 			// we need to generate the subselection
@@ -1254,9 +1310,9 @@ func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
 }
 
 type ArtifactFlags struct {
-	OptimisticKeys bool
-	Refetch        *RefetchSpec
-	Components     bool
+	OptimisticKeys  bool
+	Refetch         *RefetchSpec
+	ComponentFields bool
 }
 
 type SelectionFlags struct {

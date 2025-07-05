@@ -182,7 +182,8 @@ func (c *fieldCollection) Add(
 	case "fragment":
 		// add the fragment spread
 		c.FragmentSpreads[selection.FieldName] = &fieldCollectionField{
-			Field: selection,
+			Field:   selection,
+			Visible: !hidden,
 		}
 
 		// and most include the fragment's sub selection
@@ -212,6 +213,7 @@ func (c *fieldCollection) Add(
 			FieldName: definition.TypeCondition,
 			FieldType: definition.TypeCondition,
 			Children:  definition.Selections,
+			Visible:   !hidden,
 		}
 
 		return c.Add(inlineFragment, true, visibilityMask)
@@ -415,6 +417,9 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 
 		for _, f := range c.FragmentSpreads {
 			field := f.Field
+			if f.Visible {
+				field.Visible = true
+			}
 			result = append(result, field)
 		}
 	} else {
@@ -456,8 +461,11 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 		}
 		sort.Strings(fragmentNames)
 		for _, name := range fragmentNames {
-			field := c.FragmentSpreads[name].Field.Clone(false)
-			result = append(result, field)
+			f := c.FragmentSpreads[name].Field.Clone(false)
+			result = append(result, f)
+			if c.FragmentSpreads[name].Visible {
+				f.Visible = true
+			}
 		}
 	}
 

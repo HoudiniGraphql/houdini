@@ -220,6 +220,10 @@ func collectDoc(
 				listTargetType := statements.Search.GetText("list_target_type")
 				listEmbedded := statements.Search.GetBool("list_embedded")
 				listMode := statements.Search.GetText("list_mode")
+				componentFieldType := statements.Search.GetText("component_field_type")
+				componentFieldField := statements.Search.GetText("component_field_field")
+				componentFieldFragment := statements.Search.GetText("component_field_fragment")
+				componentFieldProp := statements.Search.GetText("component_field_prop")
 
 				if listMode == "" {
 					listMode = "Infinite"
@@ -248,6 +252,16 @@ func collectDoc(
 
 				if fragmentRef != "" {
 					selection.FragmentRef = &fragmentRef
+				}
+
+				// add the component field spec if we detected a match
+				if componentFieldField != "" {
+					selection.ComponentField = &ComponentFieldSpec{
+						Type:     componentFieldType,
+						Field:    componentFieldField,
+						Fragment: componentFieldFragment,
+						Prop:     componentFieldProp,
+					}
 				}
 
 				if listName != "" {
@@ -837,7 +851,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         WHERE selection_refs.document = st.document_id
       )
     SELECT 
-      id,
+      selection_tree.id,
       document_name, 
       document_id, 
       kind, 
@@ -850,7 +864,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       parent_id, 
       document_kind, 
       type_condition, 
-      type,
+      selection_tree.type,
       list_name,
       list_type,
       list_connection,
@@ -860,8 +874,13 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       list_page_size,
       list_embedded,
       list_mode,
-      list_target_type
+      list_target_type,
+      component_fields.type as component_field_type,
+      component_fields.prop as component_field_prop,
+      component_fields.field as component_field_field,
+      component_fields.fragment as component_field_fragment
     FROM selection_tree
+      LEFT JOIN component_fields ON selection_tree.kind = 'fragment' AND component_fields.fragment = selection_tree.field_name
     ORDER BY parent_id ASC
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
@@ -1152,17 +1171,18 @@ type CollectedDocument struct {
 }
 
 type CollectedSelection struct {
-	FieldName     string
-	Alias         *string
-	FieldType     string
-	FragmentRef   *string
-	TypeModifiers *string
-	Kind          string
-	Visible       bool
-	List          *CollectedList
-	Arguments     []*CollectedArgument
-	Directives    []*CollectedDirective
-	Children      []*CollectedSelection
+	FieldName      string
+	Alias          *string
+	FieldType      string
+	FragmentRef    *string
+	TypeModifiers  *string
+	Kind           string
+	Visible        bool
+	List           *CollectedList
+	Arguments      []*CollectedArgument
+	Directives     []*CollectedDirective
+	Children       []*CollectedSelection
+	ComponentField *ComponentFieldSpec
 }
 
 type CollectedList struct {
@@ -1215,6 +1235,14 @@ type CollectedArgumentValueChildren struct {
 	Value *CollectedArgumentValue
 }
 
+type ComponentFieldSpec struct {
+	Prop      string
+	Type      string
+	Field     string
+	Fragment  string
+	Variables map[string]any
+}
+
 type CollectedDocuments struct {
 	TaskDocuments []string
 	Selections    map[string]*CollectedDocument
@@ -1242,17 +1270,11 @@ type collectResult struct {
 // Directives, and Children.
 func (s *CollectedSelection) Clone(includeChildren bool) *CollectedSelection {
 	clone := &CollectedSelection{
-		FieldName:     s.FieldName,
-		Alias:         nil,
-		FieldType:     s.FieldType,
-		FragmentRef:   nil,
-		TypeModifiers: nil,
-		Kind:          s.Kind,
-		Visible:       s.Visible,
-		List:          nil,
-		Arguments:     nil,
-		Directives:    nil,
-		Children:      nil,
+		FieldName:      s.FieldName,
+		FieldType:      s.FieldType,
+		Kind:           s.Kind,
+		Visible:        s.Visible,
+		ComponentField: s.ComponentField,
 	}
 
 	// clone pointer fields
