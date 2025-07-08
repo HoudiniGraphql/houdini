@@ -7,7 +7,7 @@ import (
 	"code.houdinigraphql.com/plugins/tests"
 )
 
-func TestPaginationArtifacts(t *testing.T) {
+func TestListArtifacts(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
       type Mutation { 
@@ -28,10 +28,11 @@ func TestPaginationArtifacts(t *testing.T) {
         monkeys: MonkeyConnection!
       }
 
-      type User implements Entity { 
+      type User implements Entity & Node { 
         id: ID!
         name: String!
         firstName: String!
+    friendsByCursor(first: Int, last: Int, before: String, after: String, filter: String): UserConnection
       }
 
       type Cat implements Entity { 
@@ -89,6 +90,10 @@ func TestPaginationArtifacts(t *testing.T) {
       type UserEdge { 
         node: User
         cursor: String!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       type AddFriendOutput {

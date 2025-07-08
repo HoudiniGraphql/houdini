@@ -264,7 +264,7 @@ func collectDoc(
 					}
 				}
 
-				if listName != "" {
+				if listType != "" {
 					selection.List = &CollectedList{
 						Name:       listName,
 						Type:       listType,
@@ -276,6 +276,7 @@ func collectDoc(
 					}
 					if !statements.Search.IsNull("list_paginated") {
 						selection.List.Paginated = true
+						selection.Paginated = true
 						selection.List.SupportsBackward = statements.Search.GetBool(
 							"list_supports_backward",
 						)
@@ -1179,6 +1180,7 @@ type CollectedSelection struct {
 	Kind           string
 	Visible        bool
 	List           *CollectedList
+	Paginated      bool
 	Arguments      []*CollectedArgument
 	Directives     []*CollectedDirective
 	Children       []*CollectedSelection
@@ -1290,10 +1292,11 @@ func (s *CollectedSelection) Clone(includeChildren bool) *CollectedSelection {
 		mods := *s.TypeModifiers
 		clone.TypeModifiers = &mods
 	}
-
-	// clone List (shallow or deep if supported)
 	if s.List != nil {
 		clone.List = s.List
+	}
+	if s.Paginated {
+		clone.Paginated = true
 	}
 
 	// clone Arguments

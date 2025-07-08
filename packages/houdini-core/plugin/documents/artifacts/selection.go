@@ -688,14 +688,36 @@ func keyField(field *CollectedSelection, paginated bool) string {
 		return `"` + *field.Alias + `"`
 	}
 
+	// if we are generating the key for a paginated field then we need to strip away
+	// the pagination arguments
+	args := []*CollectedArgument{}
+	for _, arg := range field.Arguments {
+		paginationArgs := map[string]bool{
+			"first":  true,
+			"last":   true,
+			"after":  true,
+			"before": true,
+			"limit":  true,
+			"offset": true,
+		}
+		if _, ok := paginationArgs[arg.Name]; ok && paginated {
+			continue
+		}
+
+		// if we got this far then we can add the arg
+		a := *arg
+		args = append(args, &a)
+	}
+	paginationSuffix := ""
 	if paginated {
-		return `"` + *field.Alias + `::paginated"`
+		paginationSuffix = "::paginated"
 	}
 
 	escaped, _ := json.Marshal(fmt.Sprintf(
-		"%s%s",
+		"%s%s%s",
 		*field.Alias,
-		printSelectionArguments(0, field.Arguments, map[string]bool{}, false),
+		printSelectionArguments(0, args, map[string]bool{}, false),
+		paginationSuffix,
 	))
 	return string(escaped)
 }
@@ -908,7 +930,7 @@ func stringifyFieldSelection(
 	// extract the list information
 	list := ""
 	filters := ""
-	if selection.List != nil {
+	if selection.List != nil && selection.List.Name != "" {
 		// we need to record the list specification
 		list = fmt.Sprintf(`
 %s"list": {
