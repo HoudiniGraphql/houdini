@@ -2,7 +2,6 @@ package artifacts
 
 import (
 	"context"
-	"runtime"
 	"sync"
 
 	"github.com/spf13/afero"
@@ -43,7 +42,7 @@ func GenerateDocumentArtifacts(
 	var wg sync.WaitGroup
 
 	// start consuming names off of the channel
-	for range runtime.NumCPU() {
+	for range 1 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
