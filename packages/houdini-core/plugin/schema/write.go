@@ -485,7 +485,7 @@ func WriteInternalSchema[PluginConfig any](
 	if err != nil {
 		return err
 	}
-	for _, value := range []string{"Infinite", "SinglePage"} {
+	for _, value := range []string{PaginationModeInfinite, PaginationModeSinglePage} {
 		err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
 			"parent": "PaginateMode",
 			"value":  value,

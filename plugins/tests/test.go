@@ -85,7 +85,7 @@ CREATE TABLE config (
     default_lifetime INTEGER,
     default_list_position TEXT CHECK (default_list_position IN ('APPEND', 'PREPEND')),
     default_list_target TEXT CHECK (default_list_target IN ('ALL', 'NULL')),
-    default_paginate_mode TEXT CHECK (default_paginate_mode IN ('INFINITE', 'SINGLE_PAGE')),
+    default_paginate_mode TEXT CHECK (default_paginate_mode IN ('Infinite', 'SinglePage')),
     suppress_pagination_deduplication BOOLEAN,
     log_level TEXT CHECK (log_level IN ('QUIET', 'FULL', 'SUMMARY', 'SHORT_SUMMARY')),
     default_fragment_masking BOOLEAN,

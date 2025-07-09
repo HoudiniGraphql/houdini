@@ -453,6 +453,12 @@ func DiscoverListsThenValidate(
 		return
 	}
 
+	projectConfig, err := db.ProjectConfig(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+
 	// the first thing we need to do is get a list of all the operations by looking at the name arguments of @list and @paginate
 	// directives
 	query := `
@@ -603,7 +609,7 @@ func DiscoverListsThenValidate(
 	lists := map[int]*DiscoveredList{}
 
 	// iterate over the results
-	err := db.StepQuery(ctx, query, bindings, func(nameStatement *sqlite.Stmt) {
+	err = db.StepQuery(ctx, query, bindings, func(nameStatement *sqlite.Stmt) {
 		listName := nameStatement.ColumnText(0)
 		row := nameStatement.ColumnInt(1)
 		column := nameStatement.ColumnInt(2)
@@ -626,6 +632,10 @@ func DiscoverListsThenValidate(
 		var connectionType any
 		if !nameStatement.ColumnIsNull(11) {
 			connectionType = nameStatement.ColumnText(11)
+		}
+
+		if mode == "" {
+			mode = projectConfig.DefaultPaginateMode
 		}
 
 		// if we haven't seen the name before, create a new entry

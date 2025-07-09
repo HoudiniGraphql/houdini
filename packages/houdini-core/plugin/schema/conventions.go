@@ -55,6 +55,10 @@ const ListOperationSuffixToggle = "_toggle"
 
 const ListOperationSuffixDelete = "_delete"
 
+const PaginationModeInfinite = "Infinite"
+
+const PaginationModeSinglePage = "SinglePage"
+
 func FragmentPaginationQueryName(fragmentName string) string {
 	return fmt.Sprintf("%s_Pagination_Query", fragmentName)
 }

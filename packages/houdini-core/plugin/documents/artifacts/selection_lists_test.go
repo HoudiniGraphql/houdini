@@ -233,7 +233,7 @@ func TestListArtifacts(t *testing.T) {
 				},
 			},
 			{
-				Name: "tacks paginate name",
+				Name: "tracks paginate name",
 				Pass: true,
 				Input: []string{
 					`query TestQuery {
@@ -473,7 +473,7 @@ func TestListArtifacts(t *testing.T) {
 				},
 			},
 			{
-				Name: "tacks paginate mode",
+				Name: "tracks paginate mode",
 				Pass: true,
 				Input: []string{
 					`query TestQuery {
@@ -533,7 +533,7 @@ func TestListArtifacts(t *testing.T) {
                       "fields": {
                           "usersByCursor": {
                               "type": "UserConnection",
-                              "keyRaw": "usersByCursor::paginated",
+                              "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
                               "directives": [{
                                   "name": "paginate",

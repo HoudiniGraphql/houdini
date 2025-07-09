@@ -65,12 +65,13 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 	for _, test := range table.Tests {
 		t.Run(test.Name, func(t *testing.T) {
 			projectConfig := plugins.ProjectConfig{
-				ProjectRoot:        "/project",
-				SchemaPath:         "schema.graphql",
-				DefaultKeys:        []string{"id"},
-				TypeConfig:         make(map[string]plugins.TypeConfig),
-				DefaultCachePolicy: "CacheOrNetwork",
-				DefaultPartial:     false,
+				ProjectRoot:         "/project",
+				SchemaPath:          "schema.graphql",
+				DefaultKeys:         []string{"id"},
+				TypeConfig:          make(map[string]plugins.TypeConfig),
+				DefaultCachePolicy:  "CacheOrNetwork",
+				DefaultPartial:      false,
+				DefaultPaginateMode: "Infinite",
 			}
 
 			if table.ProjectConfig.TypeConfig != nil {
@@ -142,7 +143,7 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 
 			// write the relevant config values
 			insertConfig, err := conn.Prepare(
-				`insert into config (default_keys, include, exclude, schema_path) values ($keys, '*', '*', '*')`,
+				`insert into config (default_keys, include, exclude, schema_path, default_paginate_mode) values ($keys, '*', '*', '*', 'Infinite')`,
 			)
 			require.Nil(t, err)
 			defer insertConfig.Finalize()

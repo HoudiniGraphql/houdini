@@ -181,7 +181,7 @@ func GenerateSelectionDocument(
 		1,
 		sortKeys,
 		flags,
-		false,
+		nil,
 		[]string{},
 		"",
 	)
@@ -417,7 +417,7 @@ func stringifySelection(
 	level int,
 	sortKeys bool,
 	flags *ArtifactFlags,
-	paginatedField bool,
+	paginatedMode *string,
 	updates []string,
 	path string,
 ) string {
@@ -443,7 +443,7 @@ func stringifySelection(
 			}
 
 			// we only want to keep the updates alive if we run into a pagination field
-			if !paginatedField {
+			if paginatedMode == nil {
 				switch *selection.Alias {
 				case "edges",
 					"pageInfo",
@@ -683,7 +683,7 @@ func stringifySelection(
 %s}`, result, fragments, indent)
 }
 
-func keyField(field *CollectedSelection, paginated bool) string {
+func keyField(field *CollectedSelection, paginatedMode *string) string {
 	if len(field.Arguments) == 0 {
 		return `"` + *field.Alias + `"`
 	}
@@ -700,7 +700,8 @@ func keyField(field *CollectedSelection, paginated bool) string {
 			"limit":  true,
 			"offset": true,
 		}
-		if _, ok := paginationArgs[arg.Name]; ok && paginated {
+		if _, ok := paginationArgs[arg.Name]; ok && paginatedMode != nil &&
+			*paginatedMode == schema.PaginationModeInfinite {
 			continue
 		}
 
@@ -709,7 +710,7 @@ func keyField(field *CollectedSelection, paginated bool) string {
 		args = append(args, &a)
 	}
 	paginationSuffix := ""
-	if paginated {
+	if paginatedMode != nil {
 		paginationSuffix = "::paginated"
 	}
 
@@ -738,9 +739,11 @@ func stringifyFieldSelection(
 	indent6 := strings.Repeat(spacing, level+5)
 
 	// figure out the pagination state
-	paginated := false
+	var paginatedMode *string
 	if selection.List != nil {
-		paginated = selection.List.Paginated
+		if selection.List.Paginated {
+			paginatedMode = &selection.List.Mode
+		}
 		updates = []string{}
 		if selection.List.SupportsForward {
 			updates = append(updates, "append")
@@ -794,7 +797,7 @@ func stringifyFieldSelection(
 				level+3,
 				sortKeys,
 				flags,
-				paginated,
+				paginatedMode,
 				updates,
 				path,
 			),
@@ -971,7 +974,7 @@ func stringifyFieldSelection(
 	updateStr := ""
 	// dont add any updates if there aren't any, the field isn't paginated or if the
 	// field is not pageInfo or __typename
-	if len(updates) > 0 && !paginated && *selection.Alias != "pageInfo" &&
+	if len(updates) > 0 && paginatedMode == nil && *selection.Alias != "pageInfo" &&
 		*selection.Alias != "__typename" {
 		updateVals := []string{}
 		for _, update := range updates {
@@ -991,7 +994,7 @@ func stringifyFieldSelection(
 		indent4,
 		selection.FieldType,
 		indent4,
-		keyField(selection, paginated),
+		keyField(selection, paginatedMode),
 		updateStr,
 		nullable,
 		directives,
