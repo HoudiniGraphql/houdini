@@ -784,6 +784,13 @@ func stringifyFieldSelection(
 	// we need to generate the subselection
 	subSelection := ""
 	if len(selection.Children) > 0 {
+		subSelUpdates := updates
+		// if there are updates and the paginated list is a non-connection
+		// then we don't want to apply any updates to the children
+		if selection.List != nil && !selection.List.Connection {
+			subSelUpdates = []string{}
+		}
+
 		subSelection += fmt.Sprintf(
 			`
 
@@ -798,7 +805,7 @@ func stringifyFieldSelection(
 				sortKeys,
 				flags,
 				paginatedMode,
-				updates,
+				subSelUpdates,
 				path,
 			),
 		)
@@ -974,8 +981,9 @@ func stringifyFieldSelection(
 	updateStr := ""
 	// dont add any updates if there aren't any, the field isn't paginated or if the
 	// field is not pageInfo or __typename
-	if len(updates) > 0 && paginatedMode == nil && *selection.Alias != "pageInfo" &&
-		*selection.Alias != "__typename" {
+	if len(updates) > 0 && *selection.Alias != "pageInfo" && *selection.Alias != "__typename" &&
+		(selection.List == nil || (selection.List != nil &&
+			!selection.List.Connection)) {
 		updateVals := []string{}
 		for _, update := range updates {
 			updateVals = append(updateVals, `"`+update+`"`)

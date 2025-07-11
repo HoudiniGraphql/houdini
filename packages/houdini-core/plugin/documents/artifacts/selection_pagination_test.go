@@ -486,6 +486,119 @@ func TestPaginationArtifacts(t *testing.T) {
             `),
 				},
 			},
+			{
+				Name: "offset based pagination marks appropriate field",
+				Input: []string{
+					`
+            fragment PaginatedFragment on User {
+                friendsByOffset(limit:10, filter: "hello") @paginate {
+					        id
+                }
+            }
+          `,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"PaginatedFragment": tests.Dedent(`
+              export default {
+                  "name": "PaginatedFragment",
+                  "kind": "HoudiniFragment",
+                  "hash": "8db8af57b5b15be9612a2b0382befff91906f4ff7a3f2c4b0177b0cb422fa2cc",
+
+                  "refetch": {
+                      "path": ["friendsByOffset"],
+                      "method": "offset",
+                      "pageSize": 10,
+                      "embedded": true,
+                      "targetType": "User",
+                      "paginated": true,
+                      "direction": "forward",
+                      "mode": "Infinite"
+                  },
+
+                  "raw": ` + "`" + `fragment PaginatedFragment on User {
+                  friendsByOffset(filter: "hello", limit: $limit, offset: $offset) {
+                      id
+                      __typename
+                      id
+                  }
+                  __typename
+                  id
+              }
+              ` + "`" + `,
+
+                  "rootType": "User",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "__typename": {
+                              "type": "String",
+                              "keyRaw": "__typename",
+                              "visible": true,
+                          },
+
+                          "friendsByOffset": {
+                              "type": "User",
+                              "keyRaw": "friendsByOffset(filter: \"hello\")::paginated",
+                              "updates": ["append"],
+
+                              "directives": [{
+                                  "name": "paginate",
+                                  "arguments": {}
+                              }],
+
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+
+                          "id": {
+                              "type": "ID",
+                              "keyRaw": "id",
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "input": {
+                      "fields": {
+                          "limit": "Int",
+                          "offset": "Int",
+                      },
+
+                      "types": {},
+
+                      "defaults": {
+                          "limit": 10,
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+              }
+
+              "HoudiniHash=8db8af57b5b15be9612a2b0382befff91906f4ff7a3f2c4b0177b0cb422fa2cc"
+            `),
+				},
+			},
 		},
 	})
 }
