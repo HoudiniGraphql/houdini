@@ -220,6 +220,7 @@ func collectDoc(
 				listTargetType := statements.Search.GetText("list_target_type")
 				listEmbedded := statements.Search.GetBool("list_embedded")
 				listMode := statements.Search.GetText("list_mode")
+				listCursorType := statements.Search.GetText("cursor_type")
 				componentFieldType := statements.Search.GetText("component_field_type")
 				componentFieldField := statements.Search.GetText("component_field_field")
 				componentFieldFragment := statements.Search.GetText("component_field_fragment")
@@ -273,6 +274,7 @@ func collectDoc(
 						Mode:       listMode,
 						Embedded:   listEmbedded,
 						TargetType: listTargetType,
+						CursorType: listCursorType,
 					}
 					if !statements.Search.IsNull("list_paginated") {
 						selection.List.Paginated = true
@@ -797,7 +799,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.page_size as list_page_size,
           discovered_lists.embedded as list_embedded,
           discovered_lists.mode as list_mode,
-          discovered_lists.target_type as list_target_type
+          discovered_lists.target_type as list_target_type,
+          discovered_lists.cursor_type as list_cursor_type
         FROM selections
           JOIN selection_refs 
             ON selection_refs.child_id = selections.id 
@@ -840,7 +843,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.page_size as list_page_size,
           discovered_lists.embedded as list_embedded,
           discovered_lists.mode as list_mode,
-          discovered_lists.target_type as list_target_type
+          discovered_lists.target_type as list_target_type,
+          discovered_lists.cursor_type as list_cursor_type
         FROM selection_refs 
           JOIN selection_tree st ON selection_refs.parent_id = st.id
           JOIN selections on selection_refs.child_id = selections.id
@@ -876,6 +880,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       list_embedded,
       list_mode,
       list_target_type,
+      list_cursor_type,
       component_fields.type as component_field_type,
       component_fields.prop as component_field_prop,
       component_fields.field as component_field_field,
@@ -1198,6 +1203,7 @@ type CollectedList struct {
 	Mode             string
 	TargetType       string
 	Embedded         bool
+	CursorType       string
 }
 
 type CollectedOperationVariable struct {

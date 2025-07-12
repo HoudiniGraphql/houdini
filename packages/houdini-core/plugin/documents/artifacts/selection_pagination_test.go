@@ -10,8 +10,11 @@ import (
 func TestPaginationArtifacts(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
+      scalar Cursor 
+
       type Query { 
         users: [User!]!
+        user: User!
       }
 
       type User implements  Node { 
@@ -25,7 +28,8 @@ func TestPaginationArtifacts(t *testing.T) {
           after: String, 
           filter: String
         ): UserConnection
-    friendsByOffset(limit: Int, offset: Int, filter: String): [User!]!
+        friendsByOffset(limit: Int, offset: Int, filter: String): [User!]!
+				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
       }
 
       type UserConnection { 
@@ -596,6 +600,317 @@ func TestPaginationArtifacts(t *testing.T) {
               }
 
               "HoudiniHash=8db8af57b5b15be9612a2b0382befff91906f4ff7a3f2c4b0177b0cb422fa2cc"
+            `),
+				},
+			},
+			{
+				Name: "cursor as scalar gets the right pagination query argument types",
+				Input: []string{
+					`
+            query ScalarPagination {
+              user {
+                friendsByCursorScalar(first:10, filter: "hello") @paginate {
+                  edges {
+                    node {
+                      friendsByCursor {
+                        edges {
+                          node {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"ScalarPagination": tests.Dedent(`
+              export default {
+                  "name": "ScalarPagination",
+                  "kind": "HoudiniQuery",
+                  "hash": "c1583a45c5b580484b41ed1788a31285f99b7b87599047cbf9c64193d43d019a",
+
+                  "refetch": {
+                      "path": ["user","friendsByCursorScalar"],
+                      "method": "cursor",
+                      "pageSize": 10,
+                      "embedded": false,
+                      "targetType": "Query",
+                      "paginated": true,
+                      "direction": "both",
+                      "mode": "Infinite"
+                  },
+
+                  "raw": ` + "`" + `query ScalarPagination($after: Cursor, $before: Cursor, $first: Int = 10, $last: Int) {
+                  user {
+                      friendsByCursorScalar(after: $after, before: $before, filter: "hello", first: $first, last: $last) {
+                          edges {
+                              node {
+                                  friendsByCursor {
+                                      edges {
+                                          node {
+                                              id
+                                              __typename
+                                              id
+                                          }
+                                          __typename
+                                      }
+                                      __typename
+                                  }
+                                  __typename
+                                  id
+                              }
+                              __typename
+                              cursor
+                          }
+                          __typename
+                          pageInfo {
+                              hasNextPage
+                              hasPreviousPage
+                              startCursor
+                              endCursor
+                          }
+                      }
+                      __typename
+                      id
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "user": {
+                              "type": "User",
+                              "keyRaw": "user",
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                          "visible": true,
+                                      },
+
+                                      "friendsByCursorScalar": {
+                                          "type": "UserConnection",
+                                          "keyRaw": "friendsByCursorScalar(filter: \"hello\")::paginated",
+
+                                          "directives": [{
+                                              "name": "paginate",
+                                              "arguments": {}
+                                          }],
+
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                      "visible": true,
+                                                  },
+
+                                                  "edges": {
+                                                      "type": "UserEdge",
+                                                      "keyRaw": "edges",
+                                                      "updates": ["append", "prepend"],
+
+                                                      "selection": {
+                                                          "fields": {
+                                                              "__typename": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "__typename",
+                                                                  "visible": true,
+                                                              },
+
+                                                              "cursor": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "cursor",
+                                                                  "visible": true,
+                                                              },
+
+                                                              "node": {
+                                                                  "type": "User",
+                                                                  "keyRaw": "node",
+                                                                  "nullable": true,
+
+                                                                  "selection": {
+                                                                      "fields": {
+                                                                          "__typename": {
+                                                                              "type": "String",
+                                                                              "keyRaw": "__typename",
+                                                                              "visible": true,
+                                                                          },
+
+                                                                          "friendsByCursor": {
+                                                                              "type": "UserConnection",
+                                                                              "keyRaw": "friendsByCursor",
+                                                                              "nullable": true,
+
+                                                                              "selection": {
+                                                                                  "fields": {
+                                                                                      "__typename": {
+                                                                                          "type": "String",
+                                                                                          "keyRaw": "__typename",
+                                                                                          "visible": true,
+                                                                                      },
+
+                                                                                      "edges": {
+                                                                                          "type": "UserEdge",
+                                                                                          "keyRaw": "edges",
+
+                                                                                          "selection": {
+                                                                                              "fields": {
+                                                                                                  "__typename": {
+                                                                                                      "type": "String",
+                                                                                                      "keyRaw": "__typename",
+                                                                                                      "visible": true,
+                                                                                                  },
+
+                                                                                                  "node": {
+                                                                                                      "type": "User",
+                                                                                                      "keyRaw": "node",
+                                                                                                      "nullable": true,
+
+                                                                                                      "selection": {
+                                                                                                          "fields": {
+                                                                                                              "__typename": {
+                                                                                                                  "type": "String",
+                                                                                                                  "keyRaw": "__typename",
+                                                                                                                  "visible": true,
+                                                                                                              },
+
+                                                                                                              "id": {
+                                                                                                                  "type": "ID",
+                                                                                                                  "keyRaw": "id",
+                                                                                                                  "visible": true,
+                                                                                                              },
+                                                                                                          },
+                                                                                                      },
+
+                                                                                                      "visible": true,
+                                                                                                  },
+                                                                                              },
+                                                                                          },
+
+                                                                                          "visible": true,
+                                                                                      },
+                                                                                  },
+                                                                              },
+
+                                                                              "visible": true,
+                                                                          },
+
+                                                                          "id": {
+                                                                              "type": "ID",
+                                                                              "keyRaw": "id",
+                                                                              "visible": true,
+                                                                          },
+                                                                      },
+                                                                  },
+
+                                                                  "visible": true,
+                                                              },
+                                                          },
+                                                      },
+
+                                                      "visible": true,
+                                                  },
+
+                                                  "pageInfo": {
+                                                      "type": "PageInfo",
+                                                      "keyRaw": "pageInfo",
+
+                                                      "selection": {
+                                                          "fields": {
+                                                              "endCursor": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "endCursor",
+                                                                  "updates": ["append", "prepend"],
+                                                                  "nullable": true,
+                                                                  "visible": true,
+                                                              },
+
+                                                              "hasNextPage": {
+                                                                  "type": "Boolean",
+                                                                  "keyRaw": "hasNextPage",
+                                                                  "updates": ["append", "prepend"],
+                                                                  "visible": true,
+                                                              },
+
+                                                              "hasPreviousPage": {
+                                                                  "type": "Boolean",
+                                                                  "keyRaw": "hasPreviousPage",
+                                                                  "updates": ["append", "prepend"],
+                                                                  "visible": true,
+                                                              },
+
+                                                              "startCursor": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "startCursor",
+                                                                  "updates": ["append", "prepend"],
+                                                                  "nullable": true,
+                                                                  "visible": true,
+                                                              },
+                                                          },
+                                                      },
+
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "id": {
+                                          "type": "ID",
+                                          "keyRaw": "id",
+                                          "visible": true,
+                                      },
+                                  },
+                              },
+
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "dedupe": {
+                      "cancel": "last",
+                      "match": "Variables"
+                  },
+
+                  "input": {
+                      "fields": {
+                          "after": "Cursor",
+                          "before": "Cursor",
+                          "first": "Int",
+                          "last": "Int",
+                      },
+
+                      "types": {},
+
+                      "defaults": {
+                          "first": 10,
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              }
+
+              "HoudiniHash=c1583a45c5b580484b41ed1788a31285f99b7b87599047cbf9c64193d43d019a"
             `),
 				},
 			},

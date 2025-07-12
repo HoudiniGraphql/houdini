@@ -350,6 +350,7 @@ CREATE TABLE discovered_lists (
     paginate TEXT,
     supports_forward BOOLEAN default false,
     supports_backward BOOLEAN default false,
+    cursor_type TEXT,
 
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
 	FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,

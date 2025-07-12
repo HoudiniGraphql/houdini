@@ -78,7 +78,8 @@ func PreparePaginationDocuments(
 				)
 			END as resolve_key_objects,
 			documents.type_condition,
-			discovered_lists.paginate
+			discovered_lists.paginate,
+      discovered_lists.cursor_type as cursor_type
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
 			JOIN selections on discovered_lists.list_field = selections.id
@@ -235,6 +236,8 @@ func PreparePaginationDocuments(
 		documentName := query.ColumnText(10)
 		resolveQuery := query.ColumnText(11)
 		resolveKeys := query.ColumnText(12)
+		cursorType := query.GetText("cursor_type")
+		fmt.Println("cursorType", cursorType)
 
 		if query.IsNull("paginate") {
 			return
@@ -276,7 +279,7 @@ func PreparePaginationDocuments(
 					},
 					paginationFieldArgumentSpec{
 						Name: "after",
-						Kind: "String",
+						Kind: cursorType,
 					},
 				)
 			}
@@ -288,7 +291,7 @@ func PreparePaginationDocuments(
 					},
 					paginationFieldArgumentSpec{
 						Name: "before",
-						Kind: "String",
+						Kind: cursorType,
 					},
 				)
 			}

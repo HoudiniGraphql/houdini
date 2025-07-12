@@ -936,7 +936,11 @@ func validatePaginateArgs(
 			discovered_lists.name,
 			selection_directives.directive,
 			type_fields.type_modifiers,
-			discovered_lists.id
+			discovered_lists.id,
+      COALESCE(
+        MAX(CASE WHEN field_args.name = 'after'  THEN field_args.type END),
+        MAX(CASE WHEN field_args.name = 'before' THEN field_args.type END)
+      ) AS cursor_type
 		FROM discovered_lists
 			JOIN selections s ON discovered_lists.list_field = s.id
 			JOIN selection_refs sr ON sr.child_id = s.id
@@ -964,7 +968,12 @@ func validatePaginateArgs(
 
 	// if we discover a connection-based pagination we should update the discovered list with the direction
 	updateList, err := conn.Prepare(`
-		UPDATE discovered_lists SET paginate = $paginate, supports_forward = $supports_forward, supports_backward = $supports_backward WHERE id = $id
+		UPDATE discovered_lists SET 
+      paginate = $paginate, 
+      supports_forward = $supports_forward, 
+      supports_backward = $supports_backward,
+      cursor_type = $cursor_type
+    WHERE id = $id
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -1004,6 +1013,7 @@ func validatePaginateArgs(
 		directive := usageQuery.ColumnText(9)
 		typeModifiers := usageQuery.ColumnText(10)
 		listID := usageQuery.ColumnInt(11)
+		cursorType := usageQuery.GetText("cursor_type")
 
 		// Ensure that the list name is unique.
 		if _, ok := seenNames[listName]; listName != "" && ok {
@@ -1037,13 +1047,14 @@ func validatePaginateArgs(
 			})
 
 			return
-
 		}
 
 		// parse the field definitions.
 		fieldArgs := parseFieldArgs(fieldArgDefs)
-		forwardPagination := (fieldArgs["first"] == "Int" && fieldArgs["after"] == "String")
-		backwardsPagination := (fieldArgs["last"] == "Int" && fieldArgs["before"] == "String")
+		_, hasAfter := fieldArgs["after"]
+		_, hasBefore := fieldArgs["before"]
+		forwardPagination := (fieldArgs["first"] == "Int" && hasAfter)
+		backwardsPagination := (fieldArgs["last"] == "Int" && hasBefore)
 		cursorPagination := forwardPagination || backwardsPagination
 		offsetPagination := (fieldArgs["offset"] == "Int" && fieldArgs["limit"] == "Int")
 
@@ -1116,11 +1127,14 @@ func validatePaginateArgs(
 				direction = "backward"
 			}
 
+			fmt.Println("discovered list", cursorType)
+
 			err = db.ExecStatement(updateList, map[string]any{
 				"id":                listID,
 				"paginate":          direction,
 				"supports_forward":  forwardPagination,
 				"supports_backward": backwardsPagination,
+				"cursor_type":       cursorType,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
