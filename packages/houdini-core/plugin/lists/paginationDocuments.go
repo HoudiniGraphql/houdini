@@ -237,7 +237,6 @@ func PreparePaginationDocuments(
 		resolveQuery := query.ColumnText(11)
 		resolveKeys := query.ColumnText(12)
 		cursorType := query.GetText("cursor_type")
-		fmt.Println("cursorType", cursorType)
 
 		if query.IsNull("paginate") {
 			return

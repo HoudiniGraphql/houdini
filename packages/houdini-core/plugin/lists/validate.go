@@ -1127,8 +1127,6 @@ func validatePaginateArgs(
 				direction = "backward"
 			}
 
-			fmt.Println("discovered list", cursorType)
-
 			err = db.ExecStatement(updateList, map[string]any{
 				"id":                listID,
 				"paginate":          direction,

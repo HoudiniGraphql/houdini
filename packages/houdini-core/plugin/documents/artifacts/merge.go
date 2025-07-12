@@ -115,7 +115,7 @@ func (c *fieldCollection) Add(
 
 		// if we've seen the field before then we need to make sure some metadata
 		// overlaps correctly
-		if sel, ok := c.Fields[selection.FieldName]; ok {
+		if sel, ok := c.Fields[*selection.Alias]; ok {
 			if !sel.Visible && !hidden {
 				sel.Visible = true
 			}
