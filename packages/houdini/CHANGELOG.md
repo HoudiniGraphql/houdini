@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.4
+
+### Patch Changes
+
+-   [#1512](https://github.com/HoudiniGraphql/houdini/pull/1512) [`769079a1`](https://github.com/HoudiniGraphql/houdini/commit/769079a197d2bc3f3e61fbfa29465315644cbf92) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bundling for react framework
+
 ## 2.0.0-next.3
 
 ### Patch Changes
