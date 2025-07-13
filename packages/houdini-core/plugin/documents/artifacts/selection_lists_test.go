@@ -12,7 +12,7 @@ func TestListArtifacts(t *testing.T) {
 		Schema: `
       type Mutation { 
          addFriend: AddFriendOutput!
-        catMutation: Cat
+         catMutation: Cat
       }
 
       type Query { 
