@@ -129,14 +129,14 @@ export default {
 		return id.substring(id.indexOf('virtual:houdini'))
 	},
 
-	async closeBundle(config) {
+	async buildEnd(_, config) {
 		// skip close bundles during dev mode
 		if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
 			return
 		}
 
 		// only continue if we are supposed to generate the server assets
-		if (config.adapter?.disableServer) {
+		if (!config || config.adapter?.disableServer) {
 			return
 		}
 
