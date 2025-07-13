@@ -143,15 +143,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			return result
 		},
 
-		async buildEnd(args) {
-			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.buildEnd !== 'function') {
-					continue
-				}
-
-				await plugin.vite!.buildEnd.call(this, args, config)
-			}
-		},
 
 		async configResolved(conf) {
 			if (!isSecondaryBuild()) {
@@ -170,13 +161,13 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// called when all of the bundles have been generated (ie, when vite is done)
 		// we use this to generate the final assets needed for a production build of the server.
 		// this is only called when bundling (ie, not in dev mode)
-		async closeBundle() {
+		async buildEnd(args) {
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.closeBundle !== 'function') {
+				if (typeof plugin.vite?.buildEnd !== 'function') {
 					continue
 				}
 
-				await plugin.vite!.closeBundle.call(this, config)
+				await plugin.vite!.buildEnd.call(this, args, config)
 			}
 
 			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
