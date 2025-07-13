@@ -1,5 +1,11 @@
 # houdini
 
+## 1.5.9
+
+### Patch Changes
+
+-   [#1509](https://github.com/HoudiniGraphql/houdini/pull/1509) [`aa557d67`](https://github.com/HoudiniGraphql/houdini/commit/aa557d67cba6042d3a421bae9754ae2250257c3e) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add schema path to gitignore file when setting up a project with a remote schema
+
 ## 1.5.8
 
 ### Patch Changes
