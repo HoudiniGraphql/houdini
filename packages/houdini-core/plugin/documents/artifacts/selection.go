@@ -189,14 +189,14 @@ func GenerateSelectionDocument(
 					runtimeScalars += fmt.Sprintf(`
               "%s": "%s",`, variable.Name, arg.Value.Raw)
 				}
-			case schema.LoadingDirective:
-				flags.HasLoading = "global"
-				for _, arg := range directive.Arguments {
-					if arg.Name == "cascade" && arg.Value.Raw == "true" {
-						forceLoading = true
-					}
-				}
 			}
+		}
+	}
+	for _, directive := range doc.Directives {
+		switch directive.Name {
+		case schema.LoadingDirective:
+			flags.HasLoading = "global"
+			forceLoading = true
 		}
 	}
 	if len(runtimeScalars) > 0 {

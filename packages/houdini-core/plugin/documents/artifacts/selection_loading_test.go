@@ -965,11 +965,9 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-
                                           "loading": {
-                                              "kind": "value"
+                                              "kind": "value",
                                           },
-
                                           "visible": true,
                                       },
                                   },
@@ -979,30 +977,25 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-
                                                   "loading": {
-                                                      "kind": "value"
+                                                      "kind": "value",
                                                   },
-
                                                   "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
-
                                                   "loading": {
                                                       "kind": "value",
                                                   },
+                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
                                                   "keyRaw": "name",
-
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-
                                                   "visible": true,
                                               },
                                           },
@@ -1010,48 +1003,41 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-
                                                   "loading": {
-                                                      "kind": "value"
+                                                      "kind": "value",
                                                   },
-
                                                   "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
                                                   "keyRaw": "firstName",
-
                                                   "loading": {
-                                                      "kind": "value"
+                                                      "kind": "value",
                                                   },
-
                                                   "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
-
                                                   "loading": {
-                                                      "kind": "value"
+                                                      "kind": "value",
                                                   },
+                                                  "visible": true,
                                               },
                                           },
                                       },
 
-                                      "typeMap": {}
+                                      "typeMap": {},
                                   },
                               },
 
                               "loading": {
                                   "kind": "continue",
-
                                   "list": {
                                       "depth": 1,
                                       "count": 3,
                                   },
                               },
-
                               "abstract": true,
                               "visible": true,
                           },
