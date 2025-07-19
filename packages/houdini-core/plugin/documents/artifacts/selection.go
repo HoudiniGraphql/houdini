@@ -169,8 +169,39 @@ func GenerateSelectionDocument(
 		}
 	}
 
+	// analyze the directives before we descend into the selection
+	// to detect loading cascades
+	forceLoading := false
+
 	// track some artifact-level flags
 	flags := &ArtifactFlags{}
+
+	runtimeScalars := ""
+	for _, variable := range doc.Variables {
+		for _, directive := range variable.Directives {
+			switch directive.Name {
+			case schema.RuntimeScalarDirective:
+				for _, arg := range directive.Arguments {
+					if arg.Name != "type" {
+						continue
+					}
+
+					runtimeScalars += fmt.Sprintf(`
+              "%s": "%s",`, variable.Name, arg.Value.Raw)
+				}
+			case schema.LoadingDirective:
+				flags.HasLoading = "global"
+				for _, arg := range directive.Arguments {
+					if arg.Name == "cascade" && arg.Value.Raw == "true" {
+						forceLoading = true
+					}
+				}
+			}
+		}
+	}
+	if len(runtimeScalars) > 0 {
+		runtimeScalars += "\n        "
+	}
 
 	// build up the selection string
 	selectionValues := stringifySelection(
@@ -181,9 +212,11 @@ func GenerateSelectionDocument(
 		1,
 		sortKeys,
 		flags,
+		&SelectionFlags{},
 		nil,
 		[]string{},
 		"",
+		forceLoading,
 	)
 
 	// build up the input specification
@@ -244,28 +277,6 @@ func GenerateSelectionDocument(
 		}
 		if len(usedTypes) > 0 {
 			typeDefs += "\n        "
-		}
-
-		runtimeScalars := ""
-	variable_search:
-		for _, variable := range doc.Variables {
-			for _, directive := range variable.Directives {
-				if directive.Name != schema.RuntimeScalarDirective {
-					continue
-				}
-				for _, arg := range directive.Arguments {
-					if arg.Name != "type" {
-						continue
-					}
-
-					runtimeScalars += fmt.Sprintf(`
-            "%s": "%s",`, variable.Name, arg.Value.Raw)
-					break variable_search
-				}
-			}
-		}
-		if len(runtimeScalars) > 0 {
-			runtimeScalars += "\n        "
 		}
 
 		inputTypes = fmt.Sprintf(`
@@ -334,6 +345,13 @@ func GenerateSelectionDocument(
     "hasComponents": true,`
 	}
 
+	// if we detected a loading directive then we need to encode it
+	loadingValue := ""
+	if flags.HasLoading != "" {
+		loadingValue = fmt.Sprintf(`
+    "enableLoadingState": "%s",`, flags.HasLoading)
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
 export default {
     "name": "%s",
@@ -346,7 +364,7 @@ export default {
 
     "selection": %s,
 
-    "pluginData": %s,%s%s%s%s%s%s
+    "pluginData": %s,%s%s%s%s%s%s%s
 }
 
 "HoudiniHash=%s"
@@ -362,6 +380,7 @@ export default {
 		componentFields,
 		dedupe,
 		inputTypes,
+		loadingValue,
 		policyValue,
 		partialValue,
 		optimistic,
@@ -417,9 +436,11 @@ func stringifySelection(
 	level int,
 	sortKeys bool,
 	flags *ArtifactFlags,
+	parentSelectionFlags *SelectionFlags,
 	paginatedMode *string,
 	updates []string,
 	path string,
+	forceLoading bool,
 ) string {
 	indent := strings.Repeat(spacing, level)
 	indent2 := strings.Repeat(spacing, level+1)
@@ -432,7 +453,21 @@ func stringifySelection(
 	fragments := ""
 	abstractFields := ""
 
+	// if we run into any inline fragments then we need to keep track
+	// of which ones have a loading states
+	loadingTypes := []string{}
+
 	for _, selection := range selections {
+		hasLoading := false
+		for _, directive := range selection.Directives {
+			switch directive.Name {
+			case schema.LoadingDirective:
+				flags.HasLoading = "local"
+				parentSelectionFlags.HasLoading = true
+				hasLoading = true
+			}
+		}
+
 		switch selection.Kind {
 
 		// add field serialization
@@ -463,15 +498,18 @@ func stringifySelection(
 				selection,
 				sortKeys,
 				flags,
+				parentSelectionFlags,
 				updates,
 				path+`,"`+*selection.Alias+`"`,
+				forceLoading,
 			)
 
 		case "fragment":
 			// the applied fragment might have arguments
 			arguments := ""
 			for _, directive := range selection.Directives {
-				if directive.Name == schema.WithDirective {
+				switch directive.Name {
+				case schema.WithDirective:
 					for _, arg := range directive.Arguments {
 						arguments += fmt.Sprintf(`
 %s"%s": %s,`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
@@ -481,6 +519,14 @@ func stringifySelection(
 			if arguments != "" {
 				arguments += "\n" + indent4
 			}
+
+			// add the loading meta data
+			loadingValue := ""
+			if hasLoading {
+				loadingValue = fmt.Sprintf(`,
+%s"loading": true,`, indent4)
+			}
+
 			fragmentName := selection.FieldName
 			if selection.FragmentRef != nil {
 				fragmentName = *selection.FragmentRef
@@ -488,8 +534,8 @@ func stringifySelection(
 
 			fragments += fmt.Sprintf(`
 %s"%s": {
-%s"arguments": {%s}
-%s},`, indent3, fragmentName, indent4, arguments, indent3)
+%s"arguments": {%s}%s
+%s},`, indent3, fragmentName, indent4, arguments, loadingValue, indent3)
 
 			// if the fragment points to a component field
 			if selection.ComponentField != nil {
@@ -540,6 +586,10 @@ func stringifySelection(
 			}
 
 		case "inline_fragment":
+			if hasLoading && selection.FieldName != "" {
+				loadingTypes = append(loadingTypes, `"`+selection.FieldName+`"`)
+			}
+
 			// we need to generate the subselection
 			subSelection := "{\n"
 			if len(selection.Children) > 0 {
@@ -552,8 +602,10 @@ func stringifySelection(
 							field,
 							sortKeys,
 							flags,
+							parentSelectionFlags,
 							[]string{},
 							path,
+							forceLoading,
 						)
 					}
 				}
@@ -672,15 +724,25 @@ func stringifySelection(
 
 	// then add any fragment specifications we ran into
 	if len(fragments) > 0 {
-		fragments = fmt.Sprintf(`
+		result += fmt.Sprintf(`
 
 %s"fragments": {%s
 %s},`, indent2, fragments, indent2)
 	}
 
+	if len(loadingTypes) > 0 {
+		result += fmt.Sprintf(
+			`
+
+%s"loadingTypes": [%s],`,
+			indent2,
+			strings.Join(loadingTypes, `, `),
+		)
+	}
+
 	return fmt.Sprintf(`{
-%s%s
-%s}`, result, fragments, indent)
+%s
+%s}`, result, indent)
 }
 
 func keyField(field *CollectedSelection, paginatedMode *string) string {
@@ -730,8 +792,10 @@ func stringifyFieldSelection(
 	selection *CollectedSelection,
 	sortKeys bool,
 	flags *ArtifactFlags,
+	parentSelectionFlags *SelectionFlags,
 	updates []string,
 	path string,
+	forceLoading bool,
 ) string {
 	indent3 := strings.Repeat(spacing, level+2)
 	indent4 := strings.Repeat(spacing, level+3)
@@ -781,6 +845,64 @@ func stringifyFieldSelection(
 		}
 	}
 
+	// we need to know whether a child has the loading directive
+	selectionFlags := &SelectionFlags{}
+
+	// extra any operations for the field
+	operations := stringifyOperations(projectConfig, selection, level)
+	// summarize directives applied to the field
+	optimisticKey := ""
+	directives := ""
+	required := ""
+	hasRequiredDirective := false
+	hasLoading := forceLoading
+	loadingCount := 3
+
+	for _, directive := range selection.Directives {
+		switch directive.Name {
+		case schema.OptimisticKeyDirective:
+			optimisticKey = fmt.Sprintf(`
+%s"optimisticKey": true,`, indent4)
+			flags.OptimisticKeys = true
+		case schema.RequiredDirective:
+			hasRequiredDirective = true
+			required = fmt.Sprintf(`
+%s"required": true,`, indent4)
+		case schema.LoadingDirective:
+			hasLoading = true
+			for _, arg := range directive.Arguments {
+				if arg.Name == "cascade" && arg.Value.Raw == "true" {
+					forceLoading = true
+				}
+				if arg.Name == "count" {
+					var err error
+					loadingCount, err = strconv.Atoi(arg.Value.Raw)
+					if err != nil {
+						return ""
+					}
+				}
+			}
+		}
+
+		// the applied fragment might have arguments
+		arguments := ""
+		for _, arg := range directive.Arguments {
+			arguments += fmt.Sprintf(`
+%s"%s": %s,`, indent6, arg.Name, serializeFragmentArgument(arg.Value, level+5))
+		}
+		if arguments == "" {
+			arguments = "{}"
+		} else {
+			arguments = fmt.Sprintf(`{%s
+%s}`, arguments[:len(arguments)-1], indent5)
+		}
+
+		directives += fmt.Sprintf(`{
+%s"name": "%s",
+%s"arguments": %s
+%s},`, indent5, directive.Name, indent5, arguments, indent4)
+	}
+
 	// we need to generate the subselection
 	subSelection := ""
 	if len(selection.Children) > 0 {
@@ -804,9 +926,11 @@ func stringifyFieldSelection(
 				level+3,
 				sortKeys,
 				flags,
+				selectionFlags,
 				paginatedMode,
 				subSelUpdates,
 				path,
+				forceLoading,
 			),
 		)
 
@@ -840,48 +964,36 @@ func stringifyFieldSelection(
 %s"abstract": true,`, indent4)
 	}
 
-	// extra any operations for the field
-	operations := stringifyOperations(projectConfig, selection, level)
-	// summarize directives applied to the field
-	optimisticKey := ""
-	directives := ""
-	required := ""
-	hasRequiredDirective := false
-
-	for _, directive := range selection.Directives {
-		if directive.Name == schema.OptimisticKeyDirective {
-			optimisticKey = fmt.Sprintf(`
-%s"optimisticKey": true,`, indent4)
-			flags.OptimisticKeys = true
-		}
-		if directive.Name == schema.RequiredDirective {
-			hasRequiredDirective = true
-			required = fmt.Sprintf(`
-%s"required": true,`, indent4)
-		}
-		// the applied fragment might have arguments
-		arguments := ""
-		for _, arg := range directive.Arguments {
-			arguments += fmt.Sprintf(`
-%s"%s": %s,`, indent6, arg.Name, serializeFragmentArgument(arg.Value, level+5))
-		}
-		if arguments == "" {
-			arguments = "{}"
-		} else {
-			arguments = fmt.Sprintf(`{%s
-%s}`, arguments[:len(arguments)-1], indent5)
-		}
-
-		directives += fmt.Sprintf(`{
-%s"name": "%s",
-%s"arguments": %s
-%s},`, indent5, directive.Name, indent5, arguments, indent4)
-	}
 	if directives != "" {
 		directives = fmt.Sprintf(`
 
 %s"directives": [%s],
 `, indent4, directives[:len(directives)-1])
+	}
+
+	loading := ""
+	if hasLoading {
+
+		parentSelectionFlags.HasLoading = true
+		loadingValue := "value"
+		if selectionFlags.HasLoading {
+			loadingValue = "continue"
+		}
+
+		listValue := ""
+		if strings.Contains(*selection.TypeModifiers, "]") {
+			depth := strings.Count(*selection.TypeModifiers, "]")
+			listValue = fmt.Sprintf(`
+%s"list": {
+%s"depth": %v,
+%s"count": %v,
+%s},`, indent5, indent6, depth, indent6, loadingCount, indent5)
+		}
+
+		loading = fmt.Sprintf(`
+%s"loading": {
+%s"kind": "%s",%s
+%s},`, indent4, indent5, loadingValue, listValue, indent4)
 	}
 
 	// create the nullable string
@@ -994,7 +1106,7 @@ func stringifyFieldSelection(
 
 	result += fmt.Sprintf(`%s"%s": {
 %s"type": "%s",
-%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s%s%s%s
+%s"keyRaw": %s,%s%s%s%s%s%s%s%s%s%s%s%s%s
 %s},
 `,
 		indent3,
@@ -1010,6 +1122,7 @@ func stringifyFieldSelection(
 		operations,
 		subSelection,
 		filters,
+		loading,
 		abstract,
 		optimisticKey,
 		required,
@@ -1346,9 +1459,11 @@ type ArtifactFlags struct {
 	OptimisticKeys  bool
 	Refetch         *RefetchSpec
 	ComponentFields bool
+	HasLoading      string
 }
 
 type SelectionFlags struct {
+	HasLoading  bool
 	HasRequired bool
 }
 
