@@ -59,12 +59,12 @@ test('@loading on fragment - happy path', async function () {
 		};
 
 		export type UserBase$data = {
-		    readonly id: string;
+		    readonly id: string | number;
 		    readonly firstName: string;
 		    readonly parent: {
-		        readonly id: string;
+		        readonly id: string | number;
 		        readonly parent: {
-		            readonly id: string;
+		            readonly id: string | number;
 		        } | null;
 		    } | null;
 		} | {
@@ -214,9 +214,9 @@ test('@loading on query - happy path', async function () {
 		    readonly user: {
 		        readonly firstName: string;
 		        readonly parent: {
-		            readonly id: string;
+		            readonly id: string | number;
 		            readonly parent: {
-		                readonly id: string;
+		                readonly id: string | number;
 		            } | null;
 		        } | null;
 		    } | null;
@@ -378,7 +378,7 @@ test('@loading on list', async function () {
 
 		export type UserQuery$result = {
 		    readonly users: ({
-		        readonly id: string;
+		        readonly id: string | number;
 		    })[];
 		} | {
 		    readonly users: LoadingType[];

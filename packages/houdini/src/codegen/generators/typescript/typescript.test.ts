@@ -197,7 +197,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type TestFragment$input = {
-			    name?: string | null | undefined;
+			    name?: string | number | null | undefined;
 			};
 
 			export type TestFragment = {
@@ -288,7 +288,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type TestFragment$input = {
-			    name: string;
+			    name: string | number;
 			};
 
 			export type TestFragment = {
@@ -484,7 +484,7 @@ describe('typescript', function () {
 			    readonly firstName: string;
 			    readonly admin: boolean | null;
 			    readonly age: number | null;
-			    readonly id: string;
+			    readonly id: string | number;
 			    readonly weight: number | null;
 			};
 
@@ -819,7 +819,7 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = {
-			    id: string;
+			    id: string | number;
 			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
@@ -906,10 +906,10 @@ describe('typescript', function () {
 
 			export type MyTestQuery$result = {
 			    readonly entity: {} & (({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly __typename: "Cat";
 			    }) | ({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly __typename: "User";
 			    }));
 			};
@@ -1028,7 +1028,7 @@ describe('typescript', function () {
 			};
 
 			type NestedUserFilter = {
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -1046,7 +1046,7 @@ describe('typescript', function () {
 			export type MyMutation$input = {
 			    filter?: UserFilter | null | undefined;
 			    filterList: (UserFilter)[];
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -1283,7 +1283,7 @@ describe('typescript', function () {
 			};
 
 			type NestedUserFilter = {
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -1620,10 +1620,10 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly nodes: ({} & (({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly __typename: "User";
 			    }) | ({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly __typename: "Cat";
 			    }) | ({
 			        readonly __typename: "non-exhaustive; don't match this";
@@ -1746,10 +1746,10 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly entities: ({} & (({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly __typename: "User";
 			    }) | ({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly __typename: "Cat";
 			    })) | null)[] | null;
 			};
@@ -1866,7 +1866,7 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly nodes: ({
-			        readonly id: string;
+			        readonly id: string | number;
 			    } & (({
 			        readonly firstName: string;
 			        readonly __typename: "User";
@@ -2574,7 +2574,7 @@ describe('typescript', function () {
 
 			export type MyMutation$result = {
 			    readonly doThing: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly " $fragments": {
 			            My_Users_remove: {};
 			            My_Users_insert: {};
@@ -2583,7 +2583,7 @@ describe('typescript', function () {
 			};
 
 			type NestedUserFilter = {
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -2601,7 +2601,7 @@ describe('typescript', function () {
 			export type MyMutation$input = {
 			    filter?: UserFilter | null | undefined;
 			    filterList: (UserFilter)[];
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -2610,7 +2610,7 @@ describe('typescript', function () {
 
 			export type MyMutation$optimistic = {
 			    readonly doThing?: {
-			        readonly id?: string;
+			        readonly id?: string | number;
 			    } | null;
 			};
 
@@ -2886,10 +2886,10 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string;
 			        readonly friends: ({
-			            readonly id: string;
+			            readonly id: string | number;
 			            readonly firstName: string;
 			            readonly " $fragments": {
 			                UserBase: {};
@@ -3058,7 +3058,7 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string;
 			        readonly " $fragments": {
 			            UserBase: {};
@@ -3309,7 +3309,7 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly friends: ({
-			            readonly id: string;
+			            readonly id: string | number;
 			            readonly firstName: string;
 			            readonly " $fragments": {
 			                UserBase: {};
@@ -3440,7 +3440,7 @@ describe('typescript', function () {
 
 			export type UserMore$data = {
 			    readonly friends: ({
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string;
 			        readonly " $fragments": {
 			            UserBase: {};
@@ -3544,7 +3544,7 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string | undefined;
 			        readonly admin: boolean | null | undefined;
 			    } | null;
@@ -3647,7 +3647,7 @@ describe('typescript', function () {
 
 			export type MyQuery$result = {
 			    readonly user: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string;
 			        readonly nickname: string;
 			    } | null;
@@ -3740,7 +3740,7 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly parent: {
-			            readonly id: string;
+			            readonly id: string | number;
 			            readonly firstName: string;
 			            readonly nickname: string | null;
 			        };
@@ -3852,7 +3852,7 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly parent: {
-			            readonly id: string;
+			            readonly id: string | number;
 			            readonly firstName: string;
 			            readonly nickname: string;
 			        };
@@ -3969,7 +3969,7 @@ describe('typescript', function () {
 			export type MyQuery$result = {
 			    readonly user: {
 			        readonly parentRequired: {
-			            readonly id: string;
+			            readonly id: string | number;
 			            readonly firstName: string;
 			            readonly nickname: string;
 			        } | null;
@@ -4093,16 +4093,16 @@ describe('typescript', function () {
 			};
 
 			export type MyFragment$data = {
-			    readonly id: string;
+			    readonly id: string | number;
 			    readonly firstName: string;
 			    readonly nickname: string;
 			    readonly parent: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string;
 			        readonly nickname: string;
 			    };
 			    readonly parentRequired: {
-			        readonly id: string;
+			        readonly id: string | number;
 			        readonly firstName: string;
 			        readonly nickname: string;
 			    } | null;
@@ -4431,10 +4431,10 @@ describe('typescript', function () {
 			};
 
 			export type MyFragmentA$data = {} & (({
-			    readonly id: string;
+			    readonly id: string | number;
 			    readonly __typename: "User";
 			}) | ({
-			    readonly id: string;
+			    readonly id: string | number;
 			    readonly __typename: "Cat";
 			}));
 
@@ -4657,7 +4657,7 @@ describe('typescript', function () {
 			};
 
 			export type MyFragmentA$data = {} & (({
-			    readonly id: string;
+			    readonly id: string | number;
 			    readonly __typename: "User";
 			}) | ({
 			    readonly __typename: "non-exhaustive; don't match this";
@@ -4759,7 +4759,7 @@ test('overlapping fragments', async function () {
 		};
 
 		export type UserBase$data = {
-		    readonly id: string;
+		    readonly id: string | number;
 		    readonly firstName: string;
 		    readonly " $fragments": {
 		        UserMore: {};
