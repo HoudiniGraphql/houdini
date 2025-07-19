@@ -72,7 +72,7 @@ test('generates route prop type', async function () {
 
 			export type PageProps = {
 					Params: {
-					id: string,
+					id: string | number,
 				},
 					
 			    MyQuery: MyQuery$result,
@@ -82,7 +82,7 @@ test('generates route prop type', async function () {
 
 			export type LayoutProps = {
 				Params: {
-					id: string,
+					id: string | number,
 				},
 				children: React.ReactNode,
 			}
