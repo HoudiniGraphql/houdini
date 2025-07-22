@@ -139,7 +139,8 @@ function paramsType(config: Config, params?: PageManifest['params']): string {
 								type: config.schema.getType(typeInfo.type) as GraphQLNamedType,
 								wrappers: typeInfo.wrappers as TypeWrapper[],
 							},
-							[]
+							[],
+              false,
 						)
 					).code
 				}
