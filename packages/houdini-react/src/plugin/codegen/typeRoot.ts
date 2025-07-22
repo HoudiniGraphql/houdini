@@ -140,7 +140,7 @@ function paramsType(config: Config, params?: PageManifest['params']): string {
 								wrappers: typeInfo.wrappers as TypeWrapper[],
 							},
 							[],
-              false,
+							false
 						)
 					).code
 				}
