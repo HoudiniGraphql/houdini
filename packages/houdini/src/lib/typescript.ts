@@ -196,7 +196,7 @@ export function scalarPropertyValue(
 			return AST.tsBooleanKeyword()
 		}
 		case 'ID': {
-			return  AST.tsUnionType([AST.tsStringKeyword(), AST.tsNumberKeyword()])
+			return AST.tsUnionType([AST.tsStringKeyword(), AST.tsNumberKeyword()])
 		}
 		default: {
 			// if we're looking at a non-null type
