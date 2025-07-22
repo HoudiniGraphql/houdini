@@ -21,13 +21,14 @@ export function unwrappedTsTypeReference(
 		type: graphql.GraphQLNamedType
 		wrappers: TypeWrapper[]
 	},
-	body: StatementKind[]
+	body: StatementKind[],
+	input: boolean
 ) {
 	// convert the inner type
 	let result
 	// if we're looking at a scalar
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, filepath, missingScalars, type, body, null)
+		result = scalarPropertyValue(config, filepath, missingScalars, type, body, null, input)
 	}
 	//  enums need to be passed to ValueOf
 	else if (graphql.isEnumType(type)) {
@@ -66,7 +67,8 @@ export function tsTypeReference(
 			| graphql.GraphQLNamedType
 			| graphql.TypeNode
 	},
-	body: StatementKind[]
+	body: StatementKind[],
+	input: boolean
 ): TSTypeKind {
 	const { type, wrappers } = unwrapType(config, definition.type)
 
@@ -75,7 +77,8 @@ export function tsTypeReference(
 		filepath,
 		missingScalars,
 		{ type: type, wrappers },
-		body
+		body,
+		input
 	)
 }
 
@@ -120,7 +123,8 @@ export function scalarPropertyValue(
 	missingScalars: Set<string>,
 	target: graphql.GraphQLNamedType,
 	body: StatementKind[],
-	field: { parent: string; field: string } | null
+	field: { parent: string; field: string } | null,
+	input: boolean
 ): TSTypeKind {
 	// before we get to the generic behavior, let's process components when we want to
 	if (config.configFile.features?.componentFields && target.name === config.componentScalar) {
@@ -196,7 +200,11 @@ export function scalarPropertyValue(
 			return AST.tsBooleanKeyword()
 		}
 		case 'ID': {
-			return AST.tsUnionType([AST.tsStringKeyword(), AST.tsNumberKeyword()])
+			// if we're looking at an input type we can treat ID as a string or number
+			if (input) {
+				return AST.tsUnionType([AST.tsStringKeyword(), AST.tsNumberKeyword()])
+			}
+			return AST.tsStringKeyword()
 		}
 		default: {
 			// if we're looking at a non-null type
@@ -207,7 +215,8 @@ export function scalarPropertyValue(
 					missingScalars,
 					target.ofType as graphql.GraphQLNamedType,
 					body,
-					field
+					field,
+					input
 				)
 			}
 

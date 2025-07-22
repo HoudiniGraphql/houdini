@@ -163,7 +163,7 @@ test('generates type definitions for the imperative API', async function () {
 		import { UserInfo$data } from "../artifacts/UserInfo";
 
 		type NestedUserFilter = {
-		    id: string | number;
+		    id: string;
 		    firstName: string;
 		    admin?: boolean | null | undefined;
 		    age?: number | null | undefined;
@@ -186,7 +186,7 @@ test('generates type definitions for the imperative API', async function () {
 		                user: {
 		                    type: Record<CacheTypeDef, "User"> | null;
 		                    args: {
-		                        id?: string | number | null | undefined;
+		                        id?: string | null | undefined;
 		                        filter?: UserFilter | null | undefined;
 		                        filterList?: (UserFilter)[] | null | undefined;
 		                        enumArg?: ValueOf<typeof MyEnum> | null | undefined;
@@ -197,7 +197,7 @@ test('generates type definitions for the imperative API', async function () {
 		                    args: {
 		                        filter?: UserFilter | null | undefined;
 		                        list: (UserFilter)[];
-		                        id: string | number;
+		                        id: string;
 		                        firstName: string;
 		                        admin?: boolean | null | undefined;
 		                        age?: number | null | undefined;
@@ -223,7 +223,7 @@ test('generates type definitions for the imperative API', async function () {
 		                node: {
 		                    type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User"> | null;
 		                    args: {
-		                        id: string | number;
+		                        id: string;
 		                    };
 		                };
 		            };
@@ -231,11 +231,11 @@ test('generates type definitions for the imperative API', async function () {
 		        };
 		        Cat: {
 		            idFields: {
-		                id: string | number;
+		                id: string;
 		            };
 		            fields: {
 		                id: {
-		                    type: string | number;
+		                    type: string;
 		                    args: never;
 		                };
 		                kitty: {
@@ -260,7 +260,7 @@ test('generates type definitions for the imperative API', async function () {
 		            };
 		            fields: {
 		                id: {
-		                    type: string | number;
+		                    type: string;
 		                    args: never;
 		                };
 		                aka: {
@@ -276,11 +276,11 @@ test('generates type definitions for the imperative API', async function () {
 		        };
 		        User: {
 		            idFields: {
-		                id: string | number;
+		                id: string;
 		            };
 		            fields: {
 		                id: {
-		                    type: string | number;
+		                    type: string;
 		                    args: never;
 		                };
 		                firstName: {
@@ -327,7 +327,7 @@ test('generates type definitions for the imperative API', async function () {
 		            filters: {
 		                filter?: UserFilter | null | undefined;
 		                list?: (UserFilter)[];
-		                id?: string | number;
+		                id?: string;
 		                firstName?: string;
 		                admin?: boolean | null | undefined;
 		                age?: number | null | undefined;
