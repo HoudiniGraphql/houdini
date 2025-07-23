@@ -1,5 +1,14 @@
 # houdini-react
 
+## 2.0.0-next.5
+
+### Patch Changes
+
+-   [#1515](https://github.com/HoudiniGraphql/houdini/pull/1515) [`abb876a5`](https://github.com/HoudiniGraphql/houdini/commit/abb876a5b2087baf75c933eca2115e6bcb1a8b85) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Allow ints to be passed as IDs
+
+-   Updated dependencies [[`abb876a5`](https://github.com/HoudiniGraphql/houdini/commit/abb876a5b2087baf75c933eca2115e6bcb1a8b85)]:
+    -   houdini@2.0.0-next.5
+
 ## 2.0.0-next.4
 
 ### Patch Changes
