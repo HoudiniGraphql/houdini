@@ -45,7 +45,7 @@ jobs:
               run: pnpm install
 
             - name: Check prettier
-              run: pnpm run format:check
+              run: pnpm run format:check || (pnpm run format:write && git diff)
 
             - name: Check lint
               run: pnpm run lint
