@@ -819,7 +819,7 @@ describe('typescript', function () {
 			};
 
 			export type MyQuery$input = {
-			    id: string;
+			    id: string | number;
 			    enum?: ValueOf<typeof MyEnum> | null | undefined;
 			};
 
@@ -1028,7 +1028,7 @@ describe('typescript', function () {
 			};
 
 			type NestedUserFilter = {
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -1046,7 +1046,7 @@ describe('typescript', function () {
 			export type MyMutation$input = {
 			    filter?: UserFilter | null | undefined;
 			    filterList: (UserFilter)[];
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -1283,7 +1283,7 @@ describe('typescript', function () {
 			};
 
 			type NestedUserFilter = {
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -2583,7 +2583,7 @@ describe('typescript', function () {
 			};
 
 			type NestedUserFilter = {
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;
@@ -2601,7 +2601,7 @@ describe('typescript', function () {
 			export type MyMutation$input = {
 			    filter?: UserFilter | null | undefined;
 			    filterList: (UserFilter)[];
-			    id: string;
+			    id: string | number;
 			    firstName: string;
 			    admin?: boolean | null | undefined;
 			    age?: number | null | undefined;

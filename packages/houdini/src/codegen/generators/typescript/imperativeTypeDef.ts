@@ -145,7 +145,8 @@ function typeDefinitions(
 									{
 										field: key,
 										parent: type.name,
-									}
+									},
+									false
 								)
 							)
 						)
@@ -181,7 +182,8 @@ function typeDefinitions(
 										{
 											field: key,
 											parent: type.name,
-										}
+										},
+										false
 									)
 								)
 							}
@@ -235,7 +237,8 @@ function typeDefinitions(
 											body,
 											visitedTypes,
 											new Set(),
-											arg.type
+											arg.type,
+											true
 										)
 
 										// add the arg definition for the field
@@ -247,7 +250,8 @@ function typeDefinitions(
 													filepath,
 													new Set(),
 													arg,
-													body
+													body,
+													graphql.isInputType(arg.type)
 												)
 											)
 										)
@@ -396,7 +400,8 @@ function listDefinitions(
 																	filepath,
 																	new Set(),
 																	arg,
-																	body
+																	body,
+																	graphql.isInputType(arg.type)
 																)
 															)
 														)

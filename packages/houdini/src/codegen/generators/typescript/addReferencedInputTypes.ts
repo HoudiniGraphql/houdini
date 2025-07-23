@@ -14,7 +14,8 @@ export function addReferencedInputTypes(
 	body: StatementKind[],
 	visitedTypes: Set<string>,
 	missingScalars: Set<string>,
-	rootType: graphql.TypeNode | graphql.GraphQLInputType
+	rootType: graphql.TypeNode | graphql.GraphQLInputType,
+	input: boolean
 ) {
 	// try to find the name of the type
 	const { type } = unwrapType(config, rootType)
@@ -59,7 +60,15 @@ export function addReferencedInputTypes(
 
 	for (const field of Object.values(type.getFields())) {
 		// walk down the referenced fields and build stuff back up
-		addReferencedInputTypes(config, filepath, body, visitedTypes, missingScalars, field.type)
+		addReferencedInputTypes(
+			config,
+			filepath,
+			body,
+			visitedTypes,
+			missingScalars,
+			field.type,
+			input
+		)
 
 		// check if the type is optional so we can label the value as optional
 
@@ -67,7 +76,7 @@ export function addReferencedInputTypes(
 			AST.tsPropertySignature(
 				AST.identifier(field.name),
 				AST.tsTypeAnnotation(
-					tsTypeReference(config, filepath, missingScalars, field, body)
+					tsTypeReference(config, filepath, missingScalars, field, body, input)
 				),
 				graphql.isNullableType(field.type)
 			)

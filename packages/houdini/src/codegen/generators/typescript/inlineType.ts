@@ -30,6 +30,7 @@ export function inlineType({
 	allOptional,
 	forceNonNull,
 	field,
+	input,
 }: {
 	config: Config
 	filepath: string
@@ -44,6 +45,7 @@ export function inlineType({
 	field: { parent: string; field: string } | null
 	allOptional?: boolean
 	forceNonNull?: boolean
+	input: boolean
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -58,7 +60,8 @@ export function inlineType({
 			missingScalars,
 			type as graphql.GraphQLNamedType,
 			body,
-			field
+			field,
+			input
 		)
 	}
 	// we could have encountered an enum
@@ -244,6 +247,7 @@ export function inlineType({
 						field: attributeName,
 						parent: type.name,
 					},
+					input,
 				})
 
 				// check if we have an @include or @skip directive
@@ -335,6 +339,7 @@ export function inlineType({
 				includeFragments,
 				allOptional,
 				field: null,
+				input: false,
 			})
 
 			// we need to handle __typename in the generated type. this means removing

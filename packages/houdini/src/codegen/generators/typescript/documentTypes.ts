@@ -297,6 +297,7 @@ async function generateOperationTypeDefs(
 		missingScalars,
 		includeFragments: true,
 		field: null,
+		input: false,
 	})
 
 	// if we are looking at a query then we should add the loading state
@@ -353,7 +354,8 @@ async function generateOperationTypeDefs(
 				body,
 				visitedTypes,
 				missingScalars,
-				variableDefinition.type
+				variableDefinition.type,
+				true
 			)
 		}
 
@@ -374,7 +376,8 @@ async function generateOperationTypeDefs(
 											filepath,
 											missingScalars,
 											definition,
-											body
+											body,
+											true
 										)
 									),
 									definition.type.kind !== 'NonNullType'
@@ -412,6 +415,7 @@ async function generateOperationTypeDefs(
 						includeFragments: false,
 						allOptional: true,
 						field: null,
+						input: false,
 					})
 				)
 			)
@@ -467,7 +471,8 @@ async function generateFragmentTypeDefs(
 										filepath,
 										missingScalars,
 										definition,
-										body
+										body,
+										false
 									)
 								),
 								definition.type.kind !== 'NonNullType'
@@ -533,6 +538,7 @@ async function generateFragmentTypeDefs(
 							missingScalars,
 							includeFragments: true,
 							field: null,
+							input: false,
 						}),
 					})
 				)
