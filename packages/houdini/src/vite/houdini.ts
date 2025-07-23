@@ -141,7 +141,6 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			return result
 		},
 
-
 		async configResolved(conf) {
 			if (!isSecondaryBuild()) {
 				viteConfig = conf
