@@ -167,6 +167,15 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 					path.relative(config.rootDir, config.pluginRuntimeDirectory(plugin.name)),
 			})
 		}
+
+		// if the plugin generated a static runtime
+		if (plugin.staticRuntime) {
+			indexContent += exportStarFrom({
+				module:
+					'./' +
+					path.relative(config.rootDir, config.pluginStaticRuntimeDirectory(plugin.name)),
+			})
+		}
 	}
 
 	// write the contents
