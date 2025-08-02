@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-auto",
-    "version": "1.3.12",
+    "version": "1.3.13",
     "description": "An adapter for deploying your Houdini application according to the build environment ",
     "keywords": [
         "houdini",
