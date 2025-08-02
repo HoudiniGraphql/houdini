@@ -49,7 +49,9 @@ export async function init(
 	} while (dir !== (dir = path.dirname(dir)))
 
 	if (use_git) {
-		const status = execSync('git status --porcelain', { stdio: 'pipe' }).toString()
+		const status = execSync('git status --porcelain', {
+			stdio: 'pipe',
+		}).toString()
 
 		if (status) {
 			const { confirm } = await p.group(
@@ -131,7 +133,7 @@ export async function init(
 				}
 			)
 
-			url_and_headers = answer.url_and_headers
+			url_and_headers = answer.url_and_headers ?? ''
 			const value_splited = url_and_headers.split(' ')
 			const local_url = value_splited[0]
 
@@ -143,6 +145,7 @@ export async function init(
 
 			// Since we don't have a config file yet, we need to provide the default here.
 			const fetchTimeout = 30000
+
 			pullSchema_content = await pull_schema(
 				local_url,
 				fetchTimeout,
@@ -191,6 +194,10 @@ export async function init(
 
 	// Let's write the schema only now (after the function "after_questions" where the project has been created)
 	if (is_remote_endpoint && pullSchema_content) {
+		console.log('src/cmd/init.ts', {
+			targetPath,
+			schemaPath,
+		})
 		await fs.writeFile(path.join(targetPath, schemaPath), pullSchema_content)
 	}
 
@@ -275,8 +282,8 @@ export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
 		cmd_run = 'yarn dev'
 	}
 	console.log(`👉 Next Steps`)
-	console.log(`1️⃣  Finalize your installation: ${green(cmd_install)}
-2️⃣  Start your application:     ${green(cmd_run)}
+	console.log(`1  Finalize your installation: ${green(cmd_install)}
+2  Start your application:     ${green(cmd_run)}
 `)
 
 	console.log(
