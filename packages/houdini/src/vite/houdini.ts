@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import { yellow } from 'kleur/colors'
 import type { SourceMapInput } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ResolvedConfig, ConfigEnv } from 'vite'
 
@@ -215,6 +216,21 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 
 		async configureServer(server) {
 			devServer = true
+
+			// houdini@next notice.
+			if (config.plugins.some((plugin) => plugin.name === 'houdini-svelte')) {
+				console.log(
+					`${yellow(
+						'💡 Tip: we recommend upgrading to houdini@next for support with the latest vite and svelte-kit versions. Read more here: https://houdini-docs-next.netlify.app/guides/migrateTo20'
+					)}`
+				)
+			} else {
+				console.log(
+					`${yellow(
+						'💡 Tip: we recommend upgrading to houdini@next for support with the latest vite version. Read more here: https://houdini-docs-next.netlify.app/guides/migrateTo20'
+					)}`
+				)
+			}
 
 			await writeTsConfig(config)
 

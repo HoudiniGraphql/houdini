@@ -31,6 +31,31 @@ export async function init(
 ): Promise<void> {
 	p.intro('🎩 Welcome to Houdini!')
 
+	// Show a notice to direct users to use houdini@next
+	{
+		const { confirm } = await p.group(
+			{
+				confirm: () => {
+					p.log.warning(
+						`You are using Houdini version "HOUDINI_PACKAGE_VERSION", which doesn't support the latest svelte-kit and vite versions.
+We recommend re-running this with houdini@next. See what's new here: https://houdini-docs-next.netlify.app/guides/migrateTo20`
+					)
+					return p.confirm({
+						message: 'Continue anyway?',
+						initialValue: false,
+					})
+				},
+			},
+			{
+				onCancel: () => pCancel(),
+			}
+		)
+
+		if (confirm !== true) {
+			pCancel()
+		}
+	}
+
 	// before we start anything, let's make sure they have initialized their project
 	try {
 		await fs.stat(path.resolve('./src'))

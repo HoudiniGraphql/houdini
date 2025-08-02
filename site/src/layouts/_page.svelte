@@ -6,6 +6,7 @@
 	import { browser } from '$app/environment'
 	import Toolbar from '~/components/Toolbar.svelte'
 	import Logo from '~/components/Logo.svelte'
+	import VersionNotice from '~/components/VersionNotice.svelte'
 
 	export let title = ''
 	export let link = ''
@@ -118,6 +119,8 @@
 <SEO {title} {description} />
 
 <SearchDialog />
+
+<VersionNotice />
 
 <main>
 	<aside class:open={menuOpen} class:blur={$searching}>
@@ -245,7 +248,8 @@
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
-		top: 0;
+		/* top: 0; */
+		top: 18px; /* add some padding to stay clear of the version notice */
 		position: fixed;
 		background-color: var(--hue);
 		z-index: 10;
