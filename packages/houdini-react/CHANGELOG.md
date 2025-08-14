@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.6
+
+### Patch Changes
+
+-   [`5837835b`](https://github.com/HoudiniGraphql/houdini/commit/5837835b0991764d630833d28d7ef714dccfa192) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix local yoga manifest
+
 ## 2.0.0-next.5
 
 ### Patch Changes
