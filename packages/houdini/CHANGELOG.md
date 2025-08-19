@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.6
+
+### Patch Changes
+
+-   [`f801f6a8`](https://github.com/HoudiniGraphql/houdini/commit/f801f6a85f414f54b24be3a9350822d8bb6d35e2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - use local yoga when resolving queries to preserve context values
+
 ## 2.0.0-next.5
 
 ### Patch Changes
