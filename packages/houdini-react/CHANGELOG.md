@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.7
+
+### Patch Changes
+
+-   [`784de8b0`](https://github.com/HoudiniGraphql/houdini/commit/784de8b0c4645be222087454246ba05b501afc42) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue stripping context values when using a local yoga instance
+
 ## 2.0.0-next.6
 
 ### Patch Changes
