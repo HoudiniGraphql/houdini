@@ -39,11 +39,11 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 
 	// Get all operations (queries, mutations, subscriptions)
 	operations := make(map[string]*OperationDoc)
+	fragments := make(map[string]*OperationDoc)
 	err = sqlitex.Execute(conn, `
 		SELECT d.id, d.name, d.kind, d.hash, d.printed
 		FROM documents d
-		WHERE d.kind IN ('query', 'mutation', 'subscription') 
-			AND d.hash IS NOT NULL 
+		WHERE  d.hash IS NOT NULL 
 			AND d.hash != ''
 			AND d.printed IS NOT NULL
 			AND d.printed != ''
@@ -54,6 +54,18 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 			kind := stmt.ColumnText(2)
 			hash := stmt.ColumnText(3)
 			printed := stmt.ColumnText(4)
+
+			if kind == "fragment" {
+				// named map for faster lookup
+				fragments[name] = &OperationDoc{
+					ID:      id,
+					Name:    name,
+					Kind:    kind,
+					Hash:    hash,
+					Printed: printed,
+				}
+				return nil
+			}
 
 			operations[id] = &OperationDoc{
 				ID:      id,
@@ -107,27 +119,16 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 		// Get the printed content for all required fragments
 		fragmentDefinitions := []string{}
 		for _, fragmentName := range fragmentNames {
-			log.Printf("Resolving fragment %s", fragmentName)
-			err = sqlitex.Execute(conn, `
-				SELECT printed
-				FROM documents
-				WHERE name = ? AND kind = 'fragment'
-					AND printed IS NOT NULL AND printed != ''
-			`, &sqlitex.ExecOptions{
-				Args: []interface{}{fragmentName},
-				ResultFunc: func(stmt *sqlite.Stmt) error {
-					printed := stmt.ColumnText(0)
-					fragmentDefinitions = append(fragmentDefinitions, printed)
-					return nil
-				},
-			})
-			// log.Println(fragmentDefinitions)
-			if err != nil {
-				return plugins.WrapError(err)
+			// now we can use the named map
+			frag := fragments[fragmentName]
+			if frag == nil {
+				log.Printf("Fragment %s not found", fragmentName)
+				continue
+
 			}
+			fragmentDefinitions = append(fragmentDefinitions, frag.Printed)
 		}
 
-		// Build complete GraphQL: operation + all fragment definitions
 		completeGraphQL := op.Printed
 		if len(fragmentDefinitions) > 0 {
 			completeGraphQL += "\n\n" + strings.Join(fragmentDefinitions, "\n\n")
