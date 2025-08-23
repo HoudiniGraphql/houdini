@@ -219,7 +219,7 @@ func TestGeneratePersistentQueries_WithNestedFragments(t *testing.T) {
 		{12, "url", "field"},
 		{13, "alt", "field"},
 		{14, "width", "field"},
-		{15, "height", "field"}
+		{15, "height", "field"},
 	}
 
 	for _, sel := range selections {
@@ -239,7 +239,7 @@ func TestGeneratePersistentQueries_WithNestedFragments(t *testing.T) {
 		{1, 2, 1},
 		{4, 5, 2},
 		{4, 6, 2},
-		{7, 8, 3}
+		{7, 8, 3},
 	}
 
 	for _, ref := range refs {
@@ -513,7 +513,7 @@ func TestGeneratePersistentQueries_CircularFragments(t *testing.T) {
 		{3, "id", "field"},
 		{4, "FragmentB", "fragment"},
 		{5, "name", "field"},
-		{6, "FragmentA", "fragment"}
+		{6, "FragmentA", "fragment"},
 	}
 
 	for _, sel := range selections {
@@ -532,7 +532,7 @@ func TestGeneratePersistentQueries_CircularFragments(t *testing.T) {
 	}{
 		{1, 2, 1},
 		{3, 4, 2},
-		{5, 6, 3}
+		{5, 6, 3},
 	}
 
 	for _, ref := range refs {
@@ -643,7 +643,7 @@ func TestGeneratePersistentQueries_HashFormat(t *testing.T) {
 		{"ValidSHA256", "9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6", true},
 		{"ValidSHA256_2", "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1", true},
 		{"Short", "abc123", true},
-		{"Empty", "", false}
+		{"Empty", "", false},
 	}
 
 	docId := 1
@@ -707,7 +707,7 @@ func TestGeneratePersistentQueries_ComplexFragmentScenario(t *testing.T) {
 		{3, "UserCard", "fragment", "usercard_hash", "fragment UserCard on User { id name ...Avatar }"},
 		{4, "UserDetails", "fragment", "userdetails_hash", "fragment UserDetails on User { id name email ...Avatar ...Address }"},
 		{5, "Avatar", "fragment", "avatar_hash", "fragment Avatar on User { avatar { url alt } }"},
-		{6, "Address", "fragment", "address_hash", "fragment Address on User { address { street city state } }"}
+		{6, "Address", "fragment", "address_hash", "fragment Address on User { address { street city state } }"},
 	}
 
 	for _, doc := range testDocs {
@@ -742,7 +742,7 @@ func TestGeneratePersistentQueries_ComplexFragmentScenario(t *testing.T) {
 		{16, "address", "field"},
 		{17, "street", "field"},
 		{18, "city", "field"},
-		{19, "state", "field"}
+		{19, "state", "field"},
 	}
 
 	for _, sel := range selections {
@@ -763,7 +763,7 @@ func TestGeneratePersistentQueries_ComplexFragmentScenario(t *testing.T) {
 		{3, 4, 2},
 		{6, 7, 3},
 		{9, 11, 4},
-		{10, 12, 4}
+		{10, 12, 4},
 	}
 
 	for _, ref := range refs {
