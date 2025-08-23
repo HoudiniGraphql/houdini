@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
@@ -20,6 +22,7 @@ func InsertOperationDocuments(
 	// into the database. we also need to insert internal directives so that we can strip them
 	// from the final selection set
 
+	log.Println("Inserting operation documents")
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return plugins.WrapError(err)
@@ -126,7 +129,7 @@ func InsertOperationDocuments(
 	defer insertArgumentValueChildren.Finalize()
 
 	insertDocument, err := conn.Prepare(
-		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
+		"INSERT INTO documents (name, raw_document, kind, type_condition, hash) VALUES ($name, $raw_document, $kind, $type_condition, $hash)",
 	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -200,6 +203,7 @@ func InsertOperationDocuments(
 	}
 	defer insertDocumentArgument.Finalize()
 
+	log.Printf("[insertOperations] About to search for discovered lists...")
 	err = db.StepStatement(ctx, searchLists, func() {
 		name := searchLists.ColumnText(0)
 		listType := searchLists.ColumnText(1)
@@ -207,6 +211,9 @@ func InsertOperationDocuments(
 		rawDocument := searchLists.ColumnInt64(3)
 		documentID := searchLists.GetInt64("document_id")
 		documentArgmentsString := searchLists.GetText("document_arguments")
+
+		log.Printf("[insertOperations] Processing discovered list: name=%s, listType=%s, selectionParent=%d, rawDocument=%d, documentID=%d", 
+			name, listType, selectionParent, rawDocument, documentID)
 
 		arguments := []struct {
 			Name          string `json:"name"`
@@ -221,6 +228,7 @@ func InsertOperationDocuments(
 
 		// if the document doesn't have a name then we dont need to generate documents for it
 		if name == "" {
+			log.Printf("[insertOperations] Skipping document with empty name")
 			return
 		}
 
@@ -232,11 +240,13 @@ func InsertOperationDocuments(
 
 		// _insert and _toggle both get the full selection set
 		for _, suffixes := range []string{schema.ListOperationSuffixInsert, schema.ListOperationSuffixToggle} {
+			documentName := fmt.Sprintf("%s%s", name, suffixes)
 			err := db.ExecStatement(insertDocument, map[string]any{
-				"name":           fmt.Sprintf("%s%s", name, suffixes),
+				"name":           documentName,
 				"kind":           "fragment",
 				"type_condition": listType,
 				"raw_document":   rawDocument,
+				"hash":           documents.GenerateDocumentHash(documentName),
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -369,6 +379,7 @@ func InsertOperationDocuments(
 			return
 		}
 	})
+	log.Printf("[insertOperations] Finished searching for discovered lists")
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
@@ -429,11 +440,13 @@ func InsertOperationDocuments(
 		// if the list isn't named we dont need to generate  delete directive
 		if listName != "" {
 			// we also need to insert a remove fragment for each type that has a list
+			documentName := fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove)
 			err = db.ExecStatement(insertDocument, map[string]any{
-				"name":           fmt.Sprintf("%s%s", listName, schema.ListOperationSuffixRemove),
+				"name":           documentName,
 				"kind":           "fragment",
 				"type_condition": typeName,
 				"raw_document":   rawDocument,
+				"hash":           documents.GenerateDocumentHash(documentName),
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))

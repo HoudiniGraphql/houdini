@@ -28,6 +28,7 @@ export async function generate(
 		// grab the config file
 		let config: Config | null = await get_config()
 
+    console.log('[packages/houdini/src/cmd/generate.ts]',config?.config_file)
 		// initialize the codegen pipe
 		const { trigger_hook, close } = await codegen_setup(config, mode)
 

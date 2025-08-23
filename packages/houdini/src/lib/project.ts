@@ -130,6 +130,7 @@ export async function get_config({
 			plugins: [],
 		}
 
+    console.log('[packages/houdini/src/lib/project.ts]')
 		// we need to process the plugins before we instantiate the config object
 		// so that we can compute the final config_file
 

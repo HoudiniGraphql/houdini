@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -382,12 +383,15 @@ func LoadPendingQuery(
 
 		// insert the operation into the "documents" table.
 		// for operations, we set type_condition to null.
+		log.Println("Generating hash for operation", operation.Name, query)
+		hash := GenerateDocumentHash(query.Query)
 		if err := db.ExecStatement(
 			statements.InsertDocument,
 			map[string]any{
 				"name":         operation.Name,
 				"raw_document": query.ID,
 				"kind":         string(operation.Operation),
+				"hash":         hash,
 			},
 		); err != nil {
 			return &plugins.Error{
@@ -647,6 +651,7 @@ func LoadPendingQuery(
 	// process fragment definitions.
 	for _, fragment := range parsed.Fragments {
 		// insert the fragment into "documents".
+		hash := GenerateDocumentHash(query.Query)
 		if err := db.ExecStatement(
 			statements.InsertDocument,
 			map[string]any{
@@ -654,6 +659,7 @@ func LoadPendingQuery(
 				"raw_document":   query.ID,
 				"kind":           "fragment",
 				"type_condition": fragment.TypeCondition,
+				"hash":           hash,
 			},
 		); err != nil {
 			return &plugins.Error{

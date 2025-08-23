@@ -8,9 +8,11 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
+
 
 func PreparePaginationDocuments(
 	ctx context.Context,
@@ -127,7 +129,7 @@ func PreparePaginationDocuments(
 
 	// once we have a row, we'll need to insert variables and arguments into the document (and maybe extra documents)
 	insertDocument, err := conn.Prepare(`
-		INSERT INTO documents (name, kind, raw_document) VALUES ($name, 'query', $raw_document)
+		INSERT INTO documents (name, kind, raw_document, hash) VALUES ($name, 'query', $raw_document, $hash)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -402,9 +404,11 @@ func PreparePaginationDocuments(
 		// if we processing a fragment with the pagination directive then we need to insert a document with the fragment embedded
 		if docType == "fragment" {
 			// insert a document with a name derived from the fragment name
+			queryName := schema.FragmentPaginationQueryName(documentName)
 			err = db.ExecStatement(insertDocument, map[string]any{
-				"name":         schema.FragmentPaginationQueryName(documentName),
+				"name":         queryName,
 				"raw_document": rawDocument,
+				"hash":         documents.GenerateDocumentHash(queryName),
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))

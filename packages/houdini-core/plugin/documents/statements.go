@@ -1,6 +1,16 @@
 package documents
 
-import "zombiezen.com/go/sqlite"
+import (
+	"crypto/sha256"
+	"fmt"
+	"zombiezen.com/go/sqlite"
+)
+
+// GenerateDocumentHash creates a SHA256 hash from document content
+// This should be used consistently across all document hash generation
+func GenerateDocumentHash(content string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(content)))
+}
 
 type DocumentInsertStatements struct {
 	InsertDocument                          *sqlite.Stmt
@@ -20,7 +30,7 @@ type DocumentInsertStatements struct {
 
 func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatements, error, func()) {
 	insertDocument, err := conn.Prepare(
-		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
+		"INSERT INTO documents (name, raw_document, kind, type_condition, hash) VALUES ($name, $raw_document, $kind, $type_condition, $hash)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
