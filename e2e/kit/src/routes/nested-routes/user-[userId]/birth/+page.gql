@@ -1,0 +1,6 @@
+query Page_User_Birth($userId: ID!) {
+  user(id: $userId, snapshot: "Page_User", delay: 1000) {
+    id
+    birthDate
+  }
+}

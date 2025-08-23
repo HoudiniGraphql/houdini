@@ -1,0 +1,67 @@
+{
+	"name": "houdini-monorepo",
+	"private": true,
+	"version": "1.0.0",
+	"description": "The disappearing graphql client for SvelteKit",
+	"type": "module",
+	"scripts": {
+		"tests": "vitest",
+		"tests:ui": "vitest --ui --coverage",
+		"test": "pnpm run tests",
+		"build:all": "turbo build",
+		"build": "turbo run build --filter=\"./packages/*\"",
+		"dev": "turbo dev --filter=\"./packages/*\"",
+		"compile:all": "turbo compile",
+		"compile": "turbo compile --filter=\"./packages/*\"",
+		"typedefs:all": "turbo run typedefs",
+		"typedefs": "turbo run typedefs --filter=\"./packages/*\"",
+		"lint": "eslint --ignore-path .prettierignore \"./packages/*/src/**/*.ts\"",
+		"format": "prettier \"packages/**/*.ts\"",
+		"format:write": "npm run format -- -w",
+		"format:check": "npm run format -- --check",
+		"version": "changeset version",
+		"changeset": "changeset",
+		"release": "pnpm run build && changeset publish",
+		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
+		"prepack": "pinst --disable",
+		"postpack": "pinst --enable"
+	},
+	"devDependencies": {
+		"@babel/plugin-syntax-import-assertions": "^7.26.0",
+		"@changesets/changelog-git": "^0.1.14",
+		"@changesets/changelog-github": "^0.4.8",
+		"@changesets/cli": "^2.26.0",
+		"@playwright/test": "1.48.0",
+		"@theguild/eslint-config": "^0.8.0",
+		"@trivago/prettier-plugin-sort-imports": "^4.0.0",
+		"@types/react": "^19.0.7",
+		"@vitest/coverage-v8": "^1.6.0",
+		"@vitest/ui": "^1.6.0",
+		"eslint-plugin-unused-imports": "^3.0.0",
+		"graphql": "^15.8.0",
+		"lint-staged": "^12.3.4",
+		"prettier": "^2.8.3",
+		"turbo": "^1.8.8",
+		"typescript": "^4.9",
+		"vite": "^6.0.3",
+		"vitest": "^1.6.0"
+	},
+	"dependencies": {
+		"fs-extra": "^10.1.0",
+		"jest-snapshot": "^29.4.1",
+		"memfs": "^3.4.7",
+		"recast": "^0.23.1"
+	},
+	"packageManager": "pnpm@10.12.1",
+	"lint-staged": {
+		"*.ts&!(*.d.ts)": "prettier -w ",
+		"*.tsx": "prettier -w ",
+		"*.js": "prettier -w ",
+		"*.json": "prettier -w "
+	},
+	"pnpm": {
+		"overrides": {
+			"graphql": "15.5.0"
+		}
+	}
+}

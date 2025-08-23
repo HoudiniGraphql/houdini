@@ -1,0 +1,18 @@
+{
+	"$schema": "https://turborepo.org/schema.json",
+	"pipeline": {
+		"compile": {
+			"dependsOn": ["^compile"],
+			"cache": false
+		},
+		"typedefs": {
+			"dependsOn": ["^typedefs", "^compile"]
+		},
+		"build": {
+			"dependsOn": ["typedefs", "compile"]
+		},
+		"publish": {
+			"dependsOn": ["build", "test", "lint"]
+		}
+	}
+}

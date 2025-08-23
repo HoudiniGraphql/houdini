@@ -1,0 +1,5 @@
+query ComponentInRoute_Route {
+  usersList(limit: 2, snapshot: "ComponentInRoute") {
+    id
+  }
+}

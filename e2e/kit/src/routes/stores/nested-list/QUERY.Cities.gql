@@ -1,0 +1,14 @@
+query Cities {
+  cities @list(name: "City_List") {
+    id
+    name
+    libraries @list(name: "Library_List") {
+      id
+      name
+      books @list(name: "Book_List") {
+        id
+        title
+      }
+    }
+  }
+}

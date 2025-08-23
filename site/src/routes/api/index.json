@@ -1,0 +1,18 @@
+{
+	"name": "API",
+	"pages": [
+		"query",
+		"fragment",
+		"mutation",
+		"subscription",
+		"react",
+		"graphql-magic",
+		"client",
+		"cache",
+		"client-plugins",
+		"codegen-plugins",
+		"config",
+		"vite-plugin",
+		"command-line"
+	]
+}

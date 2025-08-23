@@ -1,0 +1,33 @@
+{
+	"name": "PROJECT_NAME",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"houdini": "^HOUDINI_VERSION",
+		"houdini-react": "^HOUDINI_VERSION",
+		"houdini-adapter-auto": "^HOUDINI_VERSION",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"graphql-yoga": "4.0.4",
+		"graphql": "15.8.0",
+		"@whatwg-node/server": "^0.9.14"
+	},
+	"devDependencies": {
+		"@types/react": "^19.0.7",
+		"@types/react-dom": "^19.0.3",
+		"@vitejs/plugin-react": "^3.1.0",
+		"typescript": "^4.9.3",
+		"vite": "^4.1.0"
+	},
+	"resolutions": {
+		"graphql": "15.8.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
+	}
+}

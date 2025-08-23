@@ -1,0 +1,6 @@
+query scalar_test {
+	usersList(snapshot: "componentFields_simple") {
+		name
+		birthDate
+	}
+}

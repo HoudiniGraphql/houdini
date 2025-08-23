@@ -1,0 +1,25 @@
+name: '✨ Feature Request'
+description: Suggest an idea for this project
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature :pray:.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the feature
+      description: Provide a clear and concise description of the feature you have in mind.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: criticality
+    attributes:
+      label: Criticality
+      options:
+        - nice to have
+        - cool improvement, my projects will benefit from it
+        - waiting for it to switch all my project to Houdini
+        - game changer, I'll speak about it everywhere

@@ -1,0 +1,31 @@
+---
+title: Plugin Directory
+description: A summary of the available plugins for Houdini applications
+---
+
+<script>
+    import { DeepDive } from '~/components'
+</script>
+
+# Plugin Directory
+
+This document contains a directory of some plugins that are available for your
+application. If you have a plugin that you would like us to add to this list,
+please reach out on Discord or GitHub.
+
+## Client Plugins
+
+Houdini comes with some plugins that are available by default through `$houdini/plugins`:
+
+- [subscription](/api/client-plugins/plugins/subscription) creates a subscription using
+  a client that you provide.
+- [mutation](/api/client-plugins/plugins/mutation) adds features like optimistic
+  responses. This is included by default.
+- [query](/api/client-plugins/plugins/query) adds cache reactivity to query documents. This is included by default
+- [fetch](/api/client-plugins/plugins/fetch) resolves a network request using a standard
+  HTTP request. This is included by default.
+
+## Codegen Plugins
+
+- `houdini-svelte`: Svelte bindings for the core houdini framework
+- `houdini-plugin-svelte-global-stores`: Add global stores to `$houdini`. For more information on the plugin or valid config parameters, visit the project [here](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores).

@@ -1,0 +1,12 @@
+query UserRequired($id: ID!, $forceNullDate: Boolean!) {
+  withRequired: user(id: $id, snapshot: "user-required", forceNullDate: $forceNullDate) {
+    id
+    name
+    birthDate @required
+  }
+  withoutRequired: user(id: $id, snapshot: "user-required", forceNullDate: $forceNullDate) {
+    id
+    name
+    birthDate
+  }
+}

@@ -1,0 +1,5 @@
+mutation RemoveBook($book: ID!, $force: ForceReturn = NORMAL) {
+  deleteBook(book: $book, force: $force, delay: 1000) {
+    ...Book_List_remove @allLists
+  }
+}

@@ -1,0 +1,5 @@
+mutation DeleteCity($city: ID!) {
+  deleteCity(city: $city) {
+    id @City_delete
+  }
+}

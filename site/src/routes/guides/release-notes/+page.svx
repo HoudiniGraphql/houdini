@@ -1,0 +1,948 @@
+---
+title: Release Notes
+description: A guide to migrating your application to each breaking version of houdini
+---
+
+<script>
+    import { DeepDive, Emoji } from '~/components'
+</script>
+
+# Release Notes
+
+## 1.2.0
+
+`1.2` brings a bunch of new directives to the pile:
+
+- `@loading` - define your route's loading states. For more information, check out [this guide](/guides/loading-states).
+- `@required` - control the nullability of your fields. For more information, check out [this guide](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the Relay blog which describes the same directive.
+- `@blocking` - force the route to block as data is being fetched
+- `@blocking_disable` - force the route to not block as data is being fetched
+
+## 1.1.0
+
+While this first release after `1.0` should be entirely transparent to you, it's actually
+a pretty massive change under the hood. Previously, cache subscriptions were at the query
+level which meant that if one entry in a list of 10k changed, the whole list gets re-rendered.
+This release changes that so that fragments are individually responsible for subscribing to the cache.
+This means that only the one fragment that handles the updated row would re-render in the previous example.
+
+## 1.0.0
+
+It's finally here! <Emoji name="partying-face" height={20} fallback="🥳" />
+
+This is a huge milestone for the project and we're so thankful to
+everyone that made it possible. As I'm sure you're expecting, this version brings a
+lot of changes so please read through this document carefully.
+
+### `HoudiniClient` has been restructured
+
+Houdini's runtime logic (document subscriptions, network calls, etc) has been completely rewritten using a new
+composable architecture that allows you to add new functionality (like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql)) or change most aspects of your
+document's behavior. This is probably the biggest upgrade to Houdini since the introduction of
+Document Stores.
+
+We won't go into too much detail about how to use the new system here but
+you will need to change your client file. For more information on the new architecture,
+you can check out the [Client Plugin documentation](/api/client-plugins).
+
+It's a bit hard to give you an exact example to follow but In the simplest case,
+your entire fetch function can be replaced with a single configuration value:
+
+```diff:title=src/client.ts
+  import { HoudiniClient } from '$houdini'
+
+  const url = 'my_app.com'
+
+- const requestHandler = async ({
+-    fetch,
+-    text = '',
+-    variables = {},
+- }) => {
+-    const result = await fetch(url, {
+-        method: 'POST',
+-        headers: {
+-            'Content-Type': 'application/json',
+-        },
+-        body: JSON.stringify({
+-            query: text,
+-            variables
+-        })
+-    });
+-    return await result.json();
+- }
+-
+- export default new HoudiniClient(requestHandler);
+
+
++ export default new HoudiniClient({
++    url,
++ })
+
+```
+
+If you are currently doing something more complicated in your client file,
+here are a few other examples that might apply:
+
+<DeepDive title="Client with Authentication" >
+
+If you needed to pass values to fetch (ie, for authentication) then you can use the `fetchParams`
+config value:
+
+```diff:title=src/client.ts
+  import { HoudiniClient } from '$houdini'
+
+  const url = 'my_app.com'
+
+- const requestHandler = async ({
+-    fetch,
+-    text = '',
+-    variables = {},
+-    session
+- }) => {
+-    const result = await fetch(url, {
+-        method: 'POST',
+-        headers: {
+-            'Content-Type': 'application/json',
+-            'Authentication': `Bearer ${session.user?.token}`
+-        },
+-        body: JSON.stringify({
+-            query: text,
+-            variables
+-        })
+-    });
+-    return await result.json();
+- }
+-
+- export default new HoudiniClient(requestHandler);
+
+
++ export default new HoudiniClient({
++    url,
++    fetchParams({ session }) {
++        return {
++            headers: {
++                'Authentication': `Bearer ${session.user?.token}`
++            }
++        }
++    }
++ })
+
+```
+
+</DeepDive>
+
+<DeepDive title="Client with Subscriptions" >
+
+If your application uses subscriptions, you'll need to import the
+`subscription` plugin and pass it to your client:
+
+```diff:title=src/client.ts
+  import { createClient } from 'graphql-ws'
+  import { browser } from '$app/environment'
++ import { subscription } from '$houdini/plugins'
+
+-  let socketClient = browser
+-  	? new createClient({
+-  			url: 'ws://api.url'
+-  	  })
+-  	: null
+
+- export default new HoudiniClient(requestHandler, socketClient)
++ export default new HoudiniClient({
++     url: '...',
++     plugins: [
++         subscription(({ session }) => createClient({
++             url: 'ws://api.url',
++             connectionParams: {
++                 headers: {
++                     Authentication: `Bearer ${session.user?.token}`
++                 }
++             }
++  	      }))
++     ]
++ })
+```
+
+</DeepDive>
+
+<DeepDive title="Client with Special Logic" >
+
+If you were performing special logic in your network function (either before or after the actual
+call to `fetch`), you'll need to build a custom plugin for the client. Please head over to
+the [client plugin documentation](/api/client) for more information.
+
+</DeepDive>
+
+### Error handling
+
+`config.quietQueryErrors` has moved out of `houdini-svelte`'s configuration and into
+the constructor for your client. Also, the relationship has been inverted: instead of
+specifying if you want your queries to be quiet, you now tell the client when it should
+throw.
+
+Please select the situation that applies:
+
+<DeepDive title="Had quietQueryErrors on" >
+
+You are now aligned with houdini's default behavior. Just remove the config in
+`houdini-svelte`:
+
+```diff:title=houdini.config.js
+  export default {
+      plugins: {
+          'houdini-svelte': {
+-             quietQueryErrors: true
+          }
+      }
+  }
+```
+
+</DeepDive>
+
+<DeepDive title="Did not configure quietQueryErrors" >
+
+In order to bring your application back to its previous state, you now
+need to pass a new config to your client:
+
+```diff:title=src/client.ts
++ import { error } from '@sveltejs/kit'
+
+  export default new HoudiniClient({
+      url: '...',
++     throwOnError: {
++         operations: ['all'],
++         error: (errors) => error(500,
++             errors.map((err) => err.message).join('. ') + '.'
++         )
++     }
+  })
+```
+
+</DeepDive>
+
+### Mutation return value changed
+
+Because of the change in Houdini's default error handling, mutations were brought
+in line with query behavior and return the full query result with `data`, `errors`,
+etc.
+
+```diff:title=src/components/AddFriend.svelte
+<script>
+    const mutation = graphql(`
+        mutation AddFriend {
+            addFriend {
+                ...
+            }
+        }
+    `)
+
+    async function onClick() {
+-       const { addFriend } = await mutation.mutate()
++       const { data: { addFriend } } = await mutation.mutate()
+    }
+</script>
+```
+
+### Grouped `apiUrl`, `schemaPollHeaders`, and `schemaPollInterval` together
+
+In order to clarify the difference between the `apiUrl` config value and the
+value passed to `HoudiniClient`, we moved all of the schema polling related
+config values into a single `watchSchema` object:
+
+```diff:title=houdini.config.js
+  export default {
+-     apiUrl: "http://my.awesome.app.com",
+-     schemaPollInterval: 6000,
+-     schemaPollHeaders: {
+-         Authorization: (env) => `Bearer ${env.TOKEN}`
+-     }
++     watchSchema: {
++         url: "http://my.awesome.app.com",
++         interval: 6000,
++         headers: {
++             Authorization: (env) => `Bearer ${env.TOKEN}`
++         }
++     }
+  }
+```
+
+### Imperative Cache Reworked
+
+We removed all of that `setFieldType` complexity and now you can read and write data by passing
+fragments and queries to the cache:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+cache.read({
+	query: graphql(`
+		query AllUsersCache($pattern: String!) {
+			users {
+				firstName(pattern: $pattern)
+			}
+		}
+	`)
+	variables: {
+		pattern: "capitalize"
+	}
+})
+```
+
+For more information, check out the [new docs page](/api/cache)
+
+### Inline Queries No Longer Automatically Load
+
+We removed `@manual_load` since using `graphql` in your `.svelte` files will not cause the query to be automatically loaded. You must now
+opt into automatically loading for queries defined inside of your components using the `@load` directive.
+SvelteKit routes using this pattern must define their inline queries as reactive statements.
+This change only affects `.svelte` files.
+
+```diff:title=src/routes/+page.svelte
+  <script>
+      import { graphql } from '$houdini'
+
+-      const UserList = graphql(`
++      $: UserList = graphql(`
+-         query UserList {
++         query UserList @load {
+              users {
+                  name
+              }
+          }
+      `)
+  </script>
+
+  <div>
+      {$UserList.data?.users.map(user => user.name).join(',')}
+  </div>
+```
+
+With the recent improvements we've made to our data loading patterns, `graphql` in svelte files
+has become mostly used for "lazy" stores that don't fetch automatically. On top of that, the
+new imperative cache api relies heavily on `graphql` documents which would mean a lot of accidental
+loading. At least this way everything is very explicit.
+
+### Pagination Options In `customStores` Config Have Been Changed
+
+There is no more distinction between forwards and backwards cursor pagination
+so the options have been merged
+
+```diff:title=houdini.config.js
+  export default {
+      plugins: {
+          'houdini-svelte': {
+              'customStores': {
+-                 queryForwardsCursor: 'MyCustomQuery'
+-                 queryBackwardsCursor: 'MyCustomQuery'
+-                 fragmentForwardsCursor: 'MyCustomFragment'
+-                 fragmentBackwardsCursor: 'MyCustomFragment'
++                 queryCursor: 'MyCustomQuery'
++                 fragmentCursor: 'MyCustomFragment',
+              }
+          }
+      }
+  }
+```
+
+### Server-side Mutations Need an Event
+
+In order to simplify the mental model for sessions and fetching, server-side mutations
+need their event passed explicitly.
+
+```diff:title=src/routes/+page.server.ts
+  import { Actions } from './$types'
+
+  const actionMutation = graphql(...)
+
+  export const actions: Actions = {
+      addUser: async (event) => {
+          const data = await event.request.formData()
+
+          const name = data.get('name')?.toString()
+
+-         return await actionMutation.mutate({ name }, { fetch: event.fetch })
++         return await actionMutation.mutate({ name }, { event })
+      }
+  }
+```
+
+### Stale Data
+
+One of the longest running tickets has finally been closed! You can now mark specific fields, types, or specific records
+as stale using the [programmatic api](/api/cache#stale-data) or as a [global lifetime](/api/config#field-values).
+
+### `houdini-plugin-svelte-global-stores` no longer generates query stores by default
+
+If you rely on global query stores you have to opt-in to their generation. Please keep
+in m ind that global query stores are dangerous when used with SSR:
+
+```diff:title=houdini.config.js
+  export default {
+      plugins: {
+          'houdini-svelte': {},
+          'houdini-plugin-svelte-global-stores': {
++             generate: 'all',
+          }
+      }
+  }
+```
+
+### Enum representation changed
+
+Houdini now relies on hardcoded strings for enums. You can still use the `MyEnum` objects like you have been but now
+you can pass strings or object values:
+
+```
+import { MyEnum } from '$houdini'
+
+function onClick() {
+	// could use a utility object
+	update.mutate({ variables: { input: MyEnum.Value1 } })
+	// or pass a string directly
+	update.mutate({ variables: { input: 'Value1' } })
+}
+```
+
+A side effect of this change is that if you need to refer to the list of all values for
+a particular enum, you can't use the enum type directly. Instead you have to use the `$options` variation on your enum:
+
+```diff
+  import type { MyEnum } from '$houdini'
++ import type { MyEnum$options } from '$houdini'
+
+- function example(val: MyEnum) {
++ function example(val: MyEnum$options) {
+      console.log(val)
+  }
+
+  example(MyEnum.Value1)
+```
+
+## 0.20.0
+
+This release was originally planned to be `1.0` but we have some exciting stuff planned
+that's just not quite ready.There are just a few breaking changes that have been
+introduced with this and one _very_ cool feature.
+
+### `isFetching` has been renamed to `fetching`
+
+This sounds big but we suspect that the fix should be relatively safe and quick. Just replace all instances of `isFetching` in your
+application with `fetching`.
+
+```diff
+- {#if $MyQuery.isFetching}
++ {#if $MyQuery.fetching}
+```
+
+### `error` and `redirect` are no longer attached to `this` in hooks
+
+We felt that these methods didn't offer a lot on top of SvelteKit's exports and were just complicating the situation. Now, you should just
+use the exported values from SvelteKit:
+
+```diff
++ import { error } from '@sveltejs/kit'
+
+  export function _houdini_beforeLoad({ params }) {
+    if (valueIsValid(params)) {
+-         throw this.error(400, "message")
++         throw error(400, "message")
+    }
+  }
+```
+
+### Query Inputs can now be inferred from route parameters
+
+For example, if a route is defined at `src/routes/users/[id]` and a query looks like this:
+
+```graphql
+query UserInfo($id: Int!) {
+    user(id: $id) {
+        ...
+    }
+}
+```
+
+Then the `Variable` function is not required. That being said, you can still define a `Variable` function for custom logic if you want.
+
+## 0.19.0
+
+`v0.19.0` brings changes quickly after `0.18`. We're trying to get out as much as possible as quickly as possible
+to prepare for our upcoming 1.0 release.
+
+This release brings some _really_ awesome things but we'll start off with what you're probably most concerned
+with: breaking changes. But don't worry, there's only one actual breaking change in this release.
+
+### No more global stores by default
+
+In order to avoid complications and anti-patterns when using global stores, they have been removed by default from
+Houdini's core svelte plugin (along with the associated configuration values). Don't worry, if you rely heavily on them in your application, you can still
+have them generated for your application using the
+[houdini-plugin-svelte-global-stores](https://github.com/HoudiniGraphql/houdini/tree/main/packages/houdini-plugin-svelte-global-stores)
+plugin. If you don't rely on global stores, then there's nothing for you to worry about.
+
+<DeepDive title="Bringing back global stores">
+
+You can install the plugin from npm, pnpm, yarn, etc:
+
+```bash
+yarn add -D houdini-plugin-svelte-global-stores
+# or
+npm install --save-dev houdini-plugin-svelte-global-stores
+# or
+pnpm install --save-dev houdini-plugin-svelte-global-stores
+```
+
+and add it to the `plugins` section of your config file (order doesn't matter).
+
+```diff
++ /// <references types="houdini-plugin-svelte-global-stores">
+
+ export default {
+
+     plugins: {
+         'houdini-svelte': {
+-             globalStorePrefix: "G_"
+         },
++        'houdini-plugin-svelte-global-stores': {
++             prefix: "G_"
++        },
+     }
+ }
+```
+
+If you _don't_ want to specify a custom prefix, the value of the plugin should be `{}`.
+
+One side effect of this change is that you can no longer pass a global store to `\_houdini_load.
+If this is something you currently do in your application, you should pass an instance of the store instead:
+
+```diff
+- import { GQL_MyQuery } from '$houdini'
++ import { MyQueryStore } from '$houdini'
+
+- export const _houdini_load = [ GQL_MyQuery ]
++ export const _houdini_load = [ new MyQueryStore() ]
+```
+
+</DeepDive>
+
+### `graphql` should now be used a function
+
+This is more of a soft break - there's no need to update anything right away. If you don't use TypeScript,
+you are free to use whichever style you prefer. If you do use it, using `graphql` as a function
+will allow TypeScript to infer types for your store values:
+
+```diff
+- import { MyQueryStore, graphql } from '$houdini'
++ import { graphql } from '$houdini'
+
+- const store: MyQueryStore = graphql`
++ const store = graphql(`
+      query MyQuery {
+          user {
+              id
+          }
+      }
+- `
++ `)
+```
+
+## 0.18.0
+
+`v0.18.0` brought with it a large collection of breaking changes. Some of them were required by recent updates to SvelteKit,
+and some of them are things we've been holding onto for awhile. This section will outline the things you need to change. For
+a more in-depth summary of everything that was released with this update, check out the
+[houdini](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini/CHANGELOG.md) and
+[houdini-svelte](https://github.com/HoudiniGraphql/houdini/blob/main/packages/houdini-svelte/CHANGELOG.md) changelogs.
+
+### Magic functions are now prefixed with `_`
+
+Since SvelteKit `1.0.0-next.573`, all unknown exports in a `+page` file have to be prefixed with `_`. Since we expect
+more plugins to show up over time and we want to avoid breaking this API again, we opted for `_houdini`:
+
+```diff
+-   export const YourQueryVariables = (event) => {}
++   export const _YourQueryVariables = (event) => {}
+
+-   export const houdini_load = (event) => {}
++   export const _houdini_load = (event) => {}
+
+-   export const afterLoad = (event) => {}
++   export const _houdini_afterLoad = (event) => {}
+
+-   export const beforeLoad = (event) => {}
++   export const _houdini_beforeLoad = (event) => {}
+
+-   export const onError = (event) => {}
++   export const _houdini_onError = (event) => {}
+```
+
+### Directives have been cleaned up
+
+The generic use of the `@houdini` directive caused a confusing experience when relying on intellisense to autocomplete
+directives. In order to provide a better experience in your editor, we split up the `@houdini` directive and cleaned up
+some overlapping use cases:
+
+- deprecated usage of `parentID` argument in `@append` and `@prepend`. You should now use `@parentID` separately
+- `@houdini(load: false)` was removed in favor of `@manual_load`
+- `@houdini(mask: true | false)` was removed for two directives: `@mask_enable` and `@mask_disable`
+
+### Changed config values
+
+The `disableMasking` is now replaced by `defaultFragmentMasking` which sets the global default.
+
+## 0.17.0
+
+`v0.17.0` is mostly an internal refactor but it _does_ require you to install a new dependency and
+update your config file. First, install `houdini-svelte` which is a new plugin to the core houdini
+package you've been using:
+
+```bash
+npm i --save-dev houdini-svelte
+```
+
+And finally, update your `houdini.config.js` to include the plugin and move your svelte-specific config.
+This includes: `client`, `projectDir`, `pageQueryFilename`, `layoutQueryFilename`, `globalStorePrefix`, `quietQueryErrors`, and `static`. You can look at descriptions [here](/api/config#svelte-plugin).
+
+The example below shows an example of what needs to be moved:
+
+```diff
++ /// <references types="houdini-svelte">
+
+  /** @type {import('houdini').ConfigFile} */
+  const config = {
+    apiUrl: 'http://localhost:4000/graphql'
+
+-   client: './src/client.ts'
++   plugins: {
++     'houdini-svelte': {
++       client: './src/client.ts',
++     }
++   },
+
+    scalars: {
+      // your existing scalars
+    },
+  };
+
+  export default config;
+```
+
+You'll also have to slightly modify your `hooks.server.js` file:
+
+```diff
+- import houdiniClient from './client'
++ import { setSession } from '$houdini'
+
+  export async function handle({ event, resolve }) {
+    // get the user information however you want
+    const user = await authenticateUser(event)
+
+    // set the session information for this event
+-   houdiniClient.setSession(event, { user })
++   setSession(event, { user })
+
+    // pass the event onto the default handle
+    return await resolve(event)
+  }
+```
+
+And that's it! Everything should be working as it was previously. If there are
+_any_ changes, please reach out on GitHub.
+
+## 0.16.0
+
+`v0.16.0` updates houdini's APIs to be compatible with the updates to SvelteKit as described in [@sveltejs/kit#5774](https://github.com/sveltejs/kit/discussions/5774). While this is a very exciting change for the community, we were forced to dramatically change a few things in order to adapt to the new world.
+
+If you are looking for a step-by-step guide for updating your project, you can find that [here](/guides/migrating-to-016). Keep in mind, that guide does not cover new features, so you'll probably want to come back
+here and see what's new.
+
+### Breaking Changes
+
+Let's get the scary stuff out of the way. We know this might seem like a lot but we have been
+holding onto some of these for awhile, and it seemed like a good opportunity to address a few pieces of debt
+since SvelteKit is already forcing us to break the API.
+
+- You will have to add a configuration value to your `houdini.config.js` but can likely delete everything else.
+- SvelteKit projects will now need to use the vite plugin defined at `houdini/vite` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
+- The external document store api for SvelteKit routes is changing. This means that if you rely heavily on the document stores, you will have to update your load functions but as a result you can delete a lot of the code in your components and the overall mental model is a lot simpler (no more passing around `context`)
+- inline queries have to change too (since kit made `data` a magic word in a route). At a high level, `query` has been removed and you'll now use the result of the graphql tag directly instead of destructuring data from a function. This also unified the document APIs between internal and external files which simplifies things dramatically.
+
+For additional breaking changes and notes, check out the section at the bottom of the `0.16.0` release notes.
+
+### New Required Config Value
+
+One new configuration value was added that you _must_ set. `client` needs to be set to a relative path (from your `houdini.config.js` file) to the file that contains your Houdini Client. That file must now have a default export providing the client.
+
+### Vite Plugin
+
+For projects using vite, the preprocessor has moved to `houdini/vite` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin. This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
+
+- automatically generates your artifacts and stores whenever it detects a change in your source code. if you have configured your own watcher, it might not be necessary anymore.
+- poll your api for changes in your schema and regenerate when they are detected. This behavior is customizable between 3 modes: a duration in milliseconds, only pull when the project first starts, and never pull.
+
+Ideally, you shouldn't need to run `generate` ever again! It'll even get run when you build your application with `vite build` so feel free to delete that `generate` script from your `package.json` if you have it.
+
+### New Inline Document API
+
+`data` is now a magic word in SvelteKit, and so it's no longer possible to destructure `data` out of the result of your store without interfering with SvelteKit. To work around this, inline documents now work
+with the underlying query store directly
+
+```svelte
+<script>
+    const MyQuery = graphql`
+        query MyQuery {
+            viewer  {
+                id
+            }
+        }
+    `
+</script>
+
+<div>
+    {$MyQuery.data.viewer.id}
+</div>
+```
+
+### New Manual Load API
+
+The core of this change is that instead of using stores that you import, your component will now get the store from its props. This is the full example for the component-side of a store-driven route:
+
+```svelte
+<script>
+    /** @type {import('./$types').Data */
+    export let data: Data
+
+    $: ({ UserInfo } = data)
+</script>
+
+{$UserInfo.data.firstName}
+```
+
+Notice there's no more need to thread variables around or that ugly `$: browser && store.fetch`.
+
+In order to make this work, your `load` functions need to now return instances of the store embedded in the correct key. This can be easily done with the new `load_StoreName` functions. The `load_` prefix is to make it easy to autocomplete when you are working in your editor:
+
+```typescript
+import { load_UserInfo } from '$houdini'
+
+export async function load(event) {
+	return {
+		...(await load_UserInfo({ event }))
+	}
+}
+```
+
+This means that when adding a query to a route, tasks like adding a store to a load, pulling that store out of data in your component, etc can be auto completed from just starting with `load_` in your route's load function. It does make the manual logic that uses a fetch result kind of messy since they have to pull out UserInfo but we think that’s a rare situation and so we opted to support the most people with the clean API and letting the advanced users deal with the complexity.
+
+There's one more change to the API for users that were manually creating stores using the store factories. Now, you must instantiate new stores with `new MyQueryStore()`.
+
+Also, on a slightly unrelated note: you don't need to pass `context` everywhere anymore! that all happens behind the scenes now.
+
+### Route Type Definitions
+
+You can now import generated typedefs for all of the special functions you define for your routes. They can be imported from from `'./$houdini'` (the relative import is important):
+
+```typescript
+/// src/routes/myProifle/+page.ts
+
+import { graphql } from '$houdini'
+import type { AfterLoadEvent } from './$houdini'
+
+export const houdini_load = graphql`
+	query MyProfile {
+		viewer {
+			id
+		}
+	}
+`
+
+export function afterLoad({ data }: AfterLoadEvent) {
+	console.log(data.MyProfile.viewer.id)
+}
+```
+
+In order to make this work, you have to change your tsconfig file to look like this:
+`
+
+```json
+{
+	"compilerOptions": {
+		"rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
+	}
+}
+```
+
+### Page Queries
+
+You can now define a `+page.gql` file inside of a route directory to automatically opt-into a generated load without having to do anything else:
+
+```graphql:title=src/routes/myProfile/+page.gql
+
+query MyQuery {
+    viewer {
+        id
+    }
+}
+```
+
+With that file in place, you can just import and use the `MyQuery` store passed to your route and the view will be rendered on the server automatically.
+
+### Inline Stores
+
+The `graphql` template tag can now be used to define your stores in your javascript or svelte files:
+
+```svelte
+<!-- src/routes/myProfile/+page.svelte -->
+<script>
+    const store = graphql`
+        query ViewerInfo {
+            viewer {
+                id
+            }
+        }
+    `
+</script>
+
+id: {$store.data?.viewer.id}
+
+<button onClick={store.fetch} />
+```
+
+### Generating Loads For Stores
+
+You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts` file:
+
+```typescript:title=src/routes/myProfile/+page.ts
+import { GQL_MyQuery } from '$houdini'
+
+export const houdini_load = GQL_MyQuery
+```
+
+```typescript:title=src/routes/myProfile/+page.ts
+import { GQL_Query1, GQL_Query2 } from '$houdini'
+
+export const houdini_load = [GQL_Query1, GQL_Query2]
+```
+
+This can be mixed with the new `graphql` tag api to define your queries inside of your javascript files:
+
+```typescript:title=src/routes/myProfile/+page.ts
+
+import { GQL_MyQuery, graphql } from '$houdini'
+
+const otherQuery = graphql`
+    query ViewerInfo {
+        viewer {
+            id
+        }
+    }
+`
+
+export const houdini_load = [ GQL_MyQuery, otherQuery ]
+```
+
+or
+
+```typescript
+// src/routes/myProfile/+page.ts
+
+export const houdini_load = graphql`
+	query ViewerInfo {
+		viewer {
+			id
+		}
+	}
+`
+```
+
+### Breaking Changes / Notes
+
+- configuration for inline queries (variable functions, hooks, etc.) go in `+page.js`
+- inline fragments have a reversed order for arguments
+- `config.sourceGlob` is no longer required and has been deprecated in favor of `config.include` which has a default value that covers most projects
+- added `config.exclude` to filter out files that match the `include` pattern
+- `generate --pull-header` is now `generate --header` (abbreviated `-h`)
+- `generate --persist-output` is now `generate --output` (abbreviated `-o`)
+- added `schemaPollHeaders` config value to specify the headers sent when pulling the schema
+- removed unnecessary config values: `config.routesDir`, `config.static` (replaced by setting `framework: "svelte"`)
+- pagination handlers now take objects as arguments as well as fetch and metadata parameters
+
+## 0.15.0
+
+Lot's changed in `v0.15.0`. Hopefully this guide should help you understand those changes as well as show you what you should
+update to work with the new features. If you just want to skip straight to the deprecation warnings you might be seeing in your terminal,
+here are a few links:
+
+### What Changed
+
+The biggest feature introduced with `0.15.0` is a new way of interacting with graphql documents
+in your houdini projects. Instead of only being able to specify your documents directly in your
+component files, you can now specify them in external files and houdini will generate a store for you
+to interact with. For more information about the new store-based API, please check out the
+[Working with GraphQL](/guides/working-with-graphql) guide.
+
+### Config Values
+
+The `quiet` configuration value has been changed in favor of the [new logging parameters](/api/config). In order to replicate the
+previous behavior, you should use the `quiet` log level:
+
+```javascript:title=houdini.config.js
+export default {
+    // ...
+    logLevel: 'quiet'
+}
+```
+
+### Environment
+
+In an effort to make Houdini's names work better with other libraries you might have in your application (for example, as part of
+[KitQL](https://www.kitql.dev)), Houdini's `Environment` is now called `HoudiniClient`. All you need to do to use this is to
+import `HoudiniClient` from your runtime and instantiate it as you used to do with `Environment`.
+
+Beyond just the name there was also a change in the way you configure your runtime to use your environment. Now,
+instead of `setEnvironment(client)` you should just use `client.init()`.
+
+### Session and Fetch
+
+The `session` and `fetch` arguments are now passed to your client's network function in the same object as `text`. You should update
+your client definition to look something like:
+
+```typescript
+async function fetchQuery({ fetch, session, text, variables }) {
+	const result = await fetch('http://localhost:4000/graphql', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${session?.token}`
+		},
+		body: JSON.stringify({
+			query: text,
+			variables
+		})
+	})
+
+	return await result.json()
+}
+```
+
+### @parentID
+
+This one is kind of subtle. If you never used `@parentID` before, you can ignore this. However, if you
+_are_ using it in your application then you will need need to pass a different value than what you previous used.
+Instead of passing the target of the fragment, you now need to pass the ID of the object with the field
+marked with `@list` or `@paginate`. For example, in this query:
+
+```graphql
+query MyFriendsBandList {
+	viewer {
+		friends {
+			favoriteBands @list(name: "User_Favorites") {
+				name
+			}
+		}
+	}
+}
+```
+
+If you want to add a band to the list of a specific user, you need to pass the `id` field of the
+user found in the `friend` list.

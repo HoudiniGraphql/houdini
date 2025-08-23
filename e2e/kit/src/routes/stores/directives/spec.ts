@@ -1,0 +1,11 @@
+import { test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.js';
+import { expect_to_be, goto } from '../../../lib/utils/testsHelper.js';
+
+test.describe('directives', () => {
+  test('Directives get correctly applied', async ({ page }) => {
+    await goto(page, routes.Stores_Directives);
+
+    await expect_to_be(page, '{"user":{"name":"Bruce Willis","id":"directives:1"}}');
+  });
+});

@@ -1,0 +1,44 @@
+---
+title: Authentication
+description: A guide to authentication in Houdini
+---
+
+# Authentication
+
+Houdini's support for user sessions comes in 2 parts. First, you need to add a `hooks.server.js` file that defines the
+session for that user:
+
+```typescript:title=src/hooks.server.ts&typescriptToggle=true
+import { setSession } from '$houdini'
+import type { Handle } from '@sveltejs/kit'
+
+export const handle: Handle = async ({ event, resolve }) => {
+    // get the user information however you want
+    const user = await authenticateUser(event)
+
+    // set the session information for this event
+    setSession(event, { user })
+
+    // pass the event onto the default handle
+    return await resolve(event)
+}
+```
+
+Then, you can use the `session` parameter passed to your client's network function to access the information:
+
+```typescript:title=src/client.ts&typescriptToggle=true
+import { HoudiniClient } from '$houdini'
+
+export default new HoudiniClient({
+    url: 'http://localhost:4000/graphql',
+    fetchParams({ session }) {
+        return {
+            headers: {
+                Authorization: `Bearer ${session?.user.token}`,
+            }
+        }
+    }
+})
+```
+
+Tip: If your API uses HTTP-Only cookies, don't forget to add `credentials: "include"` to `fetchParams`' return value

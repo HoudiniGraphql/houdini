@@ -1,0 +1,5 @@
+query RouteParamsWithSpace($title: String!) {
+	book(title: $title) {
+		title
+	}
+}

@@ -1,0 +1,5 @@
+mutation DeleteLibrary($library: ID!) {
+  deleteLibrary(library: $library) {
+    id @Library_delete
+  }
+}

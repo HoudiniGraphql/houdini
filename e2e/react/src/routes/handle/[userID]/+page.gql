@@ -1,0 +1,5 @@
+query HandleUserQuery($userID: ID!, $size: Int) {
+	user(id: $userID, snapshot: "route_params") {
+		avatarURL(size: $size)
+	}
+}

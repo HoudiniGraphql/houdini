@@ -1,0 +1,5 @@
+mutation ListAll_AddUser {
+  addUser(name: "Omar Sy", birthDate: 254143016000, snapshot: "List_All") {
+    ...List_All_insert @allLists @prepend
+  }
+}

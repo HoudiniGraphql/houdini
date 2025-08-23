@@ -1,0 +1,53 @@
+{
+	"name": "e2e-react",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build:": "cd ../../ && ((pnpm run build && cd -) || (cd - && exit 1))",
+		"build:dev": "pnpm build: && pnpm dev",
+		"build:test": "pnpm build: && pnpm test",
+		"compile:core": "cd ../../packages/houdini-core && ((pnpm run compile && cd -) || (cd - && exit 1))",
+		"compile:houdini": "cd ../../packages/houdini && ((pnpm run compile && cd -) || (cd - && exit 1))",
+		"compile:core:generate": "pnpm run compile:core && pnpm houdini generate",
+		"compile:houdini:generate": "pnpm run compile:houdini && pnpm houdini generate",
+		"build:generate": "pnpm build: && pnpm houdini generate",
+		"build:build": "pnpm build: && pnpm build",
+		"houdini": "node ensureLinks.js && houdini",
+		"dev": "vite dev",
+		"build": "vite build",
+		"tests": "npm run build && playwright test",
+		"test": "npm run tests",
+		"tw": "npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
+		"preview": "vite dev",
+		"preinstall": "node preInstall.js"
+	},
+	"dependencies": {
+		"@cloudflare/workers-types": "^4.20230904.0",
+		"@graphql-tools/schema": "^9.0.4",
+		"@whatwg-node/server": "^0.9.14",
+		"cookie": "^0.5.0",
+		"e2e-api": "workspace:^",
+		"houdini": "workspace:^",
+		"graphql-yoga": "^4.0.4",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"react-streaming-compat": "^0.3.18"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.48.0",
+		"@types/react": "^19.0.7",
+		"@types/react-dom": "^19.0.3",
+		"@vitejs/plugin-react": "^3.1.0",
+		"autoprefixer": "^10.4.16",
+		"concurrently": "7.1.0",
+		"cross-env": "^7.0.3",
+		"e2e-api": "workspace:^",
+		"hono": "^3.6.0",
+		"postcss": "^8.4.31",
+		"tailwindcss": "^3.3.3",
+		"typescript": "^4.9.3",
+		"vite": "^4.1.0",
+		"wrangler": "^3.91.0"
+	}
+}

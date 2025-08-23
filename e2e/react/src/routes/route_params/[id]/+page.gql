@@ -1,0 +1,5 @@
+query RouteParamsUserInfo($id: ID!) {
+	user(id: $id, snapshot: "route_params") {
+		name
+	}
+}

@@ -1,0 +1,3 @@
+query NestedFragmentArgs {
+  ...UserSearch @with(name: "Bruce")
+}

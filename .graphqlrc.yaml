@@ -1,0 +1,10 @@
+projects:
+    sveltekit:
+        # 👇 For vscode-graphql and intellisense
+        schema:
+            - e2e/_api/*.graphql
+            - e2e/kit/$houdini/graphql/schema.graphql
+        documents:
+            - e2e/kit/src/**/*.gql
+            - e2e/kit/src/**/*.svelte
+            - e2e/kit/$houdini/graphql/documents.gql

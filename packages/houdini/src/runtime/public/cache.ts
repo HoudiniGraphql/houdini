@@ -1,0 +1,136 @@
+import type { Cache as _Cache } from '../cache/cache'
+import { getCurrentConfig, marshalInputs, type QueryArtifact } from '../lib'
+import { ListCollection } from './list'
+import { Record } from './record'
+import type {
+	ArgType,
+	CacheTypeDef,
+	IDFields,
+	QueryInput,
+	QueryList,
+	QueryValue,
+	TypeFieldNames,
+	TypeNames,
+	ValidLists,
+} from './types'
+
+export class Cache<Def extends CacheTypeDef> {
+	_internal_unstable: _Cache
+
+	constructor(cache: _Cache) {
+		this._internal_unstable = cache
+	}
+
+	// if the user is using the imperative API, we want the ability to break the API
+	// with any minor version. In order to do this, we require them to accept this contract
+	// through their config file
+	validateInstabilityWarning() {
+		if (!this.config.acceptImperativeInstability && !this.config.features?.imperativeCache) {
+			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
+Please acknowledge this by enabling the imperative cache feature flage in your config file.
+For more information: https://houdinigraphql.com/api/cache`)
+		}
+	}
+
+	// return the record proxy for the given type/id combo
+	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
+		this.validateInstabilityWarning()
+
+		// verify that
+
+		// compute the id for the record
+		let recordID = this._internal_unstable._internal_unstable.id(type, data)
+		if (!recordID) {
+			throw new Error('todo')
+		}
+
+		// return the proxy
+		return new Record({
+			cache: this,
+			type: type,
+			id: recordID,
+			idFields: data,
+		})
+	}
+
+	get config() {
+		return getCurrentConfig()
+	}
+
+	list<Name extends ValidLists<Def>>(
+		name: Name,
+		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
+	): ListCollection<Def, Name> {
+		this.validateInstabilityWarning()
+		return new ListCollection<Def, Name>({
+			cache: this,
+			name,
+			parentID,
+			allLists,
+		})
+	}
+
+	read<_Query extends { artifact: QueryArtifact }>({
+		query,
+		variables,
+	}: {
+		query: _Query
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}): {
+		data: QueryValue<QueryList<Def>, _Query> | null
+		partial: boolean
+	} {
+		this.validateInstabilityWarning()
+		// @ts-expect-error
+		return this._internal_unstable.read({
+			selection: query.artifact.selection,
+			variables,
+		})
+	}
+
+	write<_Query extends { artifact: QueryArtifact }>({
+		query,
+		variables,
+		data,
+	}: {
+		query: _Query
+		data: QueryValue<QueryList<Def>, _Query>
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}) {
+		this.validateInstabilityWarning()
+		this._internal_unstable.write({
+			selection: query.artifact.selection,
+			// @ts-expect-error
+			data,
+			variables:
+				marshalInputs({
+					config: this.config,
+					artifact: query.artifact,
+					input: variables,
+				}) ?? {},
+		})
+
+		return
+	}
+
+	/**
+	 * Mark some elements of the cache stale.
+	 */
+	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(
+		type?: _Type,
+		options?: {
+			field?: _Field
+			when?: ArgType<Def, _Type, _Field>
+		}
+	): void {
+		return this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
+	}
+
+	/**
+	 * Reset the entire cache by clearing all records and lists
+	 */
+
+	reset(): void {
+		return this._internal_unstable.reset()
+	}
+}

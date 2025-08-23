@@ -1,0 +1,23 @@
+---
+title: query
+---
+
+# `query`
+
+This plugin defines the core behavior for queries which mostly
+involves establishing subscriptions to the cache and accumulating
+variables.
+
+- Type: `ClientPlugin`
+
+```typescript:title=src/client.ts
+import { HoudiniClient } from '$houdini'
+import { query } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        query
+    ]
+})
+```

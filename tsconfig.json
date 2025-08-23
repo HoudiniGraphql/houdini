@@ -1,0 +1,28 @@
+{
+	"exclude": ["node_modules", "packages/*/build/**"],
+	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
+	"compilerOptions": {
+		"moduleResolution": "node",
+		"module": "es2020",
+		"lib": ["ES2021", "DOM", "ES2021.String"],
+		"target": "ESNext",
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"sourceMap": false,
+		"declaration": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowJs": true,
+		"checkJs": true,
+		"strict": true,
+		"downlevelIteration": true,
+		"emitDeclarationOnly": true,
+		"baseUrl": "./packages/houdini",
+		"paths": {
+			"$houdini": ["../houdini/package"],
+			"$houdini/*": ["../houdini/package/*"]
+		},
+		"jsx": "react-jsx"
+	}
+}

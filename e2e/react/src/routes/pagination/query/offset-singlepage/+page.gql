@@ -1,0 +1,6 @@
+query OffsetPaginationSinglePageQuery {
+	usersList(limit: 2, snapshot: "pagination-query-offset-single-page")
+		@paginate(mode: SinglePage) {
+		name
+	}
+}
