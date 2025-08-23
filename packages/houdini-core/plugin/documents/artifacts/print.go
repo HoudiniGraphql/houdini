@@ -372,7 +372,6 @@ func printValue(value *CollectedArgumentValue, usedVariables map[string]bool) st
 }
 
 // GenerateDocumentHash creates a SHA256 hash from document content
-// This should be used consistently across all document hash generation
 func generateDocumentHash(content string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(content)))
 }
