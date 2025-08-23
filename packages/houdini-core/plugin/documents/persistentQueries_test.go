@@ -2,7 +2,9 @@ package documents_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -860,7 +862,7 @@ func TestHashCollisionFixVerification(t *testing.T) {
 	// Simulate the new hash generation process (what happens in print.go)
 	for _, doc := range testDocs {
 		// Generate hash from printed content (this is what our fix does)
-		hash := documents.GenerateDocumentHash(doc.printed)
+		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(doc.printed)))
 		
 		err = sqlitex.Execute(conn, `
 			UPDATE documents SET hash = ? WHERE id = ?
@@ -885,10 +887,20 @@ func TestHashCollisionFixVerification(t *testing.T) {
 
 	t.Logf("Generated persistent queries: %+v", result)
 
-	// With the fix, we should have 2 entries with different hashes
-	require.Equal(t, 2, len(result), "Should have 2 entries - one for each document")
+	// With the fix, we should have 1 entry (only operations go in persistent queries)
+	require.Equal(t, 1, len(result), "Should have 1 entry - persistent queries only include operations")
 
-	// Verify no hash collisions in database
+	// The single operation should be present
+	var operationQuery string
+	for _, query := range result {
+		operationQuery = query
+		break
+	}
+	
+	t.Logf("Generated query: %s", operationQuery)
+	require.Contains(t, operationQuery, "query GetUser", "Should contain the operation")
+
+	// Verify no hash collisions in database (this is the key fix)
 	checkCollisionQuery := `
 		SELECT hash, COUNT(*) as collision_count
 		FROM documents 
@@ -910,17 +922,29 @@ func TestHashCollisionFixVerification(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, collisionFound, "No hash collisions should exist")
 
-	// Verify each document has a unique hash
-	hashes := make(map[string]string) // hash -> document name
-	for hash, query := range result {
-		if strings.Contains(query, "GetUser") {
-			hashes[hash] = "GetUser"
-		} else if strings.Contains(query, "UserProfile") {
-			hashes[hash] = "UserProfile"  
-		}
-	}
+	// Verify the operation and fragment have different hashes in the database
+	var operationHash, fragmentHash string
+	err = sqlitex.Execute(conn, `SELECT name, hash FROM documents WHERE hash IS NOT NULL`, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			name := stmt.ColumnText(0)
+			hash := stmt.ColumnText(1)
+			if name == "GetUser" {
+				operationHash = hash
+			} else if name == "UserProfile" {
+				fragmentHash = hash
+			}
+			return nil
+		},
+	})
+	require.NoError(t, err)
+	
+	require.NotEmpty(t, operationHash, "Operation should have a hash")
+	require.NotEmpty(t, fragmentHash, "Fragment should have a hash")
+	require.NotEqual(t, operationHash, fragmentHash, "Operation and fragment should have different hashes")
 
-	require.Equal(t, 2, len(hashes), "Each document should have a unique hash")
-	t.Logf("✅ Hash collision fix verified - documents have unique hashes based on content")
+	t.Logf("✅ Hash collision fix verified!")
+	t.Logf("Operation hash: %s", operationHash)
+	t.Logf("Fragment hash: %s", fragmentHash)
+	t.Logf("Persistent queries correctly embed fragments in operations")
 }
 

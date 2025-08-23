@@ -1,9 +1,6 @@
 package documents
 
-import (
-	"zombiezen.com/go/sqlite"
-)
-
+import "zombiezen.com/go/sqlite"
 
 type DocumentInsertStatements struct {
 	InsertDocument                          *sqlite.Stmt
@@ -23,7 +20,7 @@ type DocumentInsertStatements struct {
 
 func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatements, error, func()) {
 	insertDocument, err := conn.Prepare(
-		"INSERT INTO documents (name, raw_document, kind, type_condition, hash) VALUES ($name, $raw_document, $kind, $type_condition, $hash)",
+		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
