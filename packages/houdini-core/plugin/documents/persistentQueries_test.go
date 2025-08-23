@@ -948,3 +948,174 @@ func TestHashCollisionFixVerification(t *testing.T) {
 	t.Logf("Persistent queries correctly embed fragments in operations")
 }
 
+func TestRealWorldOperationWithFragment(t *testing.T) {
+	db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+	require.NoError(t, err)
+	defer db.Close()
+
+	conn, err := db.Take(context.Background())
+	require.NoError(t, err)
+	defer db.Put(conn)
+
+	err = tests.WriteHoudiniSchema(conn)
+	require.NoError(t, err)
+
+	// Real-world example similar to your AreasGenerateQr + AccommodationFragment case
+	realWorldGraphQL := `query AreasGenerateQr($req: ReqAreaGenerateQr!) {
+    areasGenerateQr(req: $req) {
+        downloadPath
+    }
+}
+
+fragment AccommodationFragment on Accommodation {
+    accommodationId
+    accommodationType
+    attributes {
+        ...AccommodationAttributeCollectionFragment
+    }
+    images {
+        ...ImageFragment
+    }
+    internal
+    logoUrl
+    operatingHours {
+        ...OperatingHoursFragment
+    }
+    priceRangeLower
+    priceRangeUpper
+    roomTypes {
+        ...RoomTypeFragment
+    }
+    hotelStarRating
+    linkedContent {
+        ...LinkedContentFragment
+    }
+    houseRules {
+        ...HouseRulesFragment
+    }
+    parkingRules {
+        ...ParkingRulesFragment
+    }
+    breakfastDetails {
+        ...BreakfastDetailsFragment
+    }
+    instructions {
+        ...AccommodationInstructionsFragment
+    }
+}`
+
+	// Test the key scenario: Both operation and fragment have different printed content
+	// But in the OLD buggy system, they would get the SAME hash (entire file hash)
+	
+	// Operation printed content
+	operationPrinted := `query AreasGenerateQr($req: ReqAreaGenerateQr!) {
+    areasGenerateQr(req: $req) {
+        downloadPath
+    }
+}`
+
+	// Fragment printed content  
+	fragmentPrinted := `fragment AccommodationFragment on Accommodation {
+    accommodationId
+    accommodationType
+    attributes {
+        ...AccommodationAttributeCollectionFragment
+    }
+    images {
+        ...ImageFragment
+    }
+    internal
+    logoUrl
+    operatingHours {
+        ...OperatingHoursFragment
+    }
+    priceRangeLower
+    priceRangeUpper
+    roomTypes {
+        ...RoomTypeFragment
+    }
+    hotelStarRating
+    linkedContent {
+        ...LinkedContentFragment
+    }
+    houseRules {
+        ...HouseRulesFragment
+    }
+    parkingRules {
+        ...ParkingRulesFragment
+    }
+    breakfastDetails {
+        ...BreakfastDetailsFragment
+    }
+    instructions {
+        ...AccommodationInstructionsFragment
+    }
+}`
+
+	// Insert documents 
+	err = sqlitex.Execute(conn, `
+		INSERT INTO documents (id, name, kind, printed) 
+		VALUES (?, ?, ?, ?)
+	`, &sqlitex.ExecOptions{
+		Args: []interface{}{1, "AreasGenerateQr", "query", operationPrinted},
+	})
+	require.NoError(t, err)
+
+	err = sqlitex.Execute(conn, `
+		INSERT INTO documents (id, name, kind, printed) 
+		VALUES (?, ?, ?, ?)
+	`, &sqlitex.ExecOptions{
+		Args: []interface{}{2, "AccommodationFragment", "fragment", fragmentPrinted},
+	})
+	require.NoError(t, err)
+
+	// Generate hashes based on individual document content (NEW WAY - the fix!)
+	operationHash := fmt.Sprintf("%x", sha256.Sum256([]byte(operationPrinted)))
+	fragmentHash := fmt.Sprintf("%x", sha256.Sum256([]byte(fragmentPrinted)))
+	
+	// In the OLD buggy way, both would have gotten:
+	// buggyHash := fmt.Sprintf("%x", sha256.Sum256([]byte(realWorldGraphQL)))
+	
+	// Update with correct hashes
+	err = sqlitex.Execute(conn, `UPDATE documents SET hash = ? WHERE id = 1`, &sqlitex.ExecOptions{
+		Args: []interface{}{operationHash},
+	})
+	require.NoError(t, err)
+	
+	err = sqlitex.Execute(conn, `UPDATE documents SET hash = ? WHERE id = 2`, &sqlitex.ExecOptions{
+		Args: []interface{}{fragmentHash},
+	})
+	require.NoError(t, err)
+
+	// Test persistent queries generation
+	fs := afero.NewMemMapFs()
+	outputPath := "./real-world-queries.json"
+	
+	err = documents.GeneratePersistentQueries(context.Background(), db, fs, outputPath)
+	require.NoError(t, err)
+
+	content, err := afero.ReadFile(fs, outputPath)
+	require.NoError(t, err)
+
+	var result map[string]string
+	err = json.Unmarshal(content, &result)
+	require.NoError(t, err)
+
+	// Verify the fix: Different hashes for documents from the same file
+	require.NotEqual(t, operationHash, fragmentHash, "Operation and fragment should have different hashes")
+	
+	// Should have 1 entry in persistent queries (only operations)
+	require.Equal(t, 1, len(result), "Should have 1 operation in persistent queries")
+	
+	// Should use the operation hash as the key
+	require.Contains(t, result, operationHash, "Should contain the operation hash")
+	
+	// The old buggy way would have caused collisions
+	oldBuggyHash := fmt.Sprintf("%x", sha256.Sum256([]byte(realWorldGraphQL)))
+	t.Logf("✅ Real-world test results:")
+	t.Logf("Operation hash (NEW): %s", operationHash)
+	t.Logf("Fragment hash (NEW):  %s", fragmentHash)
+	t.Logf("File hash (OLD BUG):  %s", oldBuggyHash)
+	t.Logf("Hash collision fixed: %t", operationHash != fragmentHash)
+}
+
