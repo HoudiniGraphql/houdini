@@ -300,14 +300,12 @@ func collectDoc(
 					// this could be the first time we see the document
 					doc, ok := documents[documentName]
 					if !ok {
-						hash := statements.Search.GetText("hash")
-						// fmt.Printf("[collect] Document '%s': hash='%s' (isNull=%v)\n", documentName, hash, statements.Search.IsNull("hash"))
 						doc = &CollectedDocument{
 							ID:            documentID,
 							Name:          documentName,
 							Kind:          statements.Search.GetText("document_kind"),
 							TypeCondition: statements.Search.GetText("type_condition"),
-							Hash:          hash,
+							Hash:          statements.Search.GetText("hash"),
 						}
 						documents[documentName] = doc
 					}

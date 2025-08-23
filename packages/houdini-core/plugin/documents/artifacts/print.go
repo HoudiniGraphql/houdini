@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"runtime"
@@ -12,7 +13,6 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -112,7 +112,7 @@ func printDocWorker(
 		printed := PrintCollectedDocument(doc, includeHidden)
 
 		// generate hash from the printed content
-		hash := documents.GenerateDocumentHash(printed)
+		hash := generateDocumentHash(printed)
 
 		// update the document with both printed version and hash
 		err = db.ExecStatement(update, map[string]any{
@@ -370,3 +370,10 @@ func printValue(value *CollectedArgumentValue, usedVariables map[string]bool) st
 		return value.Raw
 	}
 }
+
+// GenerateDocumentHash creates a SHA256 hash from document content
+// This should be used consistently across all document hash generation
+func generateDocumentHash(content string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(content)))
+}
+
