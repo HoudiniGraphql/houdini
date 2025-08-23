@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -383,7 +382,6 @@ func LoadPendingQuery(
 
 		// insert the operation into the "documents" table.
 		// for operations, we set type_condition to null.
-		log.Println("Generating hash for operation", operation.Name, query)
 		hash := GenerateDocumentHash(query.Query)
 		if err := db.ExecStatement(
 			statements.InsertDocument,

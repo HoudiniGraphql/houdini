@@ -6,13 +6,12 @@ import (
 	"log"
 	"strings"
 
+	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
-	"code.houdinigraphql.com/plugins"
 )
 
-// Data structures for persistent queries
 type OperationDoc struct {
 	ID      string
 	Name    string
@@ -21,28 +20,24 @@ type OperationDoc struct {
 	Printed string
 }
 
-
 func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any], fs afero.Fs, outputPath string) error {
 	log.Println("Generating persistent queries to:", outputPath)
-	
-	// Validate output path
+
 	if !strings.HasSuffix(outputPath, ".json") {
 		return &plugins.Error{
 			Message: "Can write Persisted Queries only in a \".json\" file.",
 		}
 	}
-	
-	// Get database connection
+
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
 	defer db.Put(conn)
-	
-	// Use SQL-based approach to resolve fragment dependencies from database relations
+
 	queryMap := make(map[string]string)
-	
-	// Get all operations (queries, mutations, subscriptions) with their hashes and content
+
+	// Get all operations (queries, mutations, subscriptions)
 	operations := make(map[string]*OperationDoc)
 	err = sqlitex.Execute(conn, `
 		SELECT d.id, d.name, d.kind, d.hash, d.printed
@@ -59,7 +54,7 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 			kind := stmt.ColumnText(2)
 			hash := stmt.ColumnText(3)
 			printed := stmt.ColumnText(4)
-			
+
 			operations[id] = &OperationDoc{
 				ID:      id,
 				Name:    name,
@@ -74,9 +69,8 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 		return plugins.WrapError(err)
 	}
 
-	// For each operation, resolve all fragment dependencies and build complete GraphQL
 	for _, op := range operations {
-		// Get all fragment dependencies for this operation using recursive CTE
+		// Get all fragment dependencies
 		fragmentNames := []string{}
 		err = sqlitex.Execute(conn, `
 			WITH RECURSIVE fragment_deps AS (
@@ -113,6 +107,7 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 		// Get the printed content for all required fragments
 		fragmentDefinitions := []string{}
 		for _, fragmentName := range fragmentNames {
+			log.Printf("Resolving fragment %s", fragmentName)
 			err = sqlitex.Execute(conn, `
 				SELECT printed
 				FROM documents
@@ -126,6 +121,7 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 					return nil
 				},
 			})
+			// log.Println(fragmentDefinitions)
 			if err != nil {
 				return plugins.WrapError(err)
 			}
@@ -137,7 +133,6 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 			completeGraphQL += "\n\n" + strings.Join(fragmentDefinitions, "\n\n")
 		}
 
-		// Add to queryMap using the operation's hash
 		queryMap[op.Hash] = completeGraphQL
 	}
 
@@ -145,27 +140,24 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 	if err != nil {
 		return plugins.WrapError(err)
 	}
-	
-	// If no operations found, don't write anything
+
 	if len(queryMap) == 0 {
 		log.Println("No operations found, skipping persistent queries generation")
 		return nil
 	}
-	
+
 	log.Printf("Found %d operations for persistent queries", len(queryMap))
-	
-	// Convert to JSON with pretty formatting (matching TypeScript implementation)
+
 	jsonData, err := json.MarshalIndent(queryMap, "", "    ")
 	if err != nil {
 		return plugins.WrapError(err)
 	}
-	
-	// Write to file
+
 	err = afero.WriteFile(fs, outputPath, jsonData, 0644)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
-	
+
 	log.Printf("Successfully wrote persistent queries to: %s", outputPath)
 	return nil
 }
