@@ -3,6 +3,7 @@ package artifacts
 import (
 	"context"
 	"fmt"
+	"log"
 	"runtime"
 	"sort"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -23,6 +25,7 @@ func EnsureDocumentsPrinted(
 ) error {
 	// we need to make sure that every document in the current task gets an updated stringified
 	// version
+	log.Println("Ensuring documents printed...")
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return err
@@ -88,7 +91,7 @@ func printDocWorker(
 
 	// we need a statement to update the document
 	update, err := conn.Prepare(`
-    UPDATE documents SET printed = $printed WHERE name = $name
+    UPDATE documents SET printed = $printed, hash = $hash WHERE name = $name
   `)
 	if err != nil {
 		errChan <- plugins.WrapError(err)
@@ -108,8 +111,15 @@ func printDocWorker(
 		// print the document
 		printed := PrintCollectedDocument(doc, includeHidden)
 
-		// update the document with the printed version
-		err = db.ExecStatement(update, map[string]any{"name": doc.Name, "printed": printed})
+		// generate hash from the printed content
+		hash := documents.GenerateDocumentHash(printed)
+
+		// update the document with both printed version and hash
+		err = db.ExecStatement(update, map[string]any{
+			"name": doc.Name, 
+			"printed": printed,
+			"hash": hash,
+		})
 		if err != nil {
 			errChan <- plugins.WrapError(err)
 			continue

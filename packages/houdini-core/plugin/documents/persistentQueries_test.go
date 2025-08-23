@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -810,5 +811,109 @@ func TestGeneratePersistentQueries_ComplexFragmentScenario(t *testing.T) {
 
 func stringPtr(s string) *string {
 	return &s
+}
+
+func TestHashCollisionInPersistentQueries(t *testing.T) {
+	db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+	require.NoError(t, err)
+	defer db.Close()
+
+	conn, err := db.Take(context.Background())
+	require.NoError(t, err)
+	defer db.Put(conn)
+
+	err = tests.WriteHoudiniSchema(conn)
+	require.NoError(t, err)
+
+	testDocs := []struct {
+		id      int
+		name    string
+		kind    string
+		hash    string
+		printed string
+	}{
+		{
+			id:      1,
+			name:    "GetUserCollision",
+			kind:    "query",
+			hash:    "same_hash_value_123", 
+			printed: `query GetUserCollision($id: ID!) { user(id: $id) { ...UserProfile } }`,
+		},
+		{
+			id:      2,
+			name:    "UserProfile",
+			kind:    "fragment",
+			hash:    "same_hash_value_123", 
+			printed: `fragment UserProfile on User { id name email }`,
+		},
+	}
+
+	for _, doc := range testDocs {
+		err = sqlitex.Execute(conn, `
+			INSERT INTO documents (id, name, kind, hash, printed) 
+			VALUES (?, ?, ?, ?, ?)
+		`, &sqlitex.ExecOptions{
+			Args: []interface{}{doc.id, doc.name, doc.kind, doc.hash, doc.printed},
+		})
+		require.NoError(t, err)
+	}
+
+	fs := afero.NewMemMapFs()
+	outputPath := "./test-queries.json"
+	
+	err = documents.GeneratePersistentQueries(context.Background(), db, fs, outputPath)
+	require.NoError(t, err)
+
+	content, err := afero.ReadFile(fs, outputPath)
+	require.NoError(t, err)
+
+	var result map[string]string
+	err = json.Unmarshal(content, &result)
+	require.NoError(t, err)
+
+	t.Logf("Generated persistent queries: %+v", result)
+
+	if len(result) == 1 {
+		t.Errorf("HASH COLLISION BUG IN PERSISTENT QUERIES: Expected 2 entries but got %d", len(result))
+		t.Errorf("This means one document overwrote the other due to identical hash values!")
+		
+		for hash, query := range result {
+			t.Errorf("Only entry - Hash: %s, Query: %s", hash, query)
+			
+			if strings.Contains(query, "GetUserCollision") && strings.Contains(query, "UserProfile") {
+				t.Logf("The remaining query includes both operation and fragment - last one processed wins")
+			} else if strings.Contains(query, "GetUserCollision") {
+				t.Errorf("Fragment was overwritten by operation")
+			} else if strings.Contains(query, "UserProfile") {
+				t.Errorf("Operation was overwritten by fragment")  
+			}
+		}
+	} else if len(result) == 2 {
+		t.Logf("No collision detected in persistent queries - this would indicate the bug is fixed")
+		for hash, query := range result {
+			t.Logf("Hash: %s, Query: %s", hash, query)
+		}
+	} else {
+		t.Errorf("Unexpected number of results: %d", len(result))
+	}
+
+	checkCollisionQuery := `
+		SELECT hash, COUNT(*) as collision_count
+		FROM documents 
+		WHERE hash IS NOT NULL AND hash != ''
+		GROUP BY hash
+		HAVING COUNT(*) > 1
+	`
+	
+	t.Log("Checking database for hash collisions...")
+	err = sqlitex.Execute(conn, checkCollisionQuery, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			hash := stmt.ColumnText(0)
+			count := stmt.ColumnInt64(1)
+			t.Errorf("Hash collision detected in database: hash=%s, count=%d", hash, count)
+			return nil
+		},
+	})
+	require.NoError(t, err)
 }
 

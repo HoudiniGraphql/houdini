@@ -1,7 +1,6 @@
 {
     "name": "houdini-svelte",
     "version": "1.4.2",
-    "bin": "../../../../packages/houdini-svelte/build/houdini-svelte-linux-x64/bin/houdini-svelte",
     "scripts": {
         "compile": "scripts build-go"
     },

@@ -1,7 +1,6 @@
 {
     "name": "houdini-core",
     "version": "1.4.2",
-    "bin": "../../../../packages/houdini-core/build/houdini-core-linux-x64/bin/houdini-core",
     "scripts": {
         "compile": "scripts build-go"
     },

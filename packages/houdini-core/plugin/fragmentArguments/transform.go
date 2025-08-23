@@ -11,7 +11,6 @@ import (
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
@@ -415,7 +414,6 @@ func cloneDocument[PluginConfig any](
 		"name":           name,
 		"type_condition": typeCondition,
 		"raw_document":   sourceRawDocument,
-		"hash":           documents.GenerateDocumentHash(name),
 	})
 	if err != nil {
 		return 0, nil, err
@@ -1117,7 +1115,7 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	insertFragment, err := conn.Prepare(`
-    INSERT INTO documents (name, type_condition, raw_document, kind, hash) VALUES  ($name, $type_condition, $raw_document, 'fragment', $hash)
+    INSERT INTO documents (name, type_condition, raw_document, kind) VALUES  ($name, $type_condition, $raw_document, 'fragment')
   `)
 	if err != nil {
 		return nil, err
