@@ -3,7 +3,6 @@ package documents
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"strings"
 
 	"code.houdinigraphql.com/plugins"
@@ -21,7 +20,6 @@ type OperationDoc struct {
 }
 
 func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any], fs afero.Fs, outputPath string) error {
-	log.Println("Generating persistent queries to:", outputPath)
 
 	if !strings.HasSuffix(outputPath, ".json") {
 		return &plugins.Error{
@@ -122,7 +120,6 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 			// now we can use the named map
 			frag := fragments[fragmentName]
 			if frag == nil {
-				log.Printf("Fragment %s not found", fragmentName)
 				continue
 
 			}
@@ -137,17 +134,14 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 		queryMap[op.Hash] = completeGraphQL
 	}
 
-	log.Printf("Found %d operations for persistent queries", len(queryMap))
 	if err != nil {
 		return plugins.WrapError(err)
 	}
 
 	if len(queryMap) == 0 {
-		log.Println("No operations found, skipping persistent queries generation")
 		return nil
 	}
 
-	log.Printf("Found %d operations for persistent queries", len(queryMap))
 
 	jsonData, err := json.MarshalIndent(queryMap, "", "    ")
 	if err != nil {
@@ -159,6 +153,5 @@ func GeneratePersistentQueries(ctx context.Context, db plugins.DatabasePool[any]
 		return plugins.WrapError(err)
 	}
 
-	log.Printf("Successfully wrote persistent queries to: %s", outputPath)
 	return nil
 }

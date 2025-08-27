@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"maps"
 	"runtime"
 	"sort"
@@ -34,7 +33,6 @@ func CollectDocuments(
 		EnumValues:      map[string][]string{},
 	}
 
-	log.Println("Collecting documents")
 	// the first thing we have to do is id of every document that we care about
 	docIDs := []int64{}
 

@@ -2,7 +2,6 @@ package artifacts
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -31,7 +30,7 @@ func writeSelectionDocument(
 	sortKeys bool,
 ) error {
 	// load the project config
-	projectConfig, err := db.ProjectConfig(ctx)
+	projectConfig, _ := db.ProjectConfig(ctx)
 
 	// generate the artifact content
 	artifact, err := GenerateSelectionDocument(
@@ -87,8 +86,11 @@ func GenerateSelectionDocument(
 		return "", err
 	}
 
-	// the hash of the query is a function of the printed value
-	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(printed)))
+	// get the hash directly from the database using name of the document
+	hash, err := getDocumentHash(ctx, db, conn, name)
+	if err != nil {
+		return "", err
+	}
 
 	// figure out the kind of the document
 	var kind string
@@ -426,6 +428,29 @@ func printedValue(
 
 	// we're done
 	return printed[:len(printed)-2], nil
+}
+
+func getDocumentHash(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	conn *sqlite.Conn,
+	name string,
+) (string, error) {
+	query, err := conn.Prepare(fmt.Sprintf("SELECT hash FROM documents WHERE name = '%s'", name))
+	if err != nil {
+		return "", err
+	}
+	defer query.Finalize()
+
+	var hash string
+	err = db.StepStatement(ctx, query, func() {
+		hash = query.GetText("hash")
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return hash, nil
 }
 
 func stringifySelection(

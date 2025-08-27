@@ -23,9 +23,9 @@ func EnsureDocumentsPrinted(
 	collectedDocuments *CollectedDocuments,
 	includeHidden bool,
 ) error {
+	log.Printf("Ensuring documents are printed")
 	// we need to make sure that every document in the current task gets an updated stringified
 	// version
-	log.Println("Ensuring documents printed...")
 	conn, err := db.Take(ctx)
 	if err != nil {
 		return err
