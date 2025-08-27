@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"path"
 	"sort"
 	"strconv"
@@ -93,7 +92,6 @@ func GenerateSelectionDocument(
 		return "", err
 	}
 
-	// log.Printf("printed %v", documentData.Hash)
 	printed := documentData.Printed
 	hash := documentData.Hash
 	// figure out the kind of the document
@@ -422,12 +420,9 @@ func getDocumentData(
 	}
 	defer query.Finalize()
 
-	// log.Printf("-----PARENT %v", name)
 	err = db.StepStatement(ctx, query, func() {
-		// log.Printf("childred %s", query.GetText("name"))
 		if query.GetText("name") == name {
 			d.Hash = query.GetText("hash")
-			log.Printf("hash %v", d.Hash)
 		}
 		d.Printed += query.GetText("printed") + "\n\n"
 	})

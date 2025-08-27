@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"log"
 	"runtime"
 	"sort"
 	"strings"
@@ -23,7 +22,6 @@ func EnsureDocumentsPrinted(
 	collectedDocuments *CollectedDocuments,
 	includeHidden bool,
 ) error {
-	log.Printf("Ensuring documents are printed")
 	// we need to make sure that every document in the current task gets an updated stringified
 	// version
 	conn, err := db.Take(ctx)
