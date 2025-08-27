@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"path"
 	"sort"
 	"strconv"
@@ -64,6 +65,11 @@ func writeSelectionDocument(
 	return nil
 }
 
+type DocumentData struct {
+	Printed string
+	Hash    string
+}
+
 func GenerateSelectionDocument(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -81,17 +87,15 @@ func GenerateSelectionDocument(
 	// variables and added to the selection
 
 	// generate the printed value
-	printed, err := printedValue(ctx, db, conn, docs, name)
+
+	documentData, err := getDocumentData(ctx, db, conn, docs, name)
 	if err != nil {
 		return "", err
 	}
 
-	// get the hash directly from the database using name of the document
-	hash, err := getDocumentHash(ctx, db, conn, name)
-	if err != nil {
-		return "", err
-	}
-
+	// log.Printf("printed %v", documentData.Hash)
+	printed := documentData.Printed
+	hash := documentData.Hash
 	// figure out the kind of the document
 	var kind string
 	switch doc.Kind {
@@ -220,7 +224,6 @@ func GenerateSelectionDocument(
 		"",
 		forceLoading,
 	)
-
 	// build up the input specification
 	inputTypes := ""
 	if len(doc.Variables) > 0 {
@@ -392,17 +395,17 @@ export default {
 	return result, nil
 }
 
-func printedValue(
+func getDocumentData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
 	docs *CollectedDocuments,
 	name string,
-) (string, error) {
+) (DocumentData, error) {
 	// we need to generate a printed version of the document which is just a concatenated print
 	// of the parent doc and every referenced fragment
-	printed := ""
 
+	d := DocumentData{}
 	dependentDocs := []string{}
 	for fragment := range walkReferencedDocs(docs, name) {
 		dependentDocs = append(dependentDocs, fmt.Sprintf("'%s'", fragment))
@@ -412,45 +415,27 @@ func printedValue(
 	whereIn := strings.Join(dependentDocs, ", ")
 
 	query, err := conn.Prepare(fmt.Sprintf(`
-    SELECT printed, name FROM documents WHERE name in (%s) ORDER BY name
+    SELECT printed, name, hash FROM documents WHERE name in (%s) ORDER BY name
   `, whereIn))
 	if err != nil {
-		return "", err
+		return d, err
 	}
 	defer query.Finalize()
 
+	// log.Printf("-----PARENT %v", name)
 	err = db.StepStatement(ctx, query, func() {
-		printed += query.GetText("printed") + "\n\n"
+		// log.Printf("childred %s", query.GetText("name"))
+		if query.GetText("name") == name {
+			d.Hash = query.GetText("hash")
+			log.Printf("hash %v", d.Hash)
+		}
+		d.Printed += query.GetText("printed") + "\n\n"
 	})
 	if err != nil {
-		return "", err
+		return d, err
 	}
-
 	// we're done
-	return printed[:len(printed)-2], nil
-}
-
-func getDocumentHash(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
-	name string,
-) (string, error) {
-	query, err := conn.Prepare(fmt.Sprintf("SELECT hash FROM documents WHERE name = '%s'", name))
-	if err != nil {
-		return "", err
-	}
-	defer query.Finalize()
-
-	var hash string
-	err = db.StepStatement(ctx, query, func() {
-		hash = query.GetText("hash")
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return hash, nil
+	return d, nil
 }
 
 func stringifySelection(
