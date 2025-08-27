@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 3.0.0-next.10
+
+### Patch Changes
+
+-   [#1525](https://github.com/HoudiniGraphql/houdini/pull/1525) [`74872ad5`](https://github.com/HoudiniGraphql/houdini/commit/74872ad5db49d4efc22f96d98ba9cc84e492308a) Thanks [@github-actions](https://github.com/apps/github-actions)! - Change default runtimeDir to .houdini
+
+-   Updated dependencies [[`74872ad5`](https://github.com/HoudiniGraphql/houdini/commit/74872ad5db49d4efc22f96d98ba9cc84e492308a)]:
+    -   houdini@2.0.0-next.7
+
 ## 3.0.0-next.9
 
 ### Patch Changes
