@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.8
+
+### Patch Changes
+
+-   [`74ed5b54`](https://github.com/HoudiniGraphql/houdini/commit/74ed5b545ba4ee6f7f6ba85e75bfe299ba5567ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix deduping of hmr events
+
 ## 2.0.0-next.7
 
 ### Patch Changes
