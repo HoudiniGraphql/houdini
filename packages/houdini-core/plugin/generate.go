@@ -1,9 +1,7 @@
 package plugin
 
 import (
-	"code.houdinigraphql.com/plugins"
 	"context"
-	"errors"
 	"path"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
@@ -23,11 +21,13 @@ func (p *HoudiniCore) Generate(ctx context.Context) error {
 		return err
 	}
 
-	if projectConfig.PersistedQueriesPath == "" {
-		return plugins.WrapError(errors.New("PersistedQueriesPath is not set"))
+	// Use default path if PersistedQueriesPath is not configured
+	persistedQueriesPath := projectConfig.PersistedQueriesPath
+	if persistedQueriesPath == "" {
+		persistedQueriesPath = "queries.json"
 	}
 
-	defaultPersistentQueriesPath := path.Join(projectConfig.ProjectRoot, projectConfig.PersistedQueriesPath)
+	defaultPersistentQueriesPath := path.Join(projectConfig.ProjectRoot, persistedQueriesPath)
 	err = documents.GeneratePersistentQueries(ctx, p.DB, p.Fs, defaultPersistentQueriesPath)
 	if err != nil {
 		return err
