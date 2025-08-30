@@ -1,4 +1,5 @@
 import sqlite from 'node:sqlite'
+import path from 'path'
 
 import { PluginSpec } from './codegen'
 import { Config, default_config } from './project'
@@ -494,7 +495,8 @@ export async function write_config(
 		config_file.logLevel ?? null,
 		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
 		JSON.stringify(config_file.defaultKeys ?? []),
-		config_file.persistedQueriesPath!,
+		config_file.persistedQueriesPath ??
+			path.join(default_config.runtimeDir ?? './houdini', 'queries.json'),
 		config.root_dir ?? null,
 		config_file.runtimeDir ?? null
 	)
