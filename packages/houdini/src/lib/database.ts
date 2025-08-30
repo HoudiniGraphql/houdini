@@ -65,7 +65,7 @@ CREATE TABLE config (
     log_level TEXT CHECK (log_level IN ('QUIET', 'FULL', 'SUMMARY', 'SHORT_SUMMARY')),
     default_fragment_masking BOOLEAN,
     default_keys JSON,
-    persisted_queries_path TEXT,
+    persisted_queries_path TEXT NOT NULL,
     project_root TEXT,
     runtime_dir TEXT
 );
@@ -494,7 +494,7 @@ export async function write_config(
 		config_file.logLevel ?? null,
 		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
 		JSON.stringify(config_file.defaultKeys ?? []),
-		config_file.persistedQueriesPath ?? null,
+		config_file.persistedQueriesPath!,
 		config.root_dir ?? null,
 		config_file.runtimeDir ?? null
 	)

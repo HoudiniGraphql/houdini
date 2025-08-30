@@ -23,9 +23,6 @@ func (p *HoudiniCore) Generate(ctx context.Context) error {
 
 	// Use default path if PersistedQueriesPath is not configured
 	persistedQueriesPath := projectConfig.PersistedQueriesPath
-	if persistedQueriesPath == "" {
-		persistedQueriesPath = "queries.json"
-	}
 
 	defaultPersistentQueriesPath := path.Join(projectConfig.ProjectRoot, persistedQueriesPath)
 	err = documents.GeneratePersistentQueries(ctx, p.DB, p.Fs, defaultPersistentQueriesPath)

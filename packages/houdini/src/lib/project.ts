@@ -36,6 +36,7 @@ export const default_config: ConfigFile = {
 	defaultPaginateMode: 'Infinite',
   defaultFragmentMasking: 'enable',
   defaultCachePolicy: 'CacheOrNetwork',
+  persistedQueriesPath: 'queries.json',
 }
 
 // a place to store the current configuration
