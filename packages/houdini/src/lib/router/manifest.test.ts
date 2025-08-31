@@ -23,7 +23,7 @@ test('empty routes dir generates empty manifest', async function () {
 		    "layout_queries": {},
 		    "artifacts": [],
 		    "local_schema": false,
-		    "local_yoga": false
+		    "local_server": false
 		}
 	`)
 })
@@ -118,7 +118,7 @@ test('route groups', async function () {
 		    },
 		    "artifacts": [],
 		    "local_schema": false,
-		    "local_yoga": false
+		    "local_server": false
 		}
 	`)
 })
@@ -315,7 +315,7 @@ test('nested route structure happy path', async function () {
 		    },
 		    "artifacts": [],
 		    "local_schema": false,
-		    "local_yoga": false
+		    "local_server": false
 		}
 	`)
 })
@@ -347,19 +347,19 @@ test('local schema', async function () {
 		    "layout_queries": {},
 		    "artifacts": [],
 		    "local_schema": true,
-		    "local_yoga": false
+		    "local_server": false
 		}
 	`)
 })
 
-test('local yoga', async function () {
+test('local server', async function () {
 	const config = testConfig()
 
 	// create the mock filesystem
 	await fs.mock({
 		[config.projectRoot]: {
 			'src/api': {
-				'+yoga.js': `
+				'+server.js': `
 					export default 'foo'
 				`,
 			},
@@ -379,7 +379,7 @@ test('local yoga', async function () {
 		    "layout_queries": {},
 		    "artifacts": [],
 		    "local_schema": false,
-		    "local_yoga": true
+		    "local_server": true
 		}
 	`)
 })
@@ -452,7 +452,7 @@ test('extract route params', async function () {
 		    },
 		    "artifacts": [],
 		    "local_schema": false,
-		    "local_yoga": false
+		    "local_server": false
 		}
 	`)
 })

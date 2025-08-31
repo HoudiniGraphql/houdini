@@ -38,7 +38,7 @@ export default (props) => (
 
 	let renderer = `
 	import { Cache } from '$houdini/runtime/cache/cache'
-import { serverAdapterFactory, _serverHandler } from '$houdini/runtime/router/server'
+import { serverAdapterFactory } from '$houdini/runtime/router/server'
 import { HoudiniClient } from '$houdini/runtime/client'
 import { renderToStream } from 'houdini-react/server'
 import React from 'react'
@@ -146,7 +146,7 @@ export function createServerAdapter(options) {
 				? `import schema from '../../../../../src/api/+schema'`
 				: ' const schema = null'
 		}
-		${manifest.local_yoga ? `import yoga from '../../../../../src/api/+yoga'` : ' const yoga = null'}
+		${manifest.local_server ? `import server from '../../../../../src/api/+server'` : ' const server = null'}
 
 		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
 
@@ -162,7 +162,7 @@ export function createServerAdapter(options) {
 		export function createServerAdapter(options) {
 			return createAdapter({
 				schema,
-				yoga,
+				server,
 				componentCache,
 				graphqlEndpoint: endpoint,
 				...options,

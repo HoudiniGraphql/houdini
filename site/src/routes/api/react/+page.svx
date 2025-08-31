@@ -15,16 +15,6 @@ Eventually this content will be merged in with the rest of this site but that wi
 this document as the initial place in your search before looking at other options. Also keep in mind this document
 is not organized as an introduction but more of a reference. Don't worry - there will be a more guided introduction soon.
 
-<Warning>
-
-Houdini's React bindings are still considered unstable and are subject to change with every patch update (the third number).
-If you are building stuff with it, please check the changelog for any updates or pin to a specific version.
-
-We recommend installing the `@canary` tag which will give you the latest version merged to `main` and might include fixes that
-haven't yet been deployed.
-
-</Warning>
-
 ## What is Houdini?
 
 Houdini is a web application framework built from the ground up for GraphQL. It provides everything you need to build
@@ -580,15 +570,15 @@ from `src/api/+schema` and Houdini takes care of the rest. It wraps up the schem
 makes that server available at a configurable endpoint, and automatically configures your client to use the correct endpoint.
 When making requests from your server, those queries are resolved against the schema in memory instead of sending actual network requests.
 
-If you want to customize the yoga instance, you can define a file at `src/api/+yoga` with a default export of a yoga server and that will get used instead
+If you want to customize the server instance, you can define a file at `src/api/+server` with a default export of a houdini server and that will get used instead
 
 Some things to keep in mind:
 
 - `src/api/+schema` must return an executable schema (but not necssarily one created from `@graphql-tools/schema`)
-- If you have a `+yoga` file, you still need a `+schema` file so the codegen pipeline uses your schema
+- If you have a `+server` file, you still need a `+schema` file so the codegen pipeline uses your schema
 - Make sure you don't pass a value for `url` to your client in `+client`
 - You don't need to watch this schema for changes since vite's file change detection does the trick. This means you shouldn't have `watchSchema` configured in `houdini.config.js`
-- Your schema and yoga files can be written in typescript (they get independently compiled by vite before codegen)
+- Your schema and server files can be written in typescript (they get independently compiled by vite before codegen)
 
 You can change the endpoint using the `apiEndpoint` configuration value of the `router` entry:
 

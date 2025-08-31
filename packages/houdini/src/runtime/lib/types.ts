@@ -439,8 +439,8 @@ export type ProjectManifest = {
 	artifacts: string[]
 	/** Whether or not there is a local schema defined */
 	local_schema: boolean
-	/** Whether or not there is a custom instance of yoga defined */
-	local_yoga: boolean
+	/** Whether or not there is a custom server defined */
+	local_server: boolean
 	/** Information about componentFields defined in the project */
 	component_fields: Record<string, { filepath: string }>
 }

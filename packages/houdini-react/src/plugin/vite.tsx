@@ -48,7 +48,7 @@ export default {
 				layout_queries: {},
 				artifacts: [],
 				local_schema: false,
-				local_yoga: false,
+				local_server: false,
 				component_fields: {},
 			}
 		}

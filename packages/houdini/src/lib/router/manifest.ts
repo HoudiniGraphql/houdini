@@ -39,7 +39,7 @@ export async function load_manifest(args: {
 			layout_queries: {},
 			artifacts: [],
 			local_schema: false,
-			local_yoga: false,
+			local_server: false,
 		},
 		queries: [],
 		layouts: [],
@@ -78,8 +78,8 @@ export async function load_manifest(args: {
 				manifest.local_schema = true
 			}
 
-			if (name === '+yoga') {
-				manifest.local_yoga = true
+			if (name === '+server') {
+				manifest.local_server = true
 			}
 		}
 	} catch {
