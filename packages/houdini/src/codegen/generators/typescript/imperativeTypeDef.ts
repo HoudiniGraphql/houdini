@@ -506,7 +506,7 @@ function fragmentListMap(
 		const [shapeType] = ensureImports({
 			config,
 			body,
-			sourceModule:config.artifactImportPath(doc.name),
+			sourceModule: config.artifactImportPath(doc.name),
 			import: [`${definition.name.value}$data`],
 		})
 
