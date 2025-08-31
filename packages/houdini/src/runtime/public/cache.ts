@@ -23,9 +23,6 @@ export class Cache<Def extends CacheTypeDef> {
 
 	// return the record proxy for the given type/id combo
 	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
-
-		// verify that
-
 		// compute the id for the record
 		let recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
