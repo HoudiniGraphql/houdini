@@ -495,8 +495,7 @@ export async function write_config(
 		config_file.logLevel ?? null,
 		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
 		JSON.stringify(config_file.defaultKeys ?? []),
-		config_file.persistedQueriesPath ??
-			path.join(config_file.runtimeDir ?? './houdini', 'queries.json'),
+		config_file.persistedQueriesPath ?? path.join(config_file.runtimeDir!, 'queries.json'),
 		config.root_dir ?? null,
 		config_file.runtimeDir ?? null
 	)
