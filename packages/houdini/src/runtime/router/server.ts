@@ -1,6 +1,6 @@
-import { Server } from 'houdini'
-import type { GraphQLSchema } from 'graphql'
 import { createServerAdapter } from '@whatwg-node/server'
+import type { GraphQLSchema } from 'graphql'
+import { Server } from 'houdini'
 
 import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
@@ -45,15 +45,15 @@ export function _serverHandler<ComponentType = unknown>({
 		})
 	}
 
-  // initialize the server with the project schema and graphql endpoint
-  let requestHandler: ReturnType<typeof createServerAdapter> | null = null
-  if (server && schema) {
-    requestHandler = server.init({ 
-      schema: schema, 
-      endpoint: graphqlEndpoint,
-      getSession: (request) => get_session(request.headers, session_keys)
-    })
-  }
+	// initialize the server with the project schema and graphql endpoint
+	let requestHandler: ReturnType<typeof createServerAdapter> | null = null
+	if (server && schema) {
+		requestHandler = server.init({
+			schema: schema,
+			endpoint: graphqlEndpoint,
+			getSession: (request) => get_session(request.headers, session_keys),
+		})
+	}
 
 	client.componentCache = componentCache
 

@@ -43,7 +43,13 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// is processed by the user's library-specific plugins.
 		enforce: 'pre',
 
-		async hotUpdate({ file, server, modules, timestamp, read }): Promise<EnvironmentModuleNode[]> {
+		async hotUpdate({
+			file,
+			server,
+			modules,
+			timestamp,
+			read,
+		}): Promise<EnvironmentModuleNode[]> {
 			// load the config file
 			const config = await getConfig(opts)
 
@@ -53,9 +59,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// if the file doesn't depend on .houdini, we don't need to do anything
 			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? '.houdini')
 
-      // to detect if the file depends on houdini, lets just see if it contains the string
-      // this might result in false-positives but its easier than anything any else
-      const dependsOn = (await read()).includes("$houdini")
+			// to detect if the file depends on houdini, lets just see if it contains the string
+			// this might result in false-positives but its easier than anything any else
+			const dependsOn = (await read()).includes('$houdini')
 
 			// .gql files are not understood by vite, since they're not processed yet at this stage
 			// Thus, we cannot get their dependencies.
@@ -88,9 +94,9 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					formatErrors(e)
 				}
 
-        lastHotUpdateEvent = {
-          timestamp,
-        }
+				lastHotUpdateEvent = {
+					timestamp,
+				}
 			}
 
 			// if there are no changes, don't trigger a reload

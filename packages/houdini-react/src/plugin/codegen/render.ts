@@ -146,7 +146,11 @@ export function createServerAdapter(options) {
 				? `import schema from '../../../../../src/api/+schema'`
 				: ' const schema = null'
 		}
-		${manifest.local_server ? `import server from '../../../../../src/api/+server'` : ' const server = null'}
+		${
+			manifest.local_server
+				? `import server from '../../../../../src/api/+server'`
+				: ' const server = null'
+		}
 
 		export const endpoint = ${JSON.stringify(localApiEndpoint(config.configFile))}
 
