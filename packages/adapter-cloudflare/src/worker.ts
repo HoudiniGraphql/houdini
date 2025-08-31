@@ -21,7 +21,7 @@ const handlers: ExportedHandler = {
 		}
 
 		// otherwise we just need to render the application like normal
-		return await server_adapter(req, env, ctx)
+		return await server_adapter({request: req as unknown as Request}, env)
 	},
 }
 

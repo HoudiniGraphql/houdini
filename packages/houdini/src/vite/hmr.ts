@@ -1,5 +1,4 @@
 import minimatch from 'minimatch'
-import type { EnvironmentModuleNode } from 'vite'
 
 import { path, type Config } from '../lib'
 

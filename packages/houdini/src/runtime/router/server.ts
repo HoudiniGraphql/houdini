@@ -4,7 +4,7 @@ import type { GraphQLSchema } from 'graphql'
 import { Server } from 'houdini'
 
 import type { HoudiniClient } from '../client'
-import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
+import { localApiSessionKeys, getCurrentConfig } from '../lib/config'
 import { serialize as encodeCookie } from './cookies'
 import { find_match } from './match'
 import { get_session, handle_request, session_cookie_name } from './session'
