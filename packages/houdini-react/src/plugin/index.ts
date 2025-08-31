@@ -243,7 +243,7 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 
 			ensure_import({
 				identifier: variableName,
-				module: config.artifactImportPath(doc.name).replace(/\$houdini/g, '..'),
+				module: config.artifactImportPath(doc.name),
 			})
 
 			// and use the store as the return value

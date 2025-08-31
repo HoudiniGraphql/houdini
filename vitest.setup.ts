@@ -19,7 +19,7 @@ expect.addSnapshotSerializer({
 	serialize(value) {
 		// assuming that the value we were given is a collected document, figure
 		// out the path holding the artifact
-		const artifactPath = path.join('$houdini/artifacts', documentName(value.document) + '.js')
+		const artifactPath = path.join(`${config.runtimeDir}/artifacts`, documentName(value.document) + '.js')
 
 		const artifactContents = fs.readFileSync(artifactPath)
 		expect(artifactContents).toBeTruthy()

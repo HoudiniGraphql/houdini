@@ -452,10 +452,7 @@ function queryDefinitions(
 			const [shapeType, inputType] = ensureImports({
 				config,
 				body,
-				sourceModule: path.relative(
-					config.runtimeDirectory,
-					config.artifactImportPath(doc.name)
-				),
+				sourceModule: config.artifactImportPath(doc.name),
 				import: [`${doc.name}$result`, `${doc.name}$input`],
 			})
 
@@ -509,10 +506,7 @@ function fragmentListMap(
 		const [shapeType] = ensureImports({
 			config,
 			body,
-			sourceModule: path.relative(
-				config.runtimeDirectory,
-				config.artifactImportPath(doc.name)
-			),
+			sourceModule:config.artifactImportPath(doc.name),
 			import: [`${definition.name.value}$data`],
 		})
 
@@ -528,10 +522,7 @@ function fragmentListMap(
 					ensureImports({
 						config,
 						body,
-						sourceModule: path.relative(
-							config.runtimeDirectory,
-							config.artifactImportPath(doc.name)
-						),
+						sourceModule: config.artifactImportPath(doc.name),
 						import: [`${definition.name.value}$input`],
 					})[0]
 				)

@@ -304,7 +304,7 @@ function getComponentTypeImports(
 import ${no_ext} from './${file.base}'
 import type { ${query.query.name!.value}$input } from '${path
 					.relative(dirpath, path.join(config.artifactDirectory, query.query.name!.value))
-					.replace('/$houdini', '')}'
+					.replace(`/${config.runtimeDir}`, '')}'
 `
 			})
 			.join('\n')
