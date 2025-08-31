@@ -19,12 +19,12 @@ export class Server<
 	ServerContext extends Record<string, any>,
 	UserContext extends Record<string, any>
 > {
-	opts: ConstructorParams
+	opts: ConstructorParams | null
 
 	_yoga: YogaServer<any, any> | null = null
 
-	constructor(opts: ConstructorParams) {
-		this.opts = opts
+	constructor(opts?: ConstructorParams) {
+		this.opts = opts ?? null
 	}
 
 	init({
@@ -41,8 +41,8 @@ export class Server<
 			schema: schema,
 			graphqlEndpoint: endpoint,
 			context: async (ctx) => {
-				const userContext =
-					typeof this.opts.context === 'function'
+				const userContext = !this.opts ? {}
+					: typeof this.opts.context === 'function'
 						? await this.opts.context(ctx)
 						: this.opts.context || {}
 				const sessionContext = (await getSession(ctx.request)) || {}
