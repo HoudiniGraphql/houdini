@@ -1,5 +1,6 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { GraphQLSchema } from 'graphql'
+//@ts-ignore
 import { Server } from 'houdini'
 
 import type { HoudiniClient } from '../client'
@@ -51,7 +52,7 @@ export function _serverHandler<ComponentType = unknown>({
 		requestHandler = server.init({
 			schema: schema,
 			endpoint: graphqlEndpoint,
-			getSession: (request) => get_session(request.headers, session_keys),
+			getSession: (request: Request) => get_session(request.headers, session_keys),
 		})
 	}
 
