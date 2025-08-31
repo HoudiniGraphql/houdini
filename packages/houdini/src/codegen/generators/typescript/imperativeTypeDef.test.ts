@@ -154,13 +154,13 @@ test('generates type definitions for the imperative API', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(
 		`
 		import type { Record } from "./public/record";
-		import { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
-		import { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
+		import { TestQueryNoArgs$result, TestQueryNoArgs$input } from "$houdini/artifacts/TestQueryNoArgs";
+		import { TestQuery$result, TestQuery$input } from "$houdini/artifacts/TestQuery";
 		import type { ValueOf } from "$houdini/runtime/lib/types";
 		import type { MyEnum } from "$houdini/graphql/enums";
-		import { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
-		import { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
-		import { UserInfo$data } from "../artifacts/UserInfo";
+		import { UserInfoWithArguments$input } from "$houdini/artifacts/UserInfoWithArguments";
+		import { UserInfoWithArguments$data } from "$houdini/artifacts/UserInfoWithArguments";
+		import { UserInfo$data } from "$houdini/artifacts/UserInfo";
 
 		type NestedUserFilter = {
 		    id: string | number;
