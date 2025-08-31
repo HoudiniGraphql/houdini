@@ -1,5 +1,7 @@
 import { createServerAdapter, ServerAdapterRequestHandler } from '@whatwg-node/server'
 import type { GraphQLSchema } from 'graphql'
+import { YogaServer } from 'graphql-yoga'
+import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
 
 import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, getCurrentConfig } from '../lib/config'
@@ -7,8 +9,6 @@ import { serialize as encodeCookie } from './cookies'
 import { find_match } from './match'
 import { get_session, handle_request, session_cookie_name } from './session'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
-import { YogaServer } from 'graphql-yoga'
-import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
 
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]
 

@@ -102,9 +102,9 @@ export async function get_session(req: Headers, secrets: string[]): Promise<App.
 	if (!cookie) {
 		return {}
 	}
-  if (cookie === '{}') {
-    return {}
-  }
+	if (cookie === '{}') {
+		return {}
+	}
 
 	// decode it with any of the available secrets
 	for (const secret of secrets) {

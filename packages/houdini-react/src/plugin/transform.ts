@@ -85,7 +85,10 @@ export async function transformFile(
 				ensureImports({
 					config: page.config,
 					body: script.body,
-					sourceModule: `$houdini/${path.relative(page.config.runtimeDir!, entryPointPath)}`,
+					sourceModule: `$houdini/${path.relative(
+						page.config.runtimeDir!,
+						entryPointPath
+					)}`,
 					// we just want the side effects of the import so we don't need to assign it to a variable
 					import: null,
 				})
