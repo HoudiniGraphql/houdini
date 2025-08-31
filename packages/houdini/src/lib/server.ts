@@ -3,6 +3,7 @@ import {
   createServerAdapter, 
   ServerAdapterRequestHandler,
 } from '@whatwg-node/server';
+import { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema';
 
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]
 
@@ -20,11 +21,19 @@ export class Server<
     this.opts = opts
   }
 
-  init({ endpoint, schema }: { schema: Required<YogaParams>['schema'], endpoint: string }) {
+  init({ endpoint, schema, getSession }: { schema: YogaSchemaDefinition<any>, endpoint: string, getSession: (request: Request) =>  Promise<UserContext> }) {
     this._yoga = new YogaServer({ 
       ...this.opts, 
-      schema,
+      schema: schema,
       graphqlEndpoint: endpoint,
+      context: async (ctx) => {
+        const userContext = typeof this.opts.context === 'function' ? await this.opts.context(ctx) : this.opts.context || {}
+        const sessionContext = await getSession(ctx.request) || {}
+        return {
+          ...userContext,
+          session: sessionContext
+        } as UserContext & ServerContext
+      }
     })
 
     return createServerAdapter<ServerContext, Server<ServerContext, UserContext>>(this, {

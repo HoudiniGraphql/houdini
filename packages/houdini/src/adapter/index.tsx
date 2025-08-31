@@ -7,7 +7,7 @@ export let createServerAdapter: (
 		Parameters<typeof createAdapter>[0],
 		| 'on_render'
 		| 'manifest'
-		| 'yoga'
+		| 'server'
 		| 'schema'
 		| 'graphqlEndpoint'
 		| 'componentCache'

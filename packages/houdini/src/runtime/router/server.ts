@@ -1,6 +1,6 @@
-import { createServerAdapter as createAdapter } from '@whatwg-node/server'
+import { Server } from 'houdini'
 import type { GraphQLSchema } from 'graphql'
-import { createYoga } from 'graphql-yoga'
+import { createServerAdapter } from '@whatwg-node/server'
 
 import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
@@ -15,7 +15,7 @@ const session_keys = localApiSessionKeys(config_file)
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
-	yoga,
+	server,
 	client,
 	production,
 	manifest,
@@ -24,7 +24,7 @@ export function _serverHandler<ComponentType = unknown>({
 	componentCache,
 }: {
 	schema?: GraphQLSchema | null
-	yoga?: ReturnType<typeof createYoga> | null
+	server?: Server<any, any>
 	client: HoudiniClient
 	production: boolean
 	manifest: RouterManifest<ComponentType> | null
@@ -39,22 +39,29 @@ export function _serverHandler<ComponentType = unknown>({
 		componentCache: Record<string, any>
 	}) => Response | Promise<Response | undefined> | undefined
 } & Omit<YogaServerOptions, 'schema'>) {
-	if (schema && !yoga) {
-		yoga = createYoga({
-			schema,
+	if (schema && !server) {
+		server = new Server({
 			landingPage: !production,
-			graphqlEndpoint,
-			context: async (request) => await get_session(request.headers, session_keys),
 		})
 	}
+
+  // initialize the server with the project schema and graphql endpoint
+  let requestHandler: ReturnType<typeof createServerAdapter> | null = null
+  if (server && schema) {
+    requestHandler = server.init({ 
+      schema: schema, 
+      endpoint: graphqlEndpoint,
+      getSession: (request) => get_session(request.headers, session_keys)
+    })
+  }
 
 	client.componentCache = componentCache
 
 	// if we have a local schema then requests to this endpoint should resolve locally using the yoga instance so we
 	// inherit any context values
-	if (schema) {
+	if (requestHandler) {
 		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
-			const response = await yoga!(
+			const response = await requestHandler!(
 				new Request(`http://localhost/${graphqlEndpoint}`, {
 					method: 'POST',
 					headers: {
@@ -85,8 +92,8 @@ export function _serverHandler<ComponentType = unknown>({
 		const url = new URL(request.url).pathname
 
 		// if its a request we can process with yoga, do it.
-		if (yoga && url === localApiEndpoint(config_file)) {
-			return yoga(request)
+		if (requestHandler && url === graphqlEndpoint) {
+			return requestHandler(request)
 		}
 
 		// maybe its a session-related request
@@ -123,8 +130,8 @@ export function _serverHandler<ComponentType = unknown>({
 
 export const serverAdapterFactory = (
 	args: Parameters<typeof _serverHandler>[0]
-): ReturnType<typeof createAdapter> => {
-	return createAdapter(_serverHandler(args))
+): ReturnType<typeof createServerAdapter> => {
+	return createServerAdapter(_serverHandler(args))
 }
 
 export type ServerAdapterFactory = typeof serverAdapterFactory
