@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.9
+
+### Patch Changes
+
+-   [#1528](https://github.com/HoudiniGraphql/houdini/pull/1528) [`2874811f`](https://github.com/HoudiniGraphql/houdini/commit/2874811f91d1ad7d018412b5ead281e94625b3bc) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Use +server instead of +yoga and export an instance of houdini's Server
+
 ## 2.0.0-next.8
 
 ### Patch Changes
