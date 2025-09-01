@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -421,14 +422,15 @@ func getDocumentData(
 	defer query.Finalize()
 
 	err = db.StepStatement(ctx, query, func() {
-		if query.GetText("name") == name {
-			d.Hash = query.GetText("hash")
-		}
 		d.Printed += query.GetText("printed") + "\n\n"
 	})
 	if err != nil {
 		return d, err
 	}
+	
+	// compute hash based on the complete printed content (including dependencies)
+	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
+	
 	// we're done
 	return d, nil
 }
