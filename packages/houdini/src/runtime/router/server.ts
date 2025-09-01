@@ -41,10 +41,11 @@ export class Server<
 			schema: schema,
 			graphqlEndpoint: endpoint,
 			context: async (ctx) => {
-				const userContext = !this.opts ? {}
+				const userContext = !this.opts
+					? {}
 					: typeof this.opts.context === 'function'
-						? await this.opts.context(ctx)
-						: this.opts.context || {}
+					? await this.opts.context(ctx)
+					: this.opts.context || {}
 				const sessionContext = (await getSession(ctx.request)) || {}
 				return {
 					...userContext,
