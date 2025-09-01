@@ -3,11 +3,11 @@ import type { GraphQLSchema } from 'graphql'
 
 import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, getCurrentConfig } from '../lib/config'
+import { Server } from '../server'
 import { serialize as encodeCookie } from './cookies'
 import { find_match } from './match'
 import { get_session, handle_request, session_cookie_name } from './session'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
-import { Server } from '../server'
 
 // load the plugin config
 const config_file = getCurrentConfig()

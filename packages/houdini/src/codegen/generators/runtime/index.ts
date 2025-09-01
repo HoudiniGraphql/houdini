@@ -44,7 +44,10 @@ ${exportStatement('config')}
 			) => injectPlugins({ config, content, importStatement, exportStatement }),
 		}),
 
-    fs.recursiveCopy(path.join(config.runtimeSource, 'server'), path.join(config.rootDir, 'server')),
+		fs.recursiveCopy(
+			path.join(config.runtimeSource, 'server'),
+			path.join(config.rootDir, 'server')
+		),
 
 		generatePluginRuntimes({
 			config,

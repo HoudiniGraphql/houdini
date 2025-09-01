@@ -59,5 +59,3 @@ export class Server<
 		return this._yoga!.handle(request, serverContext)
 	}
 }
-
-
