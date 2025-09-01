@@ -6,7 +6,6 @@ import { Cache } from './public'
 export * from './client'
 export * from './lib'
 
-export { Server } from './router/server'
 
 // this template tag gets removed by the preprocessor so it should never be invoked.
 // this function must return any so that we can assign it a type in a variable declaration (ie an inline store)
