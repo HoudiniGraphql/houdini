@@ -1127,6 +1127,16 @@ func processSelection[PluginConfig any](
 		if err != nil {
 			return err
 		}
+
+		// register the referenced fragment as a dependent on the operation
+		dbErr := db.ExecStatement(statements.InsertDocumentDependency, map[string]any{
+			"document":   operationID,
+			"depends_on": s.Name,
+		})
+		if dbErr != nil {
+			return plugins.WrapError(dbErr)
+		}
+
 	default:
 		return &plugins.Error{
 			Message: fmt.Sprintf("unsupported selection type: %T", sel),

@@ -359,6 +359,14 @@ CREATE TABLE discovered_lists (
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
+CREATE TABLE document_dependencies (
+  document INTEGER NOT NULL,
+  depends_on TEXT NOT NULL,
+
+  FOREIGN KEY (document) REFERENCES documents(id) DEFERREABLE INITIALLY DEFERRED,
+  FOREIGN KEY (depends_on) REFERENCES documents(name) DEFERREABLE INITIALLY DEFERRED
+);
+
 -----------------------------------------------------------
 -- Indices
 -----------------------------------------------------------
@@ -408,6 +416,8 @@ CREATE INDEX idx_types_name ON types(name);
 CREATE INDEX idx_enum_values_parent_value ON enum_values(parent, value);
 CREATE INDEX idx_selection_directive_arguments_value ON selection_directive_arguments(value);
 CREATE INDEX idx_argument_value_children_value ON argument_value_children(value);
+CREATE INDEX idx_document_dependency_document on document_dependencies(document);
+CREATE INDEX idx_document_dependency_depends_on on document_dependencies(depends_on);
 `
 
 export async function write_config(

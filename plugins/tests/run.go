@@ -19,6 +19,7 @@ type Table[PluginConfig any] struct {
 	ProjectConfig plugins.ProjectConfig
 	Tests         []Test[PluginConfig]
 	PerformTest   func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig])
+	VerifyTest    func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig])
 }
 
 type Test[PluginConfig any] struct {
@@ -31,6 +32,15 @@ type Test[PluginConfig any] struct {
 }
 
 func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
+	if table.VerifyTest == nil {
+		table.PerformTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
+			// make sure we generated what we expected
+			if len(test.Expected) > 0 {
+				ValidateExpectedDocuments(t, plugin.DB, test.Expected)
+			}
+		}
+	}
+
 	// if the table doesn't have a custom performance, then we should execute all steps
 	if table.PerformTest == nil {
 		table.PerformTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
@@ -57,8 +67,7 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 
 			require.True(t, test.Pass)
 
-			// make sure we generated what we expected
-			ValidateExpectedDocuments(t, plugin.DB, test.Expected)
+			table.VerifyTest(t, plugin, test)
 		}
 	}
 

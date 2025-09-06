@@ -16,11 +16,18 @@ type DocumentInsertStatements struct {
 	InsertSelectionDirectiveArgument        *sqlite.Stmt
 	InsertDocumentDirective                 *sqlite.Stmt
 	InsertDocumentDirectiveArgument         *sqlite.Stmt
+	InsertDocumentDependency                *sqlite.Stmt
 }
 
 func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatements, error, func()) {
 	insertDocument, err := conn.Prepare(
 		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
+	)
+	if err != nil {
+		return DocumentInsertStatements{}, err, nil
+	}
+	insertDependency, err := conn.Prepare(
+		"INSERT INTO document_dependencies (document, depends_on) VALUES ($document, $depends_on)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil
@@ -112,6 +119,7 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 		insertDocumentVariableDirectiveArgument.Finalize()
 		insertArgumentValue.Finalize()
 		insertArgumentValueChildren.Finalize()
+		insertDependency.Finalize()
 	}
 
 	return DocumentInsertStatements{
@@ -119,6 +127,7 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 		InsertDocumentVariable:                  insertDocumentVariable,
 		InsertDocumentVariableDirective:         insertDocumentVariableDirective,
 		InsertDocumentVariableDirectiveArgument: insertDocumentVariableDirectiveArgument,
+		InsertDocumentDependency:                insertDependency,
 		InsertSelection:                         insertSelection,
 		InsertSelectionArgument:                 insertSelectionArgument,
 		InsertArgumentValue:                     insertArgumentValue,

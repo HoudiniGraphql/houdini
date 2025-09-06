@@ -27,10 +27,8 @@ func GenerateDefinitionFiles(
 		Internal bool
 		Values   []string
 	}
-	enumMap := map[string]CollectedEnum{}
 
 	err := db.StepQuery(ctx, enumSearch, map[string]any{}, func(q *sqlite.Stmt) {
-		enumName := q.GetText("parent")
 	})
 	if err != nil {
 		return err
