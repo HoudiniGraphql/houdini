@@ -12,7 +12,13 @@ import type {
 	ResolveIdResult,
 	SourceMapInput,
 } from 'rollup'
-import type { ConfigEnv, ResolvedConfig, UserConfig, ViteDevServer } from 'vite'
+import type {
+	ConfigEnv,
+	MinimalPluginContextWithoutEnvironment,
+	ResolvedConfig,
+	UserConfig,
+	ViteDevServer,
+} from 'vite'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import type {
@@ -303,7 +309,12 @@ export type PluginHooks = {
 
 		closeBundle?: (this: PluginContext, config: Config) => void | Promise<void>
 
-		configResolved?: ObjectHook<(this: void, config: ResolvedConfig) => void | Promise<void>>
+		configResolved?: ObjectHook<
+			(
+				this: MinimalPluginContextWithoutEnvironment,
+				config: ResolvedConfig
+			) => void | Promise<void>
+		>
 
 		options?: (
 			this: MinimalPluginContext,
@@ -339,7 +350,7 @@ export type PluginHooks = {
 		configureServer?:
 			| ObjectHook<
 					(
-						this: void,
+						this: MinimalPluginContextWithoutEnvironment,
 						server: ViteDevServer & { houdiniConfig: Config }
 					) => (() => void) | void | Promise<(() => void) | void>,
 					{}

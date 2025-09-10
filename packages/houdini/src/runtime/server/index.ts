@@ -24,7 +24,7 @@ export class Server<
 		schema,
 		getSession,
 	}: {
-		schema: YogaSchemaDefinition<any>
+		schema: YogaSchemaDefinition<any, any>
 		endpoint: string
 		getSession: (request: Request) => Promise<UserContext>
 	}) {
