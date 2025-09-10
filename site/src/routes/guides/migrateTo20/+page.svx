@@ -16,7 +16,7 @@ are a number of things to keep in mind and go over when migrating your applicati
 Hopefully this one is easy. There are a few major version updates to Houdini's dependencies:
 
 ```json
-"vite": "^6.0.3 || ^7.0.0"
+"vite": "^7.0.0"
 "graphql": "^16.10.0."
 ```
 
