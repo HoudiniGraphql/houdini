@@ -21,23 +21,8 @@ export class Cache<Def extends CacheTypeDef> {
 		this._internal_unstable = cache
 	}
 
-	// if the user is using the imperative API, we want the ability to break the API
-	// with any minor version. In order to do this, we require them to accept this contract
-	// through their config file
-	validateInstabilityWarning() {
-		if (!this.config.acceptImperativeInstability && !this.config.features?.imperativeCache) {
-			console.warn(`⚠️  The imperative cache API is considered unstable and will change in any minor version release
-Please acknowledge this by enabling the imperative cache feature flage in your config file.
-For more information: https://houdinigraphql.com/api/cache`)
-		}
-	}
-
 	// return the record proxy for the given type/id combo
 	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
-		this.validateInstabilityWarning()
-
-		// verify that
-
 		// compute the id for the record
 		let recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
@@ -61,7 +46,6 @@ For more information: https://houdinigraphql.com/api/cache`)
 		name: Name,
 		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
 	): ListCollection<Def, Name> {
-		this.validateInstabilityWarning()
 		return new ListCollection<Def, Name>({
 			cache: this,
 			name,
@@ -80,7 +64,6 @@ For more information: https://houdinigraphql.com/api/cache`)
 		data: QueryValue<QueryList<Def>, _Query> | null
 		partial: boolean
 	} {
-		this.validateInstabilityWarning()
 		// @ts-expect-error
 		return this._internal_unstable.read({
 			selection: query.artifact.selection,
@@ -97,7 +80,6 @@ For more information: https://houdinigraphql.com/api/cache`)
 		data: QueryValue<QueryList<Def>, _Query>
 		variables?: QueryInput<QueryList<Def>, _Query>
 	}) {
-		this.validateInstabilityWarning()
 		this._internal_unstable.write({
 			selection: query.artifact.selection,
 			// @ts-expect-error

@@ -1,4 +1,4 @@
-import type { QueryArtifact } from '$houdini/runtime/lib/types'
+import type { QueryArtifact } from '../lib/types'
 import type { createYoga } from 'graphql-yoga'
 
 import type { RouteParam } from './match'

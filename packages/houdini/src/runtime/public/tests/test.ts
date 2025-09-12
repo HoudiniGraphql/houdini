@@ -1,4 +1,3 @@
-import { testConfigFile } from '../../../test'
 import { Cache as _Cache } from '../../cache/cache'
 import {
 	ArtifactKind,
@@ -155,7 +154,7 @@ export type CacheTypeDefTest = {
 	}
 }
 
-export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache(testConfigFile()))
+export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache())
 
 export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
 	artifact: {

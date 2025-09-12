@@ -1,6 +1,6 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
-import sqlite from 'node:sqlite'
+import sqlite, { DatabaseSync } from 'node:sqlite'
 import { format_hook_error, HookError } from 'src/lib/error'
 
 import * as fs from '../lib/fs'
@@ -36,6 +36,16 @@ export type Adapter = ((args: {
 		outDir: string
 	}) => Promise<void> | void
 }
+
+export function connectDatabase(config: Config): DatabaseSync {
+	const db = new sqlite.DatabaseSync(db_path(config))
+	db.exec('PRAGMA journal_mode = WAL')
+	db.exec('PRAGMA synchronous = off')
+	db.exec('PRAGMA cache_size = 10000')
+	db.exec('PRAGMA temp_store = memory')
+	db.exec('PRAGMA busy_timeout = 5000')
+  return db
+}
 // codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
 export async function codegen_setup(
@@ -65,12 +75,7 @@ export async function codegen_setup(
 	try {
 		await fs.remove(`${db_file}-wal`)
 	} catch (e) {}
-	const db = new sqlite.DatabaseSync(db_file)
-	db.exec('PRAGMA journal_mode = WAL')
-	db.exec('PRAGMA synchronous = off')
-	db.exec('PRAGMA cache_size = 10000')
-	db.exec('PRAGMA temp_store = memory')
-	db.exec('PRAGMA busy_timeout = 5000')
+  const db = connectDatabase(config)
 	db.exec(create_schema)
 
 	// we need a function that waits for a plugin to register itself

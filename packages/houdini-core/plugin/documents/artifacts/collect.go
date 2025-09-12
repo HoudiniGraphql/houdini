@@ -67,7 +67,7 @@ func CollectDocuments(
         ON documents.raw_document = doc_raw.id
     WHERE selections.kind = 'fragment'
       AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-      AND NOT (doc_raw.current_task   = $task_id OR $task_id IS NULL)
+      AND NOT (doc_raw.current_task = $task_id OR $task_id IS NULL)
   `)
 	if err != nil {
 		return nil, err

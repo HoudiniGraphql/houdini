@@ -107,7 +107,10 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 			package_json.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
 		}
 
-		await fs.writeFile(path.join(outDir, 'package.json'), JSON.stringify(package_json, null, 4))
+		await fs.writeFile(
+			path.join(outDir, '..', 'package.json'),
+			JSON.stringify(package_json, null, 4)
+		)
 	}
 }
 

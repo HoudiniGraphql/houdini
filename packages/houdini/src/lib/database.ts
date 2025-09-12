@@ -574,7 +574,7 @@ export async function write_config(
 	// write the scalar configs
 	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)')
 	for (const [name, { type, inputTypes }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type, JSON.stringify((inputTypes ?? []).concat(name)))
+		insert.run(name, type, JSON.stringify((inputTypes as Array<string> ?? []).concat(name)))
 	}
 
 	// write the type configs

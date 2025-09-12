@@ -13,7 +13,6 @@
         "type": "git",
         "url": "https://github.com/HoudiniGraphql/houdini.git"
     },
-    "bin": "./build/cmd-esm/index.js",
     "license": "MIT",
     "type": "module",
     "scripts": {
@@ -66,5 +65,36 @@
     },
     "files": [
         "build"
-    ]
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        "./adapter": {
+            "types": "./build/adapter/index.d.ts",
+            "import": "./build/adapter-esm/index.js",
+            "require": "./build/adapter-cjs/index.js"
+        },
+        ".": {
+            "types": "./build/lib/index.d.ts",
+            "import": "./build/lib-esm/index.js",
+            "require": "./build/lib-cjs/index.js"
+        },
+        "./vite": {
+            "types": "./build/vite/index.d.ts",
+            "import": "./build/vite-esm/index.js",
+            "require": "./build/vite-cjs/index.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "adapter": [
+                "build/adapter/index.d.ts"
+            ],
+            "vite": [
+                "build/vite/index.d.ts"
+            ]
+        }
+    },
+    "bin": "./build/cmd-esm/index.js",
+    "main": "./build/lib-cjs/index.js",
+    "types": "./build/lib/index.d.ts"
 }

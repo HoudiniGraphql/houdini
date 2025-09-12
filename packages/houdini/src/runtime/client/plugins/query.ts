@@ -26,7 +26,7 @@ export const query = (cache: Cache) =>
 					...Object.fromEntries(
 						Object.entries(ctx.artifact.input?.runtimeScalars ?? {}).map(
 							([field, type]) => {
-								const runtimeScalar = ctx.config.features?.runtimeScalars?.[type]
+								const runtimeScalar = ctx.config.runtimeScalars?.[type]
 								// make typescript happy
 								if (!runtimeScalar) {
 									return [field, type]

@@ -85,7 +85,6 @@ export async function get_config({
 		}
 	}
 
-	config_path = config_path!
 
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
@@ -262,6 +261,7 @@ export async function load_local_schema(
 ): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
+    console.log({schema_path})
 		const { default: schema } = await import(pathToFileURL(schema_path).toString())
 
 		// now that we have the schema, let's write it to disk so the core plugin
