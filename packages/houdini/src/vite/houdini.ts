@@ -40,7 +40,6 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
           configureServer(server) {
               // we need a reference to the database connection
               db = connectDatabase(config!)
-              console.log(db)
           },
 
           // this is called when a file is created or modified

@@ -363,8 +363,8 @@ CREATE TABLE document_dependencies (
   document INTEGER NOT NULL,
   depends_on TEXT NOT NULL,
 
-  FOREIGN KEY (document) REFERENCES documents(id) DEFERREABLE INITIALLY DEFERRED,
-  FOREIGN KEY (depends_on) REFERENCES documents(name) DEFERREABLE INITIALLY DEFERRED
+  FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (depends_on) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
 );
 
 -----------------------------------------------------------

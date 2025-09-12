@@ -4,7 +4,7 @@ import { GraphQLSchema } from 'graphql'
 import { pathToFileURL } from 'node:url'
 
 import type { ConfigFile } from '../runtime/lib/config'
-import { local_api_dir } from './conventions'
+import { houdini_root, local_api_dir } from './conventions'
 import { HoudiniError } from './error'
 import * as fs from './fs'
 import * as path from './path'
@@ -104,6 +104,7 @@ export async function get_config({
 			})
 		}
 
+
 		const root_dir = path.dirname(
 			config_file.projectDir ? path.join(process.cwd(), config_file.projectDir) : config_path
 		)
@@ -119,14 +120,21 @@ export async function get_config({
 			}
 		} catch {}
 
-		_config = {
+    const partialConfig: Partial<Config> = {
 			root_dir,
 			config_file,
 			filepath: config_path,
-			schema: local_schema
+			plugins: [],
+    }
+
+    fs.mkdirpSync(houdini_root(partialConfig as Config))
+
+		_config = {
+      ...partialConfig as Config,
+      schema: local_schema
 				? await load_local_schema(config_file, local_schema)
 				: await load_schema_file(config_file.schemaPath),
-			plugins: [],
+
 		}
 
 		// we need to process the plugins before we instantiate the config object
