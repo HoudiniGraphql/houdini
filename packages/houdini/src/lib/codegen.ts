@@ -7,6 +7,8 @@ import * as fs from '../lib/fs'
 import { db_path, houdini_root } from './conventions'
 import { create_schema, write_config } from './database'
 import { type Config } from './project'
+import * as routerConventions from './conventions'
+import { ProjectManifest } from '../runtime'
 
 export type PluginSpec = {
 	name: string
@@ -15,6 +17,25 @@ export type PluginSpec = {
 	order: 'before' | 'after' | 'core'
 }
 
+export type Adapter = ((args: {
+	config: Config
+	conventions: typeof routerConventions
+	sourceDir: string
+	publicBase: string
+	outDir: string
+	manifest: ProjectManifest
+	adapterPath: string
+}) => void | Promise<void>) & {
+	includePaths?: Record<string, string> | ((args: { config: Config }) => Record<string, string>)
+	disableServer?: boolean
+	pre?: (args: {
+		config: Config
+		conventions: typeof routerConventions
+		sourceDir: string
+		publicBase: string
+		outDir: string
+	}) => Promise<void> | void
+}
 // codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
 export async function codegen_setup(
