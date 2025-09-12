@@ -28,7 +28,7 @@ export type Config = {
 }
 
 export const default_config: ConfigFile = {
-	schemaPath: './.houdini/schema.graphql',
+	schemaPath: '.houdini/schema.graphql',
 	include: ['src/**/*'],
 	runtimeDir: '.houdini',
 	cacheBufferSize: 10,
@@ -269,7 +269,6 @@ export async function load_local_schema(
 ): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
-    console.log({schema_path})
 		const { default: schema } = await import(pathToFileURL(schema_path).toString())
 
 		// now that we have the schema, let's write it to disk so the core plugin

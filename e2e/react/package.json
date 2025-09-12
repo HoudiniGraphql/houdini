@@ -10,6 +10,7 @@
 		"compile:core": "cd ../../packages/houdini-core && ((pnpm run compile && cd -) || (cd - && exit 1))",
 		"compile:houdini": "cd ../../packages/houdini && ((pnpm run compile && cd -) || (cd - && exit 1))",
 		"compile:core:generate": "pnpm run compile:core && pnpm houdini generate",
+		"compile:core:dev": "pnpm run compile:core && pnpm dev",
 		"compile:houdini:generate": "pnpm run compile:houdini && pnpm houdini generate",
 		"compile:houdini:dev": "pnpm run compile:houdini && pnpm dev",
 		"build:generate": "pnpm build: && pnpm houdini generate",

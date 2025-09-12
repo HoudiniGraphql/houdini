@@ -111,7 +111,7 @@ func InjectTaskID(next http.Handler) http.Handler {
 	// the task id is passed in the request headers
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get the task id from the request headers
-		taskID := r.Header.Get("Task-ID")
+		taskID := r.Header.Get("X-Task-ID")
 
 		// add the task id to the context
 		ctx := ContextWithTaskID(r.Context(), taskID)

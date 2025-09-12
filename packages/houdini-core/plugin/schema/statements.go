@@ -17,16 +17,112 @@ type SchemaInsertStatements struct {
 
 func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, func()) {
 	// Prepare statements. (Check errors and defer closing each statement.)
-	insertTypeStmt := db.Prep("INSERT INTO types (name, kind, operation, built_in) VALUES ($name, $kind, $operation, $built_in)")
-	insertInternalTypeStmt := db.Prep("INSERT INTO types (name, kind, internal) VALUES ($name, $kind, true)")
-	insertTypeFieldStmt := db.Prep("INSERT INTO type_fields (id, parent, name, type, type_modifiers, default_value, description) VALUES ($id, $parent, $name, $type, $type_modifiers, $default_value, $description)")
-	insertPossibleTypeStmt := db.Prep("INSERT INTO possible_types (type, member) VALUES ($type, $member)")
-	insertEnumValueStmt := db.Prep("INSERT INTO enum_values (parent, value) VALUES ($parent, $value)")
-	insertFieldArgumentStmt := db.Prep("INSERT INTO type_field_arguments (id, field, name, type, type_modifiers) VALUES ($id, $field, $name, $type,  $type_modifiers)")
-	insertDirectiveStmt := db.Prep("INSERT INTO directives (name, repeatable) VALUES ($name, $repeatable)")
-	insertInternalDirectiveStmt := db.Prep("INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, $visible)")
-	insertDirectiveLocationStmt := db.Prep("INSERT INTO directive_locations (directive, location) VALUES ($directive, $location)")
-	insertDirectiveArgumentStmt := db.Prep("INSERT INTO directive_arguments (parent, name, type, default_value, type_modifiers) VALUES ($directive, $name, $type, $default_value, $type_modifiers)")
+	insertTypeStmt := db.Prep(
+		`INSERT INTO types 
+        (name, kind, operation, built_in) 
+    VALUES 
+        ($name, $kind, $operation, $built_in) 
+    ON CONFLICT DO UPDATE SET 
+        kind = excluded.kind,
+        operation = excluded.operation,
+        built_in = excluded.built_in
+    `,
+	)
+	insertInternalTypeStmt := db.Prep(
+		`INSERT INTO types
+        (name, kind, internal)
+    VALUES 
+        ($name, $kind, true) 
+    ON CONFLICT DO UPDATE SET 
+        kind = excluded.kind
+    `,
+	)
+	insertTypeFieldStmt := db.Prep(
+		`INSERT INTO type_fields 
+        (id, parent, name, type, type_modifiers, default_value, description) 
+    VALUES 
+        ($id, $parent, $name, $type, $type_modifiers, $default_value, $description) 
+    ON CONFLICT DO UPDATE SET 
+        parent = excluded.parent, 
+        name = excluded.name,
+        type = excluded.type,
+        type_modifiers = excluded.type_modifiers,
+        default_value = excluded.default_value,
+        description = excluded.description
+    
+    `,
+	)
+	insertPossibleTypeStmt := db.Prep(
+		`INSERT INTO possible_types 
+        (type, member) 
+    VALUES 
+        ($type, $member) 
+    ON CONFLICT DO UPDATE SET 
+        member = excluded.member
+    
+    `,
+	)
+	insertEnumValueStmt := db.Prep(
+		`INSERT INTO enum_values 
+        (parent, value) 
+    VALUES 
+        ($parent, $value) 
+    ON CONFLICT DO UPDATE SET  
+        value = excluded.value
+    `,
+	)
+	insertFieldArgumentStmt := db.Prep(
+		`INSERT INTO type_field_arguments 
+        (id, field, name, type, type_modifiers) 
+    VALUES 
+        ($id, $field, $name, $type,  $type_modifiers) 
+    ON CONFLICT DO UPDATE SET  
+      field = excluded.field,
+      name = excluded.name,
+      type = excluded.type,
+      type_modifiers = excluded.type_modifiers
+    `,
+	)
+	insertDirectiveStmt := db.Prep(
+		`INSERT INTO directives 
+        (name, repeatable) 
+    VALUES 
+        ($name, $repeatable) 
+    ON CONFLICT DO UPDATE SET  
+      repeatable = excluded.repeatable
+    `,
+	)
+	insertInternalDirectiveStmt := db.Prep(
+		`INSERT INTO directives 
+        (name, description, internal, visible) 
+    VALUES 
+        ($name, $description, true, $visible) 
+    ON CONFLICT DO UPDATE SET  
+        description = excluded.description,
+        visible = excluded.visible
+    `,
+	)
+	insertDirectiveLocationStmt := db.Prep(
+		`INSERT INTO directive_locations 
+        (directive, location) 
+    VALUES 
+        ($directive, $location) 
+    ON CONFLICT DO UPDATE SET  
+      location = excluded.location
+    `,
+	)
+	insertDirectiveArgumentStmt := db.Prep(
+		`INSERT INTO directive_arguments 
+        (parent, name, type, default_value, type_modifiers) 
+    VALUES 
+        ($directive, $name, $type, $default_value, $type_modifiers) 
+    ON CONFLICT DO UPDATE SET  
+        name = excluded.name,
+        type = excluded.type,
+        default_value = excluded.default_value,
+        type_modifiers = excluded.type_modifiers
+    `,
+	)
 
 	finalize := func() {
 		insertTypeStmt.Finalize()

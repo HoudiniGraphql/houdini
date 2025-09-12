@@ -37,33 +37,24 @@ export type Adapter = ((args: {
 	}) => Promise<void> | void
 }
 
-export function connectDatabase(config: Config): DatabaseSync {
-	const db = new sqlite.DatabaseSync(db_path(config))
+export function connectDatabase(config: Config): [DatabaseSync, string] {
+  const filepath = db_path(config)
+	const db = new sqlite.DatabaseSync(filepath)
 	db.exec('PRAGMA journal_mode = WAL')
 	db.exec('PRAGMA synchronous = off')
 	db.exec('PRAGMA cache_size = 10000')
 	db.exec('PRAGMA temp_store = memory')
 	db.exec('PRAGMA busy_timeout = 5000')
-  return db
+	db.exec('PRAGMA foreign_key = ON')
+	db.exec('PRAGMA defer_foreign_keys = ON')
+
+  // TODO: we might have to destroy the existing tables if we run with a new version
+	db.exec(create_schema)
+
+  return [db, filepath]
 }
-// codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
-// the config server along with each plugin
-export async function codegen_setup(
-	config: Config,
-	mode: string
-): Promise<{
-	close: () => Promise<void>
-	trigger_hook: (name: string, parallel_safe: boolean) => Promise<void>
-	database_path: string
-}> {
-	// We need the root dir before we get to the exciting stuff
-	await fs.mkdirpSync(houdini_root(config))
 
-	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
-
-	// when plugins announce themselves, they provide a port
-	const plugin_specs: Record<string, PluginSpec> = {}
-
+export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 	// we need to create a fresh database for orchestration
 	const db_file = db_path(config)
 	try {
@@ -75,8 +66,30 @@ export async function codegen_setup(
 	try {
 		await fs.remove(`${db_file}-wal`)
 	} catch (e) {}
-  const db = connectDatabase(config)
-	db.exec(create_schema)
+  return [connectDatabase(config)[0], db_file]
+}
+
+export type CompilerProxy = {
+	close: () => Promise<void>
+	trigger_hook: (name: string, opts?: {parallel_safe?: boolean, payload?: {}, task_id?: number}) => Promise<void>
+	database_path: string
+}
+
+// codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
+// the config server along with each plugin
+export async function codegen_setup(
+	config: Config,
+	mode: string,
+  db: DatabaseSync,
+  db_file: string
+): Promise<CompilerProxy> {
+	// We need the root dir before we get to the exciting stuff
+	await fs.mkdirpSync(houdini_root(config))
+
+	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
+
+	// when plugins announce themselves, they provide a port
+	const plugin_specs: Record<string, PluginSpec> = {}
 
 	// we need a function that waits for a plugin to register itself
 	const wait_for_plugin = (name: string) =>
@@ -123,7 +136,7 @@ export async function codegen_setup(
 			const timeout = setTimeout(() => {
 				clearInterval(interval)
 				reject(new Error(`Timeout waiting for plugin ${name} to register`))
-			}, 2000)
+			}, 10000)
 
 			// Create a resolver function that clears the timeout
 			const resolver = (spec: PluginSpec) => {
@@ -131,6 +144,9 @@ export async function codegen_setup(
 				resolve(spec)
 			}
 		})
+
+  // delete existing plugin metadata
+  db.prepare('DELETE FROM plugins').run()
 
 	// start each plugin
 	console.time('Start Plugins')
@@ -162,7 +178,7 @@ export async function codegen_setup(
 	)
 	console.timeEnd('Start Plugins')
 
-	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}) => {
+	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}, task_id?: number) => {
 		const { port } = plugin_specs[name]
 
 		// make the request
@@ -170,6 +186,7 @@ export async function codegen_setup(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+        'X-Task-ID': task_id?.toString() ?? "",
 			},
 			body: JSON.stringify(payload),
 		})
@@ -182,7 +199,7 @@ export async function codegen_setup(
 			const responseJSON = await response.json()
       const errors: HookError[]  = Array.isArray(responseJSON)  ? responseJSON : [responseJSON] 
 			errors.forEach((error) => {
-				format_hook_error(config.root_dir, error)
+				format_hook_error(config.root_dir, error, name)
 			})
 			// errors
 			throw new Error(`Failed to call ${name}/${hook.toLowerCase()}`)
@@ -196,37 +213,40 @@ export async function codegen_setup(
 	}
 
 	const trigger_hook = async (
-		hook: string,
-		parallel_safe: boolean,
-		payload: Record<string, any> = {}
+    hook: string, {parallel_safe, payload, task_id} : {
+      parallel_safe?: boolean,
+      payload?: Record<string, any>,
+      task_id?: number
+    } = {}
 	) => {
-		console.time(hook)
+    const timeName = hook + (task_id ? ` (${task_id})` : '')
+		console.time(timeName)
 		// look for all of the plugins that have registered for this hook
 		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) => hooks.has(hook))
 
 		// if the hook is parallel safe, we can run all of the plugins in parallel
 		if (parallel_safe) {
-			await Promise.all(plugins.map(([plugin]) => invoke_hook(plugin, hook, payload)))
+			await Promise.all(plugins.map(([plugin]) => invoke_hook(plugin, hook, payload, task_id)))
 		} else {
 			// if the hook isn't parallel safe, we need to run the plugins in order
 			for (const [name] of plugins) {
-				await invoke_hook(name, hook, payload)
+				await invoke_hook(name, hook, payload, task_id)
 			}
 		}
-		console.timeEnd(hook)
+		console.timeEnd(timeName)
 	}
 
 	// write the current config values to the database
 	await write_config(db, config, invoke_hook, plugin_specs, mode)
 
 	// now we should load the config hook so other plugins can set their defaults
-	await trigger_hook('Config', false)
+	await trigger_hook('Config')
 
 	// now that we've loaded the environment, we need to invoke the afterLoad hook
-	await trigger_hook('AfterLoad', false)
+	await trigger_hook('AfterLoad')
 
 	// add any plugin-specifics to our schema
-	await trigger_hook('Schema', false)
+	await trigger_hook('Schema')
 
 	return {
 		database_path: db_file,
@@ -266,14 +286,14 @@ export async function codegen_setup(
 }
 
 export async function codegen(
-	trigger_hook: (hook: string, parallel_safe: boolean) => Promise<void>
+	trigger_hook: CompilerProxy['trigger_hook']
 ) {
 	// step through every hook in the pipeline
-	await trigger_hook('ExtractDocuments', false)
-	await trigger_hook('AfterExtract', false)
-	await trigger_hook('BeforeValidate', false)
-	await trigger_hook('Validate', true)
-	await trigger_hook('AfterValidate', false)
-	await trigger_hook('BeforeGenerate', false)
-	await trigger_hook('Generate', true)
+	await trigger_hook('ExtractDocuments')
+	await trigger_hook('AfterExtract')
+	await trigger_hook('BeforeValidate')
+	await trigger_hook('Validate', {parallel_safe: true})
+	await trigger_hook('AfterValidate')
+	await trigger_hook('BeforeGenerate')
+	await trigger_hook('Generate', {parallel_safe: true})
 }

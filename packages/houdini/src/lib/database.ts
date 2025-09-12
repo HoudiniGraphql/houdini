@@ -5,7 +5,7 @@ import { PluginSpec } from './codegen'
 import { Config, default_config } from './project'
 
 export const create_schema = `
-CREATE TABLE plugins (
+CREATE TABLE IF NOT EXISTS plugins (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     port INTEGER NOT NULL,
     hooks JSON NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE plugins (
 );
 
 -- Watch Schema Config
-CREATE TABLE watch_schema_config (
+CREATE TABLE IF NOT EXISTS watch_schema_config (
     url TEXT NOT NULL,
     headers JSON,
     interval INTEGER,
@@ -22,7 +22,7 @@ CREATE TABLE watch_schema_config (
 );
 
 -- Router Config
-CREATE TABLE router_config (
+CREATE TABLE IF NOT EXISTS router_config (
     api_endpoint TEXT,
     redirect TEXT UNIQUE,
     session_keys TEXT NOT NULL UNIQUE,
@@ -31,12 +31,12 @@ CREATE TABLE router_config (
 );
 
 -- Runtime Scalar Definition
-CREATE TABLE runtime_scalar_definitions (
+CREATE TABLE IF NOT EXISTS runtime_scalar_definitions (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL
 );
 
-CREATE TABLE component_fields (
+CREATE TABLE IF NOT EXISTS component_fields (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	document INTEGER NOT NULL,
   type TEXT,
@@ -46,11 +46,11 @@ CREATE TABLE component_fields (
   type_field TEXT,
   fragment TEXT,
 	UNIQUE (document),
-	FOREIGN KEY (document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
+	FOREIGN KEY (document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );
 
 -- Static Config (main config table)
-CREATE TABLE config (
+CREATE TABLE IF NOT EXISTS config (
     include JSON NOT NULL,
     exclude JSON NOT NULL,
     schema_path TEXT NOT NULL,
@@ -71,21 +71,21 @@ CREATE TABLE config (
     runtime_dir TEXT
 );
 
-CREATE TABLE scalar_config (
+CREATE TABLE IF NOT EXISTS scalar_config (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,
 	input_types JSON
 );
 
 -- Types configuration
-CREATE TABLE type_configs (
+CREATE TABLE IF NOT EXISTS type_configs (
     name TEXT NOT NULL,
     keys JSON NOT NULL,
 	resolve_query TEXT
 );
 
 -- A table of original document contents (to be populated by plugins)
-CREATE TABLE raw_documents (
+CREATE TABLE IF NOT EXISTS raw_documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     offset_line INTEGER,
     offset_column INTEGER,
@@ -98,7 +98,7 @@ CREATE TABLE raw_documents (
 -- Schema Definition Tables
 -----------------------------------------------------------
 
-CREATE TABLE types (
+CREATE TABLE IF NOT EXISTS types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
     operation TEXT,
@@ -106,7 +106,7 @@ CREATE TABLE types (
 	built_in BOOLEAN default false
 );
 
-CREATE TABLE type_fields (
+CREATE TABLE IF NOT EXISTS type_fields (
     id TEXT PRIMARY KEY, -- will be something like User.name so we don't have to look up the generated id
     parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
@@ -115,12 +115,12 @@ CREATE TABLE type_fields (
     default_value TEXT,
     description TEXT,
 	internal BOOLEAN default false,
-    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (parent) REFERENCES types(name) ON DELETE CASCADE,
+    FOREIGN KEY (type) REFERENCES types(name) ON DELETE CASCADE,
     UNIQUE (parent, name)
 );
 
-CREATE TABLE type_field_arguments (
+CREATE TABLE IF NOT EXISTS type_field_arguments (
     id TEXT PRIMARY KEY,
     field TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -131,23 +131,23 @@ CREATE TABLE type_field_arguments (
 );
 
 
-CREATE TABLE enum_values (
+CREATE TABLE IF NOT EXISTS enum_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent TEXT NOT NULL,
     value TEXT NOT NULL,
-    FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (parent) REFERENCES types(name) ON DELETE CASCADE,
     UNIQUE (parent, value)
 );
 
-CREATE TABLE possible_types (
+CREATE TABLE IF NOT EXISTS possible_types (
     type TEXT NOT NULL,
     member TEXT NOT NULL,
-    FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (member) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (type) REFERENCES types(name) ON DELETE CASCADE,
+    FOREIGN KEY (member) REFERENCES types(name) ON DELETE CASCADE,
     PRIMARY KEY (type, member)
 );
 
-CREATE TABLE directives (
+CREATE TABLE IF NOT EXISTS directives (
     name TEXT NOT NULL UNIQUE PRIMARY KEY,
 	internal BOOLEAN default false,
     visible BOOLEAN default true,
@@ -155,7 +155,7 @@ CREATE TABLE directives (
 	description TEXT
 );
 
-CREATE TABLE directive_arguments (
+CREATE TABLE IF NOT EXISTS directive_arguments (
     parent TEXT NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
@@ -166,38 +166,38 @@ CREATE TABLE directive_arguments (
     UNIQUE (parent, name)
 );
 
-CREATE TABLE directive_locations (
+CREATE TABLE IF NOT EXISTS directive_locations (
     directive TEXT NOT NULL,
     location TEXT NOT NULL CHECK (location IN ('QUERY', 'MUTATION', 'SUBSCRIPTION', 'FIELD', 'FRAGMENT_DEFINITION', 'FRAGMENT_SPREAD', 'INLINE_FRAGMENT', 'SCHEMA', 'SCALAR', 'OBJECT', 'FIELD_DEFINITION', 'ARGUMENT_DEFINITION', 'INTERFACE', 'UNION', 'ENUM', 'ENUM_VALUE', 'INPUT_OBJECT', 'INPUT_FIELD_DEFINITION')),
     FOREIGN KEY (directive) REFERENCES directives(name),
     PRIMARY KEY (directive, location)
 );
 
-CREATE TABLE document_variable_directives (
+CREATE TABLE IF NOT EXISTS document_variable_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	parent INTEGER NOT NULL,
 	directive TEXT NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-	FOREIGN KEY (parent) REFERENCES document_variables(id) DEFERRABLE INITIALLY DEFERRED,
-	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
+	FOREIGN KEY (parent) REFERENCES document_variables(id) ON DELETE CASCADE,
+	FOREIGN KEY (directive) REFERENCES directives(name) ON DELETE CASCADE
 );
 
-CREATE TABLE document_variable_directive_arguments (
+CREATE TABLE IF NOT EXISTS document_variable_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
     value INTEGER NOT NULL,
 
-    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (parent) REFERENCES document_variable_directives(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent) REFERENCES document_variable_directives(id) ON DELETE CASCADE
 );
 
 -----------------------------------------------------------
 -- Document Tables
 -----------------------------------------------------------
 
-CREATE TABLE document_variables (
+CREATE TABLE IF NOT EXISTS document_variables (
  	id INTEGER PRIMARY KEY AUTOINCREMENT,
     document TEXT NOT NULL,
     name INTEGER NOT NULL,
@@ -207,12 +207,12 @@ CREATE TABLE document_variables (
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
 
-    FOREIGN KEY (default_value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (default_value) REFERENCES argument_values(id) ON DELETE CASCADE,
     FOREIGN KEY (document) REFERENCES documents(id)
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used
-CREATE TABLE documents (
+CREATE TABLE IF NOT EXISTS documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,	  
     kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
@@ -220,63 +220,63 @@ CREATE TABLE documents (
     type_condition TEXT,
     hash TEXT,
     printed TEXT,
-    FOREIGN KEY (type_condition) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (type_condition) REFERENCES types(name) ON DELETE CASCADE,
+    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );
 
-CREATE TABLE selections (
+CREATE TABLE IF NOT EXISTS selections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     field_name TEXT NOT NULL,
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
     fragment_ref TEXT, -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
-    FOREIGN KEY (type) REFERENCES type_fields(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (type) REFERENCES type_fields(id) ON DELETE CASCADE
 );
 
-CREATE TABLE selection_directives (
+CREATE TABLE IF NOT EXISTS selection_directives (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     directive TEXT NOT NULL,
     row INTEGER NOT NULL,
     column INTEGER NOT NULL,
-    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (selection_id) REFERENCES selections(id) ON DELETE CASCADE,
+    FOREIGN KEY (directive) REFERENCES directives(name) ON DELETE CASCADE
 );
 
-CREATE TABLE selection_directive_arguments (
+CREATE TABLE IF NOT EXISTS selection_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
     value INTEGER NOT NULL,
     document INTEGER NOT NULL,
 
-    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (parent) REFERENCES selection_directives(id) DEFERRABLE INITIALLY DEFERRED
-    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent) REFERENCES selection_directives(id) ON DELETE CASCADE
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
-CREATE TABLE document_directives (
+CREATE TABLE IF NOT EXISTS document_directives (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	document int NOT NULL,
 	directive TEXT NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
-	FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
-	FOREIGN KEY (directive) REFERENCES directives(name) DEFERRABLE INITIALLY DEFERRED
+	FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+	FOREIGN KEY (directive) REFERENCES directives(name) ON DELETE CASCADE
 );
 
-CREATE TABLE document_directive_arguments (
+CREATE TABLE IF NOT EXISTS document_directive_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent INTEGER NOT NULL,
     name TEXT NOT NULL,
     value INTEGER NOT NULL,
 
-    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (parent) REFERENCES document_directives(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent) REFERENCES document_directives(id) ON DELETE CASCADE
 );
 
-CREATE TABLE selection_refs (
+CREATE TABLE IF NOT EXISTS selection_refs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent_id INTEGER,
     child_id INTEGER NOT NULL,
@@ -284,12 +284,12 @@ CREATE TABLE selection_refs (
     document INTEGER NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
-    FOREIGN KEY (parent_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (child_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (parent_id) REFERENCES selections(id) ON DELETE CASCADE,
+    FOREIGN KEY (child_id) REFERENCES selections(id) ON DELETE CASCADE,
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
-CREATE TABLE selection_arguments (
+CREATE TABLE IF NOT EXISTS selection_arguments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     selection_id INTEGER NOT NULL,
     document INTEGER NOT NULL,
@@ -299,14 +299,14 @@ CREATE TABLE selection_arguments (
 	column INTEGER NOT NULL,
     field_argument TEXT NOT NULL,
 
-    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (selection_id) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (field_argument) REFERENCES type_field_arguments(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE,
+    FOREIGN KEY (selection_id) REFERENCES selections(id) ON DELETE CASCADE,
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (field_argument) REFERENCES type_field_arguments(id) ON DELETE CASCADE
 );
 
 
-CREATE TABLE argument_values (
+CREATE TABLE IF NOT EXISTS argument_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     kind TEXT NOT NULL CHECK (kind IN ('Variable', 'Int', 'Float', 'String', 'Block', 'Boolean', 'Null', 'Enum', 'List', 'Object')),
     raw TEXT NOT NULL,
@@ -316,11 +316,11 @@ CREATE TABLE argument_values (
     expected_type_modifiers TEXT,
     document INTEGER NOT NULL,
 
-    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (expected_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (expected_type) REFERENCES types(name) ON DELETE CASCADE
 );
 
-CREATE TABLE argument_value_children (
+CREATE TABLE IF NOT EXISTS argument_value_children (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     parent INTEGER NOT NULL,
@@ -329,12 +329,12 @@ CREATE TABLE argument_value_children (
     column INTEGER NOT NULL,
     document INTEGER NOT NULL,
 
-    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (parent) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent) REFERENCES argument_values(id) ON DELETE CASCADE,
+    FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE
 );
 
-CREATE TABLE discovered_lists (
+CREATE TABLE IF NOT EXISTS discovered_lists (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     node_type TEXT NOT NULL,
@@ -353,71 +353,71 @@ CREATE TABLE discovered_lists (
     supports_backward BOOLEAN default false,
     cursor_type TEXT,
 
-    FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-	FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (node_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
-    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (list_field) REFERENCES selections(id) ON DELETE CASCADE,
+	  FOREIGN KEY (node) REFERENCES selections(id) ON DELETE CASCADE,
+    FOREIGN KEY (node_type) REFERENCES types(name) ON DELETE CASCADE
+    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );
 
-CREATE TABLE document_dependencies (
+CREATE TABLE IF NOT EXISTS document_dependencies (
   document INTEGER NOT NULL,
   depends_on TEXT NOT NULL,
 
-  FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
-  FOREIGN KEY (depends_on) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+  FOREIGN KEY (depends_on) REFERENCES documents(name) ON DELETE CASCADE
 );
 
 -----------------------------------------------------------
 -- Indices
 -----------------------------------------------------------
 
-CREATE INDEX idx_component_fields_type_fields ON component_fields(type_field);
-CREATE INDEX idx_discovered_lists_raw_document ON discovered_lists(raw_document);
-CREATE INDEX idx_discovered_lists_node ON discovered_lists(node);
-CREATE INDEX idx_discovered_lists_list_field ON discovered_lists(list_field);
-CREATE INDEX idx_discovered_lists_connection ON discovered_lists(connection);
-CREATE INDEX idx_document_directive_arguments_value on document_directive_arguments(value);
-CREATE INDEX idx_type_field_arguments_id ON type_field_arguments(id);
-CREATE INDEX idx_type_fields_id ON type_fields(id);
-CREATE INDEX idx_types_kind_operation ON types(kind, operation);
-CREATE INDEX idx_documents_kind ON documents(kind);
-CREATE INDEX idx_documents_type_condition ON documents(type_condition);
-CREATE INDEX idx_raw_documents_current_task ON raw_documents(current_task);
-CREATE INDEX idx_documents_raw_document ON documents(raw_document);
-CREATE INDEX idx_selection_refs_parent_id ON selection_refs(parent_id);
-CREATE INDEX idx_selection_refs_child_id ON selection_refs(child_id);
-CREATE INDEX idx_selection_refs_document ON selection_refs(document);
-CREATE INDEX idx_document_variable_directives_parent ON document_variable_directives(parent);
-CREATE INDEX idx_document_variable_directives_directive ON document_variable_directives(directive);
-CREATE INDEX idx_document_variable_directive_arguments_parent ON document_variable_directive_arguments(parent);
-CREATE INDEX idx_selections_type ON selections(type);
-CREATE INDEX idx_document_directives_document ON document_directives(document);
-CREATE INDEX idx_document_directives_directive ON document_directives(directive);
-CREATE INDEX idx_document_directive_arguments_parent ON document_directive_arguments(parent);
-CREATE INDEX idx_document_directive_arguments_parent_name ON document_directive_arguments(parent, name);
-CREATE INDEX idx_type_fields_parent ON type_fields(parent);
-CREATE INDEX idx_selections_alias ON selections(alias);
-CREATE INDEX idx_selection_directives_selection ON selection_directives(selection_id);
-CREATE INDEX idx_selection_arguments_selection ON selection_arguments(selection_id);
-CREATE INDEX idx_selection_directive_args_parent ON selection_directive_arguments(parent);
-CREATE INDEX idx_possible_types_type ON possible_types(type);
-CREATE INDEX idx_possible_types_member ON possible_types(member);
-CREATE INDEX idx_enum_values_parent ON enum_values(parent);
-CREATE INDEX idx_type_fields_name ON type_fields(name);
-CREATE INDEX idx_type_configs_name ON type_configs(name);
-CREATE INDEX idx_argument_value_children_parent ON argument_value_children(parent);
-CREATE INDEX idx_argument_values_kind_raw ON argument_values(kind, raw);
-CREATE INDEX idx_document_variables_document_name ON document_variables(document, name);
-CREATE INDEX idx_selection_arguments_value ON selection_arguments(value);
-CREATE INDEX idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
-CREATE INDEX idx_selection_directives_directive ON selection_directives(directive);
-CREATE INDEX idx_argument_values_document ON argument_values(document);
-CREATE INDEX idx_types_name ON types(name);
-CREATE INDEX idx_enum_values_parent_value ON enum_values(parent, value);
-CREATE INDEX idx_selection_directive_arguments_value ON selection_directive_arguments(value);
-CREATE INDEX idx_argument_value_children_value ON argument_value_children(value);
-CREATE INDEX idx_document_dependency_document on document_dependencies(document);
-CREATE INDEX idx_document_dependency_depends_on on document_dependencies(depends_on);
+CREATE INDEX IF NOT EXISTS idx_component_fields_type_fields ON component_fields(type_field);
+CREATE INDEX IF NOT EXISTS idx_discovered_lists_raw_document ON discovered_lists(raw_document);
+CREATE INDEX IF NOT EXISTS idx_discovered_lists_node ON discovered_lists(node);
+CREATE INDEX IF NOT EXISTS idx_discovered_lists_list_field ON discovered_lists(list_field);
+CREATE INDEX IF NOT EXISTS idx_discovered_lists_connection ON discovered_lists(connection);
+CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_value on document_directive_arguments(value);
+CREATE INDEX IF NOT EXISTS idx_type_field_arguments_id ON type_field_arguments(id);
+CREATE INDEX IF NOT EXISTS idx_type_fields_id ON type_fields(id);
+CREATE INDEX IF NOT EXISTS idx_types_kind_operation ON types(kind, operation);
+CREATE INDEX IF NOT EXISTS idx_documents_kind ON documents(kind);
+CREATE INDEX IF NOT EXISTS idx_documents_type_condition ON documents(type_condition);
+CREATE INDEX IF NOT EXISTS idx_raw_documents_current_task ON raw_documents(current_task);
+CREATE INDEX IF NOT EXISTS idx_documents_raw_document ON documents(raw_document);
+CREATE INDEX IF NOT EXISTS idx_selection_refs_parent_id ON selection_refs(parent_id);
+CREATE INDEX IF NOT EXISTS idx_selection_refs_child_id ON selection_refs(child_id);
+CREATE INDEX IF NOT EXISTS idx_selection_refs_document ON selection_refs(document);
+CREATE INDEX IF NOT EXISTS idx_document_variable_directives_parent ON document_variable_directives(parent);
+CREATE INDEX IF NOT EXISTS idx_document_variable_directives_directive ON document_variable_directives(directive);
+CREATE INDEX IF NOT EXISTS idx_document_variable_directive_arguments_parent ON document_variable_directive_arguments(parent);
+CREATE INDEX IF NOT EXISTS idx_selections_type ON selections(type);
+CREATE INDEX IF NOT EXISTS idx_document_directives_document ON document_directives(document);
+CREATE INDEX IF NOT EXISTS idx_document_directives_directive ON document_directives(directive);
+CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_parent ON document_directive_arguments(parent);
+CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_parent_name ON document_directive_arguments(parent, name);
+CREATE INDEX IF NOT EXISTS idx_type_fields_parent ON type_fields(parent);
+CREATE INDEX IF NOT EXISTS idx_selections_alias ON selections(alias);
+CREATE INDEX IF NOT EXISTS idx_selection_directives_selection ON selection_directives(selection_id);
+CREATE INDEX IF NOT EXISTS idx_selection_arguments_selection ON selection_arguments(selection_id);
+CREATE INDEX IF NOT EXISTS idx_selection_directive_args_parent ON selection_directive_arguments(parent);
+CREATE INDEX IF NOT EXISTS idx_possible_types_type ON possible_types(type);
+CREATE INDEX IF NOT EXISTS idx_possible_types_member ON possible_types(member);
+CREATE INDEX IF NOT EXISTS idx_enum_values_parent ON enum_values(parent);
+CREATE INDEX IF NOT EXISTS idx_type_fields_name ON type_fields(name);
+CREATE INDEX IF NOT EXISTS idx_type_configs_name ON type_configs(name);
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent ON argument_value_children(parent);
+CREATE INDEX IF NOT EXISTS idx_argument_values_kind_raw ON argument_values(kind, raw);
+CREATE INDEX IF NOT EXISTS idx_document_variables_document_name ON document_variables(document, name);
+CREATE INDEX IF NOT EXISTS idx_selection_arguments_value ON selection_arguments(value);
+CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
+CREATE INDEX IF NOT EXISTS idx_selection_directives_directive ON selection_directives(directive);
+CREATE INDEX IF NOT EXISTS idx_argument_values_document ON argument_values(document);
+CREATE INDEX IF NOT EXISTS idx_types_name ON types(name);
+CREATE INDEX IF NOT EXISTS idx_enum_values_parent_value ON enum_values(parent, value);
+CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_value ON selection_directive_arguments(value);
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_value ON argument_value_children(value);
+CREATE INDEX IF NOT EXISTS idx_document_dependency_document on document_dependencies(document);
+CREATE INDEX IF NOT EXISTS idx_document_dependency_depends_on on document_dependencies(depends_on);
 `
 
 export async function write_config(
@@ -454,6 +454,13 @@ export async function write_config(
 		...default_config,
 		...config.config_file,
 	}
+
+  // before we write the config row, let's delete the existing one
+  db.prepare("DELETE FROM config").run()
+  db.prepare("DELETE FROM router_config").run()
+  db.prepare("DELETE FROM watch_schema_config").run()
+  db.prepare("DELETE FROM scalar_config").run()
+  db.prepare("DELETE FROM type_configs").run()
 
 	// write the config to the database
 	db.prepare(
@@ -588,46 +595,3 @@ export async function write_config(
 	}
 }
 
-// Query to Load a Selection Tree
-//
-// WITH RECURSIVE selection_tree AS (
-//     -- Base case: get root selections for document
-//     SELECT
-//         s.id,
-//         s.field_name,
-//         s.alias,
-//         s.path_index,
-//         0 as depth,
-//         s.field_name as path
-//     FROM selections s
-//     JOIN selection_refs sr ON s.id = sr.child_id
-//     WHERE sr.document = ? AND sr.parent_id IS NULL
-
-//     UNION ALL
-
-//     -- Recursive case: get all children
-//     SELECT
-//         s.id,
-//         s.field_name,
-//         s.alias,
-//         s.path_index,
-//         st.depth + 1,
-//         st.path || '.' || s.field_name
-//     FROM selections s
-//     JOIN selection_refs sr ON s.id = sr.child_id
-//     JOIN selection_tree st ON sr.parent_id = st.id
-//     WHERE sr.document = ?  -- Same document as base case
-// )
-// SELECT
-//     st.*,
-//     tf.name as field_name,
-//     t.name as type_name,
-//     tm.id as type_modifier_id,
-//     tm.base_type_name,
-//     tm.is_non_null,
-//     tm.parent_id as next_modifier
-// FROM selection_tree st
-// LEFT JOIN type_fields tf ON st.field_name = tf.name
-// LEFT JOIN types t ON tf.type_id = t.id
-// LEFT JOIN type_modifiers tm ON tf.type_modifier_id = tm.id
-// ORDER BY st.depth, st.path_index;

@@ -66,44 +66,51 @@ type HookErrorLocation = {
 	column: number
 }
 
-export function format_hook_error(rootDir: string, error: HookError) {
-	let message = `-- ${styleText("red", error.kind + " error")} -----------------------------\n`
+export function format_hook_error(rootDir: string, error: HookError, hook: string) {
+	let message = `-- ${styleText("red", error.kind + " error during " + hook)} -----------------------------\n`
 	message += error.message + '\n'
 	message += '\n'
 
+  try { 
 	if (error.locations) {
-		// TODO: we probably don't need to read the *entire* file into memory at once.
-		error.locations.forEach((location) => {
-			const filepath = path.join(rootDir, location.filepath)
-			const contents = readFileSync(filepath)
-			if (!contents) {
-				throw Error(`failed to read file, '${filepath}'`)
-			}
+      // TODO: we probably don't need to read the *entire* file into memory at once.
+      error.locations.forEach((location) => {
+        const filepath = location.filepath.includes(rootDir) ? location.filepath : path.join(rootDir, location.filepath)
+        const contents = readFileSync(filepath)
+        if (!contents) {
+          throw Error(`failed to read file, '${filepath}'`)
+        }
 
-			const lines = contents.split('\n')
+        const lines = contents.split('\n')
 
-			message += `${location.filepath}:${location.line}:${location.column}\n`
+        message += `${location.filepath}:${location.line}:${location.column}\n`
 
-			const extraLines = 3
-			// Make sure we don't go out of bounds
-			const startLine = Math.max(location.line - extraLines, 0)
+        const extraLines = 3
+        // Make sure we don't go out of bounds
+        const startLine = Math.max(location.line - extraLines, 0)
 
-			const code = lines.slice(startLine - 1, location.line);
-			message += format_codeblock(code, startLine);
+        const code = lines.slice(startLine - 1, location.line);
+        message += format_codeblock(code, startLine);
 
-			// Calculate where to put the error indicators
-			const gutterOffset = ` ${location.line} | `.length;
-			message += " ".repeat(gutterOffset)
-			// column is 1-based, so take that into account
-			message += " ".repeat(Math.max(location.column - 1, 0))
-			// Print the indicator in red
-			message += styleText("red", "^---- error reported here")
+        // Calculate where to put the error indicators
+        const gutterOffset = ` ${location.line} | `.length;
+        message += " ".repeat(gutterOffset)
+        // column is 1-based, so take that into account
+        message += " ".repeat(Math.max(location.column - 1, 0))
+        // Print the indicator in red
+        message += styleText("red", "^---- error reported here")
 
-			message += '\n'
-		})
-	}
+        message += '\n'
+      })
+    }
+	} finally { 
+  }
 
+  if (error.detail) {
+    message += `\n${error.detail}`
+  }
 	console.log(message)
+
 }
 
 export function format_codeblock(code: string[], lineNrStart: number): string {
