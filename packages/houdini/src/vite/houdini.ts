@@ -77,7 +77,6 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
 
                 // if we have an existing query delete it first
                 if (existingQuery) {
-                  console.log('cleaning up document', existingQuery.raw_document)
                   cleanUpDocument(db, existingQuery.raw_document)
                 }
 

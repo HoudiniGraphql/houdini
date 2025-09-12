@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS document_variables (
 -- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE IF NOT EXISTS documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,	  
+    name TEXT NOT NULL UNIQUE,	  
     kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
     raw_document INTEGER,
     type_condition TEXT,
