@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS raw_documents (
     offset_column INTEGER,
     filepath TEXT NOT NULL,
     content TEXT NOT NULL,
-    current_task TEXT
+    current_task INTEGER
 );
 
 -----------------------------------------------------------
@@ -208,13 +208,13 @@ CREATE TABLE IF NOT EXISTS document_variables (
     column INTEGER NOT NULL,
 
     FOREIGN KEY (default_value) REFERENCES argument_values(id) ON DELETE CASCADE,
-    FOREIGN KEY (document) REFERENCES documents(id)
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE IF NOT EXISTS documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,	  
+    name TEXT NOT NULL,	  
     kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
     raw_document INTEGER,
     type_condition TEXT,
@@ -252,7 +252,7 @@ CREATE TABLE IF NOT EXISTS selection_directive_arguments (
     document INTEGER NOT NULL,
 
     FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE,
-    FOREIGN KEY (parent) REFERENCES selection_directives(id) ON DELETE CASCADE
+    FOREIGN KEY (parent) REFERENCES selection_directives(id) ON DELETE CASCADE,
     FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
@@ -355,16 +355,16 @@ CREATE TABLE IF NOT EXISTS discovered_lists (
 
     FOREIGN KEY (list_field) REFERENCES selections(id) ON DELETE CASCADE,
 	  FOREIGN KEY (node) REFERENCES selections(id) ON DELETE CASCADE,
-    FOREIGN KEY (node_type) REFERENCES types(name) ON DELETE CASCADE
+    FOREIGN KEY (node_type) REFERENCES types(name) ON DELETE CASCADE,
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS document_dependencies (
   document INTEGER NOT NULL,
-  depends_on TEXT NOT NULL,
+  depends_on INTEGER NOT NULL,
 
   FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
-  FOREIGN KEY (depends_on) REFERENCES documents(name) ON DELETE CASCADE
+  FOREIGN KEY (depends_on) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 -----------------------------------------------------------

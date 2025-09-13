@@ -1,4 +1,4 @@
-import { codegen_setup, CompilerProxy, connectDatabase, get_config } from '../lib';
+import { codegen_setup, CompilerProxy, connect_db, get_config } from '../lib';
 import type { Config } from '../lib'
 import { Plugin as VitePlugin, UserConfig } from 'vite';
 import type { DatabaseSync} from 'node:sqlite'
@@ -40,7 +40,7 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
           async configureServer(server) {
               // we need a reference to the database connection
               let dbFile: string
-              [db, dbFile] = connectDatabase(config)
+              [db, dbFile] = connect_db(config)
 
               // and a proxy to talk to the compiler
               compiler = await codegen_setup(config, 'dev', db, dbFile)
@@ -55,58 +55,61 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               const contents = await read()
               // if the file contains a document then we need to parse it, and prepare the task with 
               // with the dependent documents
-              const hasDoc = file.endsWith(".gql") || contents.includes("$houdini")
-              if (hasDoc) {
-                const task_id = timestamp
+              if (file.endsWith(".gql") || contents.includes("$houdini")) {
 
                 const relativePath = file.substring(server.config.root.length)
-                const graphqlRegex = new RegExp("/graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/s")
-                const docContents = file.endsWith(".gql") ? contents : (graphqlRegex).exec(contents)?.[1]
+                const task_id = timestamp
 
-                // before we go any further we want to check if the document actually changed
-                const existingQuery = db.prepare(`
-                    SELECT content, raw_documents.id as raw_document, documents.id as document
-                    FROM raw_documents 
-                    JOIN documents ON raw_documents.id = documents.raw_document
-                    WHERE filepath = ?
-                `)
-                    .get(relativePath) as {content: string; raw_document: number, document: number} | undefined
-                if (!docContents || (existingQuery && existingQuery.content === docContents)) {
-                  return
+
+                // every document that we find here is part of the task so update the rows indepdently before
+                // we kick of the next task
+                for (const name of extractAllGraphQLNames(relativePath, contents)) {
+                    const graphqlRegex = new RegExp("/graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/s")
+                    const docContents = file.endsWith(".gql") ? contents : (graphqlRegex).exec(contents)?.[1]
+
+                    // before we go any further we want to check if the document actually changed
+                    const existingQuery = db.prepare(`
+                        SELECT content, raw_documents.id as raw_document, documents.id as document
+                        FROM raw_documents 
+                        JOIN documents ON raw_documents.id = documents.raw_document
+                        WHERE name = ? OR content = ?
+                    `)
+                        .get(name, docContents) as {content: string; raw_document: number, document: number} | undefined
+                    if (!docContents || (existingQuery && existingQuery.content === docContents)) {
+                      return
+                    }
+                    if (existingQuery) {
+                      cleanUpDocument(db, existingQuery.raw_document)
+                    }
+
+                    // insert a fresh row with the raw document data
+                    db.prepare(`INSERT INTO raw_documents (filepath, content, current_task) VALUES (?, ?, ?)`)
+                      .run(relativePath, docContents, task_id)
+                    
+                    // now that the raw document exists and is given a task id, we need to instruct the compiler 
+                    // to parse and load the content into the database
+                    await compiler.trigger_hook('AfterExtract', { task_id })
+
+                    // extract the document name from what we loaded
+
+                    // now that the document is loaded we need to look at the dependents of the document
+                    // and find any dependents that haven't been loaded into the database yet
+                    
+                    // and finally look for any documents that depend on the document we just loaded 
+                    // for newly created files, this will be empty
+
+                    // this set of 3 sources defines the task for this execution
                 }
-
-                // if we have an existing query delete it first
-                if (existingQuery) {
-                  cleanUpDocument(db, existingQuery.raw_document)
-                }
-
-                // insert a fresh row with the raw document data
-                db.prepare(`INSERT INTO raw_documents (filepath, content, current_task) VALUES (?, ?, ?)`)
-                  .run(relativePath, docContents, task_id)
-                
-                // now that the raw document exists and is given a task id, we need to instruct the compiler 
-                // to parse and load the content into the database
-                await compiler.trigger_hook('AfterExtract', { task_id })
-
-                // extract the document name from what we loaded
-
-                // now that the document is loaded we need to look at the dependents of the document
-                // and find any dependents that haven't been loaded into the database yet
-                
-                // and finally look for any documents that depend on the document we just loaded 
-                // for newly created files, this will be empty
-
-                // this set of 3 sources defines the task for this execution
 
               }
           }
     }
 }
 
-function cleanUpDocument(db: DatabaseSync, rawDocument: number) {
+function cleanUpDocument(db: DatabaseSync, id: number) {
   try { 
       // there are a bunch of tables that we need to clean up
-      db.prepare(`DELETE FROM raw_documents WHERE id = ?`).run(rawDocument)
+      const result = db.prepare(`DELETE FROM raw_documents WHERE id = ?`).run(id)
 
       // drop any selections that don't have refs
       db.prepare(`
@@ -121,6 +124,32 @@ function cleanUpDocument(db: DatabaseSync, rawDocument: number) {
           WHERE id IN (SELECT id FROM orphan_selections)
       `).run()
   } catch(e) {
-    console.log(e)
+    throw e
   }
+}
+
+const DEF_NAME_RE = /\b(?:query|mutation|subscription|fragment)\s+([_A-Za-z][_0-9A-Za-z]*)\b/g;
+
+function extractDefNamesFromText(text: string): string[] {
+  const names: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = DEF_NAME_RE.exec(text))) {
+    names.push(m[1]);
+  }
+  return names;
+}
+
+// Use this in your handler:
+function extractAllGraphQLNames(filePath: string, contents: string): string[] {
+  if (filePath.endsWith('.gql')) {
+    // Entire file is GraphQL
+    return extractDefNamesFromText(contents);
+  }
+
+  // Otherwise, scan each graphql`...` block inside the source file
+  const names: string[] = [];
+  for (const m of contents.matchAll(GRAPHQL_BLOCK_RE)) {
+    names.push(...extractDefNamesFromText(m[1]));
+  }
+  return names;
 }

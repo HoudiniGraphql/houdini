@@ -115,7 +115,7 @@ CREATE TABLE raw_documents (
     offset_column INTEGER,
     filepath TEXT NOT NULL,
     content TEXT NOT NULL,
-    current_task TEXT
+    current_task INTEGER
 );
 
 -----------------------------------------------------------

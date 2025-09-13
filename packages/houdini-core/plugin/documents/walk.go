@@ -56,7 +56,7 @@ func ExtractTaskDocuments[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
 	fs afero.Fs,
-	taskID string,
+	taskID int64,
 ) error {
 	// extract the documents that the walker finds
 	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {

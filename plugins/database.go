@@ -153,19 +153,23 @@ func (db DatabasePool[PluginConfig]) StepQuery(
 	}
 
 	// if there is a $task_id binding, we need to bind it
-	if taskID := TaskIDFromContext(ctx); taskID != nil {
-		for i := 0; i < query.BindParamCount(); i++ {
-			name := query.BindParamName(i)
-			if name == "$task_id" {
-				query.SetText("$task_id", *taskID)
-				break
-			}
-		}
-	}
+	bindTaskID(ctx, query)
 
 	return db.StepStatement(ctx, query, func() {
 		rowHandler(query)
 	})
+}
+
+func bindTaskID(ctx context.Context, statement *sqlite.Stmt) {
+	taskID := TaskIDFromContext(ctx)
+	if taskID != nil {
+		for i := range statement.BindParamCount() {
+			if statement.BindParamName(i+1) == "$task_id" {
+				statement.SetInt64("$task_id", *taskID)
+				break
+			}
+		}
+	}
 }
 
 func (db DatabasePool[PluginConfig]) StepStatement(
@@ -174,15 +178,7 @@ func (db DatabasePool[PluginConfig]) StepStatement(
 	rowHandler func(),
 ) error {
 	// if there is a $task_id binding, we need to bind it
-	if taskID := TaskIDFromContext(ctx); taskID != nil {
-		for i := 0; i < queryStatement.BindParamCount(); i++ {
-			name := queryStatement.BindParamName(i)
-			if name == "$task_id" {
-				queryStatement.SetText("$task_id", *taskID)
-				break
-			}
-		}
-	}
+	bindTaskID(ctx, queryStatement)
 
 	for {
 		select {

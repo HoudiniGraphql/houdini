@@ -103,19 +103,7 @@ func LoadDocuments(
 	}
 	defer search.Finalize()
 
-	// consume rows from the database and send them to the workers
-	for {
-		// get the next row
-		hasData, err := search.Step()
-		if err != nil {
-			return err
-		}
-
-		// if theres no more data to consume then we're done
-		if !hasData {
-			break
-		}
-
+	err = db.StepStatement(ctx, search, func() {
 		// build up the pending query
 		query := PendingQuery{
 			ID:                   search.ColumnInt(0),
@@ -131,14 +119,10 @@ func LoadDocuments(
 			query.InlineComponentFieldProp = &prop
 		}
 
-		select {
-		// send the query to the workers
-		case queries <- query:
-			continue
-		// if the context is cancelled, exit the loop.
-		case <-ctx.Done():
-			break
-		}
+		queries <- query
+	})
+	if err != nil {
+		return err
 	}
 
 	// we're done with the connection (close before we wait for the workers)

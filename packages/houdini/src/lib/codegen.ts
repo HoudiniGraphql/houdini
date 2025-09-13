@@ -37,7 +37,7 @@ export type Adapter = ((args: {
 	}) => Promise<void> | void
 }
 
-export function connectDatabase(config: Config): [DatabaseSync, string] {
+export function connect_db(config: Config): [DatabaseSync, string] {
   const filepath = db_path(config)
 	const db = new sqlite.DatabaseSync(filepath)
 	db.exec('PRAGMA journal_mode = WAL')
@@ -66,7 +66,7 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 	try {
 		await fs.remove(`${db_file}-wal`)
 	} catch (e) {}
-  return [connectDatabase(config)[0], db_file]
+  return [connect_db(config)[0], db_file]
 }
 
 export type CompilerProxy = {
