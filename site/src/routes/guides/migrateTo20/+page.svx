@@ -48,11 +48,11 @@ If you are using React, you should skip this section.
 The same regression that affected `+page.gql` support has also made it more complicated to support session information. Whereas before things "Just Worked", you must now define 2 different files: `src/routes/+layout.js` and `src/routes/+layout.server.js`:
 
 ```javascript:title=src/routes/+layout.js
-export const _houdini_sessions = true
+export const _houdini_session = true
 ```
 
 ```javascript:title=src/routes/+layout.server.js
-export const _houdini_sessions = true
+export const _houdini_session = true
 ```
 
 You can also define these as `.ts` if you prefer.
