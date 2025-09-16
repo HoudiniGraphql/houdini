@@ -29,7 +29,7 @@
     "dependencies": {
         "houdini": "workspace:^",
         "houdini-svelte": "workspace:^",
-        "recast": "^0.23.1"
+        "recast": "0.23.8"
     },
     "peerDependencies": {
         "@sveltejs/kit": "^2.9.0",

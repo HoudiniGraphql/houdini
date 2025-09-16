@@ -51,7 +51,7 @@
 		"fs-extra": "^10.1.0",
 		"jest-snapshot": "^29.4.1",
 		"memfs": "^3.4.7",
-		"recast": "^0.23.1"
+		"recast": "0.23.8"
 	},
 	"packageManager": "pnpm@10.12.1",
 	"lint-staged": {

@@ -44,7 +44,7 @@
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-streaming-compat": "^0.3.18",
-        "recast": "^0.23.1",
+        "recast": "0.23.8",
         "rollup": "^4.39.0",
         "use-deep-compare-effect": "^1.8.1"
     },

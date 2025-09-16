@@ -18,8 +18,8 @@ importers:
         specifier: ^3.4.7
         version: 3.6.0
       recast:
-        specifier: ^0.23.1
-        version: 0.23.11
+        specifier: 0.23.8
+        version: 0.23.8
     devDependencies:
       '@changesets/changelog-git':
         specifier: ^0.1.14
@@ -539,8 +539,8 @@ importers:
         specifier: ^1.1.3
         version: 1.1.4
       recast:
-        specifier: ^0.23.1
-        version: 0.23.11
+        specifier: 0.23.8
+        version: 0.23.8
       vite:
         specifier: ^7.0.0
         version: 7.1.5(@types/node@22.18.1)(jiti@1.21.7)(sass@1.92.1)(terser@5.44.0)(yaml@2.8.1)
@@ -624,8 +624,8 @@ importers:
         specifier: ^0.3.18
         version: 0.3.18(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       recast:
-        specifier: ^0.23.1
-        version: 0.23.11
+        specifier: 0.23.8
+        version: 0.23.8
       rollup:
         specifier: ^4.39.0
         version: 4.50.1
@@ -679,8 +679,8 @@ importers:
         specifier: workspace:^
         version: link:../houdini
       recast:
-        specifier: ^0.23.1
-        version: 0.23.11
+        specifier: 0.23.8
+        version: 0.23.8
       rollup:
         specifier: ^4.39.0
         version: 4.50.1
@@ -716,8 +716,8 @@ importers:
         specifier: workspace:^
         version: link:../houdini-svelte
       recast:
-        specifier: ^0.23.1
-        version: 0.23.11
+        specifier: 0.23.8
+        version: 0.23.8
       svelte:
         specifier: ^5.0.0
         version: 5.38.8
@@ -832,8 +832,8 @@ importers:
         specifier: ^2.9.0
         version: 2.10.1(prettier@2.8.8)(svelte@3.59.2)
       recast:
-        specifier: ^0.23.1
-        version: 0.23.11
+        specifier: 0.23.8
+        version: 0.23.8
       remark-mermaid:
         specifier: ^0.2.0
         version: 0.2.0(mermaid.cli@0.3.6)
@@ -6650,8 +6650,8 @@ packages:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
 
-  recast@0.23.11:
-    resolution: {integrity: sha512-YTUo+Flmw4ZXiWfQKGcwwc11KnoRAYgzAE2E7mXKCjSviTKShtxBsN6YUUBB2gtaBzKzeKunxhUwNHQuRryhWA==}
+  recast@0.23.8:
+    resolution: {integrity: sha512-D8izEmRtY34O+B5k2kgNmPx4b/be4MGPGFiNzWUGtezDCWDyj/1w1uQQvzySRzAO/b+6TD05FwGPuYR4X52sVw==}
     engines: {node: '>= 4'}
 
   reflect.getprototypeof@1.0.10:
@@ -14470,7 +14470,7 @@ snapshots:
 
   readdirp@4.1.2: {}
 
-  recast@0.23.11:
+  recast@0.23.8:
     dependencies:
       ast-types: 0.16.1
       esprima: 4.0.1
