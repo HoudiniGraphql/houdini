@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 3.0.0-next.13
+
+### Patch Changes
+
+-   [#1530](https://github.com/HoudiniGraphql/houdini/pull/1530) [`cd4d61d2b0b34060e1420dbc9ad9d77699963aea`](https://github.com/HoudiniGraphql/houdini/commit/cd4d61d2b0b34060e1420dbc9ad9d77699963aea) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Add vite 7 dependency
+
+-   Updated dependencies [[`cd4d61d2b0b34060e1420dbc9ad9d77699963aea`](https://github.com/HoudiniGraphql/houdini/commit/cd4d61d2b0b34060e1420dbc9ad9d77699963aea)]:
+    -   houdini@2.0.0-next.10
+
 ## 3.0.0-next.12
 
 ### Patch Changes
