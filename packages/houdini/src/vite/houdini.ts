@@ -55,53 +55,58 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               const contents = await read()
               // if the file contains a document then we need to parse it, and prepare the task with 
               // with the dependent documents
-              if (file.endsWith(".gql") || contents.includes("$houdini")) {
-
-                const relativePath = file.substring(server.config.root.length)
-                const task_id = timestamp
-
-
-                // every document that we find here is part of the task so update the rows indepdently before
-                // we kick of the next task
-                for (const name of extractAllGraphQLNames(relativePath, contents)) {
-                    const graphqlRegex = new RegExp("/graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/s")
-                    const docContents = file.endsWith(".gql") ? contents : (graphqlRegex).exec(contents)?.[1]
-
-                    // before we go any further we want to check if the document actually changed
-                    const existingQuery = db.prepare(`
-                        SELECT content, raw_documents.id as raw_document, documents.id as document
-                        FROM raw_documents 
-                        JOIN documents ON raw_documents.id = documents.raw_document
-                        WHERE name = ? OR content = ?
-                    `)
-                        .get(name, docContents) as {content: string; raw_document: number, document: number} | undefined
-                    if (!docContents || (existingQuery && existingQuery.content === docContents)) {
-                      return
-                    }
-                    if (existingQuery) {
-                      cleanUpDocument(db, existingQuery.raw_document)
-                    }
-
-                    // insert a fresh row with the raw document data
-                    db.prepare(`INSERT INTO raw_documents (filepath, content, current_task) VALUES (?, ?, ?)`)
-                      .run(relativePath, docContents, task_id)
-                    
-                    // now that the raw document exists and is given a task id, we need to instruct the compiler 
-                    // to parse and load the content into the database
-                    await compiler.trigger_hook('AfterExtract', { task_id })
-
-                    // extract the document name from what we loaded
-
-                    // now that the document is loaded we need to look at the dependents of the document
-                    // and find any dependents that haven't been loaded into the database yet
-                    
-                    // and finally look for any documents that depend on the document we just loaded 
-                    // for newly created files, this will be empty
-
-                    // this set of 3 sources defines the task for this execution
-                }
-
+              const relevantChange = file.endsWith(".gql") || contents.includes("$houdini")
+              if (!relevantChange) {
+                return
               }
+
+              const relativePath = file.substring(server.config.root.length)
+              const task_id = timestamp
+
+              // every document that we find here is part of the task so update the rows indepdently before
+              // we kick of the next task
+              const names = extractAllGraphQLNames(relativePath, contents)
+              for (const name of names) {
+                  const graphqlRegex = new RegExp("/graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/s")
+                  const docContents = file.endsWith(".gql") ? contents : (graphqlRegex).exec(contents)?.[1]
+
+                  // before we go any further we want to check if the document actually changed
+                  const existingQuery = db.prepare(`
+                      SELECT content, raw_documents.id as raw_document, documents.id as document
+                      FROM raw_documents 
+                      JOIN documents ON raw_documents.id = documents.raw_document
+                      WHERE name = ? OR content = ?
+                  `)
+                      .get(name, docContents) as {content: string; raw_document: number, document: number} | undefined
+                  if (!docContents || (existingQuery && existingQuery.content === docContents)) {
+                    return
+                  }
+                  if (existingQuery) {
+                    cleanUpDocument(db, existingQuery.raw_document)
+                  }
+
+                  // insert a fresh row with the raw document data
+                  db.prepare(`INSERT INTO raw_documents (filepath, content, current_task) VALUES (?, ?, ?)`)
+                    .run(relativePath, docContents, task_id)
+              }
+
+              // at this point, the raw_documents with the matching task ID make up the core set of documents 
+              // that we are interested in working on
+              
+              // now that the raw documents exist and is given a task id, we need to instruct the compiler 
+              // to parse and load the content into the database
+              await compiler.trigger_hook('AfterExtract', { task_id })
+
+              // extract the document name from what we loaded
+
+              // now that the document is loaded we need to look at the dependents of the document
+              // and find any dependents that haven't been loaded into the database yet
+              
+              // and finally look for any documents that depend on the document we just loaded 
+              // for newly created files, this will be empty
+
+              // this set of 3 sources defines the task for this execution
+
           }
     }
 }
