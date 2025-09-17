@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 const adapters = [
 	{
 		name: 'CloudFlare Pages',
-		test: () => Boolean(process.env.CF_PAGES),
+		test: () => Boolean(process.env.CF_PAGES) || Boolean(process.env.CLOUDFLARE_PAGES),
 		module: 'houdini-adapter-cloudflare',
 	},
 	{

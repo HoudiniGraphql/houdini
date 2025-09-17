@@ -12,7 +12,7 @@ const adapter: Adapter = async ({ adapterPath, outDir }) => {
 	// make sure that the adapter module imports from the correct path
 	workerContents = workerContents.replaceAll('houdini/adapter', adapterPath)
 
-	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents!)
+	await fs.writeFile(path.join(outDir, 'worker.js'), workerContents!)
 }
 
 export default adapter
