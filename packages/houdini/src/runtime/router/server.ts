@@ -80,7 +80,7 @@ export function _serverHandler<ComponentType = unknown>({
 		})
 	}
 
-	return async (request: Request) => {
+	return async (request: Request, ...extraContext: Array<any>) => {
 		if (!manifest) {
 			return new Response(
 				"Adapter did not provide the project's manifest. Please open an issue on github.",
@@ -93,7 +93,7 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// if its a request we can process with yoga, do it.
 		if (requestHandler && url === graphqlEndpoint) {
-			return requestHandler(request)
+			return requestHandler(request, ...extraContext)
 		}
 
 		// maybe its a session-related request
