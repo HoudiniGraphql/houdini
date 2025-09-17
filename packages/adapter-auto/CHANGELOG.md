@@ -1,5 +1,11 @@
 # houdini-adapter-auto
 
+## 1.3.8-next.10
+
+### Patch Changes
+
+-   [#1533](https://github.com/HoudiniGraphql/houdini/pull/1533) [`77fbcede53296b834d4736f03373dde59e5f178a`](https://github.com/HoudiniGraphql/houdini/commit/77fbcede53296b834d4736f03373dde59e5f178a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Change path for generated worker file (now dist/worker.js)
+
 ## 1.3.8-next.9
 
 ### Patch Changes
