@@ -91,12 +91,13 @@ func LoadDocuments(
 			component_fields.prop,
 			raw_documents.offset_column,
 			raw_documents.offset_line,
-			raw_documents.filepath
+			raw_documents.filepath,
+      raw_documents.loaded_with
 		FROM raw_documents
 			LEFT JOIN component_fields ON
 				raw_documents.id = component_fields.document
 				AND component_fields.inline = true
-		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL) AND (loaded_with IS NULL )
 	`)
 	if err != nil {
 		return err
@@ -108,6 +109,7 @@ func LoadDocuments(
 		query := PendingQuery{
 			ID:                   search.ColumnInt(0),
 			Query:                search.ColumnText(1),
+			LastLoadedWith:       search.GetText("loaded_with"),
 			InlineComponentField: search.ColumnBool(2),
 			ColumnOffset:         search.ColumnInt(4),
 			RowOffset:            search.ColumnInt(5),
@@ -155,6 +157,12 @@ func LoadPendingQuery(
 	statements DocumentInsertStatements,
 	typeCache TypeCache,
 ) *plugins.Error {
+	if query.LastLoadedWith == query.Query {
+		fmt.Println("skipping unchanged query", query.Query)
+		// the query hasn't changed since the last time it was loaded so we can skip it
+		return nil
+	}
+
 	// parse the query.
 	parsed, err := parser.ParseQuery(&ast.Source{
 		Input: query.Query,
@@ -913,6 +921,14 @@ func LoadPendingQuery(
 		}
 	}
 
+	// mark the document as loaded with this version
+	err = db.ExecStatement(statements.UpdateLoadedWith, map[string]any{
+		"id":          query.ID,
+		"loaded_with": query.Query,
+	})
+	if err != nil {
+	}
+
 	return nil
 }
 
@@ -1297,6 +1313,7 @@ type PendingQuery struct {
 	RowOffset                int
 	Query                    string
 	ID                       int
+	LastLoadedWith           string
 	InlineComponentField     bool
 	InlineComponentFieldProp *string
 }

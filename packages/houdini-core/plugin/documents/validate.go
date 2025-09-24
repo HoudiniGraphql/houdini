@@ -35,7 +35,6 @@ func ValidateSubscriptionsWithMultipleRootFields(
 		WHERE documents.kind = 'subscription'
 			AND refs.parent_id IS NULL
 			AND selections.kind = 'field'
-			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id, documents.name HAVING COUNT(*) > 1
 	`
 	err := db.StepQuery(ctx, queryStr, nil, func(q *sqlite.Stmt) {
@@ -1412,7 +1411,7 @@ func ValidateWrongTypesToArg(
 			AND argument_values.kind = input_types.input_type
 
 		WHERE
-			raw_documents.current_task = $task_id OR $task_id IS NULL
+			(raw_documents.current_task = $task_id OR $task_id IS NULL)
 
 			AND (
 			-- For non-variable, non-null kinds that are scalar or enum:

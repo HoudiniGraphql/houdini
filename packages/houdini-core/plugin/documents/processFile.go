@@ -7,8 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
+
+	"code.houdinigraphql.com/plugins"
 )
 
 // ProcessFile reads the file (using the provided afero.Fs) in fixed-size chunks to avoid holding
@@ -209,7 +210,9 @@ var queryRegex = "\\s*`((?:(?:\\\\`)|[^`])*?)`\\s*"
 var graphqlRegex = regexp.MustCompile(fmt.Sprintf("(?s)graphql\\(%s\\)", queryRegex))
 
 // Create a regex to capture the property name (e.g. "user") and the GraphQL content.
-var componentFieldRegex = regexp.MustCompile(fmt.Sprintf(`(?s)(\w+)\s*:\s*GraphQL<\s*%s\s*>`, queryRegex))
+var componentFieldRegex = regexp.MustCompile(
+	fmt.Sprintf(`(?s)(\w+)\s*:\s*GraphQL<\s*%s\s*>`, queryRegex),
+)
 
 // DiscoveredDocument holds the file path and the extracted GraphQL query.
 type DiscoveredDocument struct {

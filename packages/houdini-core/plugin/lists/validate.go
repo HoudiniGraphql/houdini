@@ -998,7 +998,7 @@ func validatePaginateArgs(
 		return m
 	}
 
-	seenNames := map[string]bool{}
+	seenNames := map[string]string{}
 
 	db.StepStatement(ctx, usageQuery, func() {
 		fieldName := usageQuery.ColumnText(0)
@@ -1016,20 +1016,22 @@ func validatePaginateArgs(
 		cursorType := usageQuery.GetText("cursor_type")
 
 		// Ensure that the list name is unique.
-		if _, ok := seenNames[listName]; listName != "" && ok {
-			errs.Append(&plugins.Error{
-				Message: fmt.Sprintf("List %q is defined more than once", listName),
-				Kind:    plugins.ErrorKindValidation,
-				Locations: []*plugins.ErrorLocation{
-					{Filepath: filepath, Line: row, Column: column},
-				},
-			})
+		if previousFP, ok := seenNames[listName+"@"+filepath]; ok {
+			if previousFP != filepath {
+				errs.Append(&plugins.Error{
+					Message: fmt.Sprintf("List %q is defined more than once", listName),
+					Kind:    plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{
+						{Filepath: filepath, Line: row, Column: column},
+					},
+				})
+			}
 
 			// we're done processing this entry
 			return
 		}
 
-		seenNames[listName] = true
+		seenNames[listName] = filepath
 
 		// if we're not looking at a paginated list, we're done here (we just need to confirm the name isn't a duplicate)
 		if directive != schema.PaginationDirective {

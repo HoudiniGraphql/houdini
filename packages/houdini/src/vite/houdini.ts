@@ -44,6 +44,15 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
 
               // and a proxy to talk to the compiler
               compiler = await codegen_setup(config, 'dev', db, dbFile)
+
+              // before we can do anything we need to discover what documents exist on the filesystem
+              await compiler.trigger_hook('ExtractDocuments')
+              await compiler.trigger_hook('AfterExtract')
+
+              // we need to trigger validate in order to discover lists which might not appear in the normal JIT path
+              // TODO: discover lists earlier
+              await compiler.trigger_hook('BeforeValidate')
+              await compiler.trigger_hook('Validate', {parallel_safe: true})
           },
 
           async buildEnd() {
@@ -61,7 +70,7 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               }
 
               const relativePath = file.substring(server.config.root.length)
-              const task_id = timestamp
+              const task_id = timestamp.toString()
 
               // every document that we find here is part of the task so update the rows indepdently before
               // we kick of the next task
@@ -69,15 +78,18 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               for (const name of names) {
                   const graphqlRegex = new RegExp("/graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/s")
                   const docContents = file.endsWith(".gql") ? contents : (graphqlRegex).exec(contents)?.[1]
+                  if (!docContents) {
+                    continue
+                  }
 
                   // before we go any further we want to check if the document actually changed
                   const existingQuery = db.prepare(`
-                      SELECT content, raw_documents.id as raw_document, documents.id as document
-                      FROM raw_documents 
-                      JOIN documents ON raw_documents.id = documents.raw_document
+                      SELECT content, raw_documents.id as raw_document
+                      FROM documents 
+                      JOIN raw_documents ON raw_documents.id = documents.raw_document
                       WHERE name = ? OR content = ?
                   `)
-                      .get(name, docContents) as {content: string; raw_document: number, document: number} | undefined
+                      .get(name, docContents) as {content: string; raw_document: number} | undefined
                   if (!docContents || (existingQuery && existingQuery.content === docContents)) {
                     return
                   }
@@ -91,22 +103,48 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               }
 
               // at this point, the raw_documents with the matching task ID make up the core set of documents 
-              // that we are interested in working on
-              
-              // now that the raw documents exist and is given a task id, we need to instruct the compiler 
-              // to parse and load the content into the database
+              // that have changed because of this update event
+              //
+              // instruct the compiler to parse and load the content into the database
               await compiler.trigger_hook('AfterExtract', { task_id })
 
-              // extract the document name from what we loaded
+              // now that all of the documents have been updated to their latest version we can 
+              // walk the dependency graph and include any transient dependencys to the task 
+              // aswell
+              db.prepare(`
+                WITH RECURSIVE
+                seed AS (
+                  SELECT DISTINCT d.name
+                  FROM raw_documents rd
+                  JOIN documents d ON d.raw_document = rd.id
+                  WHERE rd.current_task = $task_id
+                ),
+                visited AS (
+                  SELECT "name" FROM seed
+                  UNION
+                  SELECT d2.name
+                  FROM visited v
+                  JOIN document_dependencies dd ON dd.depends_on = v.name
+                  JOIN documents d2            ON d2.id = dd.document
+                ),
+                targets  AS (
+                  SELECT DISTINCT d.raw_document as raw_id
+                  FROM documents d
+                  JOIN visited r ON r.name = d.name
+                  WHERE d.raw_document IS NOT NULL
+                )
 
-              // now that the document is loaded we need to look at the dependents of the document
-              // and find any dependents that haven't been loaded into the database yet
-              
-              // and finally look for any documents that depend on the document we just loaded 
-              // for newly created files, this will be empty
+                UPDATE raw_documents
+                SET current_task = $task_id
+                WHERE id IN (SELECT raw_id FROM targets)
+              `).run({'task_id': task_id})
 
-              // this set of 3 sources defines the task for this execution
-
+              // the task now includes every document that we need to process
+              await compiler.trigger_hook('BeforeValidate', { task_id })
+              await compiler.trigger_hook('Validate', {parallel_safe: true, task_id})
+              await compiler.trigger_hook('AfterValidate', { task_id})
+              await compiler.trigger_hook('BeforeGenerate', { task_id })
+              await compiler.trigger_hook('Generate', {parallel_safe: true, task_id})
           }
     }
 }
@@ -133,6 +171,7 @@ function cleanUpDocument(db: DatabaseSync, id: number) {
   }
 }
 
+const GRAPHQL_BLOCK_RE = /graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/gs;
 const DEF_NAME_RE = /\b(?:query|mutation|subscription|fragment)\s+([_A-Za-z][_0-9A-Za-z]*)\b/g;
 
 function extractDefNamesFromText(text: string): string[] {
@@ -157,4 +196,11 @@ function extractAllGraphQLNames(filePath: string, contents: string): string[] {
     names.push(...extractDefNamesFromText(m[1]));
   }
   return names;
+}
+
+function includeSubDocuments(task_id: string) {
+  // our goal here is to look for documents that are referenced by the documents in the task
+  // and make sure that each of them has been parsed, loaded into the database along with any subsequent 
+  // dependencies that we discover
+
 }

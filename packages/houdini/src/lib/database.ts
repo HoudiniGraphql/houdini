@@ -91,7 +91,8 @@ CREATE TABLE IF NOT EXISTS raw_documents (
     offset_column INTEGER,
     filepath TEXT NOT NULL,
     content TEXT NOT NULL,
-    current_task INTEGER
+    current_task TEXT,
+    loaded_with TEXT
 );
 
 -----------------------------------------------------------
@@ -126,7 +127,7 @@ CREATE TABLE IF NOT EXISTS type_field_arguments (
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
-    FOREIGN KEY (field) REFERENCES type_fields(id),
+    FOREIGN KEY (field) REFERENCES type_fields(id) ON DELETE CASCADE,
     UNIQUE (field, name)
 );
 
@@ -361,10 +362,9 @@ CREATE TABLE IF NOT EXISTS discovered_lists (
 
 CREATE TABLE IF NOT EXISTS document_dependencies (
   document INTEGER NOT NULL,
-  depends_on INTEGER NOT NULL,
+  depends_on TEXT NOT NULL,
 
-  FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
-  FOREIGN KEY (depends_on) REFERENCES documents(id) ON DELETE CASCADE
+  FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 -----------------------------------------------------------

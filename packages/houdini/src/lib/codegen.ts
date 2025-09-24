@@ -71,7 +71,7 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 
 export type CompilerProxy = {
 	close: () => Promise<void>
-	trigger_hook: (name: string, opts?: {parallel_safe?: boolean, payload?: {}, task_id?: number}) => Promise<void>
+	trigger_hook: (name: string, opts?: {parallel_safe?: boolean, payload?: {}, task_id?: string}) => Promise<void>
 	database_path: string
 }
 
@@ -178,7 +178,7 @@ export async function codegen_setup(
 	)
 	console.timeEnd('Start Plugins')
 
-	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}, task_id?: number) => {
+	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}, task_id?: string) => {
 		const { port } = plugin_specs[name]
 
 		// make the request
@@ -216,7 +216,7 @@ export async function codegen_setup(
     hook: string, {parallel_safe, payload, task_id} : {
       parallel_safe?: boolean,
       payload?: Record<string, any>,
-      task_id?: number
+      task_id?: string
     } = {}
 	) => {
     const timeName = hook + (task_id ? ` (${task_id})` : '')
