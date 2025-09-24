@@ -24,6 +24,9 @@ func (p *HoudiniCore) AfterExtract(ctx context.Context) error {
 	// write component field information to the database
 	componentFields.WriteMetadata(ctx, p.DB, errs)
 
+	// load document dependencies
+	documents.LoadDocumentDependencies(ctx, p.DB, errs)
+
 	// and replace runtime scalars with their schema-valid equivalents
 	runtimeScalars.TransformVariables(ctx, p.DB, errs)
 

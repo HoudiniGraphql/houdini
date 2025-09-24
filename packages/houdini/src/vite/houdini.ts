@@ -112,31 +112,63 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               // walk the dependency graph and include any transient dependencys to the task 
               // aswell
               db.prepare(`
-                WITH RECURSIVE
-                seed AS (
-                  SELECT DISTINCT d.name
-                  FROM raw_documents rd
-                  JOIN documents d ON d.raw_document = rd.id
-                  WHERE rd.current_task = $task_id
-                ),
-                visited AS (
-                  SELECT "name" FROM seed
-                  UNION
-                  SELECT d2.name
-                  FROM visited v
-                  JOIN document_dependencies dd ON dd.depends_on = v.name
-                  JOIN documents d2            ON d2.id = dd.document
-                ),
-                targets  AS (
-                  SELECT DISTINCT d.raw_document as raw_id
-                  FROM documents d
-                  JOIN visited r ON r.name = d.name
-                  WHERE d.raw_document IS NOT NULL
-                )
+                  WITH RECURSIVE
+                  -- 1) Seed: names of docs already in this task
+                  seed AS (
+                    SELECT DISTINCT d.name
+                    FROM raw_documents rd
+                    JOIN documents d ON d.raw_document = rd.id
+                    WHERE rd.current_task = $task_id
+                  ),
 
-                UPDATE raw_documents
-                SET current_task = $task_id
-                WHERE id IN (SELECT raw_id FROM targets)
+                  -- 2) Walk UP: find docs that depend on any visited name
+                  up AS (
+                    SELECT name FROM seed
+                    UNION
+                    SELECT d2.name
+                    FROM up u
+                    JOIN document_dependencies dd ON dd.depends_on = u.name
+                    JOIN documents d2            ON d2.id = dd.document
+                  ),
+
+                  -- 3) Walk DOWN: find names that any visited name depends on (transitively)
+                  down AS (
+                    SELECT name FROM seed
+                    UNION
+                    SELECT dd.depends_on
+                    FROM down v
+                    JOIN documents d          ON d.name = v.name
+                    JOIN document_dependencies dd ON dd.document = d.id
+                  ),
+
+                  -- 4) Raw docs to tag from the UP walk (no extra filter)
+                  targets_up AS (
+                    SELECT DISTINCT d.raw_document AS raw_id
+                    FROM documents d
+                    JOIN up u ON u.name = d.name
+                    WHERE d.raw_document IS NOT NULL
+                  ),
+
+                  -- 5) Raw docs to tag from the DOWN walk, but only if regen is needed
+                  targets_down AS (
+                    SELECT DISTINCT d.raw_document AS raw_id
+                    FROM documents d
+                    JOIN down v        ON v.name = d.name
+                    JOIN raw_documents rd ON rd.id = d.raw_document
+                    WHERE d.raw_document IS NOT NULL
+                  ),
+
+                  -- 6) Union both directions
+                  targets AS (
+                    SELECT raw_id FROM targets_up
+                    UNION
+                    SELECT raw_id FROM targets_down
+                  )
+
+                  -- 7) Update the task set
+                  UPDATE raw_documents
+                  SET current_task = $task_id
+                  WHERE id IN (SELECT raw_id FROM targets);
               `).run({'task_id': task_id})
 
               // the task now includes every document that we need to process

@@ -158,7 +158,6 @@ func LoadPendingQuery(
 	typeCache TypeCache,
 ) *plugins.Error {
 	if query.LastLoadedWith == query.Query {
-		fmt.Println("skipping unchanged query", query.Query)
 		// the query hasn't changed since the last time it was loaded so we can skip it
 		return nil
 	}
@@ -1126,15 +1125,6 @@ func processSelection[PluginConfig any](
 		err := processDirectives(ctx, db, conn, query, operationID, statements, typeCache.TypeFields, typeCache.DirectiveArguments, selectionID, s.Directives)
 		if err != nil {
 			return err
-		}
-
-		// register the referenced fragment as a dependent on the operation
-		dbErr := db.ExecStatement(statements.InsertDocumentDependency, map[string]any{
-			"document":   operationID,
-			"depends_on": s.Name,
-		})
-		if dbErr != nil {
-			return plugins.WrapError(dbErr)
 		}
 
 	default:
