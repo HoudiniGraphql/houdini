@@ -177,6 +177,9 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               await compiler.trigger_hook('AfterValidate', { task_id})
               await compiler.trigger_hook('BeforeGenerate', { task_id })
               await compiler.trigger_hook('Generate', {parallel_safe: true, task_id})
+
+              // and finally we can remove the task id association
+              db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(task_id)
           }
     }
 }
@@ -184,7 +187,7 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
 function cleanUpDocument(db: DatabaseSync, id: number) {
   try { 
       // there are a bunch of tables that we need to clean up
-      const result = db.prepare(`DELETE FROM raw_documents WHERE id = ?`).run(id)
+      db.prepare(`DELETE FROM raw_documents WHERE id = ?`).run(id)
 
       // drop any selections that don't have refs
       db.prepare(`
