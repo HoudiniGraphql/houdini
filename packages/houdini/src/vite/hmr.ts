@@ -241,9 +241,3 @@ function extractAllGraphQLNames(filePath: string, contents: string): string[] {
   return names;
 }
 
-function includeSubDocuments(task_id: string) {
-  // our goal here is to look for documents that are referenced by the documents in the task
-  // and make sure that each of them has been parsed, loaded into the database along with any subsequent 
-  // dependencies that we discover
-
-}

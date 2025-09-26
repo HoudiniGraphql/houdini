@@ -1,7 +1,7 @@
 import type { Adapter, ConfigFile } from '../lib'
 import type { PluginOption } from 'vite'
 
-import houdini from './houdini'
+import hmr from './hmr'
 
 export type PluginConfig = { configPath?: string; adapter?: Adapter } & Partial<ConfigFile>
 
@@ -10,7 +10,7 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
   let pluginPlugins: Array<Plugin> = []
 
   return [
-    houdini(opts),
+    hmr(opts),
     ...pluginPlugins,
   ]
 }

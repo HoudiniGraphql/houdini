@@ -2,7 +2,6 @@ package artifacts
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"strings"
 	"sync"
@@ -126,7 +125,6 @@ func GenerateDocumentArtifacts(
 	// before we return the thread safe slice, we need to convert the filepaths to import paths
 	importPaths := []string{}
 	for _, fp := range filepaths.items {
-		fmt.Println(fp)
 		importPaths = append(
 			importPaths,
 			// to generate the import path, we can assume that the runtime directory is available
