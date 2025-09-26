@@ -24,7 +24,7 @@ func TestRuntimeScalars(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+	db, err := plugins.NewTestPool[config.PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}

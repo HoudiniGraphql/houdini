@@ -422,6 +422,9 @@ func getDocumentData(
 		return d, err
 	}
 
+	// strip the trailing newlines
+	d.Printed = strings.TrimSpace(d.Printed)
+
 	// compute hash based on the complete printed content (including dependencies)
 	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
 

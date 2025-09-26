@@ -3,6 +3,7 @@ package componentFields_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestComponentFields(t *testing.T) {
 	`
 
 	// create and wire up a database we can test against
-	db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+	db, err := plugins.NewTestPool[config.PluginConfig]()
 	if err != nil {
 		t.Fatalf("failed to create in-memory db: %v", err)
 	}
@@ -155,10 +156,14 @@ func TestComponentFieldChecks(t *testing.T) {
 	}
 
 	for _, test := range table {
+		// we need to set an environment variable so that our database pooling doesn't share information across tests
+		os.Setenv("HOUDINI_TEST", "true")
+
 		t.Run(test.Title, func(t *testing.T) {
 			// create and wire up a database we can test against
-			db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+			db, err := plugins.NewTestPool[config.PluginConfig]()
 			if err != nil {
+				defer db.Close()
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
@@ -182,6 +187,8 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			ctx := context.Background()
 			conn, err := db.Take(ctx)
+			defer db.Put(conn)
+
 			require.Nil(t, err)
 			// write the internal schema to the database
 			err = tests.WriteHoudiniSchema(conn)
@@ -191,7 +198,6 @@ func TestComponentFieldChecks(t *testing.T) {
 			err = plugin.Schema(ctx)
 			require.Nil(t, err)
 			// we're done with the database connection for now
-			defer db.Put(conn)
 
 			statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
 			require.Nil(t, err)

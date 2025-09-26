@@ -114,9 +114,9 @@ func printDocWorker(
 
 		// update the document with both printed version and hash
 		err = db.ExecStatement(update, map[string]any{
-			"name": doc.Name, 
+			"name":    doc.Name,
 			"printed": printed,
-			"hash": hash,
+			"hash":    hash,
 		})
 		if err != nil {
 			errChan <- plugins.WrapError(err)
@@ -373,4 +373,3 @@ func printValue(value *CollectedArgumentValue, usedVariables map[string]bool) st
 func generateDocumentHash(content string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(content)))
 }
-

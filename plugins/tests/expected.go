@@ -363,36 +363,32 @@ func fetchDocuments[PluginConfig any](
 	}
 	defer db.Put(conn)
 
-	stmt, err := conn.Prepare(
+	var rows []documentRow
+
+	err = db.StepQuery(
+		context.Background(),
 		"select name, raw_document, kind, type_condition, id from documents order by name",
+		map[string]any{},
+		func(stmt *sqlite.Stmt) {
+			var tc *string
+			if stmt.ColumnType(3) == sqlite.TypeText {
+				s := stmt.ColumnText(3)
+				tc = &s
+			}
+			rows = append(rows, documentRow{
+				ID:            int(stmt.ColumnInt(4)),
+				Name:          stmt.ColumnText(0),
+				RawDocument:   int(stmt.ColumnInt(1)),
+				Kind:          stmt.ColumnText(2),
+				TypeCondition: tc,
+			})
+		},
 	)
 	if err != nil {
-		t.Fatalf("failed to prepare documents query: %v", err)
+		t.Fatalf("error querying documents: %v", err)
+		return nil
 	}
-	defer stmt.Finalize()
 
-	var rows []documentRow
-	for {
-		ok, err := stmt.Step()
-		if err != nil {
-			t.Fatalf("error stepping documents query: %v", err)
-		}
-		if !ok {
-			break
-		}
-		var tc *string
-		if stmt.ColumnType(3) == sqlite.TypeText {
-			s := stmt.ColumnText(3)
-			tc = &s
-		}
-		rows = append(rows, documentRow{
-			ID:            int(stmt.ColumnInt(4)),
-			Name:          stmt.ColumnText(0),
-			RawDocument:   int(stmt.ColumnInt(1)),
-			Kind:          stmt.ColumnText(2),
-			TypeCondition: tc,
-		})
-	}
 	return rows
 }
 

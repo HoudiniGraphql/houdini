@@ -179,10 +179,10 @@ func WriteMetadata[PluginConfig any](
 	tfStmt, err := conn.Prepare(`
     SELECT COUNT(*) 
     FROM type_fields 
-      JOIN component_fields ON type_fields.id = component_fields.type_field
-      JOIN documents on component_fields.document = documents.id
-      JOIN raw_documents on documents.raw_document = raw_documents.id
-    WHERE type_fields.id = ? AND filepath != ?
+      LEFT JOIN component_fields ON type_fields.id = component_fields.type_field
+      LEFT JOIN documents on component_fields.document = documents.id
+      LEFT JOIN raw_documents on documents.raw_document = raw_documents.id
+    WHERE type_fields.id = ? AND (component_fields.id IS NULL OR filepath != ?)
   `)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -253,6 +253,7 @@ func WriteMetadata[PluginConfig any](
 			continue
 		}
 		count := tfStmt.ColumnInt(0)
+		fmt.Println("count", count, candidateID)
 		if count > 0 {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(

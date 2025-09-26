@@ -97,7 +97,7 @@ func LoadDocuments(
 			LEFT JOIN component_fields ON
 				raw_documents.id = component_fields.document
 				AND component_fields.inline = true
-		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL) AND (loaded_with IS NULL )
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL) 
 	`)
 	if err != nil {
 		return err

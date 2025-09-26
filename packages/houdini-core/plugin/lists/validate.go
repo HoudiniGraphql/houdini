@@ -1015,8 +1015,8 @@ func validatePaginateArgs(
 		listID := usageQuery.ColumnInt(11)
 		cursorType := usageQuery.GetText("cursor_type")
 
-		// Ensure that the list name is unique.
-		if previousFP, ok := seenNames[listName+"@"+filepath]; ok {
+		// Ensure that the list name is unique across files
+		if previousFP, ok := seenNames[listName]; ok {
 			if previousFP != filepath {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf("List %q is defined more than once", listName),

@@ -102,7 +102,7 @@ func TestSchema(t *testing.T) {
 			}
 
 			// Instantiate an in-memory database and set the project config.
-			db, _ := plugins.NewPoolInMemory[config.PluginConfig]()
+			db, _ := plugins.NewTestPool[config.PluginConfig]()
 			defer db.Close()
 			db.SetProjectConfig(plugins.ProjectConfig{
 				ProjectRoot: "/project",

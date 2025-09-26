@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"testing"
 
@@ -33,7 +34,7 @@ type Test[PluginConfig any] struct {
 
 func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 	if table.VerifyTest == nil {
-		table.PerformTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
+		table.VerifyTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
 			// make sure we generated what we expected
 			if len(test.Expected) > 0 {
 				ValidateExpectedDocuments(t, plugin.DB, test.Expected)
@@ -100,7 +101,7 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 			}
 
 			// create an in-memory db.
-			db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+			db, err := plugins.NewTestPool[config.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
@@ -138,14 +139,14 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 
 			// insert the raw document (assume id becomes 1).
 			insertRaw, err := conn.Prepare(
-				"insert into raw_documents (content, filepath) values ($content, 'foo')",
+				"insert into raw_documents (content, filepath) values ($content, $filepath)",
 			)
 			if err != nil {
 				t.Fatalf("failed to prepare raw_documents insert: %v", err)
 			}
 			defer insertRaw.Finalize()
-			for _, doc := range test.Input {
-				if err := db.ExecStatement(insertRaw, map[string]any{"content": doc}); err != nil {
+			for i, doc := range test.Input {
+				if err := db.ExecStatement(insertRaw, map[string]any{"content": doc, "filepath": fmt.Sprintf("file-%v", i)}); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}
@@ -167,7 +168,7 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 			defer insertCustomKeys.Finalize()
 
 			for typ, config := range projectConfig.TypeConfig {
-				var resolveQuery interface{}
+				var resolveQuery any
 				if config.ResolveQuery != "" {
 					resolveQuery = config.ResolveQuery
 				}

@@ -335,6 +335,9 @@ export default function CF_A_UserAvatar({ user }: Props) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// we need to set an environment variable so that our database pooling doesn't share information across tests
+			t.Setenv("HOUDINI_TEST", "true")
+
 			// Create an in‑memory filesystem.
 			fs := afero.NewMemMapFs()
 			filePath := "/testfile.txt"

@@ -1606,7 +1606,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 
 			`
 			// create an in-memory db.
-			db, err := plugins.NewPoolInMemory[config.PluginConfig]()
+			db, err := plugins.NewTestPool[config.PluginConfig]()
 			if err != nil {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}

@@ -15,6 +15,7 @@ type DatabasePool[PluginConfig any] struct {
 	_config       *ProjectConfig
 	_pluginConfig *PluginConfig
 	*sqlitex.Pool
+	Test bool
 }
 
 func (db *DatabasePool[PluginConfig]) SetProjectConfig(config ProjectConfig) {
@@ -36,7 +37,7 @@ func NewPool[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 	return DatabasePool[PluginConfig]{Pool: pool}, nil
 }
 
-func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
+func NewTestPool[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 	pool, err := sqlitex.NewPool("file:shared?mode=memory&cache=shared", sqlitex.PoolOptions{
 		Flags: sqlite.OpenWAL | sqlite.OpenReadWrite | sqlite.OpenMemory | sqlite.OpenURI,
 	})
@@ -44,7 +45,7 @@ func NewPoolInMemory[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 		return DatabasePool[PluginConfig]{}, err
 	}
 
-	return DatabasePool[PluginConfig]{Pool: pool}, nil
+	return DatabasePool[PluginConfig]{Pool: pool, Test: true}, nil
 }
 
 func (db DatabasePool[PluginConfig]) ExecStatement(
@@ -97,21 +98,23 @@ func (db DatabasePool[PluginConfig]) Take(ctx context.Context) (*sqlite.Conn, er
 	if err != nil {
 		return nil, err
 	}
-	for _, pragma := range []string{
-		"PRAGMA journal_mode = WAL",
-		"PRAGMA synchronous = off",
-		"PRAGMA cache_size = 10000",
-		"PRAGMA temp_store = memory",
-		"PRAGMA busy_timeout = 5000",
-		"PRAGMA foreign_key = ON",
-		"PRAGMA defer_foreign_keys = ON",
-	} {
-		stmt, _, err := conn.PrepareTransient(pragma)
-		if err != nil {
-			return nil, err
-		}
-		db.ExecStatement(stmt, map[string]any{})
 
+	if !db.Test {
+		for _, pragma := range []string{
+			"PRAGMA journal_mode = WAL",
+			"PRAGMA synchronous = off",
+			"PRAGMA cache_size = 10000",
+			"PRAGMA temp_store = memory",
+			"PRAGMA busy_timeout = 5000",
+			"PRAGMA foreign_key = ON",
+			"PRAGMA defer_foreign_keys = ON",
+		} {
+			stmt, _, err := conn.PrepareTransient(pragma)
+			if err != nil {
+				return nil, err
+			}
+			db.ExecStatement(stmt, map[string]any{})
+		}
 	}
 
 	return conn, nil
