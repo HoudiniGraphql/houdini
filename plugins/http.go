@@ -15,7 +15,7 @@ func pluginHooks[PluginConfig any](
 	hooks := map[string]bool{}
 	if _, ok := plugin.(IncludeRuntime); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHook(handleGenerate(plugin))))
+		http.Handle("/generate", InjectTaskID(EventHookWithResponse(handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(StaticRuntime); ok {
 		hooks["AfterLoad"] = true
@@ -23,7 +23,7 @@ func pluginHooks[PluginConfig any](
 	}
 	if _, ok := plugin.(TransformRuntime); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHook(handleGenerate(plugin))))
+		http.Handle("/generate", InjectTaskID(EventHookWithResponse(handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(Config); ok {
 		hooks["Config"] = true
@@ -67,7 +67,7 @@ func pluginHooks[PluginConfig any](
 	}
 	if _, ok := plugin.(Generate); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHook(handleGenerate(plugin))))
+		http.Handle("/generate", InjectTaskID(EventHookWithResponse(handleGenerate(plugin))))
 	}
 	if _, ok := plugin.(ArtifactData); ok {
 		hooks["AfterGenerate"] = true
@@ -150,15 +150,35 @@ func EventHook(hook func(context.Context) error) http.Handler {
 	})
 }
 
+func EventHookWithResponse(hook func(context.Context) (any, error)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// call the function
+		result, err := hook(r.Context())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+
+		// write the response
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			handleError(w, err)
+			return
+		}
+	})
+}
+
 func handleGenerate[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
-) func(ctx context.Context) error {
-	return func(ctx context.Context) error {
+) func(ctx context.Context) (any, error) {
+	return func(ctx context.Context) (any, error) {
+		filepaths := []string{}
+
 		// if the plugin defines a runtime to include
 		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
 			runtimePath, err := includeRuntime.IncludeRuntime(ctx)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			fmt.Println("include runtime", runtimePath)
@@ -166,14 +186,15 @@ func handleGenerate[PluginConfig any](
 
 		// invoke the generate hook
 		if generate, ok := plugin.(Generate); ok {
-			err := generate.Generate(ctx)
+			fps, err := generate.Generate(ctx)
 			if err != nil {
-				return err
+				return nil, err
 			}
+			filepaths = append(filepaths, fps...)
 		}
 
 		// nothing went wrong
-		return nil
+		return filepaths, nil
 	}
 }
 

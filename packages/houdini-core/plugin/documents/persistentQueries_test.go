@@ -3,10 +3,10 @@ package documents_test
 import (
 	"context"
 	"encoding/json"
+	"path"
 	"regexp"
 	"testing"
 
-	"path"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
@@ -41,7 +41,12 @@ func TestPersistentQueriesBasicOperations(t *testing.T) {
 			}
 
 			// Test that we have the expected number of operations
-			require.Equal(t, 2, len(result), "Should have 2 operations (query and mutation, not fragment)")
+			require.Equal(
+				t,
+				2,
+				len(result),
+				"Should have 2 operations (query and mutation, not fragment)",
+			)
 		},
 		Tests: []tests.Test[config.PluginConfig]{
 			{
@@ -85,7 +90,12 @@ func TestPersistentQueriesFragmentEmbedding(t *testing.T) {
 			// Test fragment embedding
 			require.Equal(t, 1, len(result), "Should have 1 operation")
 			for _, query := range result {
-				require.Contains(t, query, "fragment ", "Operation should contain embedded fragment")
+				require.Contains(
+					t,
+					query,
+					"fragment ",
+					"Operation should contain embedded fragment",
+				)
 				require.Contains(t, query, "query GetUser")
 				require.Contains(t, query, "fragment UserProfile on User")
 				require.Contains(t, query, "id")
@@ -136,7 +146,7 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 			}
 		`,
 		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
-			// Run the complete REAL generation pipeline  
+			// Run the complete REAL generation pipeline
 			result, err := runFullGeneration(t, p, test)
 			if err != nil {
 				return
@@ -146,14 +156,23 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 			projectConfig, err := p.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
-			artifactDir := path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
+			artifactDir := path.Join(
+				projectConfig.ProjectRoot,
+				projectConfig.RuntimeDir,
+				"artifacts",
+			)
 
 			// For each hash in persistent queries, find corresponding artifact and compare hash
 			for hash, query := range result {
 				// Extract operation name from the query to match artifact filename
 				opNameRegex := regexp.MustCompile(`(?:query|mutation|subscription)\s+(\w+)`)
 				matches := opNameRegex.FindStringSubmatch(query)
-				require.True(t, len(matches) >= 2, "Should be able to extract operation name from: %s", query)
+				require.True(
+					t,
+					len(matches) >= 2,
+					"Should be able to extract operation name from: %s",
+					query,
+				)
 
 				operationName := matches[1]
 				artifactPath := path.Join(artifactDir, operationName+".js")
@@ -169,14 +188,25 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 				// Extract hash from artifact - it's in "hash": "value" format (64 hex chars for SHA256)
 				hashRegex := regexp.MustCompile(`"hash":\s*"([a-f0-9]{64})"`)
 				hashMatches := hashRegex.FindStringSubmatch(string(artifactContent))
-				require.True(t, len(hashMatches) >= 2, "Should be able to extract hash from artifact: %s", artifactPath)
+				require.True(
+					t,
+					len(hashMatches) >= 2,
+					"Should be able to extract hash from artifact: %s",
+					artifactPath,
+				)
 
 				artifactHash := hashMatches[1]
 
 				// Verify the hashes match
-				require.Equal(t, hash, artifactHash,
+				require.Equal(
+					t,
+					hash,
+					artifactHash,
 					"Hash mismatch between persistent queries (%s) and artifact (%s) for operation %s",
-					hash, artifactHash, operationName)
+					hash,
+					artifactHash,
+					operationName,
+				)
 			}
 		},
 		Tests: []tests.Test[config.PluginConfig]{
@@ -192,7 +222,11 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 	})
 }
 
-func runFullGeneration(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) (map[string]string, error) {
+func runFullGeneration(
+	t *testing.T,
+	p *plugin.HoudiniCore,
+	test tests.Test[config.PluginConfig],
+) (map[string]string, error) {
 	// Run the complete REAL pipeline that users actually use
 	err := p.AfterExtract(context.Background())
 	if err != nil {
@@ -215,13 +249,13 @@ func runFullGeneration(t *testing.T, p *plugin.HoudiniCore, test tests.Test[conf
 	// Set up the persistent queries path for testing
 	projectConfig, err := p.DB.ProjectConfig(context.Background())
 	require.NoError(t, err)
-	
+
 	testPersistentQueriesPath := "./test-queries.json"
 	projectConfig.PersistedQueriesPath = testPersistentQueriesPath
 	p.DB.SetProjectConfig(projectConfig)
 
 	// Use the REAL generation function instead of manual steps
-	err = p.Generate(context.Background())
+	_, err = p.Generate(context.Background())
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return nil, err
@@ -268,4 +302,3 @@ func verifyNoHashCollisions(t *testing.T, p *plugin.HoudiniCore) {
 	require.NoError(t, err)
 	require.False(t, collisionFound, "No hash collisions should exist in production pipeline")
 }
-

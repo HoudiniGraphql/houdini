@@ -28,7 +28,7 @@ func writeSelectionDocument(
 	name string,
 	selection []*CollectedSelection,
 	sortKeys bool,
-) error {
+) (string, error) {
 	// load the project config
 	projectConfig, _ := db.ProjectConfig(ctx)
 
@@ -43,7 +43,7 @@ func writeSelectionDocument(
 		sortKeys,
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// compute the filepath to write the artifact to
@@ -52,11 +52,11 @@ func writeSelectionDocument(
 	// write the file to disk
 	err = afero.WriteFile(fs, artifactPath, []byte(artifact), 0644)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// we're done
-	return nil
+	return artifactPath, nil
 }
 
 type DocumentData struct {
@@ -421,10 +421,10 @@ func getDocumentData(
 	if err != nil {
 		return d, err
 	}
-	
+
 	// compute hash based on the complete printed content (including dependencies)
 	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
-	
+
 	// we're done
 	return d, nil
 }

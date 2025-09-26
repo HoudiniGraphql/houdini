@@ -3216,7 +3216,7 @@ func performArtifactTest(
 	}
 
 	// generate the artifacts
-	err = artifacts.Generate(context.Background(), p.DB, p.Fs, true)
+	_, err = artifacts.Generate(context.Background(), p.DB, p.Fs, true)
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return

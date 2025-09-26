@@ -176,10 +176,18 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               await compiler.trigger_hook('Validate', {parallel_safe: true, task_id})
               await compiler.trigger_hook('AfterValidate', { task_id})
               await compiler.trigger_hook('BeforeGenerate', { task_id })
-              await compiler.trigger_hook('Generate', {parallel_safe: true, task_id})
+
+              // the return value of each generate invocation is the list of modules that were updated
+              const updated_modules = Object.values(
+                await compiler.trigger_hook('Generate', {parallel_safe: true, task_id})
+              ).flat()
+
 
               // and finally we can remove the task id association
               db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(task_id)
+
+              // the return value of this function invalidates the modules and causes vite to refresh them
+              return update_modules
           }
     }
 }

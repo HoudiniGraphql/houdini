@@ -25,24 +25,24 @@ func GeneratePersistentQueries(
 	ctx context.Context,
 	db plugins.DatabasePool[any],
 	fs afero.Fs,
-) error {
+) ([]string, error) {
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	persistedQueriesPath := projectConfig.PersistedQueriesPath
 	outputPath := path.Join(projectConfig.ProjectRoot, persistedQueriesPath)
 
 	if !strings.HasSuffix(outputPath, ".json") {
-		return &plugins.Error{
+		return nil, &plugins.Error{
 			Message: "Can write Persisted Queries only in a \".json\" file.",
 		}
 	}
 
 	conn, err := db.Take(ctx)
 	if err != nil {
-		return plugins.WrapError(err)
+		return nil, plugins.WrapError(err)
 	}
 	defer db.Put(conn)
 
@@ -89,7 +89,7 @@ func GeneratePersistentQueries(
 		},
 	})
 	if err != nil {
-		return plugins.WrapError(err)
+		return nil, plugins.WrapError(err)
 	}
 
 	for _, op := range operations {
@@ -124,7 +124,7 @@ func GeneratePersistentQueries(
 			},
 		})
 		if err != nil {
-			return plugins.WrapError(err)
+			return nil, plugins.WrapError(err)
 		}
 
 		// Get the printed content for all required fragments
@@ -147,22 +147,29 @@ func GeneratePersistentQueries(
 	}
 
 	if err != nil {
-		return plugins.WrapError(err)
+		return nil, plugins.WrapError(err)
 	}
 
 	if len(queryMap) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	jsonData, err := json.MarshalIndent(queryMap, "", "    ")
 	if err != nil {
-		return plugins.WrapError(err)
+		return nil, plugins.WrapError(err)
 	}
 
 	err = afero.WriteFile(fs, outputPath, jsonData, 0644)
 	if err != nil {
-		return plugins.WrapError(err)
+		return nil, plugins.WrapError(err)
 	}
 
-	return nil
+	return []string{
+		strings.Replace(
+			outputPath,
+			path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir),
+			"$houdini",
+			1,
+		),
+	}, nil
 }

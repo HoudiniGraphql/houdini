@@ -1,6 +1,7 @@
 query features__component_fields__simple {
 	usersList(snapshot: "componentFields_simple") {
 		name
+		name
 		...UserInfo
 	}
 }

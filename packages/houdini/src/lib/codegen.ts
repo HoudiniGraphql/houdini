@@ -224,16 +224,22 @@ export async function codegen_setup(
 		// look for all of the plugins that have registered for this hook
 		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) => hooks.has(hook))
 
+    const result = {}
+
 		// if the hook is parallel safe, we can run all of the plugins in parallel
 		if (parallel_safe) {
-			await Promise.all(plugins.map(([plugin]) => invoke_hook(plugin, hook, payload, task_id)))
+			await Promise.all(plugins.map(async ([plugin]) => {
+        result[plugin] = await invoke_hook(plugin, hook, payload, task_id)
+      }))
 		} else {
 			// if the hook isn't parallel safe, we need to run the plugins in order
 			for (const [name] of plugins) {
-				await invoke_hook(name, hook, payload, task_id)
+				result[name] = await invoke_hook(name, hook, payload, task_id)
 			}
 		}
 		console.timeEnd(timeName)
+
+    return result
 	}
 
 	// write the current config values to the database
