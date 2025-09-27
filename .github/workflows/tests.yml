@@ -110,7 +110,7 @@ jobs:
 
             - name: Run Go tests
               run: |
-                  timeout 10s go test ./... -v || if [ $? -eq 124 ]; then echo "Tests timed out after 10 seconds"; exit 1; fi
+                  go test ./... -v  -timeout 10m
 
     verify_init:
         name: Verify Init

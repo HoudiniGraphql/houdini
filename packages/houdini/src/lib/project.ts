@@ -85,7 +85,6 @@ export async function get_config({
 		}
 	}
 
-
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
 	let reject = (message?: any) => {}
@@ -104,7 +103,6 @@ export async function get_config({
 			})
 		}
 
-
 		const root_dir = path.dirname(
 			config_file.projectDir ? path.join(process.cwd(), config_file.projectDir) : config_path
 		)
@@ -120,21 +118,20 @@ export async function get_config({
 			}
 		} catch {}
 
-    const partialConfig: Partial<Config> = {
+		const partialConfig: Partial<Config> = {
 			root_dir,
 			config_file,
 			filepath: config_path,
 			plugins: [],
-    }
+		}
 
-    fs.mkdirpSync(houdini_root(partialConfig as Config))
+		fs.mkdirpSync(houdini_root(partialConfig as Config))
 
 		_config = {
-      ...partialConfig as Config,
-      schema: local_schema
+			...(partialConfig as Config),
+			schema: local_schema
 				? await load_local_schema(config_file, local_schema)
 				: await load_schema_file(config_file.schemaPath),
-
 		}
 
 		// we need to process the plugins before we instantiate the config object

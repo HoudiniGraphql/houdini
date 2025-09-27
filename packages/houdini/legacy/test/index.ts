@@ -323,4 +323,3 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 		...config,
 	}
 }
-

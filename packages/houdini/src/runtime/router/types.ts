@@ -1,6 +1,6 @@
-import type { QueryArtifact } from '../lib/types'
 import type { createYoga } from 'graphql-yoga'
 
+import type { QueryArtifact } from '../lib/types'
 import type { RouteParam } from './match'
 
 export type YogaServer = ReturnType<typeof createYoga>
