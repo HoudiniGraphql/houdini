@@ -10,7 +10,7 @@ import (
 func TestLoadingArtifacts(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
-      type Query { 
+      type Query {
 				animals(first: Int, after: String): AnimalConnection
         monkeys: MonkeyConnection!
 				catOwners: [CatOwner!]!
@@ -61,7 +61,7 @@ func TestLoadingArtifacts(t *testing.T) {
 				cats: [Cat!]!
 			}
 
-      type Cat { 
+      type Cat {
         id: ID!
         name: String!
       }
@@ -113,14 +113,13 @@ func TestLoadingArtifacts(t *testing.T) {
               export default {
                   "name": "MonkeyListQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "b854c12725a2f322fb6a2de8c63e41c90cd702cc48a4e3f8afedef1d537a4d22",
+                  "hash": "ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2",
                   "raw": ` + "`" + `fragment AnimalsList on AnimalConnection {
                   edges {
                       node {
                           id
                           name
                           __typename
-                          id
                       }
                       __typename
                   }
@@ -283,7 +282,7 @@ func TestLoadingArtifacts(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=b854c12725a2f322fb6a2de8c63e41c90cd702cc48a4e3f8afedef1d537a4d22"
+              "HoudiniHash=ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2"
             `),
 				},
 			},
@@ -307,13 +306,12 @@ func TestLoadingArtifacts(t *testing.T) {
               export default {
                   "name": "Query",
                   "kind": "HoudiniQuery",
-                  "hash": "d38fc2f78d9b0433bc344712aa95be6209427b49e5780c2719dc66cd22ebb8da",
+                  "hash": "a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841",
                   "raw": ` + "`" + `query Query {
                   catOwners {
                       cats {
                           id
                           __typename
-                          id
                       }
                       ... on User {
                           firstName
@@ -492,7 +490,7 @@ func TestLoadingArtifacts(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=d38fc2f78d9b0433bc344712aa95be6209427b49e5780c2719dc66cd22ebb8da"
+              "HoudiniHash=a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841"
             `),
 				},
 			},

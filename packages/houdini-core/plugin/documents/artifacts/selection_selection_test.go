@@ -19,9 +19,9 @@ func TestArtifactGeneration(t *testing.T) {
 		Schema: `
       type Query {
 			  user(
-          id: ID, 
-          filter: UserFilter, 
-          filterList: [UserFilter!], 
+          id: ID,
+          filter: UserFilter,
+          filterList: [UserFilter!],
           enumArg: MyEnum
         ): User!
         friends: [Friend!]!
@@ -35,10 +35,10 @@ func TestArtifactGeneration(t *testing.T) {
           intValue: Int
           offset: Int
           filter: UserFilter
-        ): [User!]! 
+        ): [User!]!
 				allItems: [TodoItem!]!
         entities: [Entity!]!
-      } 
+      }
 
     	scalar DateTime
 			type TodoItem {
@@ -47,7 +47,7 @@ func TestArtifactGeneration(t *testing.T) {
 			}
 
 
-      interface Entity { 
+      interface Entity {
         id: ID!
       }
 
@@ -58,7 +58,7 @@ func TestArtifactGeneration(t *testing.T) {
       type User implements Node & Friend & Entity {
         id: ID!
         name: String!
-        bestFriend: User! 
+        bestFriend: User!
         firstName: String!
         lastName: String!
         friends: [User!]!
@@ -114,11 +114,11 @@ func TestArtifactGeneration(t *testing.T) {
         weight: Float
       }
 
-      type NewUserResult { 
+      type NewUserResult {
         user: User!
       }
 
-      type Subscription { 
+      type Subscription {
         newUser: NewUserResult!
       }
     `,
@@ -131,11 +131,11 @@ func TestArtifactGeneration(t *testing.T) {
 					`
             query TestQuery {
               version
-            } 
+            }
           `,
 					`
-            fragment TestFragment on User { 
-              firstName 
+            fragment TestFragment on User {
+              firstName
               id
             }
           `,
@@ -175,12 +175,11 @@ func TestArtifactGeneration(t *testing.T) {
             export default {
                 "name": "TestFragment",
                 "kind": "HoudiniFragment",
-                "hash": "f16f17ca970d9631a408c829217f5ee1883a16dc72dbdbac018a789ab7a951ba",
+                "hash": "4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8",
                 "raw": ` + "`" + `fragment TestFragment on User {
                 firstName
                 id
                 __typename
-                id
             }
             ` + "`" + `,
 
@@ -212,7 +211,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "pluginData": {},
             }
 
-            "HoudiniHash=f16f17ca970d9631a408c829217f5ee1883a16dc72dbdbac018a789ab7a951ba"
+            "HoudiniHash=4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8"
           `),
 				},
 			},
@@ -222,14 +221,14 @@ func TestArtifactGeneration(t *testing.T) {
 				Input: []string{
 					`
             query TestQuery {
-              user { 
+              user {
                 ...TestFragment
               }
-            } 
+            }
           `,
 					`
-            fragment TestFragment on User { 
-              firstName 
+            fragment TestFragment on User {
+              firstName
             }
           `,
 				},
@@ -244,7 +243,7 @@ func TestArtifactGeneration(t *testing.T) {
                 __typename
                 id
             }
-            
+
             query TestQuery {
                 user {
                     ...TestFragment
@@ -311,15 +310,15 @@ func TestArtifactGeneration(t *testing.T) {
 				Input: []string{
 					`
     query TestQuery {
-      user { 
+      user {
           firstName
           ...TestFragment
       }
-    } 
+    }
   `,
 					`
-    fragment TestFragment on User { 
-      firstName 
+    fragment TestFragment on User {
+      firstName
     }
   `,
 				},
@@ -334,7 +333,7 @@ func TestArtifactGeneration(t *testing.T) {
                   __typename
                   id
               }
-              
+
               query TestQuery {
                   user {
                       firstName
@@ -506,7 +505,7 @@ func TestArtifactGeneration(t *testing.T) {
               }
 
               "HoudiniHash=42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae"
-            
+
           `),
 				},
 			},
@@ -623,7 +622,7 @@ func TestArtifactGeneration(t *testing.T) {
               }
 
               "HoudiniHash=fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7"
-	
+
           `),
 				},
 			},
@@ -753,7 +752,7 @@ func TestArtifactGeneration(t *testing.T) {
               }
 
               "HoudiniHash=8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733"
-            
+
           `),
 				},
 			},
@@ -781,7 +780,7 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "Friends",
                   "kind": "HoudiniQuery",
-                  "hash": "8d4f14f66b2387a8a8778486fdfe6c0cf6923c60973f9586d543108da374f713",
+                  "hash": "5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121",
                   "raw": ` + "`" + `query Friends {
                   friends {
                       __typename
@@ -793,14 +792,12 @@ func TestArtifactGeneration(t *testing.T) {
                               id
                           }
                           __typename
-                          id
                       }
                       ... on User {
                           name
                           __typename
                           id
                       }
-                      __typename
                   }
               }
               ` + "`" + `,
@@ -898,7 +895,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=8d4f14f66b2387a8a8778486fdfe6c0cf6923c60973f9586d543108da374f713"
+              "HoudiniHash=5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121"
           `),
 				},
 			},
@@ -925,7 +922,7 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "Friends",
                   "kind": "HoudiniQuery",
-                  "hash": "bc12a484d03051a7bc129c6721546e9a4726dcd753da49f2224f89e0b1d6acaa",
+                  "hash": "19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d",
                   "raw": ` + "`" + `query Friends {
                   pets {
                       ... on Cat {
@@ -936,7 +933,6 @@ func TestArtifactGeneration(t *testing.T) {
                               id
                           }
                           __typename
-                          id
                       }
                       ... on Dog {
                           name
@@ -1041,7 +1037,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=bc12a484d03051a7bc129c6721546e9a4726dcd753da49f2224f89e0b1d6acaa"
+              "HoudiniHash=19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d"
           `),
 				},
 			},
@@ -1066,21 +1062,19 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "Friends",
                   "kind": "HoudiniQuery",
-                  "hash": "904ac35930c3920b2aa20644f342c6794a4ef3caac783cad5589a97b0a5eeb2c",
+                  "hash": "84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d",
                   "raw": ` + "`" + `query Friends {
                   pets {
                       __typename
                       ... on Cat {
                           id
                           __typename
-                          id
                       }
                       ... on Dog {
                           name
                           __typename
                           id
                       }
-                      __typename
                   }
               }
               ` + "`" + `,
@@ -1150,7 +1144,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=904ac35930c3920b2aa20644f342c6794a4ef3caac783cad5589a97b0a5eeb2c"
+              "HoudiniHash=84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d"
           `),
 				},
 			},
@@ -1465,7 +1459,7 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "NestedQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "ba8ea3a311642f195ad5a9181f84d7ff3b098ca6e0951263d76f8fa20e984862",
+                  "hash": "4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2",
                   "raw": ` + "`" + `query NestedQuery {
                   node(id: "some_id") {
                       id
@@ -1476,7 +1470,6 @@ func TestArtifactGeneration(t *testing.T) {
                           id
                       }
                       __typename
-                      id
                   }
               }
 
@@ -1485,10 +1478,8 @@ func TestArtifactGeneration(t *testing.T) {
                   ... on User {
                       id
                       __typename
-                      id
                   }
                   __typename
-                  id
               }
 
               fragment UserThings on User {
@@ -1496,7 +1487,6 @@ func TestArtifactGeneration(t *testing.T) {
                   name
                   ...NodeDetails
                   __typename
-                  id
               }
               ` + "`" + `,
 
@@ -1568,7 +1558,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=ba8ea3a311642f195ad5a9181f84d7ff3b098ca6e0951263d76f8fa20e984862"
+              "HoudiniHash=4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2"
 	      `),
 				},
 			},
@@ -1598,16 +1588,14 @@ func TestArtifactGeneration(t *testing.T) {
             export default {
                 "name": "TestQuery",
                 "kind": "HoudiniQuery",
-                "hash": "a8731124dd26213d475ec6bf6c8fb65cbc280da96a98bcdc45194024ab3be287",
+                "hash": "4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb",
                 "raw": ` + "`" + `fragment NodeDetails on Node {
                 id
                 ... on User {
                     id
                     __typename
-                    id
                 }
                 __typename
-                id
             }
 
             query TestQuery {
@@ -1615,7 +1603,6 @@ func TestArtifactGeneration(t *testing.T) {
                     id @skip(if: true)
                     ...NodeDetails @include(if: true)
                     __typename
-                    id
                 }
             }
             ` + "`" + `,
@@ -1703,7 +1690,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "partial": false
             }
 
-            "HoudiniHash=a8731124dd26213d475ec6bf6c8fb65cbc280da96a98bcdc45194024ab3be287"
+            "HoudiniHash=4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb"
 
           `),
 				},
@@ -1734,7 +1721,7 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "f0a41849268b29defc9cf3fda4a9df1d09f65946338169f99b7d51019101b624",
+                  "hash": "8425a7a24172dd6c9329e2025bcccbec73e2a0b7adcc8b52228a36497cc48600",
                   "raw": ` + "`" + `fragment NodeDetails_33ZDpt on Node {
                   ... on User {
                       __typename
@@ -1750,7 +1737,6 @@ func TestArtifactGeneration(t *testing.T) {
                       id
                       ...NodeDetails_33ZDpt
                       __typename
-                      id
                   }
               }
               ` + "`" + `,
@@ -1826,7 +1812,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=f0a41849268b29defc9cf3fda4a9df1d09f65946338169f99b7d51019101b624"
+              "HoudiniHash=8425a7a24172dd6c9329e2025bcccbec73e2a0b7adcc8b52228a36497cc48600"
           `),
 				},
 			},
@@ -1853,20 +1839,18 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "UserBase",
                   "kind": "HoudiniFragment",
-                  "hash": "362236cc6faafb62f3994052dcb4082866d18ca0d7f3633d15e23e49a3f22fbd",
+                  "hash": "04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81",
                   "raw": ` + "`" + `fragment UserBase on User {
                   id
                   firstName
                   ...UserMore
                   __typename
-                  id
               }
 
               fragment UserMore on User {
                   id
                   firstName
                   __typename
-                  id
               }
               ` + "`" + `,
 
@@ -1904,7 +1888,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
               }
 
-              "HoudiniHash=362236cc6faafb62f3994052dcb4082866d18ca0d7f3633d15e23e49a3f22fbd"
+              "HoudiniHash=04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81"
           `),
 				},
 			},
@@ -1930,12 +1914,11 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "AnimalsOverview",
                   "kind": "HoudiniQuery",
-                  "hash": "f22b0a14822ca0a8b66db1ba5a6c0fc948f13999a795f08306fccb42cefd16fa",
+                  "hash": "6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757",
                   "raw": ` + "`" + `query AnimalsOverview($id: ID!) {
                   node(id: $id) {
                       id
                       __typename
-                      id
                   }
               }
               ` + "`" + `,
@@ -1992,7 +1975,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=f22b0a14822ca0a8b66db1ba5a6c0fc948f13999a795f08306fccb42cefd16fa"
+              "HoudiniHash=6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757"
             `),
 				},
 			},
@@ -2000,7 +1983,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "default argument",
 				Pass: true,
 				Input: []string{
-					`	
+					`
             query UserFriends($count: Int = 10, $search: String = "bob") {
               user {
                 friendsByOffset(offset: $count, filter: $search) {
@@ -2118,7 +2101,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "default argument handles base scalars correctly",
 				Pass: true,
 				Input: []string{
-					`	
+					`
             query ListUsers($bool: Boolean = true, $int: Int = 5, $float: Float = 3.14, $string: String = "hello world") {
               users(boolValue: $bool, intValue: $int, floatValue: $float, stringValue: $string) {
                 name
@@ -2211,7 +2194,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "default argument handles complex default arguments",
 				Pass: true,
 				Input: []string{
-					`	
+					`
             query FindUser($filter: UserFilter = { name: "bob" }) {
               users(offset: 5, filter: $filter) {
                 name
@@ -2314,7 +2297,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "default dedupe arguments",
 				Pass: true,
 				Input: []string{
-					`	
+					`
           query FindUser @dedupe {
                 users {
                   name
@@ -2391,7 +2374,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "persists dedupe which",
 				Pass: true,
 				Input: []string{
-					`	
+					`
           query FindUser @dedupe(match: Operation) {
                 users {
                   name
@@ -2468,7 +2451,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "persists dedupe first",
 				Pass: true,
 				Input: []string{
-					`	
+					`
           query FindUser @dedupe(cancelFirst: true) {
                 users {
                   name
@@ -2545,7 +2528,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "cache policy is persisted in artifact",
 				Pass: true,
 				Input: []string{
-					`	
+					`
             query CachedFriends @cache(policy: CacheAndNetwork) {
                 user {
                     friends {
@@ -2560,13 +2543,12 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "CachedFriends",
                   "kind": "HoudiniQuery",
-                  "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                  "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
                   "raw": ` + "`" + `query CachedFriends {
                   user {
                       friends {
                           id
                           __typename
-                          id
                       }
                       __typename
                       id
@@ -2632,7 +2614,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+              "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
 				},
 			},
@@ -2643,7 +2625,7 @@ func TestArtifactGeneration(t *testing.T) {
 					config.DefaultCachePolicy = "NetworkOnly"
 				},
 				Input: []string{
-					`	
+					`
             query CachedFriends {
                 user {
                     friends {
@@ -2658,13 +2640,12 @@ func TestArtifactGeneration(t *testing.T) {
             export default {
                 "name": "CachedFriends",
                 "kind": "HoudiniQuery",
-                "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
                 "raw": ` + "`" + `query CachedFriends {
                 user {
                     friends {
                         id
                         __typename
-                        id
                     }
                     __typename
                     id
@@ -2730,7 +2711,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "partial": false
             }
 
-            "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+            "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
           `),
 				},
 			},
@@ -2738,7 +2719,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "partial opt-in is persisted",
 				Pass: true,
 				Input: []string{
-					`	
+					`
             query CachedFriends @cache(policy: CacheAndNetwork, partial: true) {
                 user {
                     friends {
@@ -2753,13 +2734,12 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "CachedFriends",
                   "kind": "HoudiniQuery",
-                  "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                  "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
                   "raw": ` + "`" + `query CachedFriends {
                   user {
                       friends {
                           id
                           __typename
-                          id
                       }
                       __typename
                       id
@@ -2825,7 +2805,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": true
               }
 
-              "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+              "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
 				},
 			},
@@ -2843,7 +2823,7 @@ func TestArtifactGeneration(t *testing.T) {
                         id
                     }
                 }
-            }	
+            }
           `,
 				},
 				Extra: map[string]any{
@@ -2851,13 +2831,12 @@ func TestArtifactGeneration(t *testing.T) {
               export default {
                   "name": "CachedFriends",
                   "kind": "HoudiniQuery",
-                  "hash": "fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4",
+                  "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
                   "raw": ` + "`" + `query CachedFriends {
                   user {
                       friends {
                           id
                           __typename
-                          id
                       }
                       __typename
                       id
@@ -2923,7 +2902,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": true
               }
 
-              "HoudiniHash=fbb42e5a593aa6dfbe7fda06d62dd9646761b32746bb30902417b751236b82e4"
+              "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
 				},
 			},
@@ -2931,7 +2910,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "fragments of unions inject correctly",
 				Pass: true,
 				Input: []string{
-					` 
+					`
             query EntityList {
                 entities {
                     ...EntityInfo
@@ -3067,7 +3046,7 @@ func TestArtifactGeneration(t *testing.T) {
 				Name: "componentFields",
 				Pass: true,
 				Input: []string{
-					` 
+					`
             query UserWithAvatar {
               user {
                 Avatar

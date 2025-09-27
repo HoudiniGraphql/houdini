@@ -10,30 +10,30 @@ import (
 func TestPaginationArtifacts(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
-      scalar Cursor 
+      scalar Cursor
 
-      type Query { 
+      type Query {
         users: [User!]!
         user: User!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
       }
 
-      type User implements  Node { 
+      type User implements  Node {
         id: ID!
         name: String!
         firstName: String!
         friendsByCursor(
-          first: Int, 
-          last: Int, 
-          before: String, 
-          after: String, 
+          first: Int,
+          last: Int,
+          before: String,
+          after: String,
           filter: String
         ): UserConnection
         friendsByOffset(limit: Int, offset: Int, filter: String): [User!]!
 				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
       }
 
-      type UserConnection { 
+      type UserConnection {
         edges: [UserEdge!]!
         pageInfo: PageInfo!
       }
@@ -45,7 +45,7 @@ func TestPaginationArtifacts(t *testing.T) {
         endCursor: String
       }
 
-      type UserEdge { 
+      type UserEdge {
         node: User
         cursor: String!
       }
@@ -106,7 +106,7 @@ func TestPaginationArtifacts(t *testing.T) {
               export default {
                   "name": "PaginatedFragment",
                   "kind": "HoudiniFragment",
-                  "hash": "c4c850e8d6b0d281ff83c452fc5cd2aeabc1591f460d63fbe10d36e2a55f21f4",
+                  "hash": "0717f2042ae2b309e1ba4dbbe36b6adb42afef645e46a5d43205c91aaa184cac",
 
                   "refetch": {
                       "path": ["friendsByCursor"],
@@ -125,7 +125,6 @@ func TestPaginationArtifacts(t *testing.T) {
                           node {
                               id
                               __typename
-                              id
                           }
                           __typename
                           cursor
@@ -296,7 +295,7 @@ func TestPaginationArtifacts(t *testing.T) {
 
               }
 
-              "HoudiniHash=c4c850e8d6b0d281ff83c452fc5cd2aeabc1591f460d63fbe10d36e2a55f21f4"
+              "HoudiniHash=0717f2042ae2b309e1ba4dbbe36b6adb42afef645e46a5d43205c91aaa184cac"
             `),
 				},
 			},
@@ -321,7 +320,7 @@ func TestPaginationArtifacts(t *testing.T) {
               export default {
                   "name": "PaginatedFragment",
                   "kind": "HoudiniFragment",
-                  "hash": "c4c850e8d6b0d281ff83c452fc5cd2aeabc1591f460d63fbe10d36e2a55f21f4",
+                  "hash": "0717f2042ae2b309e1ba4dbbe36b6adb42afef645e46a5d43205c91aaa184cac",
 
                   "refetch": {
                       "path": ["friendsByCursor"],
@@ -340,7 +339,6 @@ func TestPaginationArtifacts(t *testing.T) {
                           node {
                               id
                               __typename
-                              id
                           }
                           __typename
                           cursor
@@ -516,7 +514,7 @@ func TestPaginationArtifacts(t *testing.T) {
 
               }
 
-              "HoudiniHash=c4c850e8d6b0d281ff83c452fc5cd2aeabc1591f460d63fbe10d36e2a55f21f4"
+              "HoudiniHash=0717f2042ae2b309e1ba4dbbe36b6adb42afef645e46a5d43205c91aaa184cac"
             `),
 				},
 			},
@@ -537,7 +535,7 @@ func TestPaginationArtifacts(t *testing.T) {
               export default {
                   "name": "PaginatedFragment",
                   "kind": "HoudiniFragment",
-                  "hash": "8db8af57b5b15be9612a2b0382befff91906f4ff7a3f2c4b0177b0cb422fa2cc",
+                  "hash": "6577eb9ceaacb8c040e55b45cedcdee871c094539b4167bc1b1b3c02baa7117d",
 
                   "refetch": {
                       "path": ["friendsByOffset"],
@@ -554,7 +552,6 @@ func TestPaginationArtifacts(t *testing.T) {
                   friendsByOffset(filter: "hello", limit: $limit, offset: $offset) {
                       id
                       __typename
-                      id
                   }
                   __typename
                   id
@@ -629,7 +626,7 @@ func TestPaginationArtifacts(t *testing.T) {
 
               }
 
-              "HoudiniHash=8db8af57b5b15be9612a2b0382befff91906f4ff7a3f2c4b0177b0cb422fa2cc"
+              "HoudiniHash=6577eb9ceaacb8c040e55b45cedcdee871c094539b4167bc1b1b3c02baa7117d"
             `),
 				},
 			},
@@ -662,7 +659,7 @@ func TestPaginationArtifacts(t *testing.T) {
               export default {
                   "name": "ScalarPagination",
                   "kind": "HoudiniQuery",
-                  "hash": "c1583a45c5b580484b41ed1788a31285f99b7b87599047cbf9c64193d43d019a",
+                  "hash": "7f2262dcaf136ea17500364d6ca7be04eca17f9950a9177287240aba89d8f8e7",
 
                   "refetch": {
                       "path": ["user","friendsByCursorScalar"],
@@ -685,7 +682,6 @@ func TestPaginationArtifacts(t *testing.T) {
                                           node {
                                               id
                                               __typename
-                                              id
                                           }
                                           __typename
                                       }
@@ -940,7 +936,7 @@ func TestPaginationArtifacts(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=c1583a45c5b580484b41ed1788a31285f99b7b87599047cbf9c64193d43d019a"
+              "HoudiniHash=7f2262dcaf136ea17500364d6ca7be04eca17f9950a9177287240aba89d8f8e7"
             `),
 				},
 			},
@@ -984,7 +980,7 @@ func TestPaginationArtifacts(t *testing.T) {
               export default {
                   "name": "PaginatedFragment",
                   "kind": "HoudiniFragment",
-                  "hash": "22cb26aa904468524148ff92d38ed75761954321c405b006b05b5d111b15440a",
+                  "hash": "ee3d6b9798b1415980137fc3e9833fe8b89b968eb86d87cae840fdde0290d1ab",
 
                   "refetch": {
                       "path": ["friendsByCursor"],
@@ -1006,7 +1002,6 @@ func TestPaginationArtifacts(t *testing.T) {
                                       node {
                                           id
                                           __typename
-                                          id
                                       }
                                       __typename
                                   }
@@ -1034,7 +1029,6 @@ func TestPaginationArtifacts(t *testing.T) {
                                       node {
                                           id
                                           __typename
-                                          id
                                       }
                                       __typename
                                   }
@@ -1382,7 +1376,7 @@ func TestPaginationArtifacts(t *testing.T) {
 
               }
 
-              "HoudiniHash=22cb26aa904468524148ff92d38ed75761954321c405b006b05b5d111b15440a"
+              "HoudiniHash=ee3d6b9798b1415980137fc3e9833fe8b89b968eb86d87cae840fdde0290d1ab"
             `),
 				},
 			},

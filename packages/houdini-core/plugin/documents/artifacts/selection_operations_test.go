@@ -11,16 +11,16 @@ import (
 func TestArtifactOperationsGeneration(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
-      type Mutation { 
+      type Mutation {
          addFriend: AddFriendOutput!
          deleteUser(id: ID!): DeleteUserOutput!
       }
 
-      type Query { 
+      type Query {
         users: [User!]!
       }
 
-      type User { 
+      type User {
         id: ID!
         firstName: String!
         field(filter: String): String
@@ -30,7 +30,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
         friend: User!
       }
 
-      type DeleteUserOutput { 
+      type DeleteUserOutput {
         userID: ID
       }
     `,
@@ -870,13 +870,12 @@ func TestArtifactOperationsGeneration(t *testing.T) {
               export default {
                   "name": "A",
                   "kind": "HoudiniMutation",
-                  "hash": "f150d5d0f2fa4fd0b86ec6b9c832f31d385e1e14141d2c0edc18e21df16b4c93",
+                  "hash": "8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32",
                   "raw": ` + "`" + `mutation A {
                   addFriend {
                       friend {
                           id
                           __typename
-                          id
                       }
                       __typename
                   }
@@ -941,7 +940,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   "optimisticKeys": true
               }
 
-              "HoudiniHash=f150d5d0f2fa4fd0b86ec6b9c832f31d385e1e14141d2c0edc18e21df16b4c93"
+              "HoudiniHash=8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32"
 		`),
 				},
 			},
@@ -1526,7 +1525,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 					`mutation A {
               addFriend {
                 friend {
-                  ...All_Users_toggle 
+                  ...All_Users_toggle
                 }
               }
             }`,
@@ -1641,7 +1640,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 					`mutation A {
               addFriend {
                 friend {
-                  ...All_Users_remove 
+                  ...All_Users_remove
                 }
               }
             }`,

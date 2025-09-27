@@ -10,12 +10,12 @@ import (
 func TestListArtifacts(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
-      type Mutation { 
+      type Mutation {
          addFriend: AddFriendOutput!
          catMutation: Cat
       }
 
-      type Query { 
+      type Query {
         users(
           stringValue: String,
           boolValue: Boolean,
@@ -28,19 +28,19 @@ func TestListArtifacts(t *testing.T) {
         monkeys: MonkeyConnection!
       }
 
-      type User implements Entity & Node { 
+      type User implements Entity & Node {
         id: ID!
         name: String!
         firstName: String!
     friendsByCursor(first: Int, last: Int, before: String, after: String, filter: String): UserConnection
       }
 
-      type Cat implements Entity { 
+      type Cat implements Entity {
         name: String!
         id: ID!
       }
 
-      type UserConnection { 
+      type UserConnection {
         edges: [UserEdge!]!
         pageInfo: PageInfo!
       }
@@ -56,7 +56,7 @@ func TestListArtifacts(t *testing.T) {
 				hasBanana: Boolean!
 			}
 
-      interface Entity { 
+      interface Entity {
         id: ID!
       }
 
@@ -87,7 +87,7 @@ func TestListArtifacts(t *testing.T) {
         endCursor: String
       }
 
-      type UserEdge { 
+      type UserEdge {
         node: User
         cursor: String!
       }
@@ -238,8 +238,8 @@ func TestListArtifacts(t *testing.T) {
 				Input: []string{
 					`query TestQuery {
             usersByCursor(first: 10) @paginate(name: "All_Users") {
-              edges { 
-                node { 
+              edges {
+                node {
                   firstName
                 }
               }
@@ -478,8 +478,8 @@ func TestListArtifacts(t *testing.T) {
 				Input: []string{
 					`query TestQuery {
             usersByCursor(first: 10) @paginate(name: "All_Users", mode: "SinglePage") {
-              edges { 
-                node { 
+              edges {
+                node {
                   firstName
                 }
               }
@@ -764,14 +764,13 @@ func TestListArtifacts(t *testing.T) {
               export default {
                   "name": "AnimalQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "e76887c811b180334dc6bb6b692d39f0266f892db639d5753996e9c84ab1a4bf",
+                  "hash": "4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40",
                   "raw": ` + "`" + `fragment AnimalList on AnimalConnection {
                   edges {
                       node {
                           id
                           ...AnimalProps
                           __typename
-                          id
                       }
                       __typename
                   }
@@ -1001,7 +1000,7 @@ func TestListArtifacts(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=e76887c811b180334dc6bb6b692d39f0266f892db639d5753996e9c84ab1a4bf"
+              "HoudiniHash=4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40"
           `),
 				},
 			},
@@ -1040,7 +1039,7 @@ func TestListArtifacts(t *testing.T) {
               export default {
                   "name": "AnimalsOverview",
                   "kind": "HoudiniQuery",
-                  "hash": "9e4e0eccf7705d19f99168a9cee083cb3b0c442987f8de2fb32af0c419d9268f",
+                  "hash": "dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35",
                   "raw": ` + "`" + `query AnimalsOverview {
                   animals {
                       ...AnimalsOverviewList
@@ -1069,7 +1068,6 @@ func TestListArtifacts(t *testing.T) {
                   name
                   hasBanana
                   __typename
-                  id
               }
               ` + "`" + `,
 
@@ -1178,7 +1176,7 @@ func TestListArtifacts(t *testing.T) {
                   "partial": false
               }
 
-              "HoudiniHash=9e4e0eccf7705d19f99168a9cee083cb3b0c442987f8de2fb32af0c419d9268f"
+              "HoudiniHash=dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35"
         `),
 				},
 			},
