@@ -4,11 +4,11 @@ import sqlite, { DatabaseSync } from 'node:sqlite'
 import { format_hook_error, HookError } from 'src/lib/error'
 
 import * as fs from '../lib/fs'
+import { ProjectManifest } from '../runtime'
 import { db_path, houdini_root } from './conventions'
+import * as routerConventions from './conventions'
 import { create_schema, write_config } from './database'
 import { type Config } from './project'
-import * as routerConventions from './conventions'
-import { ProjectManifest } from '../runtime'
 
 export type PluginSpec = {
 	name: string
@@ -38,7 +38,7 @@ export type Adapter = ((args: {
 }
 
 export function connect_db(config: Config): [DatabaseSync, string] {
-  const filepath = db_path(config)
+	const filepath = db_path(config)
 	const db = new sqlite.DatabaseSync(filepath)
 	db.exec('PRAGMA journal_mode = WAL')
 	db.exec('PRAGMA synchronous = off')
@@ -48,10 +48,10 @@ export function connect_db(config: Config): [DatabaseSync, string] {
 	db.exec('PRAGMA foreign_key = ON')
 	db.exec('PRAGMA defer_foreign_keys = ON')
 
-  // TODO: we might have to destroy the existing tables if we run with a new version
+	// TODO: we might have to destroy the existing tables if we run with a new version
 	db.exec(create_schema)
 
-  return [db, filepath]
+	return [db, filepath]
 }
 
 export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
@@ -66,12 +66,15 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 	try {
 		await fs.remove(`${db_file}-wal`)
 	} catch (e) {}
-  return [connect_db(config)[0], db_file]
+	return [connect_db(config)[0], db_file]
 }
 
 export type CompilerProxy = {
 	close: () => Promise<void>
-	trigger_hook: (name: string, opts?: {parallel_safe?: boolean, payload?: {}, task_id?: string}) => Promise<Record<string, any> | null>
+	trigger_hook: (
+		name: string,
+		opts?: { parallel_safe?: boolean; payload?: {}; task_id?: string }
+	) => Promise<Record<string, any> | null>
 	database_path: string
 }
 
@@ -80,8 +83,8 @@ export type CompilerProxy = {
 export async function codegen_setup(
 	config: Config,
 	mode: string,
-  db: DatabaseSync,
-  db_file: string
+	db: DatabaseSync,
+	db_file: string
 ): Promise<CompilerProxy> {
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(houdini_root(config))
@@ -145,8 +148,8 @@ export async function codegen_setup(
 			}
 		})
 
-  // delete existing plugin metadata
-  db.prepare('DELETE FROM plugins').run()
+	// delete existing plugin metadata
+	db.prepare('DELETE FROM plugins').run()
 
 	// start each plugin
 	console.time('Start Plugins')
@@ -178,7 +181,12 @@ export async function codegen_setup(
 	)
 	console.timeEnd('Start Plugins')
 
-	const invoke_hook = async (name: string, hook: string, payload: Record<string, any> = {}, task_id?: string) => {
+	const invoke_hook = async (
+		name: string,
+		hook: string,
+		payload: Record<string, any> = {},
+		task_id?: string
+	) => {
 		const { port } = plugin_specs[name]
 
 		// make the request
@@ -186,7 +194,7 @@ export async function codegen_setup(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-        'X-Task-ID': task_id?.toString() ?? "",
+				'X-Task-ID': task_id?.toString() ?? '',
 			},
 			body: JSON.stringify(payload),
 		})
@@ -197,7 +205,7 @@ export async function codegen_setup(
 				throw new Error(`Plugin ${name} does not support hook ${hook}`)
 			}
 			const responseJSON = await response.json()
-      const errors: HookError[]  = Array.isArray(responseJSON)  ? responseJSON : [responseJSON] 
+			const errors: HookError[] = Array.isArray(responseJSON) ? responseJSON : [responseJSON]
 			errors.forEach((error) => {
 				format_hook_error(config.root_dir, error, name)
 			})
@@ -213,24 +221,31 @@ export async function codegen_setup(
 	}
 
 	const trigger_hook = async (
-    hook: string, {parallel_safe, payload, task_id} : {
-      parallel_safe?: boolean,
-      payload?: Record<string, any>,
-      task_id?: string
-    } = {}
+		hook: string,
+		{
+			parallel_safe,
+			payload,
+			task_id,
+		}: {
+			parallel_safe?: boolean
+			payload?: Record<string, any>
+			task_id?: string
+		} = {}
 	) => {
-    const timeName = hook + (task_id ? ` (${task_id})` : '')
+		const timeName = hook + (task_id ? ` (${task_id})` : '')
 		console.time(timeName)
 		// look for all of the plugins that have registered for this hook
 		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) => hooks.has(hook))
 
-    const result = {}
+		const result: Record<string, any> = {}
 
 		// if the hook is parallel safe, we can run all of the plugins in parallel
 		if (parallel_safe) {
-			await Promise.all(plugins.map(async ([plugin]) => {
-        result[plugin] = await invoke_hook(plugin, hook, payload, task_id)
-      }))
+			await Promise.all(
+				plugins.map(async ([plugin]) => {
+					result[plugin] = await invoke_hook(plugin, hook, payload, task_id)
+				})
+			)
 		} else {
 			// if the hook isn't parallel safe, we need to run the plugins in order
 			for (const [name] of plugins) {
@@ -239,7 +254,7 @@ export async function codegen_setup(
 		}
 		console.timeEnd(timeName)
 
-    return result
+		return result
 	}
 
 	// write the current config values to the database
@@ -291,15 +306,70 @@ export async function codegen_setup(
 	}
 }
 
-export async function codegen(
-	trigger_hook: CompilerProxy['trigger_hook']
-) {
-	// step through every hook in the pipeline
-	await trigger_hook('ExtractDocuments')
-	await trigger_hook('AfterExtract')
-	await trigger_hook('BeforeValidate')
-	await trigger_hook('Validate', {parallel_safe: true})
-	await trigger_hook('AfterValidate')
-	await trigger_hook('BeforeGenerate')
-	await trigger_hook('Generate', {parallel_safe: true})
+// Define the complete pipeline order
+const PIPELINE_HOOKS = [
+	'ExtractDocuments',
+	'AfterExtract',
+	'BeforeValidate',
+	'Validate',
+	'AfterValidate',
+	'BeforeGenerate',
+	'Generate',
+] as const
+
+type PipelineHook = (typeof PIPELINE_HOOKS)[number]
+
+export type RunPipelineOptions = {
+	task_id?: string
+	after?: PipelineHook
+	before?: PipelineHook
 }
+
+export async function run_pipeline(
+	trigger_hook: CompilerProxy['trigger_hook'],
+	options: RunPipelineOptions = {}
+): Promise<Record<PipelineHook, Record<string, any>>> {
+	const { task_id, after, before } = options
+	const results: Record<string, any> = {}
+
+	// Find the start and end indices
+	let startIndex = 0
+	let endIndex = PIPELINE_HOOKS.length - 1
+
+	if (after) {
+		const afterIndex = PIPELINE_HOOKS.indexOf(after)
+		if (afterIndex === -1) {
+			throw new Error(`Unknown hook: ${after}`)
+		}
+		startIndex = afterIndex + 1
+	}
+
+	if (before) {
+		const beforeIndex = PIPELINE_HOOKS.indexOf(before)
+		if (beforeIndex === -1) {
+			throw new Error(`Unknown hook: ${before}`)
+		}
+		endIndex = beforeIndex - 1
+	}
+
+	// Validate that we have a valid range
+	if (startIndex > endIndex) {
+		return results
+	}
+
+	// Execute the hooks in order
+	for (let i = startIndex; i <= endIndex; i++) {
+		const hook = PIPELINE_HOOKS[i]
+		const opts: any = { task_id }
+
+		// Set parallel_safe for hooks that support it
+		if (hook === 'Validate' || hook === 'Generate') {
+			opts.parallel_safe = true
+		}
+
+		results[hook] = await trigger_hook(hook, opts)
+	}
+
+	return results
+}
+

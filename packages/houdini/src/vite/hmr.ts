@@ -1,8 +1,16 @@
 import type { DatabaseSync } from 'node:sqlite'
-import { Plugin as VitePlugin, UserConfig } from 'vite'
+import { Plugin as VitePlugin, UserConfig, type ModuleNode } from 'vite'
 
 import type { PluginConfig } from '.'
-import { codegen_setup, CompilerProxy, connect_db, fs, get_config, path } from '../lib'
+import {
+	codegen_setup,
+	CompilerProxy,
+	connect_db,
+	fs,
+	get_config,
+	path,
+	run_pipeline,
+} from '../lib'
 import type { Config } from '../lib'
 
 /**
@@ -63,13 +71,9 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			compiler = await codegen_setup(config, 'dev', db, dbFile)
 
 			// before we can do anything we need to discover what documents exist on the filesystem
-			await compiler.trigger_hook('ExtractDocuments')
-			await compiler.trigger_hook('AfterExtract')
-
 			// we need to trigger validate in order to discover lists which might not appear in the normal JIT path
 			// TODO: discover lists earlier
-			await compiler.trigger_hook('BeforeValidate')
-			await compiler.trigger_hook('Validate', { parallel_safe: true })
+			await run_pipeline(compiler.trigger_hook, { before: 'AfterValidate' })
 		},
 
 		async buildEnd() {
@@ -96,7 +100,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 		},
 
 		// this is called when a file is created or modified
-		async handleHotUpdate({ file, read, server, timestamp }) {
+		async handleHotUpdate({ file, read, server, timestamp }): Promise<void | ModuleNode[]> {
 			const contents = await read()
 			// if the file contains a document then we need to parse it, and prepare the task with
 			// with the dependent documents
@@ -216,15 +220,13 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			).run({ task_id: task_id })
 
 			// the task now includes every document that we need to process
-			await compiler.trigger_hook('BeforeValidate', { task_id })
-			await compiler.trigger_hook('Validate', { parallel_safe: true, task_id })
-			await compiler.trigger_hook('AfterValidate', { task_id })
-			await compiler.trigger_hook('BeforeGenerate', { task_id })
+			const results = await run_pipeline(compiler.trigger_hook, {
+				task_id,
+				after: 'AfterExtract',
+			})
 
 			// the return value of each generate invocation is the list of modules that were updated
-			const updated_modules = Object.values(
-				(await compiler.trigger_hook('Generate', { parallel_safe: true, task_id }))!
-			).flat()
+			const updated_modules = Object.values(results.Generate || {}).flat() as Array<string>
 
 			// and finally we can remove the task id association
 			db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(
@@ -232,7 +234,15 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			)
 
 			// the return value of this function invalidates the modules and causes vite to refresh them
-			return updated_modules
+			// Convert file paths to ModuleNode objects
+			const moduleNodes: ModuleNode[] = []
+			for (const modulePath of updated_modules) {
+				const moduleNode = server.moduleGraph.getModuleById(modulePath)
+				if (moduleNode) {
+					moduleNodes.push(moduleNode)
+				}
+			}
+			return moduleNodes
 		},
 	}
 }
@@ -298,7 +308,7 @@ async function ensureArtifactGenerated(
 ): Promise<void> {
 	// before we do anything let's see if the artifact has been generated already
 	try {
-		await fs.stat(
+		await fs.access(
 			path.join(config.root_dir, config.config_file.runtimeDir!, 'artifacts', artifactName)
 		)
 		// if stat doesn't throw, the file exists
@@ -365,11 +375,10 @@ async function ensureArtifactGenerated(
 	).run({ task_id: task_id })
 
 	// Run the compilation pipeline for this task
-	await compiler.trigger_hook('BeforeValidate', { task_id })
-	await compiler.trigger_hook('Validate', { parallel_safe: true, task_id })
-	await compiler.trigger_hook('AfterValidate', { task_id })
-	await compiler.trigger_hook('BeforeGenerate', { task_id })
-	await compiler.trigger_hook('Generate', { parallel_safe: true, task_id })
+	await run_pipeline(compiler.trigger_hook, {
+		task_id,
+		after: 'AfterExtract',
+	})
 
 	// Clean up the task
 	db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(task_id)
