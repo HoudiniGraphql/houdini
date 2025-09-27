@@ -256,6 +256,7 @@ func processDocument[PluginConfig any](
 		docVariablesStr := withSearch.GetText("doc_variables")
 		typeCondition := withSearch.GetText("type_condition")
 		rawDocument := withSearch.GetInt64("raw_document")
+		fragmentRef := withSearch.GetText("fragment_ref")
 
 		withArgs := []struct {
 			Name  string `json:"name"`
@@ -320,7 +321,13 @@ func processDocument[PluginConfig any](
 			errs.Append(plugins.WrapError(err))
 			return
 		}
-		newFragmentName := fragmentName + "_" + murmurHash(string(args))
+		hash := murmurHash(string(args))
+		newFragmentName := fragmentName + "_" + hash
+
+		// if the selection has already been transformed, don't transfor it again
+		if fragmentName == fragmentRef+"_"+hash {
+			return
+		}
 
 		// clone the fragment document with the new name
 		fragmentID, fragmentScope, err := cloneDocument(
@@ -989,7 +996,8 @@ func prepareTransformStatements[PluginConfig any](
           ) 
       END as doc_variables,
       fragment_doc.type_condition as type_condition,
-      fragment_doc.raw_document as raw_document
+      fragment_doc.raw_document as raw_document,
+      selections.fragment_ref as fragment_ref
     FROM selection_directives
       JOIN selections ON selection_directives.selection_id = selections.id
       JOIN selection_refs ON selection_refs.child_id = selections.id
