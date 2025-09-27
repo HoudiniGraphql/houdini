@@ -253,7 +253,6 @@ func WriteMetadata[PluginConfig any](
 			continue
 		}
 		count := tfStmt.ColumnInt(0)
-		fmt.Println("count", count, candidateID)
 		if count > 0 {
 			errs.Append(&plugins.Error{
 				Message: fmt.Sprintf(

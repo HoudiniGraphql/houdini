@@ -1,9 +1,14 @@
 package documents_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
@@ -177,11 +182,6 @@ func TestAddFields(t *testing.T) {
 										Alias:     tests.StrPtr("aka"),
 										Kind:      "field",
 									},
-									{
-										FieldName: "name",
-										Alias:     tests.StrPtr("name"),
-										Kind:      "field",
-									},
 								},
 							},
 						},
@@ -251,6 +251,88 @@ func TestAddFields(t *testing.T) {
 												Kind:      "field",
 											},
 										},
+									},
+									{
+										FieldName: "__typename",
+										Alias:     tests.StrPtr("__typename"),
+										Kind:      "field",
+									},
+									{
+										FieldName: "id",
+										Alias:     tests.StrPtr("id"),
+										Kind:      "field",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+}
+
+func TestAddFields_multipleInvocation(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
+		Schema: `
+			type Query {
+				user: User
+			}
+
+			type User {
+				id: ID!
+				firstName: String!
+			}
+    `,
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			// extract twice
+			err := plugin.AfterExtract(context.Background())
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+
+			err = plugin.AfterValidate(context.Background())
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+			err = documents.AddDocumentFields(context.Background(), plugin.DB)
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+
+			// make sure the expected document is correct
+			tests.ValidateExpectedDocuments(t, plugin.DB, test.Expected)
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "Adds ids to selection sets of objects with them",
+				Pass: true,
+				Input: []string{
+					`
+						query Friends {
+							user {
+								firstName
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					{
+						Name: "Friends",
+						Kind: "query",
+						Selections: []tests.ExpectedSelection{
+							{
+								FieldName: "user",
+								Alias:     tests.StrPtr("user"),
+								Kind:      "field",
+								Children: []tests.ExpectedSelection{
+									{
+										FieldName: "firstName",
+										Alias:     tests.StrPtr("firstName"),
+										Kind:      "field",
 									},
 									{
 										FieldName: "__typename",

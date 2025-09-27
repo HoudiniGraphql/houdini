@@ -71,7 +71,7 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 
 export type CompilerProxy = {
 	close: () => Promise<void>
-	trigger_hook: (name: string, opts?: {parallel_safe?: boolean, payload?: {}, task_id?: string}) => Promise<void>
+	trigger_hook: (name: string, opts?: {parallel_safe?: boolean, payload?: {}, task_id?: string}) => Promise<Record<string, any> | null>
 	database_path: string
 }
 

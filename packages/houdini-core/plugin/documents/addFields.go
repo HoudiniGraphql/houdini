@@ -33,67 +33,86 @@ func AddDocumentFields[PluginConfig any](
 	// as parents, we can look at the config and type_config tables to determine which keys
 	// need to be added
 	keysToInsert, err := conn.Prepare(`
-	WITH default_config AS (
-			SELECT default_keys
-			FROM config
-			LIMIT 1
-		),
+    WITH default_config AS (
+      SELECT default_keys
+      FROM config
+      LIMIT 1
+    ),
+    base AS (
+      SELECT DISTINCT
+        sr.parent_id AS object_selection_id,
+        sr.document  AS doc_id,
+        CASE
+          WHEN s.kind = 'inline_fragment' THEN s.field_name
+          WHEN documents.kind = 'fragment' AND sr.parent_id IS NULL THEN documents.type_condition
+          ELSE tf.type
+        END AS parent_type
+      FROM selection_refs sr
+      LEFT JOIN selections s      ON sr.parent_id = s.id
+      JOIN documents              ON sr."document" = documents.id
+      LEFT JOIN type_fields tf    ON s.type = tf.id
+      JOIN types t ON t.name = (
+        CASE
+          WHEN s.kind = 'inline_fragment' THEN s.field_name
+          WHEN documents.kind = 'fragment' AND sr.parent_id IS NULL THEN documents.type_condition
+          ELSE tf.type
+        END
+      )
+      JOIN documents d  ON sr.document = d.id
+      JOIN raw_documents rd ON d.raw_document = rd.id
+      AND t.operation IS NULL
+      AND (rd.current_task = $task_id OR $task_id IS NULL)
+    ),
+    keys_union AS (
+      -- Always include __typename
+      SELECT '__typename' AS key_name, parent_type, object_selection_id, doc_id
+      FROM base
 
-		base AS (
-			SELECT DISTINCT
-				sr.parent_id AS object_selection_id,
-				sr.document AS doc_id,
-				CASE
-					WHEN s.kind = 'inline_fragment' THEN s.field_name
- 					WHEN documents.kind = 'fragment' and sr.parent_id is null THEN documents.type_condition
- 					ELSE tf.type
-				END AS parent_type
-			FROM selection_refs sr
-			LEFT JOIN selections s ON sr.parent_id = s.id
-			JOIN documents on sr."document" = documents.id
-			LEFT JOIN type_fields tf ON s.type = tf.id
-			JOIN types t ON t.name = (
-				CASE
-					WHEN s.kind = 'inline_fragment' THEN s.field_name
-					WHEN documents.kind = 'fragment' and sr.parent_id is null THEN documents.type_condition
-					ELSE tf.type
-				END
-			)
-			JOIN documents d ON sr.document = d.id
-			JOIN raw_documents rd ON d.raw_document = rd.id
-			AND t.operation is null
-			AND (rd.current_task = $task_id OR $task_id IS NULL)
-		),
+      UNION
 
-		keys_union AS (
-			-- Always include __typename.
-			SELECT '__typename' AS key_name, parent_type, object_selection_id, doc_id
-			FROM base
+      -- Type-specific keys
+      SELECT j.value AS key_name, b.parent_type, b.object_selection_id, b.doc_id
+      FROM base b
+      JOIN type_configs tc ON tc.name = b.parent_type
+      CROSS JOIN json_each(tc.keys) j
 
-			UNION
+      UNION
 
-			-- Use type-specific keys when available.
-			SELECT j.value AS key_name, b.parent_type, b.object_selection_id, b.doc_id
-			FROM base b
-			JOIN type_configs tc ON tc.name = b.parent_type
-			CROSS JOIN json_each(tc.keys) j
-
-			UNION
-
-			-- Use default keys only if no type-specific keys exist for that type.
-			SELECT j.value AS key_name, b.parent_type, b.object_selection_id, b.doc_id
-			FROM base b
-				CROSS JOIN default_config
-				CROSS JOIN json_each(default_config.default_keys) j
-				LEFT JOIN type_configs tc ON tc.name = b.parent_type
-			WHERE tc.name IS NULL
-		)
-
-		-- Only keep keys that actually exist in type_fields
-		SELECT keys_union.*
-		FROM keys_union
-		JOIN type_fields tf ON tf.parent = keys_union.parent_type AND tf.name = keys_union.key_name
-	`)
+      -- Default keys only if no type-specific keys exist
+      SELECT j.value AS key_name, b.parent_type, b.object_selection_id, b.doc_id
+      FROM base b
+      CROSS JOIN default_config
+      CROSS JOIN json_each(default_config.default_keys) j
+      LEFT JOIN type_configs tc ON tc.name = b.parent_type
+      WHERE tc.name IS NULL
+    ),
+    existing AS (
+      -- keys already present on that object in that document
+      SELECT
+        sr.parent_id AS object_selection_id,
+        sr.document  AS doc_id,
+        s.alias      AS key_name
+      FROM selection_refs sr
+      JOIN selections s ON s.id = sr.child_id
+      WHERE s.kind = 'field'
+    ),
+    candidates AS (
+      -- Keep only keys that (a) exist in type_fields OR are __typename,
+      -- and (b) are not already present on that object in that document.
+      SELECT ku.*
+      FROM keys_union ku
+      LEFT JOIN type_fields tf
+        ON tf.parent = ku.parent_type AND tf.name = ku.key_name
+      LEFT JOIN existing e
+        ON COALESCE(e.object_selection_id, -1) = COALESCE(ku.object_selection_id, -1)
+       AND e.doc_id = ku.doc_id
+       AND e.key_name = ku.key_name
+      WHERE (ku.key_name = '__typename' OR tf.id IS NOT NULL)
+        AND e.key_name IS NULL
+    )
+    SELECT key_name, parent_type, object_selection_id, doc_id
+    FROM candidates
+    `)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}

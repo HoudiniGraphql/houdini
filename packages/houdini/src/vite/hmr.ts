@@ -179,7 +179,7 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
 
               // the return value of each generate invocation is the list of modules that were updated
               const updated_modules = Object.values(
-                await compiler.trigger_hook('Generate', {parallel_safe: true, task_id})
+                (await compiler.trigger_hook('Generate', {parallel_safe: true, task_id}))!
               ).flat()
 
 
@@ -187,7 +187,7 @@ export default function(opts: PluginConfig = {}) : VitePlugin {
               db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(task_id)
 
               // the return value of this function invalidates the modules and causes vite to refresh them
-              return update_modules
+              return updated_modules
           }
     }
 }
