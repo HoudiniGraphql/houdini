@@ -18,9 +18,9 @@ func LoadDocumentDependencies[PluginConfig any](
 	}
 	defer db.Put(conn)
 
-	// prepare the insert query
+	// prepare the insert query with ON CONFLICT IGNORE to prevent duplicates
 	insertDependency, err := conn.Prepare(
-		"INSERT INTO document_dependencies (document, depends_on) VALUES ($document, $depends_on)",
+		"INSERT OR IGNORE INTO document_dependencies (document, depends_on) VALUES ($document, $depends_on)",
 	)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -31,19 +31,19 @@ func LoadDocumentDependencies[PluginConfig any](
 	// for our purposes we need to look at every fragment used in every document along with
 	// any fields that might be pulled in via component fields
 	search, err := conn.Prepare(`
-    SELECT 
-      selection_refs."document", 
+    SELECT
+      selection_refs."document",
       COALESCE(component_fields.fragment, selections.field_name) as depends_on
-    FROM selections 
+    FROM selections
       JOIN selection_refs ON selection_refs.child_id = selections.id
       JOIN documents ON selection_refs.document = documents.id
       JOIN raw_documents ON documents.raw_document = raw_documents.id
-      LEFT JOIN component_fields ON selections.type = component_fields.type_field	
-    WHERE 
+      LEFT JOIN component_fields ON selections.type = component_fields.type_field
+    WHERE
       (raw_documents.current_task = $task_id OR $task_id IS NULL)
       AND (
-          selections.kind = 'fragment' 
-        OR 
+          selections.kind = 'fragment'
+        OR
           (selections.kind = 'field' AND component_fields.id IS NOT NULL)
       )
   `)

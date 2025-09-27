@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite'
-import { Plugin as VitePlugin, UserConfig, type ModuleNode } from 'vite'
+import { Plugin as VitePlugin, UserConfig, } from 'vite'
+import type { ModuleNode  } from 'vite'
 
 import type { PluginConfig } from '.'
 import {

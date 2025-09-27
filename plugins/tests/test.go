@@ -250,7 +250,8 @@ CREATE TABLE document_dependencies (
   depends_on TEXT NOT NULL,
 
   FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED,
-  FOREIGN KEY (depends_on) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED
+  FOREIGN KEY (depends_on) REFERENCES documents(name) DEFERRABLE INITIALLY DEFERRED,
+  UNIQUE (document, depends_on)
 );
 
 -----------------------------------------------------------

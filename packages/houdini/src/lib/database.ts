@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS document_variables (
 -- this is pulled out separately from operations and fragments so foreign keys can be used
 CREATE TABLE IF NOT EXISTS documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,	  
+    name TEXT NOT NULL,
     kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
     raw_document INTEGER,
     type_condition TEXT,
@@ -364,7 +364,8 @@ CREATE TABLE IF NOT EXISTS document_dependencies (
   document INTEGER NOT NULL,
   depends_on TEXT NOT NULL,
 
-  FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
+  FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
+  UNIQUE (document, depends_on)
 );
 
 -----------------------------------------------------------
@@ -455,12 +456,12 @@ export async function write_config(
 		...config.config_file,
 	}
 
-  // before we write the config row, let's delete the existing one
-  db.prepare("DELETE FROM config").run()
-  db.prepare("DELETE FROM router_config").run()
-  db.prepare("DELETE FROM watch_schema_config").run()
-  db.prepare("DELETE FROM scalar_config").run()
-  db.prepare("DELETE FROM type_configs").run()
+	// before we write the config row, let's delete the existing one
+	db.prepare('DELETE FROM config').run()
+	db.prepare('DELETE FROM router_config').run()
+	db.prepare('DELETE FROM watch_schema_config').run()
+	db.prepare('DELETE FROM scalar_config').run()
+	db.prepare('DELETE FROM type_configs').run()
 
 	// write the config to the database
 	db.prepare(
@@ -581,7 +582,7 @@ export async function write_config(
 	// write the scalar configs
 	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)')
 	for (const [name, { type, inputTypes }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type, JSON.stringify((inputTypes as Array<string> ?? []).concat(name)))
+		insert.run(name, type, JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)))
 	}
 
 	// write the type configs
@@ -594,4 +595,3 @@ export async function write_config(
 		)
 	}
 }
-
