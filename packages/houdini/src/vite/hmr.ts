@@ -122,6 +122,18 @@ export default function (opts: PluginConfig = {}): VitePlugin {
       `
 			).run(relativePath)
 
+      // we might have lost fragment variable expanded documents so look for any documents that 
+      // have a fragment ref but no matching document and patch them up
+      db.prepare(
+        `
+        UPDATE selections AS s
+        SET field_name = s.fragment_ref
+        WHERE s.fragment_ref IS NOT NULL
+          AND s.kind = 'fragment'                              -- only fragment spreads
+          AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
+        `
+      ).run()
+
 			// clean up any dangling references
 			db.prepare(
 				`
@@ -165,7 +177,6 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			// now that all of the documents have been updated to their latest version we can
 			// walk the dependency graph and include any transient dependencys to the task
 			// aswell
-      // TODO: only walk up if the document has been generated before
 			db.prepare(
 				`
 					WITH RECURSIVE
@@ -185,6 +196,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 						FROM up u
 						JOIN document_dependencies dd ON dd.depends_on = u.name
 						JOIN documents d2            ON d2.id = dd.document
+            WHERE printed IS NOT NULL
 					),
 
 					-- 3) Walk DOWN: find names that any visited name depends on (transitively)
