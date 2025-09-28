@@ -348,7 +348,7 @@ func WriteMetadata[PluginConfig any](
 	defer insertComponentField.Finalize()
 
 	insertInternalField, err := conn.Prepare(`
-		INSERT INTO type_fields (id, parent, name, type, internal) VALUES ($id, $parent, $name, $type, true)
+		INSERT INTO type_fields (id, parent, name, type, internal, document) VALUES ($id, $parent, $name, $type, true, $document)
 	`)
 	if err != nil {
 		errs.Append(&plugins.Error{
@@ -431,10 +431,11 @@ func WriteMetadata[PluginConfig any](
 			continue
 		}
 		err = db.ExecStatement(insertInternalField, map[string]any{
-			"id":     fmt.Sprintf("%s.%s", data.Type, data.Field),
-			"parent": data.Type,
-			"name":   data.Field,
-			"type":   "Component",
+			"id":       fmt.Sprintf("%s.%s", data.Type, data.Field),
+			"parent":   data.Type,
+			"name":     data.Field,
+			"type":     "Component",
+			"document": data.RawDocumentID,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

@@ -112,10 +112,13 @@ CREATE TABLE IF NOT EXISTS type_fields (
     parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
     type TEXT NOT NULL,
-	type_modifiers TEXT,
+	  type_modifiers TEXT,
     default_value TEXT,
     description TEXT,
-	internal BOOLEAN default false,
+	  internal BOOLEAN default false,
+    document INT,
+
+    FOREIGN KEY (document) REFERENCES raw_documents(id) ON DELETE CASCADE,
     FOREIGN KEY (parent) REFERENCES types(name) ON DELETE CASCADE,
     FOREIGN KEY (type) REFERENCES types(name) ON DELETE CASCADE,
     UNIQUE (parent, name)
@@ -232,7 +235,7 @@ CREATE TABLE IF NOT EXISTS selections (
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
     fragment_ref TEXT, -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
-    FOREIGN KEY (type) REFERENCES type_fields(id) ON DELETE CASCADE
+    FOREIGN KEY (type) REFERENCES type_fields(id) 
 );
 
 CREATE TABLE IF NOT EXISTS selection_directives (
