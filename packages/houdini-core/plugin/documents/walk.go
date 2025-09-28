@@ -3,11 +3,11 @@ package documents
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
-	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/glob"
 	"code.houdinigraphql.com/plugins"
@@ -50,29 +50,34 @@ func Walk[PluginConfig any](
 	})
 }
 
-// ExtractTaskDocuments looks for all raw_documents associated with a specific task ID
-// and extracts them into the database.
-func ExtractTaskDocuments[PluginConfig any](
+func ExtractFromFile[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
 	fs afero.Fs,
-	taskID int64,
+	fp string,
 ) error {
-	// extract the documents that the walker finds
-	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
-		query := `
-			SELECT filepath FROM raw_documents WHERE current_task = $task
-		`
-		bindings := map[string]any{
-			"task": taskID,
-		}
+	// load the project config
+	config, err := db.ProjectConfig(ctx)
+	if err != nil {
+		return err
+	}
 
-		return db.StepQuery(ctx, query, bindings, func(search *sqlite.Stmt) {
-			select {
-			case filePathsCh <- search.ColumnText(0):
-			case <-ctx.Done():
-			}
-		})
+	root := config.ProjectRoot
+	rel, err := filepath.Rel(root, fp)
+	if err != nil {
+		return err
+	}
+	rel = filepath.ToSlash(rel)
+
+	// and extract the documents that the walker finds
+	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
+		// send the single filepath to the channel
+		select {
+		case filePathsCh <- rel:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	})
 }
 
@@ -252,20 +257,6 @@ func extractDocuments[PluginConfig any](
 				if err != nil {
 					errs.Append(
 						plugins.WrapError(fmt.Errorf("failed to insert component field: %v", err)),
-					)
-					return nil
-				}
-			}
-		}
-
-		// the list of unknowns now contains the unknowns
-		for _, docs := range unknown {
-			for _, id := range docs {
-				// delete the document
-				err = db.ExecStatement(deleteRawDocument, map[string]any{"id": id})
-				if err != nil {
-					errs.Append(
-						plugins.WrapError(fmt.Errorf("failed to clean up known doc: %v", err)),
 					)
 					return nil
 				}

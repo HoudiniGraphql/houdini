@@ -110,44 +110,46 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 				return
 			}
 
-			const relativePath = file.substring(server.config.root.length)
+			const relativePath = file.substring(server.config.root.length + 1)
 			const task_id = timestamp.toString()
 
-			// every document that we find here is part of the task so update the rows indepdently before
-			// we kick of the next task
-			const names = extractAllGraphQLNames(relativePath, contents)
-			for (const name of names) {
-				const graphqlRegex = new RegExp('/graphql(s*`((?:\\`|[^`])*?)`s*)/s')
-				const docContents = file.endsWith('.gql')
-					? contents
-					: graphqlRegex.exec(contents)?.[1]
-				if (!docContents) {
-					continue
-				}
+      // ideally we would be able to check if the file's content has changed before we re-run but there could
+      // be abitrary extraction logic in a plugin that means we have to instead defer to them 
 
-				// before we go any further we want to check if the document actually changed
-				const existingQuery = db
-					.prepare(
-						`
-							SELECT content, raw_documents.id as raw_document
-							FROM documents
-							JOIN raw_documents ON raw_documents.id = documents.raw_document
-							WHERE name = ? OR content = ?
-						`
-					)
-					.get(name, docContents) as { content: string; raw_document: number } | undefined
-				if (!docContents || (existingQuery && existingQuery.content === docContents)) {
-					return
-				}
-				if (existingQuery) {
-					cleanUpDocument(db, existingQuery.raw_document)
-				}
+      // so let's just blow away any raw documents related to the changed file and then we'll call extract
+      db.prepare(`
+          DELETE from raw_documents WHERE filepath = ?
+      `).run(relativePath)
 
-				// insert a fresh row with the raw document data
-				db.prepare(
-					`INSERT INTO raw_documents (filepath, content, current_task) VALUES (?, ?, ?)`
-				).run(relativePath, docContents, task_id)
-			}
+      // clean up any dangling references
+      db.prepare(
+        `
+          WITH orphan_selections AS (
+            SELECT s.id
+            FROM selections s
+            LEFT JOIN selection_refs rp ON rp.parent_id = s.id
+            LEFT JOIN selection_refs rc ON rc.child_id = s.id
+            WHERE rp.id IS NULL AND rc.id IS NULL
+          )
+          DELETE FROM selections
+          WHERE id IN (SELECT id FROM orphan_selections)
+        `
+      ).run()
+
+      // tell the plugin to extract the filepath
+      await compiler.trigger_hook('ExtractDocuments', {
+        payload: { filepath: file }
+      })
+
+      // look for the raw document that matches the filepath
+      const result =  db.prepare(`
+        UPDATE raw_documents SET current_task = ? WHERE filepath = ?
+      `).run(task_id, relativePath)
+
+      // if the update did not contain any changes, then there were no extracted files
+      if (result.changes === 0) {
+        return 
+      }
 
 			// at this point, the raw_documents with the matching task ID make up the core set of documents
 			// that have changed because of this update event
@@ -246,57 +248,6 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			return moduleNodes
 		},
 	}
-}
-
-function cleanUpDocument(db: DatabaseSync, id: number) {
-	try {
-		// there are a bunch of tables that we need to clean up
-		db.prepare(`DELETE FROM raw_documents WHERE id = ?`).run(id)
-
-		// drop any selections that don't have refs
-		db.prepare(
-			`
-				WITH orphan_selections AS (
-					SELECT s.id
-					FROM selections s
-					LEFT JOIN selection_refs rp ON rp.parent_id = s.id
-					LEFT JOIN selection_refs rc ON rc.child_id = s.id
-					WHERE rp.id IS NULL AND rc.id IS NULL
-				)
-				DELETE FROM selections
-				WHERE id IN (SELECT id FROM orphan_selections)
-			`
-		).run()
-	} catch (e) {
-		throw e
-	}
-}
-
-const GRAPHQL_BLOCK_RE = /graphql\(\s*`((?:\\`|[^`])*?)`\s*\)/gs
-const DEF_NAME_RE = /\b(?:query|mutation|subscription|fragment)\s+([_A-Za-z][_0-9A-Za-z]*)\b/g
-
-function extractDefNamesFromText(text: string): string[] {
-	const names: string[] = []
-	let m: RegExpExecArray | null
-	while ((m = DEF_NAME_RE.exec(text))) {
-		names.push(m[1])
-	}
-	return names
-}
-
-function extractAllGraphQLNames(filePath: string, contents: string): string[] {
-	if (filePath.endsWith('.gql')) {
-		// Entire file is GraphQL
-		return extractDefNamesFromText(contents)
-	}
-
-	// Otherwise, scan each graphql`...` block inside the source file
-	const names: string[] = []
-	let match: RegExpExecArray | null
-	while ((match = GRAPHQL_BLOCK_RE.exec(contents))) {
-		names.push(...extractDefNamesFromText(match[1]))
-	}
-	return names
 }
 
 /**

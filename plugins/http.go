@@ -3,7 +3,9 @@ package plugins
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -39,7 +41,10 @@ func pluginHooks[PluginConfig any](
 	}
 	if p, ok := plugin.(ExtractDocuments); ok {
 		hooks["ExtractDocuments"] = true
-		http.Handle("/extractdocuments", InjectTaskID(EventHook(p.ExtractDocuments)))
+		http.Handle(
+			"/extractdocuments",
+			InjectTaskID(EventHookWithInput[ExtractDocumentsInput](p.ExtractDocuments)),
+		)
 	}
 	if p, ok := plugin.(AfterExtract); ok {
 		hooks["AfterExtract"] = true
@@ -166,6 +171,32 @@ func EventHookWithResponse(hook func(context.Context) (any, error)) http.Handler
 			return
 		}
 	})
+}
+
+func EventHookWithInput[T any](hook func(context.Context, T) error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// parse the input from the request body
+		var input T
+
+		const maxBody = 1 << 20 // 1MB
+		defer r.Body.Close()
+		err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBody)).Decode(&input)
+		if err != nil && !errors.Is(err, io.EOF) {
+			handleError(w, err)
+			return
+		}
+
+		// call the function
+		err = hook(r.Context(), input)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+	})
+}
+
+type ExtractDocumentsInput struct {
+	Filepath string `json:"filepath"`
 }
 
 func handleGenerate[PluginConfig any](
