@@ -1,4 +1,3 @@
-import fs from 'node:fs'
 import { styleText } from 'node:util'
 
 import { readFileSync } from './fs'

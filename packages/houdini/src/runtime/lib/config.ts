@@ -1,5 +1,3 @@
-import type { GraphQLSchema } from 'graphql'
-
 import config from '../imports/config'
 import pluginConfigs from '../imports/pluginConfig'
 import type { CachePolicies, PaginateModes } from './types'

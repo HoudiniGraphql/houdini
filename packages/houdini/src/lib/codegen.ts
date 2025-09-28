@@ -1,12 +1,12 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
-import sqlite, { DatabaseSync } from 'node:sqlite'
-import { format_hook_error, HookError } from 'src/lib/error'
+import sqlite, { type DatabaseSync } from 'node:sqlite'
+import { format_hook_error, type HookError } from 'src/lib/error'
 
 import * as fs from '../lib/fs'
-import { ProjectManifest } from '../runtime'
+import type { ProjectManifest } from '../runtime'
 import { db_path, houdini_root } from './conventions'
-import * as routerConventions from './conventions'
+import type * as routerConventions from './conventions'
 import { create_schema, write_config } from './database'
 import { type Config } from './project'
 

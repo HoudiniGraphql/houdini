@@ -1,8 +1,8 @@
-import sqlite from 'node:sqlite'
-import path from 'path'
+import path from 'node:path'
+import type sqlite from 'node:sqlite'
 
-import { PluginSpec } from './codegen'
-import { Config, default_config } from './project'
+import type { PluginSpec } from './codegen'
+import { type Config, default_config } from './project'
 
 export const create_schema = `
 CREATE TABLE IF NOT EXISTS plugins (
@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS selections (
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
     fragment_ref TEXT, -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
-    FOREIGN KEY (type) REFERENCES type_fields(id) 
+    FOREIGN KEY (type) REFERENCES type_fields(id)
 );
 
 CREATE TABLE IF NOT EXISTS selection_directives (

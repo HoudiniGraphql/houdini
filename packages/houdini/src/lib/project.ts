@@ -1,6 +1,6 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
-import { GraphQLSchema } from 'graphql'
+import type { GraphQLSchema } from 'graphql'
 import { pathToFileURL } from 'node:url'
 
 import type { ConfigFile } from '../runtime/lib/config'

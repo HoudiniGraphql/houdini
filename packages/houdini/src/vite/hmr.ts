@@ -1,18 +1,17 @@
 import type { DatabaseSync } from 'node:sqlite'
-import { Plugin as VitePlugin, UserConfig } from 'vite'
-import type { ModuleNode } from 'vite'
+import type { Plugin as VitePlugin, UserConfig, ModuleNode } from 'vite'
 
 import type { PluginConfig } from '.'
 import {
 	codegen_setup,
-	CompilerProxy,
+	type CompilerProxy,
 	connect_db,
 	fs,
 	get_config,
 	path,
 	run_pipeline,
+	type Config,
 } from '../lib'
-import type { Config } from '../lib'
 
 /**
  * Houdini Vite HMR Plugin
@@ -113,17 +112,19 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			const relativePath = file.substring(server.config.root.length + 1)
 			const task_id = timestamp.toString()
 
-      // ideally we would be able to check if the file's content has changed before we re-run but there could
-      // be abitrary extraction logic in a plugin that means we have to instead defer to them 
+			// ideally we would be able to check if the file's content has changed before we re-run but there could
+			// be abitrary extraction logic in a plugin that means we have to instead defer to them
 
-      // so let's just blow away any raw documents related to the changed file and then we'll call extract
-      db.prepare(`
+			// so let's just blow away any raw documents related to the changed file and then we'll call extract
+			db.prepare(
+				`
           DELETE from raw_documents WHERE filepath = ?
-      `).run(relativePath)
+      `
+			).run(relativePath)
 
-      // clean up any dangling references
-      db.prepare(
-        `
+			// clean up any dangling references
+			db.prepare(
+				`
           WITH orphan_selections AS (
             SELECT s.id
             FROM selections s
@@ -134,22 +135,26 @@ export default function (opts: PluginConfig = {}): VitePlugin {
           DELETE FROM selections
           WHERE id IN (SELECT id FROM orphan_selections)
         `
-      ).run()
+			).run()
 
-      // tell the plugin to extract the filepath
-      await compiler.trigger_hook('ExtractDocuments', {
-        payload: { filepath: file }
-      })
+			// tell the plugin to extract the filepath
+			await compiler.trigger_hook('ExtractDocuments', {
+				payload: { filepath: file },
+			})
 
-      // look for the raw document that matches the filepath
-      const result =  db.prepare(`
+			// look for the raw document that matches the filepath
+			const result = db
+				.prepare(
+					`
         UPDATE raw_documents SET current_task = ? WHERE filepath = ?
-      `).run(task_id, relativePath)
+      `
+				)
+				.run(task_id, relativePath)
 
-      // if the update did not contain any changes, then there were no extracted files
-      if (result.changes === 0) {
-        return 
-      }
+			// if the update did not contain any changes, then there were no extracted files
+			if (result.changes === 0) {
+				return
+			}
 
 			// at this point, the raw_documents with the matching task ID make up the core set of documents
 			// that have changed because of this update event
