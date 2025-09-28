@@ -1,6 +1,6 @@
+import fs from 'node:fs/promises'
 import type { DatabaseSync } from 'node:sqlite'
 import type { Plugin as VitePlugin, UserConfig, ModuleNode } from 'vite'
-import fs from 'node:fs/promises'
 
 import type { PluginConfig } from '.'
 import {
@@ -280,7 +280,7 @@ async function ensureArtifactGenerated(
 	try {
 		await fs.access(
 			path.join(config.root_dir, config.config_file.runtimeDir!, 'artifacts', artifactName),
-      fs.constants.R_OK
+			fs.constants.R_OK
 		)
 		// if stat doesn't throw, the file exists
 		return
