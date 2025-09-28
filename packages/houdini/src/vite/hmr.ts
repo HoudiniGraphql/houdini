@@ -165,6 +165,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			// now that all of the documents have been updated to their latest version we can
 			// walk the dependency graph and include any transient dependencys to the task
 			// aswell
+      // TODO: only walk up if the document has been generated before
 			db.prepare(
 				`
 					WITH RECURSIVE
