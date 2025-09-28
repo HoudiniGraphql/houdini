@@ -142,7 +142,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 				payload: { filepath: file },
 			})
 
-			// look for the raw document that matches the filepath
+			// make sure any documents that were extracted get included in the current task
 			const result = db
 				.prepare(
 					`
