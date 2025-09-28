@@ -1,12 +1,12 @@
 import type { DatabaseSync } from 'node:sqlite'
 import type { Plugin as VitePlugin, UserConfig, ModuleNode } from 'vite'
+import fs from 'node:fs/promises'
 
 import type { PluginConfig } from '.'
 import {
 	codegen_setup,
 	type CompilerProxy,
 	connect_db,
-	fs,
 	get_config,
 	path,
 	run_pipeline,
@@ -279,7 +279,8 @@ async function ensureArtifactGenerated(
 	// before we do anything let's see if the artifact has been generated already
 	try {
 		await fs.access(
-			path.join(config.root_dir, config.config_file.runtimeDir!, 'artifacts', artifactName)
+			path.join(config.root_dir, config.config_file.runtimeDir!, 'artifacts', artifactName),
+      fs.constants.R_OK
 		)
 		// if stat doesn't throw, the file exists
 		return
