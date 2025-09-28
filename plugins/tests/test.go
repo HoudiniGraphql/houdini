@@ -136,10 +136,13 @@ CREATE TABLE type_fields (
     parent TEXT NOT NULL, -- will be User
     name TEXT NOT NULL,
     type TEXT NOT NULL,
-	type_modifiers TEXT,
+	  type_modifiers TEXT,
     default_value TEXT,
     description TEXT,
-	internal BOOLEAN default false,
+	  internal BOOLEAN default false,
+    document INT,
+
+    FOREIGN KEY (document) REFERENCES raw_documents(id) ON DELETE CASCADE,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, name)
