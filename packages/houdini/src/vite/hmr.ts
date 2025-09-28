@@ -196,7 +196,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 						FROM up u
 						JOIN document_dependencies dd ON dd.depends_on = u.name
 						JOIN documents d2            ON d2.id = dd.document
-            WHERE printed IS NOT NULL
+            WHERE printed IS NOT NULL   -- only keep walking up if the document has been processed at some point
 					),
 
 					-- 3) Walk DOWN: find names that any visited name depends on (transitively)
