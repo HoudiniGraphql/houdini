@@ -73,7 +73,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			// before we can do anything we need to discover what documents exist on the filesystem
 			// we need to trigger validate in order to discover lists which might not appear in the normal JIT path
 			// TODO: discover lists earlier
-			await run_pipeline(compiler.trigger_hook, { before: 'AfterValidate' })
+			await run_pipeline(compiler.trigger_hook, { through: 'Validate' })
 		},
 
 		async buildEnd() {

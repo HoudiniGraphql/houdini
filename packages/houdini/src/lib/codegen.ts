@@ -322,14 +322,14 @@ type PipelineHook = (typeof PIPELINE_HOOKS)[number]
 export type RunPipelineOptions = {
 	task_id?: string
 	after?: PipelineHook
-	before?: PipelineHook
+	through?: PipelineHook
 }
 
 export async function run_pipeline(
 	trigger_hook: CompilerProxy['trigger_hook'],
 	options: RunPipelineOptions = {}
 ): Promise<Record<PipelineHook, Record<string, any>>> {
-	const { task_id, after, before } = options
+	const { task_id, after, through } = options
 	const results: Record<string, any> = {}
 
 	// Find the start and end indices
@@ -344,12 +344,11 @@ export async function run_pipeline(
 		startIndex = afterIndex + 1
 	}
 
-	if (before) {
-		const beforeIndex = PIPELINE_HOOKS.indexOf(before)
-		if (beforeIndex === -1) {
-			throw new Error(`Unknown hook: ${before}`)
+	if (through) {
+		endIndex = PIPELINE_HOOKS.indexOf(through)
+		if (endIndex === -1) {
+			throw new Error(`Unknown hook: ${through}`)
 		}
-		endIndex = beforeIndex - 1
 	}
 
 	// Validate that we have a valid range
