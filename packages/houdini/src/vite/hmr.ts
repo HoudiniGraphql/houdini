@@ -122,17 +122,17 @@ export default function (opts: PluginConfig = {}): VitePlugin {
       `
 			).run(relativePath)
 
-      // we might have lost fragment variable expanded documents so look for any documents that 
-      // have a fragment ref but no matching document and patch them up
-      db.prepare(
-        `
+			// we might have lost fragment variable expanded documents so look for any documents that
+			// have a fragment ref but no matching document and patch them up
+			db.prepare(
+				`
         UPDATE selections AS s
         SET field_name = s.fragment_ref
         WHERE s.fragment_ref IS NOT NULL
           AND s.kind = 'fragment'                              -- only fragment spreads
           AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
         `
-      ).run()
+			).run()
 
 			// clean up any dangling references
 			db.prepare(
