@@ -100,7 +100,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 		},
 
 		// this is called when a file is created or modified
-		async handleHotUpdate({ file, read, server, timestamp }): Promise<void | ModuleNode[]> {
+		async handleHotUpdate({ file, read, server, timestamp, modules }): Promise<void | ModuleNode[]> {
 			const contents = await read()
 			// if the file contains a document then we need to parse it, and prepare the task with
 			// with the dependent documents
@@ -256,7 +256,7 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 
 			// the return value of this function invalidates the modules and causes vite to refresh them
 			// Convert file paths to ModuleNode objects
-			const moduleNodes: ModuleNode[] = []
+			const moduleNodes: ModuleNode[] = modules
 			for (const modulePath of updated_modules) {
 				const moduleNode = server.moduleGraph.getModuleById(modulePath)
 				if (moduleNode) {
