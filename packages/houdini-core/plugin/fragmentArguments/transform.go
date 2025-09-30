@@ -66,6 +66,8 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 
 	// avoid circular references
 	processedFragments := &syncmap.Map{}
+	// mutex to ensure atomic check-and-set operations for fragment processing
+	var fragmentMutex sync.Mutex
 
 	// we want to process the documents in parallel
 	var wg sync.WaitGroup
@@ -110,7 +112,7 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 
 					// wrap the processing in transaction
 					commit := sqlitex.Transaction(conn)
-					err = processDocument(ctx, db, conn, statements, doc.DocID, doc.Scope, processedFragments)
+					err = processDocument(ctx, db, conn, statements, doc.DocID, doc.Scope, processedFragments, &fragmentMutex)
 					commit(&err)
 					if err != nil {
 						errs.Append(plugins.WrapError(err))
@@ -135,8 +137,6 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 			DocID: querySearch.GetInt64("id"),
 			Scope: map[string]int64{},
 		}
-
-
 
 		// the top level scope for this document is contained in the json array we get from the database
 		scopeStr := querySearch.GetText("scope")
@@ -192,6 +192,7 @@ func processDocument[PluginConfig any](
 	documentID int64,
 	scope map[string]int64,
 	processedFragments *syncmap.Map,
+	fragmentMutex *sync.Mutex,
 ) error {
 	// the first thing we have to do is apply any variables that show up in the
 	// document and set any that aren't defined in the provided scope to a null value
@@ -242,7 +243,19 @@ func processDocument[PluginConfig any](
 	newFragments := map[string]FragmentSpec{}
 
 	// now we have to walk through the document and replace any fragment spreads that have @with
-	// Create a fresh statement to avoid state retention issues with prepared statements
+	//
+	// NOTE: We create a fresh statement here instead of using the prepared statement from
+	// statements.WithSpreadsInDocument to avoid SQLite parameter retention issues.
+	//
+	// This query is extremely complex (multiple JOINs, GROUP BY, JSON aggregations) and
+	// SQLite's query planner can retain internal state when parameters are cleared and
+	// rebound. The systemic parameter clearing fix works for simpler queries, but this
+	// query's complexity causes the planner to cache execution plans based on NULL values
+	// from parameter clearing, leading to incorrect results on subsequent executions.
+	//
+	// Fresh statements ensure each execution starts with a completely clean slate,
+	// avoiding any query planner state retention issues. This is the only query in the
+	// codebase complex enough to require this approach.
 	withSearch, err := conn.Prepare(`
 	    SELECT
 	      parent_doc.name as document,
@@ -295,10 +308,6 @@ func processDocument[PluginConfig any](
 		return err
 	}
 
-
-
-
-
 	err = db.StepStatement(ctx, withSearch, func() {
 		selectionID := withSearch.GetInt64("selection_id")
 		fragmentDocID := withSearch.GetInt64("fragment_doc_id")
@@ -322,8 +331,6 @@ func processDocument[PluginConfig any](
 				return
 			}
 		}
-
-
 
 		type DocArg struct {
 			Name         string `json:"name"`
@@ -383,7 +390,49 @@ func processDocument[PluginConfig any](
 			return
 		}
 
+		// check if we've already processed this fragment to avoid duplicates
+		// use database-based check instead of in-memory map to handle multiple transform runs,
+		// multiple processes, and server restarts where in-memory state would be lost
+		fragmentMutex.Lock()
 
+		// check if a document with this name already exists in the database
+		checkStmt, err := conn.Prepare("SELECT id FROM documents WHERE name = $name AND kind = 'fragment'")
+		if err != nil {
+			fragmentMutex.Unlock()
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+		checkStmt.SetText("$name", newFragmentName)
+
+		hasExisting, err := checkStmt.Step()
+		if err != nil {
+			checkStmt.Finalize()
+			fragmentMutex.Unlock()
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+
+		if hasExisting {
+			checkStmt.Finalize()
+			fragmentMutex.Unlock()
+
+			// fragment already exists, just update the selection to point to it
+			err = db.ExecStatement(statements.UpdateSelectionFieldName, map[string]any{
+				"selection_id": selectionID,
+				"field_name":   newFragmentName,
+				"fragment_ref": fragmentName,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+			}
+			return
+		}
+
+		checkStmt.Finalize()
+		// fragment doesn't exist, we can proceed with creation (still holding the lock)
+		// mark in memory map to avoid duplicates within this transform run
+		processedFragments.Store(newFragmentName, true)
+		fragmentMutex.Unlock()
 
 		// clone the fragment document with the new name
 		fragmentID, fragmentScope, err := cloneDocument(
@@ -402,7 +451,7 @@ func processDocument[PluginConfig any](
 			return
 		}
 
-
+		// fragment is already marked as processed above
 
 		// store the fragment and its scope
 		newFragments[newFragmentName] = FragmentSpec{
@@ -446,6 +495,7 @@ func processDocument[PluginConfig any](
 			fragment.ID,
 			fragment.Scope,
 			processedFragments,
+			fragmentMutex,
 		)
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

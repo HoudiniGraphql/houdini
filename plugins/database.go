@@ -67,6 +67,12 @@ func (db DatabasePool[PluginConfig]) ExecStatement(
 		return err
 	}
 
+	// Clear all named parameters to prevent state retention between executions
+	// ClearBindings() only clears numbered parameters, not named ones set via SetText()
+	if err := clearAllNamedParameters(statement); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -207,6 +213,36 @@ func (db DatabasePool[PluginConfig]) StepStatement(
 		return err
 	}
 
+	// Clear all named parameters to prevent state retention between executions
+	// ClearBindings() only clears numbered parameters, not named ones set via SetText()
+	if err := clearAllNamedParameters(queryStatement); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// clearAllNamedParameters clears named parameter bindings on a statement, except for
+// parameters that are intended to be persistent across executions.
+// This addresses a SQLite behavior where named parameters set via SetText() are not
+// cleared by ClearBindings(), causing state retention between statement executions.
+func clearAllNamedParameters(statement *sqlite.Stmt) error {
+	// List of parameters that should remain persistent across executions
+	persistentParams := map[string]bool{
+		"$task_id":         true, // Set by bindTaskID and should persist
+		"$with_directive":  true, // Set during statement preparation and should persist
+		"$optimistic_key_directive": true, // Set during statement preparation and should persist
+	}
+
+	// Iterate through all parameters and clear non-persistent ones
+	for i := range statement.BindParamCount() {
+		paramName := statement.BindParamName(i + 1)
+		if paramName != "" && !persistentParams[paramName] {
+			// Set the parameter to NULL to clear any previous binding
+			// This ensures that non-persistent named parameters don't retain values between executions
+			statement.SetNull(paramName)
+		}
+	}
 	return nil
 }
 
