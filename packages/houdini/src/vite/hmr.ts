@@ -75,9 +75,9 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 			// before we can do anything we need to discover what documents exist on the filesystem
 			// we need to trigger validate in order to discover lists which might not appear in the normal JIT path
 			// TODO: discover lists earlier
-      try { 
-			  await run_pipeline(compiler.trigger_hook, { through: 'Validate' })
-      } catch {}
+			try {
+				await run_pipeline(compiler.trigger_hook, { through: 'Validate' })
+			} catch {}
 		},
 
 		async buildEnd() {
@@ -161,9 +161,9 @@ export default function (opts: PluginConfig = {}): VitePlugin {
 				).run()
 
 				// tell the plugin to extract the filepaths
-        await compiler.trigger_hook('ExtractDocuments', {
-          payload: { filepaths },
-        })
+				await compiler.trigger_hook('ExtractDocuments', {
+					payload: { filepaths },
+				})
 
 				// make sure any documents that were extracted get included in the current task
 				const result = db
@@ -428,9 +428,9 @@ function createDebounceHmr(debounceMs: number = 50) {
 
 				await Promise.all(readPromises)
 
-         try { 
-				  await callback(filesWithContent, currentBatchId.toString())
-        } catch{}
+				try {
+					await callback(filesWithContent, currentBatchId.toString())
+				} catch {}
 
 				// Process any pending batch that accumulated
 				if (pendingBatch) {
@@ -451,9 +451,9 @@ function createDebounceHmr(debounceMs: number = 50) {
 					)
 
 					await Promise.all(nextReadPromises)
-          try { 
-					await callback(nextFilesWithContent, nextBatchId.toString())
-          }catch {}
+					try {
+						await callback(nextFilesWithContent, nextBatchId.toString())
+					} catch {}
 				}
 			} finally {
 				isProcessing = false
