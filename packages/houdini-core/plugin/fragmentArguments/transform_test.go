@@ -20,7 +20,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
         users(name: String): [User!]!
       }
 
-      type User { 
+      type User {
         firstName: String!
         friends(name: String): [User!]!
         id: ID!
@@ -33,7 +33,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				Input: []string{
 					`
           query AllUsers($name: String) {
-            user { 
+            user {
               ...UserInfo @with(name: $name)
             }
           }
@@ -50,7 +50,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
             query AllUsers($name: String)  {
-              user { 
+              user {
                 id
                 __typename
                 ...UserInfo_4E9dx0 @with(name: $name)
@@ -76,7 +76,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				Input: []string{
 					`
             query AllUsers {
-              user { 
+              user {
                 ...UserInfo @with(name: "Hello")
               }
             }
@@ -93,7 +93,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
             query AllUsers {
-              user { 
+              user {
                 id
                 __typename
                 ...UserInfo_g8N34 @with(name: "Hello")
@@ -168,7 +168,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
             @arguments(name: {type: "String!"} ) {
             friends(name:"John") @deprecated(reason: $name) {
                 firstName
-              }           
+              }
             }
           `,
 				},
@@ -207,7 +207,7 @@ func TestFragmentArgumentTransform(t *testing.T) {
             @arguments(name: {type: "String!"} ) {
             friends @deprecated(reason: $name) {
                 firstName
-              }           
+              }
             }
           `,
 				},
@@ -344,6 +344,26 @@ func TestFragmentArgumentTransform(t *testing.T) {
           `),
 				},
 			},
+			{
+				Name: "Same fragment with same arguments used in multiple documents",
+				Pass: true,
+				Input: []string{
+					`query FirstQuery { user { ...UserInfo @with(name: "Hello") } }`,
+					`query SecondQuery { user { ...UserInfo @with(name: "Hello") } }`,
+					`fragment UserInfo on User @arguments(name: {type: "String!"}) { friends(name: $name) { firstName } }`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(
+						`query FirstQuery { user { ...UserInfo_g8N34 @with(name: "Hello") id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`query SecondQuery { user { ...UserInfo_g8N34 @with(name: "Hello") id __typename } }`,
+					),
+					tests.ExpectedDoc(
+						`fragment UserInfo_g8N34 on User { friends(name: "Hello") { firstName id __typename } id __typename  }`,
+					),
+				},
+			},
 		},
 	})
 }
@@ -356,7 +376,7 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
         users(name: String): [User!]!
       }
 
-      type User { 
+      type User {
         firstName: String!
         friends(name: String): [User!]!
         id: ID!
@@ -391,7 +411,7 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
 				Input: []string{
 					`
           query AllUsers($name: String) {
-            user { 
+            user {
               ...UserInfo @with(name: $name)
             }
           }
@@ -408,7 +428,7 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
             query AllUsers($name: String)  {
-              user { 
+              user {
                 id
                 __typename
                 ...UserInfo_4E9dx0 @with(name: $name)

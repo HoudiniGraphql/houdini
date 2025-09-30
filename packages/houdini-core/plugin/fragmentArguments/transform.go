@@ -136,6 +136,8 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 			Scope: map[string]int64{},
 		}
 
+
+
 		// the top level scope for this document is contained in the json array we get from the database
 		scopeStr := querySearch.GetText("scope")
 		scopeEntries := []struct {
@@ -240,14 +242,63 @@ func processDocument[PluginConfig any](
 	newFragments := map[string]FragmentSpec{}
 
 	// now we have to walk through the document and replace any fragment spreads that have @with
-	err = db.BindStatement(
-		statements.WithSpreadsInDocument,
-		map[string]any{"document": documentID},
-	)
+	// Create a fresh statement to avoid state retention issues with prepared statements
+	withSearch, err := conn.Prepare(`
+	    SELECT
+	      parent_doc.name as document,
+	      selection_refs.id as selection_ref,
+	      selections.id as selection_id,
+	      selections.field_name as fragment,
+	      fragment_doc.id as fragment_doc_id,
+	      json_group_array(
+	        json_object(
+	          'name', selection_directive_arguments."name",
+	          'value', selection_directive_arguments."value",
+	          'kind', selection_arg_values.kind,
+	          'raw', selection_arg_values.raw
+	        )
+	      ) as with_args,
+	      CASE
+	        WHEN document_variables.name IS NULL THEN NULL
+	        ELSE
+	          json_group_array(
+	            json_object(
+	              'name', document_variables."name",
+	              'default_value', document_variables."default_value",
+	              'raw', document_variable_default_values."raw"
+	            )
+	          )
+	      END as doc_variables,
+	      fragment_doc.type_condition as type_condition,
+	      fragment_doc.raw_document as raw_document,
+	      selections.fragment_ref as fragment_ref
+	    FROM selection_directives
+	      JOIN selections ON selection_directives.selection_id = selections.id
+	      JOIN selection_refs ON selection_refs.child_id = selections.id
+	      JOIN selection_directive_arguments ON selection_directives.id = selection_directive_arguments.parent AND selection_directive_arguments.document = $document
+	      JOIN argument_values as selection_arg_values ON selection_directive_arguments."value" = selection_arg_values.id AND selection_arg_values.document = $document
+	      JOIN documents as parent_doc ON selection_refs."document" = parent_doc.id
+	      JOIN documents as fragment_doc on selections.field_name = fragment_doc.name
+	      LEFT JOIN document_variables on fragment_doc.id = document_variables."document"
+	      LEFT JOIN argument_values as document_variable_default_values on document_variable_default_values.id = document_variables.default_value
+	    WHERE selection_directives.directive = $with_directive
+	    	AND selection_refs."document" = $document
+	    GROUP BY selection_directives.id, parent_doc.id
+	`)
 	if err != nil {
 		return err
 	}
-	withSearch := statements.WithSpreadsInDocument
+
+	withSearch.SetText("$with_directive", schema.WithDirective)
+	err = db.BindStatement(withSearch, map[string]any{"document": documentID})
+	if err != nil {
+		return err
+	}
+
+
+
+
+
 	err = db.StepStatement(ctx, withSearch, func() {
 		selectionID := withSearch.GetInt64("selection_id")
 		fragmentDocID := withSearch.GetInt64("fragment_doc_id")
@@ -271,6 +322,8 @@ func processDocument[PluginConfig any](
 				return
 			}
 		}
+
+
 
 		type DocArg struct {
 			Name         string `json:"name"`
@@ -325,9 +378,12 @@ func processDocument[PluginConfig any](
 		newFragmentName := fragmentName + "_" + hash
 
 		// if the selection has already been transformed, don't transfor it again
-		if fragmentName == fragmentRef+"_"+hash {
+		expectedName := fragmentRef + "_" + hash
+		if fragmentName == expectedName {
 			return
 		}
+
+
 
 		// clone the fragment document with the new name
 		fragmentID, fragmentScope, err := cloneDocument(
@@ -345,6 +401,8 @@ func processDocument[PluginConfig any](
 			errs.Append(plugins.WrapError(err))
 			return
 		}
+
+
 
 		// store the fragment and its scope
 		newFragments[newFragmentName] = FragmentSpec{
@@ -364,6 +422,10 @@ func processDocument[PluginConfig any](
 			return
 		}
 	})
+
+	// Finalize the fresh statement
+	withSearch.Finalize()
+
 	// propagate any errors
 	if err != nil {
 		return err
@@ -374,15 +436,8 @@ func processDocument[PluginConfig any](
 
 	// now we can process every fragment that we ran into
 	for _, fragment := range newFragments {
-		// if we've seeen the fragment already skip it
-		if _, ok := processedFragments.Load(fragment.Name); ok {
-			continue
-		}
-
-		// don't process the fragment again
-		processedFragments.Store(fragment.Name, true)
-
-		// process the fragment
+		// the fragment should already be marked as processed when it was created
+		// but we still need to process it recursively for any nested @with directives
 		err = processDocument(
 			ctx,
 			db,
@@ -1008,7 +1063,7 @@ func prepareTransformStatements[PluginConfig any](
       LEFT JOIN document_variables on fragment_doc.id = document_variables."document"
       LEFT JOIN argument_values as document_variable_default_values on document_variable_default_values.id = document_variables.default_value
     WHERE selection_directives.directive = $with_directive
-      AND selections.kind = 'fragment'
+      -- AND selections.kind = 'fragment'
     	AND selection_refs."document" = $document
     GROUP BY selection_directives.id, parent_doc.id
   `)
