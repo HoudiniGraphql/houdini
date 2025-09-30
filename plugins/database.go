@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -227,17 +228,11 @@ func (db DatabasePool[PluginConfig]) StepStatement(
 // This addresses a SQLite behavior where named parameters set via SetText() are not
 // cleared by ClearBindings(), causing state retention between statement executions.
 func clearAllNamedParameters(statement *sqlite.Stmt) error {
-	// List of parameters that should remain persistent across executions
-	persistentParams := map[string]bool{
-		"$task_id":         true, // Set by bindTaskID and should persist
-		"$with_directive":  true, // Set during statement preparation and should persist
-		"$optimistic_key_directive": true, // Set during statement preparation and should persist
-	}
-
 	// Iterate through all parameters and clear non-persistent ones
 	for i := range statement.BindParamCount() {
 		paramName := statement.BindParamName(i + 1)
-		if paramName != "" && !persistentParams[paramName] {
+		if paramName != "" && paramName != "$task_id" &&
+			!strings.HasSuffix(paramName, "directive") {
 			// Set the parameter to NULL to clear any previous binding
 			// This ensures that non-persistent named parameters don't retain values between executions
 			statement.SetNull(paramName)
@@ -245,5 +240,3 @@ func clearAllNamedParameters(statement *sqlite.Stmt) error {
 	}
 	return nil
 }
-
-
