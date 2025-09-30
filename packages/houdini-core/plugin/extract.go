@@ -15,8 +15,8 @@ func (p *HoudiniCore) ExtractDocuments(
 	input plugins.ExtractDocumentsInput,
 ) error {
 	// if we were given a specific path to extract, do that
-	if input.Filepath != "" {
-		return documents.ExtractFromFile(ctx, p.DB, p.Fs, input.Filepath)
+	if len(input.Filepaths) > 0 {
+		return documents.ExtractFromFilepaths(ctx, p.DB, p.Fs, input.Filepaths)
 	}
 	// there is no task id, just walk the full filesystem
 	return documents.Walk(ctx, p.DB, p.Fs)

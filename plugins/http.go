@@ -196,7 +196,7 @@ func EventHookWithInput[T any](hook func(context.Context, T) error) http.Handler
 }
 
 type ExtractDocumentsInput struct {
-	Filepath string `json:"filepath"`
+	Filepaths []string `json:"filepaths"`
 }
 
 func handleGenerate[PluginConfig any](

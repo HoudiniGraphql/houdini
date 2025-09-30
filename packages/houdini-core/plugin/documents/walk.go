@@ -50,11 +50,11 @@ func Walk[PluginConfig any](
 	})
 }
 
-func ExtractFromFile[PluginConfig any](
+func ExtractFromFilepaths[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
 	fs afero.Fs,
-	fp string,
+	files []string,
 ) error {
 	// load the project config
 	config, err := db.ProjectConfig(ctx)
@@ -63,21 +63,25 @@ func ExtractFromFile[PluginConfig any](
 	}
 
 	root := config.ProjectRoot
-	rel, err := filepath.Rel(root, fp)
-	if err != nil {
-		return err
-	}
-	rel = filepath.ToSlash(rel)
 
 	// and extract the documents that the walker finds
 	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
-		// send the single filepath to the channel
-		select {
-		case filePathsCh <- rel:
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
+		for _, fp := range files {
+			rel, err := filepath.Rel(root, fp)
+			if err != nil {
+				return err
+			}
+			rel = filepath.ToSlash(rel)
+			// send the single filepath to the channel
+			select {
+			case filePathsCh <- rel:
+				return nil
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
+
+		return nil
 	})
 }
 
