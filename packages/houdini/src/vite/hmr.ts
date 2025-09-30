@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import type { DatabaseSync } from 'node:sqlite'
-import { PluginContext } from 'rollup'
 import type { Plugin as VitePlugin, UserConfig, ModuleNode, HmrContext } from 'vite'
 
 import type { PluginConfig } from '.'
