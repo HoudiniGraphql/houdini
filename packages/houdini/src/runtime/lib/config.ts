@@ -240,12 +240,12 @@ type AuthStrategy =
 	| {
 			redirect: string
 			sessionKeys: string[]
-			url: string
+			url?: string
 	  }
 	| {
 			mutation: string
 			sessionKeys: string[]
-			url: string
+			url?: string
 	  }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }

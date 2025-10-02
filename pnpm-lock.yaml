@@ -217,6 +217,9 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../../packages/houdini
+      houdini-react:
+        specifier: workspace:^
+        version: link:../../packages/houdini-react
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -6222,7 +6225,7 @@ packages:
   puppeteer@1.20.0:
     resolution: {integrity: sha512-bt48RDBy2eIwZPrkgbcwHtb51mj2nKvHOPMaSH2IsWiv7lOG9k9zhaRzpDZafrk05ajMc3cu+lSQYYOfH2DkVQ==}
     engines: {node: '>=6.4.0'}
-    deprecated: < 22.8.2 is no longer supported
+    deprecated: < 24.15.0 is no longer supported
 
   qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}

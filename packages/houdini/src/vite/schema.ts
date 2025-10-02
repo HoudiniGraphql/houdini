@@ -147,7 +147,7 @@ export function poll_remote_schema(ctx: PluginContext): PluginOption {
 }
 
 // a plugin that re-runs the codegen pipline when the schema changes
-export async function watch_local_schema(ctx: PluginContext): PluginOption {
+export async function watch_local_schema(ctx: PluginContext): Promise<PluginOption> {
 	const config = await get_config()
 	const local_schema_path = path.join(config.root_dir, 'src', 'api', '+schema')
 

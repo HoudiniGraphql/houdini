@@ -3,7 +3,6 @@
 import type { ConfigFile } from 'houdini'
 
 const config: ConfigFile = {
-	runtimeDir: '.houdini',
 	include: ['src/{components,routes}/**/*.{ts,tsx,gql}'],
 	defaultPartial: true,
 	scalars: {
@@ -30,9 +29,9 @@ const config: ConfigFile = {
 		},
 	},
 
-	// plugins: {
-	// 	'houdini-react': {},
-	// },
+	 plugins: {
+	 	'houdini-react': {},
+	 },
 
 	router: {
 		auth: {

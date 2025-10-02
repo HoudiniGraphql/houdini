@@ -168,4 +168,15 @@ export default async function () {
 			bundle: false,
 		})
 	} catch (e) {}
+
+	// if there is a package directory then we need to build it and add the necessary entries in our package.json
+	const vitePath = path.join(cwd, 'vite')
+	try {
+		await fs.access(vitePath)
+		await buildPackage({
+			packageJSONPath,
+			source: vitePath,
+			outDir: path.join(buildDir, packageJSON.name, 'build'),
+		})
+	} catch (e) {}
 }

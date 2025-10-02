@@ -18,24 +18,24 @@ export async function plugin_path(plugin_name: string, config_path: string): Pro
 		}
 
 		// otherwise we have to hunt the module down relative to the current path
-		const plugin_dir = find_module(plugin_name, config_path)
+		const plugin_dir = find_module(plugin_name, path.dirname(config_path))
 
 		// load up the package json
 		const package_json_src = await fs.readFile(path.join(plugin_dir, 'package.json'))
 		if (!package_json_src) {
-			throw new Error('skip')
+			throw new Error('There is no package.json.')
 		}
 		const package_json = JSON.parse(package_json_src)
 
 		// a plugin is an executable so it must have a bin field
 		if (!package_json.bin) {
-			throw new Error('')
+			throw new Error('There is no bin defined.')
 		}
 
 		return path.join(plugin_dir, package_json.bin)
-	} catch {
+	} catch (e) {
 		const err = new Error(
-			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub.`
+			`Could not find plugin: ${plugin_name}. ${e} Are you sure its installed? If so, please open a ticket on GitHub.`
 		)
 
 		throw err

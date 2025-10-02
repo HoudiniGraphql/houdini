@@ -25,13 +25,22 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 	}
 
 	// each registered plugin could provide a vite portion
-	let pluginPlugins: Array<PluginOption> = []
+	let pluginPlugins: Array<PluginOption> = (await Promise.all(config.plugins.map(async plugin => {
+    try {
+      return (await import(`${plugin.name}/vite`)).default(ctx)
+    } catch (e) {
+      console.log()
+      return null
+    }
+  }))).filter(Boolean)
+
+  console.log(pluginPlugins)
 
 	return [
 		houdini(ctx),
 		document_hmr(ctx),
 		poll_remote_schema(ctx),
-		watch_local_schema(ctx),
+		await watch_local_schema(ctx),
 		refresh_on_schema(ctx),
 		...pluginPlugins,
 		close_db(ctx),
