@@ -11,25 +11,9 @@ export default async function (args: { headers: string[]; output?: string }) {
 			'❌ Your project does not have a remote endpoint configured. Please provide one with the `apiUrl` value in your houdini.config.js file.'
 		)
 		process.exit(1)
-		return
 	}
 
-	// let headers = await config.pullHeaders()
-	let headers = {}
-	let headerStrings: string[] = []
-
-	if (args.headers) {
-		headerStrings = args.headers
-	}
-	if (headerStrings.length > 0) {
-		headers = headerStrings.reduce((total, header) => {
-			const [key, value] = header.split(/=(.*)/s)
-			return {
-				...total,
-				[key]: value,
-			}
-		}, headers)
-	}
+	let headers = await config.schema_pull_headers()
 
 	// the destination for the schema can come from the cli arguments, the config file, or a default
 	const targetPath = args.output

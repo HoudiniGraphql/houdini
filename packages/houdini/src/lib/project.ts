@@ -18,15 +18,6 @@ export type PluginMeta = {
 	executable: string
 }
 
-// we need to include some extra meta data along with the config file
-export type Config = {
-	config_file: ConfigFile
-	filepath: string
-	plugins: PluginMeta[]
-	root_dir: string
-	schema: GraphQLSchema
-}
-
 export const default_config: ConfigFile = {
 	schemaPath: '.houdini/schema.graphql',
 	include: ['src/**/*'],
@@ -36,6 +27,87 @@ export const default_config: ConfigFile = {
 	defaultPaginateMode: 'Infinite',
 	defaultFragmentMasking: 'enable',
 	defaultCachePolicy: 'CacheOrNetwork',
+}
+
+// we need to include some extra meta data along with the config file
+export class Config {
+	public config_file: ConfigFile
+	public filepath: string
+	public plugins: PluginMeta[]
+	public root_dir: string
+	public schema: GraphQLSchema
+
+	constructor(init: {
+		config_file: ConfigFile
+		filepath: string
+		plugins: PluginMeta[]
+		root_dir: string
+		schema: GraphQLSchema
+	}) {
+		this.config_file = init.config_file
+		this.filepath = init.filepath
+		this.plugins = init.plugins
+		this.root_dir = init.root_dir
+		this.schema = init.schema
+	}
+
+	schema_path() {
+		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+	}
+
+	async api_url() {
+		const apiURL = this.config_file.watchSchema?.url
+		if (!apiURL) {
+			return ''
+		}
+
+		return this.process_env_values(process.env, apiURL)
+	}
+
+	async schema_pull_headers() {
+		const env = process.env
+
+		// if the whole thing is a function, just call it
+		const config_headers = this.config_file.watchSchema?.headers
+		if (typeof config_headers === 'function') {
+			return config_headers(env)
+		}
+
+		// we need to turn the map into the correct key/value pairs
+		const headers = Object.fromEntries(
+			Object.entries(config_headers || {})
+				.map(([key, value]) => {
+					const headerValue = this.process_env_values(env, value)
+
+					// if there was no value, dont add anything
+					if (!headerValue) {
+						return []
+					}
+
+					return [key, headerValue]
+				})
+				.filter(([key]) => key)
+		)
+
+		// we're done
+		return headers
+	}
+
+	process_env_values(
+		env: Record<string, string | undefined>,
+		value: string | ((env: any) => string)
+	) {
+		let headerValue
+		if (typeof value === 'function') {
+			headerValue = value(env)
+		} else if (value.startsWith('env:')) {
+			headerValue = env[value.slice('env:'.length)]
+		} else {
+			headerValue = value
+		}
+
+		return headerValue
+	}
 }
 
 // a place to store the current configuration
@@ -127,12 +199,12 @@ export async function get_config({
 
 		fs.mkdirpSync(houdini_root(partialConfig as Config))
 
-		_config = {
+		_config = new Config({
 			...(partialConfig as Config),
 			schema: local_schema
 				? await load_local_schema(config_file, local_schema)
 				: await load_schema_file(config_file.schemaPath),
-		}
+		})
 
 		// we need to process the plugins before we instantiate the config object
 		// so that we can compute the final config_file
@@ -247,9 +319,6 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 	}
 	return graphql.buildClientSchema(jsonContents)
 }
-
-const emptySchema = graphql.buildSchema('type Query { hello: String }')
-const defaultDirectives = emptySchema.getDirectives().map((dir) => dir.name)
 
 export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
