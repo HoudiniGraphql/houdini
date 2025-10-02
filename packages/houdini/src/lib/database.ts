@@ -234,8 +234,7 @@ CREATE TABLE IF NOT EXISTS selections (
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
-    fragment_ref TEXT, -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
-    FOREIGN KEY (type) REFERENCES type_fields(id)
+    fragment_ref TEXT -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
 );
 
 CREATE TABLE IF NOT EXISTS selection_directives (
@@ -299,14 +298,13 @@ CREATE TABLE IF NOT EXISTS selection_arguments (
     document INTEGER NOT NULL,
     name TEXT NOT NULL,
     value INTEGER NOT NULL,
-	row INTEGER NOT NULL,
-	column INTEGER NOT NULL,
+    row INTEGER NOT NULL,
+    column INTEGER NOT NULL,
     field_argument TEXT NOT NULL,
 
     FOREIGN KEY (value) REFERENCES argument_values(id) ON DELETE CASCADE,
     FOREIGN KEY (selection_id) REFERENCES selections(id) ON DELETE CASCADE,
-    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
-    FOREIGN KEY (field_argument) REFERENCES type_field_arguments(id) ON DELETE CASCADE
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 
@@ -320,8 +318,7 @@ CREATE TABLE IF NOT EXISTS argument_values (
     expected_type_modifiers TEXT,
     document INTEGER NOT NULL,
 
-    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE,
-    FOREIGN KEY (expected_type) REFERENCES types(name) ON DELETE CASCADE
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS argument_value_children (

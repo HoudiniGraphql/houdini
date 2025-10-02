@@ -27,7 +27,7 @@ import {
  * the dependency graph to ensure all related documents are properly regenerated.
  */
 
-let compiler: CompilerProxy
+export let compiler: CompilerProxy
 
 export function document_hmr(ctx: PluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window

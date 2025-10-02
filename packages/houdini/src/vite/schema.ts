@@ -7,6 +7,7 @@ import { get_config, fs } from '../lib'
 import { pull_schema } from '../lib/schema'
 import { sleep } from '../lib/sleep'
 import { GraphQLSchema } from 'graphql'
+import { compiler } from './hmr'
 
 /*
 * The schema watching support is made up of 3 parts:
@@ -27,11 +28,39 @@ export function refresh_on_schema(ctx: PluginContext): PluginOption {
         return
       }
 
+      // if the compiler hasn't started yet then there's nothing to do 
+      if (!compiler) {
+        return 
+      }
 
+      // when there's a schema update, the only thing that could change documents that are already 
+      // loaded is that they're types could change which will require re-valildation
+      // that means that when we detect there is a schema change we have to do 2 things:
+      // 1. delete all of the type_field information for non-component fields
+      // 2. re-run validation
+      // 3. re-run generation since the types may have changed which changes the generated artifact (scalars)
+      //  
+      // since we want to run on all known documents, we don't need to worry about tasks
 
-      console.log('schema update!')
-    }
-    
+      // delete the non-component type fields
+      ctx.db.prepare(`
+        DELETE FROM type_fields
+        WHERE id IN (
+          SELECT type_fields.id FROM type_fields 
+            LEFT JOIN component_fields ON component_fields.type_field = type_fields.id 
+          WHERE component_fields.id IS NULL
+        )
+      `).run()
+
+      try { 
+        // load the schema
+        await compiler.trigger_hook("Schema")
+        // run validation
+        await compiler.trigger_hook("Validate")
+        // run generation
+        await compiler.trigger_hook("Generate")
+      } catch (e) {console.log(e)}
+    } 
   }
 }
 
@@ -136,7 +165,7 @@ export async function watch_local_schema(ctx: PluginContext): PluginOption {
       }
 
       // pull the target schema path out of the config
-      const write_target = config.schema_path()
+      const write_target = path.join(server.config.root, config.schema_path())
 
       // figure out what we need to write
       let fileData = ''
