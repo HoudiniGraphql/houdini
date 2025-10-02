@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
-import { GraphQLSchema } from 'graphql'
-import path from 'path'
+import type { GraphQLSchema } from 'graphql'
+import path from 'node:path'
 import type { PluginOption, ModuleNode } from 'vite'
 
 import type { PluginContext } from '.'
