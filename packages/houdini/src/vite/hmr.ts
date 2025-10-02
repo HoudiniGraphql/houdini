@@ -3,13 +3,7 @@ import type { DatabaseSync } from 'node:sqlite'
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
 import type { PluginContext } from '.'
-import {
-	codegen_setup,
-	get_config,
-	path,
-	run_pipeline,
-	type CompilerProxy,
-} from '../lib'
+import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib'
 
 /**
  * Houdini Vite HMR Plugin
@@ -39,7 +33,7 @@ export function document_hmr(ctx: PluginContext): VitePlugin {
 
 		// this is called when the dev server starts
 		async configureServer(server) {
-      const config = await get_config()
+			const config = await get_config()
 
 			// and a proxy to talk to the compiler
 			compiler = await codegen_setup(config, 'dev', ctx.db, ctx.db_file)
@@ -272,7 +266,7 @@ async function ensureArtifactGenerated(
 ): Promise<void> {
 	// before we do anything let's see if the artifact has been generated already
 	try {
-    const config = await get_config()
+		const config = await get_config()
 
 		await fs.access(
 			path.join(config.root_dir, config.config_file.runtimeDir!, 'artifacts', artifactName),
@@ -302,14 +296,14 @@ async function ensureArtifactGenerated(
 	}
 
 	// mark the document as part of this task
-	db
-		.prepare(`UPDATE raw_documents SET current_task = ? WHERE id = ?`)
-		.run(task_id, document.raw_document_id)
+	db.prepare(`UPDATE raw_documents SET current_task = ? WHERE id = ?`).run(
+		task_id,
+		document.raw_document_id
+	)
 
 	// Find all dependencies using the same recursive query as handleHotUpdate
-	db
-		.prepare(
-			`
+	db.prepare(
+		`
 			WITH RECURSIVE
 			seed AS (
 				SELECT DISTINCT d.name
@@ -339,8 +333,7 @@ async function ensureArtifactGenerated(
 			SET current_task = $task_id
 			WHERE id IN (SELECT raw_id FROM targets);
 		`
-		)
-		.run({ task_id: task_id })
+	).run({ task_id: task_id })
 
 	// Run the compilation pipeline for this task
 	await run_pipeline(compiler.trigger_hook, {
@@ -349,9 +342,7 @@ async function ensureArtifactGenerated(
 	})
 
 	// Clean up the task
-	db
-		.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`)
-		.run(task_id)
+	db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(task_id)
 }
 
 type BatchCallback = (

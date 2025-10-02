@@ -3,8 +3,8 @@ import type { PluginOption } from 'vite'
 
 import { connect_db, get_config, type Adapter, type ConfigFile } from '../lib'
 import { document_hmr } from './hmr'
-import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema'
 import { houdini } from './houdini'
+import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema'
 
 export type PluginConfig = { configPath?: string; adapter?: Adapter } & Partial<ConfigFile>
 
@@ -28,11 +28,11 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 	let pluginPlugins: Array<PluginOption> = []
 
 	return [
-    houdini(ctx),
+		houdini(ctx),
 		document_hmr(ctx),
 		poll_remote_schema(ctx),
 		watch_local_schema(ctx),
-    refresh_on_schema(ctx),
+		refresh_on_schema(ctx),
 		...pluginPlugins,
 		close_db(ctx),
 	]

@@ -1,9 +1,10 @@
-import type { Plugin as VitePlugin, UserConfig} from 'vite'
-import { PluginContext } from ".";
+import type { Plugin as VitePlugin, UserConfig } from 'vite'
 
-export function houdini(ctx: PluginContext) : VitePlugin {
-  return { 
-    name: "houdini",
+import { PluginContext } from '.'
+
+export function houdini(ctx: PluginContext): VitePlugin {
+	return {
+		name: 'houdini',
 
 		enforce: 'pre',
 
@@ -22,5 +23,5 @@ export function houdini(ctx: PluginContext) : VitePlugin {
 			// we're done
 			return result
 		},
-  }
+	}
 }
