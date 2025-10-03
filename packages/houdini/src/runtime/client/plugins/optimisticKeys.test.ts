@@ -1,4 +1,4 @@
-import { sleep } from '@kitql/helpers'
+import { sleep } from '../../../lib'
 import { beforeEach, expect, test } from 'vitest'
 
 import { testConfigFile } from '../../../test'

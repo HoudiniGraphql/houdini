@@ -9,7 +9,7 @@ import {
 	fragmentKey,
 } from '../../../../lib'
 import { readonlyProperty } from '../../../../lib/typescript'
-import { getFieldsForType } from '../../../runtime/lib/selection'
+import { getFieldsForType } from '../../../../../src/runtime/lib/selection'
 
 const AST = recast.types.builders
 

@@ -102,62 +102,59 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 			}
 			package_json.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
 		}
-
-		// Write to the package root
-		await fs.writeFile(
-			path.join(outDir, '..', 'package.json'),
-			JSON.stringify(package_json, null, 4)
-		)
-
-		// Create a build-specific package.json with paths relative to build directory
-		const buildPackageJson = { ...package_json }
-
-		// Update paths in exports to be relative to build directory
-		if (buildPackageJson.exports) {
-			for (const [key, value] of Object.entries(buildPackageJson.exports)) {
-				if (typeof value === 'object' && value !== null) {
-					const updatedValue = {}
-					for (const [subKey, subValue] of Object.entries(value)) {
-						if (typeof subValue === 'string' && subValue.startsWith('./build/')) {
-							updatedValue[subKey] = subValue.replace('./build/', './')
-						} else {
-							updatedValue[subKey] = subValue
-						}
-					}
-					buildPackageJson.exports[key] = updatedValue
-				}
-			}
-		}
-
-		// Update other build-relative paths
-		if (buildPackageJson.bin && buildPackageJson.bin.startsWith('./build/')) {
-			buildPackageJson.bin = buildPackageJson.bin.replace('./build/', './')
-		}
-		if (buildPackageJson.types && buildPackageJson.types.startsWith('./build/')) {
-			buildPackageJson.types = buildPackageJson.types.replace('./build/', './')
-		}
-
-		// Update typesVersions paths
-		if (buildPackageJson.typesVersions) {
-			for (const [key, value] of Object.entries(buildPackageJson.typesVersions)) {
-				if (typeof value === 'object' && value !== null) {
-					for (const [subKey, subValue] of Object.entries(value)) {
-						if (Array.isArray(subValue)) {
-							buildPackageJson.typesVersions[key][subKey] = subValue.map((path) =>
-								path.startsWith('build/') ? path.replace('build/', '') : path
-							)
-						}
-					}
-				}
-			}
-		}
-
-		// Write the build-specific package.json
-		await fs.writeFile(
-			path.join(outDir, 'package.json'),
-			JSON.stringify(buildPackageJson, null, 4)
-		)
 	}
+
+	// Write to the package root (after processing all directories)
+	await fs.writeFile(
+		path.join(outDir, '..', 'package.json'),
+		JSON.stringify(package_json, null, 4)
+	)
+
+	// Create a build-specific package.json with paths relative to build directory
+	const buildPackageJson = { ...package_json }
+
+	// Update paths in exports to be relative to build directory
+	if (buildPackageJson.exports) {
+		for (const [key, value] of Object.entries(buildPackageJson.exports)) {
+			if (typeof value === 'object' && value !== null) {
+				const updatedValue = {}
+				for (const [subKey, subValue] of Object.entries(value)) {
+					if (typeof subValue === 'string' && subValue.startsWith('./build/')) {
+						updatedValue[subKey] = subValue.replace('./build/', './')
+					} else {
+						updatedValue[subKey] = subValue
+					}
+				}
+				buildPackageJson.exports[key] = updatedValue
+			}
+		}
+	}
+
+	// Update other build-relative paths
+	if (buildPackageJson.bin && buildPackageJson.bin.startsWith('./build/')) {
+		buildPackageJson.bin = buildPackageJson.bin.replace('./build/', './')
+	}
+	if (buildPackageJson.types && buildPackageJson.types.startsWith('./build/')) {
+		buildPackageJson.types = buildPackageJson.types.replace('./build/', './')
+	}
+
+	// Update typesVersions paths
+	if (buildPackageJson.typesVersions) {
+		for (const [key, value] of Object.entries(buildPackageJson.typesVersions)) {
+			if (typeof value === 'object' && value !== null) {
+				for (const [subKey, subValue] of Object.entries(value)) {
+					if (Array.isArray(subValue)) {
+						buildPackageJson.typesVersions[key][subKey] = subValue.map((path) =>
+							path.startsWith('build/') ? path.replace('build/', '') : path
+						)
+					}
+				}
+			}
+		}
+	}
+
+	// Write the build-specific package.json
+	await fs.writeFile(path.join(outDir, 'package.json'), JSON.stringify(buildPackageJson, null, 4))
 }
 
 // create esm build of the source

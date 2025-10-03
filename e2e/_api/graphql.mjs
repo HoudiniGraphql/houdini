@@ -1,4 +1,4 @@
-import { sleep } from '@kitql/helpers'
+import { sleep } from './helpers.mjs'
 import fs from 'fs-extra'
 import { GraphQLError } from 'graphql'
 import { GraphQLScalarType, Kind } from 'graphql'

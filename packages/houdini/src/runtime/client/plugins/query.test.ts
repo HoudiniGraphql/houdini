@@ -25,6 +25,7 @@ test('query plugin evaluates runtime scalars', async function () {
 			rootType: 'Query',
 			pluginData: {},
 			enableLoadingState: 'local',
+			stripVariables: [],
 			input: {
 				fields: {
 					id: 'ID',

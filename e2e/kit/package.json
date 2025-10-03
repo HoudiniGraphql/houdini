@@ -31,7 +31,6 @@
     "preinstall": "node preInstall.js"
   },
   "devDependencies": {
-    "@kitql/helpers": "^0.8.2",
     "@playwright/test": "1.48.0",
     "@sveltejs/adapter-auto": "^3.2.1",
     "@sveltejs/kit": "^2.9.0",

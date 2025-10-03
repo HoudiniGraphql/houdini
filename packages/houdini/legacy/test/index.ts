@@ -4,8 +4,17 @@ import { vol } from 'memfs'
 import { runPipeline } from '../codegen'
 import type { Document } from '../lib'
 import { Config, fs, path } from '../lib'
-import type { ConfigFile } from '../runtime/lib/config'
-import { ArtifactKind, type ArtifactKinds } from '../runtime/lib/types'
+import type { ConfigFile } from '../../src/runtime/lib/config'
+import { ArtifactKind, type ArtifactKinds } from '../../src/runtime/lib/types'
+
+export function clearMock() {
+	// Clear the mock filesystem volume
+	vol.reset()
+}
+
+export function testConfig(config: Partial<ConfigFile> = {}): Config {
+	return new Config({ configFile: testConfigFile(config) })
+}
 
 export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {
