@@ -8,6 +8,7 @@
 		"build:dev": "pnpm build: && pnpm dev",
 		"build:test": "pnpm build: && pnpm test",
 		"compile:dev": "pnpm run compile:core && pnpm run compile:houdini && pnpm run compile:react &&  pnpm dev",
+		"compile:generate": "pnpm run compile:core && pnpm run compile:houdini && pnpm run compile:react &&  pnpm generate",
 		"compile:core": "cd ../../packages/houdini-core && ((pnpm run compile && cd -) || (cd - && exit 1))",
 		"compile:core:generate": "pnpm run compile:core && pnpm houdini generate",
 		"compile:core:dev": "pnpm run compile:core && pnpm dev",
