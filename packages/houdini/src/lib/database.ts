@@ -1,8 +1,8 @@
 import path from 'node:path'
 import type sqlite from 'node:sqlite'
 
-import type { PluginSpec } from './codegen'
-import { type Config, default_config } from './project'
+import type { PluginSpec } from './codegen.js'
+import { type Config, default_config } from './project.js'
 
 export const create_schema = `
 CREATE TABLE IF NOT EXISTS plugins (

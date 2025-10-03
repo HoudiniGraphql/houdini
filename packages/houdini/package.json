@@ -69,32 +69,31 @@
     "exports": {
         "./package.json": "./package.json",
         "./adapter": {
-            "types": "./build/adapter/index.d.ts",
-            "import": "./build/adapter-esm/index.js",
-            "require": "./build/adapter-cjs/index.js"
+            "types": "./adapter/index.d.ts",
+            "import": "./adapter/index.js"
         },
         ".": {
-            "types": "./build/lib/index.d.ts",
-            "import": "./build/lib-esm/index.js",
-            "require": "./build/lib-cjs/index.js"
+            "types": "./lib/index.d.ts",
+            "import": "./lib/index.js"
         },
         "./vite": {
             "types": "./build/vite/index.d.ts",
-            "import": "./build/vite-esm/index.js",
-            "require": "./build/vite-cjs/index.js"
+            "import": "./build/vite/index.js"
         }
     },
     "typesVersions": {
         "*": {
             "adapter": [
-                "build/adapter/index.d.ts"
+                "adapter/index.d.ts"
+            ],
+            ".": [
+                "lib/index.d.ts"
             ],
             "vite": [
                 "build/vite/index.d.ts"
             ]
         }
     },
-    "bin": "./build/cmd-esm/index.js",
-    "main": "./build/lib-cjs/index.js",
+    "bin": "./build/cmd/index.js",
     "types": "./build/lib/index.d.ts"
 }

@@ -1,4 +1,4 @@
-export * from './project'
-export * from './codegen'
-export * as path from './path'
-export * as fs from './fs'
+export * from './project.js'
+export * from './codegen.js'
+export * as path from './path.js'
+export * as fs from './fs.js'

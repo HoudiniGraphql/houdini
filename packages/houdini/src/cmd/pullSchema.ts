@@ -1,6 +1,6 @@
-import * as path from '../lib/path'
-import { get_config } from '../lib/project'
-import { pull_schema } from '../lib/schema'
+import * as path from '../lib/path.js'
+import { get_config } from '../lib/project.js'
+import { pull_schema } from '../lib/schema.js'
 
 export default async function (args: { headers: string[]; output?: string }) {
 	const config = await get_config()

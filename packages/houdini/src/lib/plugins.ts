@@ -1,5 +1,5 @@
-import * as fs from './fs'
-import * as path from './path'
+import * as fs from './fs.js'
+import * as path from './path.js'
 
 export async function plugin_path(plugin_name: string, config_path: string): Promise<string> {
 	try {
@@ -35,7 +35,7 @@ export async function plugin_path(plugin_name: string, config_path: string): Pro
 		return path.join(plugin_dir, package_json.bin)
 	} catch (e) {
 		const err = new Error(
-			`Could not find plugin: ${plugin_name}. ${e} Are you sure its installed? If so, please open a ticket on GitHub.`
+			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`
 		)
 
 		throw err

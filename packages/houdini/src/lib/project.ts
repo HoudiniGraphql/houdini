@@ -4,11 +4,11 @@ import type { GraphQLSchema } from 'graphql'
 import { pathToFileURL } from 'node:url'
 
 import type { ConfigFile } from '../runtime/lib/config'
-import { houdini_root, local_api_dir } from './conventions'
-import { HoudiniError } from './error'
-import * as fs from './fs'
-import * as path from './path'
-import { plugin_path } from './plugins'
+import { houdini_root, local_api_dir } from './conventions.js'
+import { HoudiniError } from './error.js'
+import * as fs from './fs.js'
+import * as path from './path.js'
+import { plugin_path } from './plugins.js'
 
 export type { ConfigFile } from '../runtime/lib/config'
 

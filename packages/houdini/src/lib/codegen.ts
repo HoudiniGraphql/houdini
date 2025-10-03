@@ -1,14 +1,14 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
-import { format_hook_error, type HookError } from 'src/lib/error'
 
-import * as fs from '../lib/fs'
 import type { ProjectManifest } from '../runtime'
-import { db_path, houdini_root } from './conventions'
-import type * as routerConventions from './conventions'
-import { create_schema, write_config } from './database'
-import { type Config } from './project'
+import { db_path, houdini_root } from './conventions.js'
+import type * as routerConventions from './conventions.js'
+import { create_schema, write_config } from './database.js'
+import { format_hook_error, type HookError } from './error.js'
+import * as fs from './fs.js'
+import { type Config } from './project.js'
 
 export type PluginSpec = {
 	name: string
@@ -274,7 +274,9 @@ export async function codegen_setup(
 		trigger_hook,
 		close: async () => {
 			// Close our connection to the database
-			db.close()
+			try {
+				db.close()
+			} catch {}
 
 			// Stop each plugin with proper cleanup
 			await Promise.all(

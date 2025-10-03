@@ -3,11 +3,11 @@ import type { GraphQLSchema } from 'graphql'
 import path from 'node:path'
 import type { PluginOption, ModuleNode } from 'vite'
 
-import type { PluginContext } from '.'
-import { get_config, fs } from '../lib'
-import { pull_schema } from '../lib/schema'
-import { sleep } from '../lib/sleep'
-import { compiler } from './hmr'
+import type { VitePluginContext } from '.'
+import { get_config, fs } from '../lib/index.js'
+import { pull_schema } from '../lib/schema.js'
+import { sleep } from '../lib/sleep.js'
+import { compiler } from './hmr.js'
 
 /*
  * The schema watching support is made up of 3 parts:
@@ -16,7 +16,7 @@ import { compiler } from './hmr'
  * 3. a plugin that watches the serialized schema file and triggers a codegen run when it changes
  */
 
-export function refresh_on_schema(ctx: PluginContext): PluginOption {
+export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-refresh-on-schema',
 
@@ -70,7 +70,7 @@ export function refresh_on_schema(ctx: PluginContext): PluginOption {
 	}
 }
 
-export function poll_remote_schema(ctx: PluginContext): PluginOption {
+export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 	// we want to stop polling when the plugin closes
 	let go = true
 
@@ -147,14 +147,15 @@ export function poll_remote_schema(ctx: PluginContext): PluginOption {
 }
 
 // a plugin that re-runs the codegen pipline when the schema changes
-export async function watch_local_schema(ctx: PluginContext): Promise<PluginOption> {
-	const config = await get_config()
-	const local_schema_path = path.join(config.root_dir, 'src', 'api', '+schema')
-
+export function watch_local_schema(ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-refresh-on-schema',
 
 		async handleHotUpdate({ file, server }) {
+			// build up the path to the local schema file
+			const config = await get_config()
+			const local_schema_path = path.join(config.root_dir, 'src', 'api', '+schema')
+
 			// load the current schema into the module graph
 			const schema_mod_path = local_schema_path + '?t=' + Date.now()
 			let schema: GraphQLSchema

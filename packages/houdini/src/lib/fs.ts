@@ -5,8 +5,8 @@ import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
 import { promisify } from 'node:util'
 
-import { houdini_mode } from './constants'
-import * as path from './path'
+import { houdini_mode } from './constants.js'
+import * as path from './path.js'
 
 export function copyFileSync(src: string, dest: string): void | null {
 	if (houdini_mode.is_testing) {

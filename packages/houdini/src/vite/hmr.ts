@@ -2,8 +2,8 @@ import fs from 'node:fs/promises'
 import type { DatabaseSync } from 'node:sqlite'
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
-import type { PluginContext } from '.'
-import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib'
+import type { VitePluginContext } from '.'
+import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
 
 /**
  * Houdini Vite HMR Plugin
@@ -23,7 +23,7 @@ import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } fro
 
 export let compiler: CompilerProxy
 
-export function document_hmr(ctx: PluginContext): VitePlugin {
+export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
 
 	return {

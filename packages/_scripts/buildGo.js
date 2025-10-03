@@ -151,11 +151,24 @@ export default async function () {
 	const packagePath = path.join(cwd, 'package')
 	try {
 		await fs.access(packagePath)
+		// preserve the bin field before calling buildPackage
+		const currentPackageJSON = JSON.parse(await fs.readFile(packageJSONPath, 'utf-8'))
+		const binField = currentPackageJSON.bin
+
 		await buildPackage({
 			packageJSONPath,
 			source: packagePath,
 			outDir: path.join(buildDir, packageJSON.name, 'build'),
 		})
+
+		// restore the bin field after buildPackage (only if it was removed)
+		if (binField) {
+			const updatedPackageJSON = JSON.parse(await fs.readFile(packageJSONPath, 'utf-8'))
+			if (!updatedPackageJSON.bin) {
+				updatedPackageJSON.bin = binField
+				await fs.writeFile(packageJSONPath, JSON.stringify(updatedPackageJSON, null, 4))
+			}
+		}
 	} catch (e) {}
 
 	// if there is a runtime directory then we need to handle that too
@@ -169,14 +182,27 @@ export default async function () {
 		})
 	} catch (e) {}
 
-	// if there is a package directory then we need to build it and add the necessary entries in our package.json
+	// if there is a vite directory then we need to build it and add the necessary entries in our package.json
 	const vitePath = path.join(cwd, 'vite')
 	try {
 		await fs.access(vitePath)
+		// preserve the bin field before calling buildPackage
+		const currentPackageJSON = JSON.parse(await fs.readFile(packageJSONPath, 'utf-8'))
+		const binField = currentPackageJSON.bin
+
 		await buildPackage({
 			packageJSONPath,
 			source: vitePath,
 			outDir: path.join(buildDir, packageJSON.name, 'build'),
 		})
+
+		// restore the bin field after buildPackage (only if it was removed)
+		if (binField) {
+			const updatedPackageJSON = JSON.parse(await fs.readFile(packageJSONPath, 'utf-8'))
+			if (!updatedPackageJSON.bin) {
+				updatedPackageJSON.bin = binField
+				await fs.writeFile(packageJSONPath, JSON.stringify(updatedPackageJSON, null, 4))
+			}
+		}
 	} catch (e) {}
 }

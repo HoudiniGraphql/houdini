@@ -1,9 +1,9 @@
 import { Command } from 'commander'
 
-import type { HoudiniError } from '../lib/error'
-import { generate } from './generate'
-import { init } from './init'
-import pullSchema from './pullSchema'
+import type { HoudiniError } from '../lib/error.js'
+import { generate } from './generate.js'
+import { init } from './init.js'
+import pullSchema from './pullSchema.js'
 
 // build up the cli
 const program = new Command()

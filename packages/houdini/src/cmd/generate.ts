@@ -1,6 +1,6 @@
-import { codegen_setup, init_db, run_pipeline } from '../lib'
-import { format_error } from '../lib/error'
-import { get_config, type Config } from '../lib/project'
+import { format_error } from '../lib/error.js'
+import { codegen_setup, init_db, run_pipeline } from '../lib/index.js'
+import { get_config, type Config } from '../lib/project.js'
 
 export async function generate(
 	args: {

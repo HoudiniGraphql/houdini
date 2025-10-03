@@ -1,7 +1,7 @@
 import { styleText } from 'node:util'
 
-import { readFileSync } from './fs'
-import * as path from './path'
+import { readFileSync } from './fs.js'
+import * as path from './path.js'
 
 // any error that the compiler could fire
 export class HoudiniError extends Error {
