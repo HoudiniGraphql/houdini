@@ -38,6 +38,8 @@ jobs:
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
+              with:
+                version: 10.12.1
 
             - name: Install dependencies
               run: pnpm install
@@ -66,6 +68,8 @@ jobs:
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
+              with:
+                version: 10.12.1
 
             # - name: Get pnpm store directory
             #   id: pnpm-cache
@@ -126,6 +130,8 @@ jobs:
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
+              with:
+                version: 10.12.1
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -174,6 +180,8 @@ jobs:
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
+              with:
+                version: 10.12.1
 
             - name: Get pnpm store directory
               id: pnpm-cache
@@ -240,6 +248,8 @@ jobs:
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
+              with:
+                version: 10.12.1
 
             - name: Get pnpm store directory
               id: pnpm-cache
