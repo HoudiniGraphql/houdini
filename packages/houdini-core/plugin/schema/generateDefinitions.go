@@ -170,7 +170,7 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 	// writing enum definitions for custom types referenced by directive arguments at the end of the file
 	// writing at the end of the file(schema.graphql) cost us one more loop but it is cleaner
 
-	// collect enum names and sort them alphabetically to match TypeScript output
+	// collect enum names 
 	enumNames := make([]string, 0, len(customTypes))
 	for typeName := range customTypes {
 		enumNames = append(enumNames, typeName)
