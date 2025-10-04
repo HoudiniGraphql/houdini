@@ -215,13 +215,53 @@ jobs:
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
               if: matrix.framework != 'e2e-react'
 
-            - name: Test React Plugin Detection
-              run: pnpm --filter e2e-react generate
-              if: matrix.framework == 'e2e-react'
-
             - name: End-to-End Tests (React)
               run: pnpm --filter ${{ matrix.framework }} tests
               if: matrix.framework == 'e2e-react'
+
+    verify_generate:
+        name: Verify Generate
+        strategy:
+            matrix:
+                os: [ubuntu-latest]
+                framework: [e2e-react, e2e-kit]
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                node-version: 24.9.0
+
+            - uses: pnpm/action-setup@v4.1.0
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 10.12.1
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ matrix.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Test Plugin Detection and Generation
+              run: pnpm --filter ${{ matrix.framework }} compile:generate
 
     e2e_sveltekit_linter:
         name: End-to-End Linter
