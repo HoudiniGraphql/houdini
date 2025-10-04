@@ -266,20 +266,6 @@ func generateDocumentsFile(ctx context.Context, db plugins.DatabasePool[config.P
 	return nil
 }
 
-func removeTypename(document string) string {
-	lines := strings.Split(document, "\n")
-	var result []string
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed != "__typename" {
-			result = append(result, line)
-		}
-	}
-
-	return strings.Join(result, "\n")
-}
-
 func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.PluginConfig], fs afero.Fs, projectConfig plugins.ProjectConfig) error {
 
 	type enumValue struct {
@@ -288,8 +274,9 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 	}
 
 	type enumData struct {
-		Name   string
-		Values []enumValue
+		Name        string
+		Description string
+		Values      []enumValue
 	}
 
 	// collect all enum data from database
@@ -298,16 +285,18 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 
 	// all enum except internal + built_in types and their values
 	err := db.StepQuery(ctx, `
-		SELECT t.name
+		SELECT t.name, t.description
 		FROM types t
-		WHERE t.kind == 'ENUM' AND t.internal == 0 AND t.built_in == 0 
+		WHERE t.kind == 'ENUM' AND t.internal == 0 AND t.built_in == 0
 		ORDER BY t.name
 
 	`, nil, func(stmt *sqlite.Stmt) {
 		enumName := stmt.ColumnText(0)
+		enumDescription := stmt.ColumnText(1)
 		enum := enumData{
-			Name:   enumName,
-			Values: []enumValue{},
+			Name:        enumName,
+			Description: enumDescription,
+			Values:      []enumValue{},
 		}
 
 		// all values for this enum
@@ -340,13 +329,22 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 	var enumString strings.Builder
 	for _, enum := range enums {
 		// js enum definition generation
+		if enum.Description != "" {
+			enumString.WriteString(fmt.Sprintf("/** %s */\n", enum.Description))
+		}
 		enumString.WriteString(fmt.Sprintf("export const %s = {\n", enum.Name))
 		for i, value := range enum.Values {
 			if i > 0 {
 				enumString.WriteString(",\n")
 			}
 			if value.Description != "" {
-				enumString.WriteString(fmt.Sprintf("    /**\n     * %s\n    */\n", value.Description))
+				// handle multi-line descriptions (e.g., with @deprecated)
+				lines := strings.Split(value.Description, "\n")
+				enumString.WriteString("    /**\n")
+				for _, line := range lines {
+					enumString.WriteString(fmt.Sprintf("     * %s\n", line))
+				}
+				enumString.WriteString("    */\n")
 			}
 			enumString.WriteString(fmt.Sprintf("    \"%s\": \"%s\"", value.Value, value.Value))
 		}
@@ -373,10 +371,25 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 
 	for _, enum := range enums {
 		// ts enum definition generation
+		if enum.Description != "" {
+			// handle multi-line descriptions
+			lines := strings.Split(enum.Description, "\n")
+			tsEnumString.WriteString("/**\n")
+			for _, line := range lines {
+				tsEnumString.WriteString(fmt.Sprintf(" * %s\n", line))
+			}
+			tsEnumString.WriteString(" */\n")
+		}
 		tsEnumString.WriteString(fmt.Sprintf("export declare const %s: {\n", enum.Name))
 		for _, value := range enum.Values {
 			if value.Description != "" {
-				tsEnumString.WriteString(fmt.Sprintf("    /**\n     * %s\n    */\n", value.Description))
+				// handle multi-line descriptions (e.g., with @deprecated)
+				lines := strings.Split(value.Description, "\n")
+				tsEnumString.WriteString("    /**\n")
+				for _, line := range lines {
+					tsEnumString.WriteString(fmt.Sprintf("     * %s\n", line))
+				}
+				tsEnumString.WriteString("    */\n")
 			}
 			tsEnumString.WriteString(fmt.Sprintf("    readonly %s: \"%s\";\n", value.Value, value.Value))
 		}
@@ -428,4 +441,18 @@ func isBuiltInScalar(typeName string) bool {
 		"ID":      true,
 	}
 	return builtInScalars[typeName]
+}
+
+func removeTypename(document string) string {
+	lines := strings.Split(document, "\n")
+	var result []string
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "__typename" {
+			result = append(result, line)
+		}
+	}
+
+	return strings.Join(result, "\n")
 }

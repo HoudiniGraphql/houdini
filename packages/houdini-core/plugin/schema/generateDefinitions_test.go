@@ -39,6 +39,9 @@ export declare const TestEnum1: {
 
 export type TestEnum1$options = ValuesOf<typeof TestEnum1>
 
+/**
+ * Documentation of testenum2
+ */
 export declare const TestEnum2: {
     readonly Value2: "Value2";
     readonly Value3: "Value3";
@@ -58,6 +61,7 @@ export type TestEnum2$options = ValuesOf<typeof TestEnum2>
     "Value2": "Value2"
 };
 
+/** Documentation of testenum2 */
 export const TestEnum2 = {
     "Value2": "Value2",
     "Value3": "Value3"

@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS types (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     kind TEXT NOT NULL CHECK (kind IN ('OBJECT', 'INTERFACE', 'UNION', 'ENUM', 'SCALAR', 'INPUT')),
     operation TEXT,
+	description TEXT,
 	internal BOOLEAN default false,
 	built_in BOOLEAN default false
 );

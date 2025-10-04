@@ -49,10 +49,11 @@ func WriteProjectSchema[PluginConfig any](
 
 		// insert the type row
 		err := db.ExecStatement(statements.InsertType, map[string]any{
-			"name":      typ.Name,
-			"kind":      kind,
-			"operation": isOperation,
-			"built_in":  typ.BuiltIn,
+			"name":        typ.Name,
+			"kind":        kind,
+			"operation":   isOperation,
+			"description": typ.Description,
+			"built_in":    typ.BuiltIn,
 		})
 		if err != nil {
 			errors.Append(&plugins.Error{
@@ -74,10 +75,34 @@ func WriteProjectSchema[PluginConfig any](
 		case ast.Enum:
 			// insert enum values
 			for _, value := range typ.EnumValues {
+				// extract deprecated directive reason if present
+				var deprecationReason string
+				if deprecated := value.Directives.ForName("deprecated"); deprecated != nil {
+					if reasonArg := deprecated.Arguments.ForName("reason"); reasonArg != nil {
+						if reasonArg.Value != nil {
+							deprecationReason = reasonArg.Value.Raw
+							// remove quotes if present
+							if len(deprecationReason) >= 2 && deprecationReason[0] == '"' && deprecationReason[len(deprecationReason)-1] == '"' {
+								deprecationReason = deprecationReason[1 : len(deprecationReason)-1]
+							}
+						}
+					}
+				}
+
+				// combine description and deprecation into JSDoc format
+				description := value.Description
+				if deprecationReason != "" {
+					if description != "" {
+						description = fmt.Sprintf("%s\n@deprecated %s", description, deprecationReason)
+					} else {
+						description = fmt.Sprintf("@deprecated %s", deprecationReason)
+					}
+				}
+
 				err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
-					"parent": typ.Name,
-					"value":  value.Name,
-					"description": value.Description,
+					"parent":      typ.Name,
+					"value":       value.Name,
+					"description": description,
 				})
 				if err != nil {
 					errors.Append(&plugins.Error{

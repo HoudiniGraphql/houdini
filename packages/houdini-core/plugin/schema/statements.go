@@ -18,13 +18,14 @@ type SchemaInsertStatements struct {
 func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, func()) {
 	// Prepare statements. (Check errors and defer closing each statement.)
 	insertTypeStmt := db.Prep(
-		`INSERT INTO types 
-        (name, kind, operation, built_in) 
-    VALUES 
-        ($name, $kind, $operation, $built_in) 
-    ON CONFLICT DO UPDATE SET 
+		`INSERT INTO types
+        (name, kind, operation, description, built_in)
+    VALUES
+        ($name, $kind, $operation, $description, $built_in)
+    ON CONFLICT DO UPDATE SET
         kind = excluded.kind,
         operation = excluded.operation,
+        description = excluded.description,
         built_in = excluded.built_in
     `,
 	)
@@ -63,12 +64,13 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
     `,
 	)
 	insertEnumValueStmt := db.Prep(
-		`INSERT INTO enum_values 
-        (parent, value, description) 
-    VALUES 
+		`INSERT INTO enum_values
+        (parent, value, description)
+    VALUES
         ($parent, $value, $description)
-    ON CONFLICT DO UPDATE SET  
-        value = excluded.value
+    ON CONFLICT DO UPDATE SET
+        value = excluded.value,
+        description = excluded.description
     `,
 	)
 	insertFieldArgumentStmt := db.Prep(
