@@ -16,6 +16,7 @@
     "compile:core": "cd ../../packages/houdini-core && ((pnpm run compile && cd -) || (cd - && exit 1))",
     "compile:houdini": "cd ../../packages/houdini && ((pnpm run compile && cd -) || (cd - && exit 1))",
     "compile:svelte": "cd ../../packages/houdini-svelte && ((pnpm run compile && cd -) || (cd - && exit 1))",
+    "compile:generate": "pnpm run compile:core && pnpm run compile:houdini && pnpm run compile:svelte && pnpm houdini generate",
     "compile:core:generate": "pnpm run compile:core && pnpm houdini generate",
     "compile:houdini:generate": "pnpm run compile:houdini && pnpm houdini generate",
     "compile:svelte:generate": "pnpm run compile:svelte && pnpm houdini generate",
@@ -52,8 +53,7 @@
     "svelte-preprocess": "^5.1.4",
     "tslib": "^2.3.1",
     "typescript": "^5.0.0",
-    "vite": "^6.0.3",
-    "vite-plugin-lib-reporter": "^0.1.0"
+    "vite": "^6.0.3"
   },
   "dependencies": {
     "@sveltejs/adapter-node": "^5.0.1",

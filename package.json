@@ -15,7 +15,6 @@
 		"compile": "turbo compile --filter=\"./packages/*\"",
 		"typedefs:all": "turbo run typedefs",
 		"typedefs": "turbo run typedefs --filter=\"./packages/*\"",
-		"lint": "eslint --ignore-pattern .prettierignore \"./packages/*/src/**/*.ts\"",
 		"check": "pnpm biome check",
 		"check:write": "pnpm biome check --write",
 		"version": "changeset version",
@@ -32,15 +31,11 @@
 		"@changesets/changelog-github": "^0.4.8",
 		"@changesets/cli": "^2.26.0",
 		"@playwright/test": "1.48.0",
-		"@theguild/eslint-config": "^0.13.4",
 		"@trivago/prettier-plugin-sort-imports": "^4.0.0",
 		"@types/react": "^19.0.7",
 		"@vitest/coverage-v8": "^1.6.0",
 		"@vitest/ui": "^1.6.0",
-		"eslint": "^9.36.0",
-		"eslint-plugin-unused-imports": "^3.0.0",
 		"graphql": "^15.8.0",
-		"lint-staged": "^12.3.4",
 		"prettier": "^2.8.3",
 		"turbo": "^1.8.8",
 		"typescript": "^5.9.3",
@@ -54,12 +49,6 @@
 		"recast": "^0.23.1"
 	},
 	"packageManager": "pnpm@10.12.1",
-	"lint-staged": {
-		"*.ts&!(*.d.ts)": "prettier -w ",
-		"*.tsx": "prettier -w ",
-		"*.js": "prettier -w ",
-		"*.json": "prettier -w "
-	},
 	"pnpm": {
 		"overrides": {
 			"graphql": "15.5.0"
