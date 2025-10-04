@@ -1,0 +1,10 @@
+{
+	"files": {
+		"includes": ["packages/*/src/**"]
+	},
+	"javascript": {
+		"formatter": {
+			"semicolons": "asNeeded"
+		}
+	}
+}

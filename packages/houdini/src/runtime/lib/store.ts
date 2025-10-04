@@ -1,6 +1,7 @@
 // The code in this file is a modified version of logic from the Svelte codebase subject to the MIT license contained at the
 // bottom of this file
 
+// biome-ignore lint/suspicious/noExplicitAny: Subscriber queue can contain any callback type
 const subscriber_queue: any[] = []
 const noop = () => {}
 
@@ -41,7 +42,10 @@ export class Writable<T> {
 		this.set(fn(this.state))
 	}
 
-	subscribe(run: Subscriber<T>, invalidate: Invalidator<T> = noop): Unsubscriber {
+	subscribe(
+		run: Subscriber<T>,
+		invalidate: Invalidator<T> = noop,
+	): Unsubscriber {
 		const subscriber: SubscribeInvalidateTuple<T> = [run, invalidate]
 		this.#subscribers.add(subscriber)
 		if (this.#subscribers.size === 1) {
@@ -59,12 +63,17 @@ export class Writable<T> {
 	}
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Equality check needs to handle any value types
 function safe_not_equal(a: any, b: any) {
-	return a != a ? b == b : a !== b || (a && typeof a === 'object') || typeof a === 'function'
+	// biome-ignore lint/suspicious/noSelfCompare: NaN check requires self comparison
+	return a !== a
+		? // biome-ignore lint/suspicious/noSelfCompare: NaN check requires self comparison
+			b === b
+		: a !== b || (a && typeof a === "object") || typeof a === "function"
 }
 
 /** Start and stop notification callbacks. */
-type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | void
+type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | undefined
 
 /** Pair of subscriber and invalidator. */
 type SubscribeInvalidateTuple<T> = [Subscriber<T>, Invalidator<T>]

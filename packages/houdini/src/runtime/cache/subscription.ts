@@ -1,17 +1,17 @@
-import { flatten } from '../lib/flatten'
-import { getFieldsForType } from '../lib/selection'
+import { flatten } from "../lib/flatten"
+import { getFieldsForType } from "../lib/selection"
 import type {
 	GraphQLValue,
+	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
-	NestedList,
-} from '../lib/types'
-import { type Cache } from './cache'
-import { evaluateKey, rootID } from './stuff'
+} from "../lib/types"
+import type { Cache } from "./cache"
+import { evaluateKey, rootID } from "./stuff"
 
 export type FieldSelection = [
 	SubscriptionSpec,
-	Required<SubscriptionSelection>['fields'] | undefined
+	Required<SubscriptionSelection>["fields"] | undefined,
 ]
 
 // manage the subscriptions
@@ -28,7 +28,7 @@ export class InMemorySubscriptions {
 			string,
 			{
 				selections: FieldSelection[]
-				referenceCounts: Map<SubscriptionSpec['set'], number>
+				referenceCounts: Map<SubscriptionSpec["set"], number>
 			}
 		>
 	>()
@@ -57,9 +57,11 @@ export class InMemorySubscriptions {
 		variables: { [key: string]: GraphQLValue }
 	}) {
 		// figure out the correct selection
-		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
-			.value as string
-		let targetSelection = getFieldsForType(selection, __typename, false)
+		const __typename = this.cache._internal_unstable.storage.get(
+			parent,
+			"__typename",
+		).value as string
+		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -81,8 +83,10 @@ export class InMemorySubscriptions {
 			let targetSelection: FieldSelection[1]
 			if (innerSelection) {
 				// figure out the correct selection
-				const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
-					.value as string
+				const __typename = this.cache._internal_unstable.storage.get(
+					parent,
+					"__typename",
+				).value as string
 				targetSelection = getFieldsForType(innerSelection, __typename, false)
 			}
 			this.addFieldSubscription({
@@ -99,6 +103,7 @@ export class InMemorySubscriptions {
 					id: parent,
 					key,
 					variables,
+					// biome-ignore lint/style/noNonNullAssertion: Inner selection is guaranteed to exist for valid field selections
 					selection: innerSelection!,
 					parentType: parentType || spec.rootType,
 				})
@@ -107,11 +112,9 @@ export class InMemorySubscriptions {
 			// linked record
 			if (innerSelection) {
 				// if the link points to a record then we just have to add it to the one
-				const { value: linkedRecord } = this.cache._internal_unstable.storage.get(
-					parent,
-					key
-				)
-				let children = !Array.isArray(linkedRecord)
+				const { value: linkedRecord } =
+					this.cache._internal_unstable.storage.get(parent, key)
+				const children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
 					: flatten(linkedRecord) || []
 
@@ -138,7 +141,7 @@ export class InMemorySubscriptions {
 		id,
 		key,
 		selection,
-		type,
+		type: _type,
 	}: {
 		id: string
 		key: string
@@ -152,6 +155,7 @@ export class InMemorySubscriptions {
 			this.subscribers.set(id, new Map())
 		}
 
+		// biome-ignore lint/style/noNonNullAssertion: Subscriber is guaranteed to exist after being added
 		const subscriber = this.subscribers.get(id)!
 
 		if (!subscriber.has(key)) {
@@ -161,6 +165,7 @@ export class InMemorySubscriptions {
 			})
 		}
 
+		// biome-ignore lint/style/noNonNullAssertion: Subscriber field is guaranteed to exist after being added
 		const subscriberField = subscriber.get(key)!
 
 		// if this is the first time we've seen the raw key
@@ -178,7 +183,7 @@ export class InMemorySubscriptions {
 		// we're going to increment the current value by one
 		subscriberField.referenceCounts.set(
 			spec.set,
-			(subscriberField.referenceCounts.get(spec.set) || 0) + 1
+			(subscriberField.referenceCounts.get(spec.set) || 0) + 1,
 		)
 
 		// reset the lifetime for the key
@@ -194,30 +199,31 @@ export class InMemorySubscriptions {
 		filters,
 		variables,
 	}: {
-		list: Required<Required<SubscriptionSelection>['fields'][string]>['list']
+		list: Required<Required<SubscriptionSelection>["fields"][string]>["list"]
 		selection: SubscriptionSelection
 		id: string
 		parentType: string
 		key: string
-		filters: Required<SubscriptionSelection>['fields'][string]['filters']
-		variables: Record<string, any>
+		filters: Required<SubscriptionSelection>["fields"][string]["filters"]
+		variables: Record<string, unknown>
 	}) {
 		this.cache._internal_unstable.lists.add({
 			name: list.name,
 			connection: list.connection,
 			recordID: id,
 			recordType:
-				(this.cache._internal_unstable.storage.get(id, '__typename')?.value as string) ||
-				parentType,
+				(this.cache._internal_unstable.storage.get(id, "__typename")
+					?.value as string) || parentType,
 			listType: list.type,
 			key,
 			selection: selection,
-			filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
-				return {
-					...acc,
-					[key]: kind !== 'Variable' ? value : variables[value as string],
+			filters: (() => {
+				const result: Record<string, unknown> = {}
+				for (const [key, { kind, value }] of Object.entries(filters || {})) {
+					result[key] = kind !== "Variable" ? value : variables[value as string]
 				}
-			}, {}),
+				return result
+			})(),
 		})
 	}
 
@@ -229,7 +235,7 @@ export class InMemorySubscriptions {
 		parentType,
 	}: {
 		parent: string
-		variables: {}
+		variables: Record<string, unknown>
 		subscribers: FieldSelection[]
 		parentType: string
 	}) {
@@ -265,6 +271,7 @@ export class InMemorySubscriptions {
 						id: parent,
 						key,
 						variables,
+						// biome-ignore lint/style/noNonNullAssertion: Inner selection is guaranteed to exist for valid field selections
 						selection: innerSelection!,
 						parentType: parentType || spec.rootType,
 					})
@@ -272,7 +279,10 @@ export class InMemorySubscriptions {
 				// if there are fields under this
 				const childSelection = selection.selection
 				if (childSelection) {
-					const { value: link } = this.cache._internal_unstable.storage.get(parent, key)
+					const { value: link } = this.cache._internal_unstable.storage.get(
+						parent,
+						key,
+					)
 
 					// figure out who else needs subscribers
 					const children = !Array.isArray(link)
@@ -288,9 +298,13 @@ export class InMemorySubscriptions {
 						// figure out the correct selection
 						const __typename = this.cache._internal_unstable.storage.get(
 							linkedRecord,
-							'__typename'
+							"__typename",
 						).value as string
-						let targetSelection = getFieldsForType(childSelection, __typename, false)
+						const targetSelection = getFieldsForType(
+							childSelection,
+							__typename,
+							false,
+						)
 						// insert the subscriber
 						this.addMany({
 							parent: linkedRecord,
@@ -310,7 +324,7 @@ export class InMemorySubscriptions {
 
 	getAll(id: string): FieldSelection[] {
 		return [...(this.subscribers.get(id)?.values() || [])].flatMap(
-			(fieldSub) => fieldSub.selections
+			(fieldSub) => fieldSub.selections,
 		)
 	}
 
@@ -318,8 +332,8 @@ export class InMemorySubscriptions {
 		id: string,
 		selection: SubscriptionSelection,
 		targets: SubscriptionSpec[],
-		variables: {},
-		visited: string[] = []
+		variables: Record<string, unknown>,
+		visited: string[] = [],
 	) {
 		visited.push(id)
 
@@ -327,9 +341,11 @@ export class InMemorySubscriptions {
 		const linkedIDs: [string, SubscriptionSelection][] = []
 
 		// figure out the correct selection
-		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
-			.value as string
-		let targetSelection = getFieldsForType(selection, __typename, false)
+		const __typename = this.cache._internal_unstable.storage.get(
+			id,
+			"__typename",
+		).value as string
+		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -343,7 +359,8 @@ export class InMemorySubscriptions {
 				continue
 			}
 
-			const { value: previousValue } = this.cache._internal_unstable.storage.get(id, key)
+			const { value: previousValue } =
+				this.cache._internal_unstable.storage.get(id, key)
 
 			// if its not a list, wrap it as one so we can dry things up
 			const links = !Array.isArray(previousValue)
@@ -364,7 +381,9 @@ export class InMemorySubscriptions {
 
 	reset() {
 		// Get all subscriptions that do not start with the rootID
-		const subscribers = [...this.subscribers.entries()].filter(([id]) => !id.startsWith(rootID))
+		const subscribers = [...this.subscribers.entries()].filter(
+			([id]) => !id.startsWith(rootID),
+		)
 
 		// Remove those subcribers from this.subscribers
 		for (const [id, _fields] of subscribers) {
@@ -373,16 +392,22 @@ export class InMemorySubscriptions {
 
 		// Get list of all SubscriptionSpecs of subscribers
 		const subscriptionSpecs = subscribers.flatMap(([_id, fields]) =>
-			[...fields.values()].flatMap((field) => field.selections.map(([spec]) => spec))
+			[...fields.values()].flatMap((field) =>
+				field.selections.map(([spec]) => spec),
+			),
 		)
 
 		return subscriptionSpecs
 	}
 
-	private removeSubscribers(id: string, fieldName: string, specs: SubscriptionSpec[]) {
+	private removeSubscribers(
+		id: string,
+		fieldName: string,
+		specs: SubscriptionSpec[],
+	) {
 		// build up a list of the sets we actually need to remove after
 		// checking reference counts
-		let targets: SubscriptionSpec['set'][] = []
+		const targets: SubscriptionSpec["set"][] = []
 
 		const subscriber = this.subscribers.get(id)
 		if (!subscriber) {
@@ -416,7 +441,7 @@ export class InMemorySubscriptions {
 		// we do need to remove the set from the list
 		if (subscriberField) {
 			subscriberField.selections = this.get(id, fieldName).filter(
-				([{ set }]) => !targets.includes(set)
+				([{ set }]) => !targets.includes(set),
 			)
 		}
 
@@ -429,8 +454,9 @@ export class InMemorySubscriptions {
 	removeAllSubscribers(id: string, targets?: SubscriptionSpec[]) {
 		// get the list of subscriptions specs for the id if we didn't provide a specific list
 		if (!targets) {
-			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((spec) =>
-				spec.selections.flatMap((sel) => sel[0]!)
+			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap(
+				// biome-ignore lint/style/noNonNullAssertion: Selection tuple is guaranteed to have first element
+				(spec) => spec.selections.flatMap((sel) => sel[0]!),
 			)
 		}
 
@@ -441,7 +467,7 @@ export class InMemorySubscriptions {
 				target.parentID || rootID,
 				target.selection,
 				target.variables || {},
-				id
+				id,
 			)) {
 				this.remove(id, subselection, targets, target.variables || {})
 			}
@@ -454,7 +480,10 @@ export class InMemorySubscriptions {
 		let size = 0
 		for (const [, nodeCounts] of this.subscribers) {
 			for (const [, { referenceCounts }] of nodeCounts) {
-				size += [...referenceCounts.values()].reduce((size, count) => size + count, 0)
+				size += [...referenceCounts.values()].reduce(
+					(size, count) => size + count,
+					0,
+				)
 			}
 		}
 
@@ -464,17 +493,19 @@ export class InMemorySubscriptions {
 	findSubSelections(
 		parentID: string,
 		selection: SubscriptionSelection,
-		variables: {},
+		variables: Record<string, unknown>,
 		searchTarget: string,
-		selections = [] as Array<SubscriptionSelection>
+		selections = [] as Array<SubscriptionSelection>,
 	): Array<SubscriptionSelection> {
 		// walk down the selection, looking up cached information along the way to identity instances where
 		// the target id is embedded inside of the selection
 
 		// figure out the correct selection
-		const __typename = this.cache._internal_unstable.storage.get(parentID, '__typename')
-			.value as string
-		let targetSelection = getFieldsForType(selection, __typename, false)
+		const __typename = this.cache._internal_unstable.storage.get(
+			parentID,
+			"__typename",
+		).value as string
+		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -486,7 +517,10 @@ export class InMemorySubscriptions {
 
 			const key = evaluateKey(fieldSelection.keyRaw, variables || {})
 
-			const linkedRecord = this.cache._internal_unstable.storage.get(parentID, key)
+			const linkedRecord = this.cache._internal_unstable.storage.get(
+				parentID,
+				key,
+			)
 			// if the links aren't an array then wrap it
 			const links = !Array.isArray(linkedRecord.value)
 				? [linkedRecord.value as string]
@@ -506,7 +540,7 @@ export class InMemorySubscriptions {
 						fieldSelection.selection,
 						variables,
 						searchTarget,
-						selections
+						selections,
 					)
 				}
 			}

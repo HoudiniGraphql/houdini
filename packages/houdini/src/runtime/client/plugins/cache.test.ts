@@ -1,11 +1,11 @@
-import { beforeEach, expect, test, vi } from 'vitest'
+import { beforeEach, expect, test, vi } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import { Cache } from '../../cache/cache'
-import { CachePolicy, PendingValue } from '../../lib'
-import { setMockConfig } from '../../lib/config'
-import { cachePolicy } from './cache'
-import { createStore, fakeFetch } from './test'
+import { testConfigFile } from "../../../test"
+import { Cache } from "../../cache/cache"
+import { CachePolicy, PendingValue } from "../../lib"
+import { setMockConfig } from "../../lib/config"
+import { cachePolicy } from "./cache"
+import { createStore, fakeFetch } from "./test"
 
 /**
  * Testing the cache plugin
@@ -15,7 +15,7 @@ beforeEach(async () => {
 	setMockConfig({})
 })
 
-test('NetworkOnly', async function () {
+test("NetworkOnly", async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -37,15 +37,15 @@ test('NetworkOnly', async function () {
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
@@ -53,21 +53,21 @@ test('NetworkOnly', async function () {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
 })
 
-test('CacheOrNetwork', async function () {
+test("CacheOrNetwork", async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -89,15 +89,15 @@ test('CacheOrNetwork', async function () {
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
@@ -105,21 +105,21 @@ test('CacheOrNetwork', async function () {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'cache',
+		source: "cache",
 		partial: false,
 		stale: false,
 	})
 })
 
-test('CacheAndNetwork', async function () {
+test("CacheAndNetwork", async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -140,15 +140,15 @@ test('CacheAndNetwork', async function () {
 	expect(spy).toHaveBeenNthCalledWith(2, {
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
@@ -156,36 +156,36 @@ test('CacheAndNetwork', async function () {
 	expect(spy).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'cache',
+		source: "cache",
 		partial: false,
 		stale: false,
 	})
 	expect(spy).toHaveBeenNthCalledWith(4, {
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
 })
 
-test('CacheOnly', async function () {
+test("CacheOnly", async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -208,7 +208,7 @@ test('CacheOnly', async function () {
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'cache',
+		source: "cache",
 		partial: false,
 		stale: false,
 	})
@@ -219,15 +219,15 @@ test('CacheOnly', async function () {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
@@ -238,21 +238,21 @@ test('CacheOnly', async function () {
 	expect(ret3).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'cache',
+		source: "cache",
 		partial: false,
 		stale: false,
 	})
 })
 
-test('stale', async function () {
+test("stale", async () => {
 	const setFetching = vi.fn()
 	const fn = vi.fn()
 
@@ -278,15 +278,15 @@ test('stale', async function () {
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				__typename: 'User',
-				firstName: 'bob',
-				id: '1',
+				__typename: "User",
+				firstName: "bob",
+				id: "1",
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: 'network',
+		source: "network",
 		stale: false,
 		variables: null,
 	})
@@ -305,7 +305,7 @@ test('stale', async function () {
 	})
 
 	//  mark stale
-	cache.markTypeStale({ type: 'User' })
+	cache.markTypeStale({ type: "User" })
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -313,15 +313,15 @@ test('stale', async function () {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				__typename: 'User',
-				firstName: 'bob',
-				id: '1',
+				__typename: "User",
+				firstName: "bob",
+				id: "1",
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: 'cache',
+		source: "cache",
 		stale: true,
 		variables: null,
 	})
@@ -330,15 +330,15 @@ test('stale', async function () {
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {
-				__typename: 'User',
-				firstName: 'bob',
-				id: '1',
+				__typename: "User",
+				firstName: "bob",
+				id: "1",
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: 'cache',
+		source: "cache",
 		stale: true,
 		variables: null,
 	})
@@ -347,21 +347,21 @@ test('stale', async function () {
 	expect(fn).toHaveBeenNthCalledWith(4, {
 		data: {
 			viewer: {
-				__typename: 'User',
-				firstName: 'bob',
-				id: '1',
+				__typename: "User",
+				firstName: "bob",
+				id: "1",
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: 'network',
+		source: "network",
 		stale: false,
 		variables: null,
 	})
 })
 
-test('NoCache', async function () {
+test("NoCache", async () => {
 	const spy = vi.fn()
 
 	const cache = new Cache({ ...config, disabled: false })
@@ -384,21 +384,23 @@ test('NoCache', async function () {
 	expect(returned).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
 
 	// make sure there isn't anything in the cache
-	expect(Object.keys(cache._internal_unstable.storage.topLayer.fields)).toHaveLength(0)
+	expect(
+		Object.keys(cache._internal_unstable.storage.topLayer.fields),
+	).toHaveLength(0)
 
 	// test the cache policy again
 	const second = await store.send({ policy: CachePolicy.NoCache })
@@ -406,24 +408,26 @@ test('NoCache', async function () {
 	expect(second).toEqual({
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: 'network',
+		source: "network",
 		partial: false,
 		stale: false,
 	})
 
 	// make sure there isn't anything in the cache
-	expect(Object.keys(cache._internal_unstable.storage.topLayer.fields)).toHaveLength(0)
+	expect(
+		Object.keys(cache._internal_unstable.storage.topLayer.fields),
+	).toHaveLength(0)
 })
 
-test('loading states when fetching is true', async function () {
+test("loading states when fetching is true", async () => {
 	// create the store
 	const store = createStore()
 
@@ -455,15 +459,15 @@ test('loading states when fetching is true', async function () {
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {
-				__typename: 'User',
-				firstName: 'bob',
-				id: '1',
+				__typename: "User",
+				firstName: "bob",
+				id: "1",
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: 'network',
+		source: "network",
 		stale: false,
 		variables: null,
 	})

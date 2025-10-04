@@ -1,32 +1,32 @@
-import { mergeSchemas } from '@graphql-tools/schema'
-import * as graphql from 'graphql'
-import type { GraphQLSchema } from 'graphql'
-import { pathToFileURL } from 'node:url'
+import { pathToFileURL } from "node:url"
+import { mergeSchemas } from "@graphql-tools/schema"
+import type { GraphQLSchema } from "graphql"
+import * as graphql from "graphql"
 
-import type { ConfigFile } from '../runtime/lib/config'
-import { houdini_root, local_api_dir } from './conventions.js'
-import { HoudiniError } from './error.js'
-import * as fs from './fs.js'
-import * as path from './path.js'
-import { plugin_path } from './plugins.js'
+import type { ConfigFile } from "../runtime/lib/config"
+import { houdini_root, local_api_dir } from "./conventions.js"
+import { HoudiniError } from "./error.js"
+import * as fs from "./fs.js"
+import * as path from "./path.js"
+import { plugin_path } from "./plugins.js"
 
-export type { ConfigFile } from '../runtime/lib/config'
+export type { ConfigFile } from "../runtime/lib/config"
 
 export type PluginMeta = {
 	name: string
-	config: Record<string, any>
+	config: Record<string, unknown>
 	executable: string
 }
 
 export const default_config: ConfigFile = {
-	schemaPath: '.houdini/schema.graphql',
-	include: ['src/**/*'],
-	runtimeDir: '.houdini',
+	schemaPath: ".houdini/schema.graphql",
+	include: ["src/**/*"],
+	runtimeDir: ".houdini",
 	cacheBufferSize: 10,
-	defaultKeys: ['id'],
-	defaultPaginateMode: 'Infinite',
-	defaultFragmentMasking: 'enable',
-	defaultCachePolicy: 'CacheOrNetwork',
+	defaultKeys: ["id"],
+	defaultPaginateMode: "Infinite",
+	defaultFragmentMasking: "enable",
+	defaultCachePolicy: "CacheOrNetwork",
 }
 
 // we need to include some extra meta data along with the config file
@@ -52,13 +52,15 @@ export class Config {
 	}
 
 	schema_path() {
-		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+		return (
+			this.config_file.schemaPath ?? path.resolve(process.cwd(), "schema.json")
+		)
 	}
 
 	async api_url() {
 		const apiURL = this.config_file.watchSchema?.url
 		if (!apiURL) {
-			return ''
+			return ""
 		}
 
 		return this.process_env_values(process.env, apiURL)
@@ -69,7 +71,7 @@ export class Config {
 
 		// if the whole thing is a function, just call it
 		const config_headers = this.config_file.watchSchema?.headers
-		if (typeof config_headers === 'function') {
+		if (typeof config_headers === "function") {
 			return config_headers(env)
 		}
 
@@ -86,7 +88,7 @@ export class Config {
 
 					return [key, headerValue]
 				})
-				.filter(([key]) => key)
+				.filter(([key]) => key),
 		)
 
 		// we're done
@@ -95,13 +97,13 @@ export class Config {
 
 	process_env_values(
 		env: Record<string, string | undefined>,
-		value: string | ((env: any) => string)
+		value: string | ((env: Record<string, string | undefined>) => string),
 	) {
-		let headerValue
-		if (typeof value === 'function') {
+		let headerValue: string
+		if (typeof value === "function") {
 			headerValue = value(env)
-		} else if (value.startsWith('env:')) {
-			headerValue = env[value.slice('env:'.length)]
+		} else if (value.startsWith("env:")) {
+			headerValue = env[value.slice("env:".length)]
 		} else {
 			headerValue = value
 		}
@@ -125,7 +127,7 @@ export async function get_config({
 	config_path?: string
 	force_reload?: boolean
 } = {}): Promise<Config> {
-	let config_path = _config_path ?? ''
+	let config_path = _config_path ?? ""
 
 	// if we force a reload, we will bypass this part
 	if (!force_reload) {
@@ -141,12 +143,12 @@ export async function get_config({
 
 	// we need to figure out the config path
 	if (!config_path) {
-		config_path = path.resolve(process.cwd(), 'houdini.config.js')
+		config_path = path.resolve(process.cwd(), "houdini.config.js")
 		// the config file could also be defined as typescript
 		try {
 			await fs.stat(config_path)
 		} catch {
-			config_path = path.resolve(process.cwd(), 'houdini.config.ts')
+			config_path = path.resolve(process.cwd(), "houdini.config.ts")
 			try {
 				await fs.stat(config_path)
 			} catch {
@@ -159,7 +161,7 @@ export async function get_config({
 
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
-	let reject = (message?: any) => {}
+	let reject = (_message?: unknown) => {}
 	pending_config_promises = new Promise((res, rej) => {
 		resolve = res
 		reject = rej
@@ -176,14 +178,16 @@ export async function get_config({
 		}
 
 		const root_dir = path.dirname(
-			config_file.projectDir ? path.join(process.cwd(), config_file.projectDir) : config_path
+			config_file.projectDir
+				? path.join(process.cwd(), config_file.projectDir)
+				: config_path,
 		)
 
 		// if there is a local schema then we need to ignore the schema check
-		let local_schema = ''
+		let local_schema = ""
 		try {
 			for (const child of await fs.readdir(local_api_dir(_config, root_dir))) {
-				if (path.parse(child).name === '+schema') {
+				if (path.parse(child).name === "+schema") {
 					local_schema = path.join(local_api_dir(_config, root_dir), child)
 					break
 				}
@@ -215,7 +219,7 @@ export async function get_config({
 		const plugins = Object.entries(config_file.plugins ?? {})
 
 		// we need to add the codegen plugin to the list
-		plugins.push(['houdini-core', { foo: 'bar' }])
+		plugins.push(["houdini-core", { foo: "bar" }])
 
 		// if the environment variable is defined, add it to the list
 		if (process.env.HOUDINI_CODEGEN_PLUGIN) {
@@ -228,7 +232,7 @@ export async function get_config({
 				name,
 				config,
 				executable: await plugin_path(name, config_path),
-			}))
+			})),
 		)
 
 		// we're done and have a valid config
@@ -246,24 +250,28 @@ export async function get_config({
 async function read_config_file(configPath: string): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
-	let importPath = path.importPath(configPath)
+	const importPath = path.importPath(configPath)
 
-	let imported: any
+	let imported: unknown
 	try {
 		imported = await import(/* @vite-ignore */ importPath)
-	} catch (e: any) {
-		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+	} catch (e: unknown) {
+		throw new Error(
+			`Could not load config file at file://${configPath}.\n${e instanceof Error ? e.message : String(e)}`,
+		)
 	}
 
 	// if this is wrapped in a default, use it
-	const config = imported.default || imported
+	const config = (imported as { default?: unknown }).default || imported
 	return {
 		...default_config,
 		...config,
 	}
 }
 
-async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
+async function load_schema_file(
+	schemaPath: string,
+): Promise<graphql.GraphQLSchema> {
 	// if the schema is not a relative path, the config file is out of date
 	if (path.isAbsolute(schemaPath)) {
 		// compute the new value for schema
@@ -272,9 +280,9 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 		// build up an error with no stack trace so the message isn't so noisy
 		const error = new Error(
 			`Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change ` +
-				`its value to "./${relPath}".`
+				`its value to "./${relPath}".`,
 		)
-		error.stack = ''
+		error.stack = ""
 
 		// don't let anything continue
 		throw error
@@ -287,7 +295,15 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
-				sourceFiles.map(async (filepath: string) => (await fs.readFile(filepath))!)
+				sourceFiles.map(async (filepath: string) => {
+					const content = await fs.readFile(filepath)
+					if (!content) {
+						throw new HoudiniError({
+							message: `Failed to read schema file at ${filepath}`,
+						})
+					}
+					return content
+				}),
 			),
 		})
 	}
@@ -301,13 +317,18 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 		})
 	}
 
-	const contents = (await fs.readFile(schemaPath))!
+	const contents = await fs.readFile(schemaPath)
+	if (!contents) {
+		throw new HoudiniError({
+			message: `Failed to read schema file at ${schemaPath}`,
+		})
+	}
 
 	// if the schema points to an sdl file
 	if (
-		schemaPath.endsWith('gql') ||
-		schemaPath.endsWith('graphql') ||
-		schemaPath.endsWith('graphqls')
+		schemaPath.endsWith("gql") ||
+		schemaPath.endsWith("graphql") ||
+		schemaPath.endsWith("graphqls")
 	) {
 		return graphql.buildSchema(contents)
 	}
@@ -322,7 +343,10 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
-	if (config.config_file.router?.auth && 'redirect' in config.config_file.router.auth) {
+	if (
+		config.config_file.router?.auth &&
+		"redirect" in config.config_file.router.auth
+	) {
 		routes.push(config.config_file.router.auth.redirect)
 	}
 
@@ -331,21 +355,25 @@ export function internal_routes(config: Config): string[] {
 
 export async function load_local_schema(
 	config: ConfigFile,
-	schema_path: string
+	schema_path: string,
 ): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
-		const { default: schema } = await import(pathToFileURL(schema_path).toString())
+		const { default: schema } = await import(
+			pathToFileURL(schema_path).toString()
+		)
 
 		// now that we have the schema, let's write it to disk so the core plugin
 		// can import it
-		await fs.writeFile(config.schemaPath!, graphql.printSchema(schema))
+		if (config.schemaPath) {
+			await fs.writeFile(config.schemaPath, graphql.printSchema(schema))
+		}
 
 		return schema
 	} catch (e) {
-		const message = 'message' in (e as Error) ? (e as Error).message : e
+		const message = "message" in (e as Error) ? (e as Error).message : e
 		// if we fail to load the schema, log a message to the user and just return an empty one
-		console.error('⚠️ Failed to load local schema: ', message)
+		console.error("⚠️ Failed to load local schema: ", message)
 		return new graphql.GraphQLSchema({})
 	}
 }

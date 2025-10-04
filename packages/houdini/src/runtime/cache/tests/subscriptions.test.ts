@@ -1,39 +1,39 @@
-import { test, expect, vi } from 'vitest'
+import { expect, test, vi } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import type { SubscriptionSelection } from '../../lib'
-import { RefetchUpdateMode } from '../../lib'
-import { Cache } from '../cache'
-import { rootID } from '../stuff'
+import { testConfigFile } from "../../../test"
+import type { SubscriptionSelection } from "../../lib"
+import { RefetchUpdateMode } from "../../lib"
+import { Cache } from "../cache"
+import { rootID } from "../stuff"
 
 const config = testConfigFile()
 
-test('root subscribe - field change', function () {
+test("root subscribe - field change", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'favoriteColors',
+							keyRaw: "favoriteColors",
 						},
 					},
 				},
@@ -46,9 +46,9 @@ test('root subscribe - field change', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+				id: "1",
+				firstName: "bob",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
@@ -58,7 +58,7 @@ test('root subscribe - field change', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -68,8 +68,8 @@ test('root subscribe - field change', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'mary',
+				id: "1",
+				firstName: "mary",
 			},
 		},
 	})
@@ -77,37 +77,37 @@ test('root subscribe - field change', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+			firstName: "mary",
+			favoriteColors: ["red", "green", "blue"],
+			id: "1",
 		},
 	})
 })
 
-test('root subscribe - linked object changed', function () {
+test("root subscribe - linked object changed", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 							nullable: true,
@@ -123,9 +123,9 @@ test('root subscribe - linked object changed', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+				id: "1",
+				firstName: "bob",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
@@ -135,7 +135,7 @@ test('root subscribe - linked object changed', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -145,8 +145,8 @@ test('root subscribe - linked object changed', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '2',
-				firstName: 'mary',
+				id: "2",
+				firstName: "mary",
 			},
 		},
 	})
@@ -154,10 +154,10 @@ test('root subscribe - linked object changed', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			firstName: 'mary',
+			firstName: "mary",
 			// this is a sanity-check. the cache wasn't written with that value
 			favoriteColors: null,
-			id: '2',
+			id: "2",
 		},
 	})
 
@@ -166,16 +166,16 @@ test('root subscribe - linked object changed', function () {
 		selection: {
 			fields: {
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName',
+					keyRaw: "firstName",
 				},
 			},
 		},
 		data: {
-			firstName: 'Michelle',
+			firstName: "Michelle",
 		},
-		parent: 'User:2',
+		parent: "User:2",
 	})
 
 	expect(set).toHaveBeenCalledTimes(2)
@@ -183,41 +183,43 @@ test('root subscribe - linked object changed', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenLastCalledWith({
 		viewer: {
-			firstName: 'Michelle',
-			id: '2',
+			firstName: "Michelle",
+			id: "2",
 			favoriteColors: null,
 		},
 	})
 
 	// make sure we are no longer subscribing to user 1
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(0)
 })
 
-test("subscribing to null object doesn't explode", function () {
+test("subscribing to null object doesn't explode", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
 							nullable: true,
-							type: 'String',
+							type: "String",
 							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 						},
@@ -240,7 +242,7 @@ test("subscribing to null object doesn't explode", function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -250,8 +252,8 @@ test("subscribing to null object doesn't explode", function () {
 		selection,
 		data: {
 			viewer: {
-				id: '2',
-				firstName: 'mary',
+				id: "2",
+				firstName: "mary",
 			},
 		},
 	})
@@ -259,38 +261,38 @@ test("subscribing to null object doesn't explode", function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			firstName: 'mary',
+			firstName: "mary",
 			favoriteColors: null,
-			id: '2',
+			id: "2",
 		},
 	})
 })
 
-test('overwriting a reference with null clears its subscribers', function () {
+test("overwriting a reference with null clears its subscribers", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 						},
@@ -305,8 +307,8 @@ test('overwriting a reference with null clears its subscribers', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '2',
-				firstName: 'mary',
+				id: "2",
+				firstName: "mary",
 			},
 		},
 	})
@@ -316,7 +318,7 @@ test('overwriting a reference with null clears its subscribers', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -335,42 +337,44 @@ test('overwriting a reference with null clears its subscribers', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:2", "firstName"),
+	).toHaveLength(0)
 })
 
-test('overwriting a linked list with null clears its subscribers', function () {
+test("overwriting a linked list with null clears its subscribers", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							nullable: true,
 							selection: {
 								fields: {
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 								},
 							},
@@ -386,7 +390,7 @@ test('overwriting a linked list with null clears its subscribers', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -396,84 +400,94 @@ test('overwriting a linked list with null clears its subscribers', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
-					{ id: '2', firstName: 'Jason' },
-					{ id: '3', firstName: 'Nick' },
+					{ id: "2", firstName: "Jason" },
+					{ id: "3", firstName: "Nick" },
 				],
 			},
 		},
 	})
 
 	// make sure something is subscribing to the friends field
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'friends')).toHaveLength(1)
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "friends"),
+	).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:2", "firstName"),
+	).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:3", "firstName"),
+	).toHaveLength(1)
 
 	// write null over the list
 	cache.write({
 		selection: {
 			fields: {
 				id: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
-				friends: selection.fields!.viewer.selection!.fields!.friends,
+				friends: selection.fields?.viewer.selection?.fields?.friends,
 			},
 		},
 		data: {
-			id: '1',
+			id: "1",
 			friends: null,
 		},
-		parent: 'User:1',
+		parent: "User:1",
 	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenNthCalledWith(2, {
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: null,
 		},
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:2", "firstName"),
+	).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:3", "firstName"),
+	).toHaveLength(0)
 })
 
-test('root subscribe - linked list lost entry', function () {
+test("root subscribe - linked list lost entry", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -489,15 +503,15 @@ test('root subscribe - linked list lost entry', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					{
-						id: '3',
-						firstName: 'mary',
+						id: "3",
+						firstName: "mary",
 					},
 				],
 			},
@@ -509,7 +523,7 @@ test('root subscribe - linked list lost entry', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -519,10 +533,10 @@ test('root subscribe - linked list lost entry', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
+						id: "2",
 					},
 				],
 			},
@@ -532,52 +546,54 @@ test('root subscribe - linked list lost entry', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: [
 				{
-					firstName: 'jane',
-					id: '2',
+					firstName: "jane",
+					id: "2",
 				},
 			],
 		},
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:3", "firstName"),
+	).toHaveLength(0)
 })
 
-test("subscribing to list with null values doesn't explode", function () {
+test("subscribing to list with null values doesn't explode", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -593,11 +609,11 @@ test("subscribing to list with null values doesn't explode", function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					null,
 				],
@@ -610,7 +626,7 @@ test("subscribing to list with null values doesn't explode", function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -620,10 +636,10 @@ test("subscribing to list with null values doesn't explode", function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
+						id: "2",
 					},
 				],
 			},
@@ -633,49 +649,49 @@ test("subscribing to list with null values doesn't explode", function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: [
 				{
-					firstName: 'jane',
-					id: '2',
+					firstName: "jane",
+					id: "2",
 				},
 			],
 		},
 	})
 })
 
-test('root subscribe - linked list reorder', function () {
+test("root subscribe - linked list reorder", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -691,15 +707,15 @@ test('root subscribe - linked list reorder', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					{
-						id: '3',
-						firstName: 'mary',
+						id: "3",
+						firstName: "mary",
 					},
 				],
 			},
@@ -711,7 +727,7 @@ test('root subscribe - linked list reorder', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		set,
 		selection,
 	})
@@ -721,13 +737,13 @@ test('root subscribe - linked list reorder', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '3',
+						id: "3",
 					},
 					{
-						id: '2',
+						id: "2",
 					},
 				],
 			},
@@ -737,49 +753,53 @@ test('root subscribe - linked list reorder', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: [
 				{
-					id: '3',
-					firstName: 'mary',
+					id: "3",
+					firstName: "mary",
 				},
 				{
-					id: '2',
-					firstName: 'jane',
+					id: "2",
+					firstName: "jane",
 				},
 			],
 		},
 	})
 
 	// we should still be subscribing to both users
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:2", "firstName"),
+	).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:3", "firstName"),
+	).toHaveLength(1)
 })
 
-test('unsubscribe', function () {
+test("unsubscribe", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
 							keyRaw: 'favoriteColors(where: "foo")',
 						},
@@ -794,16 +814,16 @@ test('unsubscribe', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+				id: "1",
+				firstName: "bob",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
 
 	// the spec we will register/unregister
 	const spec = {
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set: vi.fn(),
 	}
@@ -812,52 +832,56 @@ test('unsubscribe', function () {
 	cache.subscribe(spec)
 
 	// make sure we  registered the subscriber
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(1)
 
 	// unsubscribe
 	cache.unsubscribe(spec)
 
 	// make sure there is no more subscriber
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(0)
 })
 
-test('subscribe to new list nodes', function () {
+test("subscribe to new list nodes", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -873,7 +897,7 @@ test('subscribe to new list nodes', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		set,
 		selection,
 	})
@@ -883,11 +907,11 @@ test('subscribe to new list nodes', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 				],
 			},
@@ -899,33 +923,33 @@ test('subscribe to new list nodes', function () {
 		selection: {
 			fields: {
 				id: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName',
+					keyRaw: "firstName",
 				},
 			},
 		},
 		data: {
-			id: '2',
-			firstName: 'jane-prime',
+			id: "2",
+			firstName: "jane-prime",
 		},
-		parent: 'User:2',
+		parent: "User:2",
 	})
 
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for jane
 	expect(set).toHaveBeenNthCalledWith(2, {
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: [
 				{
-					firstName: 'jane-prime',
-					id: '2',
+					firstName: "jane-prime",
+					id: "2",
 				},
 			],
 		},
@@ -936,15 +960,15 @@ test('subscribe to new list nodes', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane-prime',
+						id: "2",
+						firstName: "jane-prime",
 					},
 					{
-						id: '3',
-						firstName: 'mary',
+						id: "3",
+						firstName: "mary",
 					},
 				],
 			},
@@ -956,80 +980,80 @@ test('subscribe to new list nodes', function () {
 		selection: {
 			fields: {
 				id: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName',
+					keyRaw: "firstName",
 				},
 			},
 		},
 		data: {
-			id: '3',
-			firstName: 'mary-prime',
+			id: "3",
+			firstName: "mary-prime",
 		},
-		parent: 'User:3',
+		parent: "User:3",
 	})
 
 	// the third time set was called, a new entry was added.
 	// the fourth time it's called, we get a new value for mary
 	expect(set).toHaveBeenNthCalledWith(4, {
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: [
 				{
-					firstName: 'jane-prime',
-					id: '2',
+					firstName: "jane-prime",
+					id: "2",
 				},
 				{
-					firstName: 'mary-prime',
-					id: '3',
+					firstName: "mary-prime",
+					id: "3",
 				},
 			],
 		},
 	})
 })
 
-test('variables in query and subscription', function () {
+test("variables in query and subscription", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends(filter: $filter)',
+							keyRaw: "friends(filter: $filter)",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1045,21 +1069,21 @@ test('variables in query and subscription', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					{
-						id: '3',
-						firstName: 'mary',
+						id: "3",
+						firstName: "mary",
 					},
 				],
 			},
 		},
 		variables: {
-			filter: 'foo',
+			filter: "foo",
 		},
 	})
 
@@ -1069,101 +1093,103 @@ test('variables in query and subscription', function () {
 	// subscribe to the fields
 	cache.subscribe(
 		{
-			rootType: 'Query',
+			rootType: "Query",
 			selection,
 			set,
-			variables: () => ({ filter: 'foo' }),
+			variables: () => ({ filter: "foo" }),
 		},
 		{
-			filter: 'foo',
-		}
+			filter: "foo",
+		},
 	)
 
 	// make sure we have a cached value for friends(filter: "foo")
-	expect(cache.list('All_Users').lists[0].key).toEqual('friends(filter: "foo")')
+	expect(cache.list("All_Users").lists[0].key).toEqual('friends(filter: "foo")')
 
 	// somehow write a user to the cache with a new friends list
 	cache.write({
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
+						id: "2",
 					},
 				],
 			},
 		},
 		variables: {
-			filter: 'foo',
+			filter: "foo",
 		},
 	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: [
 				{
-					firstName: 'jane',
-					id: '2',
+					firstName: "jane",
+					id: "2",
 				},
 			],
 		},
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:3", "firstName"),
+	).toHaveLength(0)
 })
 
-test('deleting a node removes nested subscriptions', function () {
+test("deleting a node removes nested subscriptions", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1179,13 +1205,13 @@ test('deleting a node removes nested subscriptions', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
+				__typename: "User",
+				id: "1",
 				friends: [
 					{
-						__typename: 'User',
-						id: '2',
-						firstName: 'jane',
+						__typename: "User",
+						id: "2",
+						firstName: "jane",
 					},
 				],
 			},
@@ -1197,68 +1223,72 @@ test('deleting a node removes nested subscriptions', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
 
 	// sanity check
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:2", "firstName"),
+	).toHaveLength(1)
 
 	// delete the parent
-	cache.delete('User:1')
+	cache.delete("User:1")
 
 	// sanity check
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:2", "firstName"),
+	).toHaveLength(0)
 })
 
-test('find subSelection', function () {
+test("find subSelection", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1274,64 +1304,65 @@ test('find subSelection', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
+				__typename: "User",
+				id: "1",
 				friends: [
 					{
-						__typename: 'User',
-						id: '2',
-						firstName: 'jane',
+						__typename: "User",
+						id: "2",
+						firstName: "jane",
 					},
 				],
 			},
 		},
 	})
 
-	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
-		rootID,
-		selection,
-		{},
-		'User:1'
-	)
+	const subSelections =
+		cache._internal_unstable.subscriptions.findSubSelections(
+			rootID,
+			selection,
+			{},
+			"User:1",
+		)
 
 	expect(subSelections).toEqual([
 		{
 			fields: {
 				__typename: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: '__typename',
+					keyRaw: "__typename",
 				},
 				id: {
-					type: 'ID',
+					type: "ID",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				friends: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'friends',
+					keyRaw: "friends",
 					list: {
-						name: 'All_Users',
+						name: "All_Users",
 						connection: false,
-						type: 'User',
+						type: "User",
 					},
 					selection: {
 						fields: {
 							__typename: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: '__typename',
+								keyRaw: "__typename",
 							},
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -1341,53 +1372,53 @@ test('find subSelection', function () {
 	])
 })
 
-test('find subSelection - avoid cycles', function () {
+test("find subSelection - avoid cycles", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1403,64 +1434,65 @@ test('find subSelection - avoid cycles', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
+				__typename: "User",
+				id: "1",
 				friends: [
 					{
-						__typename: 'User',
-						id: '1',
-						firstName: 'jane',
+						__typename: "User",
+						id: "1",
+						firstName: "jane",
 					},
 				],
 			},
 		},
 	})
 
-	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
-		rootID,
-		selection,
-		{},
-		'User:1'
-	)
+	const subSelections =
+		cache._internal_unstable.subscriptions.findSubSelections(
+			rootID,
+			selection,
+			{},
+			"User:1",
+		)
 
 	expect(subSelections).toEqual([
 		{
 			fields: {
 				__typename: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: '__typename',
+					keyRaw: "__typename",
 				},
 				id: {
-					type: 'ID',
+					type: "ID",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				friends: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'friends',
+					keyRaw: "friends",
 					list: {
-						name: 'All_Users',
+						name: "All_Users",
 						connection: false,
-						type: 'User',
+						type: "User",
 					},
 					selection: {
 						fields: {
 							__typename: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: '__typename',
+								keyRaw: "__typename",
 							},
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -1470,53 +1502,53 @@ test('find subSelection - avoid cycles', function () {
 	])
 })
 
-test('find subSelection - deeply nested', function () {
+test("find subSelection - deeply nested", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1532,91 +1564,92 @@ test('find subSelection - deeply nested', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
+				__typename: "User",
+				id: "1",
 				friends: [
 					{
-						__typename: 'User',
-						id: '2',
-						firstName: 'jane',
+						__typename: "User",
+						id: "2",
+						firstName: "jane",
 					},
 				],
 			},
 		},
 	})
 
-	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
-		rootID,
-		selection,
-		{},
-		'User:2'
-	)
+	const subSelections =
+		cache._internal_unstable.subscriptions.findSubSelections(
+			rootID,
+			selection,
+			{},
+			"User:2",
+		)
 
 	expect(subSelections).toEqual([
 		{
 			fields: {
 				__typename: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: '__typename',
+					keyRaw: "__typename",
 				},
 				id: {
-					type: 'ID',
+					type: "ID",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName',
+					keyRaw: "firstName",
 				},
 			},
 		},
 	])
 })
 
-test('same record twice in a query survives one unsubscribe (reference counting)', function () {
+test("same record twice in a query survives one unsubscribe (reference counting)", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1632,18 +1665,18 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					{
-						id: '1',
-						firstName: 'bob',
+						id: "1",
+						firstName: "bob",
 					},
 				],
 			},
 		},
 		variables: {
-			filter: 'foo',
+			filter: "foo",
 		},
 	})
 
@@ -1653,69 +1686,73 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	// subscribe to the fields
 	cache.subscribe(
 		{
-			rootType: 'Query',
+			rootType: "Query",
 			selection,
 			set,
 		},
 		{
-			filter: 'foo',
-		}
+			filter: "foo",
+		},
 	)
 
 	// make sure there is a subscriber for the user's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(1)
 
 	// remove the user from the list
-	cache.list('All_Users').remove({ id: '1' })
+	cache.list("All_Users").remove({ id: "1" })
 
 	// we should still be subscribing to the user's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(1)
 })
 
-test('embedded references', function () {
+test("embedded references", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									edges: {
-										type: 'UserEdge',
+										type: "UserEdge",
 										visible: true,
-										keyRaw: 'edges',
+										keyRaw: "edges",
 										selection: {
 											fields: {
 												node: {
-													type: 'User',
+													type: "User",
 													visible: true,
-													keyRaw: 'node',
+													keyRaw: "node",
 													selection: {
 														fields: {
 															id: {
-																type: 'ID',
+																type: "ID",
 																visible: true,
-																keyRaw: 'id',
+																keyRaw: "id",
 															},
 															firstName: {
-																type: 'String',
+																type: "String",
 																visible: true,
-																keyRaw: 'firstName',
+																keyRaw: "firstName",
 															},
 														},
 													},
@@ -1737,19 +1774,19 @@ test('embedded references', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: {
 					edges: [
 						{
 							node: {
-								id: '2',
-								firstName: 'jane',
+								id: "2",
+								firstName: "jane",
 							},
 						},
 						{
 							node: {
-								id: '3',
-								firstName: 'mary',
+								id: "3",
+								firstName: "mary",
 							},
 						},
 					],
@@ -1764,13 +1801,13 @@ test('embedded references', function () {
 	// subscribe to the fields
 	cache.subscribe(
 		{
-			rootType: 'Query',
+			rootType: "Query",
 			selection,
 			set,
 		},
 		{
-			filter: 'foo',
-		}
+			filter: "foo",
+		},
 	)
 
 	// update one of the embedded references
@@ -1778,20 +1815,20 @@ test('embedded references', function () {
 		selection: {
 			fields: {
 				user: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'user',
+					keyRaw: "user",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -1800,8 +1837,8 @@ test('embedded references', function () {
 		},
 		data: {
 			user: {
-				id: '2',
-				firstName: 'not-jane',
+				id: "2",
+				firstName: "not-jane",
 			},
 		},
 	})
@@ -1809,19 +1846,19 @@ test('embedded references', function () {
 	// make sure we got the updated data
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: {
 				edges: [
 					{
 						node: {
-							id: '2',
-							firstName: 'not-jane',
+							id: "2",
+							firstName: "not-jane",
 						},
 					},
 					{
 						node: {
-							id: '3',
-							firstName: 'mary',
+							id: "3",
+							firstName: "mary",
 						},
 					},
 				],
@@ -1830,59 +1867,59 @@ test('embedded references', function () {
 	})
 })
 
-test('self-referencing linked lists can be unsubscribed (avoid infinite recursion)', function () {
+test("self-referencing linked lists can be unsubscribed (avoid infinite recursion)", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									friends: {
-										type: 'User',
+										type: "User",
 										visible: true,
-										keyRaw: 'friends',
+										keyRaw: "friends",
 										selection: {
 											fields: {
 												id: {
-													type: 'ID',
+													type: "ID",
 													visible: true,
-													keyRaw: 'id',
+													keyRaw: "id",
 												},
 												firstName: {
-													type: 'String',
+													type: "String",
 													visible: true,
-													keyRaw: 'firstName',
+													keyRaw: "firstName",
 												},
 											},
 										},
@@ -1901,16 +1938,16 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					{
-						id: '1',
-						firstName: 'bob',
+						id: "1",
+						firstName: "bob",
 						friends: [
 							{
-								id: '1',
-								firstName: 'bob',
+								id: "1",
+								firstName: "bob",
 							},
 						],
 					},
@@ -1923,84 +1960,86 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 	const spec = {
 		set: vi.fn(),
 		selection,
-		rootType: 'Query',
+		rootType: "Query",
 	}
 	cache.subscribe(spec)
 	cache.unsubscribe(spec)
 
 	// no one should be subscribing to User:1's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(0)
 })
 
-test('self-referencing links can be unsubscribed (avoid infinite recursion)', function () {
+test("self-referencing links can be unsubscribed (avoid infinite recursion)", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friend: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friend',
+							keyRaw: "friend",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									friend: {
-										type: 'User',
+										type: "User",
 										visible: true,
-										keyRaw: 'friend',
+										keyRaw: "friend",
 										selection: {
 											fields: {
 												id: {
-													type: 'ID',
+													type: "ID",
 													visible: true,
-													keyRaw: 'id',
+													keyRaw: "id",
 												},
 												firstName: {
-													type: 'String',
+													type: "String",
 													visible: true,
-													keyRaw: 'firstName',
+													keyRaw: "firstName",
 												},
 												friend: {
-													type: 'User',
+													type: "User",
 													visible: true,
-													keyRaw: 'friend',
+													keyRaw: "friend",
 													selection: {
 														fields: {
 															id: {
-																type: 'ID',
+																type: "ID",
 																visible: true,
-																keyRaw: 'id',
+																keyRaw: "id",
 															},
 															firstName: {
-																type: 'String',
+																type: "String",
 																visible: true,
-																keyRaw: 'firstName',
+																keyRaw: "firstName",
 															},
 														},
 													},
@@ -2022,17 +2061,17 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friend: {
-					id: '1',
-					firstName: 'bob',
+					id: "1",
+					firstName: "bob",
 					friend: {
-						id: '1',
-						firstName: 'bob',
+						id: "1",
+						firstName: "bob",
 						friend: {
-							id: '1',
-							firstName: 'bob',
+							id: "1",
+							firstName: "bob",
 						},
 					},
 				},
@@ -2044,41 +2083,43 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	const spec = {
 		set: vi.fn(),
 		selection,
-		rootType: 'Query',
+		rootType: "Query",
 	}
 	cache.subscribe(spec)
 	cache.unsubscribe(spec)
 
 	// no one should be subscribing to User:1's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get("User:1", "firstName"),
+	).toHaveLength(0)
 })
 
-test('overwriting a value in an optimistic layer triggers subscribers', function () {
+test("overwriting a value in an optimistic layer triggers subscribers", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'favoriteColors',
+							keyRaw: "favoriteColors",
 						},
 					},
 				},
@@ -2091,9 +2132,9 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+				id: "1",
+				firstName: "bob",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
@@ -2103,7 +2144,7 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -2116,8 +2157,8 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'mary',
+				id: "1",
+				firstName: "mary",
 			},
 		},
 		layer: layer.id,
@@ -2126,39 +2167,39 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+			firstName: "mary",
+			favoriteColors: ["red", "green", "blue"],
+			id: "1",
 		},
 	})
 })
 
-test('clearing a display layer updates subscribers', function () {
+test("clearing a display layer updates subscribers", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'favoriteColors',
+							keyRaw: "favoriteColors",
 						},
 					},
 				},
@@ -2171,9 +2212,9 @@ test('clearing a display layer updates subscribers', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+				id: "1",
+				firstName: "bob",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
@@ -2183,7 +2224,7 @@ test('clearing a display layer updates subscribers', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -2196,8 +2237,8 @@ test('clearing a display layer updates subscribers', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'mary',
+				id: "1",
+				firstName: "mary",
 			},
 		},
 		layer: layer.id,
@@ -2206,9 +2247,9 @@ test('clearing a display layer updates subscribers', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+			firstName: "mary",
+			favoriteColors: ["red", "green", "blue"],
+			id: "1",
 		},
 	})
 
@@ -2220,9 +2261,9 @@ test('clearing a display layer updates subscribers', function () {
 		selection,
 		data: {
 			viewer: {
-				firstName: 'mary',
-				favoriteColors: ['red', 'green', 'blue'],
-				id: '1',
+				firstName: "mary",
+				favoriteColors: ["red", "green", "blue"],
+				id: "1",
 			},
 		},
 		layer: layer.id,
@@ -2230,14 +2271,14 @@ test('clearing a display layer updates subscribers', function () {
 
 	expect(set).toHaveBeenNthCalledWith(2, {
 		viewer: {
-			firstName: 'mary',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+			firstName: "mary",
+			favoriteColors: ["red", "green", "blue"],
+			id: "1",
 		},
 	})
 })
 
-test('optimistic layer & lists & add ok', function () {
+test("optimistic layer & lists & add ok", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2245,34 +2286,34 @@ test('optimistic layer & lists & add ok', function () {
 	const selectionList: SubscriptionSelection = {
 		fields: {
 			usersList: {
-				type: 'User',
-				keyRaw: 'usersList',
+				type: "User",
+				keyRaw: "usersList",
 				directives: [
 					{
-						name: 'list',
+						name: "list",
 						arguments: {
 							name: {
-								kind: 'StringValue',
-								value: 'OptimisticUsersList',
+								kind: "StringValue",
+								value: "OptimisticUsersList",
 							},
 						},
 					},
 				],
 				list: {
-					name: 'OptimisticUsersList',
+					name: "OptimisticUsersList",
 					connection: false,
-					type: 'User',
+					type: "User",
 				},
 				selection: {
 					fields: {
 						name: {
-							type: 'String',
-							keyRaw: 'name',
+							type: "String",
+							keyRaw: "name",
 							visible: true,
 						},
 						id: {
-							type: 'ID',
-							keyRaw: 'id',
+							type: "ID",
+							keyRaw: "id",
 							visible: true,
 						},
 					},
@@ -2286,25 +2327,25 @@ test('optimistic layer & lists & add ok', function () {
 	const selectionMutation: SubscriptionSelection = {
 		fields: {
 			addUser: {
-				type: 'User',
-				keyRaw: 'addUser',
+				type: "User",
+				keyRaw: "addUser",
 				nullable: true,
 				operations: [
 					{
-						action: 'insert',
-						list: 'OptimisticUsersList',
-						position: 'last',
+						action: "insert",
+						list: "OptimisticUsersList",
+						position: "last",
 					},
 				],
 				selection: {
 					fields: {
 						name: {
-							type: 'String',
-							keyRaw: 'name',
+							type: "String",
+							keyRaw: "name",
 						},
 						id: {
-							type: 'ID',
-							keyRaw: 'id',
+							type: "ID",
+							keyRaw: "id",
 							visible: true,
 						},
 					},
@@ -2325,12 +2366,12 @@ test('optimistic layer & lists & add ok', function () {
 		data: {
 			usersList: [
 				{
-					id: 'mutation-opti-list:1',
-					name: 'Bruce Willis',
+					id: "mutation-opti-list:1",
+					name: "Bruce Willis",
 				},
 				{
-					id: 'mutation-opti-list:2',
-					name: 'Samuel Jackson',
+					id: "mutation-opti-list:2",
+					name: "Samuel Jackson",
 				},
 			],
 		},
@@ -2341,7 +2382,7 @@ test('optimistic layer & lists & add ok', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: selectionList,
 		set: setOnQuery,
 	})
@@ -2354,8 +2395,8 @@ test('optimistic layer & lists & add ok', function () {
 		selection: selectionMutation,
 		data: {
 			addUser: {
-				id: '??? id ???',
-				name: '...optimisticResponse... I could have guessed JYC!',
+				id: "??? id ???",
+				name: "...optimisticResponse... I could have guessed JYC!",
 			},
 		},
 		layer: layer.id,
@@ -2365,16 +2406,16 @@ test('optimistic layer & lists & add ok', function () {
 	expect(setOnQuery).toHaveBeenCalledWith({
 		usersList: [
 			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
+				id: "mutation-opti-list:1",
+				name: "Bruce Willis",
 			},
 			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
+				id: "mutation-opti-list:2",
+				name: "Samuel Jackson",
 			},
 			{
-				id: '??? id ???',
-				name: '...optimisticResponse... I could have guessed JYC!',
+				id: "??? id ???",
+				name: "...optimisticResponse... I could have guessed JYC!",
 			},
 		],
 	})
@@ -2387,8 +2428,8 @@ test('optimistic layer & lists & add ok', function () {
 		selection: selectionMutation,
 		data: {
 			addUser: {
-				id: 'mutation-opti-list:9',
-				name: 'Alec',
+				id: "mutation-opti-list:9",
+				name: "Alec",
 			},
 		},
 		layer: layer.id,
@@ -2397,22 +2438,22 @@ test('optimistic layer & lists & add ok', function () {
 	expect(setOnQuery).toHaveBeenNthCalledWith(2, {
 		usersList: [
 			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
+				id: "mutation-opti-list:1",
+				name: "Bruce Willis",
 			},
 			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
+				id: "mutation-opti-list:2",
+				name: "Samuel Jackson",
 			},
 			{
-				id: 'mutation-opti-list:9',
-				name: 'Alec',
+				id: "mutation-opti-list:9",
+				name: "Alec",
 			},
 		],
 	})
 })
 
-test('optimistic layer & lists & add null (optimistic will revert)', function () {
+test("optimistic layer & lists & add null (optimistic will revert)", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2420,34 +2461,34 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	const selectionList: SubscriptionSelection = {
 		fields: {
 			usersList: {
-				type: 'User',
-				keyRaw: 'usersList',
+				type: "User",
+				keyRaw: "usersList",
 				directives: [
 					{
-						name: 'list',
+						name: "list",
 						arguments: {
 							name: {
-								kind: 'StringValue',
-								value: 'OptimisticUsersList',
+								kind: "StringValue",
+								value: "OptimisticUsersList",
 							},
 						},
 					},
 				],
 				list: {
-					name: 'OptimisticUsersList',
+					name: "OptimisticUsersList",
 					connection: false,
-					type: 'User',
+					type: "User",
 				},
 				selection: {
 					fields: {
 						name: {
-							type: 'String',
-							keyRaw: 'name',
+							type: "String",
+							keyRaw: "name",
 							visible: true,
 						},
 						id: {
-							type: 'ID',
-							keyRaw: 'id',
+							type: "ID",
+							keyRaw: "id",
 							visible: true,
 						},
 					},
@@ -2461,25 +2502,25 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	const selectionMutation: SubscriptionSelection = {
 		fields: {
 			addUser: {
-				type: 'User',
-				keyRaw: 'addUser',
+				type: "User",
+				keyRaw: "addUser",
 				nullable: true,
 				operations: [
 					{
-						action: 'insert',
-						list: 'OptimisticUsersList',
-						position: 'last',
+						action: "insert",
+						list: "OptimisticUsersList",
+						position: "last",
 					},
 				],
 				selection: {
 					fields: {
 						name: {
-							type: 'String',
-							keyRaw: 'name',
+							type: "String",
+							keyRaw: "name",
 						},
 						id: {
-							type: 'ID',
-							keyRaw: 'id',
+							type: "ID",
+							keyRaw: "id",
 							visible: true,
 						},
 					},
@@ -2500,12 +2541,12 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 		data: {
 			usersList: [
 				{
-					id: 'mutation-opti-list:1',
-					name: 'Bruce Willis',
+					id: "mutation-opti-list:1",
+					name: "Bruce Willis",
 				},
 				{
-					id: 'mutation-opti-list:2',
-					name: 'Samuel Jackson',
+					id: "mutation-opti-list:2",
+					name: "Samuel Jackson",
 				},
 			],
 		},
@@ -2516,7 +2557,7 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: selectionList,
 		set: setOnQuery,
 	})
@@ -2529,8 +2570,8 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 		selection: selectionMutation,
 		data: {
 			addUser: {
-				id: '??? id ???',
-				name: '...optimisticResponse... I could have guessed JYC!',
+				id: "??? id ???",
+				name: "...optimisticResponse... I could have guessed JYC!",
 			},
 		},
 		layer: layer.id,
@@ -2540,16 +2581,16 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	expect(setOnQuery).toHaveBeenCalledWith({
 		usersList: [
 			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
+				id: "mutation-opti-list:1",
+				name: "Bruce Willis",
 			},
 			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
+				id: "mutation-opti-list:2",
+				name: "Samuel Jackson",
 			},
 			{
-				id: '??? id ???',
-				name: '...optimisticResponse... I could have guessed JYC!',
+				id: "??? id ???",
+				name: "...optimisticResponse... I could have guessed JYC!",
 			},
 		],
 	})
@@ -2570,12 +2611,12 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	expect(cache.read({ selection: selectionList }).data).toMatchObject({
 		usersList: [
 			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
+				id: "mutation-opti-list:1",
+				name: "Bruce Willis",
 			},
 			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
+				id: "mutation-opti-list:2",
+				name: "Samuel Jackson",
 			},
 		],
 	})
@@ -2584,86 +2625,86 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	expect(setOnQuery).toHaveBeenNthCalledWith(2, {
 		usersList: [
 			{
-				id: 'mutation-opti-list:1',
-				name: 'Bruce Willis',
+				id: "mutation-opti-list:1",
+				name: "Bruce Willis",
 			},
 			{
-				id: 'mutation-opti-list:2',
-				name: 'Samuel Jackson',
+				id: "mutation-opti-list:2",
+				name: "Samuel Jackson",
 			},
 		],
 	})
 })
 
-test('ensure parent type is properly passed for nested lists', function () {
+test("ensure parent type is properly passed for nested lists", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			cities: {
-				type: 'City',
+				type: "City",
 				visible: true,
-				keyRaw: 'cities',
+				keyRaw: "cities",
 				list: {
-					name: 'City_List',
+					name: "City_List",
 					connection: false,
-					type: 'City',
+					type: "City",
 				},
 				updates: [RefetchUpdateMode.append],
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						name: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'name',
+							keyRaw: "name",
 						},
 						libraries: {
-							type: 'Library',
+							type: "Library",
 							visible: true,
-							keyRaw: 'libraries',
+							keyRaw: "libraries",
 							list: {
-								name: 'Library_List',
+								name: "Library_List",
 								connection: false,
-								type: 'Library',
+								type: "Library",
 							},
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									name: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'name',
+										keyRaw: "name",
 									},
 									books: {
-										type: 'Book',
+										type: "Book",
 										visible: true,
-										keyRaw: 'books',
+										keyRaw: "books",
 										list: {
-											name: 'Book_List',
+											name: "Book_List",
 											connection: false,
-											type: 'Book',
+											type: "Book",
 										},
 										selection: {
 											fields: {
 												id: {
-													type: 'ID',
+													type: "ID",
 													visible: true,
-													keyRaw: 'id',
+													keyRaw: "id",
 												},
 												title: {
-													type: 'String',
+													type: "String",
 													visible: true,
-													keyRaw: 'title',
+													keyRaw: "title",
 												},
 											},
 										},
@@ -2682,7 +2723,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -2694,24 +2735,24 @@ test('ensure parent type is properly passed for nested lists', function () {
 		data: {
 			cities: [
 				{
-					id: '1',
-					name: 'Alexandria',
+					id: "1",
+					name: "Alexandria",
 					libraries: [
 						{
-							id: '1',
-							name: 'The Library of Alexandria',
+							id: "1",
+							name: "The Library of Alexandria",
 							books: [],
 						},
 						{
-							id: '2',
-							name: 'Bibliotheca Alexandrina',
+							id: "2",
+							name: "Bibliotheca Alexandrina",
 							books: [],
 						},
 					],
 				},
 				{
-					id: '2',
-					name: 'Aalborg',
+					id: "2",
+					name: "Aalborg",
 					libraries: [],
 				},
 			],
@@ -2720,38 +2761,38 @@ test('ensure parent type is properly passed for nested lists', function () {
 
 	// since there are multiple lists inside of City_List, we need to
 	// specify the parentID of the city in order to add a library to City:3
-	expect(() => cache.list('Library_List', '2')).not.toThrow()
+	expect(() => cache.list("Library_List", "2")).not.toThrow()
 	// same with Books_List for Library:2
-	expect(() => cache.list('Book_List', '2')).not.toThrow()
+	expect(() => cache.list("Book_List", "2")).not.toThrow()
 })
 
-test('subscribe to abstract fields of matching type', function () {
+test("subscribe to abstract fields of matching type", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'Node',
+				type: "Node",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				abstract: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 					},
 					abstractFields: {
@@ -2759,24 +2800,24 @@ test('subscribe to abstract fields of matching type', function () {
 						fields: {
 							User: {
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
+									keyRaw: "firstName",
 								},
 								favoriteColors: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'favoriteColors',
+									keyRaw: "favoriteColors",
 								},
 							},
 						},
@@ -2791,9 +2832,9 @@ test('subscribe to abstract fields of matching type', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
-				firstName: 'bob',
+				__typename: "User",
+				id: "1",
+				firstName: "bob",
 				favoriteColors: [],
 			},
 		},
@@ -2804,7 +2845,7 @@ test('subscribe to abstract fields of matching type', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -2814,9 +2855,9 @@ test('subscribe to abstract fields of matching type', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
-				favoriteColors: ['red', 'green', 'blue'],
+				__typename: "User",
+				id: "1",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
@@ -2824,36 +2865,36 @@ test('subscribe to abstract fields of matching type', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			__typename: 'User',
-			firstName: 'bob',
-			favoriteColors: ['red', 'green', 'blue'],
-			id: '1',
+			__typename: "User",
+			firstName: "bob",
+			favoriteColors: ["red", "green", "blue"],
+			id: "1",
 		},
 	})
 })
 
-test('overlapping subscriptions', function () {
+test("overlapping subscriptions", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection1: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'favoriteColors',
+							keyRaw: "favoriteColors",
 						},
 					},
 				},
@@ -2864,21 +2905,21 @@ test('overlapping subscriptions', function () {
 	const selection2: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -2901,7 +2942,7 @@ test('overlapping subscriptions', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: selection1,
 		set: set1,
 	})
@@ -2911,7 +2952,7 @@ test('overlapping subscriptions', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: selection2,
 		set: set2,
 	})
@@ -2921,8 +2962,8 @@ test('overlapping subscriptions', function () {
 		selection: selection1,
 		data: {
 			viewer: {
-				id: '1',
-				favoriteColors: ['test'],
+				id: "1",
+				favoriteColors: ["test"],
 			},
 		},
 	})
@@ -2931,24 +2972,24 @@ test('overlapping subscriptions', function () {
 
 	// writing to favoriteColors should only trigger selection1
 	cache.write({
-		parent: 'User:1',
+		parent: "User:1",
 		selection: {
 			fields: {
 				id: {
-					type: 'ID',
+					type: "ID",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				favoriteColors: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'favoriteColors',
+					keyRaw: "favoriteColors",
 				},
 			},
 		},
 		data: {
-			id: '1',
-			favoriteColors: ['test2'],
+			id: "1",
+			favoriteColors: ["test2"],
 		},
 	})
 
@@ -2956,50 +2997,50 @@ test('overlapping subscriptions', function () {
 
 	// and writing to firstName should trigger set 2
 	cache.write({
-		parent: 'User:1',
+		parent: "User:1",
 		selection: {
 			fields: {
 				id: {
-					type: 'ID',
+					type: "ID",
 					visible: true,
-					keyRaw: 'id',
+					keyRaw: "id",
 				},
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName',
+					keyRaw: "firstName",
 				},
 			},
 		},
 		data: {
-			id: '1',
-			firstName: 'test2',
+			id: "1",
+			firstName: "test2",
 		},
 	})
 	expect(set2).toHaveBeenCalledTimes(2)
 })
 
-test('ignore hidden fields', function () {
+test("ignore hidden fields", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						favoriteColors: {
-							type: 'String',
-							keyRaw: 'favoriteColors',
+							type: "String",
+							keyRaw: "favoriteColors",
 						},
 					},
 				},
@@ -3012,9 +3053,9 @@ test('ignore hidden fields', function () {
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
-				firstName: 'bob',
+				__typename: "User",
+				id: "1",
+				firstName: "bob",
 			},
 		},
 	})
@@ -3024,7 +3065,7 @@ test('ignore hidden fields', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -3034,43 +3075,43 @@ test('ignore hidden fields', function () {
 		selection: {
 			fields: {
 				favoriteColors: {
-					type: 'String',
-					keyRaw: 'favoriteColors',
+					type: "String",
+					keyRaw: "favoriteColors",
 				},
 			},
 		},
 		data: {
-			favoriteColors: ['blue'],
+			favoriteColors: ["blue"],
 		},
-		parent: 'User:1',
+		parent: "User:1",
 	})
 
 	// make sure we didn't call the update
 	expect(set).not.toHaveBeenCalled()
 })
 
-test('clearing a layer should notify subscribers of displayed values', function () {
+test("clearing a layer should notify subscribers of displayed values", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						favoriteColors: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'favoriteColors',
+							keyRaw: "favoriteColors",
 						},
 					},
 				},
@@ -3087,9 +3128,9 @@ test('clearing a layer should notify subscribers of displayed values', function 
 		selection,
 		data: {
 			viewer: {
-				__typename: 'User',
-				id: '1',
-				favoriteColors: ['blue'],
+				__typename: "User",
+				id: "1",
+				favoriteColors: ["blue"],
 			},
 		},
 	})
@@ -3099,7 +3140,7 @@ test('clearing a layer should notify subscribers of displayed values', function 
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection,
 		set,
 	})
@@ -3111,67 +3152,67 @@ test('clearing a layer should notify subscribers of displayed values', function 
 	expect(set).toHaveBeenCalledWith({ viewer: null })
 })
 
-test('reverting optimistic remove notifies subscribers', function () {
+test("reverting optimistic remove notifies subscribers", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const user3 = {
-		__typename: 'User',
-		id: '3',
-		firstName: 'jane',
+		__typename: "User",
+		id: "3",
+		firstName: "jane",
 	}
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: true,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									edges: {
-										type: 'UserEdge',
+										type: "UserEdge",
 										visible: true,
-										keyRaw: 'edges',
+										keyRaw: "edges",
 										selection: {
 											fields: {
 												node: {
-													type: 'Node',
+													type: "Node",
 													visible: true,
-													keyRaw: 'node',
+													keyRaw: "node",
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
-																type: 'String',
+																type: "String",
 																visible: true,
-																keyRaw: '__typename',
+																keyRaw: "__typename",
 															},
 															id: {
-																type: 'ID',
+																type: "ID",
 																visible: true,
-																keyRaw: 'id',
+																keyRaw: "id",
 															},
 															firstName: {
-																type: 'String',
+																type: "String",
 																visible: true,
-																keyRaw: 'firstName',
+																keyRaw: "firstName",
 															},
 														},
 													},
@@ -3193,14 +3234,14 @@ test('reverting optimistic remove notifies subscribers', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: {
 					edges: [
 						{
 							node: {
-								__typename: 'User',
-								id: '2',
-								firstName: 'jane',
+								__typename: "User",
+								id: "2",
+								firstName: "jane",
 							},
 						},
 						{
@@ -3217,7 +3258,7 @@ test('reverting optimistic remove notifies subscribers', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		set,
 		selection,
 	})
@@ -3226,7 +3267,7 @@ test('reverting optimistic remove notifies subscribers', function () {
 	const layer = cache._internal_unstable.storage.createLayer(true)
 
 	// remove user 3 from the list
-	cache.list('All_Users').remove(user3, {}, layer)
+	cache.list("All_Users").remove(user3, {}, layer)
 
 	// clear the layer
 	cache.clearLayer(layer.id)
@@ -3234,14 +3275,14 @@ test('reverting optimistic remove notifies subscribers', function () {
 	// make sure our callback was invoked
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
-			id: '1',
+			id: "1",
 			friends: {
 				edges: [
 					{
 						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+							__typename: "User",
+							id: "2",
+							firstName: "jane",
 						},
 					},
 					{
@@ -3253,31 +3294,33 @@ test('reverting optimistic remove notifies subscribers', function () {
 	})
 })
 
-test.todo('can write to and resolve layers')
+test.todo("can write to and resolve layers")
 
-test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
+test.todo(
+	"resolving a layer with the same value as the most recent doesn't notify subscribers",
+)
 
-test('overwrite null value with list', function () {
+test("overwrite null value with list", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			friends: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'friends',
+				keyRaw: "friends",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -3298,7 +3341,7 @@ test('overwrite null value with list', function () {
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: selection,
 		set: set,
 	})
@@ -3316,27 +3359,27 @@ test('overwrite null value with list', function () {
 	})
 })
 
-test('removing all subscribers of a field cleans up reference count object', function () {
+test("removing all subscribers of a field cleans up reference count object", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -3349,8 +3392,8 @@ test('removing all subscribers of a field cleans up reference count object', fun
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 			},
 		},
 	})
@@ -3359,7 +3402,7 @@ test('removing all subscribers of a field cleans up reference count object', fun
 	const spec = {
 		set: vi.fn(),
 		selection,
-		rootType: 'Query',
+		rootType: "Query",
 	}
 	cache.subscribe(spec)
 
@@ -3373,27 +3416,27 @@ test('removing all subscribers of a field cleans up reference count object', fun
 	expect(cache._internal_unstable.subscriptions.size).toEqual(0)
 })
 
-test('reference count garbage collection requires totally empty garbage', function () {
+test("reference count garbage collection requires totally empty garbage", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection1: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -3404,15 +3447,15 @@ test('reference count garbage collection requires totally empty garbage', functi
 	const selection2: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -3425,8 +3468,8 @@ test('reference count garbage collection requires totally empty garbage', functi
 		selection: selection1,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 			},
 		},
 	})
@@ -3435,7 +3478,7 @@ test('reference count garbage collection requires totally empty garbage', functi
 	const spec1 = {
 		set: vi.fn(),
 		selection: selection1,
-		rootType: 'Query',
+		rootType: "Query",
 	}
 	cache.subscribe(spec1)
 
@@ -3443,7 +3486,7 @@ test('reference count garbage collection requires totally empty garbage', functi
 	const spec2 = {
 		set: vi.fn(),
 		selection: selection2,
-		rootType: 'Query',
+		rootType: "Query",
 	}
 	cache.subscribe(spec2)
 

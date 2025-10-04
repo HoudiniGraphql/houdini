@@ -1,7 +1,7 @@
-import type { Cache as _Cache } from '../cache/cache'
-import { getCurrentConfig, marshalInputs, type QueryArtifact } from '../lib'
-import { ListCollection } from './list'
-import { Record } from './record'
+import type { Cache as _Cache } from "../cache/cache"
+import { getCurrentConfig, marshalInputs, type QueryArtifact } from "../lib"
+import { ListCollection } from "./list"
+import { Record } from "./record"
 import type {
 	ArgType,
 	CacheTypeDef,
@@ -12,7 +12,7 @@ import type {
 	TypeFieldNames,
 	TypeNames,
 	ValidLists,
-} from './types'
+} from "./types"
 
 export class Cache<Def extends CacheTypeDef> {
 	_internal_unstable: _Cache
@@ -22,11 +22,14 @@ export class Cache<Def extends CacheTypeDef> {
 	}
 
 	// return the record proxy for the given type/id combo
-	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
+	get<T extends TypeNames<Def>>(
+		type: T,
+		data: IDFields<Def, T>,
+	): Record<Def, T> {
 		// compute the id for the record
-		let recordID = this._internal_unstable._internal_unstable.id(type, data)
+		const recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
-			throw new Error('todo')
+			throw new Error("todo")
 		}
 
 		// return the proxy
@@ -44,7 +47,7 @@ export class Cache<Def extends CacheTypeDef> {
 
 	list<Name extends ValidLists<Def>>(
 		name: Name,
-		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
+		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {},
 	): ListCollection<Def, Name> {
 		return new ListCollection<Def, Name>({
 			cache: this,
@@ -98,14 +101,19 @@ export class Cache<Def extends CacheTypeDef> {
 	/**
 	 * Mark some elements of the cache stale.
 	 */
-	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(
+	markStale<
+		_Type extends TypeNames<Def>,
+		_Field extends TypeFieldNames<Def, _Type>,
+	>(
 		type?: _Type,
 		options?: {
 			field?: _Field
 			when?: ArgType<Def, _Type, _Field>
-		}
+		},
 	): void {
-		return this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
+		this._internal_unstable.markTypeStale(
+			type ? { ...options, type } : undefined,
+		)
 	}
 
 	/**
@@ -113,6 +121,6 @@ export class Cache<Def extends CacheTypeDef> {
 	 */
 
 	reset(): void {
-		return this._internal_unstable.reset()
+		this._internal_unstable.reset()
 	}
 }

@@ -1,6 +1,6 @@
-import { parseScalar, type ConfigFile } from '../lib'
-import type { GraphQLVariables } from '../lib/types'
-import type { RouterManifest, RouterPageManifest } from './types'
+import { type ConfigFile, parseScalar } from "../lib"
+import type { GraphQLVariables } from "../lib/types"
+import type { RouterManifest, RouterPageManifest } from "./types"
 
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file
@@ -15,28 +15,26 @@ export type RouteParam = {
 	chained: boolean
 }
 
-export interface ParamMatcher {
-	(param: string): boolean
-}
+export type ParamMatcher = (param: string) => boolean
 
 // find the matching page given the current path
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: true
+	allowNull: true,
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull?: false
+	allowNull?: false,
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: boolean = true
+	allowNull: boolean = true,
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables] {
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
@@ -56,11 +54,11 @@ export function find_match<_ComponentType>(
 	}
 
 	if (!match && !allowNull) {
-		throw new Error('404')
+		throw new Error("404")
 	}
 
 	// we might have to marshal the variables
-	let variables: GraphQLVariables = {
+	const variables: GraphQLVariables = {
 		...matchVariables,
 	}
 	// each of the matched documents might tell us how to handle a subset of the
@@ -69,12 +67,16 @@ export function find_match<_ComponentType>(
 	for (const document of Object.values(match?.documents ?? {})) {
 		for (const [variable, { type }] of Object.entries(document.variables)) {
 			if (matchVariables?.[variable]) {
-				variables[variable] = parseScalar(config, type, matchVariables[variable])
+				variables[variable] = parseScalar(
+					config,
+					type,
+					matchVariables[variable],
+				)
 			}
 		}
 	}
 
-	// @ts-ignore
+	// @ts-expect-error
 	return [match, variables]
 }
 
@@ -85,7 +87,7 @@ export function parse_page_pattern(id: string) {
 	const params: RouteParam[] = []
 
 	const pattern =
-		id === '/'
+		id === "/"
 			? /^\/$/
 			: new RegExp(
 					`^${get_route_segments(id)
@@ -100,7 +102,7 @@ export function parse_page_pattern(id: string) {
 									rest: true,
 									chained: true,
 								})
-								return '(?:/(.*))?'
+								return "(?:/(.*))?"
 							}
 							// special case — /[[optional]]/ could contain zero segments
 							const optional_match = /^\[\[(\w+)(?:=(\w+))?\]\]$/.exec(segment)
@@ -112,38 +114,38 @@ export function parse_page_pattern(id: string) {
 									rest: false,
 									chained: true,
 								})
-								return '(?:/([^/]+))?'
+								return "(?:/([^/]+))?"
 							}
 
 							if (!segment) {
-								return
+								return ""
 							}
 
 							const parts = segment.split(/\[(.+?)\](?!\])/)
 							const result = parts
 								.map((content, i) => {
 									if (i % 2) {
-										if (content.startsWith('x+')) {
-											return escape(
-												String.fromCharCode(parseInt(content.slice(2), 16))
+										if (content.startsWith("x+")) {
+											return escapeString(
+												String.fromCharCode(parseInt(content.slice(2), 16)),
 											)
 										}
 
-										if (content.startsWith('u+')) {
-											return escape(
+										if (content.startsWith("u+")) {
+											return escapeString(
 												String.fromCharCode(
 													...content
 														.slice(2)
-														.split('-')
-														.map((code) => parseInt(code, 16))
-												)
+														.split("-")
+														.map((code) => parseInt(code, 16)),
+												),
 											)
 										}
 
 										const match = param_pattern.exec(content)
 										if (!match) {
 											throw new Error(
-												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`
+												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`,
 											)
 										}
 
@@ -157,23 +159,23 @@ export function parse_page_pattern(id: string) {
 											matcher,
 											optional: !!is_optional,
 											rest: !!is_rest,
-											chained: is_rest ? i === 1 && parts[0] === '' : false,
+											chained: is_rest ? i === 1 && parts[0] === "" : false,
 										})
 										return is_rest
-											? '(.*?)'
+											? "(.*?)"
 											: is_optional
-											? '([^/]*)?'
-											: '([^/]+?)'
+												? "([^/]*)?"
+												: "([^/]+?)"
 									}
 
-									return escape(content)
+									return escapeString(content)
 								})
-								.join('')
+								.join("")
 
-							return '/' + result
+							return `/${result}`
 						})
-						.join('')}/?$`
-			  )
+						.join("")}/?$`,
+				)
 
 	return { pattern, params, page_id: id }
 }
@@ -191,7 +193,7 @@ function affects_path(segment: string) {
  * and will be returned as `['']`.
  */
 export function get_route_segments(route: string) {
-	return route.slice(1).split('/').filter(affects_path)
+	return route.slice(1).split("/").filter(affects_path)
 }
 
 export function exec(match: RegExpMatchArray, params: RouteParam[]) {
@@ -199,7 +201,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 
 	const values = match.slice(1)
 
-	let buffered = ''
+	let buffered = ""
 
 	for (let i = 0; i < (params || []).length; i += 1) {
 		const param = params[i]
@@ -208,15 +210,15 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 		if (param.chained && param.rest && buffered) {
 			// in the `[[lang=lang]]/[...rest]` case, if `lang` didn't
 			// match, we roll it over into the rest value
-			value = value ? buffered + '/' + value : buffered
+			value = value ? `${buffered}/${value}` : buffered
 		}
 
-		buffered = ''
+		buffered = ""
 
 		if (value === undefined) {
 			// if `value` is undefined, it means this is
 			// an optional or rest parameter
-			if (param.rest) result[param.name] = ''
+			if (param.rest) result[param.name] = ""
 		} else {
 			result[param.name] = decodeURIComponent(value)
 		}
@@ -226,19 +228,19 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 	return result
 }
 
-function escape(str: string) {
+function escapeString(str: string) {
 	return (
 		str
 			.normalize()
 			// escape [ and ] before escaping other characters, since they are used in the replacements
-			.replace(/[[\]]/g, '\\$&')
+			.replace(/[[\]]/g, "\\$&")
 			// replace %, /, ? and # with their encoded versions because decode_pathname leaves them untouched
-			.replace(/%/g, '%25')
-			.replace(/\//g, '%2[Ff]')
-			.replace(/\?/g, '%3[Ff]')
-			.replace(/#/g, '%23')
+			.replace(/%/g, "%25")
+			.replace(/\//g, "%2[Ff]")
+			.replace(/\?/g, "%3[Ff]")
+			.replace(/#/g, "%23")
 			// escape characters that have special meaning in regex
-			.replace(/[.*+?^${}()|\\]/g, '\\$&')
+			.replace(/[.*+?^${}()|\\]/g, "\\$&")
 	)
 }
 

@@ -1,16 +1,22 @@
-import { vi } from 'vitest'
-
-import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
-import type { DocumentArtifact, GraphQLObject, QueryResult } from '../../lib'
-import { ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPlugin, ClientPluginContext } from '../documentStore'
-import { DocumentStore } from '../documentStore'
+import { vi } from "vitest"
+import type { DocumentArtifact, GraphQLObject, QueryResult } from "../../lib"
+import { ArtifactKind, DataSource } from "../../lib/types"
+import {
+	createPluginHooks,
+	HoudiniClient,
+	type HoudiniClientConstructorArgs,
+} from ".."
+import type { ClientPlugin, ClientPluginContext } from "../documentStore"
+import { DocumentStore } from "../documentStore"
 
 /**
  * Utilities for testing the cache plugin
  */
 export function createStore(
-	args: Partial<HoudiniClientConstructorArgs> & { artifact?: DocumentArtifact } = {}
+	args: Partial<HoudiniClientConstructorArgs> & {
+		artifact?: DocumentArtifact
+	} = {},
+	// biome-ignore lint/suspicious/noExplicitAny: Test store can use any type parameters
 ): DocumentStore<any, any> {
 	// if we dont have anything passed, just use the fake fetch as the plugin
 	if (!args.plugins && !args.pipeline) {
@@ -19,7 +25,7 @@ export function createStore(
 
 	// instantiate the client
 	const client = new HoudiniClient({
-		url: 'URL',
+		url: "URL",
 		...args,
 	})
 
@@ -30,36 +36,36 @@ export function createStore(
 		artifact: args.artifact ?? {
 			stripVariables: [],
 			kind: ArtifactKind.Query,
-			hash: '7777',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Query',
+			hash: "7777",
+			raw: "RAW_TEXT",
+			name: "TestArtifact",
+			rootType: "Query",
 			pluginData: {},
-			enableLoadingState: 'local',
+			enableLoadingState: "local",
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
-						loading: { kind: 'continue' },
+						keyRaw: "viewer",
+						loading: { kind: "continue" },
 						selection: {
 							fields: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
-									loading: { kind: 'value' },
+									keyRaw: "firstName",
+									loading: { kind: "value" },
 								},
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 							},
 						},
@@ -75,6 +81,7 @@ export function fakeFetch({
 	spy = vi.fn(),
 	onRequest,
 }: {
+	// biome-ignore lint/suspicious/noExplicitAny: Test data can be any shape
 	data?: any
 	spy?: (ctx: ClientPluginContext) => void
 	onRequest?: (variables: GraphQLObject, cb: () => void) => void
@@ -82,9 +89,9 @@ export function fakeFetch({
 	const result: QueryResult = {
 		data: data ?? {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 			},
 		},
 		errors: null,

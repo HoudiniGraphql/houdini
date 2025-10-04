@@ -1,10 +1,10 @@
-import { expect, vi, test } from 'vitest'
+import { expect, test, vi } from "vitest"
 
-import { DataSource } from '../lib'
-import type { ClientPlugin } from './documentStore'
-import { createStore } from './documentStore.test'
+import { DataSource } from "../lib"
+import type { ClientPlugin } from "./documentStore"
+import { createStore } from "./documentStore.test"
 
-test('createPluginHooks', async function () {
+test("createPluginHooks", async () => {
 	const enter = vi.fn()
 	const create = vi.fn()
 

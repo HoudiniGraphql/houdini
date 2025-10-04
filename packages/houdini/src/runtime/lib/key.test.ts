@@ -1,74 +1,74 @@
-import * as graphql from 'graphql'
-import { test, expect, describe } from 'vitest'
+import * as graphql from "graphql"
+import { describe, expect, test } from "vitest"
 
-import { computeKey } from './key'
-import type { PaginateModes } from './types'
+import { computeKey } from "./key"
+import type { PaginateModes } from "./types"
 
 // we need to make sure that the imperative API behaves similarly to the
 // artifact generator
-describe('evaluateKey', function () {
+describe("evaluateKey", () => {
 	const table = [
 		{
-			title: 'int',
+			title: "int",
 			args: { intValue: 1 },
-			field: 'field',
+			field: "field",
 			expected: `field(intValue: 1)`,
 		},
 		{
-			title: 'boolean',
+			title: "boolean",
 			args: { boolValue: true },
-			field: 'field',
+			field: "field",
 			expected: `field(boolValue: true)`,
 		},
 		{
-			title: 'float',
+			title: "float",
 			args: { floatValue: 1.2 },
-			field: 'field',
+			field: "field",
 			expected: `field(floatValue: 1.2)`,
 		},
 		{
-			title: 'id',
-			args: { idValue: '123' },
-			field: 'field',
+			title: "id",
+			args: { idValue: "123" },
+			field: "field",
 			expected: `field(idValue: "123")`,
 		},
 		{
-			title: 'complex values',
-			args: { where: { name: [{ _eq: 'SidneyA' }, { _eq: 'SidneyB' }] } },
-			field: 'field',
+			title: "complex values",
+			args: { where: { name: [{ _eq: "SidneyA" }, { _eq: "SidneyB" }] } },
+			field: "field",
 			expected: `field(where: {
                 name: [{ _eq: "SidneyA" } , { _eq: "SidneyB" } ]
             })`,
 		},
 		{
-			title: 'multiple',
-			args: { intValue: 1, stringValue: 'a' },
-			field: 'field',
+			title: "multiple",
+			args: { intValue: 1, stringValue: "a" },
+			field: "field",
 			expected: `field(intValue: 1, stringValue: "a")`,
 		},
 		{
-			title: 'multiple - args out of order',
-			args: { stringValue: 'a', intValue: 1 },
-			field: 'field',
+			title: "multiple - args out of order",
+			args: { stringValue: "a", intValue: 1 },
+			field: "field",
 			expected: `field(intValue: 1, stringValue: "a")`,
 		},
 		{
-			title: 'multiple - field args out of order',
-			args: { stringValue: 'a', intValue: 1 },
-			field: 'field',
+			title: "multiple - field args out of order",
+			args: { stringValue: "a", intValue: 1 },
+			field: "field",
 			expected: `field(stringValue: "a", intValue: 1)`,
 		},
 	]
 
 	for (const row of table) {
-		test(row.title, function () {
+		test(row.title, () => {
 			// figure out the key we would have printed during codegen
 			const field = graphql
 				.parse(`{ ${row.expected} }`)
 				.definitions.find<graphql.OperationDefinitionNode>(
 					(def): def is graphql.OperationDefinitionNode =>
-						def.kind === 'OperationDefinition' && def.operation === 'query'
-				)!.selectionSet.selections[0] as graphql.FieldNode
+						def.kind === "OperationDefinition" && def.operation === "query",
+				)?.selectionSet.selections[0] as graphql.FieldNode
 
 			// make sure we matched expectations
 			expect(computeKey(row)).toEqual(fieldKey(field))
@@ -87,28 +87,32 @@ function fieldKey(field: graphql.FieldNode): string {
 	// field might not have a location so print and re-parse before we look at serialized values
 	const printed = graphql.print(field)
 	const secondParse = (
-		graphql.parse(`{${printed}}`).definitions[0] as graphql.OperationDefinitionNode
+		graphql.parse(`{${printed}}`)
+			.definitions[0] as graphql.OperationDefinitionNode
 	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
-	let paginateMode: PaginateModes = 'Infinite'
+	let paginateMode: PaginateModes = "Infinite"
 	const paginatedDirective = field.directives?.find(
-		(directive) => directive.name.value === 'paginate'
+		(directive) => directive.name.value === "paginate",
 	)
 	if (paginatedDirective) {
 		const paginateModeArg = paginatedDirective?.arguments?.find(
-			(arg) => arg.name.value === 'mode'
+			(arg) => arg.name.value === "mode",
 		)
-		if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
+		if (paginateModeArg && paginateModeArg.value.kind === "EnumValue") {
 			paginateMode = paginateModeArg.value.value as PaginateModes
 		}
 	}
 
 	// if we are in SinglePageMode, don't strip away any args
 	const paginationArgs =
-		paginateMode === 'SinglePage' ? [] : ['first', 'after', 'last', 'before', 'limit', 'offset']
+		paginateMode === "SinglePage"
+			? []
+			: ["first", "after", "last", "before", "limit", "offset"]
 
-	const argObj = (secondParse.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
+	const argObj: { [key: string]: string } = {}
+	for (const arg of secondParse.arguments || []) {
 		// the query already contains a serialized version of the argument so just pull it out of the
 		// document string
 		const start = arg.value.loc?.start
@@ -116,31 +120,28 @@ function fieldKey(field: graphql.FieldNode): string {
 
 		// if the field is paginated, ignore the pagination args in the key
 		if (paginatedDirective && paginationArgs.includes(arg.name.value)) {
-			return acc
+			continue
 		}
 
 		// if the argument is not in the query, life doesn't make sense
 		if (!start || !end) {
-			return acc
+			continue
 		}
 
-		return {
-			...acc,
-			[arg.name.value]: printed.substring(start - 1, end - 1),
-		}
-	}, {})
+		argObj[arg.name.value] = printed.substring(start - 1, end - 1)
+	}
 
 	const args = Object.keys(argObj)
 	args.sort()
 
 	let key =
 		Object.values(argObj).length > 0
-			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(', ')})`
+			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(", ")})`
 			: attributeName
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict
 	if (paginatedDirective) {
-		key = key + '::paginated'
+		key = `${key}::paginated`
 	}
 
 	return key

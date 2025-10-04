@@ -1,5 +1,5 @@
-import { computeKey } from '../lib'
-import type { Cache } from './cache'
+import { computeKey } from "../lib"
+import type { Cache } from "./cache"
 
 export class StaleManager {
 	cache: Cache
@@ -43,7 +43,7 @@ export class StaleManager {
 	 */
 	setFieldTimeToNow(id: string, field: string): void {
 		this.#initMapId(id)
-		this.fieldsTime.get(id)?.set(field, new Date().valueOf())
+		this.fieldsTime.get(id)?.set(field, Date.now())
 	}
 
 	/**
@@ -84,7 +84,11 @@ export class StaleManager {
 		}
 	}
 
-	markTypeFieldStale(type: string, field: string, when?: {}): void {
+	markTypeFieldStale(
+		type: string,
+		field: string,
+		when?: Record<string, unknown>,
+	): void {
 		const key = computeKey({ field, args: when })
 
 		for (const [id, fieldMap] of this.fieldsTime.entries()) {

@@ -1,54 +1,58 @@
-import { test, expect } from 'vitest'
+import { expect, test } from "vitest"
 
-import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
-import { testCache, testFragment } from './test'
+import {
+	ArtifactKind,
+	type FragmentArtifact,
+	type SubscriptionSelection,
+} from "../../lib"
+import { testCache, testFragment } from "./test"
 
-test('can read fragment', function () {
+test("can read fragment", () => {
 	const cache = testCache()
 
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						parent: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'parent',
+							keyRaw: "parent",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 								},
 							},
@@ -64,13 +68,13 @@ test('can read fragment', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 				parent: {
-					id: '2',
-					firstName: 'jane',
-					__typename: 'User',
+					id: "2",
+					firstName: "jane",
+					__typename: "User",
 				},
 			},
 		},
@@ -79,70 +83,70 @@ test('can read fragment', function () {
 	// look up the values we just wrote
 	expect(
 		cache
-			.get('User', { id: '1' })
-			.read({ fragment: testFragment(selection.fields.viewer.selection) })
+			.get("User", { id: "1" })
+			.read({ fragment: testFragment(selection.fields.viewer.selection) }),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
-			id: '1',
-			firstName: 'bob',
-			__typename: 'User',
+			id: "1",
+			firstName: "bob",
+			__typename: "User",
 			parent: {
-				id: '2',
-				firstName: 'jane',
-				__typename: 'User',
+				id: "2",
+				firstName: "jane",
+				__typename: "User",
 			},
 		},
 	})
 })
 
-test('can writeFragments', function () {
+test("can writeFragments", () => {
 	const cache = testCache()
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						parent: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'parent',
+							keyRaw: "parent",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 								},
 							},
@@ -158,13 +162,13 @@ test('can writeFragments', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				__typename: 'User',
+				id: "1",
+				firstName: "bob",
+				__typename: "User",
 				parent: {
-					id: '2',
-					firstName: 'jane',
-					__typename: 'User',
+					id: "2",
+					firstName: "jane",
+					__typename: "User",
 				},
 			},
 		},
@@ -172,103 +176,105 @@ test('can writeFragments', function () {
 
 	const artifact: FragmentArtifact = {
 		kind: ArtifactKind.Fragment,
-		name: 'string',
-		raw: 'string',
-		hash: 'string',
-		rootType: 'string',
+		name: "string",
+		raw: "string",
+		hash: "string",
+		rootType: "string",
 		pluginData: {},
 		selection: {
 			fields: {
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName',
+					keyRaw: "firstName",
 				},
 			},
 		},
 	}
 
 	// write a fragment to update User:2
-	cache.get('User', { id: '2' }).write({
+	cache.get("User", { id: "2" }).write({
 		fragment: {
 			artifact,
 		},
 		data: {
-			firstName: 'michael',
+			firstName: "michael",
 		},
 	})
 
 	// make sure we updated the field
 	expect(
-		cache.get('User', { id: '2' }).read({ fragment: testFragment(artifact.selection) })
+		cache
+			.get("User", { id: "2" })
+			.read({ fragment: testFragment(artifact.selection) }),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
-			firstName: 'michael',
+			firstName: "michael",
 		},
 	})
 })
 
-test('can read and write variables', function () {
+test("can read and write variables", () => {
 	const cache = testCache()
 
 	const artifact: FragmentArtifact = {
 		kind: ArtifactKind.Fragment,
-		name: 'string',
-		raw: 'string',
-		hash: 'string',
-		rootType: 'string',
+		name: "string",
+		raw: "string",
+		hash: "string",
+		rootType: "string",
 		pluginData: {},
 		selection: {
 			fields: {
 				firstName: {
-					type: 'String',
+					type: "String",
 					visible: true,
-					keyRaw: 'firstName(pattern: $pattern)',
+					keyRaw: "firstName(pattern: $pattern)",
 				},
 			},
 		},
 	}
 
 	// write a fragment to update User:2
-	cache.get('User', { id: '2' }).write({
+	cache.get("User", { id: "2" }).write({
 		fragment: {
 			artifact,
 		},
 		data: {
-			firstName: 'michael',
+			firstName: "michael",
 		},
 		variables: {
-			pattern: 'foo',
+			pattern: "foo",
 		},
 	})
 
 	// make sure we cached the right value for the key
 	expect(
 		cache._internal_unstable.read({
-			parent: 'User:2',
+			parent: "User:2",
 			selection: {
 				fields: {
 					firstName: {
 						keyRaw: 'firstName(pattern: "foo")',
-						type: 'String',
+						type: "String",
 						visible: true,
 					},
 				},
 			},
-		}).data
-	).toEqual({ firstName: 'michael' })
+		}).data,
+	).toEqual({ firstName: "michael" })
 
 	// read from the cache with variables too
 	expect(
-		cache.get('User', { id: '2' }).read({
+		cache.get("User", { id: "2" }).read({
 			fragment: {
 				artifact,
 			},
 			variables: {
-				pattern: 'foo',
+				pattern: "foo",
 			},
-		}).data
-	).toEqual({ firstName: 'michael' })
+		}).data,
+	).toEqual({ firstName: "michael" })
 })

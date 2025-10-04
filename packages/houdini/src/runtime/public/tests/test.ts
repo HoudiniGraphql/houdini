@@ -1,18 +1,18 @@
-import { Cache as _Cache } from '../../cache/cache'
+import { Cache as _Cache } from "../../cache/cache"
 import {
 	ArtifactKind,
-	type SubscriptionSelection,
 	type FragmentArtifact,
 	type QueryArtifact,
-} from '../../lib'
-import { Cache } from '../cache'
-import type { Record } from '../record'
+	type SubscriptionSelection,
+} from "../../lib"
+import { Cache } from "../cache"
+import type { Record } from "../record"
 
 // the type definition for our test cache
 export type CacheTypeDefTest = {
 	types: {
 		__ROOT__: {
-			idFields: {}
+			idFields: Record<string, never>
 			fragments: []
 			fields: {
 				test: {
@@ -24,33 +24,38 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				viewer: {
-					type: Record<CacheTypeDefTest, 'User'> | null
+					type: Record<CacheTypeDefTest, "User"> | null
 					args: never
 				}
 				pets: {
-					type: (Record<CacheTypeDefTest, 'Cat'> | Record<CacheTypeDefTest, 'User'>)[]
+					type: (
+						| Record<CacheTypeDefTest, "Cat">
+						| Record<CacheTypeDefTest, "User">
+					)[]
 					args: never
 				}
 				listOfLists: {
 					type: (
 						| (
-								| Record<CacheTypeDefTest, 'Cat'>
-								| Record<CacheTypeDefTest, 'User'>
+								| Record<CacheTypeDefTest, "Cat">
+								| Record<CacheTypeDefTest, "User">
 								| null
-								| (null | Record<CacheTypeDefTest, 'User'>)[]
+								| (null | Record<CacheTypeDefTest, "User">)[]
 						  )[]
-						| Record<CacheTypeDefTest, 'Cat'>
-						| Record<CacheTypeDefTest, 'User'>
+						| Record<CacheTypeDefTest, "Cat">
+						| Record<CacheTypeDefTest, "User">
 						| null
 					)[]
 					args: never
 				}
 				users: {
-					type: Record<CacheTypeDefTest, 'User'>[] | null
+					type: Record<CacheTypeDefTest, "User">[] | null
 					args: never
 				}
 				pet: {
-					type: Record<CacheTypeDefTest, 'Cat'> | Record<CacheTypeDefTest, 'User'>
+					type:
+						| Record<CacheTypeDefTest, "Cat">
+						| Record<CacheTypeDefTest, "User">
 					args: never
 				}
 			}
@@ -60,7 +65,11 @@ export type CacheTypeDefTest = {
 				id: string
 			}
 			fragments: [
-				[{ artifact: FragmentArtifact }, { firstName: string }, { pattern: string }]
+				[
+					{ artifact: FragmentArtifact },
+					{ firstName: string },
+					{ pattern: string },
+				],
 			]
 			fields: {
 				firstName: {
@@ -68,7 +77,7 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				parent: {
-					type: Record<CacheTypeDefTest, 'User'>
+					type: Record<CacheTypeDefTest, "User">
 					args: never
 				}
 				id: {
@@ -92,7 +101,7 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				parent: {
-					type: Record<CacheTypeDefTest, 'User'> | null
+					type: Record<CacheTypeDefTest, "User"> | null
 					args: never
 				}
 				id: {
@@ -137,16 +146,17 @@ export type CacheTypeDefTest = {
 					}
 				}
 			},
-			any
-		]
+			// biome-ignore lint/suspicious/noExplicitAny: Test fragment can use any type
+			any,
+		],
 	]
 	lists: {
 		All_Pets: {
-			types: 'User' | 'Cat'
+			types: "User" | "Cat"
 			filters: never
 		}
 		All_Users: {
-			types: 'User'
+			types: "User"
 			filters: {
 				foo?: string
 			}
@@ -156,27 +166,31 @@ export type CacheTypeDefTest = {
 
 export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache())
 
-export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
+export const testFragment = (
+	selection: SubscriptionSelection,
+): { artifact: FragmentArtifact } => ({
 	artifact: {
 		stripVariables: [],
 		kind: ArtifactKind.Fragment,
-		hash: '',
-		raw: '',
-		name: '',
-		rootType: 'User',
+		hash: "",
+		raw: "",
+		name: "",
+		rootType: "User",
 		selection,
 		pluginData: {},
 	},
 })
 
-export const testQuery = (selection: SubscriptionSelection): { artifact: QueryArtifact } => ({
+export const testQuery = (
+	selection: SubscriptionSelection,
+): { artifact: QueryArtifact } => ({
 	artifact: {
 		stripVariables: [],
 		kind: ArtifactKind.Query,
-		hash: '',
-		raw: '',
-		name: '',
-		rootType: 'Query',
+		hash: "",
+		raw: "",
+		name: "",
+		rootType: "Query",
 		selection,
 		pluginData: {},
 	},

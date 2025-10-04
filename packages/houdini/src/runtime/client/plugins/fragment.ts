@@ -1,16 +1,21 @@
-import type { Cache } from '../../cache/cache'
-import { deepEquals } from '../../lib/deepEquals'
-import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
-import { documentPlugin } from '../utils'
+import type { Cache } from "../../cache/cache"
+import { deepEquals } from "../../lib/deepEquals"
+import {
+	ArtifactKind,
+	DataSource,
+	type SubscriptionSpec,
+} from "../../lib/types"
+import { documentPlugin } from "../utils"
 
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates
 // there are no network requests that get sent. send() always returns the initial value
 export const fragment = (cache: Cache) =>
-	documentPlugin(ArtifactKind.Fragment, function () {
+	documentPlugin(ArtifactKind.Fragment, () => {
 		// track the bits of state we need to hold onto
 		let subscriptionSpec: SubscriptionSpec | null = null
 
 		// we need to track the last parents and variables used so we can re-subscribe
+		// biome-ignore lint/suspicious/noExplicitAny: Variables can be any GraphQL variable type
 		let lastReference: { parent: string; variables: any } | null = null
 
 		return {
@@ -30,12 +35,16 @@ export const fragment = (cache: Cache) =>
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (
 					!ctx.cacheParams?.disableSubscriptions &&
-					(!deepEquals(lastReference, currentReference) || variablesChanged(ctx))
+					(!deepEquals(lastReference, currentReference) ||
+						variablesChanged(ctx))
 				) {
 					// if the variables changed we need to unsubscribe from the old fields and
 					// listen to the new ones
 					if (subscriptionSpec) {
-						cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.() || {})
+						cache.unsubscribe(
+							subscriptionSpec,
+							subscriptionSpec.variables?.() || {},
+						)
 					}
 
 					// we need to subscribe with the marshaled variables

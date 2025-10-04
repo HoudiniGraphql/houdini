@@ -1,12 +1,20 @@
-import { createServerAdapter as createAdapter } from '@whatwg-node/server'
-import { type GraphQLSchema, parse, execute } from 'graphql'
-import { createYoga } from 'graphql-yoga'
+import { createServerAdapter as createAdapter } from "@whatwg-node/server"
+import { execute, type GraphQLSchema, parse } from "graphql"
+import { createYoga } from "graphql-yoga"
 
-import type { HoudiniClient } from '../client'
-import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
-import { find_match } from './match'
-import { get_session, handle_request } from './session'
-import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
+import type { HoudiniClient } from "../client"
+import {
+	getCurrentConfig,
+	localApiEndpoint,
+	localApiSessionKeys,
+} from "../lib/config"
+import { find_match } from "./match"
+import { get_session, handle_request } from "./session"
+import type {
+	RouterManifest,
+	RouterPageManifest,
+	YogaServerOptions,
+} from "./types"
 
 // load the plugin config
 const config_file = getCurrentConfig()
@@ -29,15 +37,15 @@ export function _serverHandler<ComponentType = unknown>({
 	manifest: RouterManifest<ComponentType> | null
 	assetPrefix: string
 	graphqlEndpoint: string
-	componentCache: Record<string, any>
+	componentCache: Record<string, unknown>
 	on_render: (args: {
 		url: string
 		match: RouterPageManifest<ComponentType> | null
 		manifest: RouterManifest<unknown>
 		session: App.Session
-		componentCache: Record<string, any>
+		componentCache: Record<string, unknown>
 	}) => Response | Promise<Response | undefined> | undefined
-} & Omit<YogaServerOptions, 'schema'>) {
+} & Omit<YogaServerOptions, "schema">) {
 	if (schema && !yoga) {
 		yoga = createYoga({
 			schema,
@@ -48,21 +56,24 @@ export function _serverHandler<ComponentType = unknown>({
 
 	client.componentCache = componentCache
 
-	// @ts-ignore: schema is defined dynamically
+	// @ts-expect-error: schema is defined dynamically
 	if (schema) {
-		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
-			// get the parsed query
-			const parsed = parse(query)
+		client.registerProxy(
+			graphqlEndpoint,
+			async ({ query, variables, session }) => {
+				// get the parsed query
+				const parsed = parse(query)
 
-			return await execute(schema, parsed, null, session, variables)
-		})
+				return await execute(schema, parsed, null, session, variables)
+			},
+		)
 	}
 
 	return async (request: Request) => {
 		if (!manifest) {
 			return new Response(
 				"Adapter did not provide the project's manifest. Please open an issue on github.",
-				{ status: 500 }
+				{ status: 500 },
 			)
 		}
 
@@ -102,12 +113,12 @@ export function _serverHandler<ComponentType = unknown>({
 		}
 
 		// if we got this far its not a page we recognize
-		return new Response('404', { status: 404 })
+		return new Response("404", { status: 404 })
 	}
 }
 
 export const serverAdapterFactory = (
-	args: Parameters<typeof _serverHandler>[0]
+	args: Parameters<typeof _serverHandler>[0],
 ): ReturnType<typeof createAdapter> => {
 	return createAdapter(_serverHandler(args))
 }

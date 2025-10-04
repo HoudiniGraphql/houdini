@@ -1,13 +1,17 @@
-import { sleep } from '../../../lib'
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, expect, test } from "vitest"
+import { sleep } from "../../../lib"
 
-import { testConfigFile } from '../../../test'
-import { Cache } from '../../cache/cache'
-import { setMockConfig } from '../../lib/config'
-import { ArtifactKind, type QueryResult, type GraphQLObject } from '../../lib/types'
-import { mutation } from './mutation'
-import { optimisticKeys } from './optimisticKeys'
-import { createStore, fakeFetch } from './test'
+import { testConfigFile } from "../../../test"
+import { Cache } from "../../cache/cache"
+import { setMockConfig } from "../../lib/config"
+import {
+	ArtifactKind,
+	type GraphQLObject,
+	type QueryResult,
+} from "../../lib/types"
+import { mutation } from "./mutation"
+import { optimisticKeys } from "./optimisticKeys"
+import { createStore, fakeFetch } from "./test"
 
 /**
  * Testing the cache plugin
@@ -17,7 +21,7 @@ beforeEach(async () => {
 	setMockConfig({})
 })
 
-test('OptimisticKeys Plugin', async function () {
+test("OptimisticKeys Plugin", async () => {
 	const callbacks = {}
 	const keys = {}
 
@@ -32,38 +36,38 @@ test('OptimisticKeys Plugin', async function () {
 		artifact: {
 			kind: ArtifactKind.Mutation,
 			stripVariables: [],
-			hash: '7777',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Mutation',
+			hash: "7777",
+			raw: "RAW_TEXT",
+			name: "TestArtifact",
+			rootType: "Mutation",
 			pluginData: {},
 			optimisticKeys: true,
 			selection: {
 				fields: {
 					createUser: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'createUser',
-						loading: { kind: 'continue' },
+						keyRaw: "createUser",
+						loading: { kind: "continue" },
 						selection: {
 							fields: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 									optimisticKey: true,
-									directives: [{ name: 'optimisticKey', arguments: {} }],
+									directives: [{ name: "optimisticKey", arguments: {} }],
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
-									loading: { kind: 'value' },
+									keyRaw: "firstName",
+									loading: { kind: "value" },
 								},
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 							},
 						},
@@ -82,9 +86,11 @@ test('OptimisticKeys Plugin', async function () {
 			mutation(cache),
 			fakeFetch({
 				data: {
-					createUser: { id: '1', firstName: 'Alice', __typename: 'User' },
+					createUser: { id: "1", firstName: "Alice", __typename: "User" },
 				},
-				onRequest: (variables, cb) => (resolveMutation = cb),
+				onRequest: (_variables, cb) => {
+					resolveMutation = cb
+				},
 			}),
 		],
 	})
@@ -93,7 +99,7 @@ test('OptimisticKeys Plugin', async function () {
 	first.send({
 		stuff: {
 			optimisticResponse: {
-				createUser: { firstName: 'John' },
+				createUser: { firstName: "John" },
 			},
 		},
 	})
@@ -103,9 +109,11 @@ test('OptimisticKeys Plugin', async function () {
 	expect(resolveMutation).not.toBeNull()
 
 	// we should have added an ID to the cache
-	let optimisticLink = cache._internal_unstable.storage.data[0].links['_ROOT_']['createUser']
+	const optimisticLink =
+		cache._internal_unstable.storage.data[0].links._ROOT_.createUser
 	expect(optimisticLink).toBeDefined()
-	const record = cache._internal_unstable.storage.data[0].fields[optimisticLink as string]
+	const record =
+		cache._internal_unstable.storage.data[0].fields[optimisticLink as string]
 	expect(record.id).toBeDefined()
 
 	// now that we have an id, we can send a second mutation that will block until we resolve the first
@@ -114,15 +122,15 @@ test('OptimisticKeys Plugin', async function () {
 		artifact: {
 			kind: ArtifactKind.Mutation,
 			stripVariables: [],
-			hash: '7777',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Mutation',
+			hash: "7777",
+			raw: "RAW_TEXT",
+			name: "TestArtifact",
+			rootType: "Mutation",
 			pluginData: {},
 			optimisticKeys: false,
 			input: {
 				fields: {
-					id: 'String',
+					id: "String",
 				},
 				types: {},
 				defaults: {},
@@ -131,28 +139,28 @@ test('OptimisticKeys Plugin', async function () {
 			selection: {
 				fields: {
 					createUser: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'createUser',
-						loading: { kind: 'continue' },
+						keyRaw: "createUser",
+						loading: { kind: "continue" },
 						selection: {
 							fields: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 									optimisticKey: false,
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
-									loading: { kind: 'value' },
+									keyRaw: "firstName",
+									loading: { kind: "value" },
 								},
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 							},
 						},
@@ -164,7 +172,7 @@ test('OptimisticKeys Plugin', async function () {
 			optimisticKeys(cache, callbacks, keys),
 			fakeFetch({
 				data: {
-					createUser: { id: '2', firstName: 'Alice', __typename: 'User' },
+					createUser: { id: "2", firstName: "Alice", __typename: "User" },
 				},
 				onRequest: (variables, cb) => {
 					secondVariables = variables
@@ -183,7 +191,9 @@ test('OptimisticKeys Plugin', async function () {
 				id: record.id,
 			},
 		})
-		.then((val) => (secondResolved = val))
+		.then((val) => {
+			secondResolved = val
+		})
 
 	// wait for a bit, just to be sure
 	await sleep(200)
@@ -191,12 +201,12 @@ test('OptimisticKeys Plugin', async function () {
 
 	// we can now resolve the first mutation (which will provide the ID for the second)
 	if (resolveMutation) {
-		// @ts-ignore
+		// @ts-expect-error
 		resolveMutation?.()
 	}
 
 	// make sure we did get a value
 	await sleep(200)
-	expect(secondVariables).toEqual({ id: '1' })
+	expect(secondVariables).toEqual({ id: "1" })
 	expect(secondResolved).toBeTruthy()
 })

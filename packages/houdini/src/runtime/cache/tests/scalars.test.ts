@@ -1,15 +1,15 @@
-import { test, expect } from 'vitest'
+import { expect, test } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import type { SubscriptionSelection } from '../../lib/types'
-import { RefetchUpdateMode } from '../../lib/types'
-import { Cache } from '../cache'
-import { rootID } from '../stuff'
+import { testConfigFile } from "../../../test"
+import type { SubscriptionSelection } from "../../lib/types"
+import { RefetchUpdateMode } from "../../lib/types"
+import { Cache } from "../cache"
+import { rootID } from "../stuff"
 
 const config = testConfigFile({
 	scalars: {
 		DateTime: {
-			type: 'Date',
+			type: "Date",
 			marshal(val: Date) {
 				return val.getTime()
 			},
@@ -20,7 +20,7 @@ const config = testConfigFile({
 	},
 })
 
-test('extracting data with custom scalars unmarshals the value', () => {
+test("extracting data with custom scalars unmarshals the value", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -28,23 +28,23 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	const selection: SubscriptionSelection = {
 		fields: {
 			node: {
-				type: 'Node',
+				type: "Node",
 
 				visible: true,
-				keyRaw: 'node',
+				keyRaw: "node",
 				selection: {
 					fields: {
 						date: {
-							type: 'DateTime',
+							type: "DateTime",
 
 							visible: true,
-							keyRaw: 'date',
+							keyRaw: "date",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 					},
 				},
@@ -55,8 +55,8 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	// save the data
 	const data = {
 		node: {
-			id: '1',
-			date: new Date().getTime(),
+			id: "1",
+			date: Date.now(),
 		},
 	}
 
@@ -66,35 +66,35 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	// pull the data out of the cache
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		node: {
-			id: '1',
+			id: "1",
 			date: new Date(data.node.date),
 		},
 	})
 })
 
-test('reading a list of custom scalars unmarshals every scalar correctly', function () {
+test("reading a list of custom scalars unmarshals every scalar correctly", () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			node: {
-				type: 'Node',
+				type: "Node",
 
 				visible: true,
-				keyRaw: 'node',
+				keyRaw: "node",
 				selection: {
 					fields: {
 						dates: {
-							type: 'DateTime',
+							type: "DateTime",
 
 							visible: true,
-							keyRaw: 'dates',
+							keyRaw: "dates",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 					},
 				},
@@ -104,7 +104,7 @@ test('reading a list of custom scalars unmarshals every scalar correctly', funct
 
 	const data = {
 		node: {
-			id: '1',
+			id: "1",
 			dates: [
 				new Date(1955, 2, 19).getTime(),
 				new Date(1948, 11, 21).getTime(),
@@ -117,36 +117,36 @@ test('reading a list of custom scalars unmarshals every scalar correctly', funct
 
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		node: {
-			id: '1',
+			id: "1",
 			dates: data.node.dates.map((d) => new Date(d)),
 		},
 	})
 })
 
-test('can store and retrieve lists of lists of scalars', function () {
+test("can store and retrieve lists of lists of scalars", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						strings: {
-							type: 'String',
+							type: "String",
 
 							visible: true,
-							keyRaw: 'strings',
+							keyRaw: "strings",
 						},
 					},
 				},
@@ -159,8 +159,8 @@ test('can store and retrieve lists of lists of scalars', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				strings: ['bob', 'john'],
+				id: "1",
+				strings: ["bob", "john"],
 			},
 		},
 	})
@@ -168,42 +168,42 @@ test('can store and retrieve lists of lists of scalars', function () {
 	// make sure we can get the linked lists back
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			strings: ['bob', 'john'],
+			id: "1",
+			strings: ["bob", "john"],
 		},
 	})
 })
 
-test('can write list of scalars', function () {
+test("can write list of scalars", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'Int',
+							type: "Int",
 
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 						},
 					},
 				},
@@ -216,8 +216,8 @@ test('can write list of scalars', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [1],
 			},
 		},
@@ -226,39 +226,39 @@ test('can write list of scalars', function () {
 	// make sure we can get the linked lists back
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 			friends: [1],
 		},
 	})
 })
 
-test('writing a scalar marked with replace', function () {
+test("writing a scalar marked with replace", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'Int',
-							keyRaw: 'friends',
+							type: "Int",
+							keyRaw: "friends",
 							visible: true,
 							updates: [RefetchUpdateMode.append],
 						},
@@ -273,8 +273,8 @@ test('writing a scalar marked with replace', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [1],
 			},
 		},
@@ -283,8 +283,8 @@ test('writing a scalar marked with replace', function () {
 	// make sure we can get the linked lists back
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 			friends: [1],
 		},
 	})
@@ -294,8 +294,8 @@ test('writing a scalar marked with replace', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [2],
 			},
 		},
@@ -304,8 +304,8 @@ test('writing a scalar marked with replace', function () {
 	// make sure we can get the updated lists back
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 			friends: [2],
 		},
 	})

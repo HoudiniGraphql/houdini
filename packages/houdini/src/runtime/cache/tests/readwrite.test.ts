@@ -1,40 +1,40 @@
-import { test, expect } from 'vitest'
+import { expect, test } from "vitest"
 
-import { testConfigFile } from '../../../../legacy/test'
-import type { SubscriptionSelection } from '../../lib'
-import { Cache } from '../cache'
-import { rootID } from '../stuff'
+import { testConfigFile } from "../../../../legacy/test"
+import type { SubscriptionSelection } from "../../lib"
+import { Cache } from "../cache"
+import { rootID } from "../stuff"
 
 const config = testConfigFile()
 
-test('write selection to root', function () {
+test("write selection to root", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 		},
 	}
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -50,40 +50,40 @@ test('write selection to root', function () {
 	expect(
 		cache.read({
 			selection,
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 		},
 	})
 })
 
-test('write abstract fields of matching type', function () {
+test("write abstract fields of matching type", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			__typename: 'User',
-			id: '1',
-			firstName: 'bob',
+			__typename: "User",
+			id: "1",
+			firstName: "bob",
 		},
 	}
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'Node',
+				type: "Node",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				abstract: true,
 				selection: {
 					fields: {
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 					},
 					abstractFields: {
@@ -91,19 +91,19 @@ test('write abstract fields of matching type', function () {
 						fields: {
 							User: {
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
+									keyRaw: "firstName",
 								},
 							},
 						},
@@ -122,63 +122,63 @@ test('write abstract fields of matching type', function () {
 	expect(
 		cache.read({
 			selection,
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
-			__typename: 'User',
-			id: '1',
-			firstName: 'bob',
+			__typename: "User",
+			id: "1",
+			firstName: "bob",
 		},
 	})
 })
 
-test('use abstract type map when it applies', function () {
+test("use abstract type map when it applies", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			__typename: 'User',
-			id: '1',
-			firstName: 'bob',
+			__typename: "User",
+			id: "1",
+			firstName: "bob",
 		},
 	}
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'Node',
+				type: "Node",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				abstract: true,
 				selection: {
 					fields: {
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 					},
 					abstractFields: {
 						typeMap: {
-							User: 'Node',
+							User: "Node",
 						},
 						fields: {
 							Node: {
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
+									keyRaw: "firstName",
 								},
 							},
 						},
@@ -197,46 +197,46 @@ test('use abstract type map when it applies', function () {
 	expect(
 		cache.read({
 			selection,
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
-			__typename: 'User',
-			id: '1',
-			firstName: 'bob',
+			__typename: "User",
+			id: "1",
+			firstName: "bob",
 		},
 	})
 })
 
-test('ignore abstract fields of unmatched type', function () {
+test("ignore abstract fields of unmatched type", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			__typename: 'NotUser',
-			id: '1',
-			lastName: 'bob',
+			__typename: "NotUser",
+			id: "1",
+			lastName: "bob",
 		},
 	}
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'Node',
+				type: "Node",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				abstract: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 					},
 					abstractFields: {
@@ -244,36 +244,36 @@ test('ignore abstract fields of unmatched type', function () {
 						fields: {
 							User: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
+									keyRaw: "firstName",
 								},
 							},
 							NotUser: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 								lastName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'lastName',
+									keyRaw: "lastName",
 								},
 							},
 						},
@@ -293,21 +293,21 @@ test('ignore abstract fields of unmatched type', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'Node',
+						type: "Node",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						abstract: true,
 						selection: {
 							fields: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
+									keyRaw: "firstName",
 									nullable: true,
 								},
 							},
@@ -315,16 +315,16 @@ test('ignore abstract fields of unmatched type', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
-			id: '1',
+			id: "1",
 			firstName: null,
 		},
 	})
 })
 
-test('linked records with updates', function () {
+test("linked records with updates", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -332,36 +332,36 @@ test('linked records with updates', function () {
 	const deeplyNestedSelection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						parent: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'parent',
+							keyRaw: "parent",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -376,26 +376,26 @@ test('linked records with updates', function () {
 	const userFields: SubscriptionSelection = {
 		fields: {
 			id: {
-				type: 'ID',
+				type: "ID",
 				visible: true,
-				keyRaw: 'id',
+				keyRaw: "id",
 			},
 			firstName: {
-				type: 'String',
+				type: "String",
 				visible: true,
-				keyRaw: 'firstName',
+				keyRaw: "firstName",
 			},
 			parent: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'parent',
+				keyRaw: "parent",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 					},
 				},
@@ -408,29 +408,29 @@ test('linked records with updates', function () {
 		selection: deeplyNestedSelection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				parent: {
-					id: '2',
-					firstName: 'jane',
+					id: "2",
+					firstName: "jane",
 				},
 			},
 		},
 	})
 
 	// check user 1
-	expect(cache.read({ selection: userFields, parent: 'User:1' }).data).toEqual({
-		id: '1',
-		firstName: 'bob',
+	expect(cache.read({ selection: userFields, parent: "User:1" }).data).toEqual({
+		id: "1",
+		firstName: "bob",
 		parent: {
-			id: '2',
+			id: "2",
 		},
 	})
 
 	// check user 2
-	expect(cache.read({ selection: userFields, parent: 'User:2' }).data).toEqual({
-		id: '2',
-		firstName: 'jane',
+	expect(cache.read({ selection: userFields, parent: "User:2" }).data).toEqual({
+		id: "2",
+		firstName: "jane",
 		parent: null,
 	})
 
@@ -439,32 +439,32 @@ test('linked records with updates', function () {
 		selection: deeplyNestedSelection,
 		data: {
 			viewer: {
-				id: '2',
-				firstName: 'jane-prime',
+				id: "2",
+				firstName: "jane-prime",
 				parent: {
-					id: '3',
-					firstName: 'mary',
+					id: "3",
+					firstName: "mary",
 				},
 			},
 		},
 	})
 
 	// make sure we updated user 2
-	expect(cache.read({ selection: userFields, parent: 'User:2' }).data).toEqual({
-		id: '2',
-		firstName: 'jane-prime',
+	expect(cache.read({ selection: userFields, parent: "User:2" }).data).toEqual({
+		id: "2",
+		firstName: "jane-prime",
 		parent: {
-			id: '3',
+			id: "3",
 		},
 	})
-	expect(cache.read({ selection: userFields, parent: 'User:3' }).data).toEqual({
-		id: '3',
-		firstName: 'mary',
+	expect(cache.read({ selection: userFields, parent: "User:3" }).data).toEqual({
+		id: "3",
+		firstName: "mary",
 		parent: null,
 	})
 })
 
-test('linked lists', function () {
+test("linked lists", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -472,36 +472,36 @@ test('linked lists', function () {
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -517,16 +517,16 @@ test('linked lists', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					{
-						id: '3',
-						firstName: 'mary',
+						id: "3",
+						firstName: "mary",
 					},
 				],
 			},
@@ -535,24 +535,28 @@ test('linked lists', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.read({ selection: selection.fields!.viewer!.selection!, parent: 'User:1' }).data
+		cache.read({
+			// biome-ignore lint/style/noNonNullAssertion: Test expects viewer selection to exist
+			selection: selection.fields?.viewer?.selection!,
+			parent: "User:1",
+		}).data,
 	).toEqual({
-		id: '1',
-		firstName: 'bob',
+		id: "1",
+		firstName: "bob",
 		friends: [
 			{
-				id: '2',
-				firstName: 'jane',
+				id: "2",
+				firstName: "jane",
 			},
 			{
-				id: '3',
-				firstName: 'mary',
+				id: "3",
+				firstName: "mary",
 			},
 		],
 	})
 })
 
-test('list as value with args', function () {
+test("list as value with args", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -561,23 +565,23 @@ test('list as value with args', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 							favoriteColors: {
-								type: 'String',
+								type: "String",
 								visible: true,
 								keyRaw: 'favoriteColors(where: "foo")',
 							},
@@ -588,9 +592,9 @@ test('list as value with args', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+				id: "1",
+				firstName: "bob",
+				favoriteColors: ["red", "green", "blue"],
 			},
 		},
 	})
@@ -601,55 +605,55 @@ test('list as value with args', function () {
 			selection: {
 				fields: {
 					favoriteColors: {
-						type: 'String',
+						type: "String",
 						visible: true,
 						keyRaw: 'favoriteColors(where: "foo")',
 					},
 				},
 			},
-			parent: 'User:1',
-		}).data
+			parent: "User:1",
+		}).data,
 	).toEqual({
-		favoriteColors: ['red', 'green', 'blue'],
+		favoriteColors: ["red", "green", "blue"],
 	})
 })
 
-test('writing abstract objects', function () {
+test("writing abstract objects", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			__typename: 'User',
-			id: '1',
-			firstName: 'bob',
+			__typename: "User",
+			id: "1",
+			firstName: "bob",
 		},
 	}
 	cache.write({
 		selection: {
 			fields: {
 				viewer: {
-					type: 'Node',
+					type: "Node",
 					visible: true,
 					abstract: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							__typename: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: '__typename',
+								keyRaw: "__typename",
 							},
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -662,35 +666,35 @@ test('writing abstract objects', function () {
 	// make sure we can get back what we wrote
 	expect(
 		cache.read({
-			parent: 'User:1',
+			parent: "User:1",
 			selection: {
 				fields: {
 					__typename: {
-						type: 'String',
+						type: "String",
 						visible: true,
-						keyRaw: '__typename',
+						keyRaw: "__typename",
 					},
 					id: {
-						type: 'ID',
+						type: "ID",
 						visible: true,
-						keyRaw: 'id',
+						keyRaw: "id",
 					},
 					firstName: {
-						type: 'String',
+						type: "String",
 						visible: true,
-						keyRaw: 'firstName',
+						keyRaw: "firstName",
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
-		__typename: 'User',
-		id: '1',
-		firstName: 'bob',
+		__typename: "User",
+		id: "1",
+		firstName: "bob",
 	})
 })
 
-test('writing abstract lists', function () {
+test("writing abstract lists", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -698,14 +702,14 @@ test('writing abstract lists', function () {
 	const data = {
 		nodes: [
 			{
-				__typename: 'User',
-				id: '1',
-				firstName: 'bob',
+				__typename: "User",
+				id: "1",
+				firstName: "bob",
 			},
 			{
-				__typename: 'User',
-				id: '2',
-				firstName: 'bob',
+				__typename: "User",
+				id: "2",
+				firstName: "bob",
 			},
 		],
 	}
@@ -713,26 +717,26 @@ test('writing abstract lists', function () {
 		selection: {
 			fields: {
 				nodes: {
-					type: 'Node',
+					type: "Node",
 					visible: true,
 					abstract: true,
-					keyRaw: 'nodes',
+					keyRaw: "nodes",
 					selection: {
 						fields: {
 							__typename: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: '__typename',
+								keyRaw: "__typename",
 							},
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -745,35 +749,35 @@ test('writing abstract lists', function () {
 	// make sure we can get back what we wrote
 	expect(
 		cache.read({
-			parent: 'User:1',
+			parent: "User:1",
 			selection: {
 				fields: {
 					__typename: {
-						type: 'String',
+						type: "String",
 						visible: true,
-						keyRaw: '__typename',
+						keyRaw: "__typename",
 					},
 					id: {
-						type: 'ID',
+						type: "ID",
 						visible: true,
-						keyRaw: 'id',
+						keyRaw: "id",
 					},
 					firstName: {
-						type: 'String',
+						type: "String",
 						visible: true,
-						keyRaw: 'firstName',
+						keyRaw: "firstName",
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
-		__typename: 'User',
-		id: '1',
-		firstName: 'bob',
+		__typename: "User",
+		id: "1",
+		firstName: "bob",
 	})
 })
 
-test('can pull enum from cached values', function () {
+test("can pull enum from cached values", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -781,20 +785,20 @@ test('can pull enum from cached values', function () {
 	const selection: SubscriptionSelection = {
 		fields: {
 			node: {
-				type: 'Node',
+				type: "Node",
 				visible: true,
-				keyRaw: 'node',
+				keyRaw: "node",
 				selection: {
 					fields: {
 						enumValue: {
-							type: 'MyEnum',
+							type: "MyEnum",
 							visible: true,
-							keyRaw: 'enumValue',
+							keyRaw: "enumValue",
 						},
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 					},
 				},
@@ -805,8 +809,8 @@ test('can pull enum from cached values', function () {
 	// save the data
 	const data = {
 		node: {
-			id: '1',
-			enumValue: 'Hello',
+			id: "1",
+			enumValue: "Hello",
 		},
 	}
 
@@ -816,49 +820,49 @@ test('can pull enum from cached values', function () {
 	// pull the data out of the cache
 	expect(cache.read({ selection }).data).toEqual({
 		node: {
-			id: '1',
-			enumValue: 'Hello',
+			id: "1",
+			enumValue: "Hello",
 		},
 	})
 })
 
-test('can store and retrieve lists with null values', function () {
+test("can store and retrieve lists with null values", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -874,12 +878,12 @@ test('can store and retrieve lists with null values', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					null,
 				],
@@ -890,12 +894,12 @@ test('can store and retrieve lists with null values', function () {
 	// make sure we can get the linked lists back
 	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 			friends: [
 				{
-					id: '2',
-					firstName: 'jane',
+					id: "2",
+					firstName: "jane",
 				},
 				null,
 			],
@@ -903,43 +907,43 @@ test('can store and retrieve lists with null values', function () {
 	})
 })
 
-test('can store and retrieve lists of lists of records', function () {
+test("can store and retrieve lists of lists of records", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -955,24 +959,24 @@ test('can store and retrieve lists of lists of records', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					[
 						{
-							id: '2',
-							firstName: 'jane',
+							id: "2",
+							firstName: "jane",
 						},
 						null,
 					],
 					[
 						{
-							id: '3',
-							firstName: 'jane',
+							id: "3",
+							firstName: "jane",
 						},
 						{
-							id: '4',
-							firstName: 'jane',
+							id: "4",
+							firstName: "jane",
 						},
 					],
 				],
@@ -983,24 +987,24 @@ test('can store and retrieve lists of lists of records', function () {
 	// make sure we can get the linked lists back
 	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 			friends: [
 				[
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					null,
 				],
 				[
 					{
-						id: '3',
-						firstName: 'jane',
+						id: "3",
+						firstName: "jane",
 					},
 					{
-						id: '4',
-						firstName: 'jane',
+						id: "4",
+						firstName: "jane",
 					},
 				],
 			],
@@ -1008,44 +1012,44 @@ test('can store and retrieve lists of lists of records', function () {
 	})
 })
 
-test('can store and retrieve links with null values', function () {
+test("can store and retrieve links with null values", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1070,43 +1074,43 @@ test('can store and retrieve links with null values', function () {
 	})
 })
 
-test('can write list of just null', function () {
+test("can write list of just null", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1122,8 +1126,8 @@ test('can write list of just null', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [null],
 			},
 		},
@@ -1132,14 +1136,14 @@ test('can write list of just null', function () {
 	// make sure we can get the linked lists back
 	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 			friends: [null],
 		},
 	})
 })
 
-test('null-value cascade from field value', function () {
+test("null-value cascade from field value", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1147,14 +1151,14 @@ test('null-value cascade from field value', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 						},
@@ -1164,7 +1168,7 @@ test('null-value cascade from field value', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1174,15 +1178,15 @@ test('null-value cascade from field value', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 							},
@@ -1190,10 +1194,10 @@ test('null-value cascade from field value', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
-			id: '1',
+			id: "1",
 		},
 	})
 
@@ -1202,20 +1206,20 @@ test('null-value cascade from field value', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								firstName: {
-									keyRaw: 'firstName',
-									type: 'String',
+									keyRaw: "firstName",
+									type: "String",
 									visible: true,
 								},
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 							},
@@ -1223,13 +1227,13 @@ test('null-value cascade from field value', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
 		viewer: null,
 	})
 })
 
-test('null-value field', function () {
+test("null-value field", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1237,19 +1241,19 @@ test('null-value field', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 							firstName: {
-								keyRaw: 'firstName',
-								type: 'String',
+								keyRaw: "firstName",
+								type: "String",
 								visible: true,
 							},
 						},
@@ -1259,7 +1263,7 @@ test('null-value field', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				firstName: null,
 			},
 		},
@@ -1270,15 +1274,15 @@ test('null-value field', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 							},
@@ -1286,10 +1290,10 @@ test('null-value field', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
-			id: '1',
+			id: "1",
 		},
 	})
 
@@ -1298,15 +1302,15 @@ test('null-value field', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								firstName: {
-									keyRaw: 'firstName',
-									type: 'String',
+									keyRaw: "firstName",
+									type: "String",
 									visible: true,
 									nullable: true,
 								},
@@ -1315,7 +1319,7 @@ test('null-value field', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
 		viewer: {
 			firstName: null,
@@ -1323,7 +1327,7 @@ test('null-value field', function () {
 	})
 })
 
-test('null-value cascade from object value', function () {
+test("null-value cascade from object value", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1332,14 +1336,14 @@ test('null-value cascade from object value', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 						},
@@ -1349,7 +1353,7 @@ test('null-value cascade from object value', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1360,20 +1364,20 @@ test('null-value cascade from object value', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 								},
 							},
@@ -1381,7 +1385,7 @@ test('null-value cascade from object value', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
@@ -1396,20 +1400,20 @@ test('null-value cascade from object value', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 									nullable: true,
 								},
@@ -1418,20 +1422,20 @@ test('null-value cascade from object value', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				parent: null,
 			},
 		},
 	})
 })
 
-test('null-value cascade to root', function () {
+test("null-value cascade to root", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1440,14 +1444,14 @@ test('null-value cascade to root', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 						},
@@ -1457,7 +1461,7 @@ test('null-value cascade to root', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1468,19 +1472,19 @@ test('null-value cascade to root', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 								},
 							},
@@ -1488,7 +1492,7 @@ test('null-value cascade to root', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		data: null,
 		partial: true,
@@ -1501,20 +1505,20 @@ test('null-value cascade to root', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 								},
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 							},
@@ -1522,13 +1526,13 @@ test('null-value cascade to root', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({
 		viewer: null,
 	})
 })
 
-test('must have a single value in order to use partial data', function () {
+test("must have a single value in order to use partial data", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1537,15 +1541,15 @@ test('must have a single value in order to use partial data', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					nullable: true,
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 						},
@@ -1555,7 +1559,7 @@ test('must have a single value in order to use partial data', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1565,15 +1569,15 @@ test('must have a single value in order to use partial data', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 								},
 							},
@@ -1581,7 +1585,7 @@ test('must have a single value in order to use partial data', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
@@ -1593,20 +1597,20 @@ test('must have a single value in order to use partial data', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 								},
 							},
@@ -1614,7 +1618,7 @@ test('must have a single value in order to use partial data', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
@@ -1624,7 +1628,7 @@ test('must have a single value in order to use partial data', function () {
 	})
 })
 
-test('reading an empty list counts as data', function () {
+test("reading an empty list counts as data", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1633,33 +1637,33 @@ test('reading an empty list counts as data', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					nullable: true,
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 
 							friends: {
-								type: 'User',
+								type: "User",
 								visible: true,
-								keyRaw: 'friends',
+								keyRaw: "friends",
 								selection: {
 									fields: {
 										id: {
-											type: 'ID',
+											type: "ID",
 											visible: true,
-											keyRaw: 'id',
+											keyRaw: "id",
 										},
 										firstName: {
-											type: 'String',
+											type: "String",
 											visible: true,
-											keyRaw: 'firstName',
+											keyRaw: "firstName",
 										},
 									},
 								},
@@ -1671,7 +1675,7 @@ test('reading an empty list counts as data', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [],
 			},
 		},
@@ -1682,27 +1686,27 @@ test('reading an empty list counts as data', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								friends: {
-									type: 'User',
+									type: "User",
 									visible: true,
-									keyRaw: 'friends',
+									keyRaw: "friends",
 									selection: {
 										fields: {
 											id: {
-												type: 'ID',
+												type: "ID",
 												visible: true,
-												keyRaw: 'id',
+												keyRaw: "id",
 											},
 											firstName: {
-												type: 'String',
+												type: "String",
 												visible: true,
-												keyRaw: 'firstName',
+												keyRaw: "firstName",
 											},
 										},
 									},
@@ -1712,7 +1716,7 @@ test('reading an empty list counts as data', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
@@ -1724,39 +1728,39 @@ test('reading an empty list counts as data', function () {
 	})
 })
 
-test('does not show visible fields', function () {
+test("does not show visible fields", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 						friends: {
-							type: 'User',
-							keyRaw: 'friends',
+							type: "User",
+							keyRaw: "friends",
 							visible: false,
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -1772,7 +1776,7 @@ test('does not show visible fields', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [],
 			},
 		},
@@ -1781,28 +1785,28 @@ test('does not show visible fields', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
 })
 
-test('recreates fragment references', function () {
+test("recreates fragment references", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fragments: {
@@ -1810,16 +1814,16 @@ test('recreates fragment references', function () {
 							loading: false,
 							arguments: {
 								value: {
-									kind: 'StringValue',
-									value: 'hello!',
+									kind: "StringValue",
+									value: "hello!",
 								},
 							},
 						},
 					},
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 					},
@@ -1833,7 +1837,7 @@ test('recreates fragment references', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1841,20 +1845,20 @@ test('recreates fragment references', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
-				' $fragments': {
+				id: "1",
+				" $fragments": {
 					loading: false,
 					values: {
 						TestFragment: {
-							parent: 'User:1',
+							parent: "User:1",
 							variables: {
-								value: 'hello!',
+								value: "hello!",
 							},
 						},
 					},
@@ -1864,7 +1868,7 @@ test('recreates fragment references', function () {
 	})
 })
 
-test('recreates fragment references on root', function () {
+test("recreates fragment references on root", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1873,23 +1877,23 @@ test('recreates fragment references on root', function () {
 			TestFragment: {
 				arguments: {
 					value: {
-						kind: 'StringValue',
-						value: 'hello!',
+						kind: "StringValue",
+						value: "hello!",
 					},
 				},
 			},
 		},
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 					},
@@ -1903,7 +1907,7 @@ test('recreates fragment references on root', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1911,21 +1915,21 @@ test('recreates fragment references on root', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
-			' $fragments': {
+			" $fragments": {
 				loading: false,
 				values: {
 					TestFragment: {
 						parent: rootID,
 						variables: {
-							value: 'hello!',
+							value: "hello!",
 						},
 					},
 				},
@@ -1934,16 +1938,16 @@ test('recreates fragment references on root', function () {
 	})
 })
 
-test('recreates fragment references with variables', function () {
+test("recreates fragment references with variables", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fragments: {
@@ -1951,10 +1955,10 @@ test('recreates fragment references with variables', function () {
 							loading: false,
 							arguments: {
 								value: {
-									kind: 'Variable',
+									kind: "Variable",
 									name: {
-										kind: 'Name',
-										value: 'my-variable',
+										kind: "Name",
+										value: "my-variable",
 									},
 								},
 							},
@@ -1962,8 +1966,8 @@ test('recreates fragment references with variables', function () {
 					},
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 					},
@@ -1977,7 +1981,7 @@ test('recreates fragment references with variables', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -1985,58 +1989,58 @@ test('recreates fragment references with variables', function () {
 	expect(
 		cache.read({
 			selection,
-			variables: { 'my-variable': 'hello!' },
-		})
+			variables: { "my-variable": "hello!" },
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
 			viewer: {
-				' $fragments': {
+				" $fragments": {
 					loading: false,
 					values: {
 						TestFragment: {
-							parent: 'User:1',
+							parent: "User:1",
 							variables: {
-								value: 'hello!',
+								value: "hello!",
 							},
 						},
 					},
 				},
-				id: '1',
+				id: "1",
 			},
 		},
 	})
 })
 
-test('include directive - positive', function () {
+test("include directive - positive", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 						firstName: {
-							keyRaw: 'firstName',
-							type: 'String',
+							keyRaw: "firstName",
+							type: "String",
 							visible: true,
 							directives: [
 								{
-									name: 'include',
+									name: "include",
 									arguments: {
 										if: {
-											kind: 'BooleanValue',
+											kind: "BooleanValue",
 											value: false,
 										},
 									},
@@ -2054,7 +2058,7 @@ test('include directive - positive', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -2062,46 +2066,46 @@ test('include directive - positive', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
 })
 
-test('include directive - negative', function () {
+test("include directive - negative", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 						firstName: {
-							keyRaw: 'firstName',
-							type: 'String',
+							keyRaw: "firstName",
+							type: "String",
 							visible: true,
 							directives: [
 								{
-									name: 'include',
+									name: "include",
 									arguments: {
 										if: {
-											kind: 'BooleanValue',
+											kind: "BooleanValue",
 											value: true,
 										},
 									},
@@ -2119,7 +2123,7 @@ test('include directive - negative', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -2127,7 +2131,7 @@ test('include directive - negative', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
@@ -2137,34 +2141,34 @@ test('include directive - negative', function () {
 	})
 })
 
-test('skip directive - positive', function () {
+test("skip directive - positive", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 						firstName: {
-							keyRaw: 'firstName',
-							type: 'String',
+							keyRaw: "firstName",
+							type: "String",
 							visible: true,
 							directives: [
 								{
-									name: 'skip',
+									name: "skip",
 									arguments: {
 										if: {
-											kind: 'BooleanValue',
+											kind: "BooleanValue",
 											value: true,
 										},
 									},
@@ -2182,7 +2186,7 @@ test('skip directive - positive', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -2190,46 +2194,46 @@ test('skip directive - positive', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
 })
 
-test('skip directive - negative', function () {
+test("skip directive - negative", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 						firstName: {
-							keyRaw: 'firstName',
-							type: 'String',
+							keyRaw: "firstName",
+							type: "String",
 							visible: true,
 							directives: [
 								{
-									name: 'skip',
+									name: "skip",
 									arguments: {
 										if: {
-											kind: 'BooleanValue',
+											kind: "BooleanValue",
 											value: false,
 										},
 									},
@@ -2247,7 +2251,7 @@ test('skip directive - negative', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -2255,7 +2259,7 @@ test('skip directive - negative', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
@@ -2265,39 +2269,39 @@ test('skip directive - negative', function () {
 	})
 })
 
-test('can perform full query check while retrieving masked value', function () {
+test("can perform full query check while retrieving masked value", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				nullable: true,
 				selection: {
 					fields: {
 						id: {
-							keyRaw: 'id',
-							type: 'String',
+							keyRaw: "id",
+							type: "String",
 							visible: true,
 						},
 						friends: {
-							type: 'User',
-							keyRaw: 'friends',
+							type: "User",
+							keyRaw: "friends",
 							visible: false,
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -2313,7 +2317,7 @@ test('can perform full query check while retrieving masked value', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 			},
 		},
 	})
@@ -2322,7 +2326,7 @@ test('can perform full query check while retrieving masked value', function () {
 		cache.read({
 			selection,
 			fullCheck: true,
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
@@ -2332,7 +2336,7 @@ test('can perform full query check while retrieving masked value', function () {
 	})
 })
 
-test('embedded types can be configured with an empty list', function () {
+test("embedded types can be configured with an empty list", () => {
 	// instantiate the cache
 	const cache = new Cache({
 		...config,
@@ -2346,26 +2350,26 @@ test('embedded types can be configured with an empty list', function () {
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						embedded: {
-							type: 'Embedded',
-							keyRaw: 'embedded',
+							type: "Embedded",
+							keyRaw: "embedded",
 							visible: true,
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -2383,12 +2387,12 @@ test('embedded types can be configured with an empty list', function () {
 			viewer: {
 				embedded: [
 					{
-						id: '1',
-						firstName: 'John',
+						id: "1",
+						firstName: "John",
 					},
 					{
-						id: '1',
-						firstName: 'Jacob',
+						id: "1",
+						firstName: "Jacob",
 					},
 				],
 			},
@@ -2399,7 +2403,7 @@ test('embedded types can be configured with an empty list', function () {
 		cache.read({
 			selection,
 			fullCheck: true,
-		})
+		}),
 	).toEqual({
 		partial: false,
 		stale: false,
@@ -2407,12 +2411,12 @@ test('embedded types can be configured with an empty list', function () {
 			viewer: {
 				embedded: [
 					{
-						id: '1',
-						firstName: 'John',
+						id: "1",
+						firstName: "John",
 					},
 					{
-						id: '1',
-						firstName: 'Jacob',
+						id: "1",
+						firstName: "Jacob",
 					},
 				],
 			},
@@ -2420,44 +2424,44 @@ test('embedded types can be configured with an empty list', function () {
 	})
 })
 
-test('reading a component field produces a function and serializing it does not', function () {
+test("reading a component field produces a function and serializing it does not", () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 		},
 	}
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						Avatar: {
-							type: 'Component',
+							type: "Component",
 							visible: true,
-							keyRaw: 'Avatar',
+							keyRaw: "Avatar",
 							component: {
-								prop: 'user',
-								key: 'User.Avatar',
+								prop: "user",
+								key: "User.Avatar",
 								variables: {},
-								fragment: 'User_Avatar',
+								fragment: "User_Avatar",
 							},
 							nullable: true,
 						},
@@ -2476,8 +2480,8 @@ test('reading a component field produces a function and serializing it does not'
 		selection,
 	}).data
 
-	// @ts-ignore
-	expect(typeof result?.viewer?.Avatar).toBe('function')
+	// @ts-expect-error
+	expect(typeof result?.viewer?.Avatar).toBe("function")
 
 	// should still be able to serialize
 	expect(JSON.parse(cache.serialize())).toMatchInlineSnapshot(
@@ -2496,11 +2500,11 @@ test('reading a component field produces a function and serializing it does not'
 		        }
 		    }
 		}
-	`
+	`,
 	)
 })
 
-test('cascade null through null', function () {
+test("cascade null through null", () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2509,25 +2513,25 @@ test('cascade null through null', function () {
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								keyRaw: 'id',
-								type: 'String',
+								keyRaw: "id",
+								type: "String",
 								visible: true,
 							},
 							friends: {
-								keyRaw: 'friends',
-								type: 'String',
+								keyRaw: "friends",
+								type: "String",
 								visible: true,
 								selection: {
 									fields: {
 										id: {
-											keyRaw: 'id',
-											type: 'String',
+											keyRaw: "id",
+											type: "String",
 											visible: true,
 										},
 									},
@@ -2540,8 +2544,8 @@ test('cascade null through null', function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
-				friends: [{ id: '2' }],
+				id: "1",
+				friends: [{ id: "2" }],
 			},
 		},
 	})
@@ -2552,31 +2556,31 @@ test('cascade null through null', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 								friends: {
-									keyRaw: 'friends',
-									type: 'String',
+									keyRaw: "friends",
+									type: "String",
 									visible: true,
 									selection: {
 										fields: {
 											id: {
-												keyRaw: 'id',
-												type: 'String',
+												keyRaw: "id",
+												type: "String",
 												visible: true,
 											},
 											firstName: {
-												keyRaw: 'firstName',
-												type: 'String',
+												keyRaw: "firstName",
+												type: "String",
 												visible: true,
 											},
 										},
@@ -2587,7 +2591,7 @@ test('cascade null through null', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
@@ -2602,20 +2606,20 @@ test('cascade null through null', function () {
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
+						keyRaw: "viewer",
 						nullable: true,
 						selection: {
 							fields: {
 								id: {
-									keyRaw: 'id',
-									type: 'String',
+									keyRaw: "id",
+									type: "String",
 									visible: true,
 								},
 								parent: {
-									keyRaw: 'parent',
-									type: 'User',
+									keyRaw: "parent",
+									type: "User",
 									visible: true,
 									nullable: true,
 								},
@@ -2624,13 +2628,13 @@ test('cascade null through null', function () {
 					},
 				},
 			},
-		})
+		}),
 	).toEqual({
 		partial: true,
 		stale: false,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				parent: null,
 			},
 		},

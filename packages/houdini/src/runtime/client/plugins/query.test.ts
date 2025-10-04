@@ -1,65 +1,65 @@
-import { beforeEach, expect, test, vi } from 'vitest'
+import { beforeEach, expect, test, vi } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import { Cache } from '../../cache/cache'
-import { setMockConfig } from '../../lib/config'
-import { query } from './query'
-import { createStore, fakeFetch } from './test'
+import { testConfigFile } from "../../../test"
+import { Cache } from "../../cache/cache"
+import { setMockConfig } from "../../lib/config"
+import { query } from "./query"
+import { createStore, fakeFetch } from "./test"
 
 const config = testConfigFile()
 beforeEach(async () => {
 	setMockConfig(config)
 })
 
-test('query plugin evaluates runtime scalars', async function () {
+test("query plugin evaluates runtime scalars", async () => {
 	const fetchSpy = vi.fn()
 
 	const cache = new Cache()
 
 	const store = createStore({
 		artifact: {
-			kind: 'HoudiniQuery',
-			hash: '7777',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Query',
+			kind: "HoudiniQuery",
+			hash: "7777",
+			raw: "RAW_TEXT",
+			name: "TestArtifact",
+			rootType: "Query",
 			pluginData: {},
-			enableLoadingState: 'local',
+			enableLoadingState: "local",
 			stripVariables: [],
 			input: {
 				fields: {
-					id: 'ID',
+					id: "ID",
 				},
 				types: {},
 				defaults: {},
 				runtimeScalars: {
-					id: 'ViewerIDFromSession',
+					id: "ViewerIDFromSession",
 				},
 			},
 			selection: {
 				fields: {
 					viewer: {
-						type: 'User',
+						type: "User",
 						visible: true,
-						keyRaw: 'viewer',
-						loading: { kind: 'continue' },
+						keyRaw: "viewer",
+						loading: { kind: "continue" },
 						selection: {
 							fields: {
 								id: {
-									type: 'ID',
+									type: "ID",
 									visible: true,
-									keyRaw: 'id',
+									keyRaw: "id",
 								},
 								firstName: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: 'firstName',
-									loading: { kind: 'value' },
+									keyRaw: "firstName",
+									loading: { kind: "value" },
 								},
 								__typename: {
-									type: 'String',
+									type: "String",
 									visible: true,
-									keyRaw: '__typename',
+									keyRaw: "__typename",
 								},
 							},
 						},
@@ -71,10 +71,10 @@ test('query plugin evaluates runtime scalars', async function () {
 	})
 
 	// run the query with an artifact that contains runtime scalars
-	await store.send({ session: { token: 'world' } })
+	await store.send({ session: { token: "world" } })
 
 	// the fetch spy should
 	const ctx = fetchSpy.mock.calls[0][0]
 
-	expect(ctx.variables).toEqual({ id: 'world' })
+	expect(ctx.variables).toEqual({ id: "world" })
 })

@@ -1,21 +1,21 @@
-import type { Plugin as VitePlugin, UserConfig } from 'vite'
+import type { UserConfig, Plugin as VitePlugin } from "vite"
 
-import type { VitePluginContext } from '.'
+import type { VitePluginContext } from "."
 
-export function houdini(ctx: VitePluginContext): VitePlugin {
+export function houdini(_ctx: VitePluginContext): VitePlugin {
 	return {
-		name: 'houdini',
+		name: "houdini",
 
-		enforce: 'pre',
+		enforce: "pre",
 
 		async config(userConfig) {
 			// add the necessary values for the houdini imports to resolve
-			let result: UserConfig = {
+			const result: UserConfig = {
 				server: {
 					...userConfig.server,
 					fs: {
 						...userConfig.server?.fs,
-						allow: ['.'].concat(userConfig.server?.fs?.allow || []),
+						allow: ["."].concat(userConfig.server?.fs?.allow || []),
 					},
 				},
 			}

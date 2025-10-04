@@ -1,53 +1,53 @@
-import { test, expect } from 'vitest'
+import { expect, test } from "vitest"
 
-import { testCache, testQuery } from './test'
+import { testCache, testQuery } from "./test"
 
-test('can read values', function () {
+test("can read values", () => {
 	const cache = testCache()
 
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						parent: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'parent',
+							keyRaw: "parent",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 								},
 							},
@@ -60,13 +60,13 @@ test('can read values', function () {
 
 	const data = {
 		viewer: {
-			id: '1',
-			firstName: 'bob',
-			__typename: 'User',
+			id: "1",
+			firstName: "bob",
+			__typename: "User",
 			parent: {
-				id: '2',
-				firstName: 'jane',
-				__typename: 'User',
+				id: "2",
+				firstName: "jane",
+				__typename: "User",
 			},
 		},
 	}
@@ -81,7 +81,7 @@ test('can read values', function () {
 	expect(
 		cache.read({
 			query: testQuery(selection),
-		})
+		}),
 	).toEqual({
 		data,
 		partial: false,
@@ -89,52 +89,52 @@ test('can read values', function () {
 	})
 })
 
-test('can write values', function () {
+test("can write values", () => {
 	const cache = testCache()
 
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						__typename: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: '__typename',
+							keyRaw: "__typename",
 						},
 						parent: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'parent',
+							keyRaw: "parent",
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 									__typename: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: '__typename',
+										keyRaw: "__typename",
 									},
 								},
 							},
@@ -147,13 +147,13 @@ test('can write values', function () {
 
 	const data = {
 		viewer: {
-			id: '1',
-			firstName: 'bob',
-			__typename: 'User',
+			id: "1",
+			firstName: "bob",
+			__typename: "User",
 			parent: {
-				id: '2',
-				firstName: 'jane',
-				__typename: 'User',
+				id: "2",
+				firstName: "jane",
+				__typename: "User",
 			},
 		},
 	}
@@ -168,7 +168,7 @@ test('can write values', function () {
 	expect(
 		cache.read({
 			query: testQuery(selection),
-		})
+		}),
 	).toEqual({
 		data,
 		partial: false,
@@ -176,26 +176,26 @@ test('can write values', function () {
 	})
 })
 
-test('can read and write variables', function () {
+test("can read and write variables", () => {
 	const cache = testCache()
 
 	const selection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName(pattern: $pattern)',
+							keyRaw: "firstName(pattern: $pattern)",
 						},
 					},
 				},
@@ -205,8 +205,8 @@ test('can read and write variables', function () {
 
 	const data = {
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 		},
 	}
 
@@ -216,7 +216,7 @@ test('can read and write variables', function () {
 		// @ts-expect-error
 		data,
 		variables: {
-			pattern: 'foo',
+			pattern: "foo",
 		},
 	})
 
@@ -225,9 +225,9 @@ test('can read and write variables', function () {
 		cache._internal_unstable.read({
 			selection,
 			variables: {
-				pattern: 'foo',
+				pattern: "foo",
 			},
-		}).data
+		}).data,
 	).toEqual(data)
 
 	// read the value using the document api
@@ -235,9 +235,9 @@ test('can read and write variables', function () {
 		cache.read({
 			query: testQuery(selection),
 			variables: {
-				pattern: 'foo',
+				pattern: "foo",
 			},
-		})
+		}),
 	).toEqual({
 		data,
 		partial: false,

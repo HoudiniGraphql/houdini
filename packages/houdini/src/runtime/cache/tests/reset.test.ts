@@ -1,39 +1,39 @@
-import { test, expect, vi } from 'vitest'
+import { expect, test, vi } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import { RefetchUpdateMode, type SubscriptionSelection } from '../../lib'
-import { Cache } from '../cache'
+import { testConfigFile } from "../../../test"
+import { RefetchUpdateMode, type SubscriptionSelection } from "../../lib"
+import { Cache } from "../cache"
 
 const config = testConfigFile()
 
-test('make sure the cache data was reset', function () {
+test("make sure the cache data was reset", () => {
 	const cache = new Cache(config)
 
 	// save the data
 	const data = {
 		viewer: {
-			id: '1',
-			firstName: 'bob',
+			id: "1",
+			firstName: "bob",
 		},
 	}
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 					},
 				},
@@ -53,43 +53,43 @@ test('make sure the cache data was reset', function () {
 	expect(cache.read({ selection }).data).toBe(null)
 })
 
-test('make sure the cache lists were reset', function () {
+test("make sure the cache lists were reset", () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							updates: [RefetchUpdateMode.append],
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -104,15 +104,15 @@ test('make sure the cache lists were reset', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					{
-						id: '3',
-						firstName: 'joe',
+						id: "3",
+						firstName: "joe",
 					},
 				],
 			},
@@ -121,57 +121,59 @@ test('make sure the cache lists were reset', function () {
 	})
 	const set = vi.fn()
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		set,
 		selection,
 	})
 
-	expect(() => cache.list('All_Users')).toBeDefined()
+	expect(() => cache.list("All_Users")).toBeDefined()
 
 	// reset the cache
 	cache.reset()
 
 	// make sure the list doesn't exist
-	expect(() => cache.list('All_Users')).toThrowError('Cannot find list with name')
+	expect(() => cache.list("All_Users")).toThrowError(
+		"Cannot find list with name",
+	)
 })
 
-test('make sure the cache subscribers were reset', function () {
+test("make sure the cache subscribers were reset", () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						firstName: {
-							type: 'String',
+							type: "String",
 							visible: true,
-							keyRaw: 'firstName',
+							keyRaw: "firstName",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							updates: [RefetchUpdateMode.append],
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -185,7 +187,7 @@ test('make sure the cache subscribers were reset', function () {
 	// subscribe to the cache
 	const set = vi.fn()
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		set,
 		selection,
 	})
@@ -195,20 +197,20 @@ test('make sure the cache subscribers were reset', function () {
 
 	// write the data again
 	cache.write({
-		parent: 'User:1',
+		parent: "User:1",
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					{
-						id: '2',
-						firstName: 'jane',
+						id: "2",
+						firstName: "jane",
 					},
 					{
-						id: '3',
-						firstName: 'joe',
+						id: "3",
+						firstName: "joe",
 					},
 				],
 			},
@@ -223,16 +225,16 @@ test('make sure the cache subscribers were reset', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 				friends: [
 					{
-						id: '4',
-						firstName: 'mary',
+						id: "4",
+						firstName: "mary",
 					},
 					{
-						id: '5',
-						firstName: 'jill',
+						id: "5",
+						firstName: "jill",
 					},
 				],
 			},

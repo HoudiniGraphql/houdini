@@ -1,26 +1,27 @@
-import { test, vi, expect } from 'vitest'
+import { expect, test, vi } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import type { SubscriptionSelection } from '../../lib'
-import { Cache } from '../cache'
+import { testConfigFile } from "../../../test"
+import type { SubscriptionSelection } from "../../lib"
+import { Cache } from "../cache"
 
 const config = testConfigFile()
+// biome-ignore lint/style/noNonNullAssertion: Test configuration setup
 config.cacheBufferSize! = 10
 
-test('adequate ticks of garbage collector clear unsubscribed data', function () {
+test("adequate ticks of garbage collector clear unsubscribed data", () => {
 	const cache = new Cache(config)
 
 	const userFields: SubscriptionSelection = {
 		fields: {
 			id: {
-				type: 'ID',
+				type: "ID",
 				visible: true,
-				keyRaw: 'id',
+				keyRaw: "id",
 			},
 			firstName: {
-				type: 'String',
+				type: "String",
 				visible: true,
-				keyRaw: 'firstName',
+				keyRaw: "firstName",
 			},
 		},
 	}
@@ -29,57 +30,62 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: userFields,
 				},
 			},
 		},
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 			},
 		},
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
+	// biome-ignore lint/style/noNonNullAssertion: Test configuration is guaranteed to have cacheBufferSize
 	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
 		cache._internal_unstable.collectGarbage()
-		expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
-			data: { id: '1' },
+		expect(
+			cache.read({ selection: userFields, parent: "User:1" }),
+		).toMatchObject({
+			data: { id: "1" },
 		})
 	}
 
 	// collecting garbage one more time should delete the record from the cache
 	cache._internal_unstable.collectGarbage()
-	expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
-		data: null,
-	})
+	expect(cache.read({ selection: userFields, parent: "User:1" })).toMatchObject(
+		{
+			data: null,
+		},
+	)
 })
 
-test("subscribed data shouldn't be garbage collected", function () {
+test("subscribed data shouldn't be garbage collected", () => {
 	const cache = new Cache(testConfigFile())
 
 	cache.write({
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -88,27 +94,27 @@ test("subscribed data shouldn't be garbage collected", function () {
 		},
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 			},
 		},
 	})
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 						},
 					},
@@ -119,6 +125,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
+	// biome-ignore lint/style/noNonNullAssertion: Test configuration is guaranteed to have cacheBufferSize
 	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
 		cache._internal_unstable.collectGarbage()
 	}
@@ -128,38 +135,38 @@ test("subscribed data shouldn't be garbage collected", function () {
 			selection: {
 				fields: {
 					id: {
-						type: 'ID',
+						type: "ID",
 						visible: true,
-						keyRaw: 'id',
+						keyRaw: "id",
 					},
 				},
 			},
-			parent: 'User:1',
-		}).data
-	).toEqual({ id: '1' })
+			parent: "User:1",
+		}).data,
+	).toEqual({ id: "1" })
 })
 
-test('resubscribing to fields marked for garbage collection resets counter', function () {
+test("resubscribing to fields marked for garbage collection resets counter", () => {
 	const cache = new Cache(testConfigFile())
 
 	cache.write({
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 							firstName: {
-								type: 'String',
+								type: "String",
 								visible: true,
-								keyRaw: 'firstName',
+								keyRaw: "firstName",
 							},
 						},
 					},
@@ -168,8 +175,8 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 		},
 		data: {
 			viewer: {
-				id: '1',
-				firstName: 'bob',
+				id: "1",
+				firstName: "bob",
 			},
 		},
 	})
@@ -183,19 +190,19 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 
 	// subscribe to the fields
 	cache.subscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 						},
 					},
@@ -206,25 +213,26 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
+	// biome-ignore lint/style/noNonNullAssertion: Test configuration is guaranteed to have cacheBufferSize
 	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
 	// subscribe to the fields
 	cache.unsubscribe({
-		rootType: 'Query',
+		rootType: "Query",
 		selection: {
 			fields: {
 				viewer: {
-					type: 'User',
+					type: "User",
 					visible: true,
-					keyRaw: 'viewer',
+					keyRaw: "viewer",
 					selection: {
 						fields: {
 							id: {
-								type: 'ID',
+								type: "ID",
 								visible: true,
-								keyRaw: 'id',
+								keyRaw: "id",
 							},
 						},
 					},
@@ -235,6 +243,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
+	// biome-ignore lint/style/noNonNullAssertion: Test configuration is guaranteed to have cacheBufferSize
 	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
 		cache._internal_unstable.collectGarbage()
 	}
@@ -245,15 +254,15 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			selection: {
 				fields: {
 					id: {
-						type: 'ID',
+						type: "ID",
 						visible: true,
-						keyRaw: 'id',
+						keyRaw: "id",
 					},
 				},
 			},
-			parent: 'User:1',
-		}).data
-	).toEqual({ id: '1' })
+			parent: "User:1",
+		}).data,
+	).toEqual({ id: "1" })
 
 	// tick once more to clear the garbage
 	cache._internal_unstable.collectGarbage()
@@ -263,58 +272,58 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			selection: {
 				fields: {
 					id: {
-						type: 'ID',
+						type: "ID",
 						visible: true,
-						keyRaw: 'id',
+						keyRaw: "id",
 					},
 				},
 			},
-			parent: 'User:1',
-		})
+			parent: "User:1",
+		}),
 	).toMatchObject({
 		data: null,
 	})
 })
 
-test('ticks of gc delete list handlers', function () {
+test("ticks of gc delete list handlers", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						friends: {
-							type: 'User',
+							type: "User",
 							visible: true,
 							// the key takes an argument so that we can have multiple
 							// lists tracked in the cache
-							keyRaw: 'friends',
+							keyRaw: "friends",
 							list: {
-								name: 'All_Users',
+								name: "All_Users",
 								connection: false,
-								type: 'User',
+								type: "User",
 							},
 							selection: {
 								fields: {
 									id: {
-										type: 'ID',
+										type: "ID",
 										visible: true,
-										keyRaw: 'id',
+										keyRaw: "id",
 									},
 									firstName: {
-										type: 'String',
+										type: "String",
 										visible: true,
-										keyRaw: 'firstName',
+										keyRaw: "firstName",
 									},
 								},
 							},
@@ -329,15 +338,15 @@ test('ticks of gc delete list handlers', function () {
 	cache.write({
 		selection,
 		variables: {
-			var: 'hello',
+			var: "hello",
 		},
 		data: {
 			viewer: {
-				id: '1',
+				id: "1",
 				friends: [
 					{
-						id: '2',
-						firstName: 'yves',
+						id: "2",
+						firstName: "yves",
 					},
 				],
 			},
@@ -349,31 +358,32 @@ test('ticks of gc delete list handlers', function () {
 
 	cache.subscribe(
 		{
-			rootType: 'Query',
+			rootType: "Query",
 			set,
 			selection,
 		},
 		{
-			var: 'hello',
-		}
+			var: "hello",
+		},
 	)
 
 	cache.unsubscribe(
 		{
-			rootType: 'Query',
+			rootType: "Query",
 			set,
 			selection,
 		},
 		{
-			var: 'hello',
-		}
+			var: "hello",
+		},
 	)
 
 	// tick the garbage collector enough times to trigger garbage collection
+	// biome-ignore lint/style/noNonNullAssertion: Test configuration is guaranteed to have cacheBufferSize
 	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
 	// make sure we dont have a handler for the list
-	expect(cache._internal_unstable.lists.get('All_Users')).toBeNull()
+	expect(cache._internal_unstable.lists.get("All_Users")).toBeNull()
 })

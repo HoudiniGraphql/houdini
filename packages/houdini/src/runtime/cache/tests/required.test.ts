@@ -1,38 +1,38 @@
-import { test, expect } from 'vitest'
+import { expect, test } from "vitest"
 
-import { testConfigFile } from '../../../test'
-import type { SubscriptionSelection } from '../../lib/types'
-import { Cache } from '../cache'
-import { rootID } from '../stuff'
+import { testConfigFile } from "../../../test"
+import type { SubscriptionSelection } from "../../lib/types"
+import { Cache } from "../cache"
+import { rootID } from "../stuff"
 
 const config = testConfigFile()
 
-test('client-side nullability', function () {
+test("client-side nullability", () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: 'User',
+				type: "User",
 				nullable: true,
 				visible: true,
-				keyRaw: 'viewer',
+				keyRaw: "viewer",
 				selection: {
 					fields: {
 						id: {
-							type: 'ID',
+							type: "ID",
 							visible: true,
-							keyRaw: 'id',
+							keyRaw: "id",
 						},
 						name: {
-							type: 'string',
+							type: "string",
 							visible: true,
-							keyRaw: 'name',
+							keyRaw: "name",
 						},
 						birthDate: {
-							type: 'DateTime',
+							type: "DateTime",
 							visible: true,
-							keyRaw: 'birthDate',
+							keyRaw: "birthDate",
 						},
 					},
 				},
@@ -44,18 +44,18 @@ test('client-side nullability', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				name: 'bob',
-				birthDate: new Date('1980-01-01T00:00:00.000Z').getTime(),
+				id: "1",
+				name: "bob",
+				birthDate: new Date("1980-01-01T00:00:00.000Z").getTime(),
 			},
 		},
 	})
 
 	expect(cache.read({ parent: rootID, selection }).data).toEqual({
 		viewer: {
-			id: '1',
-			name: 'bob',
-			birthDate: new Date('1980-01-01T00:00:00.000Z'),
+			id: "1",
+			name: "bob",
+			birthDate: new Date("1980-01-01T00:00:00.000Z"),
 		},
 	})
 
@@ -63,8 +63,8 @@ test('client-side nullability', function () {
 		selection,
 		data: {
 			viewer: {
-				id: '1',
-				name: 'bob',
+				id: "1",
+				name: "bob",
 				birthDate: null,
 			},
 		},

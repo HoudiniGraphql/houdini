@@ -1,3 +1,4 @@
+// biome-ignore lint/suspicious/noExplicitAny: Deep equality check needs to handle any value types
 export function deepEquals(objA: any, objB: any, map = new WeakMap()) {
 	if (Object.is(objA, objB)) return true
 
@@ -8,7 +9,12 @@ export function deepEquals(objA: any, objB: any, map = new WeakMap()) {
 		return objA.toString() === objB.toString()
 	}
 
-	if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
+	if (
+		typeof objA !== "object" ||
+		objA === null ||
+		typeof objB !== "object" ||
+		objB === null
+	) {
 		return false
 	}
 
@@ -23,7 +29,10 @@ export function deepEquals(objA: any, objB: any, map = new WeakMap()) {
 	}
 
 	for (let i = 0; i < keysA.length; i++) {
-		if (!Reflect.has(objB, keysA[i]) || !deepEquals(objA[keysA[i]], objB[keysA[i]], map)) {
+		if (
+			!Reflect.has(objB, keysA[i]) ||
+			!deepEquals(objA[keysA[i]], objB[keysA[i]], map)
+		) {
 			return false
 		}
 	}

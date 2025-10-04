@@ -1,4 +1,4 @@
-import type { ConfigFile } from '../lib/config'
+import type { ConfigFile } from "../lib/config"
 
 const configs: ((old: ConfigFile) => ConfigFile)[] = []
 

@@ -1,18 +1,17 @@
-import { sleep } from '../../lib'
-import { test, expect, vi, beforeEach } from 'vitest'
-
-import { createPluginHooks, HoudiniClient } from '.'
-import { setMockConfig } from '../lib/config'
-import type { GraphQLObject } from '../lib/types'
-import { ArtifactKind, DataSource } from '../lib/types'
-import type { ClientPlugin } from './documentStore'
-import { DocumentStore } from './documentStore'
+import { beforeEach, expect, test, vi } from "vitest"
+import { sleep } from "../../lib"
+import { setMockConfig } from "../lib/config"
+import type { GraphQLObject } from "../lib/types"
+import { ArtifactKind, DataSource } from "../lib/types"
+import { createPluginHooks, HoudiniClient } from "."
+import type { ClientPlugin } from "./documentStore"
+import { DocumentStore } from "./documentStore"
 
 beforeEach(() => {
 	setMockConfig({
 		scalars: {
 			Date: {
-				type: 'Date',
+				type: "Date",
 				// turn the api's response into that type
 				unmarshal(val: number) {
 					return new Date(val)
@@ -26,7 +25,7 @@ beforeEach(() => {
 	})
 })
 
-test('middleware pipeline happy path', async function () {
+test("middleware pipeline happy path", async () => {
 	const history: [number, string][] = []
 	const tracker = (which: number, step: string) => {
 		history.push([which, step])
@@ -34,19 +33,19 @@ test('middleware pipeline happy path', async function () {
 
 	const middleware1: ClientPlugin = () => ({
 		start(ctx, { next }) {
-			tracker(1, 'start')
+			tracker(1, "start")
 			next(ctx)
 		},
 		beforeNetwork(ctx, { next }) {
-			tracker(1, 'beforeNetwork')
+			tracker(1, "beforeNetwork")
 			next(ctx)
 		},
 		network(ctx, { next }) {
-			tracker(1, 'network')
+			tracker(1, "network")
 			next(ctx)
 		},
 		end(ctx, { resolve }) {
-			tracker(1, 'end')
+			tracker(1, "end")
 			resolve(ctx)
 		},
 	})
@@ -54,9 +53,9 @@ test('middleware pipeline happy path', async function () {
 	const middleware2: ClientPlugin = () => {
 		return {
 			network(ctx, { resolve }) {
-				tracker(2, 'network')
+				tracker(2, "network")
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -66,11 +65,11 @@ test('middleware pipeline happy path', async function () {
 				})
 			},
 			afterNetwork(ctx, { resolve }) {
-				tracker(2, 'afterNetwork')
+				tracker(2, "afterNetwork")
 				resolve(ctx)
 			},
 			end(ctx, { resolve }) {
-				tracker(2, 'end')
+				tracker(2, "end")
 				resolve(ctx)
 			},
 		}
@@ -78,19 +77,19 @@ test('middleware pipeline happy path', async function () {
 
 	const middleware3: ClientPlugin = () => ({
 		start(ctx, { next }) {
-			tracker(3, 'start')
+			tracker(3, "start")
 			next(ctx)
 		},
 		beforeNetwork(ctx, { next }) {
-			tracker(3, 'beforeNetwork')
+			tracker(3, "beforeNetwork")
 			next(ctx)
 		},
 		afterNetwork(ctx, { resolve }) {
-			tracker(3, 'afterNetwork')
+			tracker(3, "afterNetwork")
 			resolve(ctx)
 		},
 		end(ctx, { resolve }) {
-			tracker(3, 'end')
+			tracker(3, "end")
 			resolve(ctx)
 		},
 	})
@@ -107,22 +106,22 @@ test('middleware pipeline happy path', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'start'],
-		[3, 'start'],
-		[1, 'beforeNetwork'],
-		[3, 'beforeNetwork'],
-		[1, 'network'],
-		[2, 'network'],
-		[3, 'afterNetwork'],
-		[2, 'afterNetwork'],
-		[3, 'end'],
-		[2, 'end'],
-		[1, 'end'],
+		[1, "start"],
+		[3, "start"],
+		[1, "beforeNetwork"],
+		[3, "beforeNetwork"],
+		[1, "network"],
+		[2, "network"],
+		[3, "afterNetwork"],
+		[2, "afterNetwork"],
+		[3, "end"],
+		[2, "end"],
+		[1, "end"],
 	])
 
 	// make sure we got the right value back
 	expect(value).toEqual({
-		data: { hello: 'world' },
+		data: { hello: "world" },
 		errors: [],
 		fetching: true,
 		partial: false,
@@ -132,7 +131,7 @@ test('middleware pipeline happy path', async function () {
 	})
 })
 
-test('terminate short-circuits pipeline', async function () {
+test("terminate short-circuits pipeline", async () => {
 	const history: [number, string][] = []
 	const tracker = (which: number, step: string) => {
 		history.push([which, step])
@@ -140,24 +139,24 @@ test('terminate short-circuits pipeline', async function () {
 
 	const middleware1: ClientPlugin = () => ({
 		start(ctx, { next }) {
-			tracker(1, 'start')
+			tracker(1, "start")
 			next(ctx)
 		},
 		end(ctx, { resolve }) {
-			tracker(1, 'end')
+			tracker(1, "end")
 			resolve(ctx)
 		},
 		network(ctx, { next }) {
-			tracker(1, 'network')
+			tracker(1, "network")
 			next(ctx)
 		},
 	})
 	const middleware2: ClientPlugin = () => {
 		return {
 			beforeNetwork(ctx, { resolve }) {
-				tracker(2, 'beforeNetwork')
+				tracker(2, "beforeNetwork")
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -167,9 +166,9 @@ test('terminate short-circuits pipeline', async function () {
 				})
 			},
 			end(ctx, { resolve }) {
-				tracker(2, 'end')
+				tracker(2, "end")
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -179,11 +178,11 @@ test('terminate short-circuits pipeline', async function () {
 				})
 			},
 			network(ctx, { next }) {
-				tracker(2, 'network')
+				tracker(2, "network")
 				next(ctx)
 			},
 			afterNetwork(ctx, { resolve }) {
-				tracker(2, 'afterNetwork')
+				tracker(2, "afterNetwork")
 				resolve(ctx)
 			},
 		}
@@ -197,15 +196,15 @@ test('terminate short-circuits pipeline', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'start'],
-		[2, 'beforeNetwork'],
-		[2, 'afterNetwork'],
-		[2, 'end'],
-		[1, 'end'],
+		[1, "start"],
+		[2, "beforeNetwork"],
+		[2, "afterNetwork"],
+		[2, "end"],
+		[1, "end"],
 	])
 })
 
-test('uneven lists phases', async function () {
+test("uneven lists phases", async () => {
 	const history: [number, string][] = []
 	const tracker = (which: number, step: string) => {
 		history.push([which, step])
@@ -213,21 +212,21 @@ test('uneven lists phases', async function () {
 
 	const middleware1: ClientPlugin = () => ({
 		start(ctx, { next }) {
-			tracker(1, 'start')
+			tracker(1, "start")
 			next(ctx)
 		},
 		end(ctx, { resolve }) {
-			tracker(1, 'end')
+			tracker(1, "end")
 			resolve(ctx)
 		},
 		beforeNetwork(ctx, { next }) {
-			tracker(1, 'beforeNetwork')
+			tracker(1, "beforeNetwork")
 			next(ctx)
 		},
 		network(ctx, { resolve }) {
-			tracker(1, 'network')
+			tracker(1, "network")
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -240,9 +239,9 @@ test('uneven lists phases', async function () {
 	const middleware2: ClientPlugin = () => {
 		return {
 			end(ctx, { resolve }) {
-				tracker(2, 'end')
+				tracker(2, "end")
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -252,7 +251,7 @@ test('uneven lists phases', async function () {
 				})
 			},
 			afterNetwork(ctx, { resolve }) {
-				tracker(2, 'afterNetwork')
+				tracker(2, "afterNetwork")
 				resolve(ctx)
 			},
 		}
@@ -266,20 +265,20 @@ test('uneven lists phases', async function () {
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'start'],
-		[1, 'beforeNetwork'],
-		[1, 'network'],
-		[2, 'afterNetwork'],
-		[2, 'end'],
-		[1, 'end'],
+		[1, "start"],
+		[1, "beforeNetwork"],
+		[1, "network"],
+		[2, "afterNetwork"],
+		[2, "end"],
+		[1, "end"],
 	])
 })
 
-test('can call resolve multiple times to set multiple values', async function () {
+test("can call resolve multiple times to set multiple values", async () => {
 	const middleware: ClientPlugin = () => ({
 		network(ctx, { resolve }) {
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -289,14 +288,14 @@ test('can call resolve multiple times to set multiple values', async function ()
 			})
 			sleep(100).then(() =>
 				resolve(ctx, {
-					data: { hello: 'another-world' },
+					data: { hello: "another-world" },
 					errors: [],
 					fetching: true,
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
 					variables: null,
-				})
+				}),
 			)
 		},
 	})
@@ -313,7 +312,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 
 	// make sure we get the first value  from the promise
 	expect(result).toEqual({
-		data: { hello: 'world' },
+		data: { hello: "world" },
 		errors: [],
 		fetching: true,
 		partial: false,
@@ -322,7 +321,7 @@ test('can call resolve multiple times to set multiple values', async function ()
 		variables: null,
 	})
 	expect(fn).toHaveBeenNthCalledWith(2, {
-		data: { hello: 'world' },
+		data: { hello: "world" },
 		errors: [],
 		fetching: true,
 		partial: false,
@@ -334,14 +333,14 @@ test('can call resolve multiple times to set multiple values', async function ()
 		fetching: true,
 		partial: false,
 		stale: false,
-		data: { hello: 'another-world' },
+		data: { hello: "another-world" },
 		errors: [],
 		source: DataSource.Cache,
 		variables: null,
 	})
 })
 
-test('cleanup phase', async function () {
+test("cleanup phase", async () => {
 	const spy = vi.fn()
 
 	const middleware: ClientPlugin = () => ({
@@ -360,13 +359,13 @@ test('cleanup phase', async function () {
 	expect(spy).toHaveBeenCalled()
 })
 
-test('middlewares can set fetch params', async function () {
+test("middlewares can set fetch params", async () => {
 	const middleware1: ClientPlugin = () => ({
 		start(ctx, { next }) {
 			ctx.fetchParams = {
 				...ctx.fetchParams,
 				headers: {
-					hello: 'world',
+					hello: "world",
 				},
 			}
 			next(ctx)
@@ -378,7 +377,7 @@ test('middlewares can set fetch params', async function () {
 		start(ctx, { resolve }) {
 			spy(ctx.fetchParams)
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -394,21 +393,21 @@ test('middlewares can set fetch params', async function () {
 	await store.send()
 
 	expect(spy).toBeCalledWith({
-		headers: { hello: 'world' },
+		headers: { hello: "world" },
 	})
 })
 
-test('exit can replay a pipeline', async function () {
+test("exit can replay a pipeline", async () => {
 	let count = 0
 
 	const replayPlugin: ClientPlugin = () => ({
 		end(ctx, { value, next, resolve }) {
-			if (value.data?.hello === 'world') {
+			if (value.data?.hello === "world") {
 				count++
 				next(ctx)
 			} else {
 				resolve(ctx, {
-					data: { hello: 'another-value' },
+					data: { hello: "another-value" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -425,7 +424,7 @@ test('exit can replay a pipeline', async function () {
 			// we have to get here twice to succeed
 			if (count) {
 				resolve(ctx, {
-					data: { hello: 'another-value' },
+					data: { hello: "another-value" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -437,7 +436,7 @@ test('exit can replay a pipeline', async function () {
 			}
 
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -453,7 +452,7 @@ test('exit can replay a pipeline', async function () {
 
 	// make sure that the promise rejected with the error value
 	await expect(store.send()).resolves.toEqual({
-		data: { hello: 'another-value' },
+		data: { hello: "another-value" },
 		errors: [],
 		fetching: true,
 		partial: false,
@@ -463,7 +462,7 @@ test('exit can replay a pipeline', async function () {
 	})
 })
 
-test('plugins can update variables', async function () {
+test("plugins can update variables", async () => {
 	// a spy we'll pass the marshaled variables to
 	const spy = vi.fn()
 
@@ -492,7 +491,7 @@ test('plugins can update variables', async function () {
 			network(ctx, { resolve, marshalVariables }) {
 				spy(marshalVariables(ctx))
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -518,7 +517,7 @@ test('plugins can update variables', async function () {
 	})
 })
 
-test('can detect changed variables from inputs', async function () {
+test("can detect changed variables from inputs", async () => {
 	// a spy to track changes
 	const spy = vi.fn()
 
@@ -531,7 +530,7 @@ test('can detect changed variables from inputs', async function () {
 			},
 			network(ctx, { resolve }) {
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -555,15 +554,15 @@ test('can detect changed variables from inputs', async function () {
 	expect(spy).toHaveBeenNthCalledWith(2, false)
 
 	// send with a known set
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(3, true)
 
 	// send with the same est
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(4, false)
 })
 
-test('can pass new variables in a spread', async function () {
+test("can pass new variables in a spread", async () => {
 	// a spy we'll pass the marshaled variables to
 	const spy = vi.fn()
 
@@ -592,7 +591,7 @@ test('can pass new variables in a spread', async function () {
 			network(ctx, { resolve, marshalVariables }) {
 				spy(marshalVariables(ctx))
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -618,7 +617,7 @@ test('can pass new variables in a spread', async function () {
 	})
 })
 
-test('can update variables and then check if they were updated', async function () {
+test("can update variables and then check if they were updated", async () => {
 	// a spy to track changes
 	const spy = vi.fn()
 
@@ -635,7 +634,7 @@ test('can update variables and then check if they were updated', async function 
 			},
 			network(ctx, { resolve }) {
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -659,11 +658,11 @@ test('can update variables and then check if they were updated', async function 
 	expect(spy).toHaveBeenNthCalledWith(2, false)
 
 	// send with a known set
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(3, true)
 })
 
-test('multiple new variables from inside plugin', async function () {
+test("multiple new variables from inside plugin", async () => {
 	// a spy to track changes
 	const spy = vi.fn()
 
@@ -673,7 +672,7 @@ test('multiple new variables from inside plugin', async function () {
 	const changePlugin: ClientPlugin = () => {
 		return {
 			start(ctx, { next, variablesChanged }) {
-				let oldCount = count
+				const oldCount = count
 				if (count === 0) {
 					count++
 				}
@@ -686,12 +685,13 @@ test('multiple new variables from inside plugin', async function () {
 			},
 			network(ctx, { resolve }) {
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
 					stale: false,
 					source: DataSource.Cache,
+					// biome-ignore lint/style/noNonNullAssertion: Test context variables are guaranteed to exist
 					variables: ctx.variables!,
 				})
 			},
@@ -718,15 +718,15 @@ test('multiple new variables from inside plugin', async function () {
 	expect(spy).toHaveBeenNthCalledWith(4, false, 1)
 
 	// if we do send with a payload, make sure we know its changed
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(5, true, 1)
 
 	// if we do send with a payload, send the same value for good measure
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(6, false, 1)
 })
 
-test('can set observer state from hook', async function () {
+test("can set observer state from hook", async () => {
 	const updateMiddleware: ClientPlugin = () => ({
 		start(ctx, { next, updateState }) {
 			updateState((old) => ({ ...old, data: { loading: true } }))
@@ -734,7 +734,7 @@ test('can set observer state from hook', async function () {
 		},
 		network(ctx, { resolve }) {
 			resolve(ctx, {
-				data: { hello: 'test' },
+				data: { hello: "test" },
 				errors: null,
 				fetching: true,
 				partial: false,
@@ -769,7 +769,7 @@ test('can set observer state from hook', async function () {
 
 	// the third should have the final result
 	expect(spy).toHaveBeenNthCalledWith(3, {
-		data: { hello: 'test' },
+		data: { hello: "test" },
 		errors: null,
 		fetching: true,
 		partial: false,
@@ -779,7 +779,7 @@ test('can set observer state from hook', async function () {
 	})
 })
 
-test("sending a setup message doesn't trigger the network steps", async function () {
+test("sending a setup message doesn't trigger the network steps", async () => {
 	const history: [number, string][] = []
 	const tracker = (which: number, step: string) => {
 		history.push([which, step])
@@ -787,30 +787,30 @@ test("sending a setup message doesn't trigger the network steps", async function
 
 	const middleware1: ClientPlugin = () => ({
 		start(ctx, { next }) {
-			tracker(1, 'start')
+			tracker(1, "start")
 			next(ctx)
 		},
 		afterNetwork(ctx, { next }) {
-			tracker(1, 'network')
+			tracker(1, "network")
 			next(ctx)
 		},
 		end(ctx, { resolve }) {
-			tracker(1, 'end')
+			tracker(1, "end")
 			resolve(ctx)
 		},
 	})
 	const middleware2: ClientPlugin = () => {
 		return {
 			end(ctx, { resolve }) {
-				tracker(2, 'end')
+				tracker(2, "end")
 				resolve(ctx)
 			},
 			network(ctx, { next }) {
-				tracker(2, 'network')
+				tracker(2, "network")
 				next(ctx)
 			},
 			afterNetwork(ctx, { resolve }) {
-				tracker(2, 'afterNetwork')
+				tracker(2, "afterNetwork")
 				resolve(ctx)
 			},
 		}
@@ -818,13 +818,13 @@ test("sending a setup message doesn't trigger the network steps", async function
 
 	const terminate: ClientPlugin = () => ({
 		start(ctx, { next }) {
-			tracker(3, 'start')
+			tracker(3, "start")
 			next(ctx)
 		},
 		network(ctx, { resolve }) {
-			tracker(3, 'network')
+			tracker(3, "network")
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -834,11 +834,11 @@ test("sending a setup message doesn't trigger the network steps", async function
 			})
 		},
 		afterNetwork(ctx, { resolve }) {
-			tracker(3, 'afterNetwork')
+			tracker(3, "afterNetwork")
 			resolve(ctx)
 		},
 		end(ctx, { resolve }) {
-			tracker(3, 'end')
+			tracker(3, "end")
 			resolve(ctx)
 		},
 	})
@@ -851,23 +851,23 @@ test("sending a setup message doesn't trigger the network steps", async function
 	store.subscribe(subscribeSpy)
 
 	// kick off the pipeline
-	const value = await store.send({ setup: true })
+	const _value = await store.send({ setup: true })
 
 	// make sure we called the hooks in the right order
 	expect(history).toEqual([
-		[1, 'start'],
-		[3, 'start'],
-		[3, 'end'],
-		[2, 'end'],
-		[1, 'end'],
+		[1, "start"],
+		[3, "start"],
+		[3, "end"],
+		[2, "end"],
+		[1, "end"],
 	])
 })
 
-test('in a query, if fetching is set to false, return with false', async function () {
+test("in a query, if fetching is set to false, return with false", async () => {
 	const fakeFetch: ClientPlugin = () => ({
 		network(ctx, { resolve }) {
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -900,11 +900,11 @@ test('in a query, if fetching is set to false, return with false', async functio
 	})
 })
 
-test('in a mutation, fetching should be false', async function () {
+test("in a mutation, fetching should be false", async () => {
 	const fakeFetch: ClientPlugin = () => ({
 		network(ctx, { resolve }) {
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -937,30 +937,30 @@ test('in a mutation, fetching should be false', async function () {
 	})
 })
 
-test('error hooks get called in order', async function () {
+test("error hooks get called in order", async () => {
 	const fn = vi.fn()
 
 	const middleware1: ClientPlugin = () => ({
-		catch(ctx, { error }) {
+		catch(_ctx, { error }) {
 			fn(1, error)
 			throw error
 		},
 	})
 	const middleware2: ClientPlugin = () => ({
-		catch(ctx, { error }) {
+		catch(_ctx, { error }) {
 			fn(2, error)
 			throw error
 		},
 	})
 	const middleware3: ClientPlugin = () => ({
-		catch(ctx, { error }) {
+		catch(_ctx, { error }) {
 			fn(3, error)
 			throw error
 		},
 	})
 	const panic: ClientPlugin = () => ({
 		network() {
-			throw 'oh no!'
+			throw "oh no!"
 		},
 	})
 
@@ -968,18 +968,18 @@ test('error hooks get called in order', async function () {
 	const store = createStore([middleware1, middleware2, middleware3, panic])
 
 	// start the pipeline
-	await expect(store.send()).rejects.toEqual('oh no!')
+	await expect(store.send()).rejects.toEqual("oh no!")
 
 	// make sure the spy was called in the correct order
-	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
-	expect(fn).toHaveBeenNthCalledWith(2, 2, 'oh no!')
-	expect(fn).toHaveBeenNthCalledWith(3, 1, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(1, 3, "oh no!")
+	expect(fn).toHaveBeenNthCalledWith(2, 2, "oh no!")
+	expect(fn).toHaveBeenNthCalledWith(3, 1, "oh no!")
 })
 
-test('error rejects the promise', async function () {
+test("error rejects the promise", async () => {
 	const middleware: ClientPlugin = () => ({
 		start() {
-			throw 'hello'
+			throw "hello"
 		},
 	})
 
@@ -987,13 +987,13 @@ test('error rejects the promise', async function () {
 	const store = createStore([middleware])
 
 	// make sure that the promise rejected with the error value
-	await expect(store.send()).rejects.toEqual('hello')
+	await expect(store.send()).rejects.toEqual("hello")
 })
 
-test('async error rejects the promise', async function () {
+test("async error rejects the promise", async () => {
 	const middleware: ClientPlugin = () => ({
 		async start() {
-			throw 'hello'
+			throw "hello"
 		},
 	})
 
@@ -1001,10 +1001,10 @@ test('async error rejects the promise', async function () {
 	const store = createStore([middleware])
 
 	// make sure that the promise rejected with the error value
-	await expect(store.send()).rejects.toEqual('hello')
+	await expect(store.send()).rejects.toEqual("hello")
 })
 
-test('throw hooks can resolve the plugin instead', async function () {
+test("throw hooks can resolve the plugin instead", async () => {
 	const fn = vi.fn()
 
 	const middleware1: ClientPlugin = () => ({
@@ -1016,7 +1016,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 	const middleware2: ClientPlugin = () => ({
 		catch(ctx, { resolve }) {
 			resolve(ctx, {
-				data: { hello: 'world' },
+				data: { hello: "world" },
 				errors: [],
 				fetching: true,
 				partial: false,
@@ -1034,7 +1034,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 	})
 	const panic: ClientPlugin = () => ({
 		network() {
-			throw 'oh no!'
+			throw "oh no!"
 		},
 	})
 
@@ -1043,7 +1043,7 @@ test('throw hooks can resolve the plugin instead', async function () {
 
 	// start the pipeline
 	await expect(store.send()).resolves.toEqual({
-		data: { hello: 'world' },
+		data: { hello: "world" },
 		errors: [],
 		fetching: true,
 		partial: false,
@@ -1053,13 +1053,13 @@ test('throw hooks can resolve the plugin instead', async function () {
 	})
 
 	// make sure the spy was called in the correct order
-	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(1, 3, "oh no!")
 	expect(fn).not.toHaveBeenCalledTimes(2)
 })
 
-test('throw hooks can replay the plugin instead', async function () {
+test("throw hooks can replay the plugin instead", async () => {
 	const data = {
-		data: { hello: 'world' },
+		data: { hello: "world" },
 		errors: [],
 		fetching: true,
 		partial: false,
@@ -1098,7 +1098,7 @@ test('throw hooks can replay the plugin instead', async function () {
 		network(ctx, { resolve }) {
 			// if we got there the first time, throw
 			if (count === 1) {
-				throw 'oh no!'
+				throw "oh no!"
 			}
 
 			// we're back here the second time
@@ -1113,11 +1113,11 @@ test('throw hooks can replay the plugin instead', async function () {
 	await expect(store.send()).resolves.toEqual(data)
 
 	// make sure the spy was called in the correct order
-	expect(fn).toHaveBeenNthCalledWith(1, 3, 'oh no!')
+	expect(fn).toHaveBeenNthCalledWith(1, 3, "oh no!")
 	expect(fn).not.toHaveBeenCalledTimes(2)
 })
 
-test('track variable changes for fragments', async function () {
+test("track variable changes for fragments", async () => {
 	// a spy to track changes
 	const spy = vi.fn()
 
@@ -1130,7 +1130,7 @@ test('track variable changes for fragments', async function () {
 			},
 			network(ctx, { resolve }) {
 				resolve(ctx, {
-					data: { hello: 'world' },
+					data: { hello: "world" },
 					errors: [],
 					fetching: true,
 					partial: false,
@@ -1154,20 +1154,21 @@ test('track variable changes for fragments', async function () {
 	expect(spy).toHaveBeenNthCalledWith(2, false)
 
 	// send with a known set
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(3, true)
 
 	// send with the same est
-	await store.send({ variables: { hello: 'world' } })
+	await store.send({ variables: { hello: "world" } })
 	expect(spy).toHaveBeenNthCalledWith(4, false)
 })
 
 export function createStore(
 	plugins: ClientPlugin[],
-	fetching: boolean | undefined = undefined
+	fetching: boolean | undefined = undefined,
+	// biome-ignore lint/suspicious/noExplicitAny: Test store can use any variable type
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
-		url: 'URL',
+		url: "URL",
 	})
 
 	return new DocumentStore({
@@ -1176,16 +1177,16 @@ export function createStore(
 		artifact: {
 			kind: ArtifactKind.Query,
 			stripVariables: [],
-			hash: '1234',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Query',
+			hash: "1234",
+			raw: "RAW_TEXT",
+			name: "TestArtifact",
+			rootType: "Query",
 			selection: {},
 			input: {
 				types: {},
 				fields: {
-					date1: 'Date',
-					date2: 'Date',
+					date1: "Date",
+					date2: "Date",
 				},
 				defaults: {},
 				runtimeScalars: {},
@@ -1200,10 +1201,11 @@ export function createStore(
 
 export function createFragmentStore(
 	plugins: ClientPlugin[],
-	fetching: boolean | undefined = undefined
+	fetching: boolean | undefined = undefined,
+	// biome-ignore lint/suspicious/noExplicitAny: Test store can use any variable type
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
-		url: 'URL',
+		url: "URL",
 	})
 
 	return new DocumentStore({
@@ -1212,16 +1214,16 @@ export function createFragmentStore(
 		artifact: {
 			stripVariables: [],
 			kind: ArtifactKind.Fragment,
-			hash: '1234',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact',
-			rootType: 'Query',
+			hash: "1234",
+			raw: "RAW_TEXT",
+			name: "TestArtifact",
+			rootType: "Query",
 			selection: {},
 			input: {
 				types: {},
 				fields: {
-					date1: 'Date',
-					date2: 'Date',
+					date1: "Date",
+					date2: "Date",
 				},
 				defaults: {},
 				runtimeScalars: {},
@@ -1235,10 +1237,11 @@ export function createFragmentStore(
 }
 
 function createStoreMutation(
-	plugins: ClientPlugin[]
+	plugins: ClientPlugin[],
+	// biome-ignore lint/suspicious/noExplicitAny: Test store can use any variable type
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
-		url: 'URL',
+		url: "URL",
 	})
 
 	return new DocumentStore({
@@ -1247,10 +1250,10 @@ function createStoreMutation(
 		artifact: {
 			kind: ArtifactKind.Mutation,
 			stripVariables: [],
-			hash: '1234',
-			raw: 'RAW_TEXT',
-			name: 'TestArtifact_Mutation',
-			rootType: 'Mutation',
+			hash: "1234",
+			raw: "RAW_TEXT",
+			name: "TestArtifact_Mutation",
+			rootType: "Mutation",
 			selection: {},
 			pluginData: {},
 		},

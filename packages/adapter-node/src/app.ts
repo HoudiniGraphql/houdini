@@ -1,8 +1,12 @@
-import { createServerAdapter } from 'houdini/adapter'
-import * as fs from 'node:fs'
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
-import path, { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import * as fs from "node:fs"
+import {
+	createServer,
+	type IncomingMessage,
+	type ServerResponse,
+} from "node:http"
+import path, { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
+import { createServerAdapter } from "houdini/adapter"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -10,12 +14,12 @@ const __dirname = dirname(__filename)
 // create the production server adapter
 const serverAdapter = createServerAdapter({
 	production: true,
-	assetPrefix: '/assets',
+	assetPrefix: "/assets",
 })
 
 // wrap the server adapter in a node http server
 const nodeServer = createServer((req, res) => {
-	if (req.url && req.url.startsWith('/assets')) {
+	if (req.url?.startsWith("/assets")) {
 		return handleAssets(req, res)
 	}
 
@@ -34,44 +38,47 @@ function handleAssets(
 	req: IncomingMessage,
 	res: ServerResponse<IncomingMessage> & {
 		req: IncomingMessage
-	}
+	},
 ) {
-	let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url ?? '/')
-	let extname = path.extname(filePath)
-	let contentType = 'text/html'
+	const filePath = path.join(
+		__dirname,
+		req.url === "/" ? "index.html" : (req.url ?? "/"),
+	)
+	const extname = path.extname(filePath)
+	let contentType = "text/html"
 
 	// Determine the content type based on the file extension
 	switch (extname) {
-		case '.js':
-			contentType = 'application/javascript'
+		case ".js":
+			contentType = "application/javascript"
 			break
-		case '.css':
-			contentType = 'text/css'
+		case ".css":
+			contentType = "text/css"
 			break
-		case '.json':
-			contentType = 'application/json'
+		case ".json":
+			contentType = "application/json"
 			break
-		case '.png':
-			contentType = 'image/png'
+		case ".png":
+			contentType = "image/png"
 			break
-		case '.jpg':
-			contentType = 'image/jpg'
+		case ".jpg":
+			contentType = "image/jpg"
 			break
-		case '.ico':
-			contentType = 'image/x-icon'
+		case ".ico":
+			contentType = "image/x-icon"
 			break
 		default:
-			contentType = 'text/html'
+			contentType = "text/html"
 	}
 
 	// Read the file from the file system
 	fs.readFile(filePath, (error, content) => {
 		if (error) {
-			if (error.code === 'ENOENT') {
+			if (error.code === "ENOENT") {
 				// If the file is not found, return a 404
-				fs.readFile(path.join(__dirname, '404.html'), (error, content) => {
-					res.writeHead(404, { 'Content-Type': 'text/html' })
-					res.end(content, 'utf8')
+				fs.readFile(path.join(__dirname, "404.html"), (_error, content) => {
+					res.writeHead(404, { "Content-Type": "text/html" })
+					res.end(content, "utf8")
 				})
 			} else {
 				// For any other errors, return a 500
@@ -80,8 +87,8 @@ function handleAssets(
 			}
 		} else {
 			// If the file is found, serve it
-			res.writeHead(200, { 'Content-Type': contentType })
-			res.end(content, 'utf8')
+			res.writeHead(200, { "Content-Type": contentType })
+			res.end(content, "utf8")
 		}
 	})
 }

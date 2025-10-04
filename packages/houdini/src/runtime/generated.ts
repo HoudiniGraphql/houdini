@@ -1,5 +1,5 @@
 export type CacheTypeDef = {
-	types: {}
-	lists: {}
+	types: Record<string, never>
+	lists: Record<string, never>
 	queries: []
 }

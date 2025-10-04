@@ -1,10 +1,13 @@
-import type { ListCollection as _Collection } from '../cache/lists'
-import type { GraphQLObject, SubscriptionSelection } from '../lib/types'
-import type { Cache } from './cache'
-import { Record } from './record'
-import type { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'
+import type { ListCollection as _Collection } from "../cache/lists"
+import type { GraphQLObject, SubscriptionSelection } from "../lib/types"
+import type { Cache } from "./cache"
+import { Record } from "./record"
+import type { CacheTypeDef, ListFilters, ListType, ValidLists } from "./types"
 
-export class ListCollection<Def extends CacheTypeDef, ListName extends ValidLists<Def>> {
+export class ListCollection<
+	Def extends CacheTypeDef,
+	ListName extends ValidLists<Def>,
+> {
 	#parentID: string | undefined
 	#allLists: boolean | undefined
 	#when: ListFilters<Def, ListName> | undefined
@@ -63,7 +66,7 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		}
 	}
 
-	toggle(where: 'first' | 'last', ...records: ListType<Def, ListName>[]) {
+	toggle(where: "first" | "last", ...records: ListType<Def, ListName>[]) {
 		if (!this.#collection) {
 			return
 		}
@@ -117,7 +120,7 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 			const list = this.#cache._internal_unstable.list(
 				this.#name,
 				this.#parentID,
-				this.#allLists
+				this.#allLists,
 			)
 			if (this.#when) {
 				return list.when(this.#when)
@@ -134,10 +137,11 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 	} {
 		// we need to build up the selection that describes the key
 		// for every type in the list
-		let selection: SubscriptionSelection = this.#collection!.selection
+		let selection: SubscriptionSelection = this.#collection?.selection
 		// if the list is a connection, we can't use this selection immediately
 		// we need to look for edges.node
-		const connectionSelection = selection.fields?.['edges']?.selection?.fields?.node.selection
+		const connectionSelection =
+			selection.fields?.edges?.selection?.fields?.node.selection
 		if (connectionSelection) {
 			selection = connectionSelection
 		}
@@ -148,7 +152,7 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		// loop over every record we are adding to build up the necessary structure
 		for (const record of records) {
 			if (!(record instanceof Record)) {
-				throw new Error('You must provide a Record to a list operation')
+				throw new Error("You must provide a Record to a list operation")
 			}
 
 			// add the necessary information

@@ -1,15 +1,17 @@
-import type { SubscriptionSelection } from './types'
+import type { SubscriptionSelection } from "./types"
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,
 	__typename: string | undefined | null,
-	loading: boolean
-): Required<SubscriptionSelection>['fields'] {
+	loading: boolean,
+): Required<SubscriptionSelection>["fields"] {
 	// if we are loading, then we either have loading types or we return the base fields
 	if (loading) {
 		if (selection.loadingTypes && selection.loadingTypes.length > 0) {
 			return deepMerge(
-				...selection.loadingTypes.map((type) => selection.abstractFields?.fields[type])
+				...selection.loadingTypes.map(
+					(type) => selection.abstractFields?.fields[type],
+				),
 			)
 		}
 
@@ -25,8 +27,10 @@ export function getFieldsForType(
 		// if the type needs to be mapped to an abstract one, use that selection instead
 		const mappedType = selection.abstractFields.typeMap[__typename]
 		if (mappedType) {
+			// biome-ignore lint/style/noNonNullAssertion: Mapped type is guaranteed to exist in abstract fields
 			targetSelection = selection.abstractFields.fields[mappedType]!
 		} else if (selection.abstractFields.fields[__typename]) {
+			// biome-ignore lint/style/noNonNullAssertion: Typename is guaranteed to exist in abstract fields
 			targetSelection = selection.abstractFields.fields[__typename]!
 		}
 	}
@@ -36,18 +40,24 @@ export function getFieldsForType(
 
 // This function performs a very simple deep merge that shouldn't be used in an open ended response.
 // It's not resilient to things like circular references so it should really only be used for loading states (for now).
+// biome-ignore lint/suspicious/noExplicitAny: Deep merge needs to handle any object structure
 function deepMerge(...objects: (Record<string, any> | undefined)[]) {
+	// biome-ignore lint/suspicious/noExplicitAny: Merged object can contain any value types
 	const mergedObj: Record<string, any> = {}
-	for (let obj of objects) {
+	for (const obj of objects) {
 		if (!obj) {
 			continue
 		}
-		for (let prop in obj) {
+		for (const prop in obj) {
 			if (prop in obj) {
 				const val = obj[prop]
 
-				if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-					mergedObj[prop] = deepMerge((mergedObj[prop] as Record<string, any>) || {}, val)
+				if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+					mergedObj[prop] = deepMerge(
+						// biome-ignore lint/suspicious/noExplicitAny: Property merge needs to handle any object type
+						(mergedObj[prop] as Record<string, any>) || {},
+						val,
+					)
 				} else {
 					mergedObj[prop] = val
 				}

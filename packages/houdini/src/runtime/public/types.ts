@@ -1,99 +1,110 @@
-import type { Record } from './record'
+import type { Record } from "./record"
 
 export type CacheTypeDef = {
 	types: {
 		[typeName: string]: {
 			idFields: {
+				// biome-ignore lint/suspicious/noExplicitAny: ID fields can be any primitive type
 				[fieldName: string]: any
 			}
 			fields: {
 				[fieldName: string]: {
+					// biome-ignore lint/suspicious/noExplicitAny: Field args can be any GraphQL argument type
 					args: any
+					// biome-ignore lint/suspicious/noExplicitAny: Field type can be any GraphQL type
 					type: any
 				}
 			}
 			// the fragments we know about are passed as a list of pairs
 			// that map the tag return type to the data shape and input
+			// biome-ignore lint/suspicious/noExplicitAny: Fragment tuples can contain any type combinations
 			fragments: [any, any, any][]
 		}
 	}
 	lists: {
 		[listName: string]: {
+			// biome-ignore lint/suspicious/noExplicitAny: List types can be any GraphQL type
 			types: any
+			// biome-ignore lint/suspicious/noExplicitAny: List filters can be any filter structure
 			filters: any
 		}
 	}
 	// we need to map query tag values to their result
 	// to pass be able to pass queries to the read and write methods
 	// entries in the tuple are graphql tag, query shape, query input
+	// biome-ignore lint/suspicious/noExplicitAny: Query tuples can contain any type combinations
 	queries: [any, any, any][]
 }
 
-export type ValidTypes<Def extends CacheTypeDef> = keyof Def['types']
+export type ValidTypes<Def extends CacheTypeDef> = keyof Def["types"]
 
 export type TypeFields<
 	Def extends CacheTypeDef,
-	Type extends keyof Def['types']
-> = Def['types'][Type]['fields']
+	Type extends keyof Def["types"],
+> = Def["types"][Type]["fields"]
 
 export type TypeFieldNames<
 	Def extends CacheTypeDef,
-	Type extends keyof Def['types']
+	Type extends keyof Def["types"],
 	// Extract is necessary because javascript allows numbers to be used as strings when indexing objects
 	// for more information: https://stackoverflow.com/questions/51808160/keyof-inferring-string-number-when-key-is-only-a-string
 > = Extract<keyof TypeFields<Def, Type>, string>
 
 export type TypeNames<Def extends CacheTypeDef> = Extract<
-	Exclude<ValidTypes<Def>, '__ROOT__'>,
+	Exclude<ValidTypes<Def>, "__ROOT__">,
 	string
 >
 
 export type FragmentList<
 	Def extends CacheTypeDef,
-	Type extends ValidTypes<Def>
-> = Def['types'][Type]['fragments']
+	Type extends ValidTypes<Def>,
+> = Def["types"][Type]["fragments"]
 
-export type QueryList<Def extends CacheTypeDef> = Def['queries']
+export type QueryList<Def extends CacheTypeDef> = Def["queries"]
 
 export type IDFields<
 	Def extends CacheTypeDef,
-	Type extends keyof Def['types']
-> = Def['types'][Type]['idFields']
+	Type extends keyof Def["types"],
+> = Def["types"][Type]["idFields"]
 
 export type ProxyUnion<Def extends CacheTypeDef, U> = U extends null
 	? null
 	: U extends TypeNames<Def>
-	? Record<Def, U>
-	: never
+		? Record<Def, U>
+		: never
 
 export type FieldType<
 	Def extends CacheTypeDef,
-	Type extends keyof Def['types'],
-	Field extends keyof TypeFields<Def, Type>
-> = TypeFields<Def, Type>[Field]['type']
+	Type extends keyof Def["types"],
+	Field extends keyof TypeFields<Def, Type>,
+> = TypeFields<Def, Type>[Field]["type"]
 
 export type ArgType<
 	Def extends CacheTypeDef,
-	Type extends keyof Def['types'],
-	Field extends keyof TypeFields<Def, Type>
-> = TypeFields<Def, Type>[Field]['args']
+	Type extends keyof Def["types"],
+	Field extends keyof TypeFields<Def, Type>,
+> = TypeFields<Def, Type>[Field]["args"]
 
-export type ValidLists<Def extends CacheTypeDef> = Extract<keyof Def['lists'], string>
+export type ValidLists<Def extends CacheTypeDef> = Extract<
+	keyof Def["lists"],
+	string
+>
 
 export type ListFilters<
 	Def extends CacheTypeDef,
-	ListName extends ValidLists<Def>
-> = Def['lists'][ListName]['filters'] extends any
+	ListName extends ValidLists<Def>,
+	// biome-ignore lint/suspicious/noExplicitAny: Type constraint check needs to use any
+> = Def["lists"][ListName]["filters"] extends any
 	? {
-			must?: Def['lists'][ListName]['filters']
-			must_not?: Def['lists'][ListName]['filters']
-	  }
+			must?: Def["lists"][ListName]["filters"]
+			must_not?: Def["lists"][ListName]["filters"]
+		}
 	: never
 
-export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = ProxyUnion<
-	Def,
-	Def['lists'][Name]['types']
->
+export type ListType<
+	Def extends CacheTypeDef,
+	Name extends ValidLists<Def>,
+> = ProxyUnion<Def, Def["lists"][Name]["types"]>
 
 // This same structure is repeated because when I dry'd the structure to
 //
@@ -122,25 +133,31 @@ export type ListType<Def extends CacheTypeDef, Name extends ValidLists<Def>> = P
  * user for the correct fields.
  */
 
-export type FragmentVariables<_List, _Target> = _List extends [infer Head, ...infer Rest]
+export type FragmentVariables<_List, _Target> = _List extends [
+	infer Head,
+	...infer Rest,
+]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
 			? _Target extends _Key
 				? _Input
 				: FragmentValue<Rest, _Target>
 			: FragmentValue<Rest, _Target>
-		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
-	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+		: "Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
+	: "Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
 
-export type FragmentValue<List, _Target> = List extends [infer Head, ...infer Rest]
+export type FragmentValue<List, _Target> = List extends [
+	infer Head,
+	...infer Rest,
+]
 	? Head extends [infer _Key, infer _Value, infer _Input]
 		? _Key extends _Target
 			? _Target extends _Key
 				? _Value
 				: FragmentValue<Rest, _Target>
 			: FragmentValue<Rest, _Target>
-		: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
-	: 'Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+		: "Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
+	: "Encountered unknown fragment. Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
 
 export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
@@ -149,8 +166,8 @@ export type QueryValue<List, _Target> = List extends [infer Head, ...infer Rest]
 				? _Value
 				: QueryValue<Rest, _Target>
 			: QueryValue<Rest, _Target>
-		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
-	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+		: "Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
+	: "Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
 
 export type QueryInput<List, _Target> = List extends [infer Head, ...infer Rest]
 	? Head extends [infer _Key, infer _Value, infer _Input]
@@ -159,5 +176,5 @@ export type QueryInput<List, _Target> = List extends [infer Head, ...infer Rest]
 				? _Input
 				: QueryInput<Rest, _Target>
 			: QueryInput<Rest, _Target>
-		: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
-	: 'Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`).'
+		: "Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."
+	: "Encountered unknown query.Please make sure your runtime is up to date (ie, `vite dev` or `vite build`)."

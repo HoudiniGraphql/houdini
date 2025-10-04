@@ -1,6 +1,6 @@
-import config from '../imports/config'
-import pluginConfigs from '../imports/pluginConfig'
-import type { CachePolicies, PaginateModes } from './types'
+import config from "../imports/config"
+import pluginConfigs from "../imports/pluginConfig"
+import type { CachePolicies, PaginateModes } from "./types"
 
 let mockConfig: ConfigFile | null = null
 
@@ -14,13 +14,13 @@ export function setMockConfig(config: ConfigFile | null) {
 
 export function defaultConfigValues(file: ConfigFile): ConfigFile {
 	return {
-		defaultKeys: ['id'],
+		defaultKeys: ["id"],
 		...file,
 		types: {
 			Node: {
-				keys: ['id'],
+				keys: ["id"],
 				resolve: {
-					queryField: 'node',
+					queryField: "node",
 					arguments: (node) => ({ id: node.id }),
 				},
 			},
@@ -31,15 +31,21 @@ export function defaultConfigValues(file: ConfigFile): ConfigFile {
 
 export function keyFieldsForType(configFile: ConfigFile, type: string) {
 	const withDefault = defaultConfigValues(configFile)
+	// biome-ignore lint/style/noNonNullAssertion: Default keys are guaranteed to exist after defaultConfigValues
 	return withDefault.types?.[type]?.keys || withDefault.defaultKeys!
 }
 
-export function computeID(configFile: ConfigFile, type: string, data: any): string {
+export function computeID(
+	configFile: ConfigFile,
+	type: string,
+	// biome-ignore lint/suspicious/noExplicitAny: ID computation needs to handle any data structure
+	data: any,
+): string {
 	const fields = keyFieldsForType(configFile, type)
-	let id = ''
+	let id = ""
 
 	for (const field of fields) {
-		id += data[field] + '__'
+		id += `${data[field]}__`
 	}
 
 	return id.slice(0, -2)
@@ -49,8 +55,8 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 let _configFile: ConfigFile | null = null
 
 export function localApiEndpoint(configFile: ConfigFile) {
-	// @ts-ignore
-	return configFile.router?.apiEndpoint ?? '/_api'
+	// @ts-expect-error
+	return configFile.router?.apiEndpoint ?? "/_api"
 }
 
 export function localApiSessionKeys(configFile: ConfigFile) {
@@ -117,7 +123,7 @@ export type ConfigFile = {
 	/**
 	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: `esm`)
 	 */
-	module?: 'esm' | 'commonjs'
+	module?: "esm" | "commonjs"
 
 	/**
 	 * The number of queries that must occur before a value is removed from the cache. For more information: https://www.houdinigraphql.com/guides/caching-data
@@ -142,12 +148,12 @@ export type ConfigFile = {
 	/**
 	 * Specifies whether mutations should append or prepend list. For more information: https://www.houdinigraphql.com/api/graphql (default: `append`)
 	 */
-	defaultListPosition?: 'append' | 'prepend'
+	defaultListPosition?: "append" | "prepend"
 
 	/**
 	 * Specifies whether mutation should apply a specific target list. When you set `all`, it's like adding the directive `@allLists` to all _insert fragment (default: `null`)
 	 */
-	defaultListTarget?: 'all' | null
+	defaultListTarget?: "all" | null
 
 	/**
 	 * Specifies whether the default paginate mode is Infinite or SinglePage. (default: `Infinite`)
@@ -179,7 +185,7 @@ export type ConfigFile = {
 	 * A flag to specify the default fragment masking behavior.
 	 * @default `enable`
 	 */
-	defaultFragmentMasking?: 'enable' | 'disable'
+	defaultFragmentMasking?: "enable" | "disable"
 
 	/**
 	 * Configure the dev environment to watch a remote schema for changes
@@ -222,6 +228,7 @@ export type ConfigFile = {
 			// the equivalent GraphQL type
 			type: string
 			// the function to call that serializes the type for the API
+			// biome-ignore lint/suspicious/noExplicitAny: Scalar resolver can return any serialized value
 			resolve: (args: RuntimeScalarPayload) => any
 		}
 	>
@@ -255,6 +262,7 @@ export type TypeConfig = {
 		keys?: string[]
 		resolve?: {
 			queryField: string
+			// biome-ignore lint/suspicious/noExplicitAny: Resolver arguments can be any data structure and return any argument map
 			arguments?: (data: any) => { [key: string]: any }
 		}
 	}
@@ -287,7 +295,10 @@ export type WatchSchemaConfig = {
 	 * logic you need
 	 */
 	headers?:
-		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
+		| Record<
+				string,
+				string | ((env: Record<string, string | undefined>) => string)
+		  >
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
 }
 
@@ -295,19 +306,21 @@ export type ScalarSpec = {
 	// the type to use at runtime
 	type: string
 	// the types that should be considered valid input types
-	inputTypes?: Array<'Int' | 'Float' | 'String' | 'Boolean' | 'ID'>
+	inputTypes?: Array<"Int" | "Float" | "String" | "Boolean" | "ID">
 	// the function to call that serializes the type for the API. If you are using this
 	// scalar as the input to a query through a route parameter, this function will receive
 	// the value as a string in addition to your complex value.
+	// biome-ignore lint/suspicious/noExplicitAny: Marshal functions need to handle any input/output types
 	marshal?: (val: any) => any
 	// the function to call that turns the API's response into _ClientType
+	// biome-ignore lint/suspicious/noExplicitAny: Unmarshal functions need to handle any input/output types
 	unmarshal?: (val: any) => any
 }
 
 // this type is meant to be extended by plugins to provide type definitions
 // for config
-export interface HoudiniPluginConfig {}
+export type HoudiniPluginConfig = Record<string, never>
 
 // this type is meant to be extended by client plugins to provide type definitions
 // for config
-export interface HoudiniClientPluginConfig {}
+export type HoudiniClientPluginConfig = Record<string, never>

@@ -1,7 +1,7 @@
-import { styleText } from 'node:util'
+import { styleText } from "node:util"
 
-import { readFileSync } from './fs.js'
-import * as path from './path.js'
+import { readFileSync } from "./fs.js"
+import * as path from "./path.js"
 
 // any error that the compiler could fire
 export class HoudiniError extends Error {
@@ -37,7 +37,7 @@ export function format_error(e: unknown, after?: (e: Error) => void) {
 
 	for (const error of errors) {
 		// if we have filepath, show that to the user
-		if ('filepath' in error && error.filepath) {
+		if ("filepath" in error && error.filepath) {
 			const relative = path.relative(process.cwd(), error.filepath)
 			console.error(`❌ Encountered error in ${relative}`)
 			if (error.message) {
@@ -45,7 +45,7 @@ export function format_error(e: unknown, after?: (e: Error) => void) {
 			}
 		} else {
 			console.error(`❌ ${error.message}`)
-			if ('description' in error && error.description) {
+			if ("description" in error && error.description) {
 				console.error(`${error.description}`)
 			}
 		}
@@ -65,13 +65,17 @@ type HookErrorLocation = {
 	column: number
 }
 
-export function format_hook_error(rootDir: string, error: HookError, hook: string) {
+export function format_hook_error(
+	rootDir: string,
+	error: HookError,
+	hook: string,
+) {
 	let message = `-- ${styleText(
-		'red',
-		error.kind + ' error during ' + hook
+		"red",
+		`${error.kind} error during ${hook}`,
 	)} -----------------------------\n`
-	message += error.message + '\n'
-	message += '\n'
+	message += `${error.message}\n`
+	message += "\n"
 
 	try {
 		if (error.locations) {
@@ -85,7 +89,7 @@ export function format_hook_error(rootDir: string, error: HookError, hook: strin
 					throw Error(`failed to read file, '${filepath}'`)
 				}
 
-				const lines = contents.split('\n')
+				const lines = contents.split("\n")
 
 				message += `${location.filepath}:${location.line}:${location.column}\n`
 
@@ -98,13 +102,13 @@ export function format_hook_error(rootDir: string, error: HookError, hook: strin
 
 				// Calculate where to put the error indicators
 				const gutterOffset = ` ${location.line} | `.length
-				message += ' '.repeat(gutterOffset)
+				message += " ".repeat(gutterOffset)
 				// column is 1-based, so take that into account
-				message += ' '.repeat(Math.max(location.column - 1, 0))
+				message += " ".repeat(Math.max(location.column - 1, 0))
 				// Print the indicator in red
-				message += styleText('red', '^---- error reported here')
+				message += styleText("red", "^---- error reported here")
 
-				message += '\n'
+				message += "\n"
 			})
 		}
 	} finally {
@@ -117,17 +121,17 @@ export function format_hook_error(rootDir: string, error: HookError, hook: strin
 }
 
 export function format_codeblock(code: string[], lineNrStart: number): string {
-	let output = ''
+	let output = ""
 
 	const maxLineNrWidth = (lineNrStart + code.length).toString().length
 
 	// Print each row of the code block
 	for (let i = 0; i < code.length; i++) {
 		// Replace tabs with 4 spaces to make sure we have the correct column?
-		const normalized = code[i].replaceAll('\t', '    ')
+		const normalized = code[i].replaceAll("\t", "    ")
 
 		const lineNr = (lineNrStart + i).toString()
-		const spacing = ' '.repeat(maxLineNrWidth - lineNr.length)
+		const spacing = " ".repeat(maxLineNrWidth - lineNr.length)
 		output += ` ${spacing}${lineNr} | ${normalized}\n`
 	}
 
