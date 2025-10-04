@@ -62,6 +62,11 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 		Locations   []string
 	}
 
+	type enumValue struct {
+		Value       string
+		Description string
+	}
+
 	directives := make(map[string]*directive)
 	errs := &plugins.ErrorList{}
 	customTypes := make(map[string]bool)
@@ -169,25 +174,25 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 
 	// writing enum definitions for custom types referenced by directive arguments at the end of the file
 	// writing at the end of the file(schema.graphql) cost us one more loop but it is cleaner
-
-	// collect enum names 
+	// collect enum names
 	enumNames := make([]string, 0, len(customTypes))
 	for typeName := range customTypes {
 		enumNames = append(enumNames, typeName)
 	}
-
 	for _, typeName := range enumNames {
-		enumValues := []string{}
+
+		enumValues := []enumValue{}
 
 		// query enum values for this type
 		enumErr := db.StepQuery(ctx, `
-			SELECT value
+			SELECT value, description
 			FROM enum_values
 			WHERE parent = $typeName
 			ORDER BY value
 		`, map[string]any{"typeName": typeName}, func(stmt *sqlite.Stmt) {
 			value := stmt.ColumnText(0)
-			enumValues = append(enumValues, value)
+			description := stmt.ColumnText(1)
+			enumValues = append(enumValues, enumValue{Value: value, Description: description})
 		})
 
 		if enumErr != nil {
@@ -195,14 +200,19 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 			continue
 		}
 
+		//description goes first as comment
 		// if we found enum values, write the enum definition
 		if len(enumValues) > 0 {
 			schemaString.WriteString(fmt.Sprintf("enum %s {\n", typeName))
-			for _, value := range enumValues {
-				schemaString.WriteString(fmt.Sprintf("  %s\n", value))
+			for _, ev := range enumValues {
+				if ev.Description != "" {
+					schemaString.WriteString(fmt.Sprintf("  \"\"\"%s\"\"\"\n", ev.Description))
+				}
+				schemaString.WriteString(fmt.Sprintf("  %s\n", ev.Value))
 			}
 			schemaString.WriteString("}\n\n")
 		}
+
 	}
 
 	schemaFileLocation := projectConfig.DefinitionsSchemaPath()
@@ -271,9 +281,15 @@ func removeTypename(document string) string {
 }
 
 func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.PluginConfig], fs afero.Fs, projectConfig plugins.ProjectConfig) error {
+
+	type enumValue struct {
+		Value       string
+		Description string
+	}
+
 	type enumData struct {
 		Name   string
-		Values []string
+		Values []enumValue
 	}
 
 	// collect all enum data from database
@@ -291,18 +307,19 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 		enumName := stmt.ColumnText(0)
 		enum := enumData{
 			Name:   enumName,
-			Values: []string{},
+			Values: []enumValue{},
 		}
 
 		// all values for this enum
 		valueErr := db.StepQuery(ctx, `
-			SELECT value
+			SELECT value, description
 			FROM enum_values
 			WHERE parent = $enumName
 			ORDER BY value
 		`, map[string]any{"enumName": enumName}, func(valueStmt *sqlite.Stmt) {
 			value := valueStmt.ColumnText(0)
-			enum.Values = append(enum.Values, value)
+			description := valueStmt.ColumnText(1)
+			enum.Values = append(enum.Values, enumValue{Value: value, Description: description})
 		})
 
 		if valueErr != nil {
@@ -328,7 +345,10 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 			if i > 0 {
 				enumString.WriteString(",\n")
 			}
-			enumString.WriteString(fmt.Sprintf("    \"%s\": \"%s\"", value, value))
+			if value.Description != "" {
+				enumString.WriteString(fmt.Sprintf("    /**\n     * %s\n    */\n", value.Description))
+			}
+			enumString.WriteString(fmt.Sprintf("    \"%s\": \"%s\"", value.Value, value.Value))
 		}
 		enumString.WriteString("\n};\n\n")
 	}
@@ -355,7 +375,10 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 		// ts enum definition generation
 		tsEnumString.WriteString(fmt.Sprintf("export declare const %s: {\n", enum.Name))
 		for _, value := range enum.Values {
-			tsEnumString.WriteString(fmt.Sprintf("    readonly %s: \"%s\";\n", value, value))
+			if value.Description != "" {
+				tsEnumString.WriteString(fmt.Sprintf("    /**\n     * %s\n    */\n", value.Description))
+			}
+			tsEnumString.WriteString(fmt.Sprintf("    readonly %s: \"%s\";\n", value.Value, value.Value))
 		}
 		tsEnumString.WriteString("}\n\n")
 		tsEnumString.WriteString(fmt.Sprintf("export type %s$options = ValuesOf<typeof %s>\n\n", enum.Name, enum.Name))

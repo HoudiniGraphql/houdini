@@ -27,7 +27,13 @@ func TestDefinitionGeneration(t *testing.T) {
 					"enumsTypesExact": `type ValuesOf<T> = T[keyof T]
 
 export declare const TestEnum1: {
+    /**
+     * Documentation of Value1
+    */
     readonly Value1: "Value1";
+    /**
+     * Documentation of Value2
+    */
     readonly Value2: "Value2";
 }
 
@@ -42,7 +48,13 @@ export type TestEnum2$options = ValuesOf<typeof TestEnum2>
 
 `,
 					"enumsExact": `export const TestEnum1 = {
+    /**
+     * Documentation of Value1
+    */
     "Value1": "Value1",
+    /**
+     * Documentation of Value2
+    */
     "Value2": "Value2"
 };
 
@@ -256,10 +268,15 @@ fragment theList_remove on CustomIdType {
 			}
 
 			enum TestEnum1 {
+				"Documentation of Value1"
 				Value1
+				"Documentation of Value2"
 				Value2
 			}
 
+			"""
+			Documentation of testenum2
+			"""
 			enum TestEnum2 {
 				Value3
 				Value2

@@ -139,6 +139,7 @@ CREATE TABLE IF NOT EXISTS enum_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent TEXT NOT NULL,
     value TEXT NOT NULL,
+    description TEXT,
     FOREIGN KEY (parent) REFERENCES types(name) ON DELETE CASCADE,
     UNIQUE (parent, value)
 );

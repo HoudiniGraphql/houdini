@@ -163,6 +163,7 @@ CREATE TABLE enum_values (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parent TEXT NOT NULL,
     value TEXT NOT NULL,
+	  description TEXT,
     FOREIGN KEY (parent) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
     UNIQUE (parent, value)
 );

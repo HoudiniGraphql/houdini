@@ -64,9 +64,9 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
 	)
 	insertEnumValueStmt := db.Prep(
 		`INSERT INTO enum_values 
-        (parent, value) 
+        (parent, value, description) 
     VALUES 
-        ($parent, $value) 
+        ($parent, $value, $description)
     ON CONFLICT DO UPDATE SET  
         value = excluded.value
     `,

@@ -77,6 +77,7 @@ func WriteProjectSchema[PluginConfig any](
 				err = db.ExecStatement(statements.InsertEnumValue, map[string]any{
 					"parent": typ.Name,
 					"value":  value.Name,
+					"description": value.Description,
 				})
 				if err != nil {
 					errors.Append(&plugins.Error{
