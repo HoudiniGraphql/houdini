@@ -19,10 +19,7 @@
 		"check:write": "pnpm biome check --write",
 		"version": "changeset version",
 		"changeset": "changeset",
-		"release": "pnpm run build && changeset publish",
-		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
-		"prepack": "pinst --disable",
-		"postpack": "pinst --enable"
+		"release": "pnpm run build && changeset publish
 	},
 	"devDependencies": {
 		"@babel/plugin-syntax-import-assertions": "^7.26.0",
