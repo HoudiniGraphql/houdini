@@ -1,6 +1,7 @@
 import type { StatementKind, TSPropertySignatureKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import * as recast from 'recast'
 
+import { getFieldsForType } from '../../../../../src/runtime/lib/selection'
 import {
 	type Config,
 	type Document,
@@ -9,7 +10,6 @@ import {
 	fragmentKey,
 } from '../../../../lib'
 import { readonlyProperty } from '../../../../lib/typescript'
-import { getFieldsForType } from '../../../../../src/runtime/lib/selection'
 
 const AST = recast.types.builders
 

@@ -236,7 +236,6 @@ export function extractFiles(value: any) {
 		if (isExtractableFile(value)) {
 			const filePaths = files.get(value)
 
-			 
 			filePaths ? filePaths.push(path) : files.set(value, [path])
 
 			return null

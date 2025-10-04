@@ -1,4 +1,3 @@
-
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
 
