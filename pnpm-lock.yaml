@@ -187,9 +187,6 @@ importers:
       vite:
         specifier: ^6.0.3
         version: 6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1)
-      vite-plugin-lib-reporter:
-        specifier: ^0.1.0
-        version: 0.1.0
 
   e2e/react:
     dependencies:
@@ -511,9 +508,6 @@ importers:
       recast:
         specifier: ^0.23.1
         version: 0.23.1
-      vite-plugin-watch-and-run:
-        specifier: ^1.7.0
-        version: 1.7.0
     devDependencies:
       '@babel/types':
         specifier: ^7.24.6
@@ -2121,10 +2115,6 @@ packages:
     peerDependencies:
       react: 16.14.0
       react-dom: 16.14.0
-
-  '@kitql/helpers@0.8.9':
-    resolution: {integrity: sha512-uDBFBvCYUT4UaZZKv7gJejQvbrOp4YyI1S0Z92DPiMbyLq0DPDXz3Lt2ZqUZKlQrinBX+W1TO6w0RudEX6Q6WA==}
-    engines: {node: ^16.14 || >=18}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -7956,14 +7946,6 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  vite-plugin-lib-reporter@0.1.0:
-    resolution: {integrity: sha512-GJYcFZnqIND7aXnsKVtYNeVcUh/pSDQC5oriSR2n28iddNavHdSkNjWc7ReVXftV763vI+4Db7gPn0CDODFAAQ==}
-    hasBin: true
-
-  vite-plugin-watch-and-run@1.7.0:
-    resolution: {integrity: sha512-f6TUUxDvOeFPMJ1/NDK8N1y/65w8h4jPZGsuOOYVnaK4lkutN95rTNAunsr0fcgTVo1BRUMxDTY7iFlsGuiCig==}
-    engines: {node: ^16.14 || >=18}
-
   vite@4.1.1:
     resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -9616,6 +9598,7 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
+    optional: true
 
   '@jridgewell/sourcemap-codec@1.4.14': {}
 
@@ -9643,10 +9626,6 @@ snapshots:
       '@types/react': 19.0.7
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
-
-  '@kitql/helpers@0.8.9':
-    dependencies:
-      esm-env: 1.0.0
 
   '@manypkg/find-root@1.1.0':
     dependencies:
@@ -15674,6 +15653,7 @@ snapshots:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
+    optional: true
 
   source-map@0.5.7: {}
 
@@ -16107,6 +16087,7 @@ snapshots:
       acorn: 8.15.0
       commander: 2.20.3
       source-map-support: 0.5.21
+    optional: true
 
   test-exclude@6.0.0:
     dependencies:
@@ -16658,16 +16639,6 @@ snapshots:
       - sugarss
       - supports-color
       - terser
-
-  vite-plugin-lib-reporter@0.1.0:
-    dependencies:
-      '@kitql/helpers': 0.8.9
-      terser: 5.16.1
-
-  vite-plugin-watch-and-run@1.7.0:
-    dependencies:
-      '@kitql/helpers': 0.8.9
-      micromatch: 4.0.5
 
   vite@4.1.1(@types/node@22.18.8)(terser@5.16.1):
     dependencies:

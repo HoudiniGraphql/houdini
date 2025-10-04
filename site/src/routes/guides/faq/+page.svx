@@ -12,10 +12,6 @@ Here are some answers to common questions you might have while working with Houd
 Yes! You'll just have to rely on the store apis for your documents and write your route's loads manually.
 For more information on using your document's stores check out [Working with GraphQL](/guides/working-with-graphql) guide.
 
-### What's the best way to add a GraphQL endpoint to my application?
-
-Simple answer, we recommend [KitQL](https://www.kitql.dev/). For more information about our collaboration, head over to this [blog post](https://www.the-guild.dev/blog/houdini-and-kitql).
-
 ### Can I use queries in server only load or endpoints?
 
 Short answer: Yep!
