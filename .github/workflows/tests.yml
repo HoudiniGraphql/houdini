@@ -23,10 +23,63 @@ jobs:
     format:
         name: Formatting
         runs-on: ubuntu-latest
+        # Only run on pull requests, not on pushes to main
+        if: github.event_name == 'pull_request'
 
         steps:
             - name: Checkout source
-              uses: actions/checkout@master
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  ref: ${{ github.head_ref }}
+
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                node-version: 24.9.0
+
+            - uses: pnpm/action-setup@v4.1.0
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 10.12.1
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Run formatting and linting fixes
+              run: pnpm run check:write
+
+            - name: Check for changes
+              id: verify-changed-files
+              run: |
+                if [ -n "$(git status --porcelain)" ]; then
+                  echo "changed=true" >> $GITHUB_OUTPUT
+                else
+                  echo "changed=false" >> $GITHUB_OUTPUT
+                fi
+
+            - name: Commit and push changes
+              if: steps.verify-changed-files.outputs.changed == 'true'
+              run: |
+                git config --local user.email "action@github.com"
+                git config --local user.name "GitHub Action"
+                git add .
+                git commit -m "Auto-fix formatting and linting issues"
+                git push
+
+            - name: Check lint (final verification)
+              run: pnpm run check
+
+    format_check:
+        name: Formatting Check (Main Branch)
+        runs-on: ubuntu-latest
+        # Only run on pushes to main, not on pull requests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v4
               with:
                   ref: ${{ github.ref }}
 
@@ -44,8 +97,8 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
-            - name: Check prettier
-              run: pnpm run format:check
+            - name: Check formatting and update the codebase
+              run: pnpm run check
 
             - name: Check lint
               run: pnpm run lint
@@ -80,7 +133,6 @@ jobs:
                   key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
                   restore-keys: |
                       ${{ runner.os }}-go-
-
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
@@ -169,7 +221,6 @@ jobs:
                   key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
                   restore-keys: |
                       ${{ runner.os }}-go-
-
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
@@ -368,7 +419,6 @@ jobs:
                   key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
                   restore-keys: |
                       ${{ runner.os }}-go-
-
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
               id: pnpm-install
