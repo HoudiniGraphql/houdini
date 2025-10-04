@@ -76,6 +76,10 @@
             "types": "./build/lib/index.d.ts",
             "import": "./build/lib/index.js"
         },
+        "./test": {
+            "types": "./build/test/index.d.ts",
+            "import": "./build/test/index.js"
+        },
         "./vite": {
             "types": "./build/vite/index.d.ts",
             "import": "./build/vite/index.js"
@@ -88,6 +92,9 @@
             ],
             ".": [
                 "build/lib/index.d.ts"
+            ],
+            "test": [
+                "build/test/index.d.ts"
             ],
             "vite": [
                 "build/vite/index.d.ts"
