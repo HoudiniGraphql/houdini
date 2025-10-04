@@ -27,7 +27,10 @@ export function subscription(factory: SubscriptionHandler) {
 				// its safe to keep going
 				next(ctx)
 			},
-			async network(ctx, { resolve, initialValue, variablesChanged, marshalVariables }) {
+			async network(
+				ctx,
+				{ resolve, initialValue, variablesChanged, marshalVariables },
+			) {
 				const checkValue = {
 					fetchParams: ctx.fetchParams ?? {},
 					session: ctx.session ?? {},
@@ -86,7 +89,7 @@ export function subscription(factory: SubscriptionHandler) {
 							})
 						},
 						complete() {},
-					}
+					},
 				)
 			},
 			cleanup() {
@@ -98,7 +101,9 @@ export function subscription(factory: SubscriptionHandler) {
 	})
 }
 
-export type SubscriptionHandler = (ctx: ClientPluginContext) => SubscriptionClient
+export type SubscriptionHandler = (
+	ctx: ClientPluginContext,
+) => SubscriptionClient
 
 export type SubscriptionClient = {
 	subscribe: (
@@ -106,13 +111,19 @@ export type SubscriptionClient = {
 			operationName?: string
 			query: string
 			variables?: Record<string, unknown> | null
-			extensions?: Record<'persistedQuery', string> | Record<string, unknown> | null
+			extensions?:
+				| Record<'persistedQuery', string>
+				| Record<string, unknown>
+				| null
 		},
 		handlers: {
-			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
-			error: (data: {}) => void
+			next: (payload: {
+				data?: Record<string, unknown> | null
+				errors?: readonly { message: string }[]
+			}) => void
+			error: (data: Record<string, unknown>) => void
 			complete: () => void
-		}
+		},
 	) => () => void
 }
 
@@ -128,7 +139,7 @@ let client: SubscriptionClient
 
 function loadClient(
 	ctx: ClientPluginContext,
-	factory: (ctx: ClientPluginContext) => SubscriptionClient
+	factory: (ctx: ClientPluginContext) => SubscriptionClient,
 ): Promise<void> {
 	// if we are currently loading a client, just wait for that
 	if (pendingCreate) {

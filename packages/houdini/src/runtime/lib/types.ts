@@ -34,6 +34,7 @@ declare global {
 		interface Stuff {
 			inputs: {
 				init: boolean
+				// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
 				marshaled: Record<string, any>
 				changed: boolean
 			}
@@ -45,6 +46,7 @@ declare global {
 	}
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Runtime scalar resolvers can return any GraphQL scalar type
 export type RuntimeScalarResolver = (args: { session: App.Session }) => any
 
 export type Fragment<_Result> = {
@@ -116,6 +118,7 @@ export type RefetchUpdateModes = ValuesOf<typeof RefetchUpdateMode>
 export type InputObject = {
 	fields: Record<string, string>
 	types: Record<string, Record<string, string>>
+	// biome-ignore lint/suspicious/noExplicitAny: Default values can be any GraphQL type
 	defaults: Record<string, any>
 	runtimeScalars: Record<string, string>
 }
@@ -141,11 +144,12 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		direction: 'forward' | 'backward' | 'both'
 		mode: PaginateModes
 	}
+	// biome-ignore lint/suspicious/noExplicitAny: Plugin data can be any structure
 	pluginData: Record<string, any>
 }
 
 export type HoudiniFetchContext = {
-	variables: () => {}
+	variables: () => Record<string, never>
 }
 
 type Filter = { [key: string]: string | boolean | number }
@@ -189,12 +193,19 @@ export type GraphQLObject = { [key: string]: GraphQLValue }
 
 export type GraphQLDefaultScalar = string | number | boolean
 
-export type GraphQLValue = GraphQLDefaultScalar | null | GraphQLObject | GraphQLValue[] | undefined
+export type GraphQLValue =
+	| GraphQLDefaultScalar
+	| null
+	| GraphQLObject
+	| GraphQLValue[]
+	| undefined
 
+// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
 export type GraphQLVariables = { [key: string]: any } | null
 
 export type LoadingSpec =
 	| { kind: 'continue'; list?: { depth: number; count: number } }
+	// biome-ignore lint/suspicious/noExplicitAny: Loading spec value can be any GraphQL data
 	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
 
 export type SubscriptionSelection = {
@@ -253,8 +264,10 @@ export type SubscriptionSelection = {
 export type SubscriptionSpec = {
 	rootType: string
 	selection: SubscriptionSelection
+	// biome-ignore lint/suspicious/noExplicitAny: Subscription data can be any GraphQL type
 	set: (data: any) => void
 	parentID?: string
+	// biome-ignore lint/suspicious/noExplicitAny: Variables function can return any GraphQL variables
 	variables?: () => any
 }
 
@@ -273,6 +286,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables> = {
 	variables: _Input | null
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Request payload can contain any GraphQL object
 export type RequestPayload<GraphQLObject = any> = {
 	data: GraphQLObject | null
 	errors:
@@ -282,7 +296,11 @@ export type RequestPayload<GraphQLObject = any> = {
 		| null
 }
 
-export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
+export type NestedList<_Result = string> = (
+	| _Result
+	| null
+	| NestedList<_Result>
+)[]
 
 export type ValueOf<Parent> = Parent[keyof Parent]
 
@@ -315,12 +333,13 @@ export type FetchParams<_Input> = {
 	 * An object that will be passed to the fetch function.
 	 * You can do what you want with it!
 	 */
-	// @ts-ignore
+	// @ts-expect-error
 	metadata?: App.Metadata
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Fetch function input can be any GraphQL variables
 export type FetchFn<_Data extends GraphQLObject, _Input = any> = (
-	params?: FetchParams<_Input>
+	params?: FetchParams<_Input>,
 ) => Promise<QueryResult<_Data, _Input>>
 
 export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
@@ -328,25 +347,29 @@ export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 		first?: number
 		after?: string
 		fetch?: typeof globalThis.fetch
-		metadata?: {}
+		metadata?: Record<string, unknown>
 	}) => Promise<QueryResult<_Data, _Input>>
 	loadPreviousPage: (args?: {
 		last?: number
 		before?: string
 		fetch?: typeof globalThis.fetch
-		metadata?: {}
+		metadata?: Record<string, unknown>
 	}) => Promise<QueryResult<_Data, _Input>>
-	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+	fetch(
+		args?: FetchParams<_Input> | undefined,
+	): Promise<QueryResult<_Data, _Input>>
 }
 
 export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
 	loadNextPage: (args?: {
 		limit?: number
 		offset?: number
-		metadata?: {}
+		metadata?: Record<string, unknown>
 		fetch?: typeof globalThis.fetch
 	}) => Promise<void>
-	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+	fetch(
+		args?: FetchParams<_Input> | undefined,
+	): Promise<QueryResult<_Data, _Input>>
 }
 
 export type PageInfo = {
@@ -415,6 +438,7 @@ export const PendingValue = Symbol('houdini_loading')
 
 export type LoadingType = typeof PendingValue
 
+// biome-ignore lint/suspicious/noExplicitAny: Type guard needs to check any value
 export function isPending(value: any): value is LoadingType {
 	return typeof value === 'symbol'
 }

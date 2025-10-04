@@ -3,23 +3,36 @@ import cacheRef from '../cache'
 import type { Cache } from '../cache/cache'
 import { getCurrentConfig, localApiEndpoint } from '../lib'
 import { flatten } from '../lib/flatten'
-import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from '../lib/types'
+import type {
+	DocumentArtifact,
+	GraphQLObject,
+	GraphQLVariables,
+	NestedList,
+} from '../lib/types'
 import type { ClientHooks, ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
-import type { FetchParamFn, ThrowOnErrorOperations, ThrowOnErrorParams } from './plugins'
+import type {
+	FetchParamFn,
+	ThrowOnErrorOperations,
+	ThrowOnErrorParams,
+} from './plugins'
 import {
-	fetch as fetchPlugin,
 	fetchParams as fetchParamsPlugin,
+	fetch as fetchPlugin,
 	fragment as fragmentPlugin,
 	mutation as mutationPlugin,
+	optimisticKeys,
 	query as queryPlugin,
 	throwOnError as throwOnErrorPlugin,
-	optimisticKeys,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
-export { DocumentStore, type ClientPlugin, type SendParams } from './documentStore'
+export {
+	type ClientPlugin,
+	DocumentStore,
+	type SendParams,
+} from './documentStore'
 export { fetch, mutation, query, subscription } from './plugins'
 
 export type HoudiniClientConstructorArgs = {
@@ -33,7 +46,7 @@ export type HoudiniClientConstructorArgs = {
 export type ObserveParams<
 	_Data extends GraphQLObject,
 	_Artifact extends DocumentArtifact = DocumentArtifact,
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables = GraphQLVariables,
 > = {
 	artifact: _Artifact
 	enableCache?: boolean
@@ -60,13 +73,16 @@ export class HoudiniClient {
 		string,
 		(operation: {
 			query: string
+			// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
 			variables: any
 			operationName: string
 			session: App.Session | null | undefined
+			// biome-ignore lint/suspicious/noExplicitAny: GraphQL operation results can be any type
 		}) => Promise<any>
 	> = {}
 
 	// this is modified by page entries when they load in order to register the components source
+	// biome-ignore lint/suspicious/noExplicitAny: Component cache can store any component type
 	componentCache: Record<string, any> = {}
 
 	// we need the ability to link the client up with an external cache
@@ -84,13 +100,13 @@ export class HoudiniClient {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(
-				'A client cannot be given a pipeline and a list of plugins at the same time.'
+				'A client cannot be given a pipeline and a list of plugins at the same time.',
 			)
 		}
 
 		this.throwOnError_operations = throwOnError?.operations ?? []
 
-		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
+		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 
 		// if there is no url provided then assume we are using the internal local api
 		this.url =
@@ -128,9 +144,9 @@ export class HoudiniClient {
 						// and any middlewares we got from plugins
 						pluginsFromPlugins,
 						// if they provided a fetch function, use it as the body for the fetch middleware
-						fetchPlugin()
-					)
-			)
+						fetchPlugin(),
+					),
+			),
 		)
 	}
 
@@ -138,7 +154,10 @@ export class HoudiniClient {
 		enableCache = true,
 		fetching = false,
 		...rest
-	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<_Data, _Input> {
+	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<
+		_Data,
+		_Input
+	> {
 		return new DocumentStore<_Data, _Input>({
 			client: this,
 			plugins: createPluginHooks(this.plugins),
@@ -153,10 +172,12 @@ export class HoudiniClient {
 		url: string,
 		handler: (operation: {
 			query: string
+			// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
 			variables: any
 			operationName: string
 			session: App.Session | null | undefined
-		}) => Promise<any>
+			// biome-ignore lint/suspicious/noExplicitAny: GraphQL operation results can be any type
+		}) => Promise<any>,
 	) {
 		this.proxies[url] = handler
 	}

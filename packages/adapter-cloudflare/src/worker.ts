@@ -8,7 +8,7 @@ const server_adapter = createServerAdapter({
 })
 
 const handlers: ExportedHandler = {
-	async fetch(req, env: any, ctx) {
+	async fetch(req, env: unknown, ctx) {
 		const accept = req.headers.get('Accept') ?? ''
 
 		// our server is responsible for serving

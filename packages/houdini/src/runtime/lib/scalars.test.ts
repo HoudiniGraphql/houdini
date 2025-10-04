@@ -1,4 +1,4 @@
-import { test, expect, describe, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, test } from 'vitest'
 
 import { testConfigFile } from '../../test'
 import { defaultConfigValues, setMockConfig } from './config'
@@ -95,8 +95,8 @@ const artifact: QueryArtifact = {
 	},
 }
 
-describe('marshal inputs', function () {
-	test('lists of objects', async function () {
+describe('marshal inputs', () => {
+	test('lists of objects', async () => {
 		// some dates to check against
 		const date1 = new Date(0)
 		const date2 = new Date(1)
@@ -139,7 +139,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('list of scalars', async function () {
+	test('list of scalars', async () => {
 		// some dates to check against
 		const date1 = new Date(0)
 		const date2 = new Date(1)
@@ -168,7 +168,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('empty list of scalars', async function () {
+	test('empty list of scalars', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -193,7 +193,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('root fields', async function () {
+	test('root fields', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -210,7 +210,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('non-custom scalar fields of objects', async function () {
+	test('non-custom scalar fields of objects', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -231,7 +231,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('non-custom scalar fields of lists', async function () {
+	test('non-custom scalar fields of lists', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -256,7 +256,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('null', async function () {
+	test('null', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -273,7 +273,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('undefined', async function () {
+	test('undefined', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -290,7 +290,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('enums', async function () {
+	test('enums', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -307,7 +307,7 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('list of enums', async function () {
+	test('list of enums', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -325,8 +325,8 @@ describe('marshal inputs', function () {
 	})
 })
 
-describe('marshal selection', function () {
-	test('list of objects', async function () {
+describe('marshal selection', () => {
+	test('list of objects', async () => {
 		// the date to compare against
 		const date = new Date()
 
@@ -345,7 +345,7 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection: artifact.selection,
 				data,
-			})
+			}),
 		).toEqual({
 			items: [
 				{
@@ -358,7 +358,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('list of scalars', async function () {
+	test('list of scalars', async () => {
 		// the date to compare against
 		const date1 = new Date(1)
 		const date2 = new Date(2)
@@ -375,7 +375,7 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection: artifact.selection,
 				data,
-			})
+			}),
 		).toEqual({
 			items: [
 				{
@@ -385,7 +385,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('empty list of scalars', async function () {
+	test('empty list of scalars', async () => {
 		const data = {
 			items: [
 				{
@@ -398,7 +398,7 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection: artifact.selection,
 				data,
-			})
+			}),
 		).toEqual({
 			items: [
 				{
@@ -408,7 +408,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('missing marshal function', async function () {
+	test('missing marshal function', async () => {
 		setMockConfig(
 			testConfigFile({
 				scalars: {
@@ -416,7 +416,7 @@ describe('marshal selection', function () {
 						type: 'Date',
 					},
 				},
-			})
+			}),
 		)
 
 		const data = {
@@ -431,11 +431,11 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection: artifact.selection,
 				data,
-			})
+			}),
 		).toThrow(/Scalar type DateTime is missing a `marshal` function/)
 	})
 
-	test('undefined', async function () {
+	test('undefined', async () => {
 		const data = {
 			item: undefined,
 		}
@@ -462,13 +462,13 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection,
 				data,
-			})
+			}),
 		).toEqual({
 			item: undefined,
 		})
 	})
 
-	test('null', async function () {
+	test('null', async () => {
 		const data = {
 			item: null,
 		}
@@ -495,13 +495,13 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection,
 				data,
-			})
+			}),
 		).toEqual({
 			item: null,
 		})
 	})
 
-	test('nested objects', async function () {
+	test('nested objects', async () => {
 		// the date to compare against
 		const date = new Date()
 
@@ -555,7 +555,7 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection,
 				data,
-			})
+			}),
 		).toEqual({
 			item: {
 				createdAt: date.getTime(),
@@ -566,7 +566,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('fields on root', async function () {
+	test('fields on root', async () => {
 		const data = {
 			rootBool: true,
 		}
@@ -584,13 +584,13 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection,
 				data,
-			})
+			}),
 		).toEqual({
 			rootBool: true,
 		})
 	})
 
-	test('enums', async function () {
+	test('enums', async () => {
 		const data = {
 			enumValue: 'Hello',
 		}
@@ -608,13 +608,13 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection,
 				data,
-			})
+			}),
 		).toEqual({
 			enumValue: 'Hello',
 		})
 	})
 
-	test('list of enums', async function () {
+	test('list of enums', async () => {
 		const data = {
 			enumValue: ['Hello', 'World'],
 		}
@@ -632,14 +632,14 @@ describe('marshal selection', function () {
 			marshalSelection({
 				selection,
 				data,
-			})
+			}),
 		).toEqual({
 			enumValue: ['Hello', 'World'],
 		})
 	})
 })
 
-describe('parseScalar', function () {
+describe('parseScalar', () => {
 	const table = [
 		{
 			title: 'String',
@@ -709,7 +709,7 @@ describe('parseScalar', function () {
 	})
 
 	for (const row of table) {
-		test(row.title, function () {
+		test(row.title, () => {
 			expect(parseScalar(config, row.type, row.value)).toEqual(row.expected)
 		})
 	}

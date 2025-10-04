@@ -18,7 +18,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	#cache: Cache<Def>
 
 	type: string
-	idFields: {}
+	idFields: Record<string, never>
 
 	constructor({
 		cache,
@@ -28,7 +28,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	}: {
 		cache: Cache<Def>
 		type: string
-		idFields: {}
+		idFields: Record<string, never>
 		id: string
 	}) {
 		this.#cache = cache
@@ -40,7 +40,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		if (id !== rootID) {
 			for (const key of keyFieldsForType(this.#cache.config, type)) {
 				if (!(key in idFields)) {
-					throw new Error('Missing key in idFields: ' + key)
+					throw new Error(`Missing key in idFields: ${key}`)
 				}
 			}
 		}
@@ -52,7 +52,10 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	}: {
 		fragment: _Fragment
 		variables?: FragmentVariables<FragmentList<Def, Type>, _Fragment>
-	}): { data: FragmentValue<FragmentList<Def, Type>, _Fragment> | null; partial: boolean } {
+	}): {
+		data: FragmentValue<FragmentList<Def, Type>, _Fragment> | null
+		partial: boolean
+	} {
 		// @ts-expect-error
 		return this.#cache._internal_unstable.read({
 			selection: fragment.artifact.selection,
@@ -104,7 +107,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 			when,
 		}: {
 			when?: ArgType<Def, Type, Field>
-		} = {}
+		} = {},
 	): void {
 		// mark the record
 		this.#cache._internal_unstable.markRecordStale(this.#id, { field, when })

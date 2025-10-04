@@ -3,12 +3,12 @@ import path from 'node:path'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
 
 import type { ProjectManifest } from '../runtime'
-import { db_path, houdini_root } from './conventions.js'
 import type * as routerConventions from './conventions.js'
+import { db_path, houdini_root } from './conventions.js'
 import { create_schema, write_config } from './database.js'
 import { format_hook_error, type HookError } from './error.js'
 import * as fs from './fs.js'
-import { type Config } from './project.js'
+import type { Config } from './project.js'
 
 export type PluginSpec = {
 	name: string
@@ -26,7 +26,9 @@ export type Adapter = ((args: {
 	manifest: ProjectManifest
 	adapterPath: string
 }) => void | Promise<void>) & {
-	includePaths?: Record<string, string> | ((args: { config: Config }) => Record<string, string>)
+	includePaths?:
+		| Record<string, string>
+		| ((args: { config: Config }) => Record<string, string>)
 	disableServer?: boolean
 	pre?: (args: {
 		config: Config
@@ -59,13 +61,13 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 	const db_file = db_path(config)
 	try {
 		await fs.remove(db_file)
-	} catch (e) {}
+	} catch (_e) {}
 	try {
 		await fs.remove(`${db_file}-shm`)
-	} catch (e) {}
+	} catch (_e) {}
 	try {
 		await fs.remove(`${db_file}-wal`)
-	} catch (e) {}
+	} catch (_e) {}
 	return [connect_db(config)[0], db_file]
 }
 
@@ -73,7 +75,12 @@ export type CompilerProxy = {
 	close: () => Promise<void>
 	trigger_hook: (
 		name: string,
-		opts?: { parallel_safe?: boolean; payload?: {}; task_id?: string }
+		opts?: {
+			parallel_safe?: boolean
+			payload?: Record<string, unknown>
+			task_id?: string
+		},
+		// biome-ignore lint/suspicious/noExplicitAny: Plugin hooks can return any data structure
 	) => Promise<Record<string, any> | null>
 	database_path: string
 }
@@ -84,7 +91,7 @@ export async function codegen_setup(
 	config: Config,
 	mode: string,
 	db: DatabaseSync,
-	db_file: string
+	db_file: string,
 ): Promise<CompilerProxy> {
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(houdini_root(config))
@@ -115,8 +122,10 @@ export async function codegen_setup(
 
 					// update the plugin spec with the user provided config
 					db.prepare('UPDATE plugins set config = ? where name = ?').run(
-						JSON.stringify(config.plugins.find((p) => p.name === name)?.config ?? {}),
-						name
+						JSON.stringify(
+							config.plugins.find((p) => p.name === name)?.config ?? {},
+						),
+						name,
 					)
 
 					// create the plugin spec
@@ -177,27 +186,31 @@ export async function codegen_setup(
 				...(await wait_for_plugin(plugin.name)),
 			}
 			console.timeEnd(`Spawn ${plugin.name}`)
-		})
+		}),
 	)
 	console.timeEnd('Start Plugins')
 
 	const invoke_hook = async (
 		name: string,
 		hook: string,
+		// biome-ignore lint/suspicious/noExplicitAny: Plugin payloads can contain any data
 		payload: Record<string, any> = {},
-		task_id?: string
+		task_id?: string,
 	) => {
 		const { port } = plugin_specs[name]
 
 		// make the request
-		const response = await fetch(`http://localhost:${port}/${hook.toLowerCase()}`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-Task-ID': task_id?.toString() ?? '',
+		const response = await fetch(
+			`http://localhost:${port}/${hook.toLowerCase()}`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Task-ID': task_id?.toString() ?? '',
+				},
+				body: JSON.stringify(payload),
 			},
-			body: JSON.stringify(payload),
-		})
+		)
 
 		// if the request failed, throw an error
 		if (!response.ok) {
@@ -205,7 +218,9 @@ export async function codegen_setup(
 				throw new Error(`Plugin ${name} does not support hook ${hook}`)
 			}
 			const responseJSON = await response.json()
-			const errors: HookError[] = Array.isArray(responseJSON) ? responseJSON : [responseJSON]
+			const errors: HookError[] = Array.isArray(responseJSON)
+				? responseJSON
+				: [responseJSON]
 			errors.forEach((error) => {
 				format_hook_error(config.root_dir, error, name)
 			})
@@ -214,7 +229,7 @@ export async function codegen_setup(
 		}
 		// look at the response headers, and if the content type is application/json, parse the body
 		const contentType = response.headers.get('content-type')
-		if (contentType && contentType.includes('application/json')) {
+		if (contentType?.includes('application/json')) {
 			return await response.json()
 		}
 		return await response.text()
@@ -228,15 +243,19 @@ export async function codegen_setup(
 			task_id,
 		}: {
 			parallel_safe?: boolean
+			// biome-ignore lint/suspicious/noExplicitAny: Plugin payloads can contain any data
 			payload?: Record<string, any>
 			task_id?: string
-		} = {}
+		} = {},
 	) => {
 		const timeName = hook + (task_id ? ` (${task_id})` : '')
 		console.time(timeName)
 		// look for all of the plugins that have registered for this hook
-		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) => hooks.has(hook))
+		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) =>
+			hooks.has(hook),
+		)
 
+		// biome-ignore lint/suspicious/noExplicitAny: Hook results can contain any data structure
 		const result: Record<string, any> = {}
 
 		// if the hook is parallel safe, we can run all of the plugins in parallel
@@ -244,7 +263,7 @@ export async function codegen_setup(
 			await Promise.all(
 				plugins.map(async ([plugin]) => {
 					result[plugin] = await invoke_hook(plugin, hook, payload, task_id)
-				})
+				}),
 			)
 		} else {
 			// if the hook isn't parallel safe, we need to run the plugins in order
@@ -291,7 +310,7 @@ export async function codegen_setup(
 									'/f',
 									'/t',
 								])
-							} catch (err) {
+							} catch (_err) {
 								// Ignore errors if the process is already gone
 							}
 						} else {
@@ -299,10 +318,10 @@ export async function codegen_setup(
 							try {
 								// The child was spawned with detached: true so that it is its own process group.
 								process.kill(-plugin.process.pid, 'SIGINT')
-							} catch (err) {}
+							} catch (_err) {}
 						}
 					}
-				})
+				}),
 			)
 		},
 	}
@@ -329,9 +348,11 @@ export type RunPipelineOptions = {
 
 export async function run_pipeline(
 	trigger_hook: CompilerProxy['trigger_hook'],
-	options: RunPipelineOptions = {}
+	options: RunPipelineOptions = {},
+	// biome-ignore lint/suspicious/noExplicitAny: Pipeline results can contain any data structure
 ): Promise<Record<PipelineHook, Record<string, any>>> {
 	const { task_id, after, through } = options
+	// biome-ignore lint/suspicious/noExplicitAny: Pipeline results can contain any data structure
 	const results: Record<string, any> = {}
 
 	// Find the start and end indices
@@ -361,6 +382,7 @@ export async function run_pipeline(
 	// Execute the hooks in order
 	for (let i = startIndex; i <= endIndex; i++) {
 		const hook = PIPELINE_HOOKS[i]
+		// biome-ignore lint/suspicious/noExplicitAny: Hook options can contain any configuration
 		const opts: any = { task_id }
 
 		// Set parallel_safe for hooks that support it

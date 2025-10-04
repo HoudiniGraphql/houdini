@@ -1,4 +1,4 @@
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import { testConfigFile } from '../../test'
 import { exec, find_match, parse_page_pattern } from './match'
@@ -113,12 +113,15 @@ describe('route_params', () => {
 
 			// we are expected to match, so get the variables and make sure they are
 			// what we expect
-			expect(exec(url.match(result.pattern)!, result.params)).toEqual(expected.variables)
+
+			expect(exec(url.match(result.pattern)!, result.params)).toEqual(
+				expected.variables,
+			)
 		})
 	})
 })
 
-describe('find_match parse and match', async function () {
+describe('find_match parse and match', async () => {
 	// every test case needs to be an collection of urls and the expected match
 	const table = [
 		{
@@ -129,23 +132,25 @@ describe('find_match parse and match', async function () {
 	]
 
 	for (const { name, urls, expected } of table) {
-		test(name, async function () {
+		test(name, async () => {
 			// build up the list of patterns
 			const patterns = urls.map((url) => parse_page_pattern(url))
 
 			// wrap the patterns in a mocked manifest
+			// biome-ignore lint/suspicious/noExplicitAny: Test manifest can have any page type
 			const manifest: RouterManifest<any> = {
 				pages: patterns.reduce(
-					(pages, pattern) => ({
-						...pages,
-						[pattern.page_id]: {
+					(pages, pattern) => {
+						pages[pattern.page_id] = {
 							id: pattern.page_id,
 							pattern: pattern.pattern,
 							// the params used to execute the pattern and extract the variables
 							params: pattern.params,
-						},
-					}),
-					{}
+						}
+						return pages
+					},
+					// biome-ignore lint/suspicious/noExplicitAny: Test pages can have any structure
+					{} as Record<string, any>,
 				),
 			}
 

@@ -1,5 +1,10 @@
 import { flatten } from '../lib/flatten'
-import type { SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../lib/types'
+import type {
+	ListWhen,
+	NestedList,
+	SubscriptionSelection,
+	SubscriptionSpec,
+} from '../lib/types'
 import type { Cache } from './cache'
 import type { Layer } from './storage'
 import { rootID } from './stuff'
@@ -18,7 +23,12 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
+	get(
+		listName: string,
+		id?: string,
+		allLists?: boolean,
+		skipMatches?: Set<string>,
+	) {
 		// get the list collection
 		const lists = this.getLists(listName, id, allLists)
 		if (!lists) {
@@ -27,7 +37,9 @@ export class ListManager {
 
 		// if we were given a set of matches to skip, we should do that now
 		if (skipMatches) {
-			return new ListCollection(lists.lists.filter((list) => !skipMatches.has(list.fieldRef)))
+			return new ListCollection(
+				lists.lists.filter((list) => !skipMatches.has(list.fieldRef)),
+			)
 		} else {
 			return lists
 		}
@@ -44,7 +56,7 @@ export class ListManager {
 		// if we want to update all list, return all matches
 		if (allLists) {
 			return new ListCollection(
-				Array.from(matches, ([key, value]) => [...value.lists]).flat()
+				Array.from(matches, ([_key, value]) => [...value.lists]).flat(),
 			)
 		}
 
@@ -53,7 +65,9 @@ export class ListManager {
 		// the provided id won't match the cache's ID so we have to compute the internal ID, using
 		// one of the matches to figure out the type of the list element
 		const { recordType } = head.lists[0]
-		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
+		const parentID = id
+			? this.cache._internal_unstable.id(recordType || '', id) || this.rootID
+			: this.rootID
 
 		// if there is only one list with that name, return it
 		if (matches?.size === 1) {
@@ -73,7 +87,7 @@ export class ListManager {
 		if (!id) {
 			console.error(
 				`Found multiple instances of "${listName}". Please provide one of @parentID or @allLists directives to ` +
-					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `
+					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `,
 			)
 			return null
 		}
@@ -115,14 +129,14 @@ export class ListManager {
 		if (!this.lists.has(name)) {
 			this.lists.set(name, new Map())
 		}
-		if (!this.lists.get(name)!.has(parentID)) {
-			this.lists.get(name)!.set(parentID, new ListCollection([]))
+		if (!this.lists.get(name)?.has(parentID)) {
+			this.lists.get(name)?.set(parentID, new ListCollection([]))
 		}
 
 		if (!this.listsByField.has(parentID)) {
 			this.listsByField.set(parentID, new Map())
 		}
-		if (!this.listsByField.get(parentID)!.has(list.key)) {
+		if (!this.listsByField.get(parentID)?.has(list.key)) {
 			this.listsByField.get(parentID)?.set(list.key, [])
 		}
 
@@ -130,8 +144,8 @@ export class ListManager {
 		const handler = new List({ ...list, manager: this })
 
 		// add the list to the collection
-		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
-		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
+		this.lists.get(list.name)?.get(parentID)?.lists.push(handler)
+		this.listsByField.get(parentID)?.get(list.key)?.push(handler)
 	}
 
 	removeIDFromAllLists(id: string, layer?: Layer) {
@@ -154,7 +168,10 @@ export class ListManager {
 		}
 
 		// grab the list of fields associated with the parent/field combo
-		for (const list of this.listsByField.get(parentID)!.get(field)!) {
+		const fieldLists = this.listsByField.get(parentID)?.get(field)
+		if (!fieldLists) return
+
+		for (const list of fieldLists) {
 			this.lists.get(list.name)?.get(list.recordID)?.deleteListWithKey(field)
 			if (this.lists.get(list.name)?.get(list.recordID)?.lists.length === 0) {
 				this.lists.get(list.name)?.delete(list.recordID)
@@ -162,7 +179,7 @@ export class ListManager {
 		}
 
 		// delete the lists by field lookups
-		this.listsByField.get(parentID)!.delete(field)
+		this.listsByField.get(parentID)?.delete(field)
 	}
 
 	reset() {
@@ -183,7 +200,6 @@ export class List {
 	readonly name: string
 	private connection: boolean
 	private manager: ListManager
-	private abstract?: boolean
 
 	constructor({
 		name,
@@ -219,7 +235,7 @@ export class List {
 	// looks for the collection of all of the lists in the cache that satisfies a when
 	// condition
 	when(when?: ListWhen): ListCollection {
-		return this.manager.lists.get(this.name)!.get(this.recordID)!.when(when)
+		return this.manager.lists.get(this.name)?.get(this.recordID)?.when(when)
 	}
 
 	append({
@@ -229,8 +245,8 @@ export class List {
 		layer,
 	}: {
 		selection: SubscriptionSelection
-		data: {}
-		variables?: {}
+		data: Record<string, unknown>
+		variables?: Record<string, unknown>
 		layer?: Layer
 	}) {
 		return this.addToList(selection, data, variables, 'last', layer)
@@ -243,8 +259,8 @@ export class List {
 		layer,
 	}: {
 		selection: SubscriptionSelection
-		data: {}
-		variables?: {}
+		data: Record<string, unknown>
+		variables?: Record<string, unknown>
 		layer?: Layer
 	}) {
 		return this.addToList(selection, data, variables, 'first', layer)
@@ -252,10 +268,10 @@ export class List {
 
 	addToList(
 		selection: SubscriptionSelection,
-		data: {},
-		variables: {} = {},
+		data: Record<string, unknown>,
+		variables: Record<string, unknown> = {},
 		where: 'first' | 'last',
-		layer?: Layer
+		layer?: Layer,
 	) {
 		// figure out the type we're adding
 		const listType = this.listType(data)
@@ -319,7 +335,7 @@ export class List {
 				newEntry: {
 					edges: [
 						{
-							__typename: listType + 'Edge',
+							__typename: `${listType}Edge`,
 							node: {
 								...data,
 								__typename: listType,
@@ -364,7 +380,7 @@ export class List {
 		})
 	}
 
-	removeID(id: string, variables: {} = {}, layer?: Layer) {
+	removeID(id: string, variables: Record<string, unknown> = {}, layer?: Layer) {
 		// if there are conditions for this operation
 		if (!this.validateWhen()) {
 			return
@@ -379,10 +395,8 @@ export class List {
 		// if we are removing a record from a connection we have to walk through
 		// some embedded references first
 		if (this.connection) {
-			const { value: embeddedConnection } = this.cache._internal_unstable.storage.get(
-				this.recordID,
-				this.key
-			)
+			const { value: embeddedConnection } =
+				this.cache._internal_unstable.storage.get(this.recordID, this.key)
 			if (!embeddedConnection) {
 				return
 			}
@@ -392,7 +406,7 @@ export class List {
 			// we want to delete
 			const { value: edges } = this.cache._internal_unstable.storage.get(
 				embeddedConnectionID,
-				'edges'
+				'edges',
 			)
 			for (const edge of flatten(edges as NestedList) || []) {
 				if (!edge) {
@@ -402,7 +416,10 @@ export class List {
 				const edgeID = edge as string
 
 				// look at the edge's node
-				const { value: nodeID } = this.cache._internal_unstable.storage.get(edgeID, 'node')
+				const { value: nodeID } = this.cache._internal_unstable.storage.get(
+					edgeID,
+					'node',
+				)
 				if (!nodeID) {
 					continue
 				}
@@ -417,27 +434,37 @@ export class List {
 		}
 
 		// if the id is not contained in the list, dont notify anyone
-		let value = this.cache._internal_unstable.storage.get(parentID, targetKey)
+		const value = this.cache._internal_unstable.storage.get(parentID, targetKey)
 			.value as NestedList
 		if (!value || !value.includes(targetID)) {
 			return
 		}
 
 		// get the list of specs that are subscribing to the list
-		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
+		const subscribers = this.cache._internal_unstable.subscriptions.get(
+			this.recordID,
+			this.key,
+		)
 
 		// disconnect record from any subscriptions associated with the list
 		this.cache._internal_unstable.subscriptions.remove(
 			targetID,
 			// if we are unsubscribing from a connection, the fields we care about
 			// are tucked away under edges
-			this.connection ? this.selection.fields!.edges.selection! : this.selection,
+			this.connection
+				? this.selection.fields?.edges.selection || this.selection
+				: this.selection,
 			subscribers.map((sub) => sub[0]),
-			variables
+			variables,
 		)
 
 		// remove the target from the parent
-		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID, layer)
+		this.cache._internal_unstable.storage.remove(
+			parentID,
+			targetKey,
+			targetID,
+			layer,
+		)
 
 		// notify the subscribers about the change
 		for (const [spec] of subscribers) {
@@ -448,7 +475,7 @@ export class List {
 					selection: spec.selection,
 					variables: spec.variables?.() || {},
 					ignoreMasking: false,
-				}).data
+				}).data,
 			)
 		}
 
@@ -456,7 +483,11 @@ export class List {
 		return true
 	}
 
-	remove(data: {}, variables: {} = {}, layer?: Layer) {
+	remove(
+		data: Record<string, unknown>,
+		variables: Record<string, unknown> = {},
+		layer?: Layer,
+	) {
 		const targetID = this.cache._internal_unstable.id(this.listType(data), data)
 		if (!targetID) {
 			return
@@ -472,7 +503,7 @@ export class List {
 
 	validateWhen(when?: ListWhen) {
 		// if this when doesn't apply, we should look at others to see if we should update those behind the scenes
-		let filters = when || this._when
+		const filters = when || this._when
 
 		let ok = true
 		// if there are conditions for this operation
@@ -483,8 +514,8 @@ export class List {
 			// check must's first
 			if (filters.must && targets) {
 				ok = Object.entries(filters.must).reduce<boolean>(
-					(prev, [key, value]) => Boolean(prev && targets[key] == value),
-					ok
+					(prev, [key, value]) => Boolean(prev && targets[key] === value),
+					ok,
 				)
 			}
 			// if there are no targets, nothing could be true that can we compare against
@@ -492,8 +523,8 @@ export class List {
 				ok =
 					!targets ||
 					Object.entries(filters.must_not).reduce<boolean>(
-						(prev, [key, value]) => Boolean(prev && targets[key] != value),
-						ok
+						(prev, [key, value]) => Boolean(prev && targets[key] !== value),
+						ok,
 					)
 			}
 		}
@@ -509,8 +540,8 @@ export class List {
 		where,
 	}: {
 		selection: SubscriptionSelection
-		data: {}
-		variables?: {}
+		data: Record<string, unknown>
+		variables?: Record<string, unknown>
 		layer?: Layer
 		where: 'first' | 'last'
 	}) {
@@ -526,19 +557,22 @@ export class List {
 		let entries: string[] = []
 
 		// grab the underlying value from the cache
-		let value = this.cache._internal_unstable.storage.get(this.recordID, this.key).value as
-			| NestedList
-			| string
+		const value = this.cache._internal_unstable.storage.get(
+			this.recordID,
+			this.key,
+		).value as NestedList | string
 
 		if (!this.connection) {
 			entries = flatten(value as NestedList)
 		} else {
 			// connections need to reference the edges field for the list of entries
-			entries = this.cache._internal_unstable.storage.get(value as string, 'edges')
-				.value as string[]
+			entries = this.cache._internal_unstable.storage.get(
+				value as string,
+				'edges',
+			).value as string[]
 		}
 
-		for (let record of entries) {
+		for (const record of entries) {
 			yield record
 		}
 	}
@@ -556,15 +590,21 @@ export class ListCollection {
 	}
 
 	append(...args: Parameters<List['append']>) {
-		this.lists.forEach((list) => list.append(...args))
+		this.lists.forEach((list) => {
+			list.append(...args)
+		})
 	}
 
 	prepend(...args: Parameters<List['prepend']>) {
-		this.lists.forEach((list) => list.prepend(...args))
+		this.lists.forEach((list) => {
+			list.prepend(...args)
+		})
 	}
 
 	addToList(...args: Parameters<List['addToList']>) {
-		this.lists.forEach((list) => list.addToList(...args))
+		this.lists.forEach((list) => {
+			list.addToList(...args)
+		})
 	}
 
 	removeID(...args: Parameters<List['removeID']>) {
@@ -579,18 +619,22 @@ export class ListCollection {
 	}
 
 	remove(...args: Parameters<List['remove']>) {
-		this.lists.forEach((list) => list.remove(...args))
+		this.lists.forEach((list) => {
+			list.remove(...args)
+		})
 	}
 
 	toggleElement(...args: Parameters<List['toggleElement']>) {
-		this.lists.forEach((list) => list.toggleElement(...args))
+		this.lists.forEach((list) => {
+			list.toggleElement(...args)
+		})
 	}
 
 	when(when?: ListWhen): ListCollection {
 		return new ListCollection(
 			this.lists.filter((list) => {
 				return list.validateWhen(when)
-			})
+			}),
 		)
 	}
 
@@ -599,13 +643,14 @@ export class ListCollection {
 	}
 
 	deleteListWithKey(key: string) {
-		return (this.lists = this.lists.filter((list) => list.key !== key))
+		this.lists = this.lists.filter((list) => list.key !== key)
+		return this.lists
 	}
 
 	// iterating over the collection should be the same as iterating over
 	// the underlying list
 	*[Symbol.iterator]() {
-		for (let list of this.lists) {
+		for (const list of this.lists) {
 			for (const entry of list) {
 				yield entry
 			}

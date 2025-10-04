@@ -1,10 +1,16 @@
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import type { GraphQLObject, ValueMap } from '../../lib/types'
 import { evaluateVariables } from '../cache'
 
-describe('evaluateFragmentVariables', function () {
-	const table: { title: string; input: ValueMap; variables: GraphQLObject; expected: any }[] = [
+describe('evaluateFragmentVariables', () => {
+	const table: {
+		title: string
+		input: ValueMap
+		variables: GraphQLObject
+		// biome-ignore lint/suspicious/noExplicitAny: Test expectations can be any value
+		expected: any
+	}[] = [
 		{
 			title: 'String',
 			input: {
@@ -121,7 +127,7 @@ describe('evaluateFragmentVariables', function () {
 	]
 
 	for (const row of table) {
-		test(row.title, function () {
+		test(row.title, () => {
 			expect(evaluateVariables(row.input, row.variables)).toEqual(row.expected)
 		})
 	}

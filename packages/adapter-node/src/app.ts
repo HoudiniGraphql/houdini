@@ -1,8 +1,12 @@
-import { createServerAdapter } from 'houdini/adapter'
 import * as fs from 'node:fs'
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
+import {
+	createServer,
+	type IncomingMessage,
+	type ServerResponse,
+} from 'node:http'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createServerAdapter } from 'houdini/adapter'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -15,7 +19,7 @@ const serverAdapter = createServerAdapter({
 
 // wrap the server adapter in a node http server
 const nodeServer = createServer((req, res) => {
-	if (req.url && req.url.startsWith('/assets')) {
+	if (req.url?.startsWith('/assets')) {
 		return handleAssets(req, res)
 	}
 
@@ -34,10 +38,13 @@ function handleAssets(
 	req: IncomingMessage,
 	res: ServerResponse<IncomingMessage> & {
 		req: IncomingMessage
-	}
+	},
 ) {
-	let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url ?? '/')
-	let extname = path.extname(filePath)
+	const filePath = path.join(
+		__dirname,
+		req.url === '/' ? 'index.html' : (req.url ?? '/'),
+	)
+	const extname = path.extname(filePath)
 	let contentType = 'text/html'
 
 	// Determine the content type based on the file extension
@@ -69,7 +76,7 @@ function handleAssets(
 		if (error) {
 			if (error.code === 'ENOENT') {
 				// If the file is not found, return a 404
-				fs.readFile(path.join(__dirname, '404.html'), (error, content) => {
+				fs.readFile(path.join(__dirname, '404.html'), (_error, content) => {
 					res.writeHead(404, { 'Content-Type': 'text/html' })
 					res.end(content, 'utf8')
 				})

@@ -65,12 +65,16 @@ type HookErrorLocation = {
 	column: number
 }
 
-export function format_hook_error(rootDir: string, error: HookError, hook: string) {
+export function format_hook_error(
+	rootDir: string,
+	error: HookError,
+	hook: string,
+) {
 	let message = `-- ${styleText(
 		'red',
-		error.kind + ' error during ' + hook
+		`${error.kind} error during ${hook}`,
 	)} -----------------------------\n`
-	message += error.message + '\n'
+	message += `${error.message}\n`
 	message += '\n'
 
 	try {

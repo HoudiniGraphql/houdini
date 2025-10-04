@@ -1,18 +1,21 @@
 import type { SendParams } from '../client/documentStore'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy, DataSource } from './types'
 import type {
 	CursorHandlers,
 	FetchFn,
+	FetchParams,
 	GraphQLObject,
 	GraphQLVariables,
 	QueryArtifact,
 	QueryResult,
-	FetchParams,
 } from './types'
+import { CachePolicy, DataSource } from './types'
 
-export function cursorHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
+export function cursorHandlers<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables,
+>({
 	artifact,
 	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
@@ -25,7 +28,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 	getVariables: () => NonNullable<_Input>
 	getSession: () => Promise<App.Session>
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
+	fetchUpdate: (
+		arg: SendParams,
+		updates: string[],
+	) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -39,7 +45,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 		pageSizeVar: string
 		functionName: string
 		input: _Input
-		metadata?: {}
+		metadata?: Record<string, unknown>
 		fetch?: typeof globalThis.fetch
 		where: 'start' | 'end'
 	}) => {
@@ -50,12 +56,12 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 		}
 
 		// if we don't have a value for the page size, tell the user
-		if (!loadVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
+		if (!loadVariables[pageSizeVar] && !artifact.refetch?.pageSize) {
 			throw missingPageSizeError(functionName)
 		}
 
 		// Get the Pagination Mode
-		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+		const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
 		return (isSinglePage ? parentFetch : parentFetchUpdate)(
@@ -66,7 +72,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			},
-			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
+			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append'],
 		)
 	}
 
@@ -84,7 +90,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			first?: number
 			after?: string
 			fetch?: typeof globalThis.fetch
-			metadata?: {}
+			metadata?: Record<string, unknown>
 		} = {}) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
@@ -102,8 +108,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			}
 
 			// only specify the page count if we're given one
+			// biome-ignore lint/suspicious/noExplicitAny: Pagination input can be any GraphQL variables
 			const input: any = {
-				first: first ?? artifact.refetch!.pageSize,
+				first: first ?? artifact.refetch?.pageSize,
 				after: after ?? currentPageInfo.endCursor,
 				before: null,
 				last: null,
@@ -128,7 +135,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			last?: number
 			before?: string
 			fetch?: typeof globalThis.fetch
-			metadata?: {}
+			metadata?: Record<string, unknown>
 		} = {}) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
@@ -147,9 +154,10 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			}
 
 			// only specify the page count if we're given one
+			// biome-ignore lint/suspicious/noExplicitAny: Pagination input can be any GraphQL variables
 			const input: any = {
 				before: before ?? currentPageInfo.startCursor,
-				last: last ?? artifact.refetch!.pageSize,
+				last: last ?? artifact.refetch?.pageSize,
 				first: null,
 				after: null,
 			}
@@ -164,7 +172,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 				where: 'start',
 			})
 		},
-		async fetch(args?: FetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async fetch(
+			args?: FetchParams<_Input>,
+		): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = args ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
@@ -173,24 +183,27 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 			}
 
 			// we need to find the connection object holding the current page info
+			// biome-ignore lint/suspicious/noExplicitAny: Page info can be any structure
+			let currentPageInfo: any
 			try {
-				var currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
+				currentPageInfo = extractPageInfo(getState(), artifact.refetch?.path)
 			} catch {
 				// if there was any issue getting the page info, just fetch like normal
 				return await parentFetch(args)
 			}
 
 			// build up the variables to pass to the query
+			// biome-ignore lint/suspicious/noExplicitAny: Query variables can be any GraphQL type
 			const queryVariables: Record<string, any> = {}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
 			const count =
-				countPage(artifact.refetch!.path.concat('edges'), getState()) ||
-				artifact.refetch!.pageSize
+				countPage(artifact.refetch?.path.concat('edges'), getState()) ||
+				artifact.refetch?.pageSize
 
 			// if there are more records than the first page, we need fetch to load everything
-			if (count && count > artifact.refetch!.pageSize) {
+			if (count && count > artifact.refetch?.pageSize) {
 				// if we aren't at one of the boundaries, we can't refresh the current window
 				// of a paginated field. warn the user if that's the case
 				if (
@@ -198,8 +211,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 					currentPageInfo.hasNextPage &&
 					// only log if they haven't provided special parameters
 					!(
-						(variables?.['first'] && variables?.['after']) ||
-						(variables?.['last'] && variables?.['before'])
+						(variables?.first && variables?.after) ||
+						(variables?.last && variables?.before)
 					)
 				) {
 					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
@@ -209,18 +222,18 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 
 				// if we are loading the first boundary
 				if (!currentPageInfo.hasPreviousPage) {
-					queryVariables['first'] = count
-					queryVariables['after'] = null
-					queryVariables['last'] = null
-					queryVariables['before'] = null
+					queryVariables.first = count
+					queryVariables.after = null
+					queryVariables.last = null
+					queryVariables.before = null
 				}
 
 				// or we're loading the last boundary
 				else if (!currentPageInfo.hasNextPage) {
-					queryVariables['last'] = count
-					queryVariables['first'] = null
-					queryVariables['after'] = null
-					queryVariables['before'] = null
+					queryVariables.last = count
+					queryVariables.first = null
+					queryVariables.after = null
+					queryVariables.before = null
 				}
 			}
 
@@ -238,9 +251,12 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 	}
 }
 
-export function offsetHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
+export function offsetHandlers<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables,
+>({
 	artifact,
-	storeName,
+	_storeName,
 	getState,
 	getVariables,
 	fetch: parentFetch,
@@ -256,14 +272,14 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 	getSession: () => Promise<App.Session>
 }) {
 	// Get the Pagination Mode
-	let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+	const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 	// we need to track the most recent offset for this handler
-	let getOffset = () => {
+	const getOffset = () => {
 		let offset =
 			(artifact.refetch?.start as number) ||
-			countPage(artifact.refetch!.path, getState()) ||
-			artifact.refetch!.pageSize
+			countPage(artifact.refetch?.path, getState()) ||
+			artifact.refetch?.pageSize
 
 		// if we are loading single pages then we need to add the current offset to the page size
 		if (isSinglePage) {
@@ -285,9 +301,10 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 			limit?: number
 			offset?: number
 			fetch?: typeof globalThis.fetch
-			metadata?: {}
+			metadata?: Record<string, unknown>
 		} = {}) => {
 			// build up the variables to pass to the query
+			// biome-ignore lint/suspicious/noExplicitAny: Query variables can be any GraphQL type
 			const queryVariables: Record<string, any> = {
 				...getVariables(),
 				offset: offset ?? getOffset(),
@@ -298,7 +315,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 
 			// if we made it this far without a limit argument and there's no default page size,
 			// they made a mistake
-			if (!queryVariables.limit && !artifact.refetch!.pageSize) {
+			if (!queryVariables.limit && !artifact.refetch?.pageSize) {
 				throw missingPageSizeError('loadNextPage')
 			}
 
@@ -313,10 +330,12 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 			})
 
 			// add the page size to the offset so we load the next page next time
-			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
+			const pageSize = queryVariables.limit || artifact.refetch?.pageSize
 			currentOffset = offset + pageSize
 		},
-		async fetch(params: FetchParams<_Input> = {}): Promise<QueryResult<_Data, _Input>> {
+		async fetch(
+			params: FetchParams<_Input> = {},
+		): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params
 
 			// if the input is different than the query variables then we just do everything like normal
@@ -329,10 +348,11 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 			const count = currentOffset || getOffset()
 
 			// build up the variables to pass to the query
+			// biome-ignore lint/suspicious/noExplicitAny: Query variables can be any GraphQL type
 			const queryVariables: Record<string, any> = {}
 
 			// if there are more records than the first page, we need fetch to load everything
-			if (!artifact.refetch!.pageSize || count > artifact.refetch!.pageSize) {
+			if (!artifact.refetch?.pageSize || count > artifact.refetch?.pageSize) {
 				queryVariables.limit = count
 			}
 

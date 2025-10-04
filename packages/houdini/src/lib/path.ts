@@ -45,5 +45,7 @@ export function parse(target: string) {
 export const posixify = (str: string) => str.replace(/\\/g, '/')
 
 export function importPath(target: string): string {
-	return ['win32', 'win64'].includes(os.platform()) ? 'file:///' + target : target
+	return ['win32', 'win64'].includes(os.platform())
+		? `file:///${target}`
+		: target
 }

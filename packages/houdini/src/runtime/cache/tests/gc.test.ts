@@ -1,13 +1,13 @@
-import { test, vi, expect } from 'vitest'
+import { expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
-config.cacheBufferSize! = 10
+config.cacheBufferSize = 10
 
-test('adequate ticks of garbage collector clear unsubscribed data', function () {
+test('adequate ticks of garbage collector clear unsubscribed data', () => {
 	const cache = new Cache(config)
 
 	const userFields: SubscriptionSelection = {
@@ -45,21 +45,25 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize || 10 })) {
 		cache._internal_unstable.collectGarbage()
-		expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
+		expect(
+			cache.read({ selection: userFields, parent: 'User:1' }),
+		).toMatchObject({
 			data: { id: '1' },
 		})
 	}
 
 	// collecting garbage one more time should delete the record from the cache
 	cache._internal_unstable.collectGarbage()
-	expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
-		data: null,
-	})
+	expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject(
+		{
+			data: null,
+		},
+	)
 })
 
-test("subscribed data shouldn't be garbage collected", function () {
+test("subscribed data shouldn't be garbage collected", () => {
 	const cache = new Cache(testConfigFile())
 
 	cache.write({
@@ -119,7 +123,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
+	for (const _ of Array.from({ length: (config.cacheBufferSize || 10) + 1 })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
@@ -135,11 +139,11 @@ test("subscribed data shouldn't be garbage collected", function () {
 				},
 			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({ id: '1' })
 })
 
-test('resubscribing to fields marked for garbage collection resets counter', function () {
+test('resubscribing to fields marked for garbage collection resets counter', () => {
 	const cache = new Cache(testConfigFile())
 
 	cache.write({
@@ -206,7 +210,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize || 10 })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
@@ -235,7 +239,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize || 10 })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
@@ -252,7 +256,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				},
 			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({ id: '1' })
 
 	// tick once more to clear the garbage
@@ -270,13 +274,13 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				},
 			},
 			parent: 'User:1',
-		})
+		}),
 	).toMatchObject({
 		data: null,
 	})
 })
 
-test('ticks of gc delete list handlers', function () {
+test('ticks of gc delete list handlers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -355,7 +359,7 @@ test('ticks of gc delete list handlers', function () {
 		},
 		{
 			var: 'hello',
-		}
+		},
 	)
 
 	cache.unsubscribe(
@@ -366,11 +370,11 @@ test('ticks of gc delete list handlers', function () {
 		},
 		{
 			var: 'hello',
-		}
+		},
 	)
 
 	// tick the garbage collector enough times to trigger garbage collection
-	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
+	for (const _ of Array.from({ length: (config.cacheBufferSize || 10) + 1 })) {
 		cache._internal_unstable.collectGarbage()
 	}
 

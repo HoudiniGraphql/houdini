@@ -12,5 +12,5 @@ export let createServerAdapter: (
 		| 'graphqlEndpoint'
 		| 'componentCache'
 		| 'client'
-	>
+	>,
 ) => ReturnType<typeof createAdapter>

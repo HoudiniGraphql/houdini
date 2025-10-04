@@ -1,5 +1,9 @@
 // given a raw key and a set of variables, generate the fully qualified key
-export function evaluateKey(key: string, variables: Record<string, any> | null = null): string {
+export function evaluateKey(
+	key: string,
+	// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
+	variables: Record<string, any> | null = null,
+): string {
 	// accumulate the evaluated key
 	let evaluated = ''
 	// accumulate a variable name that we're evaluating
@@ -22,7 +26,8 @@ export function evaluateKey(key: string, variables: Record<string, any> | null =
 			// look up the variable and add the result (varName starts with a $)
 			const value = variables?.[varName.slice(1)]
 
-			evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
+			evaluated +=
+				typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
 
 			// clear the variable name accumulator
 			varName = ''
@@ -50,7 +55,8 @@ export function evaluateKey(key: string, variables: Record<string, any> | null =
 }
 
 // the list of characters that make up a valid graphql variable name
-const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
+const varChars =
+	'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
 
 // fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'

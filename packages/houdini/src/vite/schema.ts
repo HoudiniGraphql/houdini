@@ -1,12 +1,11 @@
-import * as graphql from 'graphql'
-import type { GraphQLSchema } from 'graphql'
 import path from 'node:path'
-import type { PluginOption, ModuleNode } from 'vite'
-
-import type { VitePluginContext } from '.'
-import { get_config, fs } from '../lib/index.js'
+import type { GraphQLSchema } from 'graphql'
+import * as graphql from 'graphql'
+import type { ModuleNode, PluginOption } from 'vite'
+import { fs, get_config } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 import { sleep } from '../lib/sleep.js'
+import type { VitePluginContext } from '.'
 import { compiler } from './hmr.js'
 
 /*
@@ -52,7 +51,7 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
             LEFT JOIN component_fields ON component_fields.type_field = type_fields.id 
           WHERE component_fields.id IS NULL
         )
-      `
+      `,
 				)
 				.run()
 
@@ -70,9 +69,9 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 	}
 }
 
-export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
+export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 	// we want to stop polling when the plugin closes
-	let go = true
+	const go = true
 
 	return {
 		name: 'houdini-poll-remote-schema',
@@ -88,7 +87,10 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 
 			// if the schema path is a glob then it doesn't point to a single file so we should assume its
 			// local and not try to fetch it
-			if (config.config_file.schemaPath && fs.glob.hasMagic(config.config_file.schemaPath)) {
+			if (
+				config.config_file.schemaPath &&
+				fs.glob.hasMagic(config.config_file.schemaPath)
+			) {
 				return
 			}
 
@@ -109,18 +111,21 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 			async function pull(more: boolean) {
 				try {
 					await pull_schema(
-						api_url!,
+						api_url,
 						config.config_file.watchSchema?.timeout ?? 30000,
 						config.schema_path(),
-						await config.schema_pull_headers()
+						await config.schema_pull_headers(),
 					)
 					error_count = 0
-				} catch (e) {
+				} catch (_e) {
 					error_count += 1
 				}
 				// if we're suposed to poll more than once then keep going
 				if (more) {
-					const wait_time = Math.min(interval! + interval! * error_count, max_interval)
+					const wait_time = Math.min(
+						interval + interval * error_count,
+						max_interval,
+					)
 					await sleep(wait_time)
 				}
 
@@ -147,24 +152,30 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 }
 
 // a plugin that re-runs the codegen pipline when the schema changes
-export function watch_local_schema(ctx: VitePluginContext): PluginOption {
+export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-refresh-on-schema',
 
 		async handleHotUpdate({ file, server }) {
 			// build up the path to the local schema file
 			const config = await get_config()
-			const local_schema_path = path.join(config.root_dir, 'src', 'api', '+schema')
+			const local_schema_path = path.join(
+				config.root_dir,
+				'src',
+				'api',
+				'+schema',
+			)
 
 			// load the current schema into the module graph
-			const schema_mod_path = local_schema_path + '?t=' + Date.now()
+			const schema_mod_path = `${local_schema_path}?t=${Date.now()}`
 			let schema: GraphQLSchema
 			try {
 				schema = (await server.ssrLoadModule(schema_mod_path)).default
 			} catch {
 				return
 			}
-			const schema_mod = await server.moduleGraph.getModuleByUrl(schema_mod_path)
+			const schema_mod =
+				await server.moduleGraph.getModuleByUrl(schema_mod_path)
 
 			// if the schema module does not dependon the filepath then there is no update so we can ignore it
 			if (!(schema_mod && depends_on(schema_mod, file))) {
@@ -177,8 +188,8 @@ export function watch_local_schema(ctx: VitePluginContext): PluginOption {
 			// figure out what we need to write
 			let fileData = ''
 			if (
-				write_target!.endsWith('gql') ||
-				write_target!.endsWith('graphql') ||
+				write_target?.endsWith('gql') ||
+				write_target?.endsWith('graphql') ||
 				write_target.endsWith('graphqls')
 			) {
 				fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
@@ -207,7 +218,9 @@ function depends_on(mod: ModuleNode, filepath: string): boolean {
 		const cur = queue[i]
 
 		// Some nodes might not have .file (virtual modules); fall back to .url/id if needed
-		if (cur.file === filepath /* || cur.url === filepath || cur.id === filepath */) {
+		if (
+			cur.file === filepath /* || cur.url === filepath || cur.id === filepath */
+		) {
 			return true
 		}
 

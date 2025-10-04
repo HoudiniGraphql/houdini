@@ -1,9 +1,14 @@
 import fs from 'node:fs/promises'
 import type { DatabaseSync } from 'node:sqlite'
-import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
-
+import type { HmrContext, ModuleNode, Plugin as VitePlugin } from 'vite'
+import {
+	type CompilerProxy,
+	codegen_setup,
+	get_config,
+	path,
+	run_pipeline,
+} from '../lib/index.js'
 import type { VitePluginContext } from '.'
-import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
 
 /**
  * Houdini Vite HMR Plugin
@@ -71,8 +76,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 		},
 
 		// this is called when a file is created or modified
-		async handleHotUpdate(hmr): Promise<void | ModuleNode[]> {
-			return debounceHmr(hmr, async function (files, task_id) {
+		async handleHotUpdate(hmr): Promise<undefined | ModuleNode[]> {
+			return debounceHmr(hmr, async (files, task_id) => {
 				// the first thing we need to do is look for all of the relevant files that have houdini dependencies
 				const filepaths: Array<string> = []
 				const relativePaths: Array<string> = []
@@ -82,7 +87,9 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 						(filepath.endsWith('.gql') || content.includes('$houdini'))
 					) {
 						filepaths.push(filepath)
-						relativePaths.push(filepath.substring(hmr.server.config.root.length + 1))
+						relativePaths.push(
+							filepath.substring(hmr.server.config.root.length + 1),
+						)
 					}
 				}
 				if (filepaths.length === 0) {
@@ -98,7 +105,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					.prepare(
 						`
             DELETE from raw_documents WHERE filepath IN (${placeholders})
-        `
+        `,
 					)
 					.run(...relativePaths)
 
@@ -112,7 +119,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
           WHERE s.fragment_ref IS NOT NULL
             AND s.kind = 'fragment'                              -- only fragment spreads
             AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
-          `
+          `,
 					)
 					.run()
 
@@ -129,7 +136,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
             )
             DELETE FROM selections
             WHERE id IN (SELECT id FROM orphan_selections)
-          `
+          `,
 					)
 					.run()
 
@@ -145,7 +152,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
               UPDATE raw_documents 
                 SET current_task = ? 
               WHERE filepath IN (${placeholders})
-            `
+            `,
 					)
 					.run(task_id, ...relativePaths)
 
@@ -224,7 +231,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
             UPDATE raw_documents
             SET current_task = $task_id
             WHERE id IN (SELECT raw_id FROM targets);
-          `
+          `,
 					)
 					.run({ task_id: task_id })
 
@@ -236,12 +243,14 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 				// the return value of each generate invocation is the list of modules that were updated
 				const updated_modules = Object.values(
-					results.Generate || {}
+					results.Generate || {},
 				).flat() as Array<string>
 
 				// and finally we can remove the task id association
 				ctx.db
-					.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`)
+					.prepare(
+						`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`,
+					)
 					.run(task_id)
 
 				// invalidate all of the modules we generated
@@ -262,15 +271,20 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 async function ensureArtifactGenerated(
 	artifactName: string,
 	db: DatabaseSync,
-	compiler: CompilerProxy
+	compiler: CompilerProxy,
 ): Promise<void> {
 	// before we do anything let's see if the artifact has been generated already
 	try {
 		const config = await get_config()
 
 		await fs.access(
-			path.join(config.root_dir, config.config_file.runtimeDir!, 'artifacts', artifactName),
-			fs.constants.R_OK
+			path.join(
+				config.root_dir,
+				config.config_file.runtimeDir || '',
+				'artifacts',
+				artifactName,
+			),
+			fs.constants.R_OK,
 		)
 		// if stat doesn't throw, the file exists
 		return
@@ -298,7 +312,7 @@ async function ensureArtifactGenerated(
 	// mark the document as part of this task
 	db.prepare(`UPDATE raw_documents SET current_task = ? WHERE id = ?`).run(
 		task_id,
-		document.raw_document_id
+		document.raw_document_id,
 	)
 
 	// Find all dependencies using the same recursive query as handleHotUpdate
@@ -332,7 +346,7 @@ async function ensureArtifactGenerated(
 			UPDATE raw_documents
 			SET current_task = $task_id
 			WHERE id IN (SELECT raw_id FROM targets);
-		`
+		`,
 	).run({ task_id: task_id })
 
 	// Run the compilation pipeline for this task
@@ -342,12 +356,14 @@ async function ensureArtifactGenerated(
 	})
 
 	// Clean up the task
-	db.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`).run(task_id)
+	db.prepare(
+		`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`,
+	).run(task_id)
 }
 
 type BatchCallback = (
 	filesWithContent: Record<string, string>,
-	batchId: string
+	batchId: string,
 ) => void | Promise<void>
 
 /**
@@ -356,7 +372,7 @@ type BatchCallback = (
  * @returns debounceHmr function
  */
 export function createDebounceHmr(debounceMs: number = 50) {
-	let updateQueue = new Map<string, () => string | Promise<string>>()
+	const updateQueue = new Map<string, () => string | Promise<string>>()
 	let updateTimer: NodeJS.Timeout | null = null
 	let batchId = 0
 	let isProcessing = false
@@ -398,11 +414,11 @@ export function createDebounceHmr(debounceMs: number = 50) {
 						try {
 							const content = await readFn()
 							filesWithContent[filepath] = content
-						} catch (error) {
+						} catch (_error) {
 							// Store empty string or rethrow based on your needs
 							filesWithContent[filepath] = ''
 						}
-					}
+					},
 				)
 
 				await Promise.all(readPromises)
@@ -423,10 +439,10 @@ export function createDebounceHmr(debounceMs: number = 50) {
 							try {
 								const content = await readFn()
 								nextFilesWithContent[filepath] = content
-							} catch (error) {
+							} catch (_error) {
 								nextFilesWithContent[filepath] = ''
 							}
-						}
+						},
 					)
 
 					await Promise.all(nextReadPromises)

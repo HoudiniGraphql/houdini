@@ -1,18 +1,21 @@
 import type { ArtifactKinds } from '../../lib/types'
 import type {
-	ClientPlugin,
-	ClientPluginExitPhase,
-	ClientPluginEnterPhase,
 	ClientHooks,
+	ClientPlugin,
+	ClientPluginEnterPhase,
+	ClientPluginExitPhase,
 } from '../documentStore'
 
-export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): ClientPlugin => {
+export const documentPlugin = (
+	kind: ArtifactKinds,
+	source: () => ClientHooks,
+): ClientPlugin => {
 	return () => {
 		// pull out the hooks we care about
 		const sourceHandlers = source()
 
 		const enterWrapper = (
-			handler?: ClientPluginEnterPhase
+			handler?: ClientPluginEnterPhase,
 		): ClientPluginEnterPhase | undefined => {
 			return !handler
 				? undefined
@@ -22,10 +25,10 @@ export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): 
 						}
 
 						return handler(ctx, handlers)
-				  }
+					}
 		}
 		const exitWrapper = (
-			handler?: ClientPluginExitPhase
+			handler?: ClientPluginExitPhase,
 		): ClientPluginExitPhase | undefined => {
 			return !handler
 				? undefined
@@ -35,7 +38,7 @@ export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): 
 						}
 
 						return handler(ctx, handlers)
-				  }
+					}
 		}
 
 		// return the modified hooks
@@ -46,7 +49,7 @@ export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): 
 			afterNetwork: exitWrapper(sourceHandlers.afterNetwork),
 			end: exitWrapper(sourceHandlers.end),
 			catch: sourceHandlers.catch
-				? (ctx, handlers) => sourceHandlers.catch!(ctx, handlers)
+				? (ctx, handlers) => sourceHandlers.catch?.(ctx, handlers)
 				: undefined,
 			cleanup: (...args) => sourceHandlers.cleanup?.(...args),
 		}

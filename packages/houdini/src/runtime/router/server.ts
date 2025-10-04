@@ -1,12 +1,20 @@
 import { createServerAdapter as createAdapter } from '@whatwg-node/server'
-import { type GraphQLSchema, parse, execute } from 'graphql'
+import { execute, type GraphQLSchema, parse } from 'graphql'
 import { createYoga } from 'graphql-yoga'
 
 import type { HoudiniClient } from '../client'
-import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
+import {
+	getCurrentConfig,
+	localApiEndpoint,
+	localApiSessionKeys,
+} from '../lib/config'
 import { find_match } from './match'
 import { get_session, handle_request } from './session'
-import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
+import type {
+	RouterManifest,
+	RouterPageManifest,
+	YogaServerOptions,
+} from './types'
 
 // load the plugin config
 const config_file = getCurrentConfig()
@@ -29,12 +37,14 @@ export function _serverHandler<ComponentType = unknown>({
 	manifest: RouterManifest<ComponentType> | null
 	assetPrefix: string
 	graphqlEndpoint: string
+	// biome-ignore lint/suspicious/noExplicitAny: Component cache can store any component type
 	componentCache: Record<string, any>
 	on_render: (args: {
 		url: string
 		match: RouterPageManifest<ComponentType> | null
 		manifest: RouterManifest<unknown>
 		session: App.Session
+		// biome-ignore lint/suspicious/noExplicitAny: Component cache can store any component type
 		componentCache: Record<string, any>
 	}) => Response | Promise<Response | undefined> | undefined
 } & Omit<YogaServerOptions, 'schema'>) {
@@ -48,21 +58,24 @@ export function _serverHandler<ComponentType = unknown>({
 
 	client.componentCache = componentCache
 
-	// @ts-ignore: schema is defined dynamically
+	// @ts-expect-error: schema is defined dynamically
 	if (schema) {
-		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
-			// get the parsed query
-			const parsed = parse(query)
+		client.registerProxy(
+			graphqlEndpoint,
+			async ({ query, variables, session }) => {
+				// get the parsed query
+				const parsed = parse(query)
 
-			return await execute(schema, parsed, null, session, variables)
-		})
+				return await execute(schema, parsed, null, session, variables)
+			},
+		)
 	}
 
 	return async (request: Request) => {
 		if (!manifest) {
 			return new Response(
 				"Adapter did not provide the project's manifest. Please open an issue on github.",
-				{ status: 500 }
+				{ status: 500 },
 			)
 		}
 
@@ -107,7 +120,7 @@ export function _serverHandler<ComponentType = unknown>({
 }
 
 export const serverAdapterFactory = (
-	args: Parameters<typeof _serverHandler>[0]
+	args: Parameters<typeof _serverHandler>[0],
 ): ReturnType<typeof createAdapter> => {
 	return createAdapter(_serverHandler(args))
 }

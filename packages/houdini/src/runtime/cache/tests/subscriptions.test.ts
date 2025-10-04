@@ -1,4 +1,4 @@
-import { test, expect, vi } from 'vitest'
+import { expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib'
@@ -8,7 +8,7 @@ import { rootID } from '../stuff'
 
 const config = testConfigFile()
 
-test('root subscribe - field change', function () {
+test('root subscribe - field change', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -84,7 +84,7 @@ test('root subscribe - field change', function () {
 	})
 })
 
-test('root subscribe - linked object changed', function () {
+test('root subscribe - linked object changed', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -190,10 +190,12 @@ test('root subscribe - linked object changed', function () {
 	})
 
 	// make sure we are no longer subscribing to user 1
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(0)
 })
 
-test("subscribing to null object doesn't explode", function () {
+test("subscribing to null object doesn't explode", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -266,7 +268,7 @@ test("subscribing to null object doesn't explode", function () {
 	})
 })
 
-test('overwriting a reference with null clears its subscribers', function () {
+test('overwriting a reference with null clears its subscribers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -335,10 +337,12 @@ test('overwriting a reference with null clears its subscribers', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('overwriting a linked list with null clears its subscribers', function () {
+test('overwriting a linked list with null clears its subscribers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -406,9 +410,15 @@ test('overwriting a linked list with null clears its subscribers', function () {
 	})
 
 	// make sure something is subscribing to the friends field
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'friends')).toHaveLength(1)
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'friends'),
+	).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:3', 'firstName'),
+	).toHaveLength(1)
 
 	// write null over the list
 	cache.write({
@@ -419,7 +429,7 @@ test('overwriting a linked list with null clears its subscribers', function () {
 					visible: true,
 					keyRaw: 'id',
 				},
-				friends: selection.fields!.viewer.selection!.fields!.friends,
+				friends: selection.fields?.viewer.selection?.fields?.friends,
 			},
 		},
 		data: {
@@ -438,11 +448,15 @@ test('overwriting a linked list with null clears its subscribers', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:3', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('root subscribe - linked list lost entry', function () {
+test('root subscribe - linked list lost entry', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -543,10 +557,12 @@ test('root subscribe - linked list lost entry', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:3', 'firstName'),
+	).toHaveLength(0)
 })
 
-test("subscribing to list with null values doesn't explode", function () {
+test("subscribing to list with null values doesn't explode", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -644,7 +660,7 @@ test("subscribing to list with null values doesn't explode", function () {
 	})
 })
 
-test('root subscribe - linked list reorder', function () {
+test('root subscribe - linked list reorder', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -752,11 +768,15 @@ test('root subscribe - linked list reorder', function () {
 	})
 
 	// we should still be subscribing to both users
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:3', 'firstName'),
+	).toHaveLength(1)
 })
 
-test('unsubscribe', function () {
+test('unsubscribe', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -812,16 +832,20 @@ test('unsubscribe', function () {
 	cache.subscribe(spec)
 
 	// make sure we  registered the subscriber
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(1)
 
 	// unsubscribe
 	cache.unsubscribe(spec)
 
 	// make sure there is no more subscriber
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('subscribe to new list nodes', function () {
+test('subscribe to new list nodes', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -993,7 +1017,7 @@ test('subscribe to new list nodes', function () {
 	})
 })
 
-test('variables in query and subscription', function () {
+test('variables in query and subscription', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1076,7 +1100,7 @@ test('variables in query and subscription', function () {
 		},
 		{
 			filter: 'foo',
-		}
+		},
 	)
 
 	// make sure we have a cached value for friends(filter: "foo")
@@ -1114,10 +1138,12 @@ test('variables in query and subscription', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:3', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('deleting a node removes nested subscriptions', function () {
+test('deleting a node removes nested subscriptions', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1203,16 +1229,20 @@ test('deleting a node removes nested subscriptions', function () {
 	})
 
 	// sanity check
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(1)
 
 	// delete the parent
 	cache.delete('User:1')
 
 	// sanity check
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('find subSelection', function () {
+test('find subSelection', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1287,12 +1317,13 @@ test('find subSelection', function () {
 		},
 	})
 
-	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
-		rootID,
-		selection,
-		{},
-		'User:1'
-	)
+	const subSelections =
+		cache._internal_unstable.subscriptions.findSubSelections(
+			rootID,
+			selection,
+			{},
+			'User:1',
+		)
 
 	expect(subSelections).toEqual([
 		{
@@ -1341,7 +1372,7 @@ test('find subSelection', function () {
 	])
 })
 
-test('find subSelection - avoid cycles', function () {
+test('find subSelection - avoid cycles', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1416,12 +1447,13 @@ test('find subSelection - avoid cycles', function () {
 		},
 	})
 
-	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
-		rootID,
-		selection,
-		{},
-		'User:1'
-	)
+	const subSelections =
+		cache._internal_unstable.subscriptions.findSubSelections(
+			rootID,
+			selection,
+			{},
+			'User:1',
+		)
 
 	expect(subSelections).toEqual([
 		{
@@ -1470,7 +1502,7 @@ test('find subSelection - avoid cycles', function () {
 	])
 })
 
-test('find subSelection - deeply nested', function () {
+test('find subSelection - deeply nested', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1545,12 +1577,13 @@ test('find subSelection - deeply nested', function () {
 		},
 	})
 
-	const subSelections = cache._internal_unstable.subscriptions.findSubSelections(
-		rootID,
-		selection,
-		{},
-		'User:2'
-	)
+	const subSelections =
+		cache._internal_unstable.subscriptions.findSubSelections(
+			rootID,
+			selection,
+			{},
+			'User:2',
+		)
 
 	expect(subSelections).toEqual([
 		{
@@ -1575,7 +1608,7 @@ test('find subSelection - deeply nested', function () {
 	])
 })
 
-test('same record twice in a query survives one unsubscribe (reference counting)', function () {
+test('same record twice in a query survives one unsubscribe (reference counting)', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1659,20 +1692,24 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 		},
 		{
 			filter: 'foo',
-		}
+		},
 	)
 
 	// make sure there is a subscriber for the user's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(1)
 
 	// remove the user from the list
 	cache.list('All_Users').remove({ id: '1' })
 
 	// we should still be subscribing to the user's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(1)
 })
 
-test('embedded references', function () {
+test('embedded references', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1770,7 +1807,7 @@ test('embedded references', function () {
 		},
 		{
 			filter: 'foo',
-		}
+		},
 	)
 
 	// update one of the embedded references
@@ -1830,7 +1867,7 @@ test('embedded references', function () {
 	})
 })
 
-test('self-referencing linked lists can be unsubscribed (avoid infinite recursion)', function () {
+test('self-referencing linked lists can be unsubscribed (avoid infinite recursion)', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1929,10 +1966,12 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 	cache.unsubscribe(spec)
 
 	// no one should be subscribing to User:1's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('self-referencing links can be unsubscribed (avoid infinite recursion)', function () {
+test('self-referencing links can be unsubscribed (avoid infinite recursion)', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2050,10 +2089,12 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	cache.unsubscribe(spec)
 
 	// no one should be subscribing to User:1's first name
-	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:1', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('overwriting a value in an optimistic layer triggers subscribers', function () {
+test('overwriting a value in an optimistic layer triggers subscribers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2133,7 +2174,7 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 	})
 })
 
-test('clearing a display layer updates subscribers', function () {
+test('clearing a display layer updates subscribers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2237,7 +2278,7 @@ test('clearing a display layer updates subscribers', function () {
 	})
 })
 
-test('optimistic layer & lists & add ok', function () {
+test('optimistic layer & lists & add ok', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2412,7 +2453,7 @@ test('optimistic layer & lists & add ok', function () {
 	})
 })
 
-test('optimistic layer & lists & add null (optimistic will revert)', function () {
+test('optimistic layer & lists & add null (optimistic will revert)', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2595,7 +2636,7 @@ test('optimistic layer & lists & add null (optimistic will revert)', function ()
 	})
 })
 
-test('ensure parent type is properly passed for nested lists', function () {
+test('ensure parent type is properly passed for nested lists', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2725,7 +2766,7 @@ test('ensure parent type is properly passed for nested lists', function () {
 	expect(() => cache.list('Book_List', '2')).not.toThrow()
 })
 
-test('subscribe to abstract fields of matching type', function () {
+test('subscribe to abstract fields of matching type', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2832,7 +2873,7 @@ test('subscribe to abstract fields of matching type', function () {
 	})
 })
 
-test('overlapping subscriptions', function () {
+test('overlapping subscriptions', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2979,7 +3020,7 @@ test('overlapping subscriptions', function () {
 	expect(set2).toHaveBeenCalledTimes(2)
 })
 
-test('ignore hidden fields', function () {
+test('ignore hidden fields', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3049,7 +3090,7 @@ test('ignore hidden fields', function () {
 	expect(set).not.toHaveBeenCalled()
 })
 
-test('clearing a layer should notify subscribers of displayed values', function () {
+test('clearing a layer should notify subscribers of displayed values', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3111,7 +3152,7 @@ test('clearing a layer should notify subscribers of displayed values', function 
 	expect(set).toHaveBeenCalledWith({ viewer: null })
 })
 
-test('reverting optimistic remove notifies subscribers', function () {
+test('reverting optimistic remove notifies subscribers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3255,9 +3296,11 @@ test('reverting optimistic remove notifies subscribers', function () {
 
 test.todo('can write to and resolve layers')
 
-test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
+test.todo(
+	"resolving a layer with the same value as the most recent doesn't notify subscribers",
+)
 
-test('overwrite null value with list', function () {
+test('overwrite null value with list', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -3316,7 +3359,7 @@ test('overwrite null value with list', function () {
 	})
 })
 
-test('removing all subscribers of a field cleans up reference count object', function () {
+test('removing all subscribers of a field cleans up reference count object', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -3373,7 +3416,7 @@ test('removing all subscribers of a field cleans up reference count object', fun
 	expect(cache._internal_unstable.subscriptions.size).toEqual(0)
 })
 
-test('reference count garbage collection requires totally empty garbage', function () {
+test('reference count garbage collection requires totally empty garbage', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 

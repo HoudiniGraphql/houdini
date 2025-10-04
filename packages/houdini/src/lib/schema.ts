@@ -1,14 +1,14 @@
+import * as fs from 'node:fs/promises'
 import * as graphql from 'graphql'
 import colors from 'kleur'
 import fetch from 'node-fetch'
-import * as fs from 'node:fs/promises'
 
 export async function pull_schema(
 	url: string,
 	fetchTimeout: number,
 	schemaPath: string,
 	headers?: Record<string, string>,
-	skipWriting?: boolean
+	skipWriting?: boolean,
 ): Promise<string | null> {
 	let content = ''
 	try {
@@ -17,7 +17,7 @@ export async function pull_schema(
 		const fetchWithTimeout = (
 			url: string,
 			timeoutMs: number,
-			options: Parameters<typeof fetch>[1] // `RequestInit` is not working for some reason, so I'm using this hack
+			options: Parameters<typeof fetch>[1], // `RequestInit` is not working for some reason, so I'm using this hack
 		): Promise<Response> => {
 			const controller = new AbortController()
 
@@ -34,7 +34,7 @@ export async function pull_schema(
 				.catch((err) => {
 					if (err.type === 'aborted') {
 						throw Error(
-							`reached timeout of ${timeoutMs}ms. Make sure the API is available and tweak this timeout in your config if your API is slow to respond.`
+							`reached timeout of ${timeoutMs}ms. Make sure the API is available and tweak this timeout in your config if your API is slow to respond.`,
 						)
 					} else {
 						return err
@@ -59,8 +59,8 @@ export async function pull_schema(
 		// Check if the schemapath ends with .gql or .graphql - if so write the schema as string
 		// Otherwise write the json/introspection
 		if (
-			schemaPath!.endsWith('gql') ||
-			schemaPath!.endsWith('graphql') ||
+			schemaPath?.endsWith('gql') ||
+			schemaPath?.endsWith('graphql') ||
 			schemaPath.endsWith('graphqls')
 		) {
 			const schema = graphql.buildClientSchema(jsonSchema)
@@ -78,7 +78,7 @@ export async function pull_schema(
 			console.warn(
 				`⚠️  Couldn't pull your schema.
 ${colors.cyan('   Reponse:')} ${content}
-${colors.cyan('   Error  :')} ${(e as Error).message}`
+${colors.cyan('   Error  :')} ${(e as Error).message}`,
 			)
 		} else {
 			console.warn(`⚠️  Couldn't pull your schema: ${(e as Error).message}`)

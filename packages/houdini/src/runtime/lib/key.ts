@@ -1,4 +1,11 @@
-export const computeKey = ({ field, args }: { field: string; args?: { [key: string]: any } }) => {
+export const computeKey = ({
+	field,
+	args,
+}: {
+	field: string
+	// biome-ignore lint/suspicious/noExplicitAny: GraphQL arguments can be any type
+	args?: { [key: string]: any }
+}) => {
 	const keys = Object.keys(args ?? {})
 	keys.sort()
 
@@ -9,7 +16,9 @@ export const computeKey = ({ field, args }: { field: string; args?: { [key: stri
 		: field
 }
 
-const stringifyObjectWithNoQuotesOnKeys = (obj_from_json: {}): string => {
+const stringifyObjectWithNoQuotesOnKeys = (
+	obj_from_json: Record<string, unknown>,
+): string => {
 	// In case of an array we'll stringify all objects.
 	if (Array.isArray(obj_from_json)) {
 		return `[${obj_from_json
@@ -27,7 +36,10 @@ const stringifyObjectWithNoQuotesOnKeys = (obj_from_json: {}): string => {
 	// Implements recursive object serialization according to JSON spec
 	// but without quotes around the keys.
 	return `{${Object.keys(obj_from_json)
-		// @ts-ignore
-		.map((key) => `${key}: ${stringifyObjectWithNoQuotesOnKeys(obj_from_json[key])}`)
+		// @ts-expect-error
+		.map(
+			(key) =>
+				`${key}: ${stringifyObjectWithNoQuotesOnKeys(obj_from_json[key])}`,
+		)
 		.join(', ')}}`
 }

@@ -1,9 +1,13 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
-import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
+import {
+	ArtifactKind,
+	type FragmentArtifact,
+	type SubscriptionSelection,
+} from '../../lib'
 import { testCache, testFragment } from './test'
 
-test('can read fragment', function () {
+test('can read fragment', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -80,7 +84,7 @@ test('can read fragment', function () {
 	expect(
 		cache
 			.get('User', { id: '1' })
-			.read({ fragment: testFragment(selection.fields.viewer.selection) })
+			.read({ fragment: testFragment(selection.fields.viewer.selection) }),
 	).toEqual({
 		partial: false,
 		stale: false,
@@ -97,7 +101,7 @@ test('can read fragment', function () {
 	})
 })
 
-test('can writeFragments', function () {
+test('can writeFragments', () => {
 	const cache = testCache()
 
 	const selection: SubscriptionSelection = {
@@ -200,7 +204,9 @@ test('can writeFragments', function () {
 
 	// make sure we updated the field
 	expect(
-		cache.get('User', { id: '2' }).read({ fragment: testFragment(artifact.selection) })
+		cache
+			.get('User', { id: '2' })
+			.read({ fragment: testFragment(artifact.selection) }),
 	).toEqual({
 		partial: false,
 		stale: false,
@@ -210,7 +216,7 @@ test('can writeFragments', function () {
 	})
 })
 
-test('can read and write variables', function () {
+test('can read and write variables', () => {
 	const cache = testCache()
 
 	const artifact: FragmentArtifact = {
@@ -257,7 +263,7 @@ test('can read and write variables', function () {
 					},
 				},
 			},
-		}).data
+		}).data,
 	).toEqual({ firstName: 'michael' })
 
 	// read from the cache with variables too
@@ -269,6 +275,6 @@ test('can read and write variables', function () {
 			variables: {
 				pattern: 'foo',
 			},
-		}).data
+		}).data,
 	).toEqual({ firstName: 'michael' })
 })

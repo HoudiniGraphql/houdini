@@ -1,6 +1,9 @@
 import type { ConfigFile } from 'legacy/lib'
 
-export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({
+	plugins,
+	...config
+}: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		scalars: {
 			DateTime: {
@@ -38,6 +41,7 @@ export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {})
 			ViewerIDFromSession: {
 				type: 'ID',
 				resolve: ({ session }: { session?: App.Session | null | undefined }) =>
+					// biome-ignore lint/suspicious/noExplicitAny: Session type is unknown in test context
 					(session as unknown as any).token,
 			},
 		},

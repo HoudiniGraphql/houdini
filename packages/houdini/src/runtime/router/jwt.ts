@@ -2,6 +2,7 @@
 // so that we don't have to force an external dependency.
 // original MIT license can be found here: https://github.com/tsndr/cloudflare-worker-jwt/blob/main/LICENSE
 
+// biome-ignore lint/suspicious/noExplicitAny: Crypto algorithm types are complex and vary
 type SubtleCryptoImportKeyAlgorithm = any
 
 /**
@@ -38,6 +39,7 @@ export interface JwtHeader {
 	 */
 	typ?: string
 
+	// biome-ignore lint/suspicious/noExplicitAny: JWT headers can contain any custom fields
 	[key: string]: any
 }
 
@@ -73,6 +75,7 @@ export interface JwtPayload {
 	/** JWT ID */
 	jti?: string
 
+	// biome-ignore lint/suspicious/noExplicitAny: JWT payload can contain any custom claims
 	[key: string]: any
 }
 
@@ -119,17 +122,17 @@ export interface JwtData {
 
 function base64UrlParse(s: string): Uint8Array {
 	return new Uint8Array(
-		// @ts-ignore
+		// @ts-expect-error
 		Array.prototype.map.call(
 			atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')),
-			(c) => c.charCodeAt(0)
-		)
+			(c) => c.charCodeAt(0),
+		),
 	)
 	// return new Uint8Array(Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, ''))).map(c => c.charCodeAt(0)))
 }
 
 function base64UrlStringify(a: Uint8Array): string {
-	// @ts-ignore
+	// @ts-expect-error
 	return btoa(String.fromCharCode.apply(0, a))
 		.replace(/=/g, '')
 		.replace(/\+/g, '-')
@@ -177,7 +180,7 @@ function _decodePayload(raw: string): JwtHeader | JwtPayload | null {
 			raw += '='
 			break
 		default:
-			throw new Error('Illegal base64url string!' + raw)
+			throw new Error(`Illegal base64url string!${raw}`)
 	}
 
 	try {
@@ -199,9 +202,13 @@ function _decodePayload(raw: string): JwtHeader | JwtPayload | null {
 export async function encode(
 	payload: JwtPayload,
 	secret: string | JsonWebKey,
-	options: JwtSignOptions | JwtAlgorithm = { algorithm: 'HS256', header: { typ: 'JWT' } }
+	options: JwtSignOptions | JwtAlgorithm = {
+		algorithm: 'HS256',
+		header: { typ: 'JWT' },
+	},
 ): Promise<string> {
-	if (typeof options === 'string') options = { algorithm: options, header: { typ: 'JWT' } }
+	if (typeof options === 'string')
+		options = { algorithm: options, header: { typ: 'JWT' } }
 
 	options = { algorithm: 'HS256', header: { typ: 'JWT' }, ...options }
 
@@ -211,9 +218,11 @@ export async function encode(
 	if (typeof secret !== 'string' && typeof secret !== 'object')
 		throw new Error('secret must be a string or a JWK object')
 
-	if (typeof options.algorithm !== 'string') throw new Error('options.algorithm must be a string')
+	if (typeof options.algorithm !== 'string')
+		throw new Error('options.algorithm must be a string')
 
-	const algorithm: SubtleCryptoImportKeyAlgorithm = algorithms[options.algorithm]
+	const algorithm: SubtleCryptoImportKeyAlgorithm =
+		algorithms[options.algorithm]
 
 	if (!algorithm) throw new Error('algorithm not found')
 
@@ -221,11 +230,14 @@ export async function encode(
 
 	const payloadAsJSON = JSON.stringify(payload)
 	const partialToken = `${base64UrlStringify(
-		_utf8ToUint8Array(JSON.stringify({ ...options.header, alg: options.algorithm }))
+		_utf8ToUint8Array(
+			JSON.stringify({ ...options.header, alg: options.algorithm }),
+		),
 	)}.${base64UrlStringify(_utf8ToUint8Array(payloadAsJSON))}`
 
 	let keyFormat = 'raw'
-	let keyData
+	// biome-ignore lint/suspicious/noExplicitAny: Crypto key data can be various types
+	let keyData: any
 
 	if (typeof secret === 'object') {
 		keyFormat = 'jwk'
@@ -236,13 +248,23 @@ export async function encode(
 			secret
 				.replace(/-----BEGIN.*?-----/g, '')
 				.replace(/-----END.*?-----/g, '')
-				.replace(/\s/g, '')
+				.replace(/\s/g, ''),
 		)
 	} else keyData = _utf8ToUint8Array(secret)
 
-	// @ts-ignore
-	const key = await crypto.subtle.importKey(keyFormat, keyData, algorithm, false, ['sign'])
-	const signature = await crypto.subtle.sign(algorithm, key, _utf8ToUint8Array(partialToken))
+	// @ts-expect-error
+	const key = await crypto.subtle.importKey(
+		keyFormat,
+		keyData,
+		algorithm,
+		false,
+		['sign'],
+	)
+	const signature = await crypto.subtle.sign(
+		algorithm,
+		key,
+		_utf8ToUint8Array(partialToken),
+	)
 
 	return `${partialToken}.${base64UrlStringify(new Uint8Array(signature))}`
 }
@@ -259,9 +281,13 @@ export async function encode(
 export async function verify(
 	token: string,
 	secret: string | JsonWebKey,
-	options: JwtVerifyOptions | JwtAlgorithm = { algorithm: 'HS256', throwError: false }
+	options: JwtVerifyOptions | JwtAlgorithm = {
+		algorithm: 'HS256',
+		throwError: false,
+	},
 ): Promise<boolean> {
-	if (typeof options === 'string') options = { algorithm: options, throwError: false }
+	if (typeof options === 'string')
+		options = { algorithm: options, throwError: false }
 
 	options = { algorithm: 'HS256', throwError: false, ...options }
 
@@ -270,13 +296,15 @@ export async function verify(
 	if (typeof secret !== 'string' && typeof secret !== 'object')
 		throw new Error('secret must be a string or a JWK object')
 
-	if (typeof options.algorithm !== 'string') throw new Error('options.algorithm must be a string')
+	if (typeof options.algorithm !== 'string')
+		throw new Error('options.algorithm must be a string')
 
 	const tokenParts = token.split('.')
 
 	if (tokenParts.length !== 3) throw new Error('token must consist of 3 parts')
 
-	const algorithm: SubtleCryptoImportKeyAlgorithm = algorithms[options.algorithm]
+	const algorithm: SubtleCryptoImportKeyAlgorithm =
+		algorithms[options.algorithm]
 
 	if (!algorithm) throw new Error('algorithm not found')
 
@@ -300,7 +328,8 @@ export async function verify(
 		return false
 	}
 	let keyFormat = 'raw'
-	let keyData
+	// biome-ignore lint/suspicious/noExplicitAny: Crypto key data can be various types
+	let keyData: any
 
 	if (typeof secret === 'object') {
 		keyFormat = 'jwk'
@@ -311,18 +340,24 @@ export async function verify(
 			secret
 				.replace(/-----BEGIN.*?-----/g, '')
 				.replace(/-----END.*?-----/g, '')
-				.replace(/\s/g, '')
+				.replace(/\s/g, ''),
 		)
 	} else keyData = _utf8ToUint8Array(secret)
 
-	// @ts-ignore
-	const key = await crypto.subtle.importKey(keyFormat, keyData, algorithm, false, ['verify'])
+	// @ts-expect-error
+	const key = await crypto.subtle.importKey(
+		keyFormat,
+		keyData,
+		algorithm,
+		false,
+		['verify'],
+	)
 
 	return await crypto.subtle.verify(
 		algorithm,
 		key,
 		base64UrlParse(tokenParts[2]),
-		_utf8ToUint8Array(`${tokenParts[0]}.${tokenParts[1]}`)
+		_utf8ToUint8Array(`${tokenParts[0]}.${tokenParts[1]}`),
 	)
 }
 
@@ -335,10 +370,10 @@ export async function verify(
 export function decode(token: string): JwtData {
 	return {
 		header: _decodePayload(
-			token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')
+			token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/'),
 		) as JwtHeader,
 		payload: _decodePayload(
-			token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+			token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'),
 		) as JwtPayload,
 	}
 }

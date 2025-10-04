@@ -1,6 +1,7 @@
 // @ts-nocheck
-import { fs, type Adapter } from 'houdini'
+
 import path from 'node:path'
+import { type Adapter, fs } from 'houdini'
 import React from 'react'
 import ReactDOM from 'react-dom/server'
 
@@ -11,7 +12,7 @@ const adapter: Adapter = async ({ outDir, config: { runtimeDir } }) => {
 	// the first thing we need to do is pull out the rendered html file into the root of the outDir
 	await fs.copyFile(
 		path.join(outDir, 'assets', runtimeDir, 'temp', 'spa-shell', 'index.html'),
-		path.join(outDir, 'index.html')
+		path.join(outDir, 'index.html'),
 	)
 
 	try {
@@ -27,11 +28,11 @@ adapter.includePaths = ({ config: { runtimeDir } }) => ({
 // we dont want any server artifacts to be generated
 adapter.disableServer = true
 
-adapter.pre = async ({ config, outDir, conventions }) => {
+adapter.pre = async ({ config }) => {
 	// before we do anything, we need to ensure the user isn't using a local API
 	if (config.localSchema) {
 		throw new Error(
-			"Houdini's SPA adapter cannot be used if your project relies on a local schema"
+			"Houdini's SPA adapter cannot be used if your project relies on a local schema",
 		)
 	}
 
@@ -69,17 +70,18 @@ adapter.pre = async ({ config, outDir, conventions }) => {
 
 	// render the index.jsx file to generate the static html that
 	// we can use to wrap the ajvascript application
-	let shellContents = ReactDOM.renderToStaticMarkup(
-		React.createElement(App, {
-			children: [
-				React.createElement('div', {
-					id: 'app',
-				}),
-			],
-		})
+	const shellContents = ReactDOM.renderToStaticMarkup(
+		React.createElement(
+			App,
+			{},
+			// biome-ignore lint/correctness/useUniqueElementIds: Static generation only creates one instance
+			React.createElement('div', {
+				id: 'app',
+			}),
+		),
 	).replace(
 		'</head>',
-		"<script type='module' src='virtual:houdini/static-entry'></script></head>"
+		"<script type='module' src='virtual:houdini/static-entry'></script></head>",
 	)
 
 	// write the shell to the outDir

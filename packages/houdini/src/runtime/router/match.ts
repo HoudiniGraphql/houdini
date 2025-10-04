@@ -1,4 +1,4 @@
-import { parseScalar, type ConfigFile } from '../lib'
+import { type ConfigFile, parseScalar } from '../lib'
 import type { GraphQLVariables } from '../lib/types'
 import type { RouterManifest, RouterPageManifest } from './types'
 
@@ -15,28 +15,26 @@ export type RouteParam = {
 	chained: boolean
 }
 
-export interface ParamMatcher {
-	(param: string): boolean
-}
+export type ParamMatcher = (param: string) => boolean
 
 // find the matching page given the current path
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: true
+	allowNull: true,
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull?: false
+	allowNull?: false,
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: boolean = true
+	allowNull: boolean = true,
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables] {
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
@@ -60,7 +58,7 @@ export function find_match<_ComponentType>(
 	}
 
 	// we might have to marshal the variables
-	let variables: GraphQLVariables = {
+	const variables: GraphQLVariables = {
 		...matchVariables,
 	}
 	// each of the matched documents might tell us how to handle a subset of the
@@ -69,12 +67,16 @@ export function find_match<_ComponentType>(
 	for (const document of Object.values(match?.documents ?? {})) {
 		for (const [variable, { type }] of Object.entries(document.variables)) {
 			if (matchVariables?.[variable]) {
-				variables[variable] = parseScalar(config, type, matchVariables[variable])
+				variables[variable] = parseScalar(
+					config,
+					type,
+					matchVariables[variable],
+				)
 			}
 		}
 	}
 
-	// @ts-ignore
+	// @ts-expect-error
 	return [match, variables]
 }
 
@@ -116,7 +118,7 @@ export function parse_page_pattern(id: string) {
 							}
 
 							if (!segment) {
-								return
+								return ''
 							}
 
 							const parts = segment.split(/\[(.+?)\](?!\])/)
@@ -124,26 +126,26 @@ export function parse_page_pattern(id: string) {
 								.map((content, i) => {
 									if (i % 2) {
 										if (content.startsWith('x+')) {
-											return escape(
-												String.fromCharCode(parseInt(content.slice(2), 16))
+											return escapeRegex(
+												String.fromCharCode(parseInt(content.slice(2), 16)),
 											)
 										}
 
 										if (content.startsWith('u+')) {
-											return escape(
+											return escapeRegex(
 												String.fromCharCode(
 													...content
 														.slice(2)
 														.split('-')
-														.map((code) => parseInt(code, 16))
-												)
+														.map((code) => parseInt(code, 16)),
+												),
 											)
 										}
 
 										const match = param_pattern.exec(content)
 										if (!match) {
 											throw new Error(
-												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`
+												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`,
 											)
 										}
 
@@ -162,18 +164,18 @@ export function parse_page_pattern(id: string) {
 										return is_rest
 											? '(.*?)'
 											: is_optional
-											? '([^/]*)?'
-											: '([^/]+?)'
+												? '([^/]*)?'
+												: '([^/]+?)'
 									}
 
-									return escape(content)
+									return escapeRegex(content)
 								})
 								.join('')
 
-							return '/' + result
+							return `/${result}`
 						})
-						.join('')}/?$`
-			  )
+						.join('')}/?$`,
+				)
 
 	return { pattern, params, page_id: id }
 }
@@ -208,7 +210,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 		if (param.chained && param.rest && buffered) {
 			// in the `[[lang=lang]]/[...rest]` case, if `lang` didn't
 			// match, we roll it over into the rest value
-			value = value ? buffered + '/' + value : buffered
+			value = value ? `${buffered}/${value}` : buffered
 		}
 
 		buffered = ''
@@ -226,7 +228,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 	return result
 }
 
-function escape(str: string) {
+function escapeRegex(str: string) {
 	return (
 		str
 			.normalize()

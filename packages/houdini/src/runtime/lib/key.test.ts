@@ -1,12 +1,12 @@
 import * as graphql from 'graphql'
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import { computeKey } from './key'
 import type { PaginateModes } from './types'
 
 // we need to make sure that the imperative API behaves similarly to the
 // artifact generator
-describe('evaluateKey', function () {
+describe('evaluateKey', () => {
 	const table = [
 		{
 			title: 'int',
@@ -61,14 +61,14 @@ describe('evaluateKey', function () {
 	]
 
 	for (const row of table) {
-		test(row.title, function () {
+		test(row.title, () => {
 			// figure out the key we would have printed during codegen
 			const field = graphql
 				.parse(`{ ${row.expected} }`)
 				.definitions.find<graphql.OperationDefinitionNode>(
 					(def): def is graphql.OperationDefinitionNode =>
-						def.kind === 'OperationDefinition' && def.operation === 'query'
-				)!.selectionSet.selections[0] as graphql.FieldNode
+						def.kind === 'OperationDefinition' && def.operation === 'query',
+				)?.selectionSet.selections[0] as graphql.FieldNode
 
 			// make sure we matched expectations
 			expect(computeKey(row)).toEqual(fieldKey(field))
@@ -87,17 +87,18 @@ function fieldKey(field: graphql.FieldNode): string {
 	// field might not have a location so print and re-parse before we look at serialized values
 	const printed = graphql.print(field)
 	const secondParse = (
-		graphql.parse(`{${printed}}`).definitions[0] as graphql.OperationDefinitionNode
+		graphql.parse(`{${printed}}`)
+			.definitions[0] as graphql.OperationDefinitionNode
 	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
 	let paginateMode: PaginateModes = 'Infinite'
 	const paginatedDirective = field.directives?.find(
-		(directive) => directive.name.value === 'paginate'
+		(directive) => directive.name.value === 'paginate',
 	)
 	if (paginatedDirective) {
 		const paginateModeArg = paginatedDirective?.arguments?.find(
-			(arg) => arg.name.value === 'mode'
+			(arg) => arg.name.value === 'mode',
 		)
 		if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
 			paginateMode = paginateModeArg.value.value as PaginateModes
@@ -106,9 +107,13 @@ function fieldKey(field: graphql.FieldNode): string {
 
 	// if we are in SinglePageMode, don't strip away any args
 	const paginationArgs =
-		paginateMode === 'SinglePage' ? [] : ['first', 'after', 'last', 'before', 'limit', 'offset']
+		paginateMode === 'SinglePage'
+			? []
+			: ['first', 'after', 'last', 'before', 'limit', 'offset']
 
-	const argObj = (secondParse.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
+	const argObj = (secondParse.arguments || []).reduce<{
+		[key: string]: string
+	}>((acc, arg) => {
 		// the query already contains a serialized version of the argument so just pull it out of the
 		// document string
 		const start = arg.value.loc?.start
@@ -124,10 +129,8 @@ function fieldKey(field: graphql.FieldNode): string {
 			return acc
 		}
 
-		return {
-			...acc,
-			[arg.name.value]: printed.substring(start - 1, end - 1),
-		}
+		acc[arg.name.value] = printed.substring(start - 1, end - 1)
+		return acc
 	}, {})
 
 	const args = Object.keys(argObj)
@@ -140,7 +143,7 @@ function fieldKey(field: graphql.FieldNode): string {
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict
 	if (paginatedDirective) {
-		key = key + '::paginated'
+		key = `${key}::paginated`
 	}
 
 	return key

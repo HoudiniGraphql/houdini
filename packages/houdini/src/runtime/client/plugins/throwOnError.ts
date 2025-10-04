@@ -2,13 +2,18 @@ import type { ArtifactKinds, QueryResult } from '../../lib'
 import { ArtifactKind } from '../../lib'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
-export type ThrowOnErrorOperations = 'all' | 'query' | 'mutation' | 'subscription'
+export type ThrowOnErrorOperations =
+	| 'all'
+	| 'query'
+	| 'mutation'
+	| 'subscription'
 
 export type ThrowOnErrorParams = {
 	operations: ThrowOnErrorOperations[]
 	error?: (
+		// biome-ignore lint/suspicious/noExplicitAny: Query result can be any GraphQL type
 		errors: NonNullable<QueryResult<any, any>['errors']>,
-		ctx: ClientPluginContext
+		ctx: ClientPluginContext,
 	) => unknown
 }
 
@@ -29,7 +34,11 @@ export const throwOnError =
 		return {
 			async end(ctx, { value, resolve }) {
 				// if we are supposed to throw and there are errors
-				if (value.errors && value.errors.length > 0 && throwOnKind(ctx.artifact.kind)) {
+				if (
+					value.errors &&
+					value.errors.length > 0 &&
+					throwOnKind(ctx.artifact.kind)
+				) {
 					const result = await (error ?? defaultErrorFn)(value.errors, ctx)
 					throw result
 				}
@@ -41,4 +50,4 @@ export const throwOnError =
 	}
 
 const defaultErrorFn: Required<ThrowOnErrorParams>['error'] = async (errors) =>
-	new Error(errors.map((error) => error.message).join('. ') + '.')
+	new Error(`${errors.map((error) => error.message).join('. ')}.`)

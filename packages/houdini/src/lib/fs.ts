@@ -1,14 +1,14 @@
-import fsExtra from 'fs-extra'
-import { glob as G } from 'glob'
-import { fs as memfs, vol } from 'memfs'
 import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
 import { promisify } from 'node:util'
+import fsExtra from 'fs-extra'
+import { glob as G } from 'glob'
+import { fs as memfs, vol } from 'memfs'
 
 import { houdini_mode } from './constants.js'
 import * as path from './path.js'
 
-export function copyFileSync(src: string, dest: string): void | null {
+export function copyFileSync(src: string, dest: string): undefined | null {
 	if (houdini_mode.is_testing) {
 		try {
 			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
@@ -18,19 +18,22 @@ export function copyFileSync(src: string, dest: string): void | null {
 
 			memfs.copyFileSync(src, dest)
 			return
-		} catch (e) {
+		} catch (_e) {
 			return null
 		}
 	}
 	try {
 		fsExtra.copyFileSync(src, dest)
 		return
-	} catch (e) {}
+	} catch (_e) {}
 
 	return null
 }
 
-export async function copyFile(src: string, dest: string): Promise<void | null> {
+export async function copyFile(
+	src: string,
+	dest: string,
+): Promise<undefined | null> {
 	if (houdini_mode.is_testing) {
 		try {
 			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
@@ -42,21 +45,21 @@ export async function copyFile(src: string, dest: string): Promise<void | null> 
 				throw err
 			})
 			return
-		} catch (e) {
+		} catch (_e) {
 			return null
 		}
 	}
 	try {
 		await fs.copyFile(src, dest)
 		return
-	} catch (e) {}
+	} catch (_e) {}
 
 	return null
 }
 
 export async function readFile(
 	filepath: string,
-	encoding?: BufferEncoding
+	encoding?: BufferEncoding,
 ): Promise<string | null> {
 	if (houdini_mode.is_testing) {
 		try {
@@ -64,15 +67,15 @@ export async function readFile(
 				return await fs.readFile(filepath, encoding ?? 'utf-8')
 			}
 
-			return memfs.readFileSync(filepath, encoding ?? 'utf-8')!.toString()
-		} catch (e) {
+			return memfs.readFileSync(filepath, encoding ?? 'utf-8')?.toString()
+		} catch (_e) {
 			return null
 		}
 	}
 
 	try {
 		return await fs.readFile(filepath, 'utf8')
-	} catch (error) {}
+	} catch (_error) {}
 
 	return null
 }
@@ -84,15 +87,15 @@ export function readFileSync(filepath: string): string | null {
 				return fsExtra.readFileSync(filepath, 'utf-8')
 			}
 
-			return memfs.readFileSync(filepath, 'utf-8')!.toString()
-		} catch (e) {
+			return memfs.readFileSync(filepath, 'utf-8')?.toString()
+		} catch (_e) {
 			return null
 		}
 	}
 
 	try {
 		return fsExtra.readFileSync(filepath, 'utf-8')
-	} catch (error) {}
+	} catch (_error) {}
 
 	return null
 }
@@ -194,7 +197,7 @@ export async function readdir(
 	path: string,
 	options?: fsExtra.ObjectEncodingOptions & {
 		withFileTypes: true
-	}
+	},
 ): Promise<Dirent[]>
 export async function readdir(
 	filepath: string,
@@ -203,20 +206,20 @@ export async function readdir(
 				withFileTypes?: boolean | undefined
 		  })
 		| BufferEncoding
-		| null
+		| null,
 ): Promise<Dirent[] | string[]> {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
-		// @ts-ignore
+		// @ts-expect-error
 		return await fs.readdir(filepath, opts)
 	}
 
 	if (filepath.includes('build/runtime')) {
-		// @ts-ignore
+		// @ts-expect-error
 		return await fs.readdir(filepath, opts)
 	}
 	try {
-		// @ts-ignore
+		// @ts-expect-error
 		return memfs.readdirSync(filepath, opts) as string[]
 	} catch (e) {
 		console.log(e)
@@ -235,7 +238,10 @@ export async function remove(filepath: string) {
 
 type MockFilesystem = { [key: string]: string | MockFilesystem }
 
-export async function mock(target: MockFilesystem[string], filepath: string = '') {
+export async function mock(
+	target: MockFilesystem[string],
+	filepath: string = '',
+) {
 	// assuming mock is always called with an object, process every key
 	await Promise.all(
 		Object.entries(target).map(async ([key, value]) => {
@@ -248,15 +254,18 @@ export async function mock(target: MockFilesystem[string], filepath: string = ''
 				await mkdirp(childPath)
 				return await mock(value, childPath)
 			}
-		})
+		}),
 	)
 }
 
 export async function recursiveCopy(
 	source: string,
 	target: string,
-	transforms?: Record<string, (content: string, filepath: string) => string | Promise<string>>,
-	notRoot?: boolean
+	transforms?: Record<
+		string,
+		(content: string, filepath: string) => string | Promise<string>
+	>,
+	notRoot?: boolean,
 ) {
 	// if the folder containing the target doesn't exist, then we need to create it
 	let parentDir = path.join(target, path.basename(source))
@@ -267,16 +276,14 @@ export async function recursiveCopy(
 	try {
 		await access(parentDir)
 		// the parent directory does not exist
-	} catch (e) {
+	} catch (_e) {
 		await mkdirp(parentDir)
 	}
 	// check if we are copying a directory
 	if ((await stat(source)).isDirectory()) {
 		// look in the contents of the source directory
 		await Promise.all(
-			(
-				await readdir(source)
-			).map(async (child) => {
+			(await readdir(source)).map(async (child) => {
 				// figure out the full path of the source
 				const childPath = path.join(source, child)
 
@@ -291,16 +298,16 @@ export async function recursiveCopy(
 
 					// if we have a transform, read the file and then write it
 					if (transforms?.[childPath]) {
-						let original = (await readFile(childPath)) || ''
+						const original = (await readFile(childPath)) || ''
 						await writeFile(
 							targetPath,
-							await transforms[childPath](original, childPath)
+							await transforms[childPath](original, childPath),
 						)
 					} else {
 						await copyFile(childPath, targetPath)
 					}
 				}
-			})
+			}),
 		)
 	}
 }
@@ -309,7 +316,7 @@ export function snapshot(base?: string) {
 	return Object.fromEntries(
 		Object.entries(vol.toJSON())
 			.filter(([key]) => !base || key.startsWith(base))
-			.map(([key, value]) => [!base ? key : key.substring(base.length), value])
+			.map(([key, value]) => [!base ? key : key.substring(base.length), value]),
 	)
 }
 

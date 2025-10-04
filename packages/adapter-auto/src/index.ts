@@ -1,7 +1,7 @@
-import { type Adapter, detectTools } from 'houdini'
-import { resolve } from 'import-meta-resolve'
 import { execSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
+import { type Adapter, detectTools } from 'houdini'
+import { resolve } from 'import-meta-resolve'
 
 const adapters = [
 	{
@@ -83,7 +83,7 @@ async function loadAdapter({ module }: { module: string }): Promise<Adapter> {
 
 		console.log(`Successfully installed ${module}!`)
 		console.warn(
-			`If you plan on staying in this environment, consider adding ${module} to your project so you don't have to install it every time you build your application.`
+			`If you plan on staying in this environment, consider adding ${module} to your project so you don't have to install it every time you build your application.`,
 		)
 
 		// we should be able to import it now
@@ -91,14 +91,14 @@ async function loadAdapter({ module }: { module: string }): Promise<Adapter> {
 	} catch (err) {
 		throw new Error(
 			`Could not install package ${module}. Please install it manually or maybe consider replacing houdini-adapter-auto with ${module}.` +
-				`\n${(err as Error).message}`
+				`\n${(err as Error).message}`,
 		)
 	}
 }
 
 async function importFromCwd(name: string) {
 	const cwd = pathToFileURL(process.cwd()).href
-	const url = resolve(name, cwd + '/x.js')
+	const url = resolve(name, `${cwd}/x.js`)
 
 	return (await import(url)).default
 }

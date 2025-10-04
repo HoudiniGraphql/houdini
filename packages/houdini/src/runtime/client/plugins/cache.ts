@@ -1,6 +1,11 @@
 import cache from '../../cache'
 import { Cache } from '../../cache/cache'
-import { ArtifactKind, CachePolicy, DataSource, type GraphQLObject } from '../../lib/types'
+import {
+	ArtifactKind,
+	CachePolicy,
+	DataSource,
+	type GraphQLObject,
+} from '../../lib/types'
 import type { ClientPlugin } from '../documentStore'
 
 const serverSide = typeof globalThis.window === 'undefined'
@@ -13,6 +18,7 @@ export const cachePolicy =
 		serverSideFallback = true,
 	}: {
 		enabled: boolean
+		// biome-ignore lint/suspicious/noExplicitAny: Fetching data can be any type
 		setFetching: (val: boolean, data?: any) => void
 		cache?: Cache
 		serverSideFallback?: boolean
@@ -141,7 +147,7 @@ export const cachePolicy =
 							? new Cache({ disabled: false })
 							: localCache
 
-					let layer
+					let layer: string | undefined
 					if (!serverSide && ctx.cacheParams?.layer) {
 						layer = ctx.cacheParams.layer.id
 					}

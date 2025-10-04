@@ -1,9 +1,9 @@
-import { test, expect, vi } from 'vitest'
+import { expect, test, vi } from 'vitest'
 
-import { type SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from '../../lib'
 import { testCache, testFragment } from './test'
 
-test('list.append accepts record proxies', function () {
+test('list.append accepts record proxies', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -165,7 +165,7 @@ test('list.append accepts record proxies', function () {
 	})
 })
 
-test('list.prepend accepts record proxies', function () {
+test('list.prepend accepts record proxies', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -326,7 +326,7 @@ test('list.prepend accepts record proxies', function () {
 	})
 })
 
-test('list when must', function () {
+test('list when must', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -445,7 +445,7 @@ test('list when must', function () {
 	})
 })
 
-test('can remove record', function () {
+test('can remove record', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -522,7 +522,7 @@ test('can remove record', function () {
 	cache.list('All_Users').remove(
 		cache.get('User', {
 			id: '2',
-		})
+		}),
 	)
 
 	// the first time set was called, a new entry was added.
@@ -535,7 +535,7 @@ test('can remove record', function () {
 	})
 })
 
-test('can toggle records', function () {
+test('can toggle records', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -626,7 +626,7 @@ test('can toggle records', function () {
 			parentID: cache._internal_unstable._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// grab a reference to a user that
@@ -647,7 +647,7 @@ test('can toggle records', function () {
 	expect([...list]).toEqual(['User:5', 'User:3'])
 })
 
-test('can remove record from all lists', function () {
+test('can remove record from all lists', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -733,7 +733,7 @@ test('can remove record from all lists', function () {
 			parentID: cache._internal_unstable._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// make sure we removed the element from the list
@@ -743,13 +743,15 @@ test('can remove record from all lists', function () {
 	cache.get('User', { id: '2' }).delete()
 
 	expect(
-		cache._internal_unstable._internal_unstable.storage.topLayer.operations['User:2'].deleted
+		cache._internal_unstable._internal_unstable.storage.topLayer.operations[
+			'User:2'
+		].deleted,
 	).toBeTruthy()
 	expect([...cache.list('All_Users')]).toHaveLength(0)
 })
 
-test('list operations fail silently if there is no matching list', function () {
+test('list operations fail silently if there is no matching list', () => {
 	const cache = testCache()
-	const user = cache.get('User', { id: '1' })
+	const _user = cache.get('User', { id: '1' })
 	expect(() => cache.list('All_Pets')).not.toThrow()
 })

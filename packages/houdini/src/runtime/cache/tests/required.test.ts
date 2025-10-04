@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib/types'
@@ -7,7 +7,7 @@ import { rootID } from '../stuff'
 
 const config = testConfigFile()
 
-test('client-side nullability', function () {
+test('client-side nullability', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {

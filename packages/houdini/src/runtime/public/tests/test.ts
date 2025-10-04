@@ -1,9 +1,9 @@
 import { Cache as _Cache } from '../../cache/cache'
 import {
 	ArtifactKind,
-	type SubscriptionSelection,
 	type FragmentArtifact,
 	type QueryArtifact,
+	type SubscriptionSelection,
 } from '../../lib'
 import { Cache } from '../cache'
 import type { Record } from '../record'
@@ -12,7 +12,7 @@ import type { Record } from '../record'
 export type CacheTypeDefTest = {
 	types: {
 		__ROOT__: {
-			idFields: {}
+			idFields: Record<string, never>
 			fragments: []
 			fields: {
 				test: {
@@ -28,7 +28,10 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				pets: {
-					type: (Record<CacheTypeDefTest, 'Cat'> | Record<CacheTypeDefTest, 'User'>)[]
+					type: (
+						| Record<CacheTypeDefTest, 'Cat'>
+						| Record<CacheTypeDefTest, 'User'>
+					)[]
 					args: never
 				}
 				listOfLists: {
@@ -50,7 +53,9 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				pet: {
-					type: Record<CacheTypeDefTest, 'Cat'> | Record<CacheTypeDefTest, 'User'>
+					type:
+						| Record<CacheTypeDefTest, 'Cat'>
+						| Record<CacheTypeDefTest, 'User'>
 					args: never
 				}
 			}
@@ -60,7 +65,11 @@ export type CacheTypeDefTest = {
 				id: string
 			}
 			fragments: [
-				[{ artifact: FragmentArtifact }, { firstName: string }, { pattern: string }]
+				[
+					{ artifact: FragmentArtifact },
+					{ firstName: string },
+					{ pattern: string },
+				],
 			]
 			fields: {
 				firstName: {
@@ -137,8 +146,9 @@ export type CacheTypeDefTest = {
 					}
 				}
 			},
-			any
-		]
+			// biome-ignore lint/suspicious/noExplicitAny: Test type can be any
+			any,
+		],
 	]
 	lists: {
 		All_Pets: {
@@ -156,7 +166,9 @@ export type CacheTypeDefTest = {
 
 export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache())
 
-export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
+export const testFragment = (
+	selection: SubscriptionSelection,
+): { artifact: FragmentArtifact } => ({
 	artifact: {
 		stripVariables: [],
 		kind: ArtifactKind.Fragment,
@@ -169,7 +181,9 @@ export const testFragment = (selection: SubscriptionSelection): { artifact: Frag
 	},
 })
 
-export const testQuery = (selection: SubscriptionSelection): { artifact: QueryArtifact } => ({
+export const testQuery = (
+	selection: SubscriptionSelection,
+): { artifact: QueryArtifact } => ({
 	artifact: {
 		stripVariables: [],
 		kind: ArtifactKind.Query,

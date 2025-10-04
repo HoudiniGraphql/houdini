@@ -1,4 +1,4 @@
-import { test, expect, vi } from 'vitest'
+import { expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import { RefetchUpdateMode, type SubscriptionSelection } from '../../lib'
@@ -6,7 +6,7 @@ import { Cache } from '../cache'
 
 const config = testConfigFile()
 
-test('make sure the cache data was reset', function () {
+test('make sure the cache data was reset', () => {
 	const cache = new Cache(config)
 
 	// save the data
@@ -53,7 +53,7 @@ test('make sure the cache data was reset', function () {
 	expect(cache.read({ selection }).data).toBe(null)
 })
 
-test('make sure the cache lists were reset', function () {
+test('make sure the cache lists were reset', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
@@ -132,10 +132,12 @@ test('make sure the cache lists were reset', function () {
 	cache.reset()
 
 	// make sure the list doesn't exist
-	expect(() => cache.list('All_Users')).toThrowError('Cannot find list with name')
+	expect(() => cache.list('All_Users')).toThrowError(
+		'Cannot find list with name',
+	)
 })
 
-test('make sure the cache subscribers were reset', function () {
+test('make sure the cache subscribers were reset', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {

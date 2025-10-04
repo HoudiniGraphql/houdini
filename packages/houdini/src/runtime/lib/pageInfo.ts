@@ -2,7 +2,12 @@ import { siteURL } from './constants'
 import type { GraphQLObject, PageInfo } from './types'
 
 export function nullPageInfo(): PageInfo {
-	return { startCursor: null, endCursor: null, hasNextPage: false, hasPreviousPage: false }
+	return {
+		startCursor: null,
+		endCursor: null,
+		hasNextPage: false,
+		hasPreviousPage: false,
+	}
 }
 
 export function missingPageSizeError(fnName: string) {
@@ -11,6 +16,7 @@ export function missingPageSizeError(fnName: string) {
 	}
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Page info extraction can handle any data structure
 export function extractPageInfo(data: any, path: string[]): PageInfo {
 	if (!data) {
 		return {
@@ -21,7 +27,7 @@ export function extractPageInfo(data: any, path: string[]): PageInfo {
 		}
 	}
 
-	let localPath = [...path]
+	const localPath = [...path]
 	// walk down the object until we get to the end
 	let current = data
 	while (localPath.length > 0) {
@@ -36,7 +42,7 @@ export function extractPageInfo(data: any, path: string[]): PageInfo {
 
 export function countPage<_Data extends GraphQLObject>(
 	source: string[],
-	value: _Data | null
+	value: _Data | null,
 ): number {
 	let data = value
 	if (value === null || data === null || data === undefined) {

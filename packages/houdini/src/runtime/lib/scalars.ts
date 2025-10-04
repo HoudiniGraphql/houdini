@@ -1,9 +1,9 @@
-import { getCurrentConfig } from './config'
 import type { ConfigFile } from './config'
+import { getCurrentConfig } from './config'
 import { getFieldsForType } from './selection'
 import {
-	fragmentKey,
 	type FragmentArtifact,
+	fragmentKey,
 	type MutationArtifact,
 	type QueryArtifact,
 	type SubscriptionArtifact,
@@ -15,8 +15,9 @@ export function marshalSelection({
 	data,
 }: {
 	selection: SubscriptionSelection
+	// biome-ignore lint/suspicious/noExplicitAny: Scalar marshaling can handle any data structure
 	data: any
-}): {} | null | undefined {
+}): Record<string, unknown> | null | undefined {
 	const config = getCurrentConfig()
 
 	if (data === null || typeof data === 'undefined') {
@@ -29,107 +30,127 @@ export function marshalSelection({
 		return data.map((val) => marshalSelection({ selection, data: val }))
 	}
 
-	const targetSelection = getFieldsForType(selection, data['__typename'] as string, false)
+	const targetSelection = getFieldsForType(
+		selection,
+		data.__typename as string,
+		false,
+	)
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
-		Object.entries(data as {}).map(([fieldName, value]) => {
-			// leave the fragment entry alone
-			if (fieldName === fragmentKey) {
-				return [fieldName, value]
-			}
-
-			// look up the type for the field
-			const { type, selection } = targetSelection[fieldName]
-			// if we don't have type information for this field, just use it directly
-			// it's most likely a non-custom scalars or enums
-			if (!type) {
-				return [fieldName, value]
-			}
-
-			// if there is a sub selection, walk down the selection
-			if (selection) {
-				return [fieldName, marshalSelection({ selection, data: value })]
-			}
-
-			// is the type something that requires marshaling
-			if (config!.scalars?.[type]) {
-				const marshalFn = config!.scalars[type].marshal
-				if (!marshalFn) {
-					throw new Error(
-						`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`
-					)
+		Object.entries(data as Record<string, unknown>).map(
+			([fieldName, value]) => {
+				// leave the fragment entry alone
+				if (fieldName === fragmentKey) {
+					return [fieldName, value]
 				}
-				if (Array.isArray(value)) {
-					return [fieldName, value.map(marshalFn)]
-				}
-				return [fieldName, marshalFn(value)]
-			}
 
-			// if the type doesn't require marshaling and isn't a referenced type
-			// then the type is a scalar that doesn't require marshaling
-			return [fieldName, value]
-		})
+				// look up the type for the field
+				const { type, selection } = targetSelection[fieldName]
+				// if we don't have type information for this field, just use it directly
+				// it's most likely a non-custom scalars or enums
+				if (!type) {
+					return [fieldName, value]
+				}
+
+				// if there is a sub selection, walk down the selection
+				if (selection) {
+					return [fieldName, marshalSelection({ selection, data: value })]
+				}
+
+				// is the type something that requires marshaling
+				if (config?.scalars?.[type]) {
+					const marshalFn = config?.scalars[type].marshal
+					if (!marshalFn) {
+						throw new Error(
+							`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`,
+						)
+					}
+					if (Array.isArray(value)) {
+						return [fieldName, value.map(marshalFn)]
+					}
+					return [fieldName, marshalFn(value)]
+				}
+
+				// if the type doesn't require marshaling and isn't a referenced type
+				// then the type is a scalar that doesn't require marshaling
+				return [fieldName, value]
+			},
+		),
 	)
 }
 
-export function marshalInputs<T>({
+export function marshalInputs<_T>({
 	artifact,
 	input,
 	config,
 	rootType = '@root',
 }: {
-	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact | FragmentArtifact
+	artifact:
+		| QueryArtifact
+		| MutationArtifact
+		| SubscriptionArtifact
+		| FragmentArtifact
 	input: unknown
 	rootType?: string
 	config: ConfigFile
-}): {} | null | undefined {
+}): Record<string, unknown> | null | undefined {
 	if (input === null || typeof input === 'undefined') {
 		return input
 	}
 
 	// if there are no inputs in the object, nothing to do
 	if (!artifact.input) {
-		return input as {}
+		return input as Record<string, unknown>
 	}
 
 	// the object containing the relevant fields
-	const fields = rootType === '@root' ? artifact.input.fields : artifact.input.types[rootType]
+	const fields =
+		rootType === '@root'
+			? artifact.input.fields
+			: artifact.input.types[rootType]
 
 	// if we are looking at a list
 	if (Array.isArray(input)) {
-		return input.map((val) => marshalInputs({ artifact, input: val, rootType, config }))
+		return input.map((val) =>
+			marshalInputs({ artifact, input: val, rootType, config }),
+		)
 	}
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
-		Object.entries(input as {}).map(([fieldName, value]) => {
-			// look up the type for the field
-			const type = fields?.[fieldName]
-			// if we don't have type information for this field, just use it directly
-			// it's most likely a non-custom scalars or enums
-			if (!type) {
-				return [fieldName, value]
-			}
-
-			// is the type something that requires marshaling
-			const marshalFn = config.scalars?.[type]?.marshal
-			if (marshalFn) {
-				// if we are looking at a list of scalars
-				if (Array.isArray(value)) {
-					return [fieldName, value.map(marshalFn)]
+		Object.entries(input as Record<string, unknown>).map(
+			([fieldName, value]) => {
+				// look up the type for the field
+				const type = fields?.[fieldName]
+				// if we don't have type information for this field, just use it directly
+				// it's most likely a non-custom scalars or enums
+				if (!type) {
+					return [fieldName, value]
 				}
-				return [fieldName, marshalFn(value)]
-			}
 
-			// if the type doesn't require marshaling and isn't a referenced type
-			if (isScalar(config, type) || !artifact.input!.types[type]) {
-				return [fieldName, value]
-			}
+				// is the type something that requires marshaling
+				const marshalFn = config.scalars?.[type]?.marshal
+				if (marshalFn) {
+					// if we are looking at a list of scalars
+					if (Array.isArray(value)) {
+						return [fieldName, value.map(marshalFn)]
+					}
+					return [fieldName, marshalFn(value)]
+				}
 
-			// we ran into an object type that should be referenced by the artifact
-			return [fieldName, marshalInputs({ artifact, input: value, rootType: type, config })]
-		})
+				// if the type doesn't require marshaling and isn't a referenced type
+				if (isScalar(config, type) || !artifact.input?.types[type]) {
+					return [fieldName, value]
+				}
+
+				// we ran into an object type that should be referenced by the artifact
+				return [
+					fieldName,
+					marshalInputs({ artifact, input: value, rootType: type, config }),
+				]
+			},
+		),
 	)
 }
 
@@ -143,7 +164,7 @@ export function isScalar(config: ConfigFile, type: string) {
 export function parseScalar(
 	config: ConfigFile,
 	type: string,
-	value?: string
+	value?: string,
 ): string | number | boolean | undefined {
 	if (typeof value === 'undefined') {
 		return undefined
@@ -175,7 +196,7 @@ export function parseScalar(
 
 	// if we have a special parse function, use it
 	if (config.scalars?.[type]?.marshal) {
-		return config.scalars[type]?.marshal!(value)
+		return config.scalars[type]?.marshal?.(value)
 	}
 
 	// we dont recognize the type, just use the string value

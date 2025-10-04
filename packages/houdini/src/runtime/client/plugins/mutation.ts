@@ -14,7 +14,8 @@ export const mutation = (cache: Cache) =>
 				//
 				// as far as I can tell, this is an arbitrary decision but it does give a
 				// well-defined ordering to a subtle situation so that seems like a win
-				const layerOptimistic = cache._internal_unstable.storage.createLayer(true)
+				const layerOptimistic =
+					cache._internal_unstable.storage.createLayer(true)
 
 				// if there is an optimistic response then we need to write the value immediately
 
@@ -28,6 +29,7 @@ export const mutation = (cache: Cache) =>
 					toNotify = cache.write({
 						selection: ctx.artifact.selection,
 						// make sure that any scalar values get processed into something we can cache
+						// biome-ignore lint/style/noNonNullAssertion: Marshaled selection is guaranteed to return data
 						data: (await marshalSelection({
 							selection: ctx.artifact.selection,
 							data: optimisticResponse,
@@ -74,7 +76,9 @@ export const mutation = (cache: Cache) =>
 
 				// merge the layer back into the cache
 				if (ctx.cacheParams?.layer) {
-					cache._internal_unstable.storage.resolveLayer(ctx.cacheParams.layer.id)
+					cache._internal_unstable.storage.resolveLayer(
+						ctx.cacheParams.layer.id,
+					)
 				}
 
 				// keep going

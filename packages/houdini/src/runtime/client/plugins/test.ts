@@ -1,8 +1,11 @@
 import { vi } from 'vitest'
-
-import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 import type { DocumentArtifact, GraphQLObject, QueryResult } from '../../lib'
 import { ArtifactKind, DataSource } from '../../lib/types'
+import {
+	createPluginHooks,
+	HoudiniClient,
+	type HoudiniClientConstructorArgs,
+} from '..'
 import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 import { DocumentStore } from '../documentStore'
 
@@ -10,7 +13,10 @@ import { DocumentStore } from '../documentStore'
  * Utilities for testing the cache plugin
  */
 export function createStore(
-	args: Partial<HoudiniClientConstructorArgs> & { artifact?: DocumentArtifact } = {}
+	args: Partial<HoudiniClientConstructorArgs> & {
+		artifact?: DocumentArtifact
+	} = {},
+	// biome-ignore lint/suspicious/noExplicitAny: Test store can handle any document types
 ): DocumentStore<any, any> {
 	// if we dont have anything passed, just use the fake fetch as the plugin
 	if (!args.plugins && !args.pipeline) {
@@ -75,6 +81,7 @@ export function fakeFetch({
 	spy = vi.fn(),
 	onRequest,
 }: {
+	// biome-ignore lint/suspicious/noExplicitAny: Test data can be any GraphQL response
 	data?: any
 	spy?: (ctx: ClientPluginContext) => void
 	onRequest?: (variables: GraphQLObject, cb: () => void) => void

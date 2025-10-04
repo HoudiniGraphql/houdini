@@ -427,10 +427,12 @@ export async function write_config(
 	invoke_hook: (
 		plugin: string,
 		hook: string,
-		args: Record<string, any>
+		// biome-ignore lint/suspicious/noExplicitAny: Plugin hook arguments can be any data
+		args: Record<string, any>,
+		// biome-ignore lint/suspicious/noExplicitAny: Plugin hook results can be any data
 	) => Promise<Record<string, any>>,
 	plugins: Record<string, PluginSpec>,
-	mode: string
+	mode: string,
 ) {
 	// in order to know our configuration values, we need to load the current environment
 	// to do this we need to look at each plugin that supports the environment hook
@@ -444,9 +446,12 @@ export async function write_config(
 			// if the plugin supports the environment hook
 			if (plugin.hooks.has('Environment')) {
 				// we need to hit the corresponding endpoint in the plugin server
-				Object.assign(env, await invoke_hook(plugin.name, 'environment', { mode }))
+				Object.assign(
+					env,
+					await invoke_hook(plugin.name, 'environment', { mode }),
+				)
 			}
-		})
+		}),
 	)
 	console.timeEnd('Environment')
 
@@ -488,19 +493,19 @@ export async function write_config(
 		) VALUES (
 			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 		)
-	`
+	`,
 	).run(
 		JSON.stringify(
 			typeof config_file.include === 'string'
 				? [config_file.include]
-				: config_file.include ?? []
+				: (config_file.include ?? []),
 		),
 		JSON.stringify(
 			typeof config_file.exclude === 'string'
 				? [config_file.exclude]
-				: config_file.exclude ?? []
+				: (config_file.exclude ?? []),
 		),
-		config_file.schemaPath!,
+		config_file.schemaPath ?? '',
 		config_file.definitionsPath ?? '',
 		config_file.cacheBufferSize ?? null,
 		config_file.defaultCachePolicy ?? null,
@@ -513,21 +518,27 @@ export async function write_config(
 		config_file.logLevel ?? null,
 		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
 		JSON.stringify(config_file.defaultKeys ?? []),
-		config_file.persistedQueriesPath ?? path.join(config_file.runtimeDir!, 'queries.json'),
+		config_file.persistedQueriesPath ??
+			path.join(config_file.runtimeDir ?? '', 'queries.json'),
 		config.root_dir ?? null,
-		config_file.runtimeDir ?? null
+		config_file.runtimeDir ?? null,
 	)
 
 	// write the scalar definitions
-	let insert = db.prepare('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)')
-	for (const [name, { type }] of Object.entries(config.config_file.runtimeScalars ?? {})) {
+	let insert = db.prepare(
+		'INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)',
+	)
+	for (const [name, { type }] of Object.entries(
+		config.config_file.runtimeScalars ?? {},
+	)) {
 		insert.run(name, type)
 	}
 
 	// write router config
 	if (config.config_file.router) {
-		let session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		let api_endpoint: string | null = null
+		const session_keys =
+			config.config_file.router.auth?.sessionKeys.join(',') ?? ''
+		const api_endpoint: string | null = null
 		let url: string | null = null
 		let mutation: string | null = null
 		let redirect: string | null = null
@@ -549,7 +560,7 @@ export async function write_config(
 				mutation,
 				redirect,
 				api_endpoint
-			) VALUES (?, ?, ?, ?, ?, ?)`
+			) VALUES (?, ?, ?, ?, ?, ?)`,
 		).run(redirect, session_keys, url, mutation, redirect, api_endpoint)
 	}
 
@@ -562,36 +573,48 @@ export async function write_config(
 		const headers = !config.config_file.watchSchema.headers
 			? {}
 			: typeof config.config_file.watchSchema.headers === 'function'
-			? typeof config.config_file.watchSchema.headers(env)
-			: typeof config.config_file.watchSchema.headers
+				? typeof config.config_file.watchSchema.headers(env)
+				: typeof config.config_file.watchSchema.headers
 		db.prepare(
 			`INSERT INTO watch_schema_config (
 				url,
 				headers,
 				interval,
 				timeout
-			) VALUES (?, ?, ?, ?)`
+			) VALUES (?, ?, ?, ?)`,
 		).run(
 			url,
 			JSON.stringify(headers),
 			config.config_file.watchSchema.interval ?? null,
-			config.config_file.watchSchema.timeout ?? null
+			config.config_file.watchSchema.timeout ?? null,
 		)
 	}
 
 	// write the scalar configs
-	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)')
-	for (const [name, { type, inputTypes }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type, JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)))
+	insert = db.prepare(
+		'INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)',
+	)
+	for (const [name, { type, inputTypes }] of Object.entries(
+		config.config_file.scalars ?? {},
+	)) {
+		insert.run(
+			name,
+			type,
+			JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)),
+		)
 	}
 
 	// write the type configs
-	insert = db.prepare('INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)')
-	for (const [name, { keys, resolve }] of Object.entries(config.config_file.types ?? {})) {
+	insert = db.prepare(
+		'INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)',
+	)
+	for (const [name, { keys, resolve }] of Object.entries(
+		config.config_file.types ?? {},
+	)) {
 		insert.run(
 			name,
 			JSON.stringify(keys || config_file.defaultKeys || []),
-			resolve?.queryField || null
+			resolve?.queryField || null,
 		)
 	}
 }

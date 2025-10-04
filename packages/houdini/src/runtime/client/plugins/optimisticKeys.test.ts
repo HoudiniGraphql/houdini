@@ -4,7 +4,11 @@ import { sleep } from '../../../lib'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
-import { ArtifactKind, type QueryResult, type GraphQLObject } from '../../lib/types'
+import {
+	ArtifactKind,
+	type GraphQLObject,
+	type QueryResult,
+} from '../../lib/types'
 import { mutation } from './mutation'
 import { optimisticKeys } from './optimisticKeys'
 import { createStore, fakeFetch } from './test'
@@ -17,7 +21,7 @@ beforeEach(async () => {
 	setMockConfig({})
 })
 
-test('OptimisticKeys Plugin', async function () {
+test('OptimisticKeys Plugin', async () => {
 	const callbacks = {}
 	const keys = {}
 
@@ -84,7 +88,9 @@ test('OptimisticKeys Plugin', async function () {
 				data: {
 					createUser: { id: '1', firstName: 'Alice', __typename: 'User' },
 				},
-				onRequest: (variables, cb) => (resolveMutation = cb),
+				onRequest: (_variables, cb) => {
+					resolveMutation = cb
+				},
 			}),
 		],
 	})
@@ -103,9 +109,11 @@ test('OptimisticKeys Plugin', async function () {
 	expect(resolveMutation).not.toBeNull()
 
 	// we should have added an ID to the cache
-	let optimisticLink = cache._internal_unstable.storage.data[0].links['_ROOT_']['createUser']
+	const optimisticLink =
+		cache._internal_unstable.storage.data[0].links._ROOT_.createUser
 	expect(optimisticLink).toBeDefined()
-	const record = cache._internal_unstable.storage.data[0].fields[optimisticLink as string]
+	const record =
+		cache._internal_unstable.storage.data[0].fields[optimisticLink as string]
 	expect(record.id).toBeDefined()
 
 	// now that we have an id, we can send a second mutation that will block until we resolve the first
@@ -183,7 +191,9 @@ test('OptimisticKeys Plugin', async function () {
 				id: record.id,
 			},
 		})
-		.then((val) => (secondResolved = val))
+		.then((val) => {
+			secondResolved = val
+		})
 
 	// wait for a bit, just to be sure
 	await sleep(200)
@@ -191,7 +201,7 @@ test('OptimisticKeys Plugin', async function () {
 
 	// we can now resolve the first mutation (which will provide the ID for the second)
 	if (resolveMutation) {
-		// @ts-ignore
+		// @ts-expect-error
 		resolveMutation?.()
 	}
 

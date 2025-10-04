@@ -1,14 +1,19 @@
 import type { Cache } from '../../cache/cache'
 import type { RuntimeScalarPayload } from '../../lib'
-import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
+import {
+	ArtifactKind,
+	DataSource,
+	type SubscriptionSpec,
+} from '../../lib/types'
 import { documentPlugin } from '../utils'
 
 export const query = (cache: Cache) =>
-	documentPlugin(ArtifactKind.Query, function () {
+	documentPlugin(ArtifactKind.Query, () => {
 		// track the bits of state we need to hold onto
 		let subscriptionSpec: SubscriptionSpec | null = null
 
 		// remember the last variables we were called with
+		// biome-ignore lint/suspicious/noExplicitAny: Query variables can be any GraphQL type
 		let lastVariables: Record<string, any> | null = null
 
 		// the function to call when a query is sent
@@ -34,8 +39,8 @@ export const query = (cache: Cache) =>
 
 								// resolve the runtime scalar
 								return [field, runtimeScalar.resolve(runtimeScalarPayload)]
-							}
-						)
+							},
+						),
 					),
 					...ctx.variables,
 				}
@@ -50,7 +55,10 @@ export const query = (cache: Cache) =>
 					// if the variables changed we need to unsubscribe from the old fields and
 					// listen to the new ones
 					if (subscriptionSpec) {
-						cache.unsubscribe(subscriptionSpec, subscriptionSpec.variables?.() || {})
+						cache.unsubscribe(
+							subscriptionSpec,
+							subscriptionSpec.variables?.() || {},
+						)
 					}
 
 					// track the new variables

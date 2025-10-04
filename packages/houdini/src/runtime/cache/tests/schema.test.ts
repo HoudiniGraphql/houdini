@@ -5,7 +5,7 @@ import { Cache } from '../cache'
 
 const config = testConfigFile()
 
-test('writing a selection loads the schema information', function () {
+test('writing a selection loads the schema information', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 

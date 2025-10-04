@@ -11,7 +11,7 @@ export const InfoReleaseNote = (focus?: string) => {
 
 export const OutdatedFunctionInlineInfo = (
 	type: 'query' | 'paginatedQuery' | 'mutation' | 'subscription',
-	name: string
+	name: string,
 ) => {
 	return `❌ inline function "${type}" no longer exist (update: '${name}' ${type}).`
 }

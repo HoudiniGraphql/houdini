@@ -1,8 +1,8 @@
-import { test, expect, describe } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import { evaluateKey } from '../stuff'
 
-describe('key evaluation', function () {
+describe('key evaluation', () => {
 	const table = [
 		{
 			title: 'string',
@@ -29,7 +29,7 @@ describe('key evaluation', function () {
 	]
 
 	for (const row of table) {
-		test(row.title, function () {
+		test(row.title, () => {
 			expect(evaluateKey(row.key, row.variables)).toEqual(row.expected)
 		})
 	}

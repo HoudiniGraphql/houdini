@@ -1,10 +1,15 @@
 import type { Cache } from '../../cache/cache'
 import configFile from '../../imports/config'
-import { computeID, getFieldsForType, keyFieldsForType, marshalSelection } from '../../lib'
+import {
+	computeID,
+	getFieldsForType,
+	keyFieldsForType,
+	marshalSelection,
+} from '../../lib'
 import type {
 	GraphQLObject,
-	NestedList,
 	GraphQLValue,
+	NestedList,
 	SubscriptionSelection,
 } from '../../lib/types'
 import { ArtifactKind } from '../../lib/types'
@@ -25,6 +30,7 @@ import type { ClientPlugin } from '../documentStore'
 // NOTE: we need 2 different indexes so even though ^ could be merged into a single map.
 //       since we need to know if an input is a generated key and if a path is a generated key
 
+// biome-ignore lint/suspicious/noExplicitAny: Callback can handle any ID type
 export type CallbackMap = Record<string | number, Array<(newID: any) => void>>
 export type KeyMap = Record<number, Record<string, keyof CallbackMap>>
 type OptimisticObjectIDMap = Record<number, Record<string, string>>
@@ -39,7 +45,7 @@ export const optimisticKeys =
 		callbackCache: CallbackMap = callbacks,
 		keyCache: KeyMap = keys,
 		objectIDs: OptimisticObjectIDMap = objectIDMap,
-		invocationCounter: number = 1
+		invocationCounter: number = 1,
 	): ClientPlugin =>
 	() => {
 		return {
@@ -84,10 +90,8 @@ export const optimisticKeys =
 				}
 
 				// look through the outgoing variables for ones that we have flagged as optimistic
-				const pendingVariables: Record<string, string | null> = extractInputKeys(
-					ctx.variables ?? {},
-					callbackCache
-				)
+				const pendingVariables: Record<string, string | null> =
+					extractInputKeys(ctx.variables ?? {}, callbackCache)
 
 				// if there aren't any pending variables in the query, just move along
 				if (Object.keys(pendingVariables).length === 0) {
@@ -100,13 +104,15 @@ export const optimisticKeys =
 						pendingVariables[key] = newID
 
 						// if that was the last variable that we needed to wait for, we can move on
-						if (Object.values(pendingVariables).every((value) => value !== null)) {
+						if (
+							Object.values(pendingVariables).every((value) => value !== null)
+						) {
 							// add the optimistic keys back into the input variables
 							next({
 								...ctx,
 								variables: replaceKeyWithVariable(
 									{ ...ctx.variables },
-									pendingVariables as Record<string, string>
+									pendingVariables as Record<string, string>,
 								),
 							})
 						}
@@ -140,7 +146,7 @@ export const optimisticKeys =
 							onIDChange: (optimisticValue, realValue) => {
 								cache.registerKeyMap(optimisticValue, realValue)
 							},
-						}
+						},
 					)
 				}
 
@@ -169,27 +175,30 @@ function addKeysToResponse(args: {
 	path?: string
 	mutationID: number
 	objectIDs: OptimisticObjectIDMap
+	// biome-ignore lint/suspicious/noExplicitAny: Optimistic response can be any GraphQL data
 }): any {
 	// we need to walk the selection and inject the optimistic keys into the response
 	// collect all of the fields that we need to write
-	let targetSelection = getFieldsForType(
+	const targetSelection = getFieldsForType(
 		args.selection,
-		args.response['__typename'] as string | undefined,
-		false
+		args.response.__typename as string | undefined,
+		false,
 	)
 	const newKeys = []
 
 	// data is an object with fields that we need to write to the store
-	for (const [field, { type, selection: fieldSelection, optimisticKey }] of Object.entries(
-		targetSelection
-	)) {
+	for (const [
+		field,
+		{ type, selection: fieldSelection, optimisticKey },
+	] of Object.entries(targetSelection)) {
 		const value = args.response[field]
 		const pathSoFar = `${args.path ?? ''}.${field}`
 
 		// if this field is marked as an optimistic key, add it to the obj
 		if (optimisticKey) {
 			// figure out the value we should use for the optimistic key
-			let keyValue
+			// biome-ignore lint/suspicious/noExplicitAny: Key value can be any GraphQL scalar type
+			let keyValue: any
 
 			// if there is a value already in the response then we should use that
 			if (value) {
@@ -238,7 +247,7 @@ function addKeysToResponse(args: {
 						})
 					}
 				}
-			} else if (value && typeof value == 'object') {
+			} else if (value && typeof value === 'object') {
 				addKeysToResponse({
 					...args,
 					selection: fieldSelection,
@@ -268,7 +277,7 @@ function addKeysToResponse(args: {
 function extractInputKeys(
 	obj: GraphQLObject,
 	store: CallbackMap,
-	found: Record<string, string | null> = {}
+	found: Record<string, string | null> = {},
 ) {
 	for (const value of Object.values(obj)) {
 		if (typeof value === 'string' && store[value]) {
@@ -296,18 +305,21 @@ function extractResponseKeys(
 	keyMap: KeyMap,
 	mutationID: number,
 	events: {
-		onNewKey: (optimisticValue: string | number, realValue: string | number) => void
+		onNewKey: (
+			optimisticValue: string | number,
+			realValue: string | number,
+		) => void
 		onIDChange: (optimisticValue: string, realValue: string) => void
 	},
 	objectIDs: OptimisticObjectIDMap = objectIDMap,
 	path: string = '',
-	type: string = ''
+	type: string = '',
 ) {
 	// collect all of the fields that we need to write
-	let targetSelection = getFieldsForType(
+	const targetSelection = getFieldsForType(
 		selection,
-		response['__typename'] as string | undefined,
-		false
+		response.__typename as string | undefined,
+		false,
 	)
 
 	let optimisticID: string | null = null
@@ -332,7 +344,7 @@ function extractResponseKeys(
 		}
 
 		// look up the field in our schema
-		let { type, selection: fieldSelection } = targetSelection[field]
+		const { type, selection: fieldSelection } = targetSelection[field]
 
 		// walk down lists in the response
 		if (Array.isArray(value)) {
@@ -347,7 +359,7 @@ function extractResponseKeys(
 						events,
 						objectIDs,
 						`${pathSoFar}[${index}]`,
-						type
+						type,
 					)
 				}
 			}
@@ -363,7 +375,7 @@ function extractResponseKeys(
 				events,
 				objectIDs,
 				pathSoFar,
-				type
+				type,
 			)
 		}
 	}
@@ -387,7 +399,7 @@ function extractResponseKeys(
 							type: 'scalar',
 							keyRaw: key,
 						},
-					])
+					]),
 				),
 			},
 			parent: optimisticID,
@@ -413,7 +425,7 @@ function flattenList(source: NestedList<GraphQLValue>): Array<GraphQLValue> {
 
 function replaceKeyWithVariable(
 	variables: GraphQLObject,
-	keys: Record<string, string>
+	keys: Record<string, string>,
 ): GraphQLObject {
 	for (const [key, value] of Object.entries(variables)) {
 		if (typeof value === 'string' && keys[value]) {
@@ -436,18 +448,18 @@ function replaceKeyWithVariable(
 
 function generateKey(type: string) {
 	if (type === 'Int') {
-		return new Date().getTime()
+		return Date.now()
 	}
 
 	if (type === 'String') {
-		return new Date().getTime().toString()
+		return Date.now().toString()
 	}
 
 	if (type === 'ID') {
-		return new Date().getTime().toString()
+		return Date.now().toString()
 	}
 
 	throw new Error(
-		`unsupported type for optimistic key: ${type}. Please provide a value in your mutation arguments.`
+		`unsupported type for optimistic key: ${type}. Please provide a value in your mutation arguments.`,
 	)
 }

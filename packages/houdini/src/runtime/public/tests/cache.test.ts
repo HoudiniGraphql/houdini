@@ -1,8 +1,8 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
 import { testCache, testQuery } from './test'
 
-test('can read values', function () {
+test('can read values', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -81,7 +81,7 @@ test('can read values', function () {
 	expect(
 		cache.read({
 			query: testQuery(selection),
-		})
+		}),
 	).toEqual({
 		data,
 		partial: false,
@@ -89,7 +89,7 @@ test('can read values', function () {
 	})
 })
 
-test('can write values', function () {
+test('can write values', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -168,7 +168,7 @@ test('can write values', function () {
 	expect(
 		cache.read({
 			query: testQuery(selection),
-		})
+		}),
 	).toEqual({
 		data,
 		partial: false,
@@ -176,7 +176,7 @@ test('can write values', function () {
 	})
 })
 
-test('can read and write variables', function () {
+test('can read and write variables', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -227,7 +227,7 @@ test('can read and write variables', function () {
 			variables: {
 				pattern: 'foo',
 			},
-		}).data
+		}).data,
 	).toEqual(data)
 
 	// read the value using the document api
@@ -237,7 +237,7 @@ test('can read and write variables', function () {
 			variables: {
 				pattern: 'foo',
 			},
-		})
+		}),
 	).toEqual({
 		data,
 		partial: false,

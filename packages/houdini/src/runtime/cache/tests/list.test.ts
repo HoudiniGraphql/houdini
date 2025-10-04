@@ -1,4 +1,4 @@
-import { test, expect, vi } from 'vitest'
+import { expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
 import type { SubscriptionSelection } from '../../lib/types'
@@ -7,7 +7,7 @@ import { Cache } from '../cache'
 
 const config = testConfigFile()
 
-test('prepend linked lists update', function () {
+test('prepend linked lists update', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -105,7 +105,7 @@ test('prepend linked lists update', function () {
 				},
 			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({
 		friends: [
 			{
@@ -167,7 +167,7 @@ test('prepend linked lists update', function () {
 				},
 			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({
 		friends: [
 			{
@@ -190,7 +190,7 @@ test('prepend linked lists update', function () {
 	})
 })
 
-test('append in list', function () {
+test('append in list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -295,7 +295,7 @@ test('append in list', function () {
 	})
 })
 
-test('prepend in list', function () {
+test('prepend in list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -400,7 +400,7 @@ test('prepend in list', function () {
 	})
 })
 
-test('remove from connection', function () {
+test('remove from connection', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -534,12 +534,16 @@ test('remove from connection', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(0)
 	// but we're still subscribing to user 3
-	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:3', 'firstName'),
+	).toHaveLength(1)
 })
 
-test('element removed from list can be added back', function () {
+test('element removed from list can be added back', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -700,7 +704,7 @@ test('element removed from list can be added back', function () {
 	})
 })
 
-test('append in connection', function () {
+test('append in connection', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -842,7 +846,7 @@ test('append in connection', function () {
 	})
 })
 
-test("prepending update doesn't overwrite endCursor and hasNext Page", function () {
+test("prepending update doesn't overwrite endCursor and hasNext Page", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1054,7 +1058,7 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", function 
 	})
 })
 
-test("append update doesn't overwrite startCursor and hasPrevious Page", function () {
+test("append update doesn't overwrite startCursor and hasPrevious Page", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1266,7 +1270,7 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", functio
 	})
 })
 
-test('append in connection', function () {
+test('append in connection', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1419,7 +1423,7 @@ test('append in connection', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		data: {
 			viewer: {
@@ -1451,7 +1455,7 @@ test('append in connection', function () {
 	})
 })
 
-test('inserting data with an update overwrites a record inserted with list.append', function () {
+test('inserting data with an update overwrites a record inserted with list.append', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1689,7 +1693,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	expect(
 		cache.read({
 			selection,
-		})
+		}),
 	).toEqual({
 		data: {
 			viewer: {
@@ -1719,7 +1723,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	})
 })
 
-test('list filter - must_not positive', function () {
+test('list filter - must_not positive', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1833,7 +1837,7 @@ test('list filter - must_not positive', function () {
 	})
 })
 
-test('list filter - must_not negative', function () {
+test('list filter - must_not negative', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1933,7 +1937,7 @@ test('list filter - must_not negative', function () {
 	expect(set).not.toHaveBeenCalled()
 })
 
-test('list filter - must positive', function () {
+test('list filter - must positive', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2047,7 +2051,7 @@ test('list filter - must positive', function () {
 	})
 })
 
-test('list filter - must negative', function () {
+test('list filter - must negative', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2147,7 +2151,7 @@ test('list filter - must negative', function () {
 	expect(set).not.toHaveBeenCalled()
 })
 
-test('remove from list', function () {
+test('remove from list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2235,10 +2239,12 @@ test('remove from list', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(
+		cache._internal_unstable.subscriptions.get('User:2', 'firstName'),
+	).toHaveLength(0)
 })
 
-test('delete node', function () {
+test('delete node', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2315,7 +2321,7 @@ test('delete node', function () {
 	cache.delete(
 		cache._internal_unstable.id('User', {
 			id: '2',
-		})!
+		})!,
 	)
 
 	// we should have been updated with an empty list
@@ -2327,10 +2333,12 @@ test('delete node', function () {
 	})
 
 	// make sure its empty now
-	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:2'].deleted,
+	).toBeTruthy()
 })
 
-test('delete node from connection', function () {
+test('delete node from connection', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2436,7 +2444,7 @@ test('delete node from connection', function () {
 	cache.delete(
 		cache._internal_unstable.id('User', {
 			id: '2',
-		})!
+		})!,
 	)
 
 	// we should have been updated with an empty list
@@ -2450,10 +2458,12 @@ test('delete node from connection', function () {
 	})
 
 	// make sure its empty now
-	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:2'].deleted,
+	).toBeTruthy()
 })
 
-test('append operation', function () {
+test('append operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2519,7 +2529,7 @@ test('append operation', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -2560,7 +2570,7 @@ test('append operation', function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(1)
 })
 
-test('append from list', function () {
+test('append from list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2626,7 +2636,7 @@ test('append from list', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -2665,7 +2675,7 @@ test('append from list', function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
 })
 
-test('toggle list', function () {
+test('toggle list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2756,7 +2766,7 @@ test('toggle list', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	const toggleSelection: SubscriptionSelection = {
@@ -2798,7 +2808,7 @@ test('toggle list', function () {
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
 })
 
-test('append when operation', function () {
+test('append when operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2870,7 +2880,7 @@ test('append when operation', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -2916,7 +2926,7 @@ test('append when operation', function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
-test('prepend when operation', function () {
+test('prepend when operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -2988,7 +2998,7 @@ test('prepend when operation', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3035,7 +3045,7 @@ test('prepend when operation', function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
-test('prepend operation', function () {
+test('prepend operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3126,7 +3136,7 @@ test('prepend operation', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3168,7 +3178,7 @@ test('prepend operation', function () {
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:3', 'User:2'])
 })
 
-test('remove operation', function () {
+test('remove operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3254,7 +3264,7 @@ test('remove operation', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3295,7 +3305,7 @@ test('remove operation', function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
-test('remove operation from list', function () {
+test('remove operation from list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3384,7 +3394,7 @@ test('remove operation from list', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3423,7 +3433,7 @@ test('remove operation from list', function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
-test('delete operation', function () {
+test('delete operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3509,7 +3519,7 @@ test('delete operation', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3549,10 +3559,12 @@ test('delete operation', function () {
 	// make sure we removed the element from the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 
-	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:2'].deleted,
+	).toBeTruthy()
 })
 
-test('delete operation with non-string id', function () {
+test('delete operation with non-string id', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3638,7 +3650,7 @@ test('delete operation with non-string id', function () {
 			parentID: cache._internal_unstable.id('User', 1)!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3678,10 +3690,12 @@ test('delete operation with non-string id', function () {
 	// make sure we removed the element from the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 
-	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:2'].deleted,
+	).toBeTruthy()
 })
 
-test('delete operation from list', function () {
+test('delete operation from list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3770,7 +3784,7 @@ test('delete operation from list', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3810,11 +3824,15 @@ test('delete operation from list', function () {
 	// make sure we removed the element from the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 
-	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
-	expect(cache._internal_unstable.storage.topLayer.operations['User:3'].deleted).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:2'].deleted,
+	).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:3'].deleted,
+	).toBeTruthy()
 })
 
-test('delete operation from connection', function () {
+test('delete operation from connection', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -3955,7 +3973,7 @@ test('delete operation from connection', function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -3994,10 +4012,12 @@ test('delete operation from connection', function () {
 
 	// make sure we removed the element from the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
-	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+	expect(
+		cache._internal_unstable.storage.topLayer.operations['User:2'].deleted,
+	).toBeTruthy()
 })
 
-test('disabled linked lists update', function () {
+test('disabled linked lists update', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -4069,9 +4089,13 @@ test('disabled linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
+			selection: {
+				fields: {
+					friends: selection.fields?.viewer.selection?.fields?.friends,
+				},
+			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({
 		friends: [
 			{
@@ -4109,9 +4133,13 @@ test('disabled linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
+			selection: {
+				fields: {
+					friends: selection.fields?.viewer.selection?.fields?.friends,
+				},
+			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({
 		friends: [
 			{
@@ -4126,7 +4154,7 @@ test('disabled linked lists update', function () {
 	})
 })
 
-test('append linked lists update', function () {
+test('append linked lists update', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -4198,9 +4226,13 @@ test('append linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
+			selection: {
+				fields: {
+					friends: selection.fields?.viewer.selection?.fields?.friends,
+				},
+			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({
 		friends: [
 			{
@@ -4239,9 +4271,13 @@ test('append linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { fields: { friends: selection.fields!.viewer.selection!.fields!.friends } },
+			selection: {
+				fields: {
+					friends: selection.fields?.viewer.selection?.fields?.friends,
+				},
+			},
 			parent: 'User:1',
-		}).data
+		}).data,
 	).toEqual({
 		friends: [
 			{
@@ -4264,7 +4300,7 @@ test('append linked lists update', function () {
 	})
 })
 
-test('writing a scalar marked with a disabled update overwrites', function () {
+test('writing a scalar marked with a disabled update overwrites', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -4341,7 +4377,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	})
 })
 
-test('writing a scalar marked with a prepend', function () {
+test('writing a scalar marked with a prepend', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -4419,7 +4455,7 @@ test('writing a scalar marked with a prepend', function () {
 	})
 })
 
-test('writing a scalar marked with an append', function () {
+test('writing a scalar marked with an append', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -4497,7 +4533,7 @@ test('writing a scalar marked with an append', function () {
 	})
 })
 
-test('list operations fail silently', function () {
+test('list operations fail silently', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -4534,11 +4570,11 @@ test('list operations fail silently', function () {
 					id: '3',
 				},
 			},
-		})
+		}),
 	).not.toThrow()
 })
 
-test('when conditions look for all matching lists', function () {
+test('when conditions look for all matching lists', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -4648,7 +4684,7 @@ test('when conditions look for all matching lists', function () {
 		},
 		{
 			var: 'world',
-		}
+		},
 	)
 	cache.subscribe(
 		{
@@ -4658,7 +4694,7 @@ test('when conditions look for all matching lists', function () {
 		},
 		{
 			var: 'hello',
-		}
+		},
 	)
 
 	// insert an element into the list (no parent ID)
@@ -4698,7 +4734,7 @@ test('when conditions look for all matching lists', function () {
 	})
 })
 
-test('parentID must be passed if there are multiple instances of a list handler', function () {
+test('parentID must be passed if there are multiple instances of a list handler', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -4773,7 +4809,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// subscribe to the connection with a different parentID
@@ -4784,7 +4820,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			parentID: cache._internal_unstable.id('User', '2')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// append a value to the store
@@ -4870,7 +4906,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 	expect([...cache.list('All_Users', '2')]).toHaveLength(0)
 })
 
-test('append in abstract list', function () {
+test('append in abstract list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -4991,7 +5027,7 @@ test('append in abstract list', function () {
 	})
 })
 
-test('list operations on interface fields without a well defined parent update the correct values in cache', function () {
+test('list operations on interface fields without a well defined parent update the correct values in cache', () => {
 	// they have to use __typename to compute the parentID because the list type is Node but the cached value is User:OOOOO// instantiate a cache
 	const cache = new Cache(config)
 
@@ -5179,7 +5215,7 @@ test('list operations on interface fields without a well defined parent update t
 	})
 })
 
-test("parentID ignores single lists that don't match", function () {
+test("parentID ignores single lists that don't match", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -5245,7 +5281,7 @@ test("parentID ignores single lists that don't match", function () {
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data to a different location with a new user
@@ -5290,7 +5326,7 @@ test("parentID ignores single lists that don't match", function () {
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
 })
 
-test('inserting in list at a specific layer affects just that layer', function () {
+test('inserting in list at a specific layer affects just that layer', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -5356,7 +5392,7 @@ test('inserting in list at a specific layer affects just that layer', function (
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data before the layer
@@ -5429,7 +5465,7 @@ test('inserting in list at a specific layer affects just that layer', function (
 		},
 	})
 
-	expect(layer.operations['User:1'].fields['friends']).toEqual([
+	expect(layer.operations['User:1'].fields.friends).toEqual([
 		{
 			id: 'User:3',
 			kind: 'insert',
@@ -5439,7 +5475,7 @@ test('inserting in list at a specific layer affects just that layer', function (
 	expect(layer.links['User:1']).not.toBeDefined()
 })
 
-test("two operations referencing the same list don't commit twice", function () {
+test("two operations referencing the same list don't commit twice", () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -5505,7 +5541,7 @@ test("two operations referencing the same list don't commit twice", function () 
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// subscribe to the data to register the list
@@ -5543,7 +5579,7 @@ test("two operations referencing the same list don't commit twice", function () 
 			parentID: cache._internal_unstable.id('User', '1')!,
 			set: vi.fn(),
 		},
-		{}
+		{},
 	)
 
 	// write some data with 2 operations

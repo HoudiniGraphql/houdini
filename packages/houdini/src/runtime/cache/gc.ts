@@ -25,7 +25,7 @@ export class GarbageCollector {
 		}
 
 		// set the count to 0
-		this.lifetimes.get(id)!.set(field, 0)
+		this.lifetimes.get(id)?.set(field, 0)
 	}
 
 	tick() {
@@ -37,7 +37,9 @@ export class GarbageCollector {
 		for (const [id, fieldMap] of this.lifetimes.entries()) {
 			for (const [field, lifetime] of fieldMap.entries()) {
 				// if there is an active subscriber for the field move on
-				if (this.cache._internal_unstable.subscriptions.get(id, field).length > 0) {
+				if (
+					this.cache._internal_unstable.subscriptions.get(id, field).length > 0
+				) {
 					continue
 				}
 
@@ -48,7 +50,8 @@ export class GarbageCollector {
 				fieldMap.set(field, lifetime + 1)
 
 				// if the lifetime is older than the maximum value, delete the value
-				if (fieldMap.get(field)! > this.cacheBufferSize) {
+				const fieldLifetime = fieldMap.get(field)
+				if (fieldLifetime && fieldLifetime > this.cacheBufferSize) {
 					this.cache._internal_unstable.storage.deleteField(id, field)
 					// if there is a list associated with this field, the handler needs to be deleted
 					this.cache._internal_unstable.lists.deleteField(id, field)

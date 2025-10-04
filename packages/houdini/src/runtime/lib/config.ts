@@ -31,15 +31,21 @@ export function defaultConfigValues(file: ConfigFile): ConfigFile {
 
 export function keyFieldsForType(configFile: ConfigFile, type: string) {
 	const withDefault = defaultConfigValues(configFile)
+	// biome-ignore lint/style/noNonNullAssertion: Default keys are guaranteed to exist after defaultConfigValues
 	return withDefault.types?.[type]?.keys || withDefault.defaultKeys!
 }
 
-export function computeID(configFile: ConfigFile, type: string, data: any): string {
+export function computeID(
+	configFile: ConfigFile,
+	type: string,
+	// biome-ignore lint/suspicious/noExplicitAny: ID computation can handle any data structure
+	data: any,
+): string {
 	const fields = keyFieldsForType(configFile, type)
 	let id = ''
 
 	for (const field of fields) {
-		id += data[field] + '__'
+		id += `${data[field]}__`
 	}
 
 	return id.slice(0, -2)
@@ -49,7 +55,7 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 let _configFile: ConfigFile | null = null
 
 export function localApiEndpoint(configFile: ConfigFile) {
-	// @ts-ignore
+	// @ts-expect-error
 	return configFile.router?.apiEndpoint ?? '/_api'
 }
 
@@ -222,6 +228,7 @@ export type ConfigFile = {
 			// the equivalent GraphQL type
 			type: string
 			// the function to call that serializes the type for the API
+			// biome-ignore lint/suspicious/noExplicitAny: Scalar resolution can return any type
 			resolve: (args: RuntimeScalarPayload) => any
 		}
 	>
@@ -255,6 +262,7 @@ export type TypeConfig = {
 		keys?: string[]
 		resolve?: {
 			queryField: string
+			// biome-ignore lint/suspicious/noExplicitAny: Resolver arguments can be any GraphQL type
 			arguments?: (data: any) => { [key: string]: any }
 		}
 	}
@@ -287,7 +295,10 @@ export type WatchSchemaConfig = {
 	 * logic you need
 	 */
 	headers?:
-		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
+		| Record<
+				string,
+				string | ((env: Record<string, string | undefined>) => string)
+		  >
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
 }
 
@@ -299,15 +310,17 @@ export type ScalarSpec = {
 	// the function to call that serializes the type for the API. If you are using this
 	// scalar as the input to a query through a route parameter, this function will receive
 	// the value as a string in addition to your complex value.
+	// biome-ignore lint/suspicious/noExplicitAny: Marshal functions can handle any scalar type
 	marshal?: (val: any) => any
 	// the function to call that turns the API's response into _ClientType
+	// biome-ignore lint/suspicious/noExplicitAny: Unmarshal functions can handle any scalar type
 	unmarshal?: (val: any) => any
 }
 
 // this type is meant to be extended by plugins to provide type definitions
 // for config
-export interface HoudiniPluginConfig {}
+export type HoudiniPluginConfig = Record<string, never>
 
 // this type is meant to be extended by client plugins to provide type definitions
 // for config
-export interface HoudiniClientPluginConfig {}
+export type HoudiniClientPluginConfig = Record<string, never>
