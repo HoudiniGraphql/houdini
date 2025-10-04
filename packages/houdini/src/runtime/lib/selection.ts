@@ -1,10 +1,10 @@
-import type { SubscriptionSelection } from "./types"
+import type { SubscriptionSelection } from './types'
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,
 	__typename: string | undefined | null,
 	loading: boolean,
-): Required<SubscriptionSelection>["fields"] {
+): Required<SubscriptionSelection>['fields'] {
 	// if we are loading, then we either have loading types or we return the base fields
 	if (loading) {
 		if (selection.loadingTypes && selection.loadingTypes.length > 0) {
@@ -52,7 +52,7 @@ function deepMerge(...objects: (Record<string, any> | undefined)[]) {
 			if (prop in obj) {
 				const val = obj[prop]
 
-				if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+				if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
 					mergedObj[prop] = deepMerge(
 						// biome-ignore lint/suspicious/noExplicitAny: Property merge needs to handle any object type
 						(mergedObj[prop] as Record<string, any>) || {},

@@ -10,9 +10,9 @@ export function deepEquals(objA: any, objB: any, map = new WeakMap()) {
 	}
 
 	if (
-		typeof objA !== "object" ||
+		typeof objA !== 'object' ||
 		objA === null ||
-		typeof objB !== "object" ||
+		typeof objB !== 'object' ||
 		objB === null
 	) {
 		return false

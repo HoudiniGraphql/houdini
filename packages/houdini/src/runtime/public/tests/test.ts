@@ -1,12 +1,12 @@
-import { Cache as _Cache } from "../../cache/cache"
+import { Cache as _Cache } from '../../cache/cache'
 import {
 	ArtifactKind,
 	type FragmentArtifact,
 	type QueryArtifact,
 	type SubscriptionSelection,
-} from "../../lib"
-import { Cache } from "../cache"
-import type { Record } from "../record"
+} from '../../lib'
+import { Cache } from '../cache'
+import type { Record } from '../record'
 
 // the type definition for our test cache
 export type CacheTypeDefTest = {
@@ -24,38 +24,38 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				viewer: {
-					type: Record<CacheTypeDefTest, "User"> | null
+					type: Record<CacheTypeDefTest, 'User'> | null
 					args: never
 				}
 				pets: {
 					type: (
-						| Record<CacheTypeDefTest, "Cat">
-						| Record<CacheTypeDefTest, "User">
+						| Record<CacheTypeDefTest, 'Cat'>
+						| Record<CacheTypeDefTest, 'User'>
 					)[]
 					args: never
 				}
 				listOfLists: {
 					type: (
 						| (
-								| Record<CacheTypeDefTest, "Cat">
-								| Record<CacheTypeDefTest, "User">
+								| Record<CacheTypeDefTest, 'Cat'>
+								| Record<CacheTypeDefTest, 'User'>
 								| null
-								| (null | Record<CacheTypeDefTest, "User">)[]
+								| (null | Record<CacheTypeDefTest, 'User'>)[]
 						  )[]
-						| Record<CacheTypeDefTest, "Cat">
-						| Record<CacheTypeDefTest, "User">
+						| Record<CacheTypeDefTest, 'Cat'>
+						| Record<CacheTypeDefTest, 'User'>
 						| null
 					)[]
 					args: never
 				}
 				users: {
-					type: Record<CacheTypeDefTest, "User">[] | null
+					type: Record<CacheTypeDefTest, 'User'>[] | null
 					args: never
 				}
 				pet: {
 					type:
-						| Record<CacheTypeDefTest, "Cat">
-						| Record<CacheTypeDefTest, "User">
+						| Record<CacheTypeDefTest, 'Cat'>
+						| Record<CacheTypeDefTest, 'User'>
 					args: never
 				}
 			}
@@ -77,7 +77,7 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				parent: {
-					type: Record<CacheTypeDefTest, "User">
+					type: Record<CacheTypeDefTest, 'User'>
 					args: never
 				}
 				id: {
@@ -101,7 +101,7 @@ export type CacheTypeDefTest = {
 					args: never
 				}
 				parent: {
-					type: Record<CacheTypeDefTest, "User"> | null
+					type: Record<CacheTypeDefTest, 'User'> | null
 					args: never
 				}
 				id: {
@@ -152,11 +152,11 @@ export type CacheTypeDefTest = {
 	]
 	lists: {
 		All_Pets: {
-			types: "User" | "Cat"
+			types: 'User' | 'Cat'
 			filters: never
 		}
 		All_Users: {
-			types: "User"
+			types: 'User'
 			filters: {
 				foo?: string
 			}
@@ -172,10 +172,10 @@ export const testFragment = (
 	artifact: {
 		stripVariables: [],
 		kind: ArtifactKind.Fragment,
-		hash: "",
-		raw: "",
-		name: "",
-		rootType: "User",
+		hash: '',
+		raw: '',
+		name: '',
+		rootType: 'User',
 		selection,
 		pluginData: {},
 	},
@@ -187,10 +187,10 @@ export const testQuery = (
 	artifact: {
 		stripVariables: [],
 		kind: ArtifactKind.Query,
-		hash: "",
-		raw: "",
-		name: "",
-		rootType: "Query",
+		hash: '',
+		raw: '',
+		name: '',
+		rootType: 'Query',
 		selection,
 		pluginData: {},
 	},

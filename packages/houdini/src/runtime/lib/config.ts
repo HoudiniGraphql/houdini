@@ -1,6 +1,6 @@
-import config from "../imports/config"
-import pluginConfigs from "../imports/pluginConfig"
-import type { CachePolicies, PaginateModes } from "./types"
+import config from '../imports/config'
+import pluginConfigs from '../imports/pluginConfig'
+import type { CachePolicies, PaginateModes } from './types'
 
 let mockConfig: ConfigFile | null = null
 
@@ -14,13 +14,13 @@ export function setMockConfig(config: ConfigFile | null) {
 
 export function defaultConfigValues(file: ConfigFile): ConfigFile {
 	return {
-		defaultKeys: ["id"],
+		defaultKeys: ['id'],
 		...file,
 		types: {
 			Node: {
-				keys: ["id"],
+				keys: ['id'],
 				resolve: {
-					queryField: "node",
+					queryField: 'node',
 					arguments: (node) => ({ id: node.id }),
 				},
 			},
@@ -42,7 +42,7 @@ export function computeID(
 	data: any,
 ): string {
 	const fields = keyFieldsForType(configFile, type)
-	let id = ""
+	let id = ''
 
 	for (const field of fields) {
 		id += `${data[field]}__`
@@ -56,7 +56,7 @@ let _configFile: ConfigFile | null = null
 
 export function localApiEndpoint(configFile: ConfigFile) {
 	// @ts-expect-error
-	return configFile.router?.apiEndpoint ?? "/_api"
+	return configFile.router?.apiEndpoint ?? '/_api'
 }
 
 export function localApiSessionKeys(configFile: ConfigFile) {
@@ -123,7 +123,7 @@ export type ConfigFile = {
 	/**
 	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: `esm`)
 	 */
-	module?: "esm" | "commonjs"
+	module?: 'esm' | 'commonjs'
 
 	/**
 	 * The number of queries that must occur before a value is removed from the cache. For more information: https://www.houdinigraphql.com/guides/caching-data
@@ -148,12 +148,12 @@ export type ConfigFile = {
 	/**
 	 * Specifies whether mutations should append or prepend list. For more information: https://www.houdinigraphql.com/api/graphql (default: `append`)
 	 */
-	defaultListPosition?: "append" | "prepend"
+	defaultListPosition?: 'append' | 'prepend'
 
 	/**
 	 * Specifies whether mutation should apply a specific target list. When you set `all`, it's like adding the directive `@allLists` to all _insert fragment (default: `null`)
 	 */
-	defaultListTarget?: "all" | null
+	defaultListTarget?: 'all' | null
 
 	/**
 	 * Specifies whether the default paginate mode is Infinite or SinglePage. (default: `Infinite`)
@@ -185,7 +185,7 @@ export type ConfigFile = {
 	 * A flag to specify the default fragment masking behavior.
 	 * @default `enable`
 	 */
-	defaultFragmentMasking?: "enable" | "disable"
+	defaultFragmentMasking?: 'enable' | 'disable'
 
 	/**
 	 * Configure the dev environment to watch a remote schema for changes
@@ -306,7 +306,7 @@ export type ScalarSpec = {
 	// the type to use at runtime
 	type: string
 	// the types that should be considered valid input types
-	inputTypes?: Array<"Int" | "Float" | "String" | "Boolean" | "ID">
+	inputTypes?: Array<'Int' | 'Float' | 'String' | 'Boolean' | 'ID'>
 	// the function to call that serializes the type for the API. If you are using this
 	// scalar as the input to a query through a route parameter, this function will receive
 	// the value as a string in addition to your complex value.

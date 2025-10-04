@@ -1,9 +1,9 @@
-import type { Dirent } from "node:fs"
-import fs from "node:fs/promises"
-import { promisify } from "node:util"
-import fsExtra from "fs-extra"
-import { glob as G } from "glob"
-import { fs as memfs, vol } from "memfs"
+import type { Dirent } from 'node:fs'
+import fs from 'node:fs/promises'
+import { promisify } from 'node:util'
+import fsExtra from 'fs-extra'
+import { glob as G } from 'glob'
+import { fs as memfs, vol } from 'memfs'
 
 import { houdini_mode } from './constants.js'
 import * as path from './path.js'
@@ -11,7 +11,7 @@ import * as path from './path.js'
 export function copyFileSync(src: string, dest: string): undefined | null {
 	if (houdini_mode.is_testing) {
 		try {
-			if (src.includes("build/runtime") || dest.includes("build/runtime")) {
+			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
 				fsExtra.copyFileSync(src, dest)
 				return
 			}
@@ -36,7 +36,7 @@ export async function copyFile(
 ): Promise<undefined | null> {
 	if (houdini_mode.is_testing) {
 		try {
-			if (src.includes("build/runtime") || dest.includes("build/runtime")) {
+			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
 				await fs.copyFile(src, dest)
 				return
 			}
@@ -63,18 +63,18 @@ export async function readFile(
 ): Promise<string | null> {
 	if (houdini_mode.is_testing) {
 		try {
-			if (filepath.includes("build/runtime")) {
-				return await fs.readFile(filepath, encoding ?? "utf-8")
+			if (filepath.includes('build/runtime')) {
+				return await fs.readFile(filepath, encoding ?? 'utf-8')
 			}
 
-			return memfs.readFileSync(filepath, encoding ?? "utf-8")?.toString()
+			return memfs.readFileSync(filepath, encoding ?? 'utf-8')?.toString()
 		} catch (_e) {
 			return null
 		}
 	}
 
 	try {
-		return await fs.readFile(filepath, "utf8")
+		return await fs.readFile(filepath, 'utf8')
 	} catch (_error) {}
 
 	return null
@@ -83,18 +83,18 @@ export async function readFile(
 export function readFileSync(filepath: string): string | null {
 	if (houdini_mode.is_testing) {
 		try {
-			if (filepath.includes("build/runtime")) {
-				return fsExtra.readFileSync(filepath, "utf-8")
+			if (filepath.includes('build/runtime')) {
+				return fsExtra.readFileSync(filepath, 'utf-8')
 			}
 
-			return memfs.readFileSync(filepath, "utf-8")?.toString()
+			return memfs.readFileSync(filepath, 'utf-8')?.toString()
 		} catch (_e) {
 			return null
 		}
 	}
 
 	try {
-		return fsExtra.readFileSync(filepath, "utf-8")
+		return fsExtra.readFileSync(filepath, 'utf-8')
 	} catch (_error) {}
 
 	return null
@@ -112,7 +112,7 @@ export async function writeFile(filepath: string, data: string) {
 		return memfs.writeFileSync(filepath, data)
 	}
 
-	return await fs.writeFile(filepath, data, "utf8")
+	return await fs.writeFile(filepath, data, 'utf8')
 }
 
 export async function access(filepath: string) {
@@ -121,7 +121,7 @@ export async function access(filepath: string) {
 		return await fs.access(filepath)
 	}
 
-	if (filepath.includes("build/runtime")) {
+	if (filepath.includes('build/runtime')) {
 		return await fs.access(filepath)
 	}
 
@@ -175,7 +175,7 @@ export async function stat(filepath: string) {
 	}
 
 	// if the filepath points to a built package, use the real filesystem
-	if (filepath.includes("build/runtime")) {
+	if (filepath.includes('build/runtime')) {
 		return await fs.stat(filepath)
 	}
 
@@ -214,7 +214,7 @@ export async function readdir(
 		return await fs.readdir(filepath, opts)
 	}
 
-	if (filepath.includes("build/runtime")) {
+	if (filepath.includes('build/runtime')) {
 		// @ts-expect-error
 		return await fs.readdir(filepath, opts)
 	}
@@ -240,14 +240,14 @@ type MockFilesystem = { [key: string]: string | MockFilesystem }
 
 export async function mock(
 	target: MockFilesystem[string],
-	filepath: string = "",
+	filepath: string = '',
 ) {
 	// assuming mock is always called with an object, process every key
 	await Promise.all(
 		Object.entries(target).map(async ([key, value]) => {
 			const childPath = path.join(filepath, key)
 			// if our value is a string, we need to write the contents
-			if (typeof value === "string") {
+			if (typeof value === 'string') {
 				await writeFile(childPath, value)
 			} else {
 				// the key is the new directory name
@@ -271,7 +271,7 @@ export async function recursiveCopy(
 	let parentDir = path.join(target, path.basename(source))
 	// if we are at the root, then go up one
 	if (!notRoot) {
-		parentDir = path.join(parentDir, "..")
+		parentDir = path.join(parentDir, '..')
 	}
 	try {
 		await access(parentDir)
@@ -298,7 +298,7 @@ export async function recursiveCopy(
 
 					// if we have a transform, read the file and then write it
 					if (transforms?.[childPath]) {
-						const original = (await readFile(childPath)) || ""
+						const original = (await readFile(childPath)) || ''
 						await writeFile(
 							targetPath,
 							await transforms[childPath](original, childPath),

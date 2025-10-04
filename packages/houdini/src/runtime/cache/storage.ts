@@ -1,5 +1,5 @@
-import { flatten } from "../lib/flatten"
-import type { GraphQLValue } from "../lib/types"
+import { flatten } from '../lib/flatten'
+import type { GraphQLValue } from '../lib/types'
 
 // NOTE: the current implementation of delete is slow. it should try to compare the
 // type of the id being deleted with the type contained in the linked list so that
@@ -85,7 +85,7 @@ export class InMemoryStorage {
 		defaultValue?: unknown,
 	): {
 		value: GraphQLField
-		kind: "link" | "scalar" | "unknown"
+		kind: 'link' | 'scalar' | 'unknown'
 		displayLayers: number[]
 	} {
 		// the list of operations for the field
@@ -126,14 +126,14 @@ export class InMemoryStorage {
 				})
 
 				// if we don't have a value to return, we're done
-				if (typeof layerValue === "undefined" && defaultValue) {
+				if (typeof layerValue === 'undefined' && defaultValue) {
 					const targetLayer = this.topLayer
 					targetLayer.writeField(id, field, defaultValue)
 					layerValue = defaultValue
 				}
 
 				// if the layer does not contain a value for the field, move on
-				if (typeof layerValue === "undefined" && layerOperations.length === 0) {
+				if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
 					if (layer.deletedIDs.size > 0) {
 						layerIDs.push(layer.id)
 					}
@@ -142,7 +142,7 @@ export class InMemoryStorage {
 
 				// if the result isn't an array we can just use the value since we can't
 				// apply operations to the field
-				if (typeof layerValue !== "undefined" && !Array.isArray(layerValue)) {
+				if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
 					return {
 						value: layerValue,
 						kind,
@@ -174,7 +174,7 @@ export class InMemoryStorage {
 						if (isDeleteOperation(op)) {
 							return {
 								value: undefined,
-								kind: "unknown",
+								kind: 'unknown',
 								displayLayers: [],
 							}
 						}
@@ -182,7 +182,7 @@ export class InMemoryStorage {
 				}
 
 				// if we don't have a value to return, we're done
-				if (typeof layerValue === "undefined") {
+				if (typeof layerValue === 'undefined') {
 					continue
 				}
 
@@ -192,7 +192,7 @@ export class InMemoryStorage {
 					!operations.insert.start.length &&
 					!operations.insert.end.length
 				) {
-					return { value: layerValue, displayLayers: layerIDs, kind: "link" }
+					return { value: layerValue, displayLayers: layerIDs, kind: 'link' }
 				}
 
 				// we have operations to apply to the list
@@ -210,7 +210,7 @@ export class InMemoryStorage {
 
 		return {
 			value: undefined,
-			kind: "unknown",
+			kind: 'unknown',
 			displayLayers: [],
 		}
 	}
@@ -312,7 +312,7 @@ export class InMemoryStorage {
 					id,
 					Object.fromEntries(
 						Object.entries(fieldMap).filter(
-							([_, value]) => typeof value !== "function",
+							([_, value]) => typeof value !== 'function',
 						),
 					),
 				]),
@@ -361,14 +361,14 @@ export class Layer {
 		this.id = id
 	}
 
-	get(id: string, field: string): [GraphQLField, "link" | "scalar"] {
+	get(id: string, field: string): [GraphQLField, 'link' | 'scalar'] {
 		// if its a link return the value
-		if (typeof this.links[id]?.[field] !== "undefined") {
-			return [this.links[id][field], "link"]
+		if (typeof this.links[id]?.[field] !== 'undefined') {
+			return [this.links[id][field], 'link']
 		}
 
 		// only other option is a value
-		return [this.fields[id]?.[field], "scalar"]
+		return [this.fields[id]?.[field], 'scalar']
 	}
 
 	getOperations(id: string, field: string): Operation[] | undefined {
@@ -426,7 +426,7 @@ export class Layer {
 			} else if (value && fieldOperations?.length > 0) {
 				// if we have a field operation to remove the list, undo the operation
 				this.operations[id].fields[field] = fieldOperations.filter(
-					(op) => op.kind !== "remove" || op.id !== value,
+					(op) => op.kind !== 'remove' || op.id !== value,
 				)
 			}
 		}
@@ -469,7 +469,7 @@ export class Layer {
 		// any field that's marked as undefined needs to be deleted
 		for (const [id, fields] of Object.entries(this.fields)) {
 			for (const [field, value] of Object.entries(fields)) {
-				if (typeof value === "undefined") {
+				if (typeof value === 'undefined') {
 					try {
 						delete this.fields[id][field]
 					} catch {}
@@ -540,7 +540,7 @@ export class Layer {
 		// we have to apply operations before we move fields so we can clean up existing
 		// data if we have a delete before we copy over the values
 		for (const [id, ops] of Object.entries(layer.operations)) {
-			const fields: OperationMap["fieldName"]["fields"] = {}
+			const fields: OperationMap['fieldName']['fields'] = {}
 
 			// merge the two operation maps
 			for (const opMap of [layer.operations[id], this.operations[id]].filter(
@@ -633,18 +633,18 @@ type OperationMap = {
 type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
 
 type InsertOperation = {
-	kind: "insert"
+	kind: 'insert'
 	location: OperationLocations
 	id: string
 }
 
 type RemoveOperation = {
-	kind: "remove"
+	kind: 'remove'
 	id: string
 }
 
 type DeleteOperation = {
-	kind: "delete"
+	kind: 'delete'
 	target: string
 }
 
@@ -673,16 +673,16 @@ type Operation = ListOperation | DeleteOperation
 type ValuesOf<Target> = Target[keyof Target]
 
 export const OperationLocation = {
-	start: "start",
-	end: "end",
+	start: 'start',
+	end: 'end',
 } as const
 
 export type OperationLocations = ValuesOf<typeof OperationLocation>
 
 export const OperationKind = {
-	delete: "delete",
-	insert: "insert",
-	remove: "remove",
+	delete: 'delete',
+	insert: 'insert',
+	remove: 'remove',
 } as const
 
 export type OperationKinds = ValuesOf<typeof OperationKind>

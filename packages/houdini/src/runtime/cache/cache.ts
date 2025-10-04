@@ -1,14 +1,14 @@
-import { computeKey, PendingValue } from "../lib"
-import type { ConfigFile } from "../lib/config"
+import { computeKey, PendingValue } from '../lib'
+import type { ConfigFile } from '../lib/config'
 import {
 	computeID,
 	defaultConfigValues,
 	getCurrentConfig,
 	keyFieldsForType,
-} from "../lib/config"
-import { deepEquals } from "../lib/deepEquals"
-import { flatten } from "../lib/flatten"
-import { getFieldsForType } from "../lib/selection"
+} from '../lib/config'
+import { deepEquals } from '../lib/deepEquals'
+import { flatten } from '../lib/flatten'
+import { getFieldsForType } from '../lib/selection'
 import type {
 	GraphQLObject,
 	GraphQLValue,
@@ -17,16 +17,16 @@ import type {
 	SubscriptionSpec,
 	ValueMap,
 	ValueNode,
-} from "../lib/types"
-import { fragmentKey } from "../lib/types"
-import { GarbageCollector } from "./gc"
-import type { ListCollection } from "./lists"
-import { ListManager } from "./lists"
-import { StaleManager } from "./staleManager"
-import type { Layer, LayerID } from "./storage"
-import { InMemoryStorage } from "./storage"
-import { evaluateKey, rootID } from "./stuff"
-import { type FieldSelection, InMemorySubscriptions } from "./subscription"
+} from '../lib/types'
+import { fragmentKey } from '../lib/types'
+import { GarbageCollector } from './gc'
+import type { ListCollection } from './lists'
+import { ListManager } from './lists'
+import { StaleManager } from './staleManager'
+import type { Layer, LayerID } from './storage'
+import { InMemoryStorage } from './storage'
+import { evaluateKey, rootID } from './stuff'
+import { type FieldSelection, InMemorySubscriptions } from './subscription'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -51,7 +51,7 @@ export class Cache {
 			lists: new ListManager(this, rootID),
 			lifetimes: new GarbageCollector(this),
 			staleManager: new StaleManager(this),
-			disabled: disabled ?? typeof globalThis.window === "undefined",
+			disabled: disabled ?? typeof globalThis.window === 'undefined',
 			componentCache,
 			createComponent,
 		})
@@ -95,7 +95,7 @@ export class Cache {
 	}
 
 	// reconstruct an object with the fields/relations specified by a selection
-	read(...args: Parameters<CacheInternal["getSelection"]>) {
+	read(...args: Parameters<CacheInternal['getSelection']>) {
 		const { data, partial, stale, hasData } =
 			this._internal_unstable.getSelection(...args)
 
@@ -152,7 +152,7 @@ export class Cache {
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
-					parentID ? ` under parent ${parentID}` : ""
+					parentID ? ` under parent ${parentID}` : ''
 				}. Is it possible that the query is not mounted?`,
 			)
 		}
@@ -233,11 +233,11 @@ export class Cache {
 		return this._internal_unstable.storage.serialize()
 	}
 
-	hydrate(...args: Parameters<InMemoryStorage["hydrate"]>) {
+	hydrate(...args: Parameters<InMemoryStorage['hydrate']>) {
 		return this._internal_unstable.storage.hydrate(...args)
 	}
 
-	clearLayer(layerID: Layer["id"]) {
+	clearLayer(layerID: Layer['id']) {
 		// before we clear the layer we need to look at every field/link and see if it is
 		// the display layer. If it is the display layer than we need to notify
 		// any subscribers if the value changed after we are done clearing the layer
@@ -318,7 +318,7 @@ export class Cache {
 			// always notify changes from list operations. only silence changes that
 			// are specific values who didn't actually change.
 			const notify =
-				!("value" in display) ||
+				!('value' in display) ||
 				this._internal_unstable.storage.get(id, field).value !== display.value
 
 			// if the value changed then we need to notify the subscribers
@@ -362,7 +362,7 @@ export class Cache {
 		}
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
-		const notified: SubscriptionSpec["set"][] = []
+		const notified: SubscriptionSpec['set'][] = []
 		for (const spec of subs) {
 			// if we haven't added the set yet
 			if (!notified.includes(spec.set)) {
@@ -438,7 +438,7 @@ class CacheInternal {
 		// the cache should always be disabled on the server, unless we're testing
 		this.disabled = disabled
 		try {
-			if (process.env.HOUDINI_TEST === "true") {
+			if (process.env.HOUDINI_TEST === 'true') {
 				this.disabled = false
 			}
 		} catch {
@@ -513,8 +513,8 @@ class CacheInternal {
 			// if there is a __typename field, then we should use that as the type
 			if (
 				value &&
-				typeof value === "object" &&
-				"__typename" in value &&
+				typeof value === 'object' &&
+				'__typename' in value &&
 				value.__typename
 			) {
 				linkedType = value.__typename as string
@@ -562,12 +562,12 @@ class CacheInternal {
 						}
 
 						// if we have to prepend the new value on the old one
-						if (update === "append") {
+						if (update === 'append') {
 							// biome-ignore lint/suspicious/noExplicitAny: Array concatenation needs to handle any array type
 							newValue = ((previousValue as any[]) || []).concat(value)
 						}
 						// we might have to prepend our value onto the old one
-						else if (update === "prepend") {
+						else if (update === 'prepend') {
 							newValue = value.concat(previousValue || [])
 						}
 					}
@@ -580,8 +580,8 @@ class CacheInternal {
 				// in a prepend update we want to use the old values for endCursor and hasNextPage
 				if (
 					updates &&
-					applyUpdates?.includes("prepend") &&
-					["endCursor", "hasNextPage"].includes(key)
+					applyUpdates?.includes('prepend') &&
+					['endCursor', 'hasNextPage'].includes(key)
 				) {
 					newValue = previousValue
 				}
@@ -589,8 +589,8 @@ class CacheInternal {
 				// in an append update we want to use the old values for startCursor and hasPreviousPage
 				else if (
 					updates &&
-					applyUpdates?.includes("append") &&
-					["startCursor", "hasPreviousPage"].includes(key)
+					applyUpdates?.includes('append') &&
+					['startCursor', 'hasPreviousPage'].includes(key)
 				) {
 					newValue = previousValue
 				}
@@ -636,7 +636,7 @@ class CacheInternal {
 					// make sure we have a __typename field
 					if (!value.__typename) {
 						throw new Error(
-							"Encountered interface type without __typename in the payload",
+							'Encountered interface type without __typename in the payload',
 						)
 					}
 				}
@@ -658,7 +658,7 @@ class CacheInternal {
 				if (linkedID && displayLayer && (linkChange || forceNotify)) {
 					// we need to clear the subscriptions in the previous link
 					// and add them to the new link
-					if (previousValue && typeof previousValue === "string") {
+					if (previousValue && typeof previousValue === 'string') {
 						this.subscriptions.remove(
 							previousValue,
 							fieldSelection,
@@ -697,7 +697,7 @@ class CacheInternal {
 			else if (
 				Array.isArray(value) &&
 				// make typescript happy
-				(typeof previousValue === "undefined" ||
+				(typeof previousValue === 'undefined' ||
 					previousValue === null ||
 					Array.isArray(previousValue))
 			) {
@@ -713,21 +713,21 @@ class CacheInternal {
 					? []
 					: oldIDs.map((id) => {
 							if (!id) {
-								return ""
+								return ''
 							}
 
 							// look up the edge record
-							const { value: cursorField } = this.storage.get(id, "cursor")
+							const { value: cursorField } = this.storage.get(id, 'cursor')
 							// if there is a value for the cursor, it needs to remain
 							if (cursorField) {
-								return ""
+								return ''
 							}
 
 							// look up the node reference
-							const { value: node } = this.storage.get(id, "node")
+							const { value: node } = this.storage.get(id, 'node')
 							// if there one, keep the edge
 							if (!node) {
-								return ""
+								return ''
 							}
 
 							// there is no cursor so the edge is empty
@@ -769,7 +769,7 @@ class CacheInternal {
 				if (applyUpdates && updates) {
 					// if we are updating the edges field, we might need to do a little more than just
 					// append/prepend to the field value. we might need to wrap the values in extra references
-					if (key === "edges") {
+					if (key === 'edges') {
 						// build up a list of the ids found in the new list
 						const newNodeIDs: string[] = []
 						for (const id of newIDs) {
@@ -778,14 +778,14 @@ class CacheInternal {
 							}
 
 							// look up the lined node record
-							const { value: node } = this.storage.get(id, "node")
+							const { value: node } = this.storage.get(id, 'node')
 							// node should be a reference
-							if (typeof node !== "string") {
+							if (typeof node !== 'string') {
 								continue
 							}
 
 							// if we dont have type information or a valid reference
-							if (!node || !this.storage.get(node, "__typename")) {
+							if (!node || !this.storage.get(node, '__typename')) {
 								continue
 							}
 
@@ -799,7 +799,7 @@ class CacheInternal {
 							}
 
 							// look up the node reference
-							const { value } = this.storage.get(id, "node")
+							const { value } = this.storage.get(id, 'node')
 							const node = value as string
 							// if the id is being adding and is part of the empty edges, don't include it
 							if (newNodeIDs.includes(node) && emptyEdges.includes(node)) {
@@ -814,38 +814,38 @@ class CacheInternal {
 					// look every update we were told to apply
 					for (const update of applyUpdates) {
 						// make sure the field accepts the update we're about to check
-						if (update !== "replace" && !updates.includes(update)) {
+						if (update !== 'replace' && !updates.includes(update)) {
 							continue
 						}
 
 						// if we have to prepend it, do so
-						if (update === "prepend") {
+						if (update === 'prepend') {
 							linkedIDs = newIDs.concat(oldIDs as (string | null)[])
 							if (layer?.optimistic) {
 								action = () => {
 									for (const id of newIDs) {
 										if (id) {
-											layer.insert(parent, key, "start", id)
+											layer.insert(parent, key, 'start', id)
 										}
 									}
 								}
 							}
 						}
 						// otherwise we might have to append it
-						else if (update === "append") {
+						else if (update === 'append') {
 							linkedIDs = oldIDs.concat(newIDs)
 							if (layer?.optimistic) {
 								action = () => {
 									for (const id of newIDs) {
 										if (id) {
-											layer.insert(parent, key, "end", id)
+											layer.insert(parent, key, 'end', id)
 										}
 									}
 								}
 							}
 						}
 						// if the update is a replace do the right thing
-						else if (update === "replace") {
+						else if (update === 'replace') {
 							linkedIDs = newIDs
 						}
 					}
@@ -909,12 +909,12 @@ class CacheInternal {
 				let parentID: string | undefined
 				if (operation.parentID) {
 					// if its a normal scalar we can use the value directly
-					if (operation.parentID.kind !== "Variable") {
+					if (operation.parentID.kind !== 'Variable') {
 						parentID = operation.parentID.value
 					} else {
 						const id = variables[operation.parentID.value]
-						if (typeof id !== "string") {
-							throw new Error("parentID value must be a string")
+						if (typeof id !== 'string') {
+							throw new Error('parentID value must be a string')
 						}
 
 						parentID = id
@@ -924,7 +924,7 @@ class CacheInternal {
 				// if the necessary list doesn't exist, don't do anything
 				if (
 					operation.list &&
-					!this.lists.get(operation.list, parentID, operation.target === "all")
+					!this.lists.get(operation.list, parentID, operation.target === 'all')
 				) {
 					continue
 				}
@@ -934,7 +934,7 @@ class CacheInternal {
 				for (const target of targets) {
 					// insert an object into a list
 					if (
-						operation.action === "insert" &&
+						operation.action === 'insert' &&
 						target instanceof Object &&
 						fieldSelection &&
 						operation.list
@@ -943,7 +943,7 @@ class CacheInternal {
 							.list(
 								operation.list,
 								parentID,
-								operation.target === "all",
+								operation.target === 'all',
 								processedOperations,
 							)
 							.when(operation.when)
@@ -951,14 +951,14 @@ class CacheInternal {
 								fieldSelection,
 								target,
 								variables,
-								operation.position || "last",
+								operation.position || 'last',
 								layer,
 							)
 					}
 
 					// the toggle operation
 					else if (
-						operation.action === "toggle" &&
+						operation.action === 'toggle' &&
 						target instanceof Object &&
 						fieldSelection &&
 						operation.list
@@ -967,7 +967,7 @@ class CacheInternal {
 							.list(
 								operation.list,
 								parentID,
-								operation.target === "all",
+								operation.target === 'all',
 								processedOperations,
 							)
 							.when(operation.when)
@@ -975,14 +975,14 @@ class CacheInternal {
 								selection: fieldSelection,
 								data: target,
 								variables,
-								where: operation.position || "last",
+								where: operation.position || 'last',
 								layer,
 							})
 					}
 
 					// remove object from list
 					else if (
-						operation.action === "remove" &&
+						operation.action === 'remove' &&
 						target instanceof Object &&
 						fieldSelection &&
 						operation.list
@@ -991,7 +991,7 @@ class CacheInternal {
 							.list(
 								operation.list,
 								parentID,
-								operation.target === "all",
+								operation.target === 'all',
 								processedOperations,
 							)
 							.when(operation.when)
@@ -999,7 +999,7 @@ class CacheInternal {
 					}
 
 					// delete the target
-					else if (operation.action === "delete" && operation.type && target) {
+					else if (operation.action === 'delete' && operation.type && target) {
 						const targetID = this.id(operation.type, target)
 						if (!targetID) {
 							continue
@@ -1020,7 +1020,7 @@ class CacheInternal {
 					const matchingLists = this.cache.list(
 						operation.list,
 						parentID,
-						operation.target === "all",
+						operation.target === 'all',
 					)
 					for (const list of matchingLists.lists) {
 						processedOperations.add(list.fieldRef)
@@ -1096,7 +1096,7 @@ class CacheInternal {
 		let stale = false
 
 		// if we have abstract fields, grab the __typename and include them in the list
-		const typename = this.storage.get(parent, "__typename").value as string
+		const typename = this.storage.get(parent, '__typename').value as string
 		// collect all of the fields that we need to write
 		const targetSelection = getFieldsForType(
 			selection,
@@ -1128,7 +1128,7 @@ class CacheInternal {
 			// some directives like @skip and @include prevent the value from being in the
 			// selection
 			const includeDirective = directives?.find((d) => {
-				return d.name === "include"
+				return d.name === 'include'
 			})
 			if (includeDirective) {
 				// if the `if` argument evaluates to false, skip the field
@@ -1139,7 +1139,7 @@ class CacheInternal {
 				}
 			}
 			const skipDirective = directives?.find((d) => {
-				return d.name === "skip"
+				return d.name === 'skip'
 			})
 			if (skipDirective) {
 				// if the `if` argument evaluates to false, skip the field
@@ -1207,15 +1207,15 @@ class CacheInternal {
 			// if we run into a null cursor that is inside of a connection then
 			// we know its a generated value and should not force us to mark the whole parent as
 			// null (prevent the null cascade) or be treated as partial data
-			const embeddedCursor = key === "cursor" && stepsFromConnection === 1
+			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
 
 			// if we dont have a value, we know this result is going to be partial
-			if (typeof value === "undefined" && !embeddedCursor) {
+			if (typeof value === 'undefined' && !embeddedCursor) {
 				partial = true
 			}
 
 			// if we are generating a loading state and we're supposed to stop here, do so
-			if (generateLoading && fieldLoading?.kind === "value") {
+			if (generateLoading && fieldLoading?.kind === 'value') {
 				// @ts-expect-error: we're violating the contract knowingly
 				fieldTarget[attributeName] = PendingValue
 				hasData = true
@@ -1229,14 +1229,14 @@ class CacheInternal {
 			// we force all loading values to be undefined a few lines above so we never overwrite
 			// the pending value here.
 			else if (
-				(!generateLoading && typeof value === "undefined") ||
+				(!generateLoading && typeof value === 'undefined') ||
 				value === null
 			) {
 				// set the value to null
 				fieldTarget[attributeName] = null
 
 				// if we didn't just write undefined, there is officially some data in this object
-				if (typeof value !== "undefined") {
+				if (typeof value !== 'undefined') {
 					hasData = true
 				}
 			}
@@ -1371,7 +1371,7 @@ class CacheInternal {
 	// biome-ignore lint/suspicious/noExplicitAny: ID computation needs to handle any data structure
 	id(type: string, data: any): string | null {
 		// try to compute the id of the record
-		const id = typeof data === "object" ? this.computeID(type, data) : data
+		const id = typeof data === 'object' ? this.computeID(type, data) : data
 		if (!id) {
 			return null
 		}
@@ -1399,7 +1399,7 @@ class CacheInternal {
 		const idFields = this.idFields(linkedType)
 		return (
 			idFields.length === 0 ||
-			idFields.filter((field) => typeof value[field] === "undefined").length > 0
+			idFields.filter((field) => typeof value[field] === 'undefined').length > 0
 		)
 	}
 
@@ -1567,7 +1567,7 @@ class CacheInternal {
 				continue
 			}
 			// if the value is null just use that
-			if (entry === null || typeof entry === "undefined") {
+			if (entry === null || typeof entry === 'undefined') {
 				newIDs.push(null)
 				nestedIDs[i] = null
 				continue
@@ -1587,7 +1587,7 @@ class CacheInternal {
 				// make sure we have a __typename field if we have an abstract value
 			} else if (abstract) {
 				throw new Error(
-					"Encountered interface type without __typename in the payload",
+					'Encountered interface type without __typename in the payload',
 				)
 			}
 
@@ -1652,32 +1652,32 @@ export function variableValue(
 	value: ValueNode,
 	args: GraphQLObject,
 ): GraphQLValue {
-	if (value.kind === "StringValue") {
+	if (value.kind === 'StringValue') {
 		return value.value
 	}
-	if (value.kind === "BooleanValue") {
+	if (value.kind === 'BooleanValue') {
 		return value.value
 	}
-	if (value.kind === "EnumValue") {
+	if (value.kind === 'EnumValue') {
 		return value.value
 	}
-	if (value.kind === "FloatValue") {
+	if (value.kind === 'FloatValue') {
 		return parseFloat(value.value)
 	}
-	if (value.kind === "IntValue") {
+	if (value.kind === 'IntValue') {
 		return parseInt(value.value, 10)
 	}
-	if (value.kind === "NullValue") {
+	if (value.kind === 'NullValue') {
 		return null
 	}
-	if (value.kind === "Variable") {
+	if (value.kind === 'Variable') {
 		return args[value.name.value]
 	}
-	if (value.kind === "ListValue") {
+	if (value.kind === 'ListValue') {
 		return value.values.map((value) => variableValue(value, args))
 	}
 
-	if (value.kind === "ObjectValue") {
+	if (value.kind === 'ObjectValue') {
 		const result: Record<string, unknown> = {}
 		for (const field of value.fields) {
 			result[field.name.value] = variableValue(field.value, args)
@@ -1709,8 +1709,8 @@ export function defaultComponentField({
 }: {
 	cache: Cache
 	component: Required<
-		Required<SubscriptionSelection>["fields"][string]
-	>["component"]
+		Required<SubscriptionSelection>['fields'][string]
+	>['component']
 	loading?: boolean
 	variables: Record<string, GraphQLValue> | undefined | null
 	parent: string

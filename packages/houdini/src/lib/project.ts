@@ -1,7 +1,7 @@
-import { pathToFileURL } from "node:url"
-import { mergeSchemas } from "@graphql-tools/schema"
-import type { GraphQLSchema } from "graphql"
-import * as graphql from "graphql"
+import { pathToFileURL } from 'node:url'
+import { mergeSchemas } from '@graphql-tools/schema'
+import type { GraphQLSchema } from 'graphql'
+import * as graphql from 'graphql'
 
 import type { ConfigFile } from '../runtime/lib/config'
 import { houdini_root, local_api_dir } from './conventions.js'
@@ -10,7 +10,7 @@ import * as fs from './fs.js'
 import * as path from './path.js'
 import { plugin_path } from './plugins.js'
 
-export type { ConfigFile } from "../runtime/lib/config"
+export type { ConfigFile } from '../runtime/lib/config'
 
 export type PluginMeta = {
 	name: string
@@ -19,14 +19,14 @@ export type PluginMeta = {
 }
 
 export const default_config: ConfigFile = {
-	schemaPath: ".houdini/schema.graphql",
-	include: ["src/**/*"],
-	runtimeDir: ".houdini",
+	schemaPath: '.houdini/schema.graphql',
+	include: ['src/**/*'],
+	runtimeDir: '.houdini',
 	cacheBufferSize: 10,
-	defaultKeys: ["id"],
-	defaultPaginateMode: "Infinite",
-	defaultFragmentMasking: "enable",
-	defaultCachePolicy: "CacheOrNetwork",
+	defaultKeys: ['id'],
+	defaultPaginateMode: 'Infinite',
+	defaultFragmentMasking: 'enable',
+	defaultCachePolicy: 'CacheOrNetwork',
 }
 
 // we need to include some extra meta data along with the config file
@@ -53,14 +53,14 @@ export class Config {
 
 	schema_path() {
 		return (
-			this.config_file.schemaPath ?? path.resolve(process.cwd(), "schema.json")
+			this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 		)
 	}
 
 	async api_url() {
 		const apiURL = this.config_file.watchSchema?.url
 		if (!apiURL) {
-			return ""
+			return ''
 		}
 
 		return this.process_env_values(process.env, apiURL)
@@ -71,7 +71,7 @@ export class Config {
 
 		// if the whole thing is a function, just call it
 		const config_headers = this.config_file.watchSchema?.headers
-		if (typeof config_headers === "function") {
+		if (typeof config_headers === 'function') {
 			return config_headers(env)
 		}
 
@@ -100,10 +100,10 @@ export class Config {
 		value: string | ((env: Record<string, string | undefined>) => string),
 	) {
 		let headerValue: string
-		if (typeof value === "function") {
+		if (typeof value === 'function') {
 			headerValue = value(env)
-		} else if (value.startsWith("env:")) {
-			headerValue = env[value.slice("env:".length)]
+		} else if (value.startsWith('env:')) {
+			headerValue = env[value.slice('env:'.length)]
 		} else {
 			headerValue = value
 		}
@@ -127,7 +127,7 @@ export async function get_config({
 	config_path?: string
 	force_reload?: boolean
 } = {}): Promise<Config> {
-	let config_path = _config_path ?? ""
+	let config_path = _config_path ?? ''
 
 	// if we force a reload, we will bypass this part
 	if (!force_reload) {
@@ -143,12 +143,12 @@ export async function get_config({
 
 	// we need to figure out the config path
 	if (!config_path) {
-		config_path = path.resolve(process.cwd(), "houdini.config.js")
+		config_path = path.resolve(process.cwd(), 'houdini.config.js')
 		// the config file could also be defined as typescript
 		try {
 			await fs.stat(config_path)
 		} catch {
-			config_path = path.resolve(process.cwd(), "houdini.config.ts")
+			config_path = path.resolve(process.cwd(), 'houdini.config.ts')
 			try {
 				await fs.stat(config_path)
 			} catch {
@@ -184,10 +184,10 @@ export async function get_config({
 		)
 
 		// if there is a local schema then we need to ignore the schema check
-		let local_schema = ""
+		let local_schema = ''
 		try {
 			for (const child of await fs.readdir(local_api_dir(_config, root_dir))) {
-				if (path.parse(child).name === "+schema") {
+				if (path.parse(child).name === '+schema') {
 					local_schema = path.join(local_api_dir(_config, root_dir), child)
 					break
 				}
@@ -219,7 +219,7 @@ export async function get_config({
 		const plugins = Object.entries(config_file.plugins ?? {})
 
 		// we need to add the codegen plugin to the list
-		plugins.push(["houdini-core", { foo: "bar" }])
+		plugins.push(['houdini-core', { foo: 'bar' }])
 
 		// if the environment variable is defined, add it to the list
 		if (process.env.HOUDINI_CODEGEN_PLUGIN) {
@@ -282,7 +282,7 @@ async function load_schema_file(
 			`Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change ` +
 				`its value to "./${relPath}".`,
 		)
-		error.stack = ""
+		error.stack = ''
 
 		// don't let anything continue
 		throw error
@@ -326,9 +326,9 @@ async function load_schema_file(
 
 	// if the schema points to an sdl file
 	if (
-		schemaPath.endsWith("gql") ||
-		schemaPath.endsWith("graphql") ||
-		schemaPath.endsWith("graphqls")
+		schemaPath.endsWith('gql') ||
+		schemaPath.endsWith('graphql') ||
+		schemaPath.endsWith('graphqls')
 	) {
 		return graphql.buildSchema(contents)
 	}
@@ -345,7 +345,7 @@ export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
 	if (
 		config.config_file.router?.auth &&
-		"redirect" in config.config_file.router.auth
+		'redirect' in config.config_file.router.auth
 	) {
 		routes.push(config.config_file.router.auth.redirect)
 	}
@@ -371,9 +371,9 @@ export async function load_local_schema(
 
 		return schema
 	} catch (e) {
-		const message = "message" in (e as Error) ? (e as Error).message : e
+		const message = 'message' in (e as Error) ? (e as Error).message : e
 		// if we fail to load the schema, log a message to the user and just return an empty one
-		console.error("⚠️ Failed to load local schema: ", message)
+		console.error('⚠️ Failed to load local schema: ', message)
 		return new graphql.GraphQLSchema({})
 	}
 }

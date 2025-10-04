@@ -1,7 +1,7 @@
-import type { Cache as _Cache } from "../cache/cache"
-import { getCurrentConfig, marshalInputs, type QueryArtifact } from "../lib"
-import { ListCollection } from "./list"
-import { Record } from "./record"
+import type { Cache as _Cache } from '../cache/cache'
+import { getCurrentConfig, marshalInputs, type QueryArtifact } from '../lib'
+import { ListCollection } from './list'
+import { Record } from './record'
 import type {
 	ArgType,
 	CacheTypeDef,
@@ -12,7 +12,7 @@ import type {
 	TypeFieldNames,
 	TypeNames,
 	ValidLists,
-} from "./types"
+} from './types'
 
 export class Cache<Def extends CacheTypeDef> {
 	_internal_unstable: _Cache
@@ -29,7 +29,7 @@ export class Cache<Def extends CacheTypeDef> {
 		// compute the id for the record
 		const recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
-			throw new Error("todo")
+			throw new Error('todo')
 		}
 
 		// return the proxy

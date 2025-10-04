@@ -3,18 +3,18 @@ import path from 'node:path'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
 
 import type { ProjectManifest } from '../runtime'
-import { db_path, houdini_root } from './conventions.js'
 import type * as routerConventions from './conventions.js'
+import { db_path, houdini_root } from './conventions.js'
 import { create_schema, write_config } from './database.js'
 import { format_hook_error, type HookError } from './error.js'
 import * as fs from './fs.js'
-import { type Config } from './project.js'
+import type { Config } from './project.js'
 
 export type PluginSpec = {
 	name: string
 	port: number
 	hooks: Set<string>
-	order: "before" | "after" | "core"
+	order: 'before' | 'after' | 'core'
 }
 
 export type Adapter = ((args: {
@@ -42,13 +42,13 @@ export type Adapter = ((args: {
 export function connect_db(config: Config): [DatabaseSync, string] {
 	const filepath = db_path(config)
 	const db = new sqlite.DatabaseSync(filepath)
-	db.exec("PRAGMA journal_mode = WAL")
-	db.exec("PRAGMA synchronous = off")
-	db.exec("PRAGMA cache_size = 10000")
-	db.exec("PRAGMA temp_store = memory")
-	db.exec("PRAGMA busy_timeout = 5000")
-	db.exec("PRAGMA foreign_key = ON")
-	db.exec("PRAGMA defer_foreign_keys = ON")
+	db.exec('PRAGMA journal_mode = WAL')
+	db.exec('PRAGMA synchronous = off')
+	db.exec('PRAGMA cache_size = 10000')
+	db.exec('PRAGMA temp_store = memory')
+	db.exec('PRAGMA busy_timeout = 5000')
+	db.exec('PRAGMA foreign_key = ON')
+	db.exec('PRAGMA defer_foreign_keys = ON')
 
 	// TODO: we might have to destroy the existing tables if we run with a new version
 	db.exec(create_schema)
@@ -103,7 +103,7 @@ export async function codegen_setup(
 	// we need a function that waits for a plugin to register itself
 	const wait_for_plugin = (name: string) =>
 		new Promise<PluginSpec>((resolve, reject) => {
-			const find_plugin = db.prepare("SELECT * FROM plugins WHERE name = ?")
+			const find_plugin = db.prepare('SELECT * FROM plugins WHERE name = ?')
 
 			// waiting for a plugin means polling the database until we see the plugin announce itself
 			const interval = setInterval(() => {
@@ -120,7 +120,7 @@ export async function codegen_setup(
 					clearInterval(interval)
 
 					// update the plugin spec with the user provided config
-					db.prepare("UPDATE plugins set config = ? where name = ?").run(
+					db.prepare('UPDATE plugins set config = ? where name = ?').run(
 						JSON.stringify(
 							config.plugins.find((p) => p.name === name)?.config ?? {},
 						),
@@ -132,7 +132,7 @@ export async function codegen_setup(
 						name: row.name,
 						port: row.port,
 						hooks: new Set(JSON.parse(row.hooks)),
-						order: row.plugin_order as "before" | "after" | "core",
+						order: row.plugin_order as 'before' | 'after' | 'core',
 					}
 
 					// store the spec
@@ -157,19 +157,19 @@ export async function codegen_setup(
 		})
 
 	// delete existing plugin metadata
-	db.prepare("DELETE FROM plugins").run()
+	db.prepare('DELETE FROM plugins').run()
 
 	// start each plugin
-	console.time("Start Plugins")
+	console.time('Start Plugins')
 	await Promise.all(
 		config.plugins.map(async (plugin) => {
 			let executable = plugin.executable
-			const args = ["--database", db_file]
+			const args = ['--database', db_file]
 
 			// Run the plugin through a node shim if it's a javascript plugin
-			const jsExtensions = [".js", ".mjs", ".cjs"]
+			const jsExtensions = ['.js', '.mjs', '.cjs']
 			if (jsExtensions.includes(path.extname(plugin.executable))) {
-				executable = "node"
+				executable = 'node'
 				args.unshift(plugin.executable)
 			}
 
@@ -177,8 +177,8 @@ export async function codegen_setup(
 			plugins[plugin.name] = {
 				// kick off the plugin process
 				process: spawn(executable, args, {
-					stdio: "inherit",
-					detached: process.platform !== "win32",
+					stdio: 'inherit',
+					detached: process.platform !== 'win32',
 				}),
 
 				// and wait for the plugin to report back its port
@@ -187,7 +187,7 @@ export async function codegen_setup(
 			console.timeEnd(`Spawn ${plugin.name}`)
 		}),
 	)
-	console.timeEnd("Start Plugins")
+	console.timeEnd('Start Plugins')
 
 	const invoke_hook = async (
 		name: string,
@@ -201,10 +201,10 @@ export async function codegen_setup(
 		const response = await fetch(
 			`http://localhost:${port}/${hook.toLowerCase()}`,
 			{
-				method: "POST",
+				method: 'POST',
 				headers: {
-					"Content-Type": "application/json",
-					"X-Task-ID": task_id?.toString() ?? "",
+					'Content-Type': 'application/json',
+					'X-Task-ID': task_id?.toString() ?? '',
 				},
 				body: JSON.stringify(payload),
 			},
@@ -226,8 +226,8 @@ export async function codegen_setup(
 			throw new Error(`Failed to call ${name}/${hook.toLowerCase()}`)
 		}
 		// look at the response headers, and if the content type is application/json, parse the body
-		const contentType = response.headers.get("content-type")
-		if (contentType?.includes("application/json")) {
+		const contentType = response.headers.get('content-type')
+		if (contentType?.includes('application/json')) {
 			return await response.json()
 		}
 		return await response.text()
@@ -245,7 +245,7 @@ export async function codegen_setup(
 			task_id?: string
 		} = {},
 	) => {
-		const timeName = hook + (task_id ? ` (${task_id})` : "")
+		const timeName = hook + (task_id ? ` (${task_id})` : '')
 		console.time(timeName)
 		// look for all of the plugins that have registered for this hook
 		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) =>
@@ -276,13 +276,13 @@ export async function codegen_setup(
 	await write_config(db, config, invoke_hook, plugin_specs, mode)
 
 	// now we should load the config hook so other plugins can set their defaults
-	await trigger_hook("Config")
+	await trigger_hook('Config')
 
 	// now that we've loaded the environment, we need to invoke the afterLoad hook
-	await trigger_hook("AfterLoad")
+	await trigger_hook('AfterLoad')
 
 	// add any plugin-specifics to our schema
-	await trigger_hook("Schema")
+	await trigger_hook('Schema')
 
 	return {
 		database_path: db_file,
@@ -297,14 +297,14 @@ export async function codegen_setup(
 			await Promise.all(
 				Object.entries(plugins).map(async ([, plugin]) => {
 					if (plugin.process.pid) {
-						if (process.platform === "win32") {
+						if (process.platform === 'win32') {
 							// On Windows, use taskkill to ensure the process tree is terminated.
 							try {
-								spawn("taskkill", [
-									"/pid",
+								spawn('taskkill', [
+									'/pid',
 									plugin.process.pid.toString(),
-									"/f",
-									"/t",
+									'/f',
+									'/t',
 								])
 							} catch (_err) {
 								// Ignore errors if the process is already gone
@@ -313,7 +313,7 @@ export async function codegen_setup(
 							// On Unix-like systems, send SIGINT to the process group
 							try {
 								// The child was spawned with detached: true so that it is its own process group.
-								process.kill(-plugin.process.pid, "SIGINT")
+								process.kill(-plugin.process.pid, 'SIGINT')
 							} catch (_err) {}
 						}
 					}
@@ -325,13 +325,13 @@ export async function codegen_setup(
 
 // Define the complete pipeline order
 const PIPELINE_HOOKS = [
-	"ExtractDocuments",
-	"AfterExtract",
-	"BeforeValidate",
-	"Validate",
-	"AfterValidate",
-	"BeforeGenerate",
-	"Generate",
+	'ExtractDocuments',
+	'AfterExtract',
+	'BeforeValidate',
+	'Validate',
+	'AfterValidate',
+	'BeforeGenerate',
+	'Generate',
 ] as const
 
 type PipelineHook = (typeof PIPELINE_HOOKS)[number]
@@ -343,7 +343,7 @@ export type RunPipelineOptions = {
 }
 
 export async function run_pipeline(
-	trigger_hook: CompilerProxy["trigger_hook"],
+	trigger_hook: CompilerProxy['trigger_hook'],
 	options: RunPipelineOptions = {},
 ): Promise<Record<PipelineHook, Record<string, unknown>>> {
 	const { task_id, after, through } = options
@@ -379,7 +379,7 @@ export async function run_pipeline(
 		const opts: { task_id?: string; parallel_safe?: boolean } = { task_id }
 
 		// Set parallel_safe for hooks that support it
-		if (hook === "Validate" || hook === "Generate") {
+		if (hook === 'Validate' || hook === 'Generate') {
 			opts.parallel_safe = true
 		}
 

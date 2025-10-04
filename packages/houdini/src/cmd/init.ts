@@ -1,12 +1,12 @@
-import { execSync } from "node:child_process"
-import * as p from "@clack/prompts"
-import { bold, cyan, gray, green, italic } from "kleur/colors"
+import { execSync } from 'node:child_process'
+import * as p from '@clack/prompts'
+import { bold, cyan, gray, green, italic } from 'kleur/colors'
 
 import { fs, path } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 import type { ConfigFile } from '../runtime/lib/config'
 
-function pCancel(cancelText = "Operation cancelled.") {
+function pCancel(cancelText = 'Operation cancelled.') {
 	p.cancel(cancelText)
 	process.exit(1)
 }
@@ -20,14 +20,14 @@ export async function init(
 		yes?: boolean
 	},
 ): Promise<void> {
-	p.intro("🎩 Welcome to Houdini!")
+	p.intro('🎩 Welcome to Houdini!')
 
 	// before we start anything, let's make sure they have initialized their project
 	try {
-		await fs.stat(path.resolve("./src"))
+		await fs.stat(path.resolve('./src'))
 	} catch {
 		throw new Error(
-			"Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/",
+			'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/',
 		)
 	}
 
@@ -42,7 +42,7 @@ export async function init(
 
 	let dir = targetPath
 	do {
-		if (fs.existsSync(path.join(dir, ".git"))) {
+		if (fs.existsSync(path.join(dir, '.git'))) {
 			use_git = true
 			break
 		}
@@ -54,8 +54,8 @@ export async function init(
 	} while (dir !== parentDir)
 
 	if (use_git) {
-		const status = execSync("git status --porcelain", {
-			stdio: "pipe",
+		const status = execSync('git status --porcelain', {
+			stdio: 'pipe',
 		}).toString()
 
 		if (status) {
@@ -83,7 +83,7 @@ export async function init(
 	}
 
 	// Questions...
-	let url = "http://localhost:5173/api/graphql"
+	let url = 'http://localhost:5173/api/graphql'
 	let is_remote_endpoint = true
 	if (!args.yes) {
 		is_remote_endpoint = (
@@ -91,7 +91,7 @@ export async function init(
 				{
 					is_remote_endpoint: () =>
 						p.confirm({
-							message: "Will you use a remote GraphQL API?",
+							message: 'Will you use a remote GraphQL API?',
 							initialValue: true,
 						}),
 				},
@@ -103,13 +103,13 @@ export async function init(
 	}
 
 	let schemaPath = is_remote_endpoint
-		? "./schema.graphql"
-		: "path/to/src/lib/**/*.graphql"
+		? './schema.graphql'
+		: 'path/to/src/lib/**/*.graphql'
 
 	let pullSchema_content: string | null = null
 	if (is_remote_endpoint && !args.yes) {
 		let number_of_round = 0
-		let url_and_headers = ""
+		let url_and_headers = ''
 		while (pullSchema_content === null && number_of_round < 10) {
 			number_of_round++
 			const answer = await p.group(
@@ -117,20 +117,20 @@ export async function init(
 					url_and_headers: async () =>
 						p.text({
 							message: `What's the URL for your api? ${
-								number_of_round === 1 ? "" : `(attempt ${number_of_round})`
+								number_of_round === 1 ? '' : `(attempt ${number_of_round})`
 							}`,
 							placeholder: `http://localhost:4000/graphql ${
-								number_of_round === 1 ? "" : "Authorization=Bearer MyToken"
+								number_of_round === 1 ? '' : 'Authorization=Bearer MyToken'
 							}`,
 							// initialValue: url_and_headers,
 							validate: (value) => {
 								// If empty, let's assume the placeholder value
-								if (value === "") {
+								if (value === '') {
 									return
 								}
 
-								if (!value.startsWith("http")) {
-									return "Please enter a valid URL"
+								if (!value.startsWith('http')) {
+									return 'Please enter a valid URL'
 								}
 							},
 						}),
@@ -141,13 +141,13 @@ export async function init(
 			)
 
 			url_and_headers = answer.url_and_headers
-			const value_splited = url_and_headers.split(" ")
+			const value_splited = url_and_headers.split(' ')
 			const local_url = value_splited[0]
 
 			const local_headers =
 				value_splited.length > 1
 					? // remove the url and app all the headers
-						extractHeadersStr(value_splited.slice(1).join(" "))
+						extractHeadersStr(value_splited.slice(1).join(' '))
 					: headers
 
 			// Since we don't have a config file yet, we need to provide the default here.
@@ -168,7 +168,7 @@ export async function init(
 			}
 
 			// set the url for later
-			url = url_and_headers === "" ? "http://localhost:4000/graphql" : local_url
+			url = url_and_headers === '' ? 'http://localhost:4000/graphql' : local_url
 		}
 
 		// if we are here... it means that we have tried x times to pull the schema and it failed
@@ -183,11 +183,11 @@ export async function init(
 			{
 				schema_path: () =>
 					p.text({
-						message: "Where is your schema located?",
+						message: 'Where is your schema located?',
 						placeholder: schemaPath,
 						validate: (value) => {
-							if (value === "") {
-								return "Please enter a valid schemaPath"
+							if (value === '') {
+								return 'Please enter a valid schemaPath'
 							}
 						},
 					}),
@@ -212,34 +212,34 @@ export async function init(
 	// notify the users of what we detected
 	const found_to_log = []
 	// framework
-	if (frameworkInfo.framework === "svelte") {
-		found_to_log.push("✨ Svelte")
-	} else if (frameworkInfo.framework === "kit") {
-		found_to_log.push("✨ SvelteKit")
+	if (frameworkInfo.framework === 'svelte') {
+		found_to_log.push('✨ Svelte')
+	} else if (frameworkInfo.framework === 'kit') {
+		found_to_log.push('✨ SvelteKit')
 	} else {
 		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
 	}
 
 	// module
-	if (module === "esm") {
-		found_to_log.push("📦 ES Modules")
+	if (module === 'esm') {
+		found_to_log.push('📦 ES Modules')
 	} else {
-		found_to_log.push("📦 CommonJS")
+		found_to_log.push('📦 CommonJS')
 	}
 
 	// typescript
 	if (typescript) {
-		found_to_log.push("🟦 TypeScript")
+		found_to_log.push('🟦 TypeScript')
 	} else {
-		found_to_log.push("🟨 JavaScript")
+		found_to_log.push('🟨 JavaScript')
 	}
 
-	p.log.info(`Here's what we found: ${found_to_log.join(", ")}`)
+	p.log.info(`Here's what we found: ${found_to_log.join(', ')}`)
 
 	// the source directory
-	const sourceDir = path.join(targetPath, "src")
+	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
-	const configPath = path.join(targetPath, "houdini.config.js")
+	const configPath = path.join(targetPath, 'houdini.config.js')
 
 	const s = p.spinner()
 	s.start(`🚧 Generating houdini's files...`)
@@ -255,9 +255,9 @@ export async function init(
 	await houdiniClient(sourceDir, typescript, frameworkInfo, url)
 
 	// Framework specific files
-	if (frameworkInfo.framework === "svelte") {
+	if (frameworkInfo.framework === 'svelte') {
 		await svelteKitConfig(targetPath, typescript)
-	} else if (frameworkInfo.framework === "kit") {
+	} else if (frameworkInfo.framework === 'kit') {
 		await svelteConfig(targetPath, typescript)
 	}
 
@@ -268,23 +268,23 @@ export async function init(
 	await tjsConfig(targetPath, frameworkInfo)
 	await packageJSON(targetPath, frameworkInfo)
 
-	s.stop(`Houdini's files generated ${green("✓")}`)
+	s.stop(`Houdini's files generated ${green('✓')}`)
 
 	// we're done!
-	p.outro("🎉 Everything is ready!")
+	p.outro('🎉 Everything is ready!')
 
 	finale_logs(package_manager)
 }
 
-export function finale_logs(package_manager: "npm" | "yarn" | "pnpm") {
-	let cmd_install = "npm i"
-	let cmd_run = "npm run dev"
-	if (package_manager === "pnpm") {
-		cmd_install = "pnpm i"
-		cmd_run = "pnpm dev"
-	} else if (package_manager === "yarn") {
-		cmd_install = "yarn"
-		cmd_run = "yarn dev"
+export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
+	let cmd_install = 'npm i'
+	let cmd_run = 'npm run dev'
+	if (package_manager === 'pnpm') {
+		cmd_install = 'pnpm i'
+		cmd_run = 'pnpm dev'
+	} else if (package_manager === 'yarn') {
+		cmd_install = 'yarn'
+		cmd_run = 'yarn dev'
 	}
 	console.log(`👉 Next Steps`)
 	console.log(`1️⃣  Finalize your installation: ${green(cmd_install)}
@@ -294,8 +294,8 @@ export function finale_logs(package_manager: "npm" | "yarn" | "pnpm") {
 	console.log(
 		gray(
 			italic(
-				`${bold("❔ More help")} at ${cyan(
-					"https://houdinigraphql.com",
+				`${bold('❔ More help')} at ${cyan(
+					'https://houdinigraphql.com',
 				)} (📄 Docs, ⭐ Github, 📣 Discord, ...)
 `,
 			),
@@ -309,7 +309,7 @@ export function finale_logs(package_manager: "npm" | "yarn" | "pnpm") {
 async function houdiniConfig(
 	configPath: string,
 	schemaPath: string,
-	module: "esm" | "commonjs",
+	module: 'esm' | 'commonjs',
 	frameworkInfo: HoudiniFrameworkInfo,
 	url: string | null,
 ): Promise<boolean> {
@@ -322,28 +322,28 @@ async function houdiniConfig(
 		}
 	}
 
-	config.runtimeDir = ".houdini"
+	config.runtimeDir = '.houdini'
 
 	// if it's different for defaults, write it down
-	if (schemaPath !== "./schema.graphql") {
+	if (schemaPath !== './schema.graphql') {
 		config.schemaPath = schemaPath
 	}
 
 	// if it's different for defaults, write it down
-	if (module !== "esm") {
+	if (module !== 'esm') {
 		config.module = module
 	}
 
 	// put plugins at the bottom
-	if (frameworkInfo.framework === "svelte") {
+	if (frameworkInfo.framework === 'svelte') {
 		config.plugins = {
-			"houdini-svelte": {
-				framework: "svelte",
+			'houdini-svelte': {
+				framework: 'svelte',
 			},
 		}
-	} else if (frameworkInfo.framework === "kit") {
+	} else if (frameworkInfo.framework === 'kit') {
 		config.plugins = {
-			"houdini-svelte": {},
+			'houdini-svelte': {},
 		}
 	}
 
@@ -355,7 +355,7 @@ async function houdiniConfig(
 const config = ${configObj}`
 
 	const content =
-		module === "esm"
+		module === 'esm'
 			? // ESM default config
 				`${content_base}
 
@@ -408,8 +408,8 @@ export default new HoudiniClient({
 async function svelteKitConfig(targetPath: string, typescript: boolean) {
 	const svelteMainJsPath = path.join(
 		targetPath,
-		"src",
-		typescript ? "main.ts" : "main.js",
+		'src',
+		typescript ? 'main.ts' : 'main.js',
 	)
 
 	const newContent = `import client from "./client";
@@ -427,7 +427,7 @@ export default app
 }
 
 async function svelteConfig(targetPath: string, typescript: boolean) {
-	const svelteConfigPath = path.join(targetPath, "svelte.config.js")
+	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 
 	const newContentTs = `import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
@@ -472,17 +472,17 @@ export default config;
 /*  Global files              */
 /******************************/
 async function gitIgnore(targetPath: string) {
-	const filepath = path.join(targetPath, ".gitignore")
-	const existing = (await fs.readFile(filepath)) || ""
+	const filepath = path.join(targetPath, '.gitignore')
+	const existing = (await fs.readFile(filepath)) || ''
 
-	if (!existing.includes("\n.houdini\n")) {
+	if (!existing.includes('\n.houdini\n')) {
 		await fs.writeFile(filepath, `${existing}\n.houdini\n`)
 	}
 }
 
 async function graphqlRC(targetPath: string) {
 	// the filepath for the rcfile
-	const target = path.join(targetPath, ".graphqlrc.yaml")
+	const target = path.join(targetPath, '.graphqlrc.yaml')
 
 	const content = `projects:
   default:
@@ -505,11 +505,11 @@ async function viteConfig(
 ) {
 	const viteConfigPath = path.join(
 		targetPath,
-		typescript ? "vite.config.ts" : "vite.config.js",
+		typescript ? 'vite.config.ts' : 'vite.config.js',
 	)
 
-	let content = "NO_CONTENT_THIS_SHOULD_NEVER_BE_SEEN"
-	if (frameworkInfo.framework === "svelte") {
+	let content = 'NO_CONTENT_THIS_SHOULD_NEVER_BE_SEEN'
+	if (frameworkInfo.framework === 'svelte') {
 		content = `import { svelte } from '@sveltejs/vite-plugin-svelte'
 import houdini from 'houdini/vite'
 import * as path from 'path'
@@ -525,7 +525,7 @@ export default defineConfig({
 	},
 })
 	`
-	} else if (frameworkInfo.framework === "kit") {
+	} else if (frameworkInfo.framework === 'kit') {
 		content = `import { sveltekit } from '@sveltejs/kit/vite'
 import houdini from 'houdini/vite'
 import { defineConfig } from 'vite'
@@ -548,11 +548,11 @@ async function tjsConfig(
 	var tjsConfig: unknown
 
 	// if there is no tsconfig.json, there could be a jsconfig.json
-	let configFile = path.join(targetPath, "tsconfig.json")
+	let configFile = path.join(targetPath, 'tsconfig.json')
 	try {
 		await fs.stat(configFile)
 	} catch {
-		configFile = path.join(targetPath, "jsconfig.json")
+		configFile = path.join(targetPath, 'jsconfig.json')
 		try {
 			await fs.stat(configFile)
 
@@ -570,13 +570,13 @@ async function tjsConfig(
 		}
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
-		if (frameworkInfo.framework === "svelte") {
-			tjsConfig.compilerOptions.rootDirs = [".", "./.houdini/types"]
-		} else if (frameworkInfo.framework === "kit") {
+		if (frameworkInfo.framework === 'svelte') {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.houdini/types']
+		} else if (frameworkInfo.framework === 'kit') {
 			tjsConfig.compilerOptions.rootDirs = [
-				".",
-				"./.svelte-kit/types",
-				"./.houdini/types",
+				'.',
+				'./.svelte-kit/types',
+				'./.houdini/types',
 			]
 		}
 
@@ -584,11 +584,11 @@ async function tjsConfig(
 		//   The config [svelte.config.js => kit => alias => $houdini]
 		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
 		// In svelte, we need to add the path manually
-		if (frameworkInfo.framework === "svelte") {
+		if (frameworkInfo.framework === 'svelte') {
 			tjsConfig.compilerOptions.paths = {
 				...tjsConfig.compilerOptions.paths,
-				$houdini: ["./.houdini/"],
-				"$houdini/*": ["./.houdini/*"],
+				$houdini: ['./.houdini/'],
+				'$houdini/*': ['./.houdini/*'],
 			}
 		}
 
@@ -604,7 +604,7 @@ async function packageJSON(
 ) {
 	let packageJSON: Record<string, unknown> = {}
 
-	const packagePath = path.join(targetPath, "package.json")
+	const packagePath = path.join(targetPath, 'package.json')
 	const packageFile = await fs.readFile(packagePath)
 	if (packageFile) {
 		packageJSON = JSON.parse(packageFile)
@@ -613,16 +613,16 @@ async function packageJSON(
 	// houdini should be a dev dependencies
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
-		houdini: "^HOUDINI_PACKAGE_VERSION",
+		houdini: '^HOUDINI_PACKAGE_VERSION',
 	}
 
 	if (
-		frameworkInfo.framework === "svelte" ||
-		frameworkInfo.framework === "kit"
+		frameworkInfo.framework === 'svelte' ||
+		frameworkInfo.framework === 'kit'
 	) {
 		packageJSON.devDependencies = {
 			...packageJSON.devDependencies,
-			"houdini-svelte": "^HOUDINI_SVELTE_PACKAGE_VERSION",
+			'houdini-svelte': '^HOUDINI_SVELTE_PACKAGE_VERSION',
 		}
 	} else {
 		throw new Error(`Unmanaged framework: "${JSON.stringify(frameworkInfo)}"`)
@@ -633,20 +633,20 @@ async function packageJSON(
 
 type HoudiniFrameworkInfo =
 	| {
-			framework: "kit"
+			framework: 'kit'
 	  }
 	| {
-			framework: "svelte"
+			framework: 'svelte'
 	  }
 
 type DetectedFromPackageTools = {
-	module: "esm" | "commonjs"
+	module: 'esm' | 'commonjs'
 	frameworkInfo: HoudiniFrameworkInfo
 }
 
 type DetectedTools = {
 	typescript: boolean
-	package_manager: "npm" | "yarn" | "pnpm"
+	package_manager: 'npm' | 'yarn' | 'pnpm'
 } & DetectedFromPackageTools
 
 async function detectFromPackageJSON(
@@ -656,15 +656,15 @@ async function detectFromPackageJSON(
 
 	// if there's no package.json then there's nothing we can detect
 	try {
-		const packageJSONFile = await fs.readFile(path.join(cwd, "package.json"))
+		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'))
 		if (packageJSONFile) {
 			packageJSON = JSON.parse(packageJSONFile)
 		} else {
-			throw new Error("not found")
+			throw new Error('not found')
 		}
 	} catch {
 		throw new Error(
-			"❌ houdini init must target an existing node project (with a package.json)",
+			'❌ houdini init must target an existing node project (with a package.json)',
 		)
 	}
 
@@ -674,14 +674,14 @@ async function detectFromPackageJSON(
 	const hasDependency = (dep: string) =>
 		Boolean(devDependencies?.[dep] || dependencies?.[dep])
 
-	let frameworkInfo: HoudiniFrameworkInfo = { framework: "svelte" }
-	if (hasDependency("@sveltejs/kit")) {
-		frameworkInfo = { framework: "kit" }
+	let frameworkInfo: HoudiniFrameworkInfo = { framework: 'svelte' }
+	if (hasDependency('@sveltejs/kit')) {
+		frameworkInfo = { framework: 'kit' }
 	}
 
 	return {
 		frameworkInfo,
-		module: packageJSON.type === "module" ? "esm" : "commonjs",
+		module: packageJSON.type === 'module' ? 'esm' : 'commonjs',
 	}
 }
 
@@ -690,20 +690,20 @@ async function detectTools(
 ): Promise<DetectedTools> {
 	let typescript = false
 	try {
-		await fs.stat(path.join(cwd, "tsconfig.json"))
+		await fs.stat(path.join(cwd, 'tsconfig.json'))
 		typescript = true
 	} catch {}
 
 	// package manager?
-	let package_manager: "npm" | "yarn" | "pnpm" = "npm"
+	let package_manager: 'npm' | 'yarn' | 'pnpm' = 'npm'
 	let dir = cwd
 	do {
-		if (fs.existsSync(path.join(dir, "pnpm-lock.yaml"))) {
-			package_manager = "pnpm"
+		if (fs.existsSync(path.join(dir, 'pnpm-lock.yaml'))) {
+			package_manager = 'pnpm'
 			break
 		}
-		if (fs.existsSync(path.join(dir, "yarn.lock"))) {
-			package_manager = "yarn"
+		if (fs.existsSync(path.join(dir, 'yarn.lock'))) {
+			package_manager = 'yarn'
 			break
 		}
 		const parentDir = path.dirname(dir)
@@ -723,7 +723,7 @@ async function detectTools(
 function parseJSON(str: string): unknown {
 	// remove all comments to be able to parse the file, and add stuff to it.
 	str = str.replace(/\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g, (m, g) =>
-		g ? "" : m,
+		g ? '' : m,
 	)
 	return JSON.parse(str)
 }
@@ -734,11 +734,11 @@ function extractHeadersStr(str: string | undefined) {
 
 	let match: RegExpExecArray | null
 	while (true) {
-		match = regex.exec(str ?? "")
+		match = regex.exec(str ?? '')
 		if (match === null) {
 			break
 		}
-		obj[match[1]] = match[2].replaceAll('"', "")
+		obj[match[1]] = match[2].replaceAll('"', '')
 	}
 
 	return obj
@@ -749,7 +749,7 @@ function extractHeaders(headers?: string[] | undefined) {
 		const result: Record<string, string> = {}
 		for (const header of headers ?? []) {
 			const [key, value] = header.split(/=(.*)/s)
-			result[key] = value.replaceAll('"', "")
+			result[key] = value.replaceAll('"', '')
 		}
 		return result
 	}

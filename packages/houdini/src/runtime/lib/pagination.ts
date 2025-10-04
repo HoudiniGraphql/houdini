@@ -1,6 +1,6 @@
-import type { SendParams } from "../client/documentStore"
-import { deepEquals } from "./deepEquals"
-import { countPage, extractPageInfo, missingPageSizeError } from "./pageInfo"
+import type { SendParams } from '../client/documentStore'
+import { deepEquals } from './deepEquals'
+import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 import type {
 	CursorHandlers,
 	FetchFn,
@@ -9,8 +9,8 @@ import type {
 	GraphQLVariables,
 	QueryArtifact,
 	QueryResult,
-} from "./types"
-import { CachePolicy, DataSource } from "./types"
+} from './types'
+import { CachePolicy, DataSource } from './types'
 
 export function cursorHandlers<
 	_Data extends GraphQLObject,
@@ -47,7 +47,7 @@ export function cursorHandlers<
 		input: _Input
 		metadata?: Record<string, unknown>
 		fetch?: typeof globalThis.fetch
-		where: "start" | "end"
+		where: 'start' | 'end'
 	}) => {
 		// build up the variables to pass to the query
 		const loadVariables: _Input = {
@@ -61,7 +61,7 @@ export function cursorHandlers<
 		}
 
 		// Get the Pagination Mode
-		const isSinglePage = artifact.refetch?.mode === "SinglePage"
+		const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
 		return (isSinglePage ? parentFetch : parentFetchUpdate)(
@@ -72,7 +72,7 @@ export function cursorHandlers<
 				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			},
-			isSinglePage ? [] : [where === "start" ? "prepend" : "append"],
+			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append'],
 		)
 	}
 
@@ -118,12 +118,12 @@ export function cursorHandlers<
 
 			// load the page
 			return loadPage({
-				pageSizeVar: "first",
-				functionName: "loadNextPage",
+				pageSizeVar: 'first',
+				functionName: 'loadNextPage',
 				input,
 				fetch,
 				metadata,
-				where: "end",
+				where: 'end',
 			})
 		},
 		loadPreviousPage: ({
@@ -164,12 +164,12 @@ export function cursorHandlers<
 
 			// load the page
 			return loadPage({
-				pageSizeVar: "last",
-				functionName: "loadPreviousPage",
+				pageSizeVar: 'last',
+				functionName: 'loadPreviousPage',
 				input,
 				fetch,
 				metadata,
-				where: "start",
+				where: 'start',
 			})
 		},
 		async fetch(
@@ -198,7 +198,7 @@ export function cursorHandlers<
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
 			const count =
-				countPage(artifact.refetch?.path.concat("edges"), getState()) ||
+				countPage(artifact.refetch?.path.concat('edges'), getState()) ||
 				artifact.refetch?.pageSize
 
 			// if there are more records than the first page, we need fetch to load everything
@@ -271,7 +271,7 @@ export function offsetHandlers<
 	getSession: () => Promise<App.Session>
 }) {
 	// Get the Pagination Mode
-	const isSinglePage = artifact.refetch?.mode === "SinglePage"
+	const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 	// we need to track the most recent offset for this handler
 	const getOffset = () => {
@@ -315,7 +315,7 @@ export function offsetHandlers<
 			// if we made it this far without a limit argument and there's no default page size,
 			// they made a mistake
 			if (!queryVariables.limit && !artifact.refetch?.pageSize) {
-				throw missingPageSizeError("loadNextPage")
+				throw missingPageSizeError('loadNextPage')
 			}
 
 			// send the query

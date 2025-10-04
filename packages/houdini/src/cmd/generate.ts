@@ -1,6 +1,6 @@
 import { format_error } from '../lib/error.js'
 import { codegen_setup, init_db, run_pipeline } from '../lib/index.js'
-import { get_config, type Config } from '../lib/project.js'
+import { type Config, get_config } from '../lib/project.js'
 
 export async function generate(
 	args: {
@@ -18,7 +18,7 @@ export async function generate(
 	},
 ) {
 	// make sure there is always a mode
-	const mode = args.mode ?? "development"
+	const mode = args.mode ?? 'development'
 
 	// until we've initialized the pipeline, there's nothing to do on close
 	let on_close = () => {}
@@ -42,14 +42,15 @@ export async function generate(
 			try {
 				close()
 				process.exit(0)
-			} catch (_error) {
+			} catch (error) {
+				console.log(`There was a problem closing the compiler: ${error}`)
 				process.exit(1)
 			}
 		}
 
 		// Set up signal handlers
-		process.on("SIGINT", on_close)
-		process.on("SIGTERM", on_close)
+		process.on('SIGINT', on_close)
+		process.on('SIGTERM', on_close)
 
 		// kick off the codegen pipeline
 		await run_pipeline(trigger_hook)
@@ -59,14 +60,14 @@ export async function generate(
 	} catch (e) {
 		// if something goes wrong, format the error
 		format_error(e, (error) => {
-			console.error(error.stack?.split("\n").slice(1).join("\n"))
+			console.error(error.stack?.split('\n').slice(1).join('\n'))
 		})
 
 		// attempt to close any plugins
 		try {
 			on_close()
 		} catch (closeError) {
-			console.error("Error closing plugins:", closeError)
+			console.error('Error closing plugins:', closeError)
 		}
 		process.exit(1)
 	}

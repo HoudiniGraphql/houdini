@@ -1,15 +1,15 @@
-import { beforeEach, describe, expect, test } from "vitest"
+import { beforeEach, describe, expect, test } from 'vitest'
 
-import { testConfigFile } from "../../test"
-import { defaultConfigValues, setMockConfig } from "./config"
-import { marshalInputs, marshalSelection, parseScalar } from "./scalars"
-import type { QueryArtifact, SubscriptionSelection } from "./types"
-import { ArtifactKind } from "./types"
+import { testConfigFile } from '../../test'
+import { defaultConfigValues, setMockConfig } from './config'
+import { marshalInputs, marshalSelection, parseScalar } from './scalars'
+import type { QueryArtifact, SubscriptionSelection } from './types'
+import { ArtifactKind } from './types'
 
 const config = defaultConfigValues({
 	scalars: {
 		DateTime: {
-			type: "Date",
+			type: 'Date',
 			unmarshal(val: number): Date {
 				return new Date(val)
 			},
@@ -24,43 +24,43 @@ beforeEach(() => setMockConfig(config))
 
 // the test artifact
 const artifact: QueryArtifact = {
-	name: "AllItems",
+	name: 'AllItems',
 	kind: ArtifactKind.Query,
-	hash: "hash",
-	raw: "does not matter",
+	hash: 'hash',
+	raw: 'does not matter',
 	pluginData: {},
 	selection: {
 		fields: {
 			items: {
-				type: "TodoItem",
-				keyRaw: "allItems",
+				type: 'TodoItem',
+				keyRaw: 'allItems',
 
 				selection: {
 					fields: {
 						createdAt: {
-							type: "DateTime",
-							keyRaw: "createdAt",
+							type: 'DateTime',
+							keyRaw: 'createdAt',
 						},
 						dates: {
-							type: "DateTime",
-							keyRaw: "dates",
+							type: 'DateTime',
+							keyRaw: 'dates',
 						},
 						creator: {
-							type: "User",
-							keyRaw: "creator",
+							type: 'User',
+							keyRaw: 'creator',
 
 							selection: {
 								fields: {
 									firstName: {
-										type: "String",
-										keyRaw: "firstName",
+										type: 'String',
+										keyRaw: 'firstName',
 									},
 								},
 							},
 
 							list: {
-								name: "All_Items",
-								type: "User",
+								name: 'All_Items',
+								type: 'User',
 								connection: false,
 							},
 						},
@@ -68,26 +68,26 @@ const artifact: QueryArtifact = {
 				},
 
 				list: {
-					name: "All_Items",
-					type: "User",
+					name: 'All_Items',
+					type: 'User',
 					connection: false,
 				},
 			},
 		},
 	},
-	rootType: "Query",
+	rootType: 'Query',
 	input: {
 		fields: {
-			date: "NestedDate",
-			booleanValue: "Boolean",
-			enumValue: "EnumValue",
+			date: 'NestedDate',
+			booleanValue: 'Boolean',
+			enumValue: 'EnumValue',
 		},
 		types: {
 			NestedDate: {
-				date: "DateTime",
-				dates: "DateTime",
-				nested: "NestedDate",
-				enumValue: "EnumValue",
+				date: 'DateTime',
+				dates: 'DateTime',
+				nested: 'NestedDate',
+				enumValue: 'EnumValue',
 			},
 		},
 		runtimeScalars: {},
@@ -95,8 +95,8 @@ const artifact: QueryArtifact = {
 	},
 }
 
-describe("marshal inputs", () => {
-	test("lists of objects", async () => {
+describe('marshal inputs', () => {
+	test('lists of objects', async () => {
 		// some dates to check against
 		const date1 = new Date(0)
 		const date2 = new Date(1)
@@ -114,7 +114,7 @@ describe("marshal inputs", () => {
 							date: date2,
 							nested: {
 								date: date3,
-								enumValue: "asdf",
+								enumValue: 'asdf',
 							},
 						},
 					},
@@ -131,7 +131,7 @@ describe("marshal inputs", () => {
 						date: date2.getTime(),
 						nested: {
 							date: date3.getTime(),
-							enumValue: "asdf",
+							enumValue: 'asdf',
 						},
 					},
 				},
@@ -139,7 +139,7 @@ describe("marshal inputs", () => {
 		})
 	})
 
-	test("list of scalars", async () => {
+	test('list of scalars', async () => {
 		// some dates to check against
 		const date1 = new Date(0)
 		const date2 = new Date(1)
@@ -168,7 +168,7 @@ describe("marshal inputs", () => {
 		})
 	})
 
-	test("empty list of scalars", async () => {
+	test('empty list of scalars', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -193,7 +193,7 @@ describe("marshal inputs", () => {
 		})
 	})
 
-	test("root fields", async () => {
+	test('root fields', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -210,7 +210,7 @@ describe("marshal inputs", () => {
 		})
 	})
 
-	test("non-custom scalar fields of objects", async () => {
+	test('non-custom scalar fields of objects', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -218,7 +218,7 @@ describe("marshal inputs", () => {
 			config,
 			input: {
 				date: {
-					name: "hello",
+					name: 'hello',
 				},
 			},
 		})
@@ -226,12 +226,12 @@ describe("marshal inputs", () => {
 		// make sure we got the expected value
 		expect(inputs).toEqual({
 			date: {
-				name: "hello",
+				name: 'hello',
 			},
 		})
 	})
 
-	test("non-custom scalar fields of lists", async () => {
+	test('non-custom scalar fields of lists', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -240,7 +240,7 @@ describe("marshal inputs", () => {
 			input: {
 				date: [
 					{
-						name: "hello",
+						name: 'hello',
 					},
 				],
 			},
@@ -250,13 +250,13 @@ describe("marshal inputs", () => {
 		expect(inputs).toEqual({
 			date: [
 				{
-					name: "hello",
+					name: 'hello',
 				},
 			],
 		})
 	})
 
-	test("null", async () => {
+	test('null', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -273,7 +273,7 @@ describe("marshal inputs", () => {
 		})
 	})
 
-	test("undefined", async () => {
+	test('undefined', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
@@ -290,43 +290,43 @@ describe("marshal inputs", () => {
 		})
 	})
 
-	test("enums", async () => {
+	test('enums', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
 			artifact,
 			config,
 			input: {
-				enumValue: "ValueA",
+				enumValue: 'ValueA',
 			},
 		})
 
 		// make sure we got the expected value
 		expect(inputs).toEqual({
-			enumValue: "ValueA",
+			enumValue: 'ValueA',
 		})
 	})
 
-	test("list of enums", async () => {
+	test('list of enums', async () => {
 		// compute the inputs
 
 		const inputs = marshalInputs({
 			artifact,
 			config,
 			input: {
-				enumValue: ["ValueA", "ValueB"],
+				enumValue: ['ValueA', 'ValueB'],
 			},
 		})
 
 		// make sure we got the expected value
 		expect(inputs).toEqual({
-			enumValue: ["ValueA", "ValueB"],
+			enumValue: ['ValueA', 'ValueB'],
 		})
 	})
 })
 
-describe("marshal selection", () => {
-	test("list of objects", async () => {
+describe('marshal selection', () => {
+	test('list of objects', async () => {
 		// the date to compare against
 		const date = new Date()
 
@@ -335,7 +335,7 @@ describe("marshal selection", () => {
 				{
 					createdAt: date,
 					creator: {
-						firstName: "John",
+						firstName: 'John',
 					},
 				},
 			],
@@ -351,14 +351,14 @@ describe("marshal selection", () => {
 				{
 					createdAt: date.getTime(),
 					creator: {
-						firstName: "John",
+						firstName: 'John',
 					},
 				},
 			],
 		})
 	})
 
-	test("list of scalars", async () => {
+	test('list of scalars', async () => {
 		// the date to compare against
 		const date1 = new Date(1)
 		const date2 = new Date(2)
@@ -385,7 +385,7 @@ describe("marshal selection", () => {
 		})
 	})
 
-	test("empty list of scalars", async () => {
+	test('empty list of scalars', async () => {
 		const data = {
 			items: [
 				{
@@ -408,12 +408,12 @@ describe("marshal selection", () => {
 		})
 	})
 
-	test("missing marshal function", async () => {
+	test('missing marshal function', async () => {
 		setMockConfig(
 			testConfigFile({
 				scalars: {
 					DateTime: {
-						type: "Date",
+						type: 'Date',
 					},
 				},
 			}),
@@ -435,7 +435,7 @@ describe("marshal selection", () => {
 		).toThrow(/Scalar type DateTime is missing a `marshal` function/)
 	})
 
-	test("undefined", async () => {
+	test('undefined', async () => {
 		const data = {
 			item: undefined,
 		}
@@ -443,14 +443,14 @@ describe("marshal selection", () => {
 		const selection: SubscriptionSelection = {
 			fields: {
 				item: {
-					type: "TodoItem",
-					keyRaw: "item",
+					type: 'TodoItem',
+					keyRaw: 'item',
 
 					selection: {
 						fields: {
 							createdAt: {
-								type: "DateTime",
-								keyRaw: "createdAt",
+								type: 'DateTime',
+								keyRaw: 'createdAt',
 							},
 						},
 					},
@@ -468,7 +468,7 @@ describe("marshal selection", () => {
 		})
 	})
 
-	test("null", async () => {
+	test('null', async () => {
 		const data = {
 			item: null,
 		}
@@ -476,14 +476,14 @@ describe("marshal selection", () => {
 		const selection: SubscriptionSelection = {
 			fields: {
 				item: {
-					type: "TodoItem",
-					keyRaw: "item",
+					type: 'TodoItem',
+					keyRaw: 'item',
 
 					selection: {
 						fields: {
 							createdAt: {
-								type: "DateTime",
-								keyRaw: "createdAt",
+								type: 'DateTime',
+								keyRaw: 'createdAt',
 							},
 						},
 					},
@@ -501,7 +501,7 @@ describe("marshal selection", () => {
 		})
 	})
 
-	test("nested objects", async () => {
+	test('nested objects', async () => {
 		// the date to compare against
 		const date = new Date()
 
@@ -509,7 +509,7 @@ describe("marshal selection", () => {
 			item: {
 				createdAt: date,
 				creator: {
-					firstName: "John",
+					firstName: 'John',
 				},
 			},
 		}
@@ -517,31 +517,31 @@ describe("marshal selection", () => {
 		const selection: SubscriptionSelection = {
 			fields: {
 				item: {
-					type: "TodoItem",
-					keyRaw: "item",
+					type: 'TodoItem',
+					keyRaw: 'item',
 
 					selection: {
 						fields: {
 							createdAt: {
-								type: "DateTime",
-								keyRaw: "createdAt",
+								type: 'DateTime',
+								keyRaw: 'createdAt',
 							},
 							creator: {
-								type: "User",
-								keyRaw: "creator",
+								type: 'User',
+								keyRaw: 'creator',
 
 								selection: {
 									fields: {
 										firstName: {
-											type: "String",
-											keyRaw: "firstName",
+											type: 'String',
+											keyRaw: 'firstName',
 										},
 									},
 								},
 
 								list: {
-									name: "All_Items",
-									type: "User",
+									name: 'All_Items',
+									type: 'User',
 									connection: false,
 								},
 							},
@@ -560,13 +560,13 @@ describe("marshal selection", () => {
 			item: {
 				createdAt: date.getTime(),
 				creator: {
-					firstName: "John",
+					firstName: 'John',
 				},
 			},
 		})
 	})
 
-	test("fields on root", async () => {
+	test('fields on root', async () => {
 		const data = {
 			rootBool: true,
 		}
@@ -574,8 +574,8 @@ describe("marshal selection", () => {
 		const selection: SubscriptionSelection = {
 			fields: {
 				rootBool: {
-					type: "Boolean",
-					keyRaw: "rootBool",
+					type: 'Boolean',
+					keyRaw: 'rootBool',
 				},
 			},
 		}
@@ -590,16 +590,16 @@ describe("marshal selection", () => {
 		})
 	})
 
-	test("enums", async () => {
+	test('enums', async () => {
 		const data = {
-			enumValue: "Hello",
+			enumValue: 'Hello',
 		}
 
 		const selection: SubscriptionSelection = {
 			fields: {
 				enumValue: {
-					type: "EnumValue",
-					keyRaw: "enumValue",
+					type: 'EnumValue',
+					keyRaw: 'enumValue',
 				},
 			},
 		}
@@ -610,20 +610,20 @@ describe("marshal selection", () => {
 				data,
 			}),
 		).toEqual({
-			enumValue: "Hello",
+			enumValue: 'Hello',
 		})
 	})
 
-	test("list of enums", async () => {
+	test('list of enums', async () => {
 		const data = {
-			enumValue: ["Hello", "World"],
+			enumValue: ['Hello', 'World'],
 		}
 
 		const selection: SubscriptionSelection = {
 			fields: {
 				enumValue: {
-					type: "EnumValue",
-					keyRaw: "enumValue",
+					type: 'EnumValue',
+					keyRaw: 'enumValue',
 				},
 			},
 		}
@@ -634,73 +634,73 @@ describe("marshal selection", () => {
 				data,
 			}),
 		).toEqual({
-			enumValue: ["Hello", "World"],
+			enumValue: ['Hello', 'World'],
 		})
 	})
 })
 
-describe("parseScalar", () => {
+describe('parseScalar', () => {
 	const table = [
 		{
-			title: "String",
-			type: "String",
-			value: "asf",
-			expected: "asf",
+			title: 'String',
+			type: 'String',
+			value: 'asf',
+			expected: 'asf',
 		},
 		{
-			title: "ID",
-			type: "ID",
-			value: "asf",
-			expected: "asf",
+			title: 'ID',
+			type: 'ID',
+			value: 'asf',
+			expected: 'asf',
 		},
 		{
-			title: "Int",
-			type: "Int",
-			value: "1",
+			title: 'Int',
+			type: 'Int',
+			value: '1',
 			expected: 1,
 		},
 		{
-			title: "invalid Int",
-			type: "Int",
-			value: "",
+			title: 'invalid Int',
+			type: 'Int',
+			value: '',
 			expected: undefined,
 		},
 		{
-			title: "invalid Float",
-			type: "Float",
-			value: "",
+			title: 'invalid Float',
+			type: 'Float',
+			value: '',
 			expected: undefined,
 		},
 		{
-			title: "Boolean",
-			type: "Boolean",
-			value: "true",
+			title: 'Boolean',
+			type: 'Boolean',
+			value: 'true',
 			expected: true,
 		},
 		{
-			title: "Float",
-			type: "Float",
-			value: "1.0",
+			title: 'Float',
+			type: 'Float',
+			value: '1.0',
 			expected: 1.0,
 		},
 		{
-			title: "Custom with Marshal",
-			type: "MyScalar",
-			value: "1.0",
+			title: 'Custom with Marshal',
+			type: 'MyScalar',
+			value: '1.0',
 			expected: 100.0,
 		},
 		{
-			title: "Custom mo Marshal",
-			type: "MyScalar2",
-			value: "1.0",
-			expected: "1.0",
+			title: 'Custom mo Marshal',
+			type: 'MyScalar2',
+			value: '1.0',
+			expected: '1.0',
 		},
 	]
 
 	const config = testConfigFile({
 		scalars: {
 			MyScalar: {
-				type: "number",
+				type: 'number',
 				marshal(val: string) {
 					return parseInt(val, 10) * 100
 				},

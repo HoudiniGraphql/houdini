@@ -1,11 +1,11 @@
-import { beforeEach, expect, test, vi } from "vitest"
+import { beforeEach, expect, test, vi } from 'vitest'
 
-import { testConfigFile } from "../../../test"
-import { Cache } from "../../cache/cache"
-import { CachePolicy, PendingValue } from "../../lib"
-import { setMockConfig } from "../../lib/config"
-import { cachePolicy } from "./cache"
-import { createStore, fakeFetch } from "./test"
+import { testConfigFile } from '../../../test'
+import { Cache } from '../../cache/cache'
+import { CachePolicy, PendingValue } from '../../lib'
+import { setMockConfig } from '../../lib/config'
+import { cachePolicy } from './cache'
+import { createStore, fakeFetch } from './test'
 
 /**
  * Testing the cache plugin
@@ -15,7 +15,7 @@ beforeEach(async () => {
 	setMockConfig({})
 })
 
-test("NetworkOnly", async () => {
+test('NetworkOnly', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -37,15 +37,15 @@ test("NetworkOnly", async () => {
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
@@ -53,21 +53,21 @@ test("NetworkOnly", async () => {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
 })
 
-test("CacheOrNetwork", async () => {
+test('CacheOrNetwork', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -89,15 +89,15 @@ test("CacheOrNetwork", async () => {
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
@@ -105,21 +105,21 @@ test("CacheOrNetwork", async () => {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "cache",
+		source: 'cache',
 		partial: false,
 		stale: false,
 	})
 })
 
-test("CacheAndNetwork", async () => {
+test('CacheAndNetwork', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -140,15 +140,15 @@ test("CacheAndNetwork", async () => {
 	expect(spy).toHaveBeenNthCalledWith(2, {
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
@@ -156,36 +156,36 @@ test("CacheAndNetwork", async () => {
 	expect(spy).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "cache",
+		source: 'cache',
 		partial: false,
 		stale: false,
 	})
 	expect(spy).toHaveBeenNthCalledWith(4, {
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
 })
 
-test("CacheOnly", async () => {
+test('CacheOnly', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -208,7 +208,7 @@ test("CacheOnly", async () => {
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "cache",
+		source: 'cache',
 		partial: false,
 		stale: false,
 	})
@@ -219,15 +219,15 @@ test("CacheOnly", async () => {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
@@ -238,21 +238,21 @@ test("CacheOnly", async () => {
 	expect(ret3).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "cache",
+		source: 'cache',
 		partial: false,
 		stale: false,
 	})
 })
 
-test("stale", async () => {
+test('stale', async () => {
 	const setFetching = vi.fn()
 	const fn = vi.fn()
 
@@ -278,15 +278,15 @@ test("stale", async () => {
 	expect(ret1).toEqual({
 		data: {
 			viewer: {
-				__typename: "User",
-				firstName: "bob",
-				id: "1",
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: "network",
+		source: 'network',
 		stale: false,
 		variables: null,
 	})
@@ -305,7 +305,7 @@ test("stale", async () => {
 	})
 
 	//  mark stale
-	cache.markTypeStale({ type: "User" })
+	cache.markTypeStale({ type: 'User' })
 
 	const ret2 = await store.send({ policy: CachePolicy.CacheOrNetwork })
 
@@ -313,15 +313,15 @@ test("stale", async () => {
 	expect(ret2).toEqual({
 		data: {
 			viewer: {
-				__typename: "User",
-				firstName: "bob",
-				id: "1",
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: "cache",
+		source: 'cache',
 		stale: true,
 		variables: null,
 	})
@@ -330,15 +330,15 @@ test("stale", async () => {
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {
-				__typename: "User",
-				firstName: "bob",
-				id: "1",
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: "cache",
+		source: 'cache',
 		stale: true,
 		variables: null,
 	})
@@ -347,21 +347,21 @@ test("stale", async () => {
 	expect(fn).toHaveBeenNthCalledWith(4, {
 		data: {
 			viewer: {
-				__typename: "User",
-				firstName: "bob",
-				id: "1",
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: "network",
+		source: 'network',
 		stale: false,
 		variables: null,
 	})
 })
 
-test("NoCache", async () => {
+test('NoCache', async () => {
 	const spy = vi.fn()
 
 	const cache = new Cache({ ...config, disabled: false })
@@ -384,15 +384,15 @@ test("NoCache", async () => {
 	expect(returned).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
@@ -408,15 +408,15 @@ test("NoCache", async () => {
 	expect(second).toEqual({
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
-				__typename: "User",
+				id: '1',
+				firstName: 'bob',
+				__typename: 'User',
 			},
 		},
 		errors: null,
 		fetching: false,
 		variables: null,
-		source: "network",
+		source: 'network',
 		partial: false,
 		stale: false,
 	})
@@ -427,7 +427,7 @@ test("NoCache", async () => {
 	).toHaveLength(0)
 })
 
-test("loading states when fetching is true", async () => {
+test('loading states when fetching is true', async () => {
 	// create the store
 	const store = createStore()
 
@@ -459,15 +459,15 @@ test("loading states when fetching is true", async () => {
 	expect(fn).toHaveBeenNthCalledWith(3, {
 		data: {
 			viewer: {
-				__typename: "User",
-				firstName: "bob",
-				id: "1",
+				__typename: 'User',
+				firstName: 'bob',
+				id: '1',
 			},
 		},
 		errors: null,
 		fetching: false,
 		partial: false,
-		source: "network",
+		source: 'network',
 		stale: false,
 		variables: null,
 	})

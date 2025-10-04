@@ -1,10 +1,10 @@
-import type { Cache } from "../cache/cache"
-import type { Layer } from "../cache/storage"
-import type { ConfigFile } from "../lib/config"
-import { getCurrentConfig } from "../lib/config"
-import { deepEquals } from "../lib/deepEquals"
-import { marshalInputs } from "../lib/scalars"
-import { Writable } from "../lib/store"
+import type { Cache } from '../cache/cache'
+import type { Layer } from '../cache/storage'
+import type { ConfigFile } from '../lib/config'
+import { getCurrentConfig } from '../lib/config'
+import { deepEquals } from '../lib/deepEquals'
+import { marshalInputs } from '../lib/scalars'
+import { Writable } from '../lib/store'
 import type {
 	CachePolicies,
 	DocumentArtifact,
@@ -13,15 +13,15 @@ import type {
 	QueryArtifact,
 	QueryResult,
 	SubscriptionSpec,
-} from "../lib/types"
-import { ArtifactKind, DedupeMatchMode } from "../lib/types"
-import type { HoudiniClient } from "."
-import { cachePolicy } from "./plugins"
+} from '../lib/types'
+import { ArtifactKind, DedupeMatchMode } from '../lib/types'
+import type { HoudiniClient } from '.'
+import { cachePolicy } from './plugins'
 
 // the list of states to step in what direction
 const steps = {
-	forward: ["start", "beforeNetwork", "network"],
-	backwards: ["end", "afterNetwork"],
+	forward: ['start', 'beforeNetwork', 'network'],
+	backwards: ['end', 'afterNetwork'],
 } as const
 
 const inflightRequests: Record<
@@ -61,7 +61,7 @@ export class DocumentStore<
 	// biome-ignore lint/suspicious/noExplicitAny: Variables can be any GraphQL variable type
 	controllerKey(variables: any) {
 		const usedVariables =
-			"dedupe" in this.artifact &&
+			'dedupe' in this.artifact &&
 			this.artifact.dedupe?.match !== DedupeMatchMode.Variables
 				? {}
 				: variables
@@ -157,9 +157,9 @@ export class DocumentStore<
 		// if the document we are sending is meant to be deduped, then we need to look for an existing
 		// controller for the document
 		if (
-			"dedupe" in this.artifact &&
+			'dedupe' in this.artifact &&
 			this.artifact.dedupe &&
-			this.artifact.dedupe.match !== "None"
+			this.artifact.dedupe.match !== 'None'
 		) {
 			// if we are matching on variables then we should use that for the controller key, otherwise
 			// just use an empty object
@@ -167,7 +167,7 @@ export class DocumentStore<
 
 			// if there is already a pending request
 			if (inflightRequests[dedupeKey]) {
-				if (this.artifact.dedupe.cancel === "first") {
+				if (this.artifact.dedupe.cancel === 'first') {
 					// cancel the existing one
 					inflightRequests[dedupeKey].controller.abort()
 					// and register the new one
@@ -243,7 +243,7 @@ export class DocumentStore<
 				}
 
 				// start walking down the chain
-				this.#step("forward", state)
+				this.#step('forward', state)
 			},
 		)
 
@@ -275,15 +275,15 @@ export class DocumentStore<
 			// onto the global fetch
 
 			// in order to handle the proxy request we need 3 things:
-			let url: string = ""
+			let url: string = ''
 			let queries: {
 				query: string
 				variables: GraphQLObject
 				operationName: string
 			}[] = []
 
-			if (typeof input === "string") {
-				url = input.startsWith("http") ? new URL(input).pathname : input
+			if (typeof input === 'string') {
+				url = input.startsWith('http') ? new URL(input).pathname : input
 			}
 			if (input instanceof URL) {
 				url = input.pathname
@@ -332,19 +332,19 @@ export class DocumentStore<
 		}
 	}
 	#step(
-		direction: keyof typeof steps | "error",
+		direction: keyof typeof steps | 'error',
 		ctx: IteratorState,
 		// biome-ignore lint/suspicious/noExplicitAny: Iterator value can be any type
 		value?: any,
 	): undefined {
 		// grab the current step
 		const hook =
-			direction === "error" ? "catch" : steps[direction][ctx.currentStep]
+			direction === 'error' ? 'catch' : steps[direction][ctx.currentStep]
 
 		// figure out which direction we want to go (starting from the specified index)
 		let valid = (i: number) => i <= this.#plugins.length
 		let step = (i: number) => i + 1
-		if (["backwards", "error"].includes(direction)) {
+		if (['backwards', 'error'].includes(direction)) {
 			valid = (i) => i >= 0
 			step = (i) => i - 1
 		}
@@ -373,7 +373,7 @@ export class DocumentStore<
 				updateState: this.update.bind(this),
 				next: (newContext) => {
 					// the next index depends on the direction we're going now
-					const nextIndex = ["forward", "error"].includes(direction)
+					const nextIndex = ['forward', 'error'].includes(direction)
 						? // if we're going forward, add one
 							index + 1
 						: // if we're moving backwards but called next, we
@@ -382,12 +382,12 @@ export class DocumentStore<
 
 					// if we are resolving the pipe and fire next, we need to start
 					// from the first phase
-					const nextStep = ["backwards", "error"].includes(direction)
+					const nextStep = ['backwards', 'error'].includes(direction)
 						? 0
 						: ctx.currentStep
 
 					// move on
-					this.#step("forward", {
+					this.#step('forward', {
 						...ctx,
 						index: nextIndex,
 						currentStep: nextStep,
@@ -400,7 +400,7 @@ export class DocumentStore<
 				resolve: (newContext, value) => {
 					// the next index depends on the direction we're going now
 					const nextIndex =
-						direction === "backwards"
+						direction === 'backwards'
 							? // if we're going backwards, subtract one
 								index - 1
 							: // if we're moving forwards but then call resolve
@@ -409,7 +409,7 @@ export class DocumentStore<
 
 					// move on
 					this.#step(
-						"backwards",
+						'backwards',
 						{
 							...ctx,
 							index: nextIndex,
@@ -425,9 +425,9 @@ export class DocumentStore<
 
 			// build up the specific handlers for the direction
 			let handlers: Record<string, unknown>
-			if (direction === "forward") {
+			if (direction === 'forward') {
 				handlers = common
-			} else if (direction === "backwards") {
+			} else if (direction === 'backwards') {
 				handlers = {
 					...common,
 					// biome-ignore lint/style/noNonNullAssertion: Value is guaranteed to exist in forward direction
@@ -435,9 +435,9 @@ export class DocumentStore<
 					resolve: ((ctx, data) => {
 						// biome-ignore lint/style/noNonNullAssertion: Value is guaranteed to exist as fallback
 						return common.resolve(ctx, data ?? value!)
-					}) as ClientPluginExitHandlers["resolve"],
+					}) as ClientPluginExitHandlers['resolve'],
 				}
-			} else if (direction === "error") {
+			} else if (direction === 'error') {
 				handlers = {
 					...common,
 					error: value,
@@ -447,8 +447,8 @@ export class DocumentStore<
 			try {
 				// if the abort controller has been triggered, dont go further
 				if (draft.abortController.signal.aborted) {
-					const abortError = new Error("aborted")
-					abortError.name = "AbortError"
+					const abortError = new Error('aborted')
+					abortError.name = 'AbortError'
 					throw abortError
 				}
 
@@ -459,11 +459,11 @@ export class DocumentStore<
 				// if we got _something_ back it's a promise so we need to make
 				// sure something is listening for error
 				result?.catch((err) => {
-					this.#step("error", { ...ctx, index: index - 1 }, err)
+					this.#step('error', { ...ctx, index: index - 1 }, err)
 				})
 			} catch (err) {
 				// if an exception was thrown it was a synchronous hook so catch the exception
-				this.#step("error", { ...ctx, index: index - 1 }, err)
+				this.#step('error', { ...ctx, index: index - 1 }, err)
 			}
 
 			return
@@ -475,11 +475,11 @@ export class DocumentStore<
 		/// or there is no call to resolve in the enter hooks so we need to catch
 
 		// check forward end conditions
-		if (direction === "forward") {
+		if (direction === 'forward') {
 			// if we triggering a setup cycle phase
 			if (ctx.setup) {
 				return this.#step(
-					"backwards",
+					'backwards',
 					{
 						...ctx,
 						currentStep: 0,
@@ -491,7 +491,7 @@ export class DocumentStore<
 
 			// if we still have steps to go forward, do so
 			if (ctx.currentStep <= steps.forward.length - 2) {
-				return this.#step("forward", {
+				return this.#step('forward', {
 					...ctx,
 					currentStep: ctx.currentStep + 1,
 					index: 0,
@@ -500,12 +500,12 @@ export class DocumentStore<
 
 			// we're at the end of the chain in the last phase. something is wrong.
 			throw new Error(
-				"Called next() on last possible plugin. Your chain is missing a plugin that calls resolve().",
+				'Called next() on last possible plugin. Your chain is missing a plugin that calls resolve().',
 			)
 		}
 
 		// we could be propagating an error up
-		if (direction === "error") {
+		if (direction === 'error') {
 			// if we got here, we have bubbled up to the last handler
 			// see if we still need to resolve the promise
 			if (!ctx.promise.resolved) {
@@ -521,7 +521,7 @@ export class DocumentStore<
 		// if we aren't at the last phase then we have more to go
 		if (ctx.currentStep > 0) {
 			return this.#step(
-				"backwards",
+				'backwards',
 				{
 					...ctx,
 					currentStep: ctx.currentStep - 1,
@@ -562,7 +562,7 @@ class ClientPluginContextWrapper {
 		lastVariables,
 		...values
 	}: ClientPluginContext & {
-		lastVariables: Required<ClientPluginContext>["variables"] | null
+		lastVariables: Required<ClientPluginContext>['variables'] | null
 	}) {
 		this.#context = values
 		this.#lastVariables = lastVariables
@@ -594,7 +594,7 @@ class ClientPluginContextWrapper {
 			get variables() {
 				return ctx.variables ?? null
 			},
-			set variables(val: Required<ClientPluginContext>["variables"]) {
+			set variables(val: Required<ClientPluginContext>['variables']) {
 				Object.assign(ctx, applyVariables(ctx, { variables: val }))
 			},
 		}
@@ -615,7 +615,7 @@ class ClientPluginContextWrapper {
 		const val = values.variables
 
 		// look at the variables for ones that are different
-		const changed: ClientPluginContext["variables"] = {}
+		const changed: ClientPluginContext['variables'] = {}
 		for (const [name, value] of Object.entries(val ?? {})) {
 			if (value !== source.variables?.[name]) {
 				// we need to marshal the new value
@@ -795,7 +795,7 @@ export type ClientPluginEnterHandlers = {
 /** Exit handlers are the same as enter handlers but don't need to resolve with a specific value */
 export type ClientPluginExitHandlers = Omit<
 	ClientPluginEnterHandlers,
-	"resolve"
+	'resolve'
 > & {
 	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 	value: QueryResult
@@ -814,7 +814,7 @@ export type SendParams = {
 	session?: App.Session | null
 	policy?: CachePolicies
 	stuff?: Partial<App.Stuff>
-	cacheParams?: ClientPluginContext["cacheParams"]
+	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
 	silenceEcho?: boolean
 	abortController?: AbortController
@@ -833,7 +833,7 @@ function stableStringify(obj: JsonValue): string {
 // sortObject sorts the keys of an object recursively
 function sortObject(obj: JsonValue): JsonValue {
 	// Handle non-object cases
-	if (obj === null || typeof obj !== "object") {
+	if (obj === null || typeof obj !== 'object') {
 		return obj
 	}
 

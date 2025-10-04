@@ -1,20 +1,20 @@
-import { createServerAdapter as createAdapter } from "@whatwg-node/server"
-import { execute, type GraphQLSchema, parse } from "graphql"
-import { createYoga } from "graphql-yoga"
+import { createServerAdapter as createAdapter } from '@whatwg-node/server'
+import { execute, type GraphQLSchema, parse } from 'graphql'
+import { createYoga } from 'graphql-yoga'
 
-import type { HoudiniClient } from "../client"
+import type { HoudiniClient } from '../client'
 import {
 	getCurrentConfig,
 	localApiEndpoint,
 	localApiSessionKeys,
-} from "../lib/config"
-import { find_match } from "./match"
-import { get_session, handle_request } from "./session"
+} from '../lib/config'
+import { find_match } from './match'
+import { get_session, handle_request } from './session'
 import type {
 	RouterManifest,
 	RouterPageManifest,
 	YogaServerOptions,
-} from "./types"
+} from './types'
 
 // load the plugin config
 const config_file = getCurrentConfig()
@@ -45,7 +45,7 @@ export function _serverHandler<ComponentType = unknown>({
 		session: App.Session
 		componentCache: Record<string, unknown>
 	}) => Response | Promise<Response | undefined> | undefined
-} & Omit<YogaServerOptions, "schema">) {
+} & Omit<YogaServerOptions, 'schema'>) {
 	if (schema && !yoga) {
 		yoga = createYoga({
 			schema,
@@ -113,7 +113,7 @@ export function _serverHandler<ComponentType = unknown>({
 		}
 
 		// if we got this far its not a page we recognize
-		return new Response("404", { status: 404 })
+		return new Response('404', { status: 404 })
 	}
 }
 

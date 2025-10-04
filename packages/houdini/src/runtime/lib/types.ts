@@ -1,31 +1,31 @@
 type ValuesOf<Target> = Target[keyof Target]
 
 export const CachePolicy = {
-	CacheOrNetwork: "CacheOrNetwork",
-	CacheOnly: "CacheOnly",
-	NetworkOnly: "NetworkOnly",
-	CacheAndNetwork: "CacheAndNetwork",
-	NoCache: "NoCache",
+	CacheOrNetwork: 'CacheOrNetwork',
+	CacheOnly: 'CacheOnly',
+	NetworkOnly: 'NetworkOnly',
+	CacheAndNetwork: 'CacheAndNetwork',
+	NoCache: 'NoCache',
 } as const
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>
 
 export const DedupeMatchMode = {
-	Variables: "Variables",
-	Operation: "Operation",
-	None: "None",
+	Variables: 'Variables',
+	Operation: 'Operation',
+	None: 'None',
 } as const
 
 export type DedupeMatchModes = ValuesOf<typeof DedupeMatchMode>
 
 export const PaginateMode = {
-	Infinite: "Infinite",
-	SinglePage: "SinglePage",
+	Infinite: 'Infinite',
+	SinglePage: 'SinglePage',
 } as const
 
 export type PaginateModes = ValuesOf<typeof PaginateMode>
 
-export * from "../router/types"
+export * from '../router/types'
 
 declare global {
 	namespace App {
@@ -68,10 +68,10 @@ export type DocumentArtifact =
 	| SubscriptionArtifact
 
 export const ArtifactKind = {
-	Query: "HoudiniQuery",
-	Subscription: "HoudiniSubscription",
-	Mutation: "HoudiniMutation",
-	Fragment: "HoudiniFragment",
+	Query: 'HoudiniQuery',
+	Subscription: 'HoudiniSubscription',
+	Mutation: 'HoudiniMutation',
+	Fragment: 'HoudiniFragment',
 } as const
 
 export type ArtifactKinds = ValuesOf<typeof ArtifactKind>
@@ -83,34 +83,34 @@ export const CompiledSubscriptionKind = ArtifactKind.Subscription
 
 export type CompiledDocumentKind = ArtifactKinds
 
-export type QueryArtifact = BaseCompiledDocument<"HoudiniQuery"> & {
+export type QueryArtifact = BaseCompiledDocument<'HoudiniQuery'> & {
 	policy?: CachePolicies
 	partial?: boolean
-	enableLoadingState?: "global" | "local"
+	enableLoadingState?: 'global' | 'local'
 	dedupe?: {
-		cancel: "first" | "last"
+		cancel: 'first' | 'last'
 		match: DedupeMatchModes
 	}
 }
 
-export type MutationArtifact = BaseCompiledDocument<"HoudiniMutation"> & {
+export type MutationArtifact = BaseCompiledDocument<'HoudiniMutation'> & {
 	optimisticKeys?: boolean
 	dedupe?: {
-		cancel: "first" | "last"
+		cancel: 'first' | 'last'
 		match: DedupeMatchModes
 	}
 }
 
-export type FragmentArtifact = BaseCompiledDocument<"HoudiniFragment"> & {
-	enableLoadingState?: "global" | "local"
+export type FragmentArtifact = BaseCompiledDocument<'HoudiniFragment'> & {
+	enableLoadingState?: 'global' | 'local'
 }
 
-export type SubscriptionArtifact = BaseCompiledDocument<"HoudiniSubscription">
+export type SubscriptionArtifact = BaseCompiledDocument<'HoudiniSubscription'>
 
 export const RefetchUpdateMode = {
-	append: "append",
-	prepend: "prepend",
-	replace: "replace",
+	append: 'append',
+	prepend: 'prepend',
+	replace: 'replace',
 } as const
 
 export type RefetchUpdateModes = ValuesOf<typeof RefetchUpdateMode>
@@ -135,13 +135,13 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	stripVariables: Array<string>
 	refetch?: {
 		path: string[]
-		method: "cursor" | "offset"
+		method: 'cursor' | 'offset'
 		pageSize: number
 		start?: string | number
 		embedded: boolean
 		targetType: string
 		paginated: boolean
-		direction: "forward" | "backward" | "both"
+		direction: 'forward' | 'backward' | 'both'
 		mode: PaginateModes
 	}
 	// biome-ignore lint/suspicious/noExplicitAny: Plugin data can be any structure
@@ -163,29 +163,29 @@ export const DataSource = {
 	/**
 	 * from the browser cache
 	 */
-	Cache: "cache",
+	Cache: 'cache',
 	/**
 	 * from a browser side `fetch`
 	 */
-	Network: "network",
+	Network: 'network',
 	/**
 	 * from a server side `fetch`
 	 */
-	Ssr: "ssr",
+	Ssr: 'ssr',
 } as const
 
 export type DataSources = ValuesOf<typeof DataSource>
 
 export type MutationOperation = {
-	action: "insert" | "remove" | "delete" | "toggle"
+	action: 'insert' | 'remove' | 'delete' | 'toggle'
 	list?: string
 	type?: string
 	parentID?: {
 		kind: string
 		value: string
 	}
-	position?: "first" | "last"
-	target?: "all"
+	position?: 'first' | 'last'
+	target?: 'all'
 	when?: ListWhen
 }
 
@@ -204,9 +204,9 @@ export type GraphQLValue =
 export type GraphQLVariables = { [key: string]: any } | null
 
 export type LoadingSpec =
-	| { kind: "continue"; list?: { depth: number; count: number } }
+	| { kind: 'continue'; list?: { depth: number; count: number } }
 	// biome-ignore lint/suspicious/noExplicitAny: Loading value can be any type
-	| { kind: "value"; value?: any; list?: { depth: number; count: number } }
+	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
 
 export type SubscriptionSelection = {
 	loadingTypes?: string[]
@@ -232,7 +232,7 @@ export type SubscriptionSelection = {
 			filters?: Record<
 				string,
 				{
-					kind: "Boolean" | "String" | "Float" | "Int" | "Variable"
+					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
 					value: string | number | boolean
 				}
 			>
@@ -252,7 +252,7 @@ export type SubscriptionSelection = {
 	}
 	abstractFields?: {
 		fields: {
-			[typeName: string]: SubscriptionSelection["fields"]
+			[typeName: string]: SubscriptionSelection['fields']
 		}
 		// a mapping of __typenames to abstract types that might appear in the selection
 		typeMap: {
@@ -304,7 +304,7 @@ export type NestedList<_Result = string> = (
 
 export type ValueOf<Parent> = Parent[keyof Parent]
 
-export const fragmentKey = " $fragments" as const
+export const fragmentKey = ' $fragments' as const
 
 export type ValueNode =
 	| VariableNode
@@ -380,67 +380,67 @@ export type PageInfo = {
 }
 
 interface IntValueNode {
-	readonly kind: "IntValue"
+	readonly kind: 'IntValue'
 	readonly value: string
 }
 
 interface FloatValueNode {
-	readonly kind: "FloatValue"
+	readonly kind: 'FloatValue'
 	readonly value: string
 }
 
 interface StringValueNode {
-	readonly kind: "StringValue"
+	readonly kind: 'StringValue'
 	readonly value: string
 }
 
 interface BooleanValueNode {
-	readonly kind: "BooleanValue"
+	readonly kind: 'BooleanValue'
 	readonly value: boolean
 }
 
 interface NullValueNode {
-	readonly kind: "NullValue"
+	readonly kind: 'NullValue'
 }
 
 interface EnumValueNode {
-	readonly kind: "EnumValue"
+	readonly kind: 'EnumValue'
 	readonly value: string
 }
 
 interface ListValueNode {
-	readonly kind: "ListValue"
+	readonly kind: 'ListValue'
 	readonly values: ReadonlyArray<ValueNode>
 }
 
 interface ObjectValueNode {
-	readonly kind: "ObjectValue"
+	readonly kind: 'ObjectValue'
 	readonly fields: ReadonlyArray<ObjectFieldNode>
 }
 
 interface ObjectFieldNode {
-	readonly kind: "ObjectField"
+	readonly kind: 'ObjectField'
 	readonly name: NameNode
 	readonly value: ValueNode
 }
 
 interface NameNode {
-	readonly kind: "Name"
+	readonly kind: 'Name'
 	readonly value: string
 }
 
 interface VariableNode {
-	readonly kind: "Variable"
+	readonly kind: 'Variable'
 	readonly name: NameNode
 }
 
-export const PendingValue = Symbol("houdini_loading")
+export const PendingValue = Symbol('houdini_loading')
 
 export type LoadingType = typeof PendingValue
 
 // biome-ignore lint/suspicious/noExplicitAny: Pending check needs to handle any value type
 export function isPending(value: any): value is LoadingType {
-	return typeof value === "symbol"
+	return typeof value === 'symbol'
 }
 
 // The manifest is a tree of routes that the router will use to render

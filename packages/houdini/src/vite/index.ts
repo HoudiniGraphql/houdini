@@ -5,10 +5,10 @@ import type { DatabaseSync } from 'node:sqlite'
 import { pathToFileURL } from 'node:url'
 import type { PluginOption } from 'vite'
 
-import { connect_db, get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
+import { type Adapter, type Config, type ConfigFile, connect_db, get_config } from '../lib/index.js'
 import { document_hmr } from './hmr.js'
 import { houdini } from './houdini.js'
-import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema.js'
+import { poll_remote_schema, refresh_on_schema, watch_local_schema } from './schema.js'
 
 export type PluginConfig = {
 	configPath?: string
@@ -115,7 +115,7 @@ async function load_vite_plugins(ctx: VitePluginContext): Promise<Array<PluginOp
 						// check if the package has a ./vite export
 						if (!packageJson.exports || !packageJson.exports["./vite"]) {
 =======
-							`${plugin.name}/package.json`
+							`$plugin.name/package.json`
 						)
 						const packageDir = path.dirname(packageJsonPath)
 						const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
@@ -147,13 +147,11 @@ async function load_vite_plugins(ctx: VitePluginContext): Promise<Array<PluginOp
 
 						pluginModule = await import(viteFileUrl)
 <<<<<<< HEAD
-					} catch (_resolveError) {
-=======
-					} catch (resolveError) {
+					} catch (_resolveError) 
+=======catch (resolveError) 
 >>>>>>> go
 						// if resolution fails, skip this plugin
 						return null
-					}
 
 					// handle both CommonJS and ESM export patterns
 					// if the default export is an object with a nested default (CommonJS pattern),
@@ -183,10 +181,9 @@ async function load_vite_plugins(ctx: VitePluginContext): Promise<Array<PluginOp
 						throw new Error("Plugin's vite export is not a function")
 					}
 <<<<<<< HEAD
-				} catch (_e) {
+				} catch (_e) 
 					// plugin doesn't have a vite subpath or failed to load, skip it
 					return null
-				}
 			}),
 =======
 				} catch (e) {

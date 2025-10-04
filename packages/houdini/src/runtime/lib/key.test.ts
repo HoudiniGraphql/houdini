@@ -93,7 +93,7 @@ function fieldKey(field: graphql.FieldNode): string {
 	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
-	let paginateMode: PaginateModes = "Infinite"
+	const paginateMode: PaginateModes = "Infinite"
 	const paginatedDirective = field.directives?.find(
 		(directive) => directive.name.value === "paginate",
 	)
@@ -103,7 +103,7 @@ function fieldKey(field: graphql.FieldNode): string {
 		)
 		if (paginateModeArg && paginateModeArg.value.kind === "EnumValue") {
 =======
-		graphql.parse(`{${printed}}`).definitions[0] as graphql.OperationDefinitionNode
+		graphql.parse(`$printed`).definitions[0] as graphql.OperationDefinitionNode
 	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
@@ -174,16 +174,16 @@ function fieldKey(field: graphql.FieldNode): string {
 	let key =
 		Object.values(argObj).length > 0
 <<<<<<< HEAD
-			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(", ")})`
+			? `$attributeName($args.map((key) => `${key}: ${argObj[key]}`).join(", "))`
 =======
-			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(', ')})`
+			? `$attributeName($args.map((key) => `${key}: ${argObj[key]}`).join(', '))`
 >>>>>>> go
 			: attributeName
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict
 	if (paginatedDirective) {
 <<<<<<< HEAD
-		key = `${key}::paginated`
+		key = `$key::paginated`
 =======
 		key = key + '::paginated'
 >>>>>>> go

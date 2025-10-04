@@ -1,65 +1,65 @@
-import { expect, test } from "vitest"
+import { expect, test } from 'vitest'
 
-import { testConfigFile } from "../../../test"
-import type { SubscriptionSelection } from "../../lib"
-import { PendingValue } from "../../lib"
-import { Cache } from "../cache"
+import { testConfigFile } from '../../../test'
+import type { SubscriptionSelection } from '../../lib'
+import { PendingValue } from '../../lib'
+import { Cache } from '../cache'
 
 const config = testConfigFile()
 
-test("can generate loading state with nested objects", () => {
+test('can generate loading state with nested objects', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
-				keyRaw: "viewer",
+				type: 'User',
+				keyRaw: 'viewer',
 				visible: true,
-				loading: { kind: "continue" },
+				loading: { kind: 'continue' },
 				selection: {
 					fields: {
 						id: {
-							keyRaw: "id",
-							type: "String",
+							keyRaw: 'id',
+							type: 'String',
 							visible: true,
-							loading: { kind: "value" },
+							loading: { kind: 'value' },
 						},
 						parent: {
-							type: "User",
-							keyRaw: "parent",
+							type: 'User',
+							keyRaw: 'parent',
 							visible: true,
-							loading: { kind: "continue" },
+							loading: { kind: 'continue' },
 							selection: {
 								fields: {
 									id: {
-										type: "ID",
+										type: 'ID',
 										visible: true,
-										keyRaw: "id",
+										keyRaw: 'id',
 									},
 									firstName: {
-										type: "String",
+										type: 'String',
 										visible: true,
-										keyRaw: "firstName",
-										loading: { kind: "value" },
+										keyRaw: 'firstName',
+										loading: { kind: 'value' },
 									},
 									friend: {
-										type: "User",
-										keyRaw: "friend",
+										type: 'User',
+										keyRaw: 'friend',
 										visible: true,
-										loading: { kind: "value" },
+										loading: { kind: 'value' },
 										selection: {
 											fields: {
 												id: {
-													type: "ID",
+													type: 'ID',
 													visible: true,
-													keyRaw: "id",
+													keyRaw: 'id',
 												},
 												firstName: {
-													type: "String",
+													type: 'String',
 													visible: true,
-													keyRaw: "firstName",
+													keyRaw: 'firstName',
 												},
 											},
 										},
@@ -93,29 +93,29 @@ test("can generate loading state with nested objects", () => {
 	})
 })
 
-test("can generate loading state with lists", () => {
+test('can generate loading state with lists', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			users: {
-				type: "User",
-				keyRaw: "users",
+				type: 'User',
+				keyRaw: 'users',
 				visible: true,
-				loading: { kind: "continue", list: { count: 5, depth: 1 } },
+				loading: { kind: 'continue', list: { count: 5, depth: 1 } },
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
-							loading: { kind: "value" },
+							keyRaw: 'firstName',
+							loading: { kind: 'value' },
 						},
 					},
 				},
@@ -153,29 +153,29 @@ test("can generate loading state with lists", () => {
 	})
 })
 
-test("can generate loading state with multi-dimensional lists", () => {
+test('can generate loading state with multi-dimensional lists', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			users: {
-				type: "User",
-				keyRaw: "users",
+				type: 'User',
+				keyRaw: 'users',
 				visible: true,
-				loading: { kind: "continue", list: { count: 5, depth: 2 } },
+				loading: { kind: 'continue', list: { count: 5, depth: 2 } },
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
-							loading: { kind: "value" },
+							keyRaw: 'firstName',
+							loading: { kind: 'value' },
 						},
 					},
 				},
@@ -215,28 +215,28 @@ test("can generate loading state with multi-dimensional lists", () => {
 	})
 })
 
-test("can generate loading state with lists of loading values", () => {
+test('can generate loading state with lists of loading values', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			users: {
-				type: "User",
-				keyRaw: "users",
+				type: 'User',
+				keyRaw: 'users',
 				visible: true,
-				loading: { kind: "value", list: { count: 5, depth: 1 } },
+				loading: { kind: 'value', list: { count: 5, depth: 1 } },
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -264,46 +264,46 @@ test("can generate loading state with lists of loading values", () => {
 	})
 })
 
-test("generate abstract loading states", () => {
+test('generate abstract loading states', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
-				keyRaw: "viewer",
+				type: 'User',
+				keyRaw: 'viewer',
 				visible: true,
-				loading: { kind: "continue" },
+				loading: { kind: 'continue' },
 				selection: {
-					loadingTypes: ["User", "Cat"],
+					loadingTypes: ['User', 'Cat'],
 					abstractFields: {
 						typeMap: {},
 						fields: {
 							User: {
 								id: {
-									keyRaw: "id",
-									type: "String",
+									keyRaw: 'id',
+									type: 'String',
 									visible: true,
 								},
 								parent: {
-									type: "User",
-									keyRaw: "parent",
+									type: 'User',
+									keyRaw: 'parent',
 									visible: true,
-									loading: { kind: "value" },
+									loading: { kind: 'value' },
 								},
 							},
 							Cat: {
 								id: {
-									keyRaw: "id",
-									type: "String",
+									keyRaw: 'id',
+									type: 'String',
 									visible: true,
 								},
 								name: {
-									type: "String",
-									keyRaw: "name",
+									type: 'String',
+									keyRaw: 'name',
 									visible: true,
-									loading: { kind: "value" },
+									loading: { kind: 'value' },
 								},
 							},
 						},
@@ -330,40 +330,40 @@ test("generate abstract loading states", () => {
 	})
 })
 
-test("abstract loading states merge", () => {
+test('abstract loading states merge', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
-				keyRaw: "viewer",
+				type: 'User',
+				keyRaw: 'viewer',
 				visible: true,
-				loading: { kind: "continue" },
+				loading: { kind: 'continue' },
 				selection: {
-					loadingTypes: ["User", "Cat"],
+					loadingTypes: ['User', 'Cat'],
 					abstractFields: {
 						typeMap: {},
 						fields: {
 							User: {
 								id: {
-									keyRaw: "id",
-									type: "String",
+									keyRaw: 'id',
+									type: 'String',
 									visible: true,
 								},
 								parent: {
-									type: "User",
-									keyRaw: "parent",
+									type: 'User',
+									keyRaw: 'parent',
 									visible: true,
-									loading: { kind: "continue" },
+									loading: { kind: 'continue' },
 									selection: {
 										fields: {
 											name: {
-												type: "String",
-												keyRaw: "name",
+												type: 'String',
+												keyRaw: 'name',
 												visible: true,
-												loading: { kind: "value" },
+												loading: { kind: 'value' },
 											},
 										},
 									},
@@ -371,28 +371,28 @@ test("abstract loading states merge", () => {
 							},
 							Cat: {
 								id: {
-									keyRaw: "id",
-									type: "String",
+									keyRaw: 'id',
+									type: 'String',
 									visible: true,
 								},
 								name: {
-									type: "String",
-									keyRaw: "name",
+									type: 'String',
+									keyRaw: 'name',
 									visible: true,
-									loading: { kind: "value" },
+									loading: { kind: 'value' },
 								},
 								parent: {
-									type: "User",
-									keyRaw: "parent",
+									type: 'User',
+									keyRaw: 'parent',
 									visible: true,
-									loading: { kind: "continue" },
+									loading: { kind: 'continue' },
 									selection: {
 										fields: {
 											lastName: {
-												type: "String",
-												keyRaw: "name",
+												type: 'String',
+												keyRaw: 'name',
 												visible: true,
-												loading: { kind: "value" },
+												loading: { kind: 'value' },
 											},
 										},
 									},

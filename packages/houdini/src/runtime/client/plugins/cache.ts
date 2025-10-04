@@ -1,14 +1,14 @@
-import cache from "../../cache"
-import { Cache } from "../../cache/cache"
+import cache from '../../cache'
+import { Cache } from '../../cache/cache'
 import {
 	ArtifactKind,
 	CachePolicy,
 	DataSource,
 	type GraphQLObject,
-} from "../../lib/types"
-import type { ClientPlugin } from "../documentStore"
+} from '../../lib/types'
+import type { ClientPlugin } from '../documentStore'
 
-const serverSide = typeof globalThis.window === "undefined"
+const serverSide = typeof globalThis.window === 'undefined'
 
 export const cachePolicy =
 	({
@@ -91,7 +91,7 @@ export const cachePolicy =
 							!value.partial &&
 							!value.stale &&
 							// if the policy is CacheAndNetwork then we don't want to stop here regardless
-							ctx.policy !== "CacheAndNetwork"
+							ctx.policy !== 'CacheAndNetwork'
 						) {
 							return
 						}
@@ -113,7 +113,7 @@ export const cachePolicy =
 					let fetchingState: GraphQLObject | null = null
 					if (
 						!useCache &&
-						"enableLoadingState" in artifact &&
+						'enableLoadingState' in artifact &&
 						artifact.enableLoadingState
 					) {
 						fetchingState = localCache.read({
@@ -137,7 +137,7 @@ export const cachePolicy =
 					!ctx.cacheParams?.disableWrite
 				) {
 					// if the cache params specify a fallback behavior, use that
-					if (ctx.cacheParams && "serverSideFallback" in ctx.cacheParams) {
+					if (ctx.cacheParams && 'serverSideFallback' in ctx.cacheParams) {
 						serverSideFallback =
 							ctx.cacheParams?.serverSideFallback ?? serverSideFallback
 					}

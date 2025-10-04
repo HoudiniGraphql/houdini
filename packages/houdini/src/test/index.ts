@@ -1,6 +1,9 @@
 import type { ConfigFile } from 'legacy/lib'
 
-export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({
+	plugins,
+	...config
+}: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		scalars: {
 			DateTime: {

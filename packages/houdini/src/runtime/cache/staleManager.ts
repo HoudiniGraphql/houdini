@@ -1,5 +1,5 @@
-import { computeKey } from "../lib"
-import type { Cache } from "./cache"
+import { computeKey } from '../lib'
+import type { Cache } from './cache'
 
 export class StaleManager {
 	cache: Cache

@@ -1,6 +1,6 @@
-import type { RequestPayload } from "../../lib/types"
-import { ArtifactKind, DataSource } from "../../lib/types"
-import type { ClientPlugin, ClientPluginContext } from "../documentStore"
+import type { RequestPayload } from '../../lib/types'
+import { ArtifactKind, DataSource } from '../../lib/types'
+import type { ClientPlugin, ClientPluginContext } from '../documentStore'
 
 export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
@@ -31,7 +31,7 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 				// the provided parameter either specifies the URL or is the entire function to
 				// use
 				if (target) {
-					if (typeof target === "string") {
+					if (typeof target === 'string') {
 						fetchFn = defaultFetch(target, ctx.fetchParams)
 					} else {
 						fetchFn = target
@@ -73,24 +73,24 @@ export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 
 const defaultFetch = (
 	url: string,
-	params?: Required<ClientPluginContext>["fetchParams"],
+	params?: Required<ClientPluginContext>['fetchParams'],
 ): RequestHandler => {
 	// if there is no configured url, we can't use this plugin
 	if (!url) {
 		throw new Error(
-			"Could not find configured client url. Please specify one in your HoudiniClient constructor.",
+			'Could not find configured client url. Please specify one in your HoudiniClient constructor.',
 		)
 	}
 
 	return async ({ fetch, name, text, variables }) => {
 		// regular fetch (Server & Client)
 		const result = await fetch(url, {
-			method: "POST",
+			method: 'POST',
 			body: JSON.stringify({ operationName: name, query: text, variables }),
 			...params,
 			headers: {
-				Accept: "application/graphql+json, application/json",
-				"Content-Type": "application/json",
+				Accept: 'application/graphql+json, application/json',
+				'Content-Type': 'application/json',
 				...params?.headers,
 			},
 		})
@@ -98,10 +98,10 @@ const defaultFetch = (
 		// Avoid parsing the response if it's not JSON, as that will throw a SyntaxError
 		if (
 			!result.ok &&
-			!result.headers.get("content-type")?.startsWith("application/json") &&
+			!result.headers.get('content-type')?.startsWith('application/json') &&
 			!result.headers
-				.get("content-type")
-				?.startsWith("application/graphql+json")
+				.get('content-type')
+				?.startsWith('application/graphql+json')
 		) {
 			throw new Error(
 				`Failed to fetch: server returned invalid response with error ${result.status}: ${result.statusText}`,
@@ -163,8 +163,8 @@ function handleMultipart(
 		if (req?.headers) {
 			const filtered = Object.entries(req?.headers).filter(([key, value]) => {
 				return !(
-					key.toLowerCase() === "content-type" &&
-					value.toLowerCase() === "application/json"
+					key.toLowerCase() === 'content-type' &&
+					value.toLowerCase() === 'application/json'
 				)
 			})
 			headers = Object.fromEntries(filtered)
@@ -176,10 +176,10 @@ function handleMultipart(
 
 		// if we have a body, just use it.
 		if (args?.body) {
-			form.set("operations", args?.body as string)
+			form.set('operations', args?.body as string)
 		} else {
 			form.set(
-				"operations",
+				'operations',
 				JSON.stringify({
 					operationName: params.name,
 					query: params.text,
@@ -194,7 +194,7 @@ function handleMultipart(
 		files.forEach((paths) => {
 			map[++i] = paths
 		})
-		form.set("map", JSON.stringify(map))
+		form.set('map', JSON.stringify(map))
 
 		i = 0
 		files.forEach((_paths, file) => {
@@ -212,8 +212,8 @@ function handleMultipart(
 // biome-ignore lint/suspicious/noExplicitAny: File type check needs to handle any input
 export function isExtractableFile(value: any): value is ExtractableFile {
 	return (
-		(typeof File !== "undefined" && value instanceof File) ||
-		(typeof Blob !== "undefined" && value instanceof Blob)
+		(typeof File !== 'undefined' && value instanceof File) ||
+		(typeof Blob !== 'undefined' && value instanceof Blob)
 	)
 }
 
@@ -224,7 +224,7 @@ type ExtractableFile = File | Blob
 // biome-ignore lint/suspicious/noExplicitAny: File extraction needs to handle any input structure
 export function extractFiles(value?: any) {
 	if (value === undefined)
-		throw new TypeError("Argument 1 `value` is required.")
+		throw new TypeError('Argument 1 `value` is required.')
 
 	/**
 	 * Map of values recursed within the input value and their clones, for reusing
@@ -254,7 +254,7 @@ export function extractFiles(value?: any) {
 
 		const valueIsList =
 			Array.isArray(value) ||
-			(typeof FileList !== "undefined" && value instanceof FileList)
+			(typeof FileList !== 'undefined' && value instanceof FileList)
 		const valueIsPlainObject = isPlainObject(value)
 
 		if (valueIsList || valueIsPlainObject) {
@@ -274,7 +274,7 @@ export function extractFiles(value?: any) {
 			}
 
 			if (!recursed.has(value)) {
-				const pathPrefix = path ? `${path}.` : ""
+				const pathPrefix = path ? `${path}.` : ''
 				const recursedDeeper = new Set(recursed).add(value)
 
 				if (valueIsList) {
@@ -311,7 +311,7 @@ export function extractFiles(value?: any) {
 	}
 
 	return {
-		clone: recurse(value, "", new Set()),
+		clone: recurse(value, '', new Set()),
 		files,
 	}
 }
@@ -340,7 +340,7 @@ export function extractFiles(value?: any) {
 
 // biome-ignore lint/suspicious/noExplicitAny: Object type check needs to handle any input
 function isPlainObject(value: any) {
-	if (typeof value !== "object" || value === null) {
+	if (typeof value !== 'object' || value === null) {
 		return false
 	}
 

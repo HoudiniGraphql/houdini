@@ -1,4 +1,4 @@
-export const siteURL = "https://houdinigraphql.com"
+export const siteURL = 'https://houdinigraphql.com'
 
 export const houdini_mode = {
 	/**
@@ -6,6 +6,6 @@ export const houdini_mode = {
 	 * `process.env.HOUDINI_TEST = 'true'`
 	 */
 	get is_testing() {
-		return process.env.HOUDINI_TEST === "true"
+		return process.env.HOUDINI_TEST === 'true'
 	},
 }

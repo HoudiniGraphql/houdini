@@ -4,9 +4,9 @@ export function evaluateKey(
 	variables: Record<string, unknown> | null = null,
 ): string {
 	// accumulate the evaluated key
-	let evaluated = ""
+	let evaluated = ''
 	// accumulate a variable name that we're evaluating
-	let varName = ""
+	let varName = ''
 	// some state to track if we are "in" a string
 	let inString = false
 
@@ -26,16 +26,16 @@ export function evaluateKey(
 			const value = variables?.[varName.slice(1)]
 
 			evaluated +=
-				typeof value !== "undefined" ? JSON.stringify(value) : "undefined"
+				typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
 
 			// clear the variable name accumulator
-			varName = ""
+			varName = ''
 		}
 
 		// if we are looking at the start of a variable
-		if (char === "$" && !inString) {
+		if (char === '$' && !inString) {
 			// start the accumulator
-			varName = "$"
+			varName = '$'
 
 			// move along
 			continue
@@ -55,7 +55,7 @@ export function evaluateKey(
 
 // the list of characters that make up a valid graphql variable name
 const varChars =
-	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789"
+	'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
 
 // fields on the root of the data store are keyed with a fixed id
-export const rootID = "_ROOT_"
+export const rootID = '_ROOT_'

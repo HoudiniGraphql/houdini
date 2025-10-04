@@ -1,99 +1,99 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from 'vitest'
 
-import { testConfigFile } from "../../test"
-import { exec, find_match, parse_page_pattern } from "./match"
-import type { RouterManifest } from "./types"
+import { testConfigFile } from '../../test'
+import { exec, find_match, parse_page_pattern } from './match'
+import type { RouterManifest } from './types'
 
-describe("route_params", () => {
+describe('route_params', () => {
 	const testCases = [
 		{
-			name: "Basic route without any parameters",
-			pattern: "/home",
-			url: "/home",
+			name: 'Basic route without any parameters',
+			pattern: '/home',
+			url: '/home',
 			expected: {
 				variables: {},
 				layout: null,
 			},
 		},
 		{
-			name: "Route with a single required parameter",
-			pattern: "/user/[id]",
-			url: "/user/42",
+			name: 'Route with a single required parameter',
+			pattern: '/user/[id]',
+			url: '/user/42',
 			expected: {
 				variables: {
-					id: "42",
+					id: '42',
 				},
 				layout: null,
 			},
 		},
 		{
-			name: "Parameter with space",
-			pattern: "/user/[id]",
-			url: "/user/4%202",
+			name: 'Parameter with space',
+			pattern: '/user/[id]',
+			url: '/user/4%202',
 			expected: {
 				variables: {
-					id: "4 2",
+					id: '4 2',
 				},
 				layout: null,
 			},
 		},
 		{
-			name: "Route with a single required parameter (missing)",
-			pattern: "/user/[id]",
-			url: "/user",
+			name: 'Route with a single required parameter (missing)',
+			pattern: '/user/[id]',
+			url: '/user',
 			expected: null,
 		},
 		{
-			name: "Route with multiple required parameters",
-			pattern: "/blog/[category]/[id]",
-			url: "/blog/technology/5",
+			name: 'Route with multiple required parameters',
+			pattern: '/blog/[category]/[id]',
+			url: '/blog/technology/5',
 			expected: {
 				variables: {
-					category: "technology",
-					id: "5",
+					category: 'technology',
+					id: '5',
 				},
 				layout: null,
 			},
 		},
 		{
-			name: "Route with multiple required parameters (first missing)",
-			pattern: "/blog/[category]/[id]",
-			url: "/blog/5",
+			name: 'Route with multiple required parameters (first missing)',
+			pattern: '/blog/[category]/[id]',
+			url: '/blog/5',
 			expected: null,
 		},
 		{
-			name: "Route with multiple required parameters (second missing)",
-			pattern: "/blog/[category]/[id]",
-			url: "/blog/technology",
+			name: 'Route with multiple required parameters (second missing)',
+			pattern: '/blog/[category]/[id]',
+			url: '/blog/technology',
 			expected: null,
 		},
 		{
-			name: "Route with a single optional parameter",
-			pattern: "/search/[[query]]",
-			url: "/search/ai",
+			name: 'Route with a single optional parameter',
+			pattern: '/search/[[query]]',
+			url: '/search/ai',
 			expected: {
 				variables: {
-					query: "ai",
+					query: 'ai',
 				},
 				layout: null,
 			},
 		},
 		{
-			name: "Route with a single optional parameter (omitted)",
-			pattern: "/search/[[query]]",
-			url: "/search",
+			name: 'Route with a single optional parameter (omitted)',
+			pattern: '/search/[[query]]',
+			url: '/search',
 			expected: {
 				variables: {},
 				layout: null,
 			},
 		},
 		{
-			name: "Route with multiple optional chained parameters (first present)",
-			pattern: "/lang/[[lang=language]]/[[country=country]]",
-			url: "/lang/en",
+			name: 'Route with multiple optional chained parameters (first present)',
+			pattern: '/lang/[[lang=language]]/[[country=country]]',
+			url: '/lang/en',
 			expected: {
 				variables: {
-					lang: "en",
+					lang: 'en',
 				},
 				layout: null,
 			},
@@ -121,13 +121,13 @@ describe("route_params", () => {
 	})
 })
 
-describe("find_match parse and match", async () => {
+describe('find_match parse and match', async () => {
 	// every test case needs to be an collection of urls and the expected match
 	const table = [
 		{
-			name: "root match is last",
-			urls: ["/foo", "/"],
-			expected: "/foo",
+			name: 'root match is last',
+			urls: ['/foo', '/'],
+			expected: '/foo',
 		},
 	]
 

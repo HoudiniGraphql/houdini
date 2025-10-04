@@ -1,49 +1,49 @@
-import { expect, test, vi } from "vitest"
+import { expect, test, vi } from 'vitest'
 
-import { testConfigFile } from "../../../test"
-import type { SubscriptionSelection } from "../../lib"
-import { Cache } from "../cache"
+import { testConfigFile } from '../../../test'
+import type { SubscriptionSelection } from '../../lib'
+import { Cache } from '../cache'
 
 const config = testConfigFile()
 
-test("not partial", () => {
+test('not partial', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
+				type: 'User',
 				visible: true,
-				keyRaw: "viewer",
+				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
+							keyRaw: 'firstName',
 						},
 						friends: {
-							type: "User",
+							type: 'User',
 							visible: true,
-							keyRaw: "friends",
+							keyRaw: 'friends',
 							nullable: true,
 							selection: {
 								fields: {
 									id: {
-										type: "ID",
+										type: 'ID',
 										visible: true,
-										keyRaw: "id",
+										keyRaw: 'id',
 									},
 									firstName: {
-										type: "String",
+										type: 'String',
 										visible: true,
-										keyRaw: "firstName",
+										keyRaw: 'firstName',
 									},
 								},
 							},
@@ -65,12 +65,12 @@ test("not partial", () => {
 		selection,
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
+				id: '1',
+				firstName: 'bob',
 				friends: [
 					{
-						id: "2",
-						firstName: "jane",
+						id: '2',
+						firstName: 'jane',
 					},
 					null,
 				],
@@ -84,43 +84,43 @@ test("not partial", () => {
 	})
 })
 
-test("not partial with empty list", () => {
+test('not partial with empty list', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
+				type: 'User',
 				visible: true,
-				keyRaw: "viewer",
+				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
+							keyRaw: 'firstName',
 						},
 						friends: {
-							type: "User",
+							type: 'User',
 							visible: true,
-							keyRaw: "friends",
+							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
-										type: "ID",
+										type: 'ID',
 										visible: true,
-										keyRaw: "id",
+										keyRaw: 'id',
 									},
 									firstName: {
-										type: "String",
+										type: 'String',
 										visible: true,
-										keyRaw: "firstName",
+										keyRaw: 'firstName',
 									},
 								},
 							},
@@ -142,8 +142,8 @@ test("not partial with empty list", () => {
 		selection,
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
+				id: '1',
+				firstName: 'bob',
 				friends: [],
 			},
 		},
@@ -155,43 +155,43 @@ test("not partial with empty list", () => {
 	})
 })
 
-test("partial with missing linked record", () => {
+test('partial with missing linked record', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
+				type: 'User',
 				visible: true,
-				keyRaw: "viewer",
+				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
+							keyRaw: 'firstName',
 						},
 						parent: {
-							type: "User",
+							type: 'User',
 							visible: true,
-							keyRaw: "parent",
+							keyRaw: 'parent',
 							selection: {
 								fields: {
 									id: {
-										type: "ID",
+										type: 'ID',
 										visible: true,
-										keyRaw: "id",
+										keyRaw: 'id',
 									},
 									firstName: {
-										type: "String",
+										type: 'String',
 										visible: true,
-										keyRaw: "firstName",
+										keyRaw: 'firstName',
 									},
 								},
 							},
@@ -213,8 +213,8 @@ test("partial with missing linked record", () => {
 		selection,
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
+				id: '1',
+				firstName: 'bob',
 			},
 		},
 	})
@@ -225,43 +225,43 @@ test("partial with missing linked record", () => {
 	})
 })
 
-test("partial with missing single field", () => {
+test('partial with missing single field', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
+				type: 'User',
 				visible: true,
-				keyRaw: "viewer",
+				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						firstName: {
-							type: "String",
+							type: 'String',
 							visible: true,
-							keyRaw: "firstName",
+							keyRaw: 'firstName',
 						},
 						friends: {
-							type: "User",
+							type: 'User',
 							visible: true,
-							keyRaw: "friends",
+							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
-										type: "ID",
+										type: 'ID',
 										visible: true,
-										keyRaw: "id",
+										keyRaw: 'id',
 									},
 									firstName: {
-										type: "String",
+										type: 'String',
 										visible: true,
-										keyRaw: "firstName",
+										keyRaw: 'firstName',
 									},
 								},
 							},
@@ -277,7 +277,7 @@ test("partial with missing single field", () => {
 		selection,
 		data: {
 			viewer: {
-				id: "1",
+				id: '1',
 				friends: [],
 			},
 		},
@@ -288,38 +288,38 @@ test("partial with missing single field", () => {
 	})
 })
 
-test("partial missing data inside of linked list", () => {
+test('partial missing data inside of linked list', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
+				type: 'User',
 				visible: true,
-				keyRaw: "viewer",
+				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						friends: {
-							type: "User",
+							type: 'User',
 							visible: true,
-							keyRaw: "friends",
+							keyRaw: 'friends',
 							selection: {
 								fields: {
 									id: {
-										type: "ID",
+										type: 'ID',
 										visible: true,
-										keyRaw: "id",
+										keyRaw: 'id',
 									},
 									firstName: {
-										type: "String",
+										type: 'String',
 										visible: true,
-										keyRaw: "firstName",
+										keyRaw: 'firstName',
 									},
 								},
 							},
@@ -336,8 +336,8 @@ test("partial missing data inside of linked list", () => {
 		selection,
 		data: {
 			viewer: {
-				id: "1",
-				friends: [{ id: "2", firstName: "anthony" }, { id: "3" }],
+				id: '1',
+				friends: [{ id: '2', firstName: 'anthony' }, { id: '3' }],
 			},
 		},
 	})
@@ -347,67 +347,67 @@ test("partial missing data inside of linked list", () => {
 	})
 })
 
-test("missing cursor of item in connection from operation should not trigger null cascade", () => {
+test('missing cursor of item in connection from operation should not trigger null cascade', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		fields: {
 			viewer: {
-				type: "User",
+				type: 'User',
 				visible: true,
-				keyRaw: "viewer",
+				keyRaw: 'viewer',
 				selection: {
 					fields: {
 						id: {
-							type: "ID",
+							type: 'ID',
 							visible: true,
-							keyRaw: "id",
+							keyRaw: 'id',
 						},
 						friends: {
-							type: "User",
+							type: 'User',
 							visible: true,
-							keyRaw: "friends",
+							keyRaw: 'friends',
 							list: {
-								name: "All_Users",
+								name: 'All_Users',
 								connection: true,
-								type: "User",
+								type: 'User',
 							},
 							selection: {
 								fields: {
 									edges: {
-										type: "UserEdge",
+										type: 'UserEdge',
 										visible: true,
-										keyRaw: "edges",
+										keyRaw: 'edges',
 										selection: {
 											fields: {
 												cursor: {
-													type: "Node",
+													type: 'Node',
 													visible: true,
-													keyRaw: "cursor",
+													keyRaw: 'cursor',
 													nullable: false,
 												},
 												node: {
-													type: "Node",
+													type: 'Node',
 													visible: true,
-													keyRaw: "node",
+													keyRaw: 'node',
 													abstract: true,
 													selection: {
 														fields: {
 															__typename: {
-																type: "String",
+																type: 'String',
 																visible: true,
-																keyRaw: "__typename",
+																keyRaw: '__typename',
 															},
 															id: {
-																type: "ID",
+																type: 'ID',
 																visible: true,
-																keyRaw: "id",
+																keyRaw: 'id',
 															},
 															firstName: {
-																type: "String",
+																type: 'String',
 																visible: true,
-																keyRaw: "firstName",
+																keyRaw: 'firstName',
 															},
 														},
 													},
@@ -429,14 +429,14 @@ test("missing cursor of item in connection from operation should not trigger nul
 		selection,
 		data: {
 			viewer: {
-				id: "1",
+				id: '1',
 				friends: {
 					edges: [
 						{
 							node: {
-								__typename: "User",
-								id: "2",
-								firstName: "jane",
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
 							},
 						},
 					],
@@ -448,35 +448,35 @@ test("missing cursor of item in connection from operation should not trigger nul
 	cache.subscribe({
 		set: vi.fn(),
 		selection,
-		rootType: "Query",
+		rootType: 'Query',
 	})
 
 	// add some data to the cache with an incomplete set of values for an element
 	// inside of a list
-	cache.list("All_Users").prepend({
+	cache.list('All_Users').prepend({
 		selection: {
 			fields: {
 				__typename: {
-					type: "String",
+					type: 'String',
 					visible: true,
-					keyRaw: "__typename",
+					keyRaw: '__typename',
 				},
 				id: {
-					type: "ID",
+					type: 'ID',
 					visible: true,
-					keyRaw: "id",
+					keyRaw: 'id',
 				},
 				firstName: {
-					type: "String",
+					type: 'String',
 					visible: true,
-					keyRaw: "firstName",
+					keyRaw: 'firstName',
 				},
 			},
 		},
 		data: {
-			__typename: "User",
-			id: "2",
-			firstName: "Sally",
+			__typename: 'User',
+			id: '2',
+			firstName: 'Sally',
 		},
 	})
 

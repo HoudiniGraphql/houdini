@@ -1,21 +1,21 @@
 /// <reference path="../../../../../houdini.d.ts" />
-import cacheRef from "../cache"
-import type { Cache } from "../cache/cache"
-import { getCurrentConfig, localApiEndpoint } from "../lib"
-import { flatten } from "../lib/flatten"
+import cacheRef from '../cache'
+import type { Cache } from '../cache/cache'
+import { getCurrentConfig, localApiEndpoint } from '../lib'
+import { flatten } from '../lib/flatten'
 import type {
 	DocumentArtifact,
 	GraphQLObject,
 	GraphQLVariables,
 	NestedList,
-} from "../lib/types"
-import type { ClientHooks, ClientPlugin } from "./documentStore"
-import { DocumentStore } from "./documentStore"
+} from '../lib/types'
+import type { ClientHooks, ClientPlugin } from './documentStore'
+import { DocumentStore } from './documentStore'
 import type {
 	FetchParamFn,
 	ThrowOnErrorOperations,
 	ThrowOnErrorParams,
-} from "./plugins"
+} from './plugins'
 import {
 	fetchParams as fetchParamsPlugin,
 	fetch as fetchPlugin,
@@ -24,16 +24,16 @@ import {
 	optimisticKeys,
 	query as queryPlugin,
 	throwOnError as throwOnErrorPlugin,
-} from "./plugins"
-import pluginsFromPlugins from "./plugins/injectedPlugins"
+} from './plugins'
+import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
 export {
 	type ClientPlugin,
 	DocumentStore,
 	type SendParams,
-} from "./documentStore"
-export { fetch, mutation, query, subscription } from "./plugins"
+} from './documentStore'
+export { fetch, mutation, query, subscription } from './plugins'
 
 export type HoudiniClientConstructorArgs = {
 	url?: string
@@ -100,18 +100,18 @@ export class HoudiniClient {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(
-				"A client cannot be given a pipeline and a list of plugins at the same time.",
+				'A client cannot be given a pipeline and a list of plugins at the same time.',
 			)
 		}
 
 		this.throwOnError_operations = throwOnError?.operations ?? []
 
-		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? "5173"
+		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 
 		// if there is no url provided then assume we are using the internal local api
 		this.url =
 			url ??
-			(globalThis.window ? "" : `https://localhost:${serverPort}`) +
+			(globalThis.window ? '' : `https://localhost:${serverPort}`) +
 				localApiEndpoint(getCurrentConfig())
 
 		this.throwOnError = throwOnError
@@ -186,7 +186,7 @@ export class HoudiniClient {
 // createPluginHooks instantiates the client plugins
 export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
 	return plugins.reduce((hooks, plugin) => {
-		if (typeof plugin !== "function") {
+		if (typeof plugin !== 'function') {
 			throw new Error("Encountered client plugin that's not a function")
 		}
 
@@ -211,7 +211,7 @@ export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
 			}
 
 			// if the result is a plugin, walk down
-			if (typeof value === "function") {
+			if (typeof value === 'function') {
 				return hooks.concat(createPluginHooks([value]))
 			}
 

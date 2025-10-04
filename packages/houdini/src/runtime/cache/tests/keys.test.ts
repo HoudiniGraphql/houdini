@@ -1,30 +1,30 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from 'vitest'
 
-import { evaluateKey } from "../stuff"
+import { evaluateKey } from '../stuff'
 
-describe("key evaluation", () => {
+describe('key evaluation', () => {
 	const table = [
 		{
-			title: "string",
-			key: "fieldName",
-			expected: "fieldName",
+			title: 'string',
+			key: 'fieldName',
+			expected: 'fieldName',
 		},
 		{
-			title: "variable",
-			key: "fieldName(foo: $bar)",
-			variables: { bar: "baz" },
+			title: 'variable',
+			key: 'fieldName(foo: $bar)',
+			variables: { bar: 'baz' },
 			expected: 'fieldName(foo: "baz")',
 		},
 		{
-			title: "$ in string",
+			title: '$ in string',
 			key: 'fieldName(foo: "$bar")',
-			variables: { bar: "baz" },
+			variables: { bar: 'baz' },
 			expected: 'fieldName(foo: "$bar")',
 		},
 		{
-			title: "undefined variable",
-			key: "fieldName(foo: $bar)",
-			expected: "fieldName(foo: undefined)",
+			title: 'undefined variable',
+			key: 'fieldName(foo: $bar)',
+			expected: 'fieldName(foo: undefined)',
 		},
 	]
 

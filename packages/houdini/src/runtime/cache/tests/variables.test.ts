@@ -1,9 +1,9 @@
-import { describe, expect, test } from "vitest"
+import { describe, expect, test } from 'vitest'
 
-import type { GraphQLObject, ValueMap } from "../../lib/types"
-import { evaluateVariables } from "../cache"
+import type { GraphQLObject, ValueMap } from '../../lib/types'
+import { evaluateVariables } from '../cache'
 
-describe("evaluateFragmentVariables", () => {
+describe('evaluateFragmentVariables', () => {
 	const table: {
 		title: string
 		input: ValueMap
@@ -11,21 +11,21 @@ describe("evaluateFragmentVariables", () => {
 		expected: unknown
 	}[] = [
 		{
-			title: "String",
+			title: 'String',
 			input: {
 				value: {
-					kind: "StringValue",
-					value: "Hello",
+					kind: 'StringValue',
+					value: 'Hello',
 				},
 			},
 			variables: {},
-			expected: { value: "Hello" },
+			expected: { value: 'Hello' },
 		},
 		{
-			title: "Boolean",
+			title: 'Boolean',
 			input: {
 				value: {
-					kind: "BooleanValue",
+					kind: 'BooleanValue',
 					value: true,
 				},
 			},
@@ -33,85 +33,85 @@ describe("evaluateFragmentVariables", () => {
 			expected: { value: true },
 		},
 		{
-			title: "Float",
+			title: 'Float',
 			input: {
 				value: {
-					kind: "FloatValue",
-					value: "1.2",
+					kind: 'FloatValue',
+					value: '1.2',
 				},
 			},
 			variables: {},
 			expected: { value: 1.2 },
 		},
 		{
-			title: "Int",
+			title: 'Int',
 			input: {
 				value: {
-					kind: "IntValue",
-					value: "1",
+					kind: 'IntValue',
+					value: '1',
 				},
 			},
 			variables: {},
 			expected: { value: 1 },
 		},
 		{
-			title: "null",
+			title: 'null',
 			input: {
 				value: {
-					kind: "NullValue",
+					kind: 'NullValue',
 				},
 			},
 			variables: {},
 			expected: { value: null },
 		},
 		{
-			title: "Variable",
+			title: 'Variable',
 			input: {
 				value: {
-					kind: "Variable",
+					kind: 'Variable',
 					name: {
-						kind: "Name",
-						value: "foo",
+						kind: 'Name',
+						value: 'foo',
 					},
 				},
 			},
 			variables: {
-				foo: "bar",
+				foo: 'bar',
 			},
-			expected: { value: "bar" },
+			expected: { value: 'bar' },
 		},
 		{
-			title: "List",
+			title: 'List',
 			input: {
 				value: {
-					kind: "ListValue",
+					kind: 'ListValue',
 					values: [
 						{
-							kind: "BooleanValue",
+							kind: 'BooleanValue',
 							value: true,
 						},
 					],
 				},
 			},
 			variables: {
-				foo: "bar",
+				foo: 'bar',
 			},
 			expected: { value: [true] },
 		},
 		{
-			title: "Object",
+			title: 'Object',
 			input: {
 				value: {
-					kind: "ObjectValue",
+					kind: 'ObjectValue',
 					fields: [
 						{
-							kind: "ObjectField",
+							kind: 'ObjectField',
 							name: {
-								kind: "Name",
-								value: "foo",
+								kind: 'Name',
+								value: 'foo',
 							},
 							value: {
-								kind: "BooleanValue",
+								kind: 'BooleanValue',
 								value: true,
 							},
 						},
@@ -119,7 +119,7 @@ describe("evaluateFragmentVariables", () => {
 				},
 			},
 			variables: {
-				foo: "bar",
+				foo: 'bar',
 			},
 			expected: { value: { foo: true } },
 		},

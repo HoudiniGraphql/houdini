@@ -1,9 +1,14 @@
 import fs from 'node:fs/promises'
 import type { DatabaseSync } from 'node:sqlite'
-import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
-
+import type { HmrContext, ModuleNode, Plugin as VitePlugin } from 'vite'
+import {
+	type CompilerProxy,
+	codegen_setup,
+	get_config,
+	path,
+	run_pipeline,
+} from '../lib/index.js'
 import type { VitePluginContext } from '.'
-import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
 
 /**
  * Houdini Vite HMR Plugin
@@ -27,19 +32,19 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
 
 	return {
-		name: "houdini",
+		name: 'houdini',
 
-		enforce: "pre",
+		enforce: 'pre',
 
 		// this is called when the dev server starts
 		async configureServer(server) {
 			const config = await get_config()
 
 			// and a proxy to talk to the compiler
-			compiler = await codegen_setup(config, "dev", ctx.db, ctx.db_file)
+			compiler = await codegen_setup(config, 'dev', ctx.db, ctx.db_file)
 
 			// and make sure the compiler cleans up gracefully when the http server dies
-			server.httpServer?.once("close", () => {
+			server.httpServer?.once('close', () => {
 				compiler.close()
 			})
 
@@ -47,14 +52,14 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			// we need to trigger validate in order to discover lists which might not appear in the normal JIT path
 			// TODO: discover lists earlier
 			try {
-				await run_pipeline(compiler.trigger_hook, { through: "Validate" })
+				await run_pipeline(compiler.trigger_hook, { through: 'Validate' })
 			} catch {}
 		},
 
 		// this is called when a module is being resolved
 		async resolveId(id) {
 			// check if this is an artifact import
-			if (id.startsWith("$houdini/artifacts/")) {
+			if (id.startsWith('$houdini/artifacts/')) {
 				const match = id.match(/^\$houdini\/artifacts\/(.+)$/)
 				const artifactName = match ? match[1] : null
 				if (artifactName && ctx.db && compiler) {
@@ -79,7 +84,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				for (const [filepath, content] of Object.entries(files)) {
 					if (
 						content !== null &&
-						(filepath.endsWith(".gql") || content.includes("$houdini"))
+						(filepath.endsWith('.gql') || content.includes('$houdini'))
 					) {
 						filepaths.push(filepath)
 						relativePaths.push(
@@ -95,7 +100,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				// be abitrary extraction logic in a plugin that means we have to instead defer to them to extract documents
 
 				// so let's just blow away any raw documents related to the changed files and then we'll call extract
-				const placeholders = relativePaths.map(() => "?").join(", ")
+				const placeholders = relativePaths.map(() => '?').join(', ')
 				ctx.db
 					.prepare(
 						`
@@ -136,7 +141,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					.run()
 
 				// tell the plugin to extract the filepaths
-				await compiler.trigger_hook("ExtractDocuments", {
+				await compiler.trigger_hook('ExtractDocuments', {
 					payload: { filepaths },
 				})
 
@@ -160,7 +165,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				// that have changed because of this update event
 				//
 				// instruct the compiler to parse and load the content into the database
-				await compiler.trigger_hook("AfterExtract", { task_id })
+				await compiler.trigger_hook('AfterExtract', { task_id })
 
 				// now that all of the documents have been updated to their latest version we can
 				// walk the dependency graph and include any transient dependencys to the task
@@ -233,7 +238,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				// the task now includes every document that we need to process
 				const results = await run_pipeline(compiler.trigger_hook, {
 					task_id,
-					after: "AfterExtract",
+					after: 'AfterExtract',
 				})
 
 				// the return value of each generate invocation is the list of modules that were updated
@@ -275,8 +280,8 @@ async function ensureArtifactGenerated(
 		await fs.access(
 			path.join(
 				config.root_dir,
-				config.config_file.runtimeDir ?? ".houdini",
-				"artifacts",
+				config.config_file.runtimeDir ?? '.houdini',
+				'artifacts',
 				artifactName,
 			),
 			fs.constants.R_OK,
@@ -347,7 +352,7 @@ async function ensureArtifactGenerated(
 	// Run the compilation pipeline for this task
 	await run_pipeline(compiler.trigger_hook, {
 		task_id,
-		after: "AfterExtract",
+		after: 'AfterExtract',
 	})
 
 	// Clean up the task
@@ -411,7 +416,7 @@ export function createDebounceHmr(debounceMs: number = 50) {
 							filesWithContent[filepath] = content
 						} catch (_error) {
 							// Store empty string or rethrow based on your needs
-							filesWithContent[filepath] = ""
+							filesWithContent[filepath] = ''
 						}
 					},
 				)
@@ -435,7 +440,7 @@ export function createDebounceHmr(debounceMs: number = 50) {
 								const content = await readFn()
 								nextFilesWithContent[filepath] = content
 							} catch (_error) {
-								nextFilesWithContent[filepath] = ""
+								nextFilesWithContent[filepath] = ''
 							}
 						},
 					)

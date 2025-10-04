@@ -32,8 +32,8 @@ export function parse(
 	str: string,
 	options?: { decode?: (val: string) => string },
 ): Record<string, string> {
-	if (typeof str !== "string") {
-		throw new TypeError("argument str must be a string")
+	if (typeof str !== 'string') {
+		throw new TypeError('argument str must be a string')
 	}
 
 	const obj: Record<string, string> = {}
@@ -42,20 +42,20 @@ export function parse(
 
 	let index = 0
 	while (index < str.length) {
-		const eqIdx = str.indexOf("=", index)
+		const eqIdx = str.indexOf('=', index)
 
 		// no more cookie pairs
 		if (eqIdx === -1) {
 			break
 		}
 
-		let endIdx = str.indexOf(";", index)
+		let endIdx = str.indexOf(';', index)
 
 		if (endIdx === -1) {
 			endIdx = str.length
 		} else if (endIdx < eqIdx) {
 			// backtrack on prior semicolon
-			index = str.lastIndexOf(";", eqIdx - 1) + 1
+			index = str.lastIndexOf(';', eqIdx - 1) + 1
 			continue
 		}
 
@@ -108,18 +108,18 @@ export function serialize(
 	const opt = options || {}
 	const enc = opt.encode || encode
 
-	if (typeof enc !== "function") {
-		throw new TypeError("option encode is invalid")
+	if (typeof enc !== 'function') {
+		throw new TypeError('option encode is invalid')
 	}
 
 	if (!fieldContentRegExp.test(name)) {
-		throw new TypeError("argument name is invalid")
+		throw new TypeError('argument name is invalid')
 	}
 
 	const value = enc(val)
 
 	if (value && !fieldContentRegExp.test(value)) {
-		throw new TypeError("argument val is invalid")
+		throw new TypeError('argument val is invalid')
 	}
 
 	let str = `${name}=${value}`
@@ -128,7 +128,7 @@ export function serialize(
 		const maxAge = opt.maxAge - 0
 
 		if (Number.isNaN(maxAge) || !Number.isFinite(maxAge)) {
-			throw new TypeError("option maxAge is invalid")
+			throw new TypeError('option maxAge is invalid')
 		}
 
 		str += `; Max-Age=${Math.floor(maxAge)}`
@@ -136,7 +136,7 @@ export function serialize(
 
 	if (opt.domain) {
 		if (!fieldContentRegExp.test(opt.domain)) {
-			throw new TypeError("option domain is invalid")
+			throw new TypeError('option domain is invalid')
 		}
 
 		str += `; Domain=${opt.domain}`
@@ -144,7 +144,7 @@ export function serialize(
 
 	if (opt.path) {
 		if (!fieldContentRegExp.test(opt.path)) {
-			throw new TypeError("option path is invalid")
+			throw new TypeError('option path is invalid')
 		}
 
 		str += `; Path=${opt.path}`
@@ -154,62 +154,62 @@ export function serialize(
 		const expires = opt.expires
 
 		if (!isDate(expires) || Number.isNaN(expires.valueOf())) {
-			throw new TypeError("option expires is invalid")
+			throw new TypeError('option expires is invalid')
 		}
 
 		str += `; Expires=${expires.toUTCString()}`
 	}
 
 	if (opt.httpOnly) {
-		str += "; HttpOnly"
+		str += '; HttpOnly'
 	}
 
 	if (opt.secure) {
-		str += "; Secure"
+		str += '; Secure'
 	}
 
 	if (opt.priority) {
 		const priority =
-			typeof opt.priority === "string"
+			typeof opt.priority === 'string'
 				? opt.priority.toLowerCase()
 				: opt.priority
 
 		switch (priority) {
-			case "low":
-				str += "; Priority=Low"
+			case 'low':
+				str += '; Priority=Low'
 				break
-			case "medium":
-				str += "; Priority=Medium"
+			case 'medium':
+				str += '; Priority=Medium'
 				break
-			case "high":
-				str += "; Priority=High"
+			case 'high':
+				str += '; Priority=High'
 				break
 			default:
-				throw new TypeError("option priority is invalid")
+				throw new TypeError('option priority is invalid')
 		}
 	}
 
 	if (opt.sameSite) {
 		const sameSite =
-			typeof opt.sameSite === "string"
+			typeof opt.sameSite === 'string'
 				? opt.sameSite.toLowerCase()
 				: opt.sameSite
 
 		switch (sameSite) {
 			case true:
-				str += "; SameSite=Strict"
+				str += '; SameSite=Strict'
 				break
-			case "lax":
-				str += "; SameSite=Lax"
+			case 'lax':
+				str += '; SameSite=Lax'
 				break
-			case "strict":
-				str += "; SameSite=Strict"
+			case 'strict':
+				str += '; SameSite=Strict'
 				break
-			case "none":
-				str += "; SameSite=None"
+			case 'none':
+				str += '; SameSite=None'
 				break
 			default:
-				throw new TypeError("option sameSite is invalid")
+				throw new TypeError('option sameSite is invalid')
 		}
 	}
 
@@ -224,7 +224,7 @@ export function serialize(
  */
 
 function decode(str: string): string {
-	return str.indexOf("%") !== -1 ? decodeURIComponent(str) : str
+	return str.indexOf('%') !== -1 ? decodeURIComponent(str) : str
 }
 
 /**
@@ -247,7 +247,7 @@ function encode(val: string): string {
 
 // biome-ignore lint/suspicious/noExplicitAny: Date check needs to handle any input type
 function isDate(val: any) {
-	return __toString.call(val) === "[object Date]" || val instanceof Date
+	return __toString.call(val) === '[object Date]' || val instanceof Date
 }
 
 /**

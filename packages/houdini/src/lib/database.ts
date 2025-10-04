@@ -1,5 +1,5 @@
-import path from "node:path"
-import type sqlite from "node:sqlite"
+import path from 'node:path'
+import type sqlite from 'node:sqlite'
 
 import type { PluginSpec } from './codegen.js'
 import { type Config, default_config } from './project.js'
@@ -437,21 +437,21 @@ export async function write_config(
 	// and invoke it
 	const env = {}
 
-	console.time("Environment")
+	console.time('Environment')
 	// look at each plugin
 	await Promise.all(
 		Object.values(plugins).map(async (plugin) => {
 			// if the plugin supports the environment hook
-			if (plugin.hooks.has("Environment")) {
+			if (plugin.hooks.has('Environment')) {
 				// we need to hit the corresponding endpoint in the plugin server
 				Object.assign(
 					env,
-					await invoke_hook(plugin.name, "environment", { mode }),
+					await invoke_hook(plugin.name, 'environment', { mode }),
 				)
 			}
 		}),
 	)
-	console.timeEnd("Environment")
+	console.timeEnd('Environment')
 
 	// now that we have the environment, we can write our config values to the database
 	const config_file = {
@@ -460,11 +460,11 @@ export async function write_config(
 	}
 
 	// before we write the config row, let's delete the existing one
-	db.prepare("DELETE FROM config").run()
-	db.prepare("DELETE FROM router_config").run()
-	db.prepare("DELETE FROM watch_schema_config").run()
-	db.prepare("DELETE FROM scalar_config").run()
-	db.prepare("DELETE FROM type_configs").run()
+	db.prepare('DELETE FROM config').run()
+	db.prepare('DELETE FROM router_config').run()
+	db.prepare('DELETE FROM watch_schema_config').run()
+	db.prepare('DELETE FROM scalar_config').run()
+	db.prepare('DELETE FROM type_configs').run()
 
 	// write the config to the database
 	db.prepare(
@@ -494,17 +494,17 @@ export async function write_config(
 	`,
 	).run(
 		JSON.stringify(
-			typeof config_file.include === "string"
+			typeof config_file.include === 'string'
 				? [config_file.include]
 				: (config_file.include ?? []),
 		),
 		JSON.stringify(
-			typeof config_file.exclude === "string"
+			typeof config_file.exclude === 'string'
 				? [config_file.exclude]
 				: (config_file.exclude ?? []),
 		),
-		config_file.schemaPath ?? "",
-		config_file.definitionsPath ?? "",
+		config_file.schemaPath ?? '',
+		config_file.definitionsPath ?? '',
 		config_file.cacheBufferSize ?? null,
 		config_file.defaultCachePolicy ?? null,
 		config_file.defaultPartial ? 1 : 0,
@@ -514,17 +514,17 @@ export async function write_config(
 		config_file.defaultPaginateMode ?? null,
 		config_file.supressPaginationDeduplication ? 1 : 0,
 		config_file.logLevel ?? null,
-		config_file.defaultFragmentMasking === "enable" ? 1 : 0,
+		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
 		JSON.stringify(config_file.defaultKeys ?? []),
 		config_file.persistedQueriesPath ??
-			path.join(config_file.runtimeDir ?? ".houdini", "queries.json"),
+			path.join(config_file.runtimeDir ?? '.houdini', 'queries.json'),
 		config.root_dir ?? null,
 		config_file.runtimeDir ?? null,
 	)
 
 	// write the scalar definitions
 	let insert = db.prepare(
-		"INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)",
+		'INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)',
 	)
 	for (const [name, { type }] of Object.entries(
 		config.config_file.runtimeScalars ?? {},
@@ -535,14 +535,14 @@ export async function write_config(
 	// write router config
 	if (config.config_file.router) {
 		const session_keys =
-			config.config_file.router.auth?.sessionKeys.join(",") ?? ""
+			config.config_file.router.auth?.sessionKeys.join(',') ?? ''
 		const api_endpoint: string | null = null
 		let url: string | null = null
 		let mutation: string | null = null
 		let redirect: string | null = null
 
 		if (config.config_file.router.auth) {
-			if ("mutation" in config.config_file.router.auth) {
+			if ('mutation' in config.config_file.router.auth) {
 				mutation = config.config_file.router.auth.mutation
 			} else {
 				redirect = config.config_file.router.auth.redirect
@@ -565,12 +565,12 @@ export async function write_config(
 	// add watch_schema_config
 	if (config.config_file.watchSchema) {
 		const url =
-			typeof config.config_file.watchSchema.url === "string"
+			typeof config.config_file.watchSchema.url === 'string'
 				? config.config_file.watchSchema.url
 				: config.config_file.watchSchema.url(env)
 		const headers = !config.config_file.watchSchema.headers
 			? {}
-			: typeof config.config_file.watchSchema.headers === "function"
+			: typeof config.config_file.watchSchema.headers === 'function'
 				? typeof config.config_file.watchSchema.headers(env)
 				: typeof config.config_file.watchSchema.headers
 		db.prepare(
@@ -590,7 +590,7 @@ export async function write_config(
 
 	// write the scalar configs
 	insert = db.prepare(
-		"INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)",
+		'INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)',
 	)
 	for (const [name, { type, inputTypes }] of Object.entries(
 		config.config_file.scalars ?? {},
@@ -604,7 +604,7 @@ export async function write_config(
 
 	// write the type configs
 	insert = db.prepare(
-		"INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)",
+		'INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)',
 	)
 	for (const [name, { keys, resolve }] of Object.entries(
 		config.config_file.types ?? {},

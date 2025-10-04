@@ -1,5 +1,5 @@
-import os from "node:os"
-import path from "node:path"
+import os from 'node:os'
+import path from 'node:path'
 
 // this package is meant to enforce posix conventions whenever
 // performing path-related tasks since in general we don't actually
@@ -8,7 +8,7 @@ import path from "node:path"
 // thats appropriate for windows
 
 // sep is always the posix one given ^
-export const sep = "/"
+export const sep = '/'
 
 export function resolve(...parts: string[]): string {
 	return posixify(path.resolve(...parts))
@@ -42,10 +42,10 @@ export function parse(target: string) {
 	return path.parse(target)
 }
 
-export const posixify = (str: string) => str.replace(/\\/g, "/")
+export const posixify = (str: string) => str.replace(/\\/g, '/')
 
 export function importPath(target: string): string {
-	return ["win32", "win64"].includes(os.platform())
+	return ['win32', 'win64'].includes(os.platform())
 		? `file:///${target}`
 		: target
 }

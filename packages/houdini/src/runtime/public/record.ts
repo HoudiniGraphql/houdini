@@ -1,8 +1,8 @@
-import { rootID } from "../cache/stuff"
-import { marshalInputs } from "../lib"
-import { keyFieldsForType } from "../lib/config"
-import type { FragmentArtifact, GraphQLObject } from "../lib/types"
-import type { Cache } from "./cache"
+import { rootID } from '../cache/stuff'
+import { marshalInputs } from '../lib'
+import { keyFieldsForType } from '../lib/config'
+import type { FragmentArtifact, GraphQLObject } from '../lib/types'
+import type { Cache } from './cache'
 import type {
 	ArgType,
 	CacheTypeDef,
@@ -11,7 +11,7 @@ import type {
 	FragmentVariables,
 	TypeFieldNames,
 	ValidTypes,
-} from "./types"
+} from './types'
 
 export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	#id: string

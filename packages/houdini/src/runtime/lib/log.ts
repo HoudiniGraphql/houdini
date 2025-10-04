@@ -26,12 +26,12 @@ function colorize(message: string): string[] {
 		return [message]
 	}
 
-	const final = message.replaceAll(/\$HOUDINI\$(\w*\$)?/g, "%c")
+	const final = message.replaceAll(/\$HOUDINI\$(\w*\$)?/g, '%c')
 	const colors: string[] = []
 
 	// ever match with a color, adds something to the list. the others add an empty string (a reset)
 	for (const match of matches) {
-		const color = match[1] ? `color:${match[1].slice(0, -1)}` : ""
+		const color = match[1] ? `color:${match[1].slice(0, -1)}` : ''
 		colors.push(color)
 	}
 
@@ -47,19 +47,19 @@ export function info(message: string) {
 }
 
 export function cyan(message: string) {
-	return wrapMessage("cyan", message)
+	return wrapMessage('cyan', message)
 }
 
 export function red(message: string) {
-	return wrapMessage("red", message)
+	return wrapMessage('red', message)
 }
 
 export function yellow(message: string) {
-	return wrapMessage("yellow", message)
+	return wrapMessage('yellow', message)
 }
 
 export function green(message: string) {
-	return wrapMessage("green", message)
+	return wrapMessage('green', message)
 }
 
 const tag = `$HOUDINI$`

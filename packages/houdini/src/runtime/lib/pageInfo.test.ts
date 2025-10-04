@@ -1,21 +1,21 @@
-import { expect, test } from "vitest"
+import { expect, test } from 'vitest'
 
-import { countPage, extractPageInfo } from "./pageInfo"
+import { countPage, extractPageInfo } from './pageInfo'
 
-test("can extract current page info", () => {
+test('can extract current page info', () => {
 	const data = {
 		user: {
 			friends: {
 				pageInfo: {
-					startCursor: "1",
-					endCursor: "2",
+					startCursor: '1',
+					endCursor: '2',
 					hasNextPage: true,
 					hasPreviousPage: false,
 				},
 				edges: [
 					{
 						node: {
-							id: "1",
+							id: '1',
 						},
 					},
 				],
@@ -23,17 +23,17 @@ test("can extract current page info", () => {
 		},
 	}
 
-	const path = ["user", "friends"]
+	const path = ['user', 'friends']
 
 	expect(extractPageInfo(data, path)).toEqual(data.user.friends.pageInfo)
 })
 
-test("can count offset page size", () => {
+test('can count offset page size', () => {
 	const data = {
 		viewer: {
 			friends: [{}, {}, {}],
 		},
 	}
 
-	expect(countPage(["viewer", "friends"], data)).toEqual(3)
+	expect(countPage(['viewer', 'friends'], data)).toEqual(3)
 })

@@ -19,7 +19,7 @@
 		"check:write": "pnpm biome check --write",
 		"version": "changeset version",
 		"changeset": "changeset",
-		"release": "pnpm run build && changeset publish
+		"release": "pnpm run build && changeset publish"
 	},
 	"devDependencies": {
 		"@babel/plugin-syntax-import-assertions": "^7.26.0",

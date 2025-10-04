@@ -41,41 +41,30 @@ test("query plugin evaluates runtime scalars", async () => {
 				},
 			},
 			selection: {
-				fields: {
-					viewer: {
 						type: "User",
 						visible: true,
 						keyRaw: "viewer",
-						loading: { kind: "continue" },
-						selection: {
-							fields: {
-								id: {
+						loading: kind: "continue" ,
+						selection: 
 									type: "ID",
 									visible: true,
-									keyRaw: "id",
-								},
-								firstName: {
+									keyRaw: "id",,
+								firstName: 
 									type: "String",
 									visible: true,
 									keyRaw: "firstName",
-									loading: { kind: "value" },
-								},
-								__typename: {
+									loading: kind: "value" ,,
+								__typename: 
 									type: "String",
 									visible: true,
-									keyRaw: "__typename",
-								},
-							},
-						},
-					},
-				},
+									keyRaw: "__typename",,,,,,
 			},
 		},
 		pipeline: [query(cache), fakeFetch({ spy: fetchSpy })],
 	})
 
 	// run the query with an artifact that contains runtime scalars
-	await store.send({ session: { token: "world" } })
+	await store.send({ token: "world" })
 
 	// the fetch spy should
 	const ctx = fetchSpy.mock.calls[0][0]

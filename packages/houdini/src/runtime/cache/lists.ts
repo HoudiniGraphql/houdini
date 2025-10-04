@@ -1,13 +1,13 @@
-import { flatten } from "../lib/flatten"
+import { flatten } from '../lib/flatten'
 import type {
 	ListWhen,
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
-} from "../lib/types"
-import type { Cache } from "./cache"
-import type { Layer } from "./storage"
-import { rootID } from "./stuff"
+} from '../lib/types'
+import type { Cache } from './cache'
+import type { Layer } from './storage'
+import { rootID } from './stuff'
 
 export class ListManager {
 	rootID: string
@@ -67,7 +67,7 @@ export class ListManager {
 		const { recordType } = head.lists[0]
 		const parentID = id
 			? // biome-ignore lint/style/noNonNullAssertion: ID computation is guaranteed to return a value for valid records
-				this.cache._internal_unstable.id(recordType || "", id)!
+				this.cache._internal_unstable.id(recordType || '', id)!
 			: this.rootID
 
 		// if there is only one list with that name, return it
@@ -104,13 +104,13 @@ export class ListManager {
 	add(list: {
 		name: string
 		connection: boolean
-		recordID: SubscriptionSpec["parentID"]
+		recordID: SubscriptionSpec['parentID']
 		recordType?: string
 		key: string
 		listType: string
 		selection: SubscriptionSelection
 		when?: ListWhen
-		filters?: List["filters"]
+		filters?: List['filters']
 		abstract?: boolean
 	}) {
 		// if we haven't seen this list before
@@ -212,7 +212,7 @@ export class List {
 		connection,
 		manager,
 		abstract,
-	}: Parameters<ListManager["add"]>[0] & { manager: ListManager }) {
+	}: Parameters<ListManager['add']>[0] & { manager: ListManager }) {
 		this.recordID = recordID || rootID
 		this.recordType = recordType
 		this.key = key
@@ -248,7 +248,7 @@ export class List {
 		variables?: Record<string, unknown>
 		layer?: Layer
 	}) {
-		return this.addToList(selection, data, variables, "last", layer)
+		return this.addToList(selection, data, variables, 'last', layer)
 	}
 
 	prepend({
@@ -262,14 +262,14 @@ export class List {
 		variables?: Record<string, unknown>
 		layer?: Layer
 	}) {
-		return this.addToList(selection, data, variables, "first", layer)
+		return this.addToList(selection, data, variables, 'first', layer)
 	}
 
 	addToList(
 		selection: SubscriptionSelection,
 		data: Record<string, unknown>,
 		variables: Record<string, unknown> = {},
-		where: "first" | "last",
+		where: 'first' | 'last',
 		layer?: Layer,
 	) {
 		// figure out the type we're adding
@@ -295,29 +295,29 @@ export class List {
 				fields: {
 					newEntry: {
 						keyRaw: this.key,
-						type: "Connection",
+						type: 'Connection',
 						selection: {
 							fields: {
 								edges: {
-									keyRaw: "edges",
-									type: "ConnectionEdge",
-									updates: ["append", "prepend"],
+									keyRaw: 'edges',
+									type: 'ConnectionEdge',
+									updates: ['append', 'prepend'],
 									selection: {
 										fields: {
 											__typename: {
-												keyRaw: "__typename",
-												type: "String",
+												keyRaw: '__typename',
+												type: 'String',
 											},
 											node: {
 												type: listType,
-												keyRaw: "node",
+												keyRaw: 'node',
 												selection: {
 													...selection,
 													fields: {
 														...selection.fields,
 														__typename: {
-															keyRaw: "__typename",
-															type: "String",
+															keyRaw: '__typename',
+															type: 'String',
 														},
 													},
 												},
@@ -349,14 +349,14 @@ export class List {
 					newEntries: {
 						keyRaw: this.key,
 						type: listType,
-						updates: ["append", "prepend"],
+						updates: ['append', 'prepend'],
 						selection: {
 							...selection,
 							fields: {
 								...selection.fields,
 								__typename: {
-									keyRaw: "__typename",
-									type: "String",
+									keyRaw: '__typename',
+									type: 'String',
 								},
 							},
 						},
@@ -374,7 +374,7 @@ export class List {
 			data: insertData,
 			variables,
 			parent: this.recordID,
-			applyUpdates: [where === "first" ? "prepend" : "append"],
+			applyUpdates: [where === 'first' ? 'prepend' : 'append'],
 			layer: layer?.id,
 		})
 	}
@@ -405,7 +405,7 @@ export class List {
 			// we want to delete
 			const { value: edges } = this.cache._internal_unstable.storage.get(
 				embeddedConnectionID,
-				"edges",
+				'edges',
 			)
 			for (const edge of flatten(edges as NestedList) || []) {
 				if (!edge) {
@@ -417,7 +417,7 @@ export class List {
 				// look at the edge's node
 				const { value: nodeID } = this.cache._internal_unstable.storage.get(
 					edgeID,
-					"node",
+					'node',
 				)
 				if (!nodeID) {
 					continue
@@ -429,7 +429,7 @@ export class List {
 				}
 			}
 			parentID = embeddedConnectionID
-			targetKey = "edges"
+			targetKey = 'edges'
 		}
 
 		// if the id is not contained in the list, dont notify anyone
@@ -543,7 +543,7 @@ export class List {
 		data: Record<string, unknown>
 		variables?: Record<string, unknown>
 		layer?: Layer
-		where: "first" | "last"
+		where: 'first' | 'last'
 	}) {
 		// if we don't have something to remove, then add it instead
 		if (!this.remove(data, variables, layer)) {
@@ -568,7 +568,7 @@ export class List {
 			// connections need to reference the edges field for the list of entries
 			entries = this.cache._internal_unstable.storage.get(
 				value as string,
-				"edges",
+				'edges',
 			).value as string[]
 		}
 
@@ -589,25 +589,25 @@ export class ListCollection {
 		return this.lists[0].selection
 	}
 
-	append(...args: Parameters<List["append"]>) {
+	append(...args: Parameters<List['append']>) {
 		this.lists.forEach((list) => {
 			list.append(...args)
 		})
 	}
 
-	prepend(...args: Parameters<List["prepend"]>) {
+	prepend(...args: Parameters<List['prepend']>) {
 		this.lists.forEach((list) => {
 			list.prepend(...args)
 		})
 	}
 
-	addToList(...args: Parameters<List["addToList"]>) {
+	addToList(...args: Parameters<List['addToList']>) {
 		this.lists.forEach((list) => {
 			list.addToList(...args)
 		})
 	}
 
-	removeID(...args: Parameters<List["removeID"]>) {
+	removeID(...args: Parameters<List['removeID']>) {
 		let removed = false
 		this.lists.forEach((list) => {
 			if (list.removeID(...args)) {
@@ -618,13 +618,13 @@ export class ListCollection {
 		return removed
 	}
 
-	remove(...args: Parameters<List["remove"]>) {
+	remove(...args: Parameters<List['remove']>) {
 		this.lists.forEach((list) => {
 			list.remove(...args)
 		})
 	}
 
-	toggleElement(...args: Parameters<List["toggleElement"]>) {
+	toggleElement(...args: Parameters<List['toggleElement']>) {
 		this.lists.forEach((list) => {
 			list.toggleElement(...args)
 		})

@@ -1,6 +1,6 @@
-import type { ConfigFile } from "./config"
-import { getCurrentConfig } from "./config"
-import { getFieldsForType } from "./selection"
+import type { ConfigFile } from './config'
+import { getCurrentConfig } from './config'
+import { getFieldsForType } from './selection'
 import {
 	type FragmentArtifact,
 	fragmentKey,
@@ -8,7 +8,7 @@ import {
 	type QueryArtifact,
 	type SubscriptionArtifact,
 	type SubscriptionSelection,
-} from "./types"
+} from './types'
 
 export function marshalSelection({
 	selection,
@@ -20,7 +20,7 @@ export function marshalSelection({
 }): Record<string, unknown> | null | undefined {
 	const config = getCurrentConfig()
 
-	if (data === null || typeof data === "undefined") {
+	if (data === null || typeof data === 'undefined') {
 		return data
 	}
 
@@ -84,7 +84,7 @@ export function marshalInputs<_T>({
 	artifact,
 	input,
 	config,
-	rootType = "@root",
+	rootType = '@root',
 }: {
 	artifact:
 		| QueryArtifact
@@ -95,7 +95,7 @@ export function marshalInputs<_T>({
 	rootType?: string
 	config: ConfigFile
 }): Record<string, unknown> | null | undefined {
-	if (input === null || typeof input === "undefined") {
+	if (input === null || typeof input === 'undefined') {
 		return input
 	}
 
@@ -106,7 +106,7 @@ export function marshalInputs<_T>({
 
 	// the object containing the relevant fields
 	const fields =
-		rootType === "@root"
+		rootType === '@root'
 			? artifact.input.fields
 			: artifact.input.types[rootType]
 
@@ -156,7 +156,7 @@ export function marshalInputs<_T>({
 
 // we can't use config.isScalar because that would require bundling in ~/common
 export function isScalar(config: ConfigFile, type: string) {
-	return ["String", "Boolean", "Float", "ID", "Int"]
+	return ['String', 'Boolean', 'Float', 'ID', 'Int']
 		.concat(Object.keys(config.scalars || {}))
 		.includes(type)
 }
@@ -166,27 +166,27 @@ export function parseScalar(
 	type: string,
 	value?: string,
 ): string | number | boolean | undefined {
-	if (typeof value === "undefined") {
+	if (typeof value === 'undefined') {
 		return undefined
 	}
 
-	if (type === "Boolean") {
-		return value === "true"
+	if (type === 'Boolean') {
+		return value === 'true'
 	}
-	if (type === "ID") {
+	if (type === 'ID') {
 		return value
 	}
-	if (type === "String") {
+	if (type === 'String') {
 		return value
 	}
-	if (type === "Int") {
+	if (type === 'Int') {
 		const result = parseInt(value, 10)
 		if (Number.isNaN(result)) {
 			return undefined
 		}
 		return result
 	}
-	if (type === "Float") {
+	if (type === 'Float') {
 		const result = parseFloat(value)
 		if (Number.isNaN(result)) {
 			return undefined

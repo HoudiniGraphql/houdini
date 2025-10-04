@@ -69,7 +69,7 @@ function safe_not_equal(a: any, b: any) {
 	return a !== a
 		? // biome-ignore lint/suspicious/noSelfCompare: NaN check requires self comparison
 			b === b
-		: a !== b || (a && typeof a === "object") || typeof a === "function"
+		: a !== b || (a && typeof a === 'object') || typeof a === 'function'
 }
 
 /** Start and stop notification callbacks. */

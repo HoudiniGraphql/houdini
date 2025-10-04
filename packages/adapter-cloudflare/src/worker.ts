@@ -1,5 +1,5 @@
-import type { ExportedHandler } from "@cloudflare/workers-types"
-import { createServerAdapter } from "houdini/adapter"
+import type { ExportedHandler } from '@cloudflare/workers-types'
+import { createServerAdapter } from 'houdini/adapter'
 
 interface CloudflareEnv {
 	ASSETS: {
@@ -10,16 +10,16 @@ interface CloudflareEnv {
 // create the production server adapter
 const server_adapter = createServerAdapter({
 	production: true,
-	assetPrefix: "/assets",
+	assetPrefix: '/assets',
 })
 
 const handlers: ExportedHandler<CloudflareEnv> = {
 	async fetch(req, env, ctx) {
-		const accept = req.headers.get("Accept") ?? ""
+		const accept = req.headers.get('Accept') ?? ''
 
 		// our server is responsible for serving
 		// html, json, and json, graphql
-		const patterns = ["text/html", "application/json", "application/graphql"]
+		const patterns = ['text/html', 'application/json', 'application/graphql']
 
 		// we are handling an asset
 		if (!patterns.some((pattern) => accept.includes(pattern))) {

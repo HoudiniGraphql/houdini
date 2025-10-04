@@ -1,5 +1,5 @@
-import { siteURL } from "./constants"
-import type { GraphQLObject, PageInfo } from "./types"
+import { siteURL } from './constants'
+import type { GraphQLObject, PageInfo } from './types'
 
 export function nullPageInfo(): PageInfo {
 	return {
@@ -54,7 +54,7 @@ export function countPage<_Data extends GraphQLObject>(
 		if (obj && !Array.isArray(obj)) {
 			data = obj
 		} else if (!data) {
-			throw new Error("Could not count page size")
+			throw new Error('Could not count page size')
 		}
 
 		if (Array.isArray(obj)) {

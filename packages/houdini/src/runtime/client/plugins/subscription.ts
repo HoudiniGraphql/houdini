@@ -1,7 +1,7 @@
-import { deepEquals } from "../../lib/deepEquals"
-import { ArtifactKind, DataSource } from "../../lib/types"
-import type { ClientPluginContext } from "../documentStore"
-import { documentPlugin } from "../utils"
+import { deepEquals } from '../../lib/deepEquals'
+import { ArtifactKind, DataSource } from '../../lib/types'
+import type { ClientPluginContext } from '../documentStore'
+import { documentPlugin } from '../utils'
 
 export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {
@@ -19,7 +19,7 @@ export function subscription(factory: SubscriptionHandler) {
 		return {
 			start(ctx, { resolve, next, initialValue }) {
 				// we can only start a websocket client if we're on the browser
-				if (typeof globalThis.window === "undefined") {
+				if (typeof globalThis.window === 'undefined') {
 					resolve(ctx, initialValue)
 					return
 				}
@@ -112,7 +112,7 @@ export type SubscriptionClient = {
 			query: string
 			variables?: Record<string, unknown> | null
 			extensions?:
-				| Record<"persistedQuery", string>
+				| Record<'persistedQuery', string>
 				| Record<string, unknown>
 				| null
 		},

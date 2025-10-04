@@ -1,12 +1,11 @@
-import * as graphql from 'graphql'
-import type { GraphQLSchema } from 'graphql'
 import path from 'node:path'
-import type { PluginOption, ModuleNode } from 'vite'
-
-import type { VitePluginContext } from '.'
-import { get_config, fs } from '../lib/index.js'
+import type { GraphQLSchema } from 'graphql'
+import * as graphql from 'graphql'
+import type { ModuleNode, PluginOption } from 'vite'
+import { fs, get_config } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 import { sleep } from '../lib/sleep.js'
+import type { VitePluginContext } from '.'
 import { compiler } from './hmr.js'
 
 /*

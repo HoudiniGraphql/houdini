@@ -1,11 +1,11 @@
-import type { Cache } from "../../cache/cache"
-import { deepEquals } from "../../lib/deepEquals"
+import type { Cache } from '../../cache/cache'
+import { deepEquals } from '../../lib/deepEquals'
 import {
 	ArtifactKind,
 	DataSource,
 	type SubscriptionSpec,
-} from "../../lib/types"
-import { documentPlugin } from "../utils"
+} from '../../lib/types'
+import { documentPlugin } from '../utils'
 
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates
 // there are no network requests that get sent. send() always returns the initial value

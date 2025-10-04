@@ -1,17 +1,17 @@
-import { flatten } from "../lib/flatten"
-import { getFieldsForType } from "../lib/selection"
+import { flatten } from '../lib/flatten'
+import { getFieldsForType } from '../lib/selection'
 import type {
 	GraphQLValue,
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
-} from "../lib/types"
-import type { Cache } from "./cache"
-import { evaluateKey, rootID } from "./stuff"
+} from '../lib/types'
+import type { Cache } from './cache'
+import { evaluateKey, rootID } from './stuff'
 
 export type FieldSelection = [
 	SubscriptionSpec,
-	Required<SubscriptionSelection>["fields"] | undefined,
+	Required<SubscriptionSelection>['fields'] | undefined,
 ]
 
 // manage the subscriptions
@@ -28,7 +28,7 @@ export class InMemorySubscriptions {
 			string,
 			{
 				selections: FieldSelection[]
-				referenceCounts: Map<SubscriptionSpec["set"], number>
+				referenceCounts: Map<SubscriptionSpec['set'], number>
 			}
 		>
 	>()
@@ -59,7 +59,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(
 			parent,
-			"__typename",
+			'__typename',
 		).value as string
 		const targetSelection = getFieldsForType(selection, __typename, false)
 
@@ -85,7 +85,7 @@ export class InMemorySubscriptions {
 				// figure out the correct selection
 				const __typename = this.cache._internal_unstable.storage.get(
 					parent,
-					"__typename",
+					'__typename',
 				).value as string
 				targetSelection = getFieldsForType(innerSelection, __typename, false)
 			}
@@ -199,12 +199,12 @@ export class InMemorySubscriptions {
 		filters,
 		variables,
 	}: {
-		list: Required<Required<SubscriptionSelection>["fields"][string]>["list"]
+		list: Required<Required<SubscriptionSelection>['fields'][string]>['list']
 		selection: SubscriptionSelection
 		id: string
 		parentType: string
 		key: string
-		filters: Required<SubscriptionSelection>["fields"][string]["filters"]
+		filters: Required<SubscriptionSelection>['fields'][string]['filters']
 		variables: Record<string, unknown>
 	}) {
 		this.cache._internal_unstable.lists.add({
@@ -212,7 +212,7 @@ export class InMemorySubscriptions {
 			connection: list.connection,
 			recordID: id,
 			recordType:
-				(this.cache._internal_unstable.storage.get(id, "__typename")
+				(this.cache._internal_unstable.storage.get(id, '__typename')
 					?.value as string) || parentType,
 			listType: list.type,
 			key,
@@ -220,7 +220,7 @@ export class InMemorySubscriptions {
 			filters: (() => {
 				const result: Record<string, unknown> = {}
 				for (const [key, { kind, value }] of Object.entries(filters || {})) {
-					result[key] = kind !== "Variable" ? value : variables[value as string]
+					result[key] = kind !== 'Variable' ? value : variables[value as string]
 				}
 				return result
 			})(),
@@ -298,7 +298,7 @@ export class InMemorySubscriptions {
 						// figure out the correct selection
 						const __typename = this.cache._internal_unstable.storage.get(
 							linkedRecord,
-							"__typename",
+							'__typename',
 						).value as string
 						const targetSelection = getFieldsForType(
 							childSelection,
@@ -343,7 +343,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(
 			id,
-			"__typename",
+			'__typename',
 		).value as string
 		const targetSelection = getFieldsForType(selection, __typename, false)
 
@@ -407,7 +407,7 @@ export class InMemorySubscriptions {
 	) {
 		// build up a list of the sets we actually need to remove after
 		// checking reference counts
-		const targets: SubscriptionSpec["set"][] = []
+		const targets: SubscriptionSpec['set'][] = []
 
 		const subscriber = this.subscribers.get(id)
 		if (!subscriber) {
@@ -503,7 +503,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(
 			parentID,
-			"__typename",
+			'__typename',
 		).value as string
 		const targetSelection = getFieldsForType(selection, __typename, false)
 

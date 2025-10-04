@@ -1,11 +1,11 @@
-import { test } from "vitest"
+import { test } from 'vitest'
 
-import { testConfigFile } from "../../../test"
-import { Cache } from "../cache"
+import { testConfigFile } from '../../../test'
+import { Cache } from '../cache'
 
 const config = testConfigFile()
 
-test("writing a selection loads the schema information", () => {
+test('writing a selection loads the schema information', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -14,18 +14,18 @@ test("writing a selection loads the schema information", () => {
 		selection: {
 			fields: {
 				viewer: {
-					type: "User",
+					type: 'User',
 					visible: true,
-					keyRaw: "viewer",
+					keyRaw: 'viewer',
 					selection: {
 						fields: {
 							id: {
-								type: "ID",
+								type: 'ID',
 								visible: true,
-								keyRaw: "id",
+								keyRaw: 'id',
 							},
 							firstName: {
-								type: "String",
+								type: 'String',
 								visible: true,
 								keyRaw: 'firstName(id: "1")',
 							},
@@ -36,8 +36,8 @@ test("writing a selection loads the schema information", () => {
 		},
 		data: {
 			viewer: {
-				id: "1",
-				firstName: "bob",
+				id: '1',
+				firstName: 'bob',
 			},
 		},
 	})
