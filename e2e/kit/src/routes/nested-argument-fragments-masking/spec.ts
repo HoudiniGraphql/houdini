@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
 import { goto } from '../../lib/utils/testsHelper.js';
-import { sleep } from '@kitql/helpers';
+import { sleep } from '../../lib/utils/helpers.js';
 
 test('Nested fragment argument masking', async ({ page }) => {
   await goto(page, routes.nested_argument_fragments_masking);

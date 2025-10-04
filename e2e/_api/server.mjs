@@ -1,5 +1,5 @@
 import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
-import { green } from '@kitql/helpers'
+import { green } from './helpers.mjs'
 import fs from 'fs-extra'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'

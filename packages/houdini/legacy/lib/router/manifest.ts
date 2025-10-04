@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 
 import { parseJS, type TypeWrapper, unwrapType } from '..'
 import { path, fs, type Config, parse_page_pattern } from '../../lib'
-import type { ProjectManifest, PageManifest, QueryManifest } from '../../runtime/lib/types'
+import type { ProjectManifest, PageManifest, QueryManifest } from '../../../src/runtime/lib/types'
 import {
 	read_layoutQuery,
 	read_layoutView,

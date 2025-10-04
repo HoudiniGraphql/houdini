@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { sleep } from '@kitql/helpers';
+import { sleep } from '../../../lib/utils/helpers.js';
 import { routes } from '../../../lib/utils/routes.js';
 import { expect_to_be, goto } from '../../../lib/utils/testsHelper.js';
 

@@ -69,12 +69,12 @@
     "exports": {
         "./package.json": "./package.json",
         "./adapter": {
-            "types": "./adapter/index.d.ts",
-            "import": "./adapter/index.js"
+            "types": "./build/adapter/index.d.ts",
+            "import": "./build/adapter/index.js"
         },
         ".": {
-            "types": "./lib/index.d.ts",
-            "import": "./lib/index.js"
+            "types": "./build/lib/index.d.ts",
+            "import": "./build/lib/index.js"
         },
         "./vite": {
             "types": "./build/vite/index.d.ts",
@@ -84,10 +84,10 @@
     "typesVersions": {
         "*": {
             "adapter": [
-                "adapter/index.d.ts"
+                "build/adapter/index.d.ts"
             ],
             ".": [
-                "lib/index.d.ts"
+                "build/lib/index.d.ts"
             ],
             "vite": [
                 "build/vite/index.d.ts"

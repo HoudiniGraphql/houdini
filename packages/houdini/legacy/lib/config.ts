@@ -3,14 +3,14 @@ import * as graphql from 'graphql'
 import minimatch from 'minimatch'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import type { CachePolicies, ConfigFile, PaginateModes } from '../runtime/lib'
-import { CachePolicy, PaginateMode } from '../runtime/lib'
+import type { CachePolicies, ConfigFile, PaginateModes } from '../../src/runtime/lib'
+import { CachePolicy, PaginateMode } from '../../src/runtime/lib'
 import {
 	computeID,
 	defaultConfigValues,
 	keyFieldsForType,
 	localApiEndpoint,
-} from '../runtime/lib/config'
+} from '../../src/runtime/lib/config'
 import { houdini_mode } from './constants'
 import { HoudiniError } from './error'
 import * as fs from './fs'

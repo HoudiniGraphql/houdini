@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphql, GQL_UpdateUser } from '$houdini';
-  import { stry } from '@kitql/helpers';
+  import { stry } from '../../../lib/utils/helpers.js';
 
   $: query = graphql(`
     query OptimisticUserQuery @load {

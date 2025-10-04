@@ -8,13 +8,27 @@ export default defineConfig({
 		setupFiles: [path.resolve('./vitest.setup.ts')],
 		alias: {
 			$houdini: path.resolve('./packages/houdini/src'),
-			'houdini/test': path.resolve('./packages/houdini/src/test'),
+			'houdini/test': path.resolve('./packages/houdini/legacy/test'),
 			'houdini/vite': path.resolve('./packages/houdini/src/vite'),
 			'houdini/codegen': path.resolve('./packages/houdini/src/codegen'),
 			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
 		coverage: {
 			provider: 'v8',
+		},
+		environment: 'node',
+		pool: 'forks',
+		server: {
+			deps: {
+				external: ['node:sqlite'],
+			},
+		},
+		deps: {
+			optimizer: {
+				ssr: {
+					exclude: ['node:sqlite'],
+				},
+			},
 		},
 	},
 })
