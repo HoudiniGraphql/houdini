@@ -51,7 +51,7 @@
 	"packageManager": "pnpm@10.12.1",
 	"pnpm": {
 		"overrides": {
-			"graphql": "15.5.0"
+			"graphql": "16.8.0"
 		}
 	}
 }
