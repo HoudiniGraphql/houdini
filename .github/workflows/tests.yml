@@ -97,8 +97,8 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
-            - name: Check formatting
-              run: pnpm run format:check
+            - name: Check formatting and update the codebase
+              run: pnpm run check:write
 
             - name: Check lint
               run: pnpm run lint
