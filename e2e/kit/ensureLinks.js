@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // we need to make sure we have executables for houdini
 try {
   await fs.symlink(
-    path.resolve(__dirname, '../../packages/houdini/build/cmd-esm/index.js'),
+    path.resolve(__dirname, '../../packages/houdini/build/cmd/index.js'),
     'node_modules/.bin/houdini',
     'file'
   );

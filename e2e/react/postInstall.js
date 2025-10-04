@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 
 try {
 	await fs.symlink(
-		`../../../../packages/houdini/build/cmd-esm/index.js`,
+		`../../../../packages/houdini/build/cmd/index.js`,
 		`node_modules/.bin/houdini`,
 		'file'
 	)
