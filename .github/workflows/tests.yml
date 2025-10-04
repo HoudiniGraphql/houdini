@@ -215,6 +215,10 @@ jobs:
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
               if: matrix.framework != 'e2e-react'
 
+            - name: Test React Plugin Detection
+              run: pnpm --filter e2e-react generate
+              if: matrix.framework == 'e2e-react'
+
             - name: End-to-End Tests (React)
               run: pnpm --filter ${{ matrix.framework }} tests
               if: matrix.framework == 'e2e-react'
