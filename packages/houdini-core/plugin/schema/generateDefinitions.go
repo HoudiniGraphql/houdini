@@ -67,11 +67,12 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 	customTypes := make(map[string]bool)
 
 	var schemaString strings.Builder
-	// get all internal directives
+	// get all internal directives in the order they were discovered
 	err := db.StepQuery(ctx, `
 		SELECT name, internal, repeatable, description
 		FROM directives
 		WHERE internal = 1
+		ORDER BY rowid
 	`, nil, func(stmt *sqlite.Stmt) {
 		name := stmt.ColumnText(0)
 		internal := stmt.ColumnInt(1) == 1
@@ -143,16 +144,17 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 				schemaString.WriteString(fmt.Sprintf("%s: %s%s", arg.Name, arg.Type, arg.TypeModifiers))
 			}
 			schemaString.WriteString(")")
+		}
 
-			// add repeatable keyword
-			if repeatable {
-				schemaString.WriteString(" repeatable")
-			}
+		// add repeatable keyword
+		if repeatable {
+			schemaString.WriteString(" repeatable")
+		}
 
-			// ddd locations
+		// add locations
+		if len(directive.Locations) > 0 {
 			schemaString.WriteString(" on ")
 			schemaString.WriteString(strings.Join(directive.Locations, " | "))
-
 		}
 
 		schemaString.WriteString("\n\n")
@@ -167,7 +169,14 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 
 	// writing enum definitions for custom types referenced by directive arguments at the end of the file
 	// writing at the end of the file(schema.graphql) cost us one more loop but it is cleaner
+
+	// collect enum names and sort them alphabetically to match TypeScript output
+	enumNames := make([]string, 0, len(customTypes))
 	for typeName := range customTypes {
+		enumNames = append(enumNames, typeName)
+	}
+
+	for _, typeName := range enumNames {
 		enumValues := []string{}
 
 		// query enum values for this type
@@ -220,9 +229,12 @@ func generateDocumentsFile(ctx context.Context, db plugins.DatabasePool[config.P
 		FROM discovered_lists dl
 		JOIN documents d ON dl.raw_document = d.raw_document
 		WHERE d.kind = 'fragment'
+		ORDER BY dl.name, d.rowid
 	`, nil, func(stmt *sqlite.Stmt) {
 		printed := stmt.ColumnText(0)
-		documentString.WriteString(printed)
+		// remove __typename from the printed document, maybe there is a better way to do this
+		cleanedPrinted := removeTypename(printed)
+		documentString.WriteString(cleanedPrinted)
 		documentString.WriteString("\n\n")
 	})
 	if err != nil {
@@ -244,6 +256,20 @@ func generateDocumentsFile(ctx context.Context, db plugins.DatabasePool[config.P
 	return nil
 }
 
+func removeTypename(document string) string {
+	lines := strings.Split(document, "\n")
+	var result []string
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "__typename" {
+			result = append(result, line)
+		}
+	}
+
+	return strings.Join(result, "\n")
+}
+
 func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.PluginConfig], fs afero.Fs, projectConfig plugins.ProjectConfig) error {
 	type enumData struct {
 		Name   string
@@ -254,12 +280,13 @@ func generateEnumFiles(ctx context.Context, db plugins.DatabasePool[config.Plugi
 	enums := []enumData{}
 	errs := &plugins.ErrorList{}
 
-	// all enum types and their values using simple queries
+	// all enum except internal + built_in types and their values
 	err := db.StepQuery(ctx, `
 		SELECT t.name
 		FROM types t
-		WHERE t.built_in = 0
+		WHERE t.kind == 'ENUM' AND t.internal == 0 AND t.built_in == 0 
 		ORDER BY t.name
+
 	`, nil, func(stmt *sqlite.Stmt) {
 		enumName := stmt.ColumnText(0)
 		enum := enumData{

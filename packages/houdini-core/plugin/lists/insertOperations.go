@@ -397,7 +397,7 @@ func InsertOperationDocuments(
 	err = db.StepStatement(ctx, statementWithKeys, func() {
 		listName := statementWithKeys.GetText("name")
 		typeName := statementWithKeys.GetText("node_type")
-		keysStr := statementWithKeys.GetText("default_keys")
+		keysStr := statementWithKeys.GetText("keys")
 		rawDocument := statementWithKeys.GetText("raw_document")
 
 		keys := []string{}
