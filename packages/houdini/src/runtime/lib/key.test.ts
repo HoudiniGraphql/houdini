@@ -1,8 +1,8 @@
 import * as graphql from "graphql"
 import { describe, expect, test } from "vitest"
 
-import { computeKey } from "./key"
-import type { PaginateModes } from "./types"
+import { computeKey } from './key'
+import type { PaginateModes } from './types'
 
 // we need to make sure that the imperative API behaves similarly to the
 // artifact generator
@@ -87,6 +87,7 @@ function fieldKey(field: graphql.FieldNode): string {
 	// field might not have a location so print and re-parse before we look at serialized values
 	const printed = graphql.print(field)
 	const secondParse = (
+<<<<<<< HEAD
 		graphql.parse(`{${printed}}`)
 			.definitions[0] as graphql.OperationDefinitionNode
 	).selectionSet.selections[0] as graphql.FieldNode
@@ -101,18 +102,39 @@ function fieldKey(field: graphql.FieldNode): string {
 			(arg) => arg.name.value === "mode",
 		)
 		if (paginateModeArg && paginateModeArg.value.kind === "EnumValue") {
+=======
+		graphql.parse(`{${printed}}`).definitions[0] as graphql.OperationDefinitionNode
+	).selectionSet.selections[0] as graphql.FieldNode
+
+	// if the field is paginated, we need to strip away any args
+	let paginateMode: PaginateModes = 'Infinite'
+	const paginatedDirective = field.directives?.find(
+		(directive) => directive.name.value === 'paginate'
+	)
+	if (paginatedDirective) {
+		const paginateModeArg = paginatedDirective?.arguments?.find(
+			(arg) => arg.name.value === 'mode'
+		)
+		if (paginateModeArg && paginateModeArg.value.kind === 'EnumValue') {
+>>>>>>> go
 			paginateMode = paginateModeArg.value.value as PaginateModes
 		}
 	}
 
 	// if we are in SinglePageMode, don't strip away any args
 	const paginationArgs =
+<<<<<<< HEAD
 		paginateMode === "SinglePage"
 			? []
 			: ["first", "after", "last", "before", "limit", "offset"]
 
 	const argObj: { [key: string]: string } = {}
 	for (const arg of secondParse.arguments || []) {
+=======
+		paginateMode === 'SinglePage' ? [] : ['first', 'after', 'last', 'before', 'limit', 'offset']
+
+	const argObj = (secondParse.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
+>>>>>>> go
 		// the query already contains a serialized version of the argument so just pull it out of the
 		// document string
 		const start = arg.value.loc?.start
@@ -120,28 +142,51 @@ function fieldKey(field: graphql.FieldNode): string {
 
 		// if the field is paginated, ignore the pagination args in the key
 		if (paginatedDirective && paginationArgs.includes(arg.name.value)) {
+<<<<<<< HEAD
 			continue
+=======
+			return acc
+>>>>>>> go
 		}
 
 		// if the argument is not in the query, life doesn't make sense
 		if (!start || !end) {
+<<<<<<< HEAD
 			continue
 		}
 
 		argObj[arg.name.value] = printed.substring(start - 1, end - 1)
 	}
+=======
+			return acc
+		}
+
+		return {
+			...acc,
+			[arg.name.value]: printed.substring(start - 1, end - 1),
+		}
+	}, {})
+>>>>>>> go
 
 	const args = Object.keys(argObj)
 	args.sort()
 
 	let key =
 		Object.values(argObj).length > 0
+<<<<<<< HEAD
 			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(", ")})`
+=======
+			? `${attributeName}(${args.map((key) => `${key}: ${argObj[key]}`).join(', ')})`
+>>>>>>> go
 			: attributeName
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict
 	if (paginatedDirective) {
+<<<<<<< HEAD
 		key = `${key}::paginated`
+=======
+		key = key + '::paginated'
+>>>>>>> go
 	}
 
 	return key

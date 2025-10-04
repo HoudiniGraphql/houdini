@@ -1,12 +1,13 @@
-import path from "node:path"
-import type { GraphQLSchema } from "graphql"
-import * as graphql from "graphql"
-import type { ModuleNode, PluginOption } from "vite"
-import { fs, get_config } from "../lib/index.js"
-import { pull_schema } from "../lib/schema.js"
-import { sleep } from "../lib/sleep.js"
-import type { VitePluginContext } from "."
-import { compiler } from "./hmr.js"
+import * as graphql from 'graphql'
+import type { GraphQLSchema } from 'graphql'
+import path from 'node:path'
+import type { PluginOption, ModuleNode } from 'vite'
+
+import type { VitePluginContext } from '.'
+import { get_config, fs } from '../lib/index.js'
+import { pull_schema } from '../lib/schema.js'
+import { sleep } from '../lib/sleep.js'
+import { compiler } from './hmr.js'
 
 /*
  * The schema watching support is made up of 3 parts:
@@ -69,7 +70,11 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 	}
 }
 
+<<<<<<< HEAD
 export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
+=======
+export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
+>>>>>>> go
 	// we want to stop polling when the plugin closes
 	const go = true
 
@@ -152,19 +157,27 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 }
 
 // a plugin that re-runs the codegen pipline when the schema changes
+<<<<<<< HEAD
 export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
+=======
+export function watch_local_schema(ctx: VitePluginContext): PluginOption {
+>>>>>>> go
 	return {
 		name: "houdini-refresh-on-schema",
 
 		async handleHotUpdate({ file, server }) {
 			// build up the path to the local schema file
 			const config = await get_config()
+<<<<<<< HEAD
 			const local_schema_path = path.join(
 				config.root_dir,
 				"src",
 				"api",
 				"+schema",
 			)
+=======
+			const local_schema_path = path.join(config.root_dir, 'src', 'api', '+schema')
+>>>>>>> go
 
 			// load the current schema into the module graph
 			const schema_mod_path = `${local_schema_path}?t=${Date.now()}`

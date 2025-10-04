@@ -1,8 +1,8 @@
 import type { UserConfig, Plugin as VitePlugin } from "vite"
 
-import type { VitePluginContext } from "."
+import type { VitePluginContext } from '.'
 
-export function houdini(_ctx: VitePluginContext): VitePlugin {
+export function houdini(ctx: VitePluginContext): VitePlugin {
 	return {
 		name: "houdini",
 

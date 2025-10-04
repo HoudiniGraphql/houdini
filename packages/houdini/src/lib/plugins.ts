@@ -1,5 +1,5 @@
-import * as fs from "./fs.js"
-import * as path from "./path.js"
+import * as fs from './fs.js'
+import * as path from './path.js'
 
 export async function plugin_path(
 	plugin_name: string,
@@ -30,19 +30,31 @@ export async function plugin_path(
 			path.join(plugin_dir, "package.json"),
 		)
 		if (!package_json_src) {
+<<<<<<< HEAD
 			throw new Error("There is no package.json.")
+=======
+			throw new Error('There is no package.json.')
+>>>>>>> go
 		}
 		const package_json = JSON.parse(package_json_src)
 
 		// a plugin is an executable so it must have a bin field
 		if (!package_json.bin) {
+<<<<<<< HEAD
 			throw new Error("There is no bin defined.")
+=======
+			throw new Error('There is no bin defined.')
+>>>>>>> go
 		}
 
 		return path.join(plugin_dir, package_json.bin)
 	} catch (e) {
 		const err = new Error(
+<<<<<<< HEAD
 			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`,
+=======
+			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`
+>>>>>>> go
 		)
 
 		throw err

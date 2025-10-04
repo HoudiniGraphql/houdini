@@ -1,16 +1,13 @@
-import type { ConfigFile } from "legacy/lib"
+import type { ConfigFile } from 'legacy/lib'
 
-export function testConfigFile({
-	plugins,
-	...config
-}: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		scalars: {
 			DateTime: {
-				type: "Date",
+				type: 'Date',
 				unmarshal(val: number): Date {
-					if (typeof val !== "number") {
-						throw new Error("unmarshaling not a number")
+					if (typeof val !== 'number') {
+						throw new Error('unmarshaling not a number')
 					}
 					return new Date(val)
 				},
@@ -21,27 +18,27 @@ export function testConfigFile({
 		},
 		types: {
 			Ghost: {
-				keys: ["name", "aka"],
+				keys: ['name', 'aka'],
 				resolve: {
-					queryField: "ghost",
+					queryField: 'ghost',
 				},
 			},
 			CustomIdType: {
-				keys: ["foo", "bar"],
+				keys: ['foo', 'bar'],
 			},
 		},
-		logLevel: "quiet",
+		logLevel: 'quiet',
 		plugins: {
-			"houdini-svelte": {
-				client: "./my/client/path",
+			'houdini-svelte': {
+				client: './my/client/path',
 			},
 			...plugins,
 		},
 		runtimeScalars: {
 			ViewerIDFromSession: {
-				type: "ID",
+				type: 'ID',
 				resolve: ({ session }: { session?: App.Session | null | undefined }) =>
-					(session as { token?: string })?.token,
+					(session as unknown as any).token,
 			},
 		},
 		...config,

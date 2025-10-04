@@ -557,7 +557,13 @@ function variable_function_for_query(
 	if (missing_args.length > 0 && !has_local) {
 		throw {
 			filepath: page.filepath,
+<<<<<<< HEAD
 			message: `Could not find required variable function: ${query_variable_fn(query.name!.value)}. maybe its not exported?`,
+=======
+			message: `Could not find required variable function: ${query_variable_fn(
+				query.name!.value
+			)}. maybe its not exported?`,
+>>>>>>> go
 		}
 	}
 

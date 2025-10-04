@@ -24,7 +24,11 @@ test("query plugin evaluates runtime scalars", async () => {
 			name: "TestArtifact",
 			rootType: "Query",
 			pluginData: {},
+<<<<<<< HEAD
 			enableLoadingState: "local",
+=======
+			enableLoadingState: 'local',
+>>>>>>> go
 			stripVariables: [],
 			input: {
 				fields: {

@@ -1,4 +1,3 @@
-
 import type { ExpressionKind, StatementKind, TSTypeKind } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
 import * as recast from 'recast'
@@ -123,8 +122,7 @@ export async function generateDocumentTypes(config: Config, docs: Document[]) {
 	const typeIndex = AST.program(
 		typePaths
 			.sort((a, b) => a.localeCompare(b))
-			.map((typePath) => {
-				return AST.exportAllDeclaration(
+			.map((typePath) => { return AST.exportAllDeclaration(
 					AST.literal(
 						'./' +
 							path

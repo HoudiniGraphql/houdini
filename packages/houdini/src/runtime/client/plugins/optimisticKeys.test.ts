@@ -1,17 +1,13 @@
-import { beforeEach, expect, test } from "vitest"
-import { sleep } from "../../../lib"
+import { beforeEach, expect, test } from 'vitest'
 
-import { testConfigFile } from "../../../test"
-import { Cache } from "../../cache/cache"
-import { setMockConfig } from "../../lib/config"
-import {
-	ArtifactKind,
-	type GraphQLObject,
-	type QueryResult,
-} from "../../lib/types"
-import { mutation } from "./mutation"
-import { optimisticKeys } from "./optimisticKeys"
-import { createStore, fakeFetch } from "./test"
+import { sleep } from '../../../lib'
+import { testConfigFile } from '../../../test'
+import { Cache } from '../../cache/cache'
+import { setMockConfig } from '../../lib/config'
+import { ArtifactKind, type QueryResult, type GraphQLObject } from '../../lib/types'
+import { mutation } from './mutation'
+import { optimisticKeys } from './optimisticKeys'
+import { createStore, fakeFetch } from './test'
 
 /**
  * Testing the cache plugin

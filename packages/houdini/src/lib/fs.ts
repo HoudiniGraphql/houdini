@@ -5,8 +5,8 @@ import fsExtra from "fs-extra"
 import { glob as G } from "glob"
 import { fs as memfs, vol } from "memfs"
 
-import { houdini_mode } from "./constants.js"
-import * as path from "./path.js"
+import { houdini_mode } from './constants.js'
+import * as path from './path.js'
 
 export function copyFileSync(src: string, dest: string): undefined | null {
 	if (houdini_mode.is_testing) {

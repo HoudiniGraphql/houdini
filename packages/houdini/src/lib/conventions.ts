@@ -1,7 +1,7 @@
-import { houdini_mode } from "./constants.js"
-import * as fs from "./fs.js"
-import * as path from "./path.js"
-import type { Config } from "./project.js"
+import { houdini_mode } from './constants.js'
+import * as fs from './fs.js'
+import * as path from './path.js'
+import { type Config } from './project.js'
 
 /** The location of the project's router */
 export function router_path(config: Config) {

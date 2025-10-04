@@ -1,11 +1,12 @@
-import { beforeEach, expect, test, vi } from "vitest"
-import { sleep } from "../../lib"
-import { setMockConfig } from "../lib/config"
-import type { GraphQLObject } from "../lib/types"
-import { ArtifactKind, DataSource } from "../lib/types"
-import { createPluginHooks, HoudiniClient } from "."
-import type { ClientPlugin } from "./documentStore"
-import { DocumentStore } from "./documentStore"
+import { test, expect, vi, beforeEach } from 'vitest'
+
+import { createPluginHooks, HoudiniClient } from '.'
+import { sleep } from '../../lib'
+import { setMockConfig } from '../lib/config'
+import type { GraphQLObject } from '../lib/types'
+import { ArtifactKind, DataSource } from '../lib/types'
+import type { ClientPlugin } from './documentStore'
+import { DocumentStore } from './documentStore'
 
 beforeEach(() => {
 	setMockConfig({

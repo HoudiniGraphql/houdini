@@ -1,14 +1,9 @@
-import fs from "node:fs/promises"
-import type { DatabaseSync } from "node:sqlite"
-import type { HmrContext, ModuleNode, Plugin as VitePlugin } from "vite"
-import {
-	type CompilerProxy,
-	codegen_setup,
-	get_config,
-	path,
-	run_pipeline,
-} from "../lib/index.js"
-import type { VitePluginContext } from "."
+import fs from 'node:fs/promises'
+import type { DatabaseSync } from 'node:sqlite'
+import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
+
+import type { VitePluginContext } from '.'
+import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
 
 /**
  * Houdini Vite HMR Plugin

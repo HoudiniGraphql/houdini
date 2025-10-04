@@ -1,14 +1,14 @@
-import { type ChildProcess, spawn } from "node:child_process"
-import path from "node:path"
-import sqlite, { type DatabaseSync } from "node:sqlite"
+import { type ChildProcess, spawn } from 'node:child_process'
+import path from 'node:path'
+import sqlite, { type DatabaseSync } from 'node:sqlite'
 
-import type { ProjectManifest } from "../runtime"
-import type * as routerConventions from "./conventions.js"
-import { db_path, houdini_root } from "./conventions.js"
-import { create_schema, write_config } from "./database.js"
-import { format_hook_error, type HookError } from "./error.js"
-import * as fs from "./fs.js"
-import type { Config } from "./project.js"
+import type { ProjectManifest } from '../runtime'
+import { db_path, houdini_root } from './conventions.js'
+import type * as routerConventions from './conventions.js'
+import { create_schema, write_config } from './database.js'
+import { format_hook_error, type HookError } from './error.js'
+import * as fs from './fs.js'
+import { type Config } from './project.js'
 
 export type PluginSpec = {
 	name: string

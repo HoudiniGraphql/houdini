@@ -1,9 +1,9 @@
 import { expect, test } from "vitest"
 
-import { testConfigFile } from "../../../../legacy/test"
-import type { SubscriptionSelection } from "../../lib"
-import { Cache } from "../cache"
-import { rootID } from "../stuff"
+import { testConfigFile } from '../../../../legacy/test'
+import type { SubscriptionSelection } from '../../lib'
+import { Cache } from '../cache'
+import { rootID } from '../stuff'
 
 const config = testConfigFile()
 

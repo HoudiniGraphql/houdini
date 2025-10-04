@@ -2,9 +2,9 @@ import { execSync } from "node:child_process"
 import * as p from "@clack/prompts"
 import { bold, cyan, gray, green, italic } from "kleur/colors"
 
-import { fs, path } from "../lib/index.js"
-import { pull_schema } from "../lib/schema.js"
-import type { ConfigFile } from "../runtime/lib/config"
+import { fs, path } from '../lib/index.js'
+import { pull_schema } from '../lib/schema.js'
+import type { ConfigFile } from '../runtime/lib/config'
 
 function pCancel(cancelText = "Operation cancelled.") {
 	p.cancel(cancelText)

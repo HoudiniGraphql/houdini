@@ -3,12 +3,12 @@ import { mergeSchemas } from "@graphql-tools/schema"
 import type { GraphQLSchema } from "graphql"
 import * as graphql from "graphql"
 
-import type { ConfigFile } from "../runtime/lib/config"
-import { houdini_root, local_api_dir } from "./conventions.js"
-import { HoudiniError } from "./error.js"
-import * as fs from "./fs.js"
-import * as path from "./path.js"
-import { plugin_path } from "./plugins.js"
+import type { ConfigFile } from '../runtime/lib/config'
+import { houdini_root, local_api_dir } from './conventions.js'
+import { HoudiniError } from './error.js'
+import * as fs from './fs.js'
+import * as path from './path.js'
+import { plugin_path } from './plugins.js'
 
 export type { ConfigFile } from "../runtime/lib/config"
 
