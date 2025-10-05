@@ -93,10 +93,10 @@ type ThreadSafeSlice[val any] struct {
 }
 
 // helper methods for SafeSlice
-func (s *ThreadSafeSlice[T]) Append(val T) {
+func (s *ThreadSafeSlice[T]) Append(val ...T) {
 	s.Lock()
 	defer s.Unlock()
-	s.items = append(s.items, val)
+	s.items = append(s.items, val...)
 }
 
 func (s *ThreadSafeSlice[T]) GetItems() []T {

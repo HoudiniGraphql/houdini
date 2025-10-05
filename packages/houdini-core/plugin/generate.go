@@ -2,25 +2,32 @@ package plugin
 
 import (
 	"context"
+	"path"
 
+	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/runtime"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
+	"code.houdinigraphql.com/plugins"
 )
 
 func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
+	config, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// we need to build up the filepaths that we generate in this time
-	generated := []string{}
+	generated := plugins.ThreadSafeSlice[string]{}
 
 	// the first thing to do is generate the artifacts
 	files, err := artifacts.Generate(ctx, p.DB, p.Fs, false)
 	if err != nil {
 		return nil, err
 	}
-	generated = append(generated, files...)
+	generated.Append(files...)
 
 	// by now, we have all of the necessary metadata written to the database to run the other generationsin parallel
 	g, ctx := errgroup.WithContext(ctx)
@@ -31,7 +38,7 @@ func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		generated = append(generated, documentFiles...)
+		generated.Append(documentFiles...)
 		return nil
 	})
 
@@ -47,14 +54,46 @@ func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
 
 	// generate the runtime index file
 	g.Go(func() error {
-		updated, err := runtime.GenerateIndexFile(ctx, p.DB, p.Fs)
+		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.js")
+
+		// before we generate the index file let's look at its current content
+		existingContent := ""
+		// if the existing content is the same, then there's nothing to do
+		if exists, err := afero.Exists(p.Fs, targetPath); err == nil && exists {
+			existingContentByte, err := afero.ReadFile(p.Fs, targetPath)
+			if err != nil {
+				return err
+			}
+			existingContent = string(existingContentByte)
+
+			// we can delete the file now
+			err = p.Fs.Remove(targetPath)
+			if err != nil {
+				return err
+			}
+		}
+
+		err := runtime.GenerateIndexFile(ctx, p.DB, p.Fs)
 		if err != nil {
 			return err
 		}
 
-		generated = append(generated, updated...)
+		// notify any other plugins its their turn to modify the index file
+		_, err = plugins.TriggerHook(ctx, p.DB, "IndexFile", map[string]any{})
+		if err != nil {
+			return err
+		}
 
-		// TODO: trigger index file hook so the other plugins know they can add their own content
+		// now we should read the content back
+		updated, err := afero.ReadFile(p.Fs, targetPath)
+		if err != nil {
+			return err
+		}
+
+		// if the content changed then we need to mark it as invalid
+		if existingContent != string(updated) {
+			generated.Append(targetPath)
+		}
 
 		return nil
 	})
@@ -65,5 +104,5 @@ func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
 	}
 
 	// we're done
-	return generated, nil
+	return generated.GetItems(), nil
 }

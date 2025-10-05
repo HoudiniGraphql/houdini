@@ -16,18 +16,18 @@ func GenerateIndexFile(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	fs afero.Fs,
-) ([]string, error) {
+) error {
 	// load the project config to look up the runtime directory
 	config, err := db.ProjectConfig(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// we are going to populate the runtime index
 	targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.js")
 	definitionsRelative, err := filepath.Rel(config.RuntimeDir, config.DefinitionsIndexJs())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// before we doing any kind of file io let's determine the value we will write so we can compare with the existing value to know if we changed anything
@@ -35,7 +35,7 @@ func GenerateIndexFile(
 	// there are 2 things we need to look up: the name of every document as well as any plugins with exported runtimes
 	conn, err := db.Take(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer db.Put(conn)
 
@@ -43,7 +43,7 @@ func GenerateIndexFile(
 		SELECT name FROM documents ORDER BY name ASC
 	`)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer documentSearch.Finalize()
 
@@ -57,7 +57,7 @@ func GenerateIndexFile(
 		)
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// and an export for every included runtime
@@ -65,7 +65,7 @@ func GenerateIndexFile(
 		SELECT name FROM plugins where include_runtime IS NOT NULL
 	`)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer pluginSearch.Finalize()
 	runtimeExport := []string{}
@@ -77,7 +77,7 @@ func GenerateIndexFile(
 		)
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// build up the content of the file
@@ -96,21 +96,21 @@ export * from './%s'
 	if exists, err := afero.Exists(fs, targetPath); err == nil && exists {
 		existingContent, err := afero.ReadFile(fs, targetPath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if string(existingContent) == content {
 			// we're done
-			return nil, nil
+			return nil
 		}
 	}
 
 	// if we got this far then we need to update the file
 	err = afero.WriteFile(fs, targetPath, []byte(content), 0644)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// return the updated filepath
-	return []string{targetPath}, nil
+	return nil
 }
