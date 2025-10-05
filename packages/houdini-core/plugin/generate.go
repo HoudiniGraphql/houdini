@@ -53,6 +53,9 @@ func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
 		}
 
 		generated = append(generated, updated...)
+
+		// TODO: trigger index file hook so the other plugins know they can add their own content
+
 		return nil
 	})
 

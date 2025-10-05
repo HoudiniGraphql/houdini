@@ -7,7 +7,7 @@ export async function generatePluginIndex({
 	config: Config
 	exportStatement: (module: string) => string
 }) {
-	// we need to generate an index file
+	// we need to generate an index file so that users can import from $houdini/plugins
 	const indexFile = `${exportStatement('../runtime/client/plugins/index.js')}
 `
 	// and its typedefs
