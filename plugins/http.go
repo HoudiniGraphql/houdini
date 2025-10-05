@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 )
 
 // the hooks that a plugin defines dictate a set of events that the plugin must repond to
@@ -17,11 +18,23 @@ func pluginHooks[PluginConfig any](
 	hooks := map[string]bool{}
 	if _, ok := plugin.(StaticRuntime); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterload", InjectTaskID(EventHook(handleAfterLoad(plugin))))
+		http.Handle("/afterload", InjectContext(EventHook(handleAfterLoad(plugin))))
 	}
-	if _, ok := plugin.(TransformRuntime); ok {
-		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHookWithResponse(handleGenerate(plugin))))
+	if _, ok := plugin.(IncludeRuntime); ok {
+		hooks["GenerateRuntime"] = true
+		http.Handle(
+			"/generateruntime",
+			InjectContext(EventHookWithResponse(handleGenerateRuntime(plugin))),
+		)
+	}
+	if _, ok := plugin.(GenerateRuntime); ok {
+		if _, ok := plugin.(IncludeRuntime); !ok {
+			hooks["GenerateRuntime"] = true
+			http.Handle(
+				"/generateruntime",
+				InjectContext(EventHookWithResponse(handleGenerateRuntime(plugin))),
+			)
+		}
 	}
 	if _, ok := plugin.(Config); ok {
 		hooks["Config"] = true
@@ -29,74 +42,74 @@ func pluginHooks[PluginConfig any](
 	}
 	if p, ok := plugin.(Environment); ok {
 		hooks["Environment"] = true
-		http.Handle("/environment", InjectTaskID(handleEnvironment(ctx, p)))
+		http.Handle("/environment", InjectContext(handleEnvironment(ctx, p)))
 	}
 	if _, ok := plugin.(AfterLoad); ok {
 		hooks["AfterLoad"] = true
-		http.Handle("/afterload", InjectTaskID(EventHook(handleAfterLoad(plugin))))
+		http.Handle("/afterload", InjectContext(EventHook(handleAfterLoad(plugin))))
 	}
 	if p, ok := plugin.(ExtractDocuments); ok {
 		hooks["ExtractDocuments"] = true
 		http.Handle(
 			"/extractdocuments",
-			InjectTaskID(EventHookWithInput(p.ExtractDocuments)),
+			InjectContext(EventHookWithInput(p.ExtractDocuments)),
 		)
 	}
 	if p, ok := plugin.(AfterExtract); ok {
 		hooks["AfterExtract"] = true
-		http.Handle("/afterextract", InjectTaskID(EventHook(p.AfterExtract)))
+		http.Handle("/afterextract", InjectContext(EventHook(p.AfterExtract)))
 	}
 	if p, ok := plugin.(Schema); ok {
 		hooks["Schema"] = true
-		http.Handle("/schema", InjectTaskID(EventHook(p.Schema)))
+		http.Handle("/schema", InjectContext(EventHook(p.Schema)))
 	}
 	if p, ok := plugin.(BeforeValidate); ok {
 		hooks["BeforeValidate"] = true
-		http.Handle("/beforevalidate", InjectTaskID(EventHook(p.BeforeValidate)))
+		http.Handle("/beforevalidate", InjectContext(EventHook(p.BeforeValidate)))
 	}
 	if p, ok := plugin.(Validate); ok {
 		hooks["Validate"] = true
-		http.Handle("/validate", InjectTaskID(EventHook(p.Validate)))
+		http.Handle("/validate", InjectContext(EventHook(p.Validate)))
 	}
 	if p, ok := plugin.(AfterValidate); ok {
 		hooks["AfterValidate"] = true
-		http.Handle("/aftervalidate", InjectTaskID(EventHook(p.AfterValidate)))
+		http.Handle("/aftervalidate", InjectContext(EventHook(p.AfterValidate)))
 	}
 	if _, ok := plugin.(BeforeGenerate); ok {
 		hooks["BeforeGenerate"] = true
-		http.Handle("/beforegenerate", InjectTaskID(EventHook(handleBeforeGenerate(plugin))))
+		http.Handle("/beforegenerate", InjectContext(EventHook(handleBeforeGenerate(plugin))))
 	}
-	if _, ok := plugin.(Generate); ok {
+	if p, ok := plugin.(Generate); ok {
 		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHookWithResponse(handleGenerate(plugin))))
+		http.Handle("/generate", InjectContext(EventHookWithResponse(p.Generate)))
 	}
 	if _, ok := plugin.(ArtifactData); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectContext(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(Hash); ok {
 		hooks["Hash"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleBeforeGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectContext(EventHook(handleBeforeGenerate(plugin))))
 	}
 	if _, ok := plugin.(GraphQLTagReturn); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectContext(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(IndexFile); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectContext(EventHook(handleAfterGenerate(plugin))))
 	}
 	if _, ok := plugin.(ArtifactEnd); ok {
 		hooks["AfterGenerate"] = true
-		http.Handle("/aftergenerate", InjectTaskID(EventHook(handleAfterGenerate(plugin))))
+		http.Handle("/aftergenerate", InjectContext(EventHook(handleAfterGenerate(plugin))))
 	}
 	if p, ok := plugin.(ClientPlugins); ok {
 		hooks["ClientPlugins"] = true
-		http.Handle("/clientplugins", InjectTaskID(JSONHook(p.ClientPlugins)))
+		http.Handle("/clientplugins", InjectContext(JSONHook(p.ClientPlugins)))
 	}
 	if p, ok := plugin.(TransformFile); ok {
 		hooks["TransformFile"] = true
-		http.Handle("/transformfile", InjectTaskID(handleTransformFile(p)))
+		http.Handle("/transformfile", InjectContext(handleTransformFile(p)))
 	}
 
 	// get the unique hooks this plugin cares about
@@ -108,14 +121,17 @@ func pluginHooks[PluginConfig any](
 	return hookStrs
 }
 
-func InjectTaskID(next http.Handler) http.Handler {
+func InjectContext(next http.Handler) http.Handler {
 	// the task id is passed in the request headers
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get the task id from the request headers
 		taskID := r.Header.Get("X-Task-ID")
 
 		// add the task id to the context
-		ctx := ContextWithTaskID(r.Context(), taskID)
+		ctx := ContextWithPluginDir(
+			ContextWithTaskID(r.Context(), taskID),
+			r.Header.Get("X-Plugin-Directory"),
+		)
 
 		// call the next handler
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -151,7 +167,9 @@ func EventHook(hook func(context.Context) error) http.Handler {
 	})
 }
 
-func EventHookWithResponse(hook func(context.Context) (any, error)) http.Handler {
+func EventHookWithResponse[Response any](
+	hook func(context.Context) (Response, error),
+) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// call the function
 		result, err := hook(r.Context())
@@ -195,23 +213,54 @@ type ExtractDocumentsInput struct {
 	Filepaths []string `json:"filepaths"`
 }
 
-func handleGenerate[PluginConfig any](
+func handleGenerateRuntime[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
-) func(ctx context.Context) (any, error) {
-	return func(ctx context.Context) (any, error) {
-		filepaths := []string{}
+) func(ctx context.Context) ([]string, error) {
+	return func(ctx context.Context) ([]string, error) {
+		paths := []string{}
 
-		// invoke the generate hook
-		if generate, ok := plugin.(Generate); ok {
-			fps, err := generate.Generate(ctx)
+		if generate, ok := plugin.(GenerateRuntime); ok {
+			filepaths, err := generate.GenerateRuntime(ctx)
 			if err != nil {
 				return nil, err
 			}
-			filepaths = append(filepaths, fps...)
+
+			paths = append(paths, filepaths...)
+		}
+
+		// if the plugin defines a runtime to be included then we should include it now
+		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
+			runtimeDir, err := includeRuntime.IncludeRuntime(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			config, err := plugin.Database().ProjectConfig(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			runtimePath := path.Join(PluginDirFromContext(ctx), runtimeDir)
+			targetPath := config.PluginRuntimeDirectory(plugin.Name())
+
+			// the plugin could have defined a transform for the runtime
+			transform := func(ctx context.Context, source string, content string) (string, error) { return content, nil }
+			if transformer, ok := plugin.(TransformRuntime); ok {
+				transform = transformer.TransformRuntime
+			}
+
+			// copy the plugin runtime to the runtime directory
+			updated, err := RecursiveCopy(ctx, runtimePath, targetPath, transform)
+			if err != nil {
+				return nil, err
+			}
+
+			// add any updated paths to the list
+			paths = append(paths, updated...)
 		}
 
 		// nothing went wrong
-		return filepaths, nil
+		return paths, nil
 	}
 }
 

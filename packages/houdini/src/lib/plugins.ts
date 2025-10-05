@@ -1,7 +1,10 @@
 import * as fs from './fs.js'
 import * as path from './path.js'
 
-export async function plugin_path(plugin_name: string, config_path: string): Promise<string> {
+export async function plugin_path(
+	plugin_name: string,
+	config_path: string,
+): Promise<{ executable: string; directory: string }> {
 	try {
 		// check if we are in a PnP environment
 		if (process.versions.pnp) {
@@ -14,14 +17,18 @@ export async function plugin_path(plugin_name: string, config_path: string): Pro
 
 			// this directly returns the ESM export of the corresponding module, thanks to the PnP API
 			// it will throw if the module isn't found in the project's dependencies
-			return pnp.resolveRequest(plugin_name, config_path, { conditions: new Set(['import']) })
+			return pnp.resolveRequest(plugin_name, config_path, {
+				conditions: new Set(['import']),
+			})
 		}
 
 		// otherwise we have to hunt the module down relative to the current path
 		const plugin_dir = find_module(plugin_name, path.dirname(config_path))
 
 		// load up the package json
-		const package_json_src = await fs.readFile(path.join(plugin_dir, 'package.json'))
+		const package_json_src = await fs.readFile(
+			path.join(plugin_dir, 'package.json'),
+		)
 		if (!package_json_src) {
 			throw new Error('There is no package.json.')
 		}
@@ -32,10 +39,13 @@ export async function plugin_path(plugin_name: string, config_path: string): Pro
 			throw new Error('There is no bin defined.')
 		}
 
-		return path.join(plugin_dir, package_json.bin)
+		return {
+			executable: path.join(plugin_dir, package_json.bin),
+			directory: plugin_dir,
+		}
 	} catch (e) {
 		const err = new Error(
-			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`
+			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`,
 		)
 
 		throw err

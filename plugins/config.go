@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"encoding/json"
+	"path"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -30,6 +31,18 @@ type ProjectConfig struct {
 	RuntimeScalars                  map[string]string
 	Scalars                         map[string]ScalarConfig
 	TypeConfig                      map[string]TypeConfig
+}
+
+func (config ProjectConfig) PluginDirectory(name string) string {
+	return path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", name)
+}
+
+func (config ProjectConfig) PluginRuntimeDirectory(name string) string {
+	// the core runtime goes into a special place
+	if name == "houdini-core" {
+		return path.Join(config.ProjectRoot, config.RuntimeDir, "runtime")
+	}
+	return path.Join(config.PluginDirectory(name), "runtime")
 }
 
 func (db DatabasePool[PluginConfig]) ProjectConfig(ctx context.Context) (ProjectConfig, error) {
@@ -191,7 +204,9 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 	return nil
 }
 
-func (db DatabasePool[PluginConfig]) PluginConfig(ctx context.Context) (result PluginConfig, err error) {
+func (db DatabasePool[PluginConfig]) PluginConfig(
+	ctx context.Context,
+) (result PluginConfig, err error) {
 	// if we've already loaded the config use it
 	if db._pluginConfig != nil {
 		result = *db._pluginConfig

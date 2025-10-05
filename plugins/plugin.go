@@ -7,6 +7,7 @@ type HoudiniPlugin[PluginConfig any] interface {
 	Name() string
 	Order() PluginOrder
 	SetDatabase(DatabasePool[PluginConfig])
+	Database() DatabasePool[PluginConfig]
 }
 
 type Plugin[PluginConfig any] struct {
@@ -16,6 +17,10 @@ type Plugin[PluginConfig any] struct {
 // SetDatabase is a helper that lets Run() inject the database into the plugin.
 func (p *Plugin[PluginConfig]) SetDatabase(db DatabasePool[PluginConfig]) {
 	p.DB = db
+}
+
+func (p *Plugin[PluginConfig]) Database() DatabasePool[PluginConfig] {
+	return p.DB
 }
 
 // each hook can be implemented by a plugin by implementing the corresponding method
@@ -51,7 +56,14 @@ type StaticRuntime interface {
 /* Transform the plugin's runtime while houdini is copying it .
  * You must have passed a value to includeRuntime for this hook to matter. */
 type TransformRuntime interface {
-	TransformRuntime(ctx context.Context, source string) (string, error)
+	TransformRuntime(ctx context.Context, source string, content string) (string, error)
+}
+
+/* Generate project scaffolding files that don't necessary depend on a specific task of documents.
+ * For  example, a plugin runtime
+ */
+type GenerateRuntime interface {
+	GenerateRuntime(ctx context.Context) ([]string, error)
 }
 
 /* The path to a javascript module with an default export that sets configuration values. */

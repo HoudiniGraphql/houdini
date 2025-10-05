@@ -16,6 +16,7 @@ export type PluginMeta = {
 	name: string
 	config: Record<string, any>
 	executable: string
+	directory: string
 }
 
 export const default_config: ConfigFile = {
@@ -52,7 +53,9 @@ export class Config {
 	}
 
 	schema_path() {
-		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+		return (
+			this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+		)
 	}
 
 	async api_url() {
@@ -86,7 +89,7 @@ export class Config {
 
 					return [key, headerValue]
 				})
-				.filter(([key]) => key)
+				.filter(([key]) => key),
 		)
 
 		// we're done
@@ -95,9 +98,9 @@ export class Config {
 
 	process_env_values(
 		env: Record<string, string | undefined>,
-		value: string | ((env: any) => string)
+		value: string | ((env: any) => string),
 	) {
-		let headerValue
+		let headerValue: string | undefined
 		if (typeof value === 'function') {
 			headerValue = value(env)
 		} else if (value.startsWith('env:')) {
@@ -176,7 +179,9 @@ export async function get_config({
 		}
 
 		const root_dir = path.dirname(
-			config_file.projectDir ? path.join(process.cwd(), config_file.projectDir) : config_path
+			config_file.projectDir
+				? path.join(process.cwd(), config_file.projectDir)
+				: config_path,
 		)
 
 		// if there is a local schema then we need to ignore the schema check
@@ -227,8 +232,8 @@ export async function get_config({
 			plugins.map(async ([name, config]) => ({
 				name,
 				config,
-				executable: await plugin_path(name, config_path),
-			}))
+				...(await plugin_path(name, config_path)),
+			})),
 		)
 
 		// we're done and have a valid config
@@ -252,7 +257,9 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 	try {
 		imported = await import(/* @vite-ignore */ importPath)
 	} catch (e: any) {
-		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+		throw new Error(
+			`Could not load config file at file://${configPath}.\n${e.message}`,
+		)
 	}
 
 	// if this is wrapped in a default, use it
@@ -263,7 +270,9 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 	}
 }
 
-async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
+async function load_schema_file(
+	schemaPath: string,
+): Promise<graphql.GraphQLSchema> {
 	// if the schema is not a relative path, the config file is out of date
 	if (path.isAbsolute(schemaPath)) {
 		// compute the new value for schema
@@ -272,7 +281,7 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 		// build up an error with no stack trace so the message isn't so noisy
 		const error = new Error(
 			`Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change ` +
-				`its value to "./${relPath}".`
+				`its value to "./${relPath}".`,
 		)
 		error.stack = ''
 
@@ -287,7 +296,9 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
-				sourceFiles.map(async (filepath: string) => (await fs.readFile(filepath))!)
+				sourceFiles.map(
+					async (filepath: string) => (await fs.readFile(filepath))!,
+				),
 			),
 		})
 	}
@@ -322,7 +333,10 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
-	if (config.config_file.router?.auth && 'redirect' in config.config_file.router.auth) {
+	if (
+		config.config_file.router?.auth &&
+		'redirect' in config.config_file.router.auth
+	) {
 		routes.push(config.config_file.router.auth.redirect)
 	}
 
@@ -331,11 +345,13 @@ export function internal_routes(config: Config): string[] {
 
 export async function load_local_schema(
 	config: ConfigFile,
-	schema_path: string
+	schema_path: string,
 ): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
-		const { default: schema } = await import(pathToFileURL(schema_path).toString())
+		const { default: schema } = await import(
+			pathToFileURL(schema_path).toString()
+		)
 
 		// now that we have the schema, let's write it to disk so the core plugin
 		// can import it
@@ -345,7 +361,7 @@ export async function load_local_schema(
 	} catch (e) {
 		const message = 'message' in (e as Error) ? (e as Error).message : e
 		// if we fail to load the schema, log a message to the user and just return an empty one
-		console.error('⚠️ Failed to load local schema: ', message)
+		console.error('! Failed to load local schema: ', message)
 		return new graphql.GraphQLSchema({})
 	}
 }

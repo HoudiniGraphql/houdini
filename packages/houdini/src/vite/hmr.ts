@@ -55,6 +55,11 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			try {
 				await run_pipeline(compiler.trigger_hook, { through: 'Validate' })
 			} catch {}
+
+			// we also want to generate the initial file contents but skip the rest of the codegen
+			try {
+				await compiler.trigger_hook('GenerateRuntime')
+			} catch {}
 		},
 
 		// this is called when a module is being resolved

@@ -18,10 +18,18 @@ func ContextWithTaskID(ctx context.Context, taskID string) context.Context {
 	return context.WithValue(ctx, "taskID", &id)
 }
 
+func ContextWithPluginDir(ctx context.Context, directory string) context.Context {
+	return context.WithValue(ctx, "pluginDir", directory)
+}
+
 func TaskIDFromContext(ctx context.Context) *int64 {
 	taskID := ctx.Value("taskID")
 	if taskID == nil {
 		return nil
 	}
 	return taskID.(*int64)
+}
+
+func PluginDirFromContext(ctx context.Context) string {
+	return ctx.Value("pluginDir").(string)
 }

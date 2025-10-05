@@ -101,10 +101,11 @@ func GenerateIndexFile(
 export * from './runtime'
 export * from './%s'
 %s
-%s`,
+%s
+`,
 		definitionsRelative,
-		strings.Join(indexDocs, "\n"),
 		strings.Join(runtimeExport, "\n"),
+		strings.Join(indexDocs, "\n"),
 	)
 
 	// if we got this far then we need to update the file
@@ -117,10 +118,11 @@ export * from './%s'
 export * from './runtime'
 export * from './%s'
 %s
-%s`,
+%s
+`,
 		definitionsRelative,
-		strings.Join(dTsDocs, "\n"),
 		strings.Join(runtimeExport, "\n"),
+		strings.Join(dTsDocs, "\n"),
 	)
 
 	// if we got this far then we need to update the file

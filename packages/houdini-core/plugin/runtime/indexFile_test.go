@@ -39,6 +39,7 @@ func TestIndexFileGeneration(t *testing.T) {
 			require.Equal(t, `export * from './runtime/client'
 export * from './runtime'
 export * from './graphql'
+
 export { default as TestFragment } from './artifacts/TestFragment.js'
 export { default as TestQuery } from './artifacts/TestQuery.js'
 `, string(indexContent))
@@ -52,6 +53,7 @@ export { default as TestQuery } from './artifacts/TestQuery.js'
 			require.Equal(t, `export * from './runtime/client'
 export * from './runtime'
 export * from './graphql'
+
 export * from './artifacts/TestFragment'
 export * from './artifacts/TestQuery'
 `, string(indexDTsContent))

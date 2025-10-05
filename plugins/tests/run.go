@@ -73,6 +73,13 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 				return
 			}
 
+			// as well as the runtime
+			_, err = plugin.GenerateRuntime(context.Background())
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+
 			require.True(t, test.Pass)
 
 			table.VerifyTest(t, plugin, test)
