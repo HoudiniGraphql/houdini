@@ -66,6 +66,13 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 				return
 			}
 
+			// generate the artifacts
+			_, err = plugin.Generate(context.Background())
+			if err != nil {
+				require.False(t, test.Pass, err.Error())
+				return
+			}
+
 			require.True(t, test.Pass)
 
 			table.VerifyTest(t, plugin, test)
@@ -75,13 +82,15 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 	for _, test := range table.Tests {
 		t.Run(test.Name, func(t *testing.T) {
 			projectConfig := plugins.ProjectConfig{
-				ProjectRoot:         "/project",
-				SchemaPath:          "schema.graphql",
-				DefaultKeys:         []string{"id"},
-				TypeConfig:          make(map[string]plugins.TypeConfig),
-				DefaultCachePolicy:  "CacheOrNetwork",
-				DefaultPartial:      false,
-				DefaultPaginateMode: "Infinite",
+				ProjectRoot:          "/project",
+				SchemaPath:           "schema.graphql",
+				DefaultKeys:          []string{"id"},
+				TypeConfig:           make(map[string]plugins.TypeConfig),
+				DefaultCachePolicy:   "CacheOrNetwork",
+				DefaultPartial:       false,
+				DefaultPaginateMode:  "Infinite",
+				RuntimeDir:           ".houdini",
+				PersistedQueriesPath: "persisted_queries.json",
 			}
 
 			if table.ProjectConfig.TypeConfig != nil {
