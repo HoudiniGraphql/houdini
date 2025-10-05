@@ -18,14 +18,14 @@ export function copyFileSync(src: string, dest: string): undefined | null {
 
 			memfs.copyFileSync(src, dest)
 			return
-		} catch (_e) {
+		} catch {
 			return null
 		}
 	}
 	try {
 		fsExtra.copyFileSync(src, dest)
 		return
-	} catch (_e) {}
+	} catch {}
 
 	return null
 }
@@ -45,14 +45,14 @@ export async function copyFile(
 				throw err
 			})
 			return
-		} catch (_e) {
+		} catch {
 			return null
 		}
 	}
 	try {
 		await fs.copyFile(src, dest)
 		return
-	} catch (_e) {}
+	} catch {}
 
 	return null
 }
@@ -68,7 +68,7 @@ export async function readFile(
 			}
 
 			return memfs.readFileSync(filepath, encoding ?? 'utf-8')?.toString()
-		} catch (_e) {
+		} catch {
 			return null
 		}
 	}
@@ -88,7 +88,7 @@ export function readFileSync(filepath: string): string | null {
 			}
 
 			return memfs.readFileSync(filepath, 'utf-8')?.toString()
-		} catch (_e) {
+		} catch {
 			return null
 		}
 	}
@@ -276,7 +276,7 @@ export async function recursiveCopy(
 	try {
 		await access(parentDir)
 		// the parent directory does not exist
-	} catch (_e) {
+	} catch {
 		await mkdirp(parentDir)
 	}
 	// check if we are copying a directory

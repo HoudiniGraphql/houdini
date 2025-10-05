@@ -61,13 +61,13 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 	const db_file = db_path(config)
 	try {
 		await fs.remove(db_file)
-	} catch (_e) {}
+	} catch {}
 	try {
 		await fs.remove(`${db_file}-shm`)
-	} catch (_e) {}
+	} catch {}
 	try {
 		await fs.remove(`${db_file}-wal`)
-	} catch (_e) {}
+	} catch {}
 	return [connect_db(config)[0], db_file]
 }
 
@@ -310,7 +310,7 @@ export async function codegen_setup(
 									'/f',
 									'/t',
 								])
-							} catch (_err) {
+							} catch {
 								// Ignore errors if the process is already gone
 							}
 						} else {
@@ -318,7 +318,7 @@ export async function codegen_setup(
 							try {
 								// The child was spawned with detached: true so that it is its own process group.
 								process.kill(-plugin.process.pid, 'SIGINT')
-							} catch (_err) {}
+							} catch {}
 						}
 					}
 				}),
