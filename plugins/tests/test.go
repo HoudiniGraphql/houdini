@@ -32,6 +32,7 @@ CREATE TABLE plugins (
     port INTEGER NOT NULL,
     hooks JSON NOT NULL,
     plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
+    include_runtime TEXT,
     config JSON
 );
 

@@ -15,10 +15,6 @@ func pluginHooks[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
 ) []string {
 	hooks := map[string]bool{}
-	if _, ok := plugin.(IncludeRuntime); ok {
-		hooks["Generate"] = true
-		http.Handle("/generate", InjectTaskID(EventHookWithResponse(handleGenerate(plugin))))
-	}
 	if _, ok := plugin.(StaticRuntime); ok {
 		hooks["AfterLoad"] = true
 		http.Handle("/afterload", InjectTaskID(EventHook(handleAfterLoad(plugin))))
@@ -43,7 +39,7 @@ func pluginHooks[PluginConfig any](
 		hooks["ExtractDocuments"] = true
 		http.Handle(
 			"/extractdocuments",
-			InjectTaskID(EventHookWithInput[ExtractDocumentsInput](p.ExtractDocuments)),
+			InjectTaskID(EventHookWithInput(p.ExtractDocuments)),
 		)
 	}
 	if p, ok := plugin.(AfterExtract); ok {
@@ -204,16 +200,6 @@ func handleGenerate[PluginConfig any](
 ) func(ctx context.Context) (any, error) {
 	return func(ctx context.Context) (any, error) {
 		filepaths := []string{}
-
-		// if the plugin defines a runtime to include
-		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
-			runtimePath, err := includeRuntime.IncludeRuntime(ctx)
-			if err != nil {
-				return nil, err
-			}
-
-			fmt.Println("include runtime", runtimePath)
-		}
 
 		// invoke the generate hook
 		if generate, ok := plugin.(Generate); ok {

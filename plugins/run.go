@@ -118,14 +118,27 @@ func Run(plugin HoudiniPlugin[config.PluginConfig]) error {
 			if err != nil {
 				return err
 			}
-			err = sqlitex.ExecuteTransient(conn,
-				`INSERT INTO plugins (name, hooks, port, plugin_order) VALUES (?, ?, ?, ?)`,
+
+			// if the plugin requires a runtime then we should write that to the database too
+			var includeRuntime any
+			if includer, ok := plugin.(IncludeRuntime); ok {
+				includeRuntime, err = includer.IncludeRuntime(ctx)
+				if err != nil {
+					return err
+				}
+			}
+
+			// insert the plugin metadata
+			err = sqlitex.ExecuteTransient(
+				conn,
+				`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime) VALUES (?, ?, ?, ?, ?)`,
 				&sqlitex.ExecOptions{
-					Args: []interface{}{
+					Args: []any{
 						plugin.Name(),
 						string(hooksStr),
 						port,
 						plugin.Order(),
+						includeRuntime,
 					},
 				},
 			)

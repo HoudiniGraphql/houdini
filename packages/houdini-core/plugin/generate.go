@@ -33,5 +33,5 @@ func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
 	}
 
 	// we're done
-	return files, nil
+	return generated, nil
 }

@@ -1,0 +1,31 @@
+{
+	"files": {
+		"includes": ["packages/*/src/**"]
+	},
+	"javascript": {
+		"formatter": {
+			"semicolons": "asNeeded",
+			"quoteStyle": "single"
+		}
+	},
+	"linter": {
+		"rules": {
+			"suspicious": {
+				"noExportsInTest": "off",
+				"noControlCharactersInRegex": "off"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.test.ts", "**/*.test.js"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNonNullAssertion": "off"
+					}
+				}
+			}
+		}
+	]
+}
