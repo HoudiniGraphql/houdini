@@ -13,7 +13,80 @@ import (
 	"zombiezen.com/go/sqlite"
 )
 
-func TriggerHook[PluginConfig any](
+func TriggerHookSerial[PluginConfig any](
+	ctx context.Context,
+	db DatabasePool[PluginConfig],
+	hook string,
+	payload map[string]any,
+) (map[string]any, error) {
+	// build up the result of invoking the hook on matching plugins
+	result := map[string]any{}
+
+	// the first thing we have to do is look for plugins with matching hooks
+	query := `
+    SELECT * FROM plugins
+    WHERE EXISTS (
+      SELECT 1
+      FROM json_each(plugins.hooks)
+      WHERE value = $hook
+    )
+  `
+
+	pluginPorts := map[string]int64{}
+	err := db.StepQuery(ctx, query, map[string]any{"hook": hook}, func(stmt *sqlite.Stmt) {
+		pluginPorts[stmt.GetText("name")] = stmt.GetInt64("port")
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(pluginPorts) == 0 {
+		return map[string]any{}, nil
+	}
+
+	// marshal the payload once
+	marshaled, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	errs := &ErrorList{}
+
+	for name, port := range pluginPorts {
+
+		resp, err := http.Post(
+			fmt.Sprintf("http://localhost:%v/%s", port, hook),
+			"application/json",
+			bytes.NewBuffer(marshaled),
+		)
+		if err != nil {
+			errs.Append(WrapError(err))
+			continue
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			errs.Append(WrapError(err))
+			continue
+		}
+
+		var pluginResult map[string]any
+		if err := json.Unmarshal(body, &pluginResult); err != nil {
+			continue
+		}
+
+		// merge result safely
+		maps.Copy(result, map[string]any{name: pluginResult})
+	}
+
+	if errs.Len() > 0 {
+		return result, errs
+	}
+
+	return result, nil
+}
+
+func TriggerHookParallel[PluginConfig any](
 	ctx context.Context,
 	db DatabasePool[PluginConfig],
 	hook string,

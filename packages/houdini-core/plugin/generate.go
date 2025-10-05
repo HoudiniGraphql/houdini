@@ -79,7 +79,8 @@ func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
 		}
 
 		// notify any other plugins its their turn to modify the index file
-		_, err = plugins.TriggerHook(ctx, p.DB, "IndexFile", map[string]any{})
+		// we do this in series so that file locks aren't a problem
+		_, err = plugins.TriggerHookSerial(ctx, p.DB, "IndexFile", map[string]any{})
 		if err != nil {
 			return err
 		}

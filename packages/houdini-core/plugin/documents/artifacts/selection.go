@@ -112,7 +112,12 @@ func GenerateSelectionDocument(
 	}
 
 	// collect plugin data
-	pluginData, err := plugins.TriggerHook(ctx, db, "PluginData", map[string]any{"document": name})
+	pluginData, err := plugins.TriggerHookParallel(
+		ctx,
+		db,
+		"PluginData",
+		map[string]any{"document": name},
+	)
 	if err != nil {
 		return "", err
 	}

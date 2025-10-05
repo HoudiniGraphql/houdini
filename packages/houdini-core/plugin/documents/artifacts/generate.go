@@ -23,7 +23,7 @@ func Generate(
 	defer db.Put(conn)
 
 	// before we generate artifacts we need to trigger a few hooks
-	_, err = plugins.TriggerHook(ctx, db, "Hash", map[string]any{})
+	_, err = plugins.TriggerHookParallel(ctx, db, "Hash", map[string]any{})
 	if err != nil {
 		return nil, err
 	}
