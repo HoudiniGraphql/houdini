@@ -75,7 +75,7 @@ export async function readFile(
 
 	try {
 		return await fs.readFile(filepath, 'utf8')
-	} catch (_error) {}
+	} catch {}
 
 	return null
 }
@@ -95,7 +95,7 @@ export function readFileSync(filepath: string): string | null {
 
 	try {
 		return fsExtra.readFileSync(filepath, 'utf-8')
-	} catch (_error) {}
+	} catch {}
 
 	return null
 }
