@@ -136,14 +136,27 @@ func Run(plugin HoudiniPlugin[config.PluginConfig]) error {
 				}
 			}
 
+			var clientPlugins any
+			if clientProvider, ok := plugin.(ClientPlugins); ok {
+				pluginConfig, err := clientProvider.ClientPlugins(ctx)
+				if err != nil {
+					return err
+				}
+				stringified, err := json.Marshal(pluginConfig)
+				if err != nil {
+					return err
+				}
+				clientPlugins = string(stringified)
+			}
+
 			// insert the plugin metadata
 			err = sqlitex.ExecuteTransient(
 				conn,
 				`
 					INSERT INTO plugins (
-						name, hooks, port, plugin_order, include_runtime, config_module
+						name, hooks, port, plugin_order, include_runtime, config_module, client_plugins
 					) VALUES 
-						(?, ?, ?, ?, ?, ?)
+						(?, ?, ?, ?, ?, ?, ?)
 				`,
 				&sqlitex.ExecOptions{
 					Args: []any{
@@ -153,6 +166,7 @@ func Run(plugin HoudiniPlugin[config.PluginConfig]) error {
 						plugin.Order(),
 						includeRuntime,
 						configModule,
+						clientPlugins,
 					},
 				},
 			)

@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-func GenerateIndexFile(
+func GenerateRuntimeIndexFile(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	fs afero.Fs,

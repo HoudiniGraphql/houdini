@@ -63,7 +63,7 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 			}
 		}
 
-		err := runtime.GenerateIndexFile(ctx, p.DB, p.Fs)
+		err := runtime.GenerateRuntimeIndexFile(ctx, p.DB, p.Fs)
 		if err != nil {
 			return err
 		}

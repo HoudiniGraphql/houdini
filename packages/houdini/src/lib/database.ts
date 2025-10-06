@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS plugins (
     plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
     include_runtime TEXT,
     config JSON,
-	  config_module TEXT
+	  config_module TEXT,
+		client_plugins JSON
 );
 
 -- Watch Schema Config

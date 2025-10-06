@@ -152,7 +152,7 @@ type ArtifactEnd interface {
 /* Specify the plugins that should be added to the user's client because
  * of this plugin. */
 type ClientPlugins interface {
-	ClientPlugins(ctx context.Context) (map[string]string, error)
+	ClientPlugins(ctx context.Context) (map[string]any, error)
 }
 
 /* A hook to transform the source file to support desired APIs. */

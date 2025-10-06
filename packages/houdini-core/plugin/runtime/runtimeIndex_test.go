@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIndexFileGeneration(t *testing.T) {
+func TestRuntimeIndexGeneration(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `type Query { hello: String }`,
 		Tests: []tests.Test[config.PluginConfig]{
