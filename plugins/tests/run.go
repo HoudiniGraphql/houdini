@@ -67,7 +67,7 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 			}
 
 			// generate the artifacts
-			_, err = plugin.Generate(context.Background())
+			_, err = plugin.GenerateDocuments(context.Background())
 			if err != nil {
 				require.False(t, test.Pass, err.Error())
 				return

@@ -331,7 +331,7 @@ const PIPELINE_HOOKS = [
 	'Validate',
 	'AfterValidate',
 	'BeforeGenerate',
-	'Generate',
+	'GenerateDocuments',
 	'GenerateRuntime',
 ] as const
 

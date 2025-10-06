@@ -290,7 +290,11 @@ fragment theList_remove on CustomIdType {
 	})
 }
 
-func performDefinitionsTest(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+func performDefinitionsTest(
+	t *testing.T,
+	p *plugin.HoudiniCore,
+	test tests.Test[config.PluginConfig],
+) {
 	err := runFullGeneration(context.Background(), p)
 	if err != nil {
 		t.Logf("runFullGeneration error: %v", err)
@@ -313,8 +317,18 @@ func performDefinitionsTest(t *testing.T, p *plugin.HoudiniCore, test tests.Test
 	checkFileExact(t, p.Fs, projectConfig.DefinitionsSchemaPath(), test.Extra["schemaExact"])
 	checkFileExact(t, p.Fs, projectConfig.DefinitionsDocumentsPath(), test.Extra["documentsExact"])
 	checkFileContains(t, p.Fs, projectConfig.DefinitionsSchemaPath(), test.Extra["schemaContains"])
-	checkFileContains(t, p.Fs, projectConfig.DefinitionsDocumentsPath(), test.Extra["documentsContains"])
-	checkDirectiveCount(t, p.Fs, projectConfig.DefinitionsSchemaPath(), test.Extra["directiveCount"])
+	checkFileContains(
+		t,
+		p.Fs,
+		projectConfig.DefinitionsDocumentsPath(),
+		test.Extra["documentsContains"],
+	)
+	checkDirectiveCount(
+		t,
+		p.Fs,
+		projectConfig.DefinitionsSchemaPath(),
+		test.Extra["directiveCount"],
+	)
 }
 
 func runFullGeneration(ctx context.Context, p *plugin.HoudiniCore) error {
@@ -342,7 +356,7 @@ func runFullGeneration(ctx context.Context, p *plugin.HoudiniCore) error {
 	projectConfig.PersistedQueriesPath = "./dummy-queries.json"
 	p.DB.SetProjectConfig(projectConfig)
 
-	_, err = p.Generate(ctx)
+	_, err = p.GenerateDocuments(ctx)
 
 	projectConfig.PersistedQueriesPath = originalPath
 	p.DB.SetProjectConfig(projectConfig)
@@ -399,5 +413,10 @@ func checkDirectiveCount(t *testing.T, fs afero.Fs, path string, data any) {
 	require.Nil(t, err)
 	str := string(content)
 	actualCount := strings.Count(str, "directive @list")
-	assert.Equal(t, expectedCount, actualCount, "directive @list should appear exactly the expected number of times")
+	assert.Equal(
+		t,
+		expectedCount,
+		actualCount,
+		"directive @list should appear exactly the expected number of times",
+	)
 }

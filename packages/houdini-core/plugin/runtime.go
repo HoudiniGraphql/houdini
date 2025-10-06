@@ -12,10 +12,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (p *HoudiniCore) IncludeRuntime(ctx context.Context) (string, error) {
-	return "runtime", nil
-}
-
 func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 	config, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
@@ -100,4 +96,26 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 
 	// we're done
 	return generated.GetItems(), nil
+}
+
+func (p *HoudiniCore) IncludeRuntime(ctx context.Context) (string, error) {
+	return "runtime", nil
+}
+
+func (p *HoudiniCore) TransformRuntime(
+	ctx context.Context,
+	filepath string,
+	content string,
+) (string, error) {
+	// we need the project config to check for paths
+	_, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	// certain files get special treatment
+	switch filepath {
+	default:
+		return content, nil
+	}
 }

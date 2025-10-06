@@ -255,7 +255,7 @@ func runFullGeneration(
 	p.DB.SetProjectConfig(projectConfig)
 
 	// Use the REAL generation function instead of manual steps
-	_, err = p.Generate(context.Background())
+	_, err = p.GenerateDocuments(context.Background())
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return nil, err

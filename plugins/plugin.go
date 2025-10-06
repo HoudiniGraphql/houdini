@@ -140,8 +140,8 @@ type IndexFile interface {
 }
 
 /* A hook to generate custom files for every document in a project. */
-type Generate interface {
-	Generate(ctx context.Context) ([]string, error)
+type GenerateDocuments interface {
+	GenerateDocuments(ctx context.Context) ([]string, error)
 }
 
 /* A hook to modify the generated artifact before it is persisted */

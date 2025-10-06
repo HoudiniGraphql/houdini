@@ -7,7 +7,7 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
-func (p *HoudiniCore) Generate(ctx context.Context) ([]string, error) {
+func (p *HoudiniCore) GenerateDocuments(ctx context.Context) ([]string, error) {
 	// we need to build up the filepaths that we generate in this time
 	generated := plugins.ThreadSafeSlice[string]{}
 

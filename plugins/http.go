@@ -79,9 +79,9 @@ func pluginHooks[PluginConfig any](
 		hooks["BeforeGenerate"] = true
 		http.Handle("/beforegenerate", InjectContext(EventHook(handleBeforeGenerate(plugin))))
 	}
-	if p, ok := plugin.(Generate); ok {
-		hooks["Generate"] = true
-		http.Handle("/generate", InjectContext(EventHookWithResponse(p.Generate)))
+	if p, ok := plugin.(GenerateDocuments); ok {
+		hooks["GenerateDocuments"] = true
+		http.Handle("/generatedocuments", InjectContext(EventHookWithResponse(p.GenerateDocuments)))
 	}
 	if _, ok := plugin.(ArtifactData); ok {
 		hooks["AfterGenerate"] = true
