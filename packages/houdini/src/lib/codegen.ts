@@ -75,7 +75,7 @@ export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
 export type CompilerProxy = {
 	close: () => Promise<void>
 	trigger_hook: (
-		name: string,
+		name: PipelineHook,
 		opts?: { parallel_safe?: boolean; payload?: {}; task_id?: string },
 	) => Promise<Record<string, any> | null>
 	database_path: string
@@ -247,7 +247,7 @@ export async function codegen_setup(
 	}
 
 	const trigger_hook = async (
-		hook: string,
+		hook: PipelineHook,
 		{
 			parallel_safe,
 			payload,
@@ -338,6 +338,9 @@ export async function codegen_setup(
 
 // Define the complete pipeline order
 const PIPELINE_HOOKS = [
+	'Config',
+	'AfterLoad',
+	'Schema',
 	'ExtractDocuments',
 	'AfterExtract',
 	'BeforeValidate',

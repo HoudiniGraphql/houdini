@@ -52,6 +52,16 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 		return nil
 	})
 
+	// generate the graphql return types
+	g.Go(func() error {
+		err = runtime.GenerateGraphQLReturnTypes(ctx, p.DB, p.Fs)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	// generate the runtime index file
 	g.Go(func() error {
 		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.js")

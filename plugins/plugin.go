@@ -128,10 +128,9 @@ type Hash interface {
 	Hash(ctx context.Context, documentName string) (string, error)
 }
 
-/* A hook to customize the return type of the graphql function. If you need to add an import to the file
- * in order to resolve the import, you can use the `ensureImport` utility. */
+/* A hook to customize the return type of the graphql function */
 type GraphQLTagReturn interface {
-	GraphQLTagReturn(ctx context.Context, documentName string) (string, error)
+	GraphQLTagReturn(ctx context.Context) (string, error)
 }
 
 /* A hook to modify the root `index.js` of the generated runtime. */

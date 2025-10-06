@@ -53,7 +53,11 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			// we need to trigger validate in order to discover lists which might not appear in the normal JIT path
 			// TODO: discover lists earlier
 			try {
-				await run_pipeline(compiler.trigger_hook, { through: 'Validate' })
+				await run_pipeline(compiler.trigger_hook, {
+					// the pipeline through schema is run as part of codegen_setup
+					after: 'Schema',
+					through: 'Validate',
+				})
 			} catch {}
 
 			// we also want to generate the initial file contents but skip the rest of the codegen
@@ -83,7 +87,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 		// this is called when a file is created or modified
 		async handleHotUpdate(hmr): Promise<void | ModuleNode[]> {
-			return debounceHmr(hmr, async function (files, task_id) {
+			return debounceHmr(hmr, async (files, task_id) => {
 				// the first thing we need to do is look for all of the relevant files that have houdini dependencies
 				const filepaths: Array<string> = []
 				const relativePaths: Array<string> = []
@@ -255,7 +259,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 				// the return value of each generate invocation is the list of modules that were updated
 				const updated_modules = Object.values(
-					results.Generate || {},
+					results.GenerateDocuments || {},
 				).flat() as Array<string>
 
 				// and finally we can remove the task id association
@@ -292,7 +296,7 @@ async function ensureArtifactGenerated(
 		await fs.access(
 			path.join(
 				config.root_dir,
-				config.config_file.runtimeDir!,
+				config.config_file.runtimeDir ?? '.houdini',
 				'artifacts',
 				artifactName,
 			),
@@ -384,7 +388,7 @@ type BatchCallback = (
  * @returns debounceHmr function
  */
 export function createDebounceHmr(debounceMs: number = 50) {
-	let updateQueue = new Map<string, () => string | Promise<string>>()
+	const updateQueue = new Map<string, () => string | Promise<string>>()
 	let updateTimer: NodeJS.Timeout | null = null
 	let batchId = 0
 	let isProcessing = false

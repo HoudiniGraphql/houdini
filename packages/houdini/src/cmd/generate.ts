@@ -15,7 +15,7 @@ export async function generate(
 		pullSchema: false,
 		headers: [],
 		verbose: false,
-	}
+	},
 ) {
 	// make sure there is always a mode
 	const mode = args.mode ?? 'development'
@@ -30,7 +30,12 @@ export async function generate(
 		const [db, dbFilepath] = await init_db(config)
 
 		// initialize the codegen pipe
-		const { trigger_hook, close } = await codegen_setup(config, mode, db, dbFilepath)
+		const { trigger_hook, close } = await codegen_setup(
+			config,
+			mode,
+			db,
+			dbFilepath,
+		)
 
 		// Function to handle graceful shutdown
 		on_close = async () => {
@@ -46,8 +51,8 @@ export async function generate(
 		process.on('SIGINT', on_close)
 		process.on('SIGTERM', on_close)
 
-		// kick off the codegen pipeline
-		await run_pipeline(trigger_hook)
+		// kick off the codegen pipeline (the pipeline through Schema is run in codegen_setup)
+		await run_pipeline(trigger_hook, { after: 'Schema' })
 
 		// we're done, close everything
 		on_close()
