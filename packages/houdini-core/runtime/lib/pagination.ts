@@ -1,7 +1,7 @@
 import type { SendParams } from '../client/documentStore'
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy, DataSource } from './types'
+import { DataSource } from './types'
 import type {
 	CursorHandlers,
 	FetchFn,
@@ -63,7 +63,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 				variables: loadVariables,
 				fetch,
 				metadata,
-				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
+				policy: isSinglePage ? artifact.policy : 'network-only',
 				session: await getSession(),
 			},
 			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
@@ -202,7 +202,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 						(variables?.['last'] && variables?.['before'])
 					)
 				) {
-					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
+					console.warn(`! Encountered a fetch() in the middle of the connection.
 Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)
 `)
 				}
@@ -308,7 +308,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input extends Graph
 				variables: queryVariables as _Input,
 				fetch,
 				metadata,
-				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
+				policy: isSinglePage ? artifact.policy : 'network-only',
 				session: await getSession(),
 			})
 

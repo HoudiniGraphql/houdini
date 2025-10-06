@@ -36,10 +36,6 @@ func pluginHooks[PluginConfig any](
 			)
 		}
 	}
-	if _, ok := plugin.(Config); ok {
-		hooks["Config"] = true
-		// TODO: support config hook
-	}
 	if p, ok := plugin.(Environment); ok {
 		hooks["Environment"] = true
 		http.Handle("/environment", InjectContext(handleEnvironment(ctx, p)))

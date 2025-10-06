@@ -31,6 +31,7 @@ type ProjectConfig struct {
 	RuntimeScalars                  map[string]string
 	Scalars                         map[string]ScalarConfig
 	TypeConfig                      map[string]TypeConfig
+	Filepath                        string
 }
 
 func (config ProjectConfig) PluginDirectory(name string) string {
@@ -93,7 +94,8 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 		persisted_queries_path,
 		project_root,
 		runtime_dir,
-		schema_path
+		schema_path,
+		path
 	FROM config LIMIT 1`, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			err := json.Unmarshal([]byte(stmt.ColumnText(0)), &config.Include)
@@ -124,6 +126,7 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 			config.ProjectRoot = stmt.ColumnText(15)
 			config.RuntimeDir = stmt.ColumnText(16)
 			config.SchemaPath = stmt.ColumnText(17)
+			config.Filepath = stmt.GetText("path")
 
 			// nothing went wrong
 			return nil

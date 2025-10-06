@@ -1,5 +1,5 @@
 import { getCurrentConfig } from './config'
-import type { ConfigFile } from './config'
+import type { ConfigFile } from './types'
 import { getFieldsForType } from './selection'
 import {
 	fragmentKey,

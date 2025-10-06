@@ -108,14 +108,10 @@ func (p *HoudiniCore) TransformRuntime(
 	content string,
 ) (string, error) {
 	// we need the project config to check for paths
-	_, err := p.DB.ProjectConfig(ctx)
+	config, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	// certain files get special treatment
-	switch filepath {
-	default:
-		return content, nil
-	}
+	return runtime.TransformRuntime(ctx, p.DB, config, filepath, content)
 }

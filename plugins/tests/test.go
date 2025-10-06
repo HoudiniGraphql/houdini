@@ -33,7 +33,8 @@ CREATE TABLE plugins (
     hooks JSON NOT NULL,
     plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
     include_runtime TEXT,
-    config JSON
+    config JSON,
+	  config_module TEXT
 );
 
 -- Watch Schema Config
@@ -93,7 +94,8 @@ CREATE TABLE config (
     default_keys JSON,
     persisted_queries_path TEXT,
     project_root TEXT,
-    runtime_dir TEXT
+    runtime_dir TEXT,
+		path TEXT
 );
 
 CREATE TABLE scalar_config (

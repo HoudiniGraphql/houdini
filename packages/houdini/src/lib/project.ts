@@ -3,14 +3,14 @@ import * as graphql from 'graphql'
 import type { GraphQLSchema } from 'graphql'
 import { pathToFileURL } from 'node:url'
 
-import type { ConfigFile } from '../runtime/lib/config'
+import type { ConfigFile } from './config.js'
 import { houdini_root, local_api_dir } from './conventions.js'
 import { HoudiniError } from './error.js'
 import * as fs from './fs.js'
 import * as path from './path.js'
 import { plugin_path } from './plugins.js'
 
-export type { ConfigFile } from '../runtime/lib/config'
+export type { ConfigFile } from './config.js'
 
 export type PluginMeta = {
 	name: string

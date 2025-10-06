@@ -1,14 +1,8 @@
+import type { CachePolicies, PaginateModes } from 'houdini'
+export type { ConfigFile } from 'houdini'
+export type { CachePolicies, PaginateModes } from 'houdini'
+
 type ValuesOf<Target> = Target[keyof Target]
-
-export const CachePolicy = {
-	CacheOrNetwork: 'CacheOrNetwork',
-	CacheOnly: 'CacheOnly',
-	NetworkOnly: 'NetworkOnly',
-	CacheAndNetwork: 'CacheAndNetwork',
-	NoCache: 'NoCache',
-} as const
-
-export type CachePolicies = ValuesOf<typeof CachePolicy>
 
 export const DedupeMatchMode = {
 	Variables: 'Variables',
@@ -18,12 +12,6 @@ export const DedupeMatchMode = {
 
 export type DedupeMatchModes = ValuesOf<typeof DedupeMatchMode>
 
-export const PaginateMode = {
-	Infinite: 'Infinite',
-	SinglePage: 'SinglePage',
-} as const
-
-export type PaginateModes = ValuesOf<typeof PaginateMode>
 
 export * from '../router/types'
 

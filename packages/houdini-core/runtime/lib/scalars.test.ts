@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeEach } from 'vitest'
 
-import { testConfigFile } from '../../test'
+import { testConfigFile } from '../../../houdini/src/test'
 import { defaultConfigValues, setMockConfig } from './config'
 import { marshalInputs, marshalSelection, parseScalar } from './scalars'
 import type { QueryArtifact, SubscriptionSelection } from './types'
@@ -29,6 +29,7 @@ const artifact: QueryArtifact = {
 	hash: 'hash',
 	raw: 'does not matter',
 	pluginData: {},
+  stripVariables: [],
 	selection: {
 		fields: {
 			items: {

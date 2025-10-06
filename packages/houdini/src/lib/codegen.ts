@@ -110,6 +110,7 @@ export async function codegen_setup(
 							port: number
 							hooks: string
 							plugin_order: string
+							config_module: string | null
 					  }
 					| undefined
 				if (row) {
@@ -136,6 +137,18 @@ export async function codegen_setup(
 
 					// store the spec
 					plugin_specs[name] = spec
+
+					// if the row specifies a config module then we need to import it and invoke it
+					if (row.config_module) {
+						import(row.config_module).then((module) => {
+							if (module && typeof module.default === 'function') {
+								config.config_file = module.default(config.config_file)
+							}
+							resolver(spec)
+						})
+					} else {
+						resolver(spec)
+					}
 
 					// resolve the promise
 					resolver(spec)

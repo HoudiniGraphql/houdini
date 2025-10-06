@@ -107,7 +107,7 @@ func RecursiveCopy(
 				if err != nil {
 					return fmt.Errorf("read %q: %w", j.srcPath, err)
 				}
-				out, err := transform(ctx, j.srcPath, string(data))
+				out, err := transform(ctx, j.dstPath, string(data))
 				if err != nil {
 					return fmt.Errorf("transform %q: %w", j.srcPath, err)
 				}
