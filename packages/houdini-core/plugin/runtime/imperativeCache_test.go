@@ -140,7 +140,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 				},
 			},
 		},
-		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
 			config, err := plugin.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
