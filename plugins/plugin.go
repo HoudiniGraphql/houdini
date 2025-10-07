@@ -128,11 +128,6 @@ type Hash interface {
 	Hash(ctx context.Context, documentName string) (string, error)
 }
 
-/* A hook to customize the return type of the graphql function */
-type GraphQLTagReturn interface {
-	GraphQLTagReturn(ctx context.Context) (string, error)
-}
-
 /* A hook to modify the root `index.js` of the generated runtime. */
 type IndexFile interface {
 	IndexFile(ctx context.Context, source string) (string, error)
@@ -141,6 +136,10 @@ type IndexFile interface {
 /* A hook to generate custom files for every document in a project. */
 type GenerateDocuments interface {
 	GenerateDocuments(ctx context.Context) ([]string, error)
+}
+
+type AfterGenerate interface {
+	AfterGenerate(ctx context.Context) error
 }
 
 /* A hook to modify the generated artifact before it is persisted */
@@ -152,9 +151,4 @@ type ArtifactEnd interface {
  * of this plugin. */
 type ClientPlugins interface {
 	ClientPlugins(ctx context.Context) (map[string]any, error)
-}
-
-/* A hook to transform the source file to support desired APIs. */
-type TransformFile interface {
-	TransformFile(ctx context.Context, filepath string, source string) (string, error)
 }

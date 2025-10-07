@@ -349,6 +349,7 @@ const PIPELINE_HOOKS = [
 	'BeforeGenerate',
 	'GenerateDocuments',
 	'GenerateRuntime',
+	'AfterGenerate',
 ] as const
 
 type PipelineHook = (typeof PIPELINE_HOOKS)[number]

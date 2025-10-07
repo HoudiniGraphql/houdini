@@ -46,6 +46,10 @@ func (config ProjectConfig) PluginRuntimeDirectory(name string) string {
 	return path.Join(config.PluginDirectory(name), "runtime")
 }
 
+func (config ProjectConfig) PluginStaticRuntimeDirectory(name string) string {
+	return path.Join(config.PluginDirectory(name), "static")
+}
+
 func (db DatabasePool[PluginConfig]) ProjectConfig(ctx context.Context) (ProjectConfig, error) {
 	// if we've already loaded the config use it
 	if db._config != nil {
