@@ -33,6 +33,7 @@ CREATE TABLE plugins (
     hooks JSON NOT NULL,
     plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
     include_runtime TEXT,
+    include_static_runtime TEXT,
     config JSON,
 	  config_module TEXT,
 		client_plugins JSON

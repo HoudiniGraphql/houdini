@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -265,16 +264,30 @@ func handleAfterLoad[PluginConfig any](
 	return func(ctx context.Context) error {
 		// if the plugin defines a runtime to include
 		if staticRuntime, ok := plugin.(StaticRuntime); ok {
+			config, err := plugin.Database().ProjectConfig(ctx)
+			if err != nil {
+				return err
+			}
+
 			runtimePath, err := staticRuntime.StaticRuntime(ctx)
 			if err != nil {
 				return err
 			}
 
-			if _, ok := plugin.(TransformRuntime); ok {
-				fmt.Println("transform runtime")
+			runtimeSource := path.Join(PluginDirFromContext(ctx), runtimePath)
+			targetPath := config.PluginStaticRuntimeDirectory(plugin.Name())
+
+			// the plugin could have defined a transform for the runtime
+			transform := func(ctx context.Context, source string, content string) (string, error) { return content, nil }
+			if transformer, ok := plugin.(TransformRuntime); ok {
+				transform = transformer.TransformRuntime
 			}
 
-			fmt.Println("static runtime", runtimePath)
+			// copy the plugin runtime to the runtime directory
+			_, err = RecursiveCopy(ctx, runtimeSource, targetPath, transform)
+			if err != nil {
+				return err
+			}
 		}
 
 		if p, ok := plugin.(AfterLoad); ok {

@@ -36,6 +36,27 @@ func Walk[PluginConfig any](
 		walker.AddExclude(pattern)
 	}
 
+	// we might also need to include static runtimes
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return err
+	}
+	defer db.Put(conn)
+	pluginSearch, err := conn.Prepare(`
+		SELECT * from plugins WHERE include_static_runtime IS NOT NULL
+	`)
+	if err != nil {
+		return err
+	}
+	defer pluginSearch.Finalize()
+	err = db.StepStatement(ctx, pluginSearch, func() {
+		name := pluginSearch.GetText("name")
+		err = walker.AddInclude(fmt.Sprintf("%s/**", config.PluginStaticRuntimeDirectory(name)))
+	})
+	if err != nil {
+		return err
+	}
+
 	// and extract the documents that the walker finds
 	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
 		return walker.Walk(ctx, fs, config.ProjectRoot, func(fp string) error {
