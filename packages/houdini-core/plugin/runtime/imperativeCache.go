@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/typescript"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"zombiezen.com/go/sqlite"
@@ -56,13 +57,6 @@ func generateCacheTypeDefContent(
 		return "", err
 	}
 	content.WriteString(imports)
-
-	// Generate input types
-	inputTypes, err := generateInputTypes(ctx, db)
-	if err != nil {
-		return "", err
-	}
-	content.WriteString(inputTypes)
 
 	// Generate the main CacheTypeDef type
 	cacheTypeDef, err := generateCacheTypeDef(ctx, db, projectConfig)
@@ -214,116 +208,6 @@ func getEnumNames(
 	return enumNames, err
 }
 
-func generateInputTypes(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-) (string, error) {
-	var content strings.Builder
-
-	// Get all input types with their fields in a single query
-	inputTypesWithFields, err := getInputTypesWithFields(ctx, db)
-	if err != nil {
-		return "", err
-	}
-
-	// Group fields by type name
-	for typeName, fields := range inputTypesWithFields {
-		content.WriteString(fmt.Sprintf("type %s = {\n", typeName))
-
-		for _, field := range fields {
-			tsType, err := convertToTypeScriptType(ctx, db, field.Type, field.TypeModifiers)
-			if err != nil {
-				return "", err
-			}
-
-			optional := ""
-			if isOptionalField(field.TypeModifiers) {
-				optional = "?"
-			}
-
-			content.WriteString(fmt.Sprintf("\t\t%s%s: %s;\n", field.Name, optional, tsType))
-		}
-
-		content.WriteString("};\n\n")
-	}
-
-	return content.String(), nil
-}
-
-type InputType struct {
-	Name string
-}
-
-type InputField struct {
-	Name          string
-	Type          string
-	TypeModifiers string
-}
-
-func getInputTypesWithFields(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-) (map[string][]InputField, error) {
-	inputTypesWithFields := make(map[string][]InputField)
-
-	err := db.StepQuery(ctx, `
-		SELECT t.name as type_name, f.name as field_name, f.type, f.type_modifiers
-		FROM types t
-		LEFT JOIN type_fields f ON t.name = f.parent AND f.internal = 0
-		WHERE t.kind = 'INPUT' AND t.built_in = 0 AND t.internal = 0
-		ORDER BY t.name, f.name
-	`, nil, func(stmt *sqlite.Stmt) {
-		typeName := stmt.ColumnText(0)
-
-		// If this is just a type without fields (NULL field_name), create empty entry
-		if stmt.ColumnType(1) == sqlite.TypeNull {
-			if _, exists := inputTypesWithFields[typeName]; !exists {
-				inputTypesWithFields[typeName] = []InputField{}
-			}
-			return
-		}
-
-		field := InputField{
-			Name: stmt.ColumnText(1),
-			Type: stmt.ColumnText(2),
-		}
-		if stmt.ColumnType(3) == sqlite.TypeText {
-			field.TypeModifiers = stmt.ColumnText(3)
-		}
-
-		inputTypesWithFields[typeName] = append(inputTypesWithFields[typeName], field)
-	})
-
-	return inputTypesWithFields, err
-}
-
-func convertToTypeScriptType(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	typeName, typeModifiers string,
-) (string, error) {
-	// Get the base type information
-	typeInfo, err := getTypeInfo(ctx, db, typeName)
-	if err != nil {
-		return "", err
-	}
-
-	var baseType string
-	switch typeInfo.Kind {
-	case "SCALAR":
-		baseType = convertScalarType(typeName)
-	case "ENUM":
-		baseType = fmt.Sprintf("ValueOf<typeof %s>", typeName)
-	case "INPUT":
-		baseType = typeName
-	default:
-		baseType = "any"
-	}
-
-	// Apply type modifiers (lists and nullability)
-	return applyTypeModifiers(baseType, typeModifiers), nil
-}
-
 type TypeInfo struct {
 	Name string
 	Kind string
@@ -352,58 +236,6 @@ func getTypeInfo(
 	}
 
 	return typeInfo, err
-}
-
-func convertScalarType(typeName string) string {
-	switch typeName {
-	case "String", "ID":
-		return "string"
-	case "Int", "Float":
-		return "number"
-	case "Boolean":
-		return "boolean"
-	default:
-		return "any"
-	}
-}
-
-func applyTypeModifiers(baseType, modifiers string) string {
-	if modifiers == "" {
-		return baseType + " | null | undefined"
-	}
-
-	// Parse the type modifiers to build the correct TypeScript type
-	// The modifiers string represents the GraphQL type structure
-	// Examples: "!" = non-null, "[!]!" = non-null list of non-null items
-
-	result := baseType
-
-	// Count brackets to determine list nesting
-	listDepth := strings.Count(modifiers, "[")
-
-	// Apply list wrappers from innermost to outermost
-	for i := 0; i < listDepth; i++ {
-		// Check if the list elements are nullable
-		if strings.Contains(modifiers, "[!]") || strings.Contains(modifiers, "!]") {
-			// Elements are non-null
-			result = fmt.Sprintf("(%s)[]", result)
-		} else {
-			// Elements can be null
-			result = fmt.Sprintf("(%s | null)[]", result)
-		}
-	}
-
-	// Check if the final type (or list) is nullable
-	if !strings.HasSuffix(modifiers, "!") {
-		result = result + " | null | undefined"
-	}
-
-	return result
-}
-
-func isOptionalField(typeModifiers string) bool {
-	// A field is optional if it's nullable (doesn't end with '!')
-	return !strings.HasSuffix(typeModifiers, "!")
 }
 
 func generateCacheTypeDef(
@@ -503,7 +335,7 @@ func generateTypesSection(
 		content.WriteString(fmt.Sprintf("\t\t\t\tidFields: %s;\n", idFields))
 
 		// Generate fields
-		fields, err := generateTypeFieldsFromData(ctx, db, typeInfo.Fields)
+		fields, err := generateTypeFieldsFromData(ctx, projectConfig, db, typeInfo.Fields)
 		if err != nil {
 			return "", err
 		}
@@ -609,7 +441,14 @@ func generateIdFields(
 
 	var fields []string
 	for _, field := range keyFields {
-		tsType, err := convertToTypeScriptType(ctx, db, field.Type, field.TypeModifiers)
+		tsType, err := typescript.ConvertToTypeScriptType(
+			ctx,
+			db,
+			projectConfig,
+			"",
+			field.Type,
+			field.TypeModifiers,
+		)
 		if err != nil {
 			return "", err
 		}
@@ -674,6 +513,7 @@ func getKeyFields(
 
 func generateTypeFieldsFromData(
 	ctx context.Context,
+	projectConfig plugins.ProjectConfig,
 	db plugins.DatabasePool[config.PluginConfig],
 	fields []TypeField,
 ) (string, error) {
@@ -681,13 +521,13 @@ func generateTypeFieldsFromData(
 
 	for _, field := range fields {
 		// Generate field type
-		fieldType, err := generateFieldType(ctx, db, field)
+		fieldType, err := generateFieldType(ctx, projectConfig, db, field)
 		if err != nil {
 			return "", err
 		}
 
 		// Generate field arguments
-		fieldArgs, err := generateFieldArguments(ctx, db, field.ID)
+		fieldArgs, err := generateFieldArguments(ctx, db, projectConfig, field.ID)
 		if err != nil {
 			return "", err
 		}
@@ -737,6 +577,7 @@ func getTypeFields(
 
 func generateFieldType(
 	ctx context.Context,
+	config plugins.ProjectConfig,
 	db plugins.DatabasePool[config.PluginConfig],
 	field TypeField,
 ) (string, error) {
@@ -749,7 +590,7 @@ func generateFieldType(
 	var baseType string
 	switch typeInfo.Kind {
 	case "SCALAR":
-		baseType = convertScalarType(field.Type)
+		baseType = typescript.ConvertScalarType(config, field.Type)
 	case "ENUM":
 		baseType = field.Type
 	case "OBJECT":
@@ -773,7 +614,7 @@ func generateFieldType(
 	}
 
 	// Apply type modifiers
-	return applyTypeModifiers(baseType, field.TypeModifiers), nil
+	return typescript.ApplyTypeModifiers(baseType, field.TypeModifiers), nil
 }
 
 func getPossibleTypes(
@@ -798,6 +639,7 @@ func getPossibleTypes(
 func generateFieldArguments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
+	projectConfig plugins.ProjectConfig,
 	fieldID string,
 ) (string, error) {
 	// Get arguments for this field
@@ -812,13 +654,20 @@ func generateFieldArguments(
 
 	var argStrings []string
 	for _, arg := range args {
-		tsType, err := convertToTypeScriptType(ctx, db, arg.Type, arg.TypeModifiers)
+		tsType, err := typescript.ConvertToTypeScriptType(
+			ctx,
+			db,
+			projectConfig,
+			"",
+			arg.Type,
+			arg.TypeModifiers,
+		)
 		if err != nil {
 			return "", err
 		}
 
 		optional := ""
-		if isOptionalField(arg.TypeModifiers) {
+		if typescript.IsOptionalField(arg.TypeModifiers) {
 			optional = "?"
 		}
 
@@ -1055,7 +904,7 @@ func convertToTypeScriptTypeSimple(typeName, typeModifiers string) string {
 	}
 
 	// Apply type modifiers
-	return applyTypeModifiers(baseType, typeModifiers)
+	return typescript.ApplyTypeModifiers(baseType, typeModifiers)
 }
 
 func generateQueriesSection(
@@ -1091,4 +940,14 @@ func generateQueriesSection(
 	}
 
 	return fmt.Sprintf("[%s]", strings.Join(queryTuples, ", ")), nil
+}
+
+type InputType struct {
+	Name string
+}
+
+type InputField struct {
+	Name          string
+	Type          string
+	TypeModifiers string
 }

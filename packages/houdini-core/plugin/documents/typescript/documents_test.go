@@ -126,8 +126,8 @@ func TestTypescriptGeneration(t *testing.T) {
 					`,
 					`
 						fragment otherInfo on User {
-								enumValue 
-								age 
+								enumValue
+								age
 								firstname
 						}
 					`,
@@ -165,14 +165,14 @@ func TestTypescriptGeneration(t *testing.T) {
 
 							export type TestQuery$input = null;
 
-							export type TestQuery$artifact = artifact
+							export type TestQuery$artifact = typeof artifact
 					`),
 					"otherInfo": tests.Dedent(`
 							import { MyEnum } from "$houdini/graphql/enums";
 							import type { ValueOf } from "$houdini/runtime/lib/types";
 							export type otherInfo$input = {};
 
-							import artifact from './otherInfo'
+							import type artifact from './otherInfo'
 
 							export type otherInfo = {
 									readonly "shape"?: otherInfo$data;
@@ -194,7 +194,796 @@ func TestTypescriptGeneration(t *testing.T) {
 									readonly firstname: string;
 							};
 
-							export type otherInfo$artifact = artifact
+							export type otherInfo$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "fragment types",
+				Input: []string{
+					`fragment TestFragment on User { firstName nickname enumValue }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"TestFragment": tests.Dedent(`
+						import type artifact from './TestFragment'
+						import { MyEnum } from "$houdini/graphql/enums";
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+
+						export type TestFragment$input = {};
+
+						export type TestFragment = {
+							readonly "shape"?: TestFragment$data;
+							readonly " $fragments": {
+								"TestFragment": any;
+							};
+						};
+
+						export type TestFragment$data = {
+							readonly firstName: string;
+							readonly nickname: string | null;
+							readonly enumValue: ValueOf<typeof MyEnum> | null;
+						};
+
+						export type TestFragment$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "fragment types with variables",
+				Input: []string{
+					`fragment TestFragment on Query @arguments(name:{ type: "ID" }) { user(id: $name) { age } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"TestFragment": tests.Dedent(`
+						import type artifact from './TestFragment'
+
+						export type TestFragment$input = {
+							name?: string | null | undefined;
+						};
+
+						export type TestFragment = {
+							readonly "shape"?: TestFragment$data;
+							readonly " $fragments": {
+								"TestFragment": any;
+							};
+						};
+
+						export type TestFragment$data = {
+							readonly user: {
+								readonly age: number | null;
+							} | null;
+						};
+
+						export type TestFragment$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "fragment types with required variables",
+				Input: []string{
+					`fragment TestFragment on Query @arguments(name:{ type: "ID!" }) { user(id: $name) { age } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"TestFragment": tests.Dedent(`
+						import type artifact from './TestFragment'
+
+						export type TestFragment$input = {
+							name: string;
+						};
+
+						export type TestFragment = {
+							readonly "shape"?: TestFragment$data;
+							readonly " $fragments": {
+								"TestFragment": any;
+							};
+						};
+
+						export type TestFragment$data = {
+							readonly user: {
+								readonly age: number | null;
+							} | null;
+						};
+
+						export type TestFragment$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "nested types",
+				Input: []string{
+					`fragment TestFragment on User { firstName parent { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"TestFragment": tests.Dedent(`
+							import type artifact from './TestFragment'
+
+							export type TestFragment$input = {};
+
+							export type TestFragment = {
+								readonly "shape"?: TestFragment$data;
+								readonly " $fragments": {
+									"TestFragment": any;
+								};
+							};
+
+							export type TestFragment$data = {
+								readonly firstName: string;
+								readonly parent: {
+									readonly firstName: string;
+								} | null;
+							};
+
+							export type TestFragment$artifact = typeof artifact
+						`),
+				},
+			},
+			{
+				Name: "scalars",
+				Input: []string{
+					`fragment TestFragment on User { firstName admin age id weight }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"TestFragment": tests.Dedent(`
+							import type artifact from './TestFragment'
+
+							export type TestFragment$input = {};
+
+							export type TestFragment = {
+								readonly "shape"?: TestFragment$data;
+								readonly " $fragments": {
+									"TestFragment": any;
+								};
+							};
+
+							export type TestFragment$data = {
+								readonly firstName: string;
+								readonly admin: boolean | null;
+								readonly age: number | null;
+								readonly id: string;
+								readonly weight: number | null;
+							};
+
+							export type TestFragment$artifact = typeof artifact
+						`),
+				},
+			},
+			{
+				Name: "list types",
+				Input: []string{
+					`fragment TestFragment on User { firstName friends { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"TestFragment": tests.Dedent(`
+							import type artifact from './TestFragment'
+
+							export type TestFragment$input = {};
+
+							export type TestFragment = {
+								readonly "shape"?: TestFragment$data;
+								readonly " $fragments": {
+									"TestFragment": any;
+								};
+							};
+
+							export type TestFragment$data = {
+								readonly firstName: string;
+								readonly friends: ({
+									readonly firstName: string;
+								} | null)[] | null;
+							};
+
+							export type TestFragment$artifact = typeof artifact
+						`),
+				},
+			},
+			{
+				Name: "query with no input",
+				Input: []string{
+					`query MyQuery { user { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+							import type artifact from './MyQuery'
+
+							export type MyQuery = {
+								readonly "input": MyQuery$input;
+								readonly "result": MyQuery$result | undefined;
+							};
+
+							export type MyQuery$result = {
+								readonly user: {
+									readonly firstName: string;
+								} | null;
+							};
+
+							export type MyQuery$input = null;
+
+							export type MyQuery$artifact = typeof artifact
+						`),
+				},
+			},
+			{
+				Name: "query with root list",
+				Input: []string{
+					`query MyQuery($list: [UserFilter!]!) { users(list: $list, id: "1", firstName: "test") { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+						import type artifact from './MyQuery'
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+						import type { MyEnum } from "$houdini/graphql/enums";
+						import type { UserFilter } from "$houdini/graphql/inputs";
+
+						export type MyQuery = {
+							readonly "input": MyQuery$input;
+							readonly "result": MyQuery$result | undefined;
+						};
+
+						export type MyQuery$result = {
+							readonly users: ({
+								readonly firstName: string;
+							} | null)[] | null;
+						};
+
+						export type MyQuery$input = {
+							list: (UserFilter)[];
+						};
+
+						export type MyQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "query with input",
+				Input: []string{
+					`query MyQuery($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+							import type artifact from './MyQuery'
+							import type { ValueOf } from "$houdini/runtime/lib/types";
+							import type { MyEnum } from "$houdini/graphql/enums";
+
+							export type MyQuery = {
+								readonly "input": MyQuery$input;
+								readonly "result": MyQuery$result | undefined;
+							};
+
+							export type MyQuery$result = {
+								readonly user: {
+									readonly firstName: string;
+								} | null;
+							};
+
+							export type MyQuery$input = {
+								id: string;
+								enum?: ValueOf<typeof MyEnum> | null | undefined;
+							};
+
+							export type MyQuery$artifact = typeof artifact
+						`),
+				},
+			},
+			{
+				Name: "interface on interface",
+				Input: []string{
+					`query MyTestQuery { entity { ... on Node { id } } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyTestQuery": tests.Dedent(`
+						import type artifact from './MyTestQuery'
+
+						export type MyTestQuery = {
+							readonly "input": MyTestQuery$input;
+							readonly "result": MyTestQuery$result | undefined;
+						};
+
+						export type MyTestQuery$result = {
+							readonly entity: {} & (({
+								readonly id: string;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly id: string;
+								readonly __typename: "User";
+							}));
+						};
+
+						export type MyTestQuery$input = null;
+
+						export type MyTestQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "nested input objects",
+				Input: []string{
+					`query MyQuery($filter: UserFilter!) { user(filter: $filter) { firstName } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+						import type artifact from './MyQuery'
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+						import type { MyEnum } from "$houdini/graphql/enums";
+						import type { UserFilter } from "$houdini/graphql/inputs";
+
+						export type MyQuery = {
+							readonly "input": MyQuery$input;
+							readonly "result": MyQuery$result | undefined;
+						};
+
+						export type MyQuery$result = {
+							readonly user: {
+								readonly firstName: string;
+							} | null;
+						};
+
+						export type MyQuery$input = {
+							filter: UserFilter;
+						};
+
+						export type MyQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "interfaces",
+				Input: []string{
+					`query MyQuery { nodes { ... on User { id } ... on Cat { id } } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+						import type artifact from './MyQuery'
+
+						export type MyQuery = {
+							readonly "input": MyQuery$input;
+							readonly "result": MyQuery$result | undefined;
+						};
+
+						export type MyQuery$result = {
+							readonly nodes: ({} & (({
+								readonly id: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly id: string;
+								readonly __typename: "Cat";
+							}) | ({
+								readonly __typename: "non-exhaustive; don't match this";
+							})))[];
+						};
+
+						export type MyQuery$input = null;
+
+						export type MyQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "unions",
+				Input: []string{
+					`query MyQuery { entities { ... on User { id } ... on Cat { id } } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+						import type artifact from './MyQuery'
+
+						export type MyQuery = {
+							readonly "input": MyQuery$input;
+							readonly "result": MyQuery$result | undefined;
+						};
+
+						export type MyQuery$result = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly id: string;
+								readonly __typename: "Cat";
+							})) | null)[] | null;
+						};
+
+						export type MyQuery$input = null;
+
+						export type MyQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "mutation with input list",
+				Input: []string{
+					`mutation MyMutation(
+						$filter: UserFilter,
+						$filterList: [UserFilter!]!,
+						$id: ID!
+						$firstName: String!
+						$admin: Boolean
+						$age: Int
+						$weight: Float
+					) { doThing(
+						filter: $filter,
+						list: $filterList,
+						id:$id
+						firstName:$firstName
+						admin:$admin
+						age:$age
+						weight:$weight
+					) {
+						firstName
+					  }
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyMutation": tests.Dedent(`
+						import type artifact from './MyMutation'
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+						import type { MyEnum } from "$houdini/graphql/enums";
+						import type { UserFilter } from "$houdini/graphql/inputs";
+
+						export type MyMutation = {
+							readonly "input": MyMutation$input;
+							readonly "result": MyMutation$result;
+						};
+
+						export type MyMutation$result = {
+							readonly doThing: {
+								readonly firstName: string;
+							} | null;
+						};
+
+						export type MyMutation$input = {
+							filter?: UserFilter | null | undefined;
+							filterList: (UserFilter)[];
+							id: string;
+							firstName: string;
+							admin?: boolean | null | undefined;
+							age?: number | null | undefined;
+							weight?: number | null | undefined;
+						};
+
+						export type MyMutation$optimistic = {
+							readonly doThing?: {
+								readonly firstName?: string;
+							} | null;
+						};
+
+						export type MyMutation$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "fragment spreads",
+				Input: []string{
+					`fragment Foo on User { firstName }`,
+					`query MyQuery { user { ...Foo } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MyQuery": tests.Dedent(`
+						import type artifact from './MyQuery'
+
+						export type MyQuery = {
+							readonly "input": MyQuery$input;
+							readonly "result": MyQuery$result | undefined;
+						};
+
+						export type MyQuery$result = {
+							readonly user: {
+								readonly " $fragments": {
+									Foo: {};
+								};
+							} | null;
+						};
+
+						export type MyQuery$input = null;
+
+						export type MyQuery$artifact = typeof artifact
+					`),
+					"Foo": tests.Dedent(`
+						import type artifact from './Foo'
+
+						export type Foo$input = {};
+
+						export type Foo = {
+							readonly "shape"?: Foo$data;
+							readonly " $fragments": {
+								"Foo": any;
+							};
+						};
+
+						export type Foo$data = {
+							readonly firstName: string;
+						};
+
+						export type Foo$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "@loading on fragment - happy path",
+				Input: []string{
+					`fragment UserBase on User {
+						id
+						firstName @loading
+						parent @loading {
+							id @loading
+							parent @loading {
+								id
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UserBase": tests.Dedent(`
+						import type artifact from './UserBase'
+						import { LoadingType } from "$houdini/runtime/lib/types";
+
+						export type UserBase$input = {};
+
+						export type UserBase = {
+							readonly "shape"?: UserBase$data;
+							readonly " $fragments": {
+								"UserBase": any;
+							};
+						};
+
+						export type UserBase$data = {
+							readonly id: string;
+							readonly firstName: string;
+							readonly parent: {
+								readonly id: string;
+								readonly parent: {
+									readonly id: string;
+								} | null;
+							} | null;
+						} | {
+							readonly firstName: LoadingType;
+							readonly parent: {
+								readonly id: LoadingType;
+								readonly parent: LoadingType;
+							};
+						};
+
+						export type UserBase$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "@loading on query - happy path",
+				Input: []string{
+					`query UserQuery {
+						user @loading {
+							firstName @loading
+							parent @loading {
+								id @loading
+								parent @loading {
+									id
+								}
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UserQuery": tests.Dedent(`
+						import type artifact from './UserQuery'
+						import { LoadingType } from "$houdini/runtime/lib/types";
+
+						export type UserQuery = {
+							readonly "input": UserQuery$input;
+							readonly "result": UserQuery$result | undefined;
+						};
+
+						export type UserQuery$result = {
+							readonly user: {
+								readonly firstName: string;
+								readonly parent: {
+									readonly id: string;
+									readonly parent: {
+										readonly id: string;
+									} | null;
+								} | null;
+							} | null;
+						} | {
+							readonly user: {
+								readonly firstName: LoadingType;
+								readonly parent: {
+									readonly id: LoadingType;
+									readonly parent: LoadingType;
+								};
+							};
+						};
+
+						export type UserQuery$input = null;
+
+						export type UserQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "@loading on list",
+				Input: []string{
+					`query UserQuery($list: [UserFilter!]!) {
+						users(list: $list, id: "1", firstName: "test") @loading {
+							id
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UserQuery": tests.Dedent(`
+						import type artifact from './UserQuery'
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+						import type { MyEnum } from "$houdini/graphql/enums";
+						import { LoadingType } from "$houdini/runtime/lib/types";
+						import type { UserFilter } from "$houdini/graphql/inputs";
+
+						export type UserQuery = {
+							readonly "input": UserQuery$input;
+							readonly "result": UserQuery$result | undefined;
+						};
+
+						export type UserQuery$result = {
+							readonly users: ({
+								readonly id: string;
+							})[];
+						} | {
+							readonly users: LoadingType[];
+						};
+
+						export type UserQuery$input = {
+							list: (UserFilter)[];
+						};
+
+						export type UserQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "generated types include fragment loading state",
+				Input: []string{
+					`query UserQuery($list: [UserFilter!]!) {
+						users(list: $list, id: "1", firstName: "test") @loading {
+							...UserBase @loading
+						}
+					}`,
+					`fragment UserBase on User {
+						firstName
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UserQuery": tests.Dedent(`
+						import type artifact from './UserQuery'
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+						import type { MyEnum } from "$houdini/graphql/enums";
+						import { LoadingType } from "$houdini/runtime/lib/types";
+						import type { UserFilter } from "$houdini/graphql/inputs";
+
+						export type UserQuery = {
+							readonly "input": UserQuery$input;
+							readonly "result": UserQuery$result | undefined;
+						};
+
+						export type UserQuery$result = {
+							readonly users: ({
+								readonly " $fragments": {
+									UserBase: {};
+								};
+							})[];
+						} | {
+							readonly users: {
+								readonly " $fragments": {
+									UserBase: {};
+								};
+							}[];
+						};
+
+						export type UserQuery$input = {
+							list: (UserFilter)[];
+						};
+
+						export type UserQuery$artifact = typeof artifact
+					`),
+					"UserBase": tests.Dedent(`
+						import type artifact from './UserBase'
+
+						export type UserBase$input = {};
+
+						export type UserBase = {
+							readonly "shape"?: UserBase$data;
+							readonly " $fragments": {
+								"UserBase": any;
+							};
+						};
+
+						export type UserBase$data = {
+							readonly firstName: string;
+						};
+
+						export type UserBase$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "global @loading on fragment",
+				Input: []string{
+					`query UserQuery($list: [UserFilter!]!) @loading {
+						users(list: $list, id: "1", firstName: "test") {
+							...UserBase
+						}
+					}`,
+					`fragment UserBase on User {
+						firstName
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UserQuery": tests.Dedent(`
+						import type artifact from './UserQuery'
+						import type { ValueOf } from "$houdini/runtime/lib/types";
+						import type { MyEnum } from "$houdini/graphql/enums";
+						import { LoadingType } from "$houdini/runtime/lib/types";
+						import type { UserFilter } from "$houdini/graphql/inputs";
+
+						export type UserQuery = {
+							readonly "input": UserQuery$input;
+							readonly "result": UserQuery$result | undefined;
+						};
+
+						export type UserQuery$result = {
+							readonly users: ({
+								readonly " $fragments": {
+									UserBase: {};
+								};
+							})[];
+						} | {
+							readonly users: {
+								readonly firstName: LoadingType;
+								readonly id: LoadingType;
+								readonly __typename: LoadingType;
+								readonly " $fragments": {
+									UserBase: {};
+								};
+							}[];
+						};
+
+						export type UserQuery$input = {
+							list: (UserFilter)[];
+						};
+
+						export type UserQuery$artifact = typeof artifact
+					`),
+					"UserBase": tests.Dedent(`
+						import type artifact from './UserBase'
+
+						export type UserBase$input = {};
+
+						export type UserBase = {
+							readonly "shape"?: UserBase$data;
+							readonly " $fragments": {
+								"UserBase": any;
+							};
+						};
+
+						export type UserBase$data = {
+							readonly firstName: string;
+						};
+
+						export type UserBase$artifact = typeof artifact
 					`),
 				},
 			},

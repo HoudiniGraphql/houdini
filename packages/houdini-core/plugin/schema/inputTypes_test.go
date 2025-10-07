@@ -1,0 +1,77 @@
+package schema_test
+
+import (
+	"context"
+	"path"
+	"testing"
+
+	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/plugins/tests"
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
+)
+
+func TestInputTypeDefinitions(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig]{
+		Schema: `
+				enum MyEnum { 
+					Value1
+					Value2
+				}
+				input UserFilter {
+					middle: NestedUserFilter
+					listRequired: [String!]!
+					nullList: [String]
+					recursive: UserFilter
+					enum: MyEnum
+				}
+
+				input NestedUserFilter {
+					id: ID!
+					firstName: String!
+					admin: Boolean
+					age: Int
+					weight: Float
+				}
+    `,
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "happy path",
+				Pass: true,
+			},
+		},
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			config, err := plugin.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+
+			// we need to look at the input definitions file and confirm that we generated the correct types
+			targetPath := path.Join(config.DefinitionsDirectory(), "inputs.d.ts")
+
+			expected := tests.Dedent(`
+				type ValuesOf<T> = T[keyof T];
+
+				export type NestedUserFilter = {
+				    admin?: boolean | null | undefined;
+				    age?: number | null | undefined;
+				    firstName: string;
+				    id: string;
+				    weight?: number | null | undefined;
+				};
+
+				export type UserFilter = {
+				    enum?: ValueOf<typeof MyEnum> | null | undefined;
+				    listRequired: (string)[];
+				    middle?: NestedUserFilter | null | undefined;
+				    nullList?: (string | null | undefined)[] | null | undefined;
+				    recursive?: UserFilter | null | undefined;
+				};
+			`)
+
+			found, err := afero.ReadFile(plugin.Fs, targetPath)
+			require.NoError(t, err)
+
+			require.Equal(t, expected, string(found))
+		},
+	})
+}
