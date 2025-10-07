@@ -181,7 +181,7 @@ func GenerateSelectionDocument(
 	// track some artifact-level flags
 	flags := &ArtifactFlags{}
 
-	runtimeScalars := ""
+	var runtimeScalarsBuilder strings.Builder
 	for _, variable := range doc.Variables {
 		for _, directive := range variable.Directives {
 			switch directive.Name {
@@ -191,7 +191,7 @@ func GenerateSelectionDocument(
 						continue
 					}
 
-					runtimeScalars += fmt.Sprintf(`
+					fmt.Fprintf(&runtimeScalarsBuilder, `
               "%s": "%s",`, variable.Name, arg.Value.Raw)
 				}
 			}
@@ -204,8 +204,8 @@ func GenerateSelectionDocument(
 			forceLoading = true
 		}
 	}
-	if len(runtimeScalars) > 0 {
-		runtimeScalars += "\n        "
+	if runtimeScalarsBuilder.Len() > 0 {
+		runtimeScalarsBuilder.WriteString("\n        ")
 	}
 
 	// build up the selection string
@@ -226,36 +226,36 @@ func GenerateSelectionDocument(
 	// build up the input specification
 	inputTypes := ""
 	if len(doc.Variables) > 0 {
-		defaults := ""
-		inputSpecs := ""
+		var defaultsBuilder strings.Builder
+		var inputSpecsBuilder strings.Builder
 		if sortKeys {
 			sort.Slice(doc.Variables, func(i int, j int) bool {
 				return doc.Variables[i].Name < doc.Variables[j].Name
 			})
 		}
 		for _, variable := range doc.Variables {
-			inputSpecs += fmt.Sprintf(`
+			fmt.Fprintf(&inputSpecsBuilder, `
             "%s": "%s",`, variable.Name, variable.Type)
 			if variable.DefaultValue != nil {
-				defaults += fmt.Sprintf(`
+				fmt.Fprintf(&defaultsBuilder, `
             "%s": %s,`, variable.Name, printValue(variable.DefaultValue, map[string]bool{}))
 			}
 		}
 
-		if len(defaults) > 0 {
-			defaults += "\n        "
+		if defaultsBuilder.Len() > 0 {
+			defaultsBuilder.WriteString("\n        ")
 		}
 
 		// the input type defs include a description for every input object
 		// that is used in the query so we can correctly marshal the scalar values
-		typeDefs := ""
+		var typeDefsBuilder strings.Builder
 		usedTypes := findUsedTypes(docs, doc.Variables)
 
 		if sortKeys {
 			sort.Strings(usedTypes)
 		}
 		for _, inputType := range usedTypes {
-			fields := ""
+			var fieldsBuilder strings.Builder
 
 			// we might have to sort the keys in the input type
 			if sortKeys {
@@ -265,22 +265,22 @@ func GenerateSelectionDocument(
 				}
 				sort.Strings(inputKeys)
 				for _, key := range inputKeys {
-					fields += fmt.Sprintf(`
+					fmt.Fprintf(&fieldsBuilder, `
                 "%s": "%s",`, key, docs.InputTypes[inputType][key])
 				}
 			} else {
 				for key, value := range docs.InputTypes[inputType] {
-					fields += fmt.Sprintf(`
+					fmt.Fprintf(&fieldsBuilder, `
                 "%s": "%s",`, key, value)
 				}
 			}
 
-			typeDefs += fmt.Sprintf(`
+			fmt.Fprintf(&typeDefsBuilder, `
             "%s": {%s
-            },`, inputType, fields)
+            },`, inputType, fieldsBuilder.String())
 		}
 		if len(usedTypes) > 0 {
-			typeDefs += "\n        "
+			typeDefsBuilder.WriteString("\n        ")
 		}
 
 		inputTypes = fmt.Sprintf(`
@@ -295,7 +295,7 @@ func GenerateSelectionDocument(
 
         "runtimeScalars": {%s},
     },
-`, inputSpecs, typeDefs, defaults, runtimeScalars)
+`, inputSpecsBuilder.String(), typeDefsBuilder.String(), defaultsBuilder.String(), runtimeScalarsBuilder.String())
 	}
 
 	// we only consider policy and partial values for queries
@@ -459,9 +459,9 @@ func stringifySelection(
 	indent5 := strings.Repeat(spacing, level+4)
 
 	// we need to build up a stringified version of the selection set
-	fields := ""
-	fragments := ""
-	abstractFields := ""
+	var fieldsBuilder strings.Builder
+	var fragmentsBuilder strings.Builder
+	var abstractFieldsBuilder strings.Builder
 
 	// if we run into any inline fragments then we need to keep track
 	// of which ones have a loading states
@@ -483,8 +483,8 @@ func stringifySelection(
 		// add field serialization
 		case "field":
 
-			if len(fields) > 0 {
-				fields += "\n"
+			if fieldsBuilder.Len() > 0 {
+				fieldsBuilder.WriteRune('\n')
 			}
 
 			// we only want to keep the updates alive if we run into a pagination field
@@ -501,7 +501,7 @@ func stringifySelection(
 				}
 			}
 
-			fields += stringifyFieldSelection(
+			fieldsBuilder.WriteString(stringifyFieldSelection(
 				projectConfig,
 				docs,
 				level,
@@ -512,22 +512,23 @@ func stringifySelection(
 				updates,
 				path+`,"`+*selection.Alias+`"`,
 				forceLoading,
-			)
+			))
 
 		case "fragment":
 			// the applied fragment might have arguments
-			arguments := ""
+			var argumentsBuilder strings.Builder
 			for _, directive := range selection.Directives {
 				switch directive.Name {
 				case schema.WithDirective:
 					for _, arg := range directive.Arguments {
-						arguments += fmt.Sprintf(`
+						fmt.Fprintf(&argumentsBuilder, `
 %s"%s": %s,`, indent5, arg.Name, serializeFragmentArgument(arg.Value, level+4))
 					}
 				}
 			}
-			if arguments != "" {
-				arguments += "\n" + indent4
+			if argumentsBuilder.Len() > 0 {
+				argumentsBuilder.WriteRune('\n')
+				argumentsBuilder.WriteString(indent4)
 			}
 
 			// add the loading meta data
@@ -542,10 +543,10 @@ func stringifySelection(
 				fragmentName = *selection.FragmentRef
 			}
 
-			fragments += fmt.Sprintf(`
+			fmt.Fprintf(&fragmentsBuilder, `
 %s"%s": {
 %s"arguments": {%s}%s
-%s},`, indent3, fragmentName, indent4, arguments, loadingValue, indent3)
+%s},`, indent3, fragmentName, indent4, argumentsBuilder.String(), loadingValue, indent3)
 
 			// if the fragment points to a component field
 			if selection.ComponentField != nil {
@@ -558,7 +559,7 @@ func stringifySelection(
 				}
 
 				// make sure the component field is added to the selection object
-				fields += fmt.Sprintf(
+				fmt.Fprintf(&fieldsBuilder,
 					`
 %s"%s": {
 %s"keyRaw": "%s",
@@ -588,7 +589,7 @@ func stringifySelection(
 					indent5,
 					selection.ComponentField.Fragment,
 					indent5,
-					arguments,
+					argumentsBuilder.String(),
 					indent4,
 					visible,
 					indent3,
@@ -601,11 +602,12 @@ func stringifySelection(
 			}
 
 			// we need to generate the subselection
-			subSelection := "{\n"
+			var subSelectionBuilder strings.Builder
+			subSelectionBuilder.WriteString("{\n")
 			if len(selection.Children) > 0 {
 				for _, field := range selection.Children {
 					if field.Kind == "field" {
-						subSelection += stringifyFieldSelection(
+						subSelectionBuilder.WriteString(stringifyFieldSelection(
 							projectConfig,
 							docs,
 							level+2,
@@ -616,36 +618,36 @@ func stringifySelection(
 							[]string{},
 							path,
 							forceLoading,
-						)
+						))
 					}
 				}
-				subSelection += fmt.Sprintf("%s},\n", indent4)
+				fmt.Fprintf(&subSelectionBuilder, "%s},\n", indent4)
 			}
 
 			// every inline fragment represents a new abstract selection
-			abstractFields += fmt.Sprintf(
+			fmt.Fprintf(&abstractFieldsBuilder,
 				`%s"%s": %s`,
 				indent4,
 				selection.FieldName,
-				subSelection,
+				subSelectionBuilder.String(),
 			)
 		}
 	}
 
 	// build up the final result
-	result := ""
+	var resultBuilder strings.Builder
 
 	// if there were concrete fields include them
-	if len(fields) > 0 {
-		result += fmt.Sprintf(`%s"fields": {
-%s%s},`, indent2, fields, indent2)
+	if fieldsBuilder.Len() > 0 {
+		fmt.Fprintf(&resultBuilder, `%s"fields": {
+%s%s},`, indent2, fieldsBuilder.String(), indent2)
 	}
 
 	// and finally include any abstract selections we ran into if the parent is also abstract
 	_, abstractParent := docs.PossibleTypes[parentType]
-	if len(abstractFields) > 0 && abstractParent {
-		if len(result) > 0 {
-			result += "\n"
+	if abstractFieldsBuilder.Len() > 0 && abstractParent {
+		if resultBuilder.Len() > 0 {
+			resultBuilder.WriteRune('\n')
 		}
 
 		// we need to compute the mapping from runtime types to which inline fragment we need to consider (if it exists)
@@ -694,10 +696,10 @@ func stringifySelection(
 			}
 		}
 
-		typeMapStr := ""
+		var typeMapBuilder strings.Builder
 		if !sortKeys {
 			for key, value := range typeMap {
-				typeMapStr += fmt.Sprintf(`%s"%s": "%s",
+				fmt.Fprintf(&typeMapBuilder, `%s"%s": "%s",
 `, indent4, key, value)
 			}
 		} else {
@@ -707,24 +709,25 @@ func stringifySelection(
 			}
 			sort.Strings(keys)
 			for _, key := range keys {
-				typeMapStr += fmt.Sprintf(`%s"%s": "%s",
+				fmt.Fprintf(&typeMapBuilder, `%s"%s": "%s",
 `, indent4, key, typeMap[key])
 			}
 		}
 
-		if len(typeMapStr) > 0 {
+		typeMapStr := ""
+		if typeMapBuilder.Len() > 0 {
 			typeMapStr = fmt.Sprintf(`
-%s%s`, typeMapStr, indent3)
+%s%s`, typeMapBuilder.String(), indent3)
 		}
 
-		result += fmt.Sprintf(`%s"abstractFields": {
+		fmt.Fprintf(&resultBuilder, `%s"abstractFields": {
 %s"fields": {
 %s%s},
 
 %s"typeMap": {%s},
 %s},`, indent2,
 			indent3,
-			abstractFields,
+			abstractFieldsBuilder.String(),
 			indent3,
 			indent3,
 			typeMapStr,
@@ -733,15 +736,15 @@ func stringifySelection(
 	}
 
 	// then add any fragment specifications we ran into
-	if len(fragments) > 0 {
-		result += fmt.Sprintf(`
+	if fragmentsBuilder.Len() > 0 {
+		fmt.Fprintf(&resultBuilder, `
 
 %s"fragments": {%s
-%s},`, indent2, fragments, indent2)
+%s},`, indent2, fragmentsBuilder.String(), indent2)
 	}
 
 	if len(loadingTypes) > 0 {
-		result += fmt.Sprintf(
+		fmt.Fprintf(&resultBuilder,
 			`
 
 %s"loadingTypes": [%s],`,
@@ -752,7 +755,7 @@ func stringifySelection(
 
 	return fmt.Sprintf(`{
 %s
-%s}`, result, indent)
+%s}`, resultBuilder.String(), indent)
 }
 
 func keyField(field *collected.Selection, paginatedMode *string) string {
@@ -895,16 +898,19 @@ func stringifyFieldSelection(
 		}
 
 		// the applied fragment might have arguments
-		arguments := ""
+		var argumentsBuilder strings.Builder
 		for _, arg := range directive.Arguments {
-			arguments += fmt.Sprintf(`
+			fmt.Fprintf(&argumentsBuilder, `
 %s"%s": %s,`, indent6, arg.Name, serializeFragmentArgument(arg.Value, level+5))
 		}
-		if arguments == "" {
+
+		var arguments string
+		if argumentsBuilder.Len() == 0 {
 			arguments = "{}"
 		} else {
+			argumentsStr := argumentsBuilder.String()
 			arguments = fmt.Sprintf(`{%s
-%s}`, arguments[:len(arguments)-1], indent5)
+%s}`, argumentsStr[:len(argumentsStr)-1], indent5)
 		}
 
 		directives += fmt.Sprintf(`{
@@ -914,7 +920,7 @@ func stringifyFieldSelection(
 	}
 
 	// we need to generate the subselection
-	subSelection := ""
+	var subSelectionBuilder strings.Builder
 	if len(selection.Children) > 0 {
 		subSelUpdates := updates
 		// if there are updates and the paginated list is a non-connection
@@ -923,7 +929,7 @@ func stringifyFieldSelection(
 			subSelUpdates = []string{}
 		}
 
-		subSelection += fmt.Sprintf(
+		fmt.Fprintf(&subSelectionBuilder,
 			`
 
 %s"selection": %s,`,
@@ -944,7 +950,7 @@ func stringifyFieldSelection(
 			),
 		)
 
-		subSelection += "\n"
+		subSelectionBuilder.WriteRune('\n')
 	}
 
 	result := ""
@@ -1130,7 +1136,7 @@ func stringifyFieldSelection(
 		directives,
 		list,
 		operations,
-		subSelection,
+		subSelectionBuilder.String(),
 		filters,
 		loading,
 		abstract,
