@@ -42,6 +42,18 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 		return nil
 	})
 
+	// generate the type definitions for the imperative cache
+	g.Go(func() error {
+		files, err := runtime.GenerateImperativeCacheTypeDefs(ctx, p.DB, p.Fs)
+		if err != nil {
+			return err
+		}
+
+		generated.Append(files...)
+
+		return nil
+	})
+
 	// generate the plugin index file
 	g.Go(func() error {
 		err = runtime.GeneratePluginIndex(ctx, p.DB, p.Fs)
