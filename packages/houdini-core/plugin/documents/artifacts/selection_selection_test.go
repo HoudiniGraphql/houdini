@@ -9,7 +9,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
@@ -167,7 +167,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "pluginData": {},
                 "policy": "CacheOrNetwork",
                 "partial": false
-            }
+            } as const
 
             "HoudiniHash=399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777"
           `),
@@ -209,7 +209,7 @@ func TestArtifactGeneration(t *testing.T) {
                 },
 
                 "pluginData": {},
-            }
+            } as const
 
             "HoudiniHash=4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8"
           `),
@@ -297,7 +297,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "pluginData": {},
                 "policy": "CacheOrNetwork",
                 "partial": false
-            }
+            } as const
 
             "HoudiniHash=2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275"
 
@@ -389,7 +389,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee"
   `),
@@ -502,7 +502,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae"
 
@@ -619,7 +619,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7"
 
@@ -749,7 +749,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733"
 
@@ -893,7 +893,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121"
           `),
@@ -1035,7 +1035,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d"
           `),
@@ -1142,7 +1142,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d"
           `),
@@ -1264,7 +1264,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
           `),
@@ -1323,7 +1323,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178"
           `),
@@ -1413,7 +1413,7 @@ func TestArtifactGeneration(t *testing.T) {
                 },
 
                 "pluginData": {},
-            }
+            } as const
 
             "HoudiniHash=296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be"
           `),
@@ -1556,7 +1556,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2"
 	      `),
@@ -1688,7 +1688,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "pluginData": {},
                 "policy": "CacheOrNetwork",
                 "partial": false
-            }
+            } as const
 
             "HoudiniHash=4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb"
 
@@ -1810,7 +1810,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=8425a7a24172dd6c9329e2025bcccbec73e2a0b7adcc8b52228a36497cc48600"
           `),
@@ -1886,7 +1886,7 @@ func TestArtifactGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81"
           `),
@@ -1973,7 +1973,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757"
             `),
@@ -2091,7 +2091,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73"
           `),
@@ -2184,7 +2184,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b"
           `),
@@ -2287,7 +2287,7 @@ func TestArtifactGeneration(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7"
           `),
@@ -2364,7 +2364,7 @@ func TestArtifactGeneration(t *testing.T) {
                   },
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
 	        `),
@@ -2441,7 +2441,7 @@ func TestArtifactGeneration(t *testing.T) {
                   },
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
 	        `),
@@ -2518,7 +2518,7 @@ func TestArtifactGeneration(t *testing.T) {
                   },
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
 	        `),
@@ -2612,7 +2612,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheAndNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
@@ -2709,7 +2709,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "pluginData": {},
                 "policy": "NetworkOnly",
                 "partial": false
-            }
+            } as const
 
             "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
           `),
@@ -2803,7 +2803,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheAndNetwork",
                   "partial": true
-              }
+              } as const
 
               "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
@@ -2900,7 +2900,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheAndNetwork",
                   "partial": true
-              }
+              } as const
 
               "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
@@ -3036,7 +3036,7 @@ func TestArtifactGeneration(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=41abe068027a3e99325fd911b69effe90a0a3aabbb2e1cdfed73dd37dd73677e"
             `),
@@ -3160,7 +3160,7 @@ func TestArtifactGeneration(t *testing.T) {
                 "hasComponents": true,
                 "policy": "CacheOrNetwork",
                 "partial": false
-            }
+            } as const
 
             "HoudiniHash=51262f47df33c40c18a8f4b081242dedd62c8ffb0fd94595ee122afb0e83ad71"
           `),
@@ -3195,7 +3195,7 @@ func performArtifactTest(
 	}
 
 	// generate the artifacts
-	_, err = artifacts.Generate(context.Background(), p.DB, p.Fs, true)
+	_, err = documents.Generate(context.Background(), p.DB, p.Fs, true)
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return

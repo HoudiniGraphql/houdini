@@ -1,4 +1,4 @@
-package artifacts
+package collected
 
 import (
 	"context"
@@ -23,9 +23,9 @@ func CollectDocuments(
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
 	sortKeys bool,
-) (*CollectedDocuments, error) {
-	result := &CollectedDocuments{
-		Selections:      map[string]*CollectedDocument{},
+) (*Documents, error) {
+	result := &Documents{
+		Selections:      map[string]*Document{},
 		TaskDocuments:   []string{},
 		PossibleTypes:   map[string]map[string]bool{},
 		Implementations: map[string]map[string]bool{},
@@ -189,19 +189,19 @@ func collectDoc(
 			// first we need to recreate the selection set for every document that we were given in the batch
 
 			// build up a mapping of document name to the collected version
-			documents := map[string]*CollectedDocument{}
+			documents := map[string]*Document{}
 			// and in order to build up the correct tree structure we need a mapping of selection ID
 			// to the actual selection
-			selections := map[int64]*CollectedSelection{}
+			selections := map[int64]*Selection{}
 
 			// as a follow up, we need to recreate the arguments and directives that were assigned to the selection
-			argumentValues := map[int64]*CollectedArgumentValue{}
-			argumentsWithValues := []*CollectedArgument{}
-			documentArgumentsWithValues := []*CollectedOperationVariable{}
+			argumentValues := map[int64]*ArgumentValue{}
+			argumentsWithValues := []*Argument{}
+			documentArgumentsWithValues := []*OperationVariable{}
 
 			// the insert order doesn't necessarily match the toposort order for fields when we've inserted fields
 			// after the original loading so we need to hold onto a list of selections that need to be patched
-			missingParents := map[int64][]*CollectedSelection{}
+			missingParents := map[int64][]*Selection{}
 
 			// step through the selections and build up the tree
 			err = db.StepStatement(ctx, statements.Search, func() {
@@ -243,7 +243,7 @@ func collectDoc(
 				}
 
 				// create the collected selection from the information we have
-				selection := &CollectedSelection{
+				selection := &Selection{
 					FieldName:     fieldName,
 					FieldType:     fieldType,
 					TypeModifiers: typeModifiers,
@@ -266,7 +266,7 @@ func collectDoc(
 				}
 
 				if listType != "" {
-					selection.List = &CollectedList{
+					selection.List = &List{
 						Name:       listName,
 						Type:       listType,
 						Connection: listConnection,
@@ -298,7 +298,7 @@ func collectDoc(
 					// this could be the first time we see the document
 					doc, ok := documents[documentName]
 					if !ok {
-						doc = &CollectedDocument{
+						doc = &Document{
 							ID:            documentID,
 							Name:          documentName,
 							Kind:          statements.Search.GetText("document_kind"),
@@ -319,7 +319,7 @@ func collectDoc(
 						parent.Children = append(parent.Children, selection)
 					} else {
 						if _, ok := missingParents[parentID]; !ok {
-							missingParents[parentID] = []*CollectedSelection{}
+							missingParents[parentID] = []*Selection{}
 						}
 
 						missingParents[parentID] = append(missingParents[parentID], selection)
@@ -340,7 +340,7 @@ func collectDoc(
 				if !statements.Search.IsNull("arguments") {
 					arguments := statements.Search.GetText("arguments")
 
-					args := []*CollectedArgument{}
+					args := []*Argument{}
 					if err := json.Unmarshal([]byte(arguments), &args); err != nil {
 						errs.Append(plugins.WrapError(err))
 						return
@@ -367,7 +367,7 @@ func collectDoc(
 				if !statements.Search.IsNull("directives") {
 					directives := statements.Search.GetText("directives")
 
-					dirs := []*CollectedDirective{}
+					dirs := []*Directive{}
 					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
 						errs.Append(plugins.WrapError(err))
 						return
@@ -415,11 +415,11 @@ func collectDoc(
 				documentName := statements.DocumentVariables.GetText("document_name")
 
 				// create the collected operation variable
-				variable := &CollectedOperationVariable{
+				variable := &OperationVariable{
 					Name:          name,
 					Type:          variableType,
 					TypeModifiers: modifiers,
-					Directives:    []*CollectedDirective{},
+					Directives:    []*Directive{},
 				}
 
 				// if there is a default value, we need to save the ID in the argument values
@@ -434,7 +434,7 @@ func collectDoc(
 				if !statements.DocumentVariables.IsNull("directives") {
 					directives := statements.DocumentVariables.GetText("directives")
 
-					dirs := []*CollectedDirective{}
+					dirs := []*Directive{}
 					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
 						errs.Append(plugins.WrapError(err))
 						return
@@ -480,9 +480,9 @@ func collectDoc(
 				internal := statements.DocumentDirectives.GetInt64("internal")
 
 				// create the collected directive
-				directive := &CollectedDirective{
+				directive := &Directive{
 					Name:      directiveName,
-					Arguments: []*CollectedArgument{},
+					Arguments: []*Argument{},
 					Internal:  int(internal),
 				}
 
@@ -535,7 +535,7 @@ func collectDoc(
 				valueIDs = append(valueIDs, id)
 			}
 			// recreating the nested structure means we need a mapping of id to values
-			values := map[int64]*CollectedArgumentValue{}
+			values := map[int64]*ArgumentValue{}
 			argumentValueSearch, err := prepareArgumentValuesSearch(conn, valueIDs)
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -545,7 +545,7 @@ func collectDoc(
 
 			err = db.StepStatement(ctx, argumentValueSearch, func() {
 				// build up the argument value for the match
-				value := &CollectedArgumentValue{
+				value := &ArgumentValue{
 					Kind: argumentValueSearch.GetText("kind"),
 					Raw:  argumentValueSearch.GetText("raw"),
 				}
@@ -583,7 +583,7 @@ func collectDoc(
 						)
 						return
 					}
-					parent.Children = append(parent.Children, &CollectedArgumentValueChildren{
+					parent.Children = append(parent.Children, &ArgumentValueChildren{
 						Name:  argumentValueSearch.GetText("name"),
 						Value: value,
 					})
@@ -633,7 +633,7 @@ func collectDoc(
 			}
 
 			// build up the list of documents we collected
-			docs := []*CollectedDocument{}
+			docs := []*Document{}
 			for _, doc := range documents {
 				docs = append(docs, doc)
 			}
@@ -717,13 +717,13 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	whereIn := "(" + strings.Join(placeholders, ", ") + ")"
 
 	search, err := conn.Prepare(fmt.Sprintf(`
-    WITH 
+    WITH
       directive_args AS (
         SELECT
           selection_directive_arguments.parent AS directive_id,
           json_group_array(
             json_object(
-            'name', selection_directive_arguments.name, 
+            'name', selection_directive_arguments.name,
             'value', selection_directive_arguments.value
             )
           ) AS directive_arguments
@@ -773,7 +773,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       ),
       selection_tree AS (
         -- Base case: root selections (those with a selection_ref that has no parent)
-        SELECT 
+        SELECT
           selections.id,
           selections.field_name,
           selections.fragment_ref,
@@ -802,8 +802,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.target_type as list_target_type,
           discovered_lists.cursor_type as list_cursor_type
         FROM selections
-          JOIN selection_refs 
-            ON selection_refs.child_id = selections.id 
+          JOIN selection_refs
+            ON selection_refs.child_id = selections.id
            AND selection_refs.parent_id IS NULL
            AND selection_refs.document IN %s
 
@@ -813,11 +813,11 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN type_fields on selections.type = type_fields.id
           LEFT JOIN types on d.kind = types.operation
           LEFT JOIN discovered_lists on discovered_lists.list_field = selections.id
-      
+
         UNION ALL
-      
+
         -- Recursive case: child selections
-        SELECT 
+        SELECT
           selections.id,
           selections.field_name,
           selections.fragment_ref,
@@ -845,7 +845,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.mode as list_mode,
           discovered_lists.target_type as list_target_type,
           discovered_lists.cursor_type as list_cursor_type
-        FROM selection_refs 
+        FROM selection_refs
           JOIN selection_tree st ON selection_refs.parent_id = st.id
           JOIN selections on selection_refs.child_id = selections.id
           LEFT JOIN documents d ON d.id = st.document_id
@@ -856,20 +856,20 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN discovered_lists on discovered_lists.list_field = selections.id
         WHERE selection_refs.document = st.document_id
       )
-    SELECT 
+    SELECT
       selection_tree.id,
-      document_name, 
-      document_id, 
-      kind, 
-      field_name, 
+      document_name,
+      document_id,
+      kind,
+      field_name,
       fragment_ref,
-      type_modifiers, 
-      alias, 
-      arguments, 
-      directives, 
-      parent_id, 
-      document_kind, 
-      type_condition, 
+      type_modifiers,
+      alias,
+      arguments,
+      directives,
+      parent_id,
+      document_kind,
+      type_condition,
       selection_tree.type,
       hash,
       list_name,
@@ -896,7 +896,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	}
 
 	documentVariables, err := conn.Prepare(fmt.Sprintf(`
-    WITH 
+    WITH
     directive_args AS (
       SELECT
         document_variable_directive_arguments.parent AS variable_id,
@@ -907,7 +907,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
            )
         ) AS arguments
       FROM document_variable_directive_arguments
-        JOIN document_variable_directives ON 
+        JOIN document_variable_directives ON
           document_variable_directive_arguments.parent = document_variable_directives.id
         JOIN document_variables ON document_variable_directives.parent = document_variables.id
       WHERE document_variables.document IN %s
@@ -921,7 +921,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
             'id', document_variable_directives.id,
             'name', document_variable_directives.directive,
             'arguments', json(IFNULL(directive_args.arguments, '[]')),
-            'internal', directives.internal 
+            'internal', directives.internal
           )
         ) AS directives
       FROM document_variable_directives
@@ -931,12 +931,12 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       WHERE document_variables.document IN %s
       GROUP BY document_variable_directives.parent
     )
-    SELECT 
+    SELECT
       document_variables.*,
       documents.name AS document_name,
       doc_directives.directives AS directives
-    FROM 
-      document_variables 
+    FROM
+      document_variables
       JOIN documents ON document_variables.document = documents.id
       LEFT JOIN doc_directives ON doc_directives.variable_id = document_variables.id
     WHERE documents.id in %s
@@ -948,7 +948,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 
 	// we also need a query that looks up document-level directives
 	documentDirectives, err := conn.Prepare(fmt.Sprintf(`
-    WITH 
+    WITH
       doc_dir_args AS (
         SELECT
           document_directive_arguments.parent AS directive_id,
@@ -961,7 +961,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         FROM document_directive_arguments
         GROUP BY document_directive_arguments.parent
       )
-    SELECT 
+    SELECT
       dd.id,
       dd.directive,
       dd.row,
@@ -983,12 +983,12 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	// the set of documents
 	possibleTypes, err := conn.Prepare(fmt.Sprintf(`
     SELECT DISTINCT possible_types."type", possible_types."member"
-    FROM possible_types 
+    FROM possible_types
       LEFT JOIN type_fields ON possible_types."type" = type_fields."type"
-      JOIN selections ON selections.type = type_fields.id 
-        OR (selections.kind = 'inline_fragment' 
+      JOIN selections ON selections.type = type_fields.id
+        OR (selections.kind = 'inline_fragment'
             AND (
-              selections.field_name = possible_types."member" 
+              selections.field_name = possible_types."member"
               OR selections.field_name = possible_types."type"
             )
         )
@@ -1003,7 +1003,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	// documents we're interested in
 	inputTypes, err := conn.Prepare(fmt.Sprintf(`
       WITH RECURSIVE
-        -- define our columns (including a “visited” string to track cycles)
+        -- define our columns (including a "visited" string to track cycles)
         argumentTypes(
           parent_type,
           field_name,
@@ -1019,7 +1019,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
             tf.name,                     -- field_name
             tf.type,                     -- field_type
             tf.type_modifiers,           -- type_modifiers
-            'input'     AS kind,         
+            'input'     AS kind,
             '|' || tf.parent || '|'      AS visited_types
           FROM argument_values av
           JOIN type_fields tf
@@ -1032,7 +1032,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           SELECT
             ev.parent,                   -- parent_type
             ev.value    AS field_name,   -- field_name (enum value)
-            NULL        AS field_type,   -- enums don’t have nested fields
+            NULL        AS field_type,   -- enums don't have nested fields
             NULL        AS type_modifiers,
             'enum'      AS kind,
             '|' || ev.parent || '|'      AS visited_types
@@ -1046,16 +1046,16 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           -- ─── recursive step: for each discovered input‐object type, pull its fields ───
           SELECT
             tf.parent,
-            tf.name, 
-            tf.type, 
+            tf.name,
+            tf.type,
             tf.type_modifiers,
             'input'     AS kind,
             at.visited_types
-              || tf.parent || '|'     
+              || tf.parent || '|'
           FROM argumentTypes AS at
           JOIN type_fields tf
             ON tf.parent = at.field_type
-          -- only recurse into types we haven’t seen yet
+          -- only recurse into types we haven't seen yet
           WHERE instr(
             at.visited_types,
             '|' || tf.parent || '|'
@@ -1148,9 +1148,9 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
           JOIN argument_values av ON argument_value_children."value" = av.id
           JOIN documents ON av.document = documents.id
       )
-      SELECT * 
-      FROM all_values 
-      WHERE all_values.root_id IN %s  
+      SELECT *
+      FROM all_values
+      WHERE all_values.root_id IN %s
       ORDER BY all_values.id
     `, whereIn))
 	if err != nil {
@@ -1165,179 +1165,9 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
 	return stmt, nil
 }
 
-type CollectedDocument struct {
-	ID                  int64
-	Name                string
-	Kind                string // "query", "mutation", "subscription", or "fragment"
-	TypeCondition       string
-	Hash                string
-	Variables           []*CollectedOperationVariable
-	Selections          []*CollectedSelection
-	Directives          []*CollectedDirective
-	ReferencedFragments []string
-	UnusedVariables     []string
-}
-
-type CollectedSelection struct {
-	FieldName      string
-	Alias          *string
-	FieldType      string
-	FragmentRef    *string
-	TypeModifiers  *string
-	Kind           string
-	Visible        bool
-	List           *CollectedList
-	Paginated      bool
-	Arguments      []*CollectedArgument
-	Directives     []*CollectedDirective
-	Children       []*CollectedSelection
-	ComponentField *ComponentFieldSpec
-}
-
-type CollectedList struct {
-	Name             string
-	Type             string
-	Connection       bool
-	Paginated        bool
-	SupportsForward  bool
-	SupportsBackward bool
-	PageSize         int
-	Mode             string
-	TargetType       string
-	Embedded         bool
-	CursorType       string
-}
-
-type CollectedOperationVariable struct {
-	Name           string
-	Type           string
-	TypeModifiers  string
-	DefaultValue   *CollectedArgumentValue
-	DefaultValueID *int64
-	Directives     []*CollectedDirective
-}
-
-type CollectedArgument struct {
-	Name       string `json:"name"`
-	ValueID    *int64 `json:"value"`
-	Value      *CollectedArgumentValue
-	Directives []*CollectedDirective
-}
-
-type CollectedDirective struct {
-	Internal  int                  `json:"internal"`
-	Name      string               `json:"name"`
-	Arguments []*CollectedArgument `json:"arguments"`
-}
-
-// func (c *CollectedDirective) Diff(target *CollectedDirective) bool {
-//
-// }
-
-type CollectedArgumentValue struct {
-	Kind     string
-	Raw      string
-	Children []*CollectedArgumentValueChildren
-}
-
-type CollectedArgumentValueChildren struct {
-	Name  string
-	Value *CollectedArgumentValue
-}
-
-type ComponentFieldSpec struct {
-	Prop      string
-	Type      string
-	Field     string
-	Fragment  string
-	Variables map[string]any
-}
-
-type CollectedDocuments struct {
-	TaskDocuments []string
-	Selections    map[string]*CollectedDocument
-	// PossibleTypes maps abtract types to concrete types that implement them
-	PossibleTypes map[string]map[string]bool
-	// Implementations maps concrete types to the abstract types it implements (its the inverse of PossibleTypes)
-	Implementations map[string]map[string]bool
-	// InputTypes holds a description of every field of every type used as an input
-	// for every collected doc
-	InputTypes map[string]map[string]string
-
-	// EnumValues holds a list of enum values for every enum type used as an input
-	EnumValues map[string][]string
-}
-
 type collectResult struct {
-	Documents     []*CollectedDocument
+	Documents     []*Document
 	PossibleTypes map[string][]string
 	InputTypes    map[string]map[string]string
 	EnumValues    map[string][]string
-}
-
-// Clone creates a full, independent copy of a CollectedSelection tree,
-// including all fields: Alias, FragmentRef, TypeModifiers, List, Arguments,
-// Directives, and Children.
-func (s *CollectedSelection) Clone(includeChildren bool) *CollectedSelection {
-	clone := &CollectedSelection{
-		FieldName:      s.FieldName,
-		FieldType:      s.FieldType,
-		Kind:           s.Kind,
-		Visible:        s.Visible,
-		ComponentField: s.ComponentField,
-	}
-
-	// clone pointer fields
-	if s.Alias != nil {
-		alias := *s.Alias
-		clone.Alias = &alias
-	}
-	if s.FragmentRef != nil {
-		frag := *s.FragmentRef
-		clone.FragmentRef = &frag
-	}
-	if s.TypeModifiers != nil {
-		mods := *s.TypeModifiers
-		clone.TypeModifiers = &mods
-	}
-	if s.List != nil {
-		clone.List = s.List
-	}
-	if s.Paginated {
-		clone.Paginated = true
-	}
-
-	// clone Arguments
-	if len(s.Arguments) > 0 {
-		clone.Arguments = make([]*CollectedArgument, len(s.Arguments))
-		for i, arg := range s.Arguments {
-			if arg != nil {
-				argClone := *arg
-				clone.Arguments[i] = &argClone
-			}
-		}
-	}
-
-	// clone Directives
-	if len(s.Directives) > 0 {
-		clone.Directives = make([]*CollectedDirective, len(s.Directives))
-		for i, dir := range s.Directives {
-			if dir != nil {
-				dClone := *dir
-				clone.Directives[i] = &dClone
-			}
-		}
-	}
-
-	// clone Children (handle cycles)
-	if len(s.Children) > 0 && includeChildren {
-		clone.Children = make([]*CollectedSelection, 0, len(s.Children))
-		for _, child := range s.Children {
-			if child != nil {
-				clone.Children = append(clone.Children, child.Clone(includeChildren))
-			}
-		}
-	}
-
-	return clone
 }

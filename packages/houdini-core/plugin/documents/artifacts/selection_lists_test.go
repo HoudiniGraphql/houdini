@@ -225,7 +225,7 @@ func TestListArtifacts(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
 
@@ -465,7 +465,7 @@ func TestListArtifacts(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
 
@@ -709,7 +709,7 @@ func TestListArtifacts(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
 
@@ -998,7 +998,7 @@ func TestListArtifacts(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40"
           `),
@@ -1174,7 +1174,7 @@ func TestListArtifacts(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35"
         `),
@@ -1314,7 +1314,7 @@ func TestListArtifacts(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da"
             `),
@@ -1509,7 +1509,7 @@ func TestListArtifacts(t *testing.T) {
                   "pluginData": {},
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b"
             `),

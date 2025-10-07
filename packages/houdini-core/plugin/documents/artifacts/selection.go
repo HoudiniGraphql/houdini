@@ -13,6 +13,7 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
@@ -24,9 +25,9 @@ func writeSelectionDocument(
 	fs afero.Fs,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	docs *CollectedDocuments,
+	docs *collected.Documents,
 	name string,
-	selection []*CollectedSelection,
+	selection []*collected.Selection,
 	sortKeys bool,
 ) (string, error) {
 	// load the project config
@@ -68,9 +69,9 @@ func GenerateSelectionDocument(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	docs *CollectedDocuments,
+	docs *collected.Documents,
 	name string,
-	selection []*CollectedSelection,
+	selection []*collected.Selection,
 	sortKeys bool,
 ) (string, error) {
 	doc := docs.Selections[name]
@@ -368,7 +369,7 @@ export default {
     "selection": %s,
 
     "pluginData": %s,%s%s%s%s%s%s%s
-}
+} as const
 
 "HoudiniHash=%s"
   `,
@@ -397,7 +398,7 @@ func getDocumentData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	docs *CollectedDocuments,
+	docs *collected.Documents,
 	name string,
 ) (DocumentData, error) {
 	// we need to generate a printed version of the document which is just a concatenated print
@@ -438,10 +439,10 @@ func getDocumentData(
 }
 
 func stringifySelection(
-	docs *CollectedDocuments,
+	docs *collected.Documents,
 	projectConfig plugins.ProjectConfig,
 	parentType string,
-	selections []*CollectedSelection,
+	selections []*collected.Selection,
 	level int,
 	sortKeys bool,
 	flags *ArtifactFlags,
@@ -754,14 +755,14 @@ func stringifySelection(
 %s}`, result, indent)
 }
 
-func keyField(field *CollectedSelection, paginatedMode *string) string {
+func keyField(field *collected.Selection, paginatedMode *string) string {
 	if len(field.Arguments) == 0 {
 		return `"` + *field.Alias + `"`
 	}
 
 	// if we are generating the key for a paginated field then we need to strip away
 	// the pagination arguments
-	args := []*CollectedArgument{}
+	args := []*collected.Argument{}
 	for _, arg := range field.Arguments {
 		paginationArgs := map[string]bool{
 			"first":  true,
@@ -796,9 +797,9 @@ func keyField(field *CollectedSelection, paginatedMode *string) string {
 
 func stringifyFieldSelection(
 	projectConfig plugins.ProjectConfig,
-	docs *CollectedDocuments,
+	docs *collected.Documents,
 	level int,
-	selection *CollectedSelection,
+	selection *collected.Selection,
 	sortKeys bool,
 	flags *ArtifactFlags,
 	parentSelectionFlags *SelectionFlags,
@@ -1143,7 +1144,7 @@ func stringifyFieldSelection(
 	return result
 }
 
-func findUsedTypes(docs *CollectedDocuments, variables []*CollectedOperationVariable) []string {
+func findUsedTypes(docs *collected.Documents, variables []*collected.OperationVariable) []string {
 	// we need a way to ensure we dont find ourselves in cyclic types
 	foundTypes := map[string]bool{}
 
@@ -1186,7 +1187,7 @@ func findUsedTypes(docs *CollectedDocuments, variables []*CollectedOperationVari
 
 func stringifyOperations(
 	projectConfig plugins.ProjectConfig,
-	selection *CollectedSelection,
+	selection *collected.Selection,
 	level int,
 ) string {
 	indent4 := strings.Repeat(spacing, level+3)
@@ -1260,7 +1261,7 @@ func stringifyOperations(
 
 func extractOperation(
 	config plugins.ProjectConfig,
-	selection *CollectedSelection,
+	selection *collected.Selection,
 	fragments bool,
 	level int,
 ) *CollectedOperation {
@@ -1409,7 +1410,7 @@ func stripSuffix(s string, suffix string) string {
 	return s
 }
 
-func serializeFragmentArgument(arg *CollectedArgumentValue, level int) string {
+func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 	indent0 := strings.Repeat(spacing, level)
 	indent1 := strings.Repeat(spacing, level+1)
 	// the first thing we need to do is figure out the kind
@@ -1510,7 +1511,7 @@ const (
 	RefetchMethodOffset RefetchMethod = "offset"
 )
 
-func walkReferencedDocs(docs *CollectedDocuments, start string) map[string]bool {
+func walkReferencedDocs(docs *collected.Documents, start string) map[string]bool {
 	// we need to make sure the printed value has every document thats referenced
 	// which might include cycles so we need a way to track which documents we've already
 	refs := map[string]bool{}

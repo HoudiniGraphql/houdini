@@ -12,6 +12,7 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -19,7 +20,7 @@ func EnsureDocumentsPrinted(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	collectedDocuments *CollectedDocuments,
+	collectedDocuments *collected.Documents,
 	includeHidden bool,
 ) error {
 	// we need to make sure that every document in the current task gets an updated stringified
@@ -73,7 +74,7 @@ func printDocWorker(
 	wg *sync.WaitGroup,
 	docChan <-chan string,
 	errChan chan<- *plugins.Error,
-	collectedDocuments *CollectedDocuments,
+	collectedDocuments *collected.Documents,
 	includeHidden bool,
 ) {
 	// when we're done we need to signal the wait group
@@ -125,7 +126,7 @@ func printDocWorker(
 	}
 }
 
-func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
+func PrintCollectedDocument(doc *collected.Document, includeHidden bool) string {
 	// start building up the string
 
 	// the big constraint here is that we need to scrub any unused variables
@@ -187,7 +188,7 @@ func PrintCollectedDocument(doc *CollectedDocument, includeHidden bool) string {
 }
 
 func printDirectives(
-	directives []*CollectedDirective,
+	directives []*collected.Directive,
 	usedVariables map[string]bool,
 	includeHidden bool,
 ) string {
@@ -216,7 +217,7 @@ func printDirectives(
 
 func printSelectionArguments(
 	level int,
-	args []*CollectedArgument,
+	args []*collected.Argument,
 	usedVariables map[string]bool,
 	includeHidden bool,
 ) string {
@@ -249,7 +250,7 @@ func printSelectionArguments(
 }
 
 func printDocumentVariables(
-	variable *CollectedOperationVariable,
+	variable *collected.OperationVariable,
 	usedVariables map[string]bool,
 	includeHidden bool,
 ) string {
@@ -277,7 +278,7 @@ func printDocumentVariables(
 
 func printSelection(
 	level int,
-	selections []*CollectedSelection,
+	selections []*collected.Selection,
 	usedVariables map[string]bool,
 	includeHidden bool,
 ) string {
@@ -330,7 +331,7 @@ func printSelection(
 	return result
 }
 
-func printValue(value *CollectedArgumentValue, usedVariables map[string]bool) string {
+func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) string {
 	if value == nil {
 		return "null"
 	}

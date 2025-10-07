@@ -3,10 +3,10 @@ package plugin
 import (
 	"context"
 
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 )
 
 func (p *HoudiniCore) GenerateDocuments(ctx context.Context) ([]string, error) {
 	// the first thing to do is generate the artifacts
-	return artifacts.Generate(ctx, p.DB, p.Fs, false)
+	return documents.Generate(ctx, p.DB, p.Fs, false)
 }

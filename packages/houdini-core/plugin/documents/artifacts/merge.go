@@ -7,17 +7,18 @@ import (
 	"slices"
 	"sort"
 
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 )
 
 func FlattenSelection(
 	ctx context.Context,
-	collectedDocuments *CollectedDocuments,
+	collectedDocuments *collected.Documents,
 	name string,
 	defaultMask bool,
 	sortKeys bool,
-) ([]*CollectedSelection, error) {
+) ([]*collected.Selection, error) {
 	// lookup original document
 	doc, ok := collectedDocuments.Selections[name]
 	if !ok {
@@ -41,7 +42,7 @@ func FlattenSelection(
 
 func newFieldCollection(
 	name string,
-	docs *CollectedDocuments,
+	docs *collected.Documents,
 	defaultMask bool,
 	parentType string,
 	sortKeys bool,
@@ -60,16 +61,16 @@ func newFieldCollection(
 
 type fieldCollectionField struct {
 	Visible    bool
-	Field      *CollectedSelection
+	Field      *collected.Selection
 	Selection  *fieldCollection
-	Directives []*CollectedDirective
+	Directives []*collected.Directive
 }
 
 type fieldCollection struct {
 	DocumentName       string
 	SortKeys           bool
 	ParentType         string
-	CollectedDocuments *CollectedDocuments
+	CollectedDocuments *collected.Documents
 	DefaultMask        bool
 
 	Fields          map[string]*fieldCollectionField
@@ -82,9 +83,9 @@ func (c *fieldCollection) Size() int {
 }
 
 func (c *fieldCollection) Add(
-	selection *CollectedSelection,
+	selection *collected.Selection,
 	external bool,
-	visibilityMask []*CollectedSelection,
+	visibilityMask []*collected.Selection,
 ) error {
 	// we need to figur eout if we want to include the selection in the final result
 	hidden := external
@@ -208,7 +209,7 @@ func (c *fieldCollection) Add(
 		}
 
 		// the fragment spread represents a new parent type so treat it like a hidden inline fragment
-		inlineFragment := &CollectedSelection{
+		inlineFragment := &collected.Selection{
 			Kind:      "inline_fragment",
 			FieldName: definition.TypeCondition,
 			FieldType: definition.TypeCondition,
@@ -224,9 +225,9 @@ func (c *fieldCollection) Add(
 }
 
 func (c *fieldCollection) WalkInlineFragment(
-	selection *CollectedSelection,
+	selection *collected.Selection,
 	hidden bool,
-	visibilityMask []*CollectedSelection,
+	visibilityMask []*collected.Selection,
 ) error {
 	// if we haven't seen the inline fragment yet then add it
 	if _, ok := c.InlineFragments[selection.FieldName]; !ok {
@@ -246,7 +247,7 @@ func (c *fieldCollection) WalkInlineFragment(
 	for _, child := range selection.Children {
 		switch child.Kind {
 		case "field":
-			var mask []*CollectedSelection
+			var mask []*collected.Selection
 			if visibilityMask != nil {
 				for _, field := range visibilityMask {
 					if field.Alias != nil && *field.Alias == child.FieldName {
@@ -281,7 +282,7 @@ func (c *fieldCollection) WalkInlineFragment(
 			if frag, ok := c.InlineFragments[abstractType]; ok {
 				// add every child field to the concrete inline fragment
 				for _, child := range frag.Field.Children {
-					var mask []*CollectedSelection
+					var mask []*collected.Selection
 					for _, field := range visibilityMask {
 						if field.Alias != nil && *field.Alias == child.FieldName {
 							mask = field.Children
@@ -322,7 +323,7 @@ func (c *fieldCollection) WalkInlineFragment(
 						_, ok := c.InlineFragments[concreteType]
 						if !ok {
 							c.InlineFragments[concreteType] = &fieldCollectionField{
-								Field: &CollectedSelection{
+								Field: &collected.Selection{
 									Kind:      "inline_fragment",
 									FieldName: concreteType,
 									Children:  frag.Field.Children,
@@ -352,7 +353,7 @@ func (c *fieldCollection) WalkInlineFragment(
 			if _, ok := c.InlineFragments[concreteType]; ok {
 				// add every child field to the concrete inline fragment
 				for _, child := range selection.Children {
-					var mask []*CollectedSelection
+					var mask []*collected.Selection
 					for _, field := range visibilityMask {
 						if field.Alias != nil && *field.Alias == child.FieldName {
 							mask = field.Children
@@ -373,7 +374,7 @@ func (c *fieldCollection) WalkInlineFragment(
 
 	// also if there is a concrete selection already present we want to include that in the inline framgment
 	for _, field := range c.Fields {
-		var mask []*CollectedSelection
+		var mask []*collected.Selection
 		if visibilityMask != nil {
 			for _, field := range visibilityMask {
 				if field.Alias != nil && *field.Alias == field.FieldName {
@@ -391,8 +392,8 @@ func (c *fieldCollection) WalkInlineFragment(
 	return nil
 }
 
-func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
-	result := []*CollectedSelection{}
+func (c *fieldCollection) ToSelectionSet() []*collected.Selection {
+	result := []*collected.Selection{}
 
 	// if we aren't supposed to sort the keys just add everything
 	if !c.SortKeys {
@@ -474,7 +475,7 @@ func (c *fieldCollection) ToSelectionSet() []*CollectedSelection {
 
 // helper to decide if two directives are “equal”
 // (you can expand this to also compare argument values, etc.)
-func sameDirective(a, b *CollectedDirective) bool {
+func sameDirective(a, b *collected.Directive) bool {
 	if a.Name != b.Name {
 		return false
 	}
@@ -491,7 +492,7 @@ func sameDirective(a, b *CollectedDirective) bool {
 }
 
 // returns true if dir is already in the slice
-func containsDirective(list []*CollectedDirective, dir *CollectedDirective) bool {
+func containsDirective(list []*collected.Directive, dir *collected.Directive) bool {
 	for _, existing := range list {
 		if sameDirective(existing, dir) {
 			return true

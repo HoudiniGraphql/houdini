@@ -1,4 +1,4 @@
-package artifacts
+package documents
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/afero"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -29,13 +31,13 @@ func Generate(
 	}
 
 	// the first thing we need to do is collect the definitions of all of the necessary documents
-	collected, err := CollectDocuments(ctx, db, conn, sortKeys)
+	collected, err := collected.CollectDocuments(ctx, db, conn, sortKeys)
 	if err != nil {
 		return nil, err
 	}
 
 	//  make sure that the documents are printed
-	err = EnsureDocumentsPrinted(ctx, db, conn, collected, false)
+	err = artifacts.EnsureDocumentsPrinted(ctx, db, conn, collected, false)
 	if err != nil {
 		return nil, err
 	}
@@ -52,5 +54,5 @@ func Generate(
 	}
 
 	// we now have everything we need to generate the document artifacts
-	return GenerateDocumentArtifacts(ctx, db, conn, collected, fs, sortKeys)
+	return artifacts.GenerateDocumentArtifacts(ctx, db, conn, collected, fs, sortKeys)
 }

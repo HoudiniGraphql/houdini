@@ -10,6 +10,7 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -17,7 +18,7 @@ func GenerateDocumentArtifacts(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
-	collectedDefinitions *CollectedDocuments,
+	collectedDefinitions *collected.Documents,
 	fs afero.Fs,
 	sortKeys bool,
 ) ([]string, error) {
@@ -93,11 +94,8 @@ func GenerateDocumentArtifacts(
 
 				filepaths.Append(fp)
 
-				// generate the artifacts for this document
-				fp, err = generateTypescriptDefinition(collectedDefinitions, name, selection)
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					continue
+				if fp != "" {
+					filepaths.Append(fp)
 				}
 			}
 		}()

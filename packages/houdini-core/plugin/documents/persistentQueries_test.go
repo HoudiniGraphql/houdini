@@ -175,7 +175,7 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 				)
 
 				operationName := matches[1]
-				artifactPath := path.Join(artifactDir, operationName+".js")
+				artifactPath := path.Join(artifactDir, operationName+".ts")
 
 				// Read the artifact file
 				exists, err := afero.Exists(p.Fs, artifactPath)

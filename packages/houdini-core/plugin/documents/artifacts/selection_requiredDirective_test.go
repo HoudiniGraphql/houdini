@@ -262,7 +262,7 @@ func TestRequiredDirective(t *testing.T) {
 
                   "policy": "CacheOrNetwork",
                   "partial": false
-              }
+              } as const
 
               "HoudiniHash=49d37523ee0a68c5e0ab528c947fb122c6a50e5efc79555d84155747aad3b518"
           `),

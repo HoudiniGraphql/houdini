@@ -11,6 +11,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -76,7 +77,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 				defer p.DB.Put(conn)
 
 				// the first thing we have to do is collect the artifacts.
-				collected, err := artifacts.CollectDocuments(context.Background(), p.DB, conn, true)
+				collected, err := collected.CollectDocuments(context.Background(), p.DB, conn, true)
 				require.Nil(t, err)
 
 				// print the document we found

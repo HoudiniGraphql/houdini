@@ -10,6 +10,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -83,7 +84,7 @@ func TestMergeSelections(t *testing.T) {
 				defer p.DB.Put(conn)
 
 				// the first thing we have to do is collect the artifacts.
-				collectedDocs, err := artifacts.CollectDocuments(
+				collectedDocs, err := collected.CollectDocuments(
 					context.Background(),
 					p.DB,
 					conn,

@@ -120,7 +120,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6"
 
@@ -233,7 +233,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
 
@@ -359,7 +359,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"
 
@@ -478,7 +478,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
 
@@ -597,7 +597,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
 
@@ -719,7 +719,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
 
@@ -846,7 +846,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"
 
@@ -938,7 +938,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 
                   "pluginData": {},
                   "optimisticKeys": true
-              }
+              } as const
 
               "HoudiniHash=8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32"
 		`),
@@ -1051,7 +1051,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
    		    `),
@@ -1157,7 +1157,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"
    		    `),
@@ -1270,7 +1270,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
    		    `),
@@ -1396,7 +1396,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=2a2d7cbe16d4430cd3c817bc3f5ea605fadb3a84bf2574a15413322cc513da88"
    		    `),
@@ -1512,7 +1512,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
    		    `),
@@ -1627,7 +1627,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
    		    `),
@@ -1732,7 +1732,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"
    		    `),
@@ -1810,7 +1810,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
 		`),
@@ -1902,7 +1902,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
 		`),
@@ -1994,7 +1994,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
 		`),
@@ -2111,7 +2111,7 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                   },
 
                   "pluginData": {},
-              }
+              } as const
 
               "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
 
