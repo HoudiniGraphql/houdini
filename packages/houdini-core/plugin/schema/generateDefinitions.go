@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -99,6 +100,7 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 				SELECT name, type, type_modifiers, default_value
 				FROM directive_arguments
 				WHERE parent = $directive
+				ORDER BY name
 			`, map[string]any{"directive": name}, func(stmt *sqlite.Stmt) {
 			arg := &argument{
 				Name:          stmt.ColumnText(0),
@@ -123,6 +125,7 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 				SELECT location
 				FROM directive_locations
 				WHERE directive = $directive
+				ORDER BY location
 			`, map[string]any{"directive": name}, func(stmt *sqlite.Stmt) {
 			location := stmt.ColumnText(0)
 			directive.Locations = append(directive.Locations, location)
@@ -179,6 +182,8 @@ func generateSchemaFile(ctx context.Context, db plugins.DatabasePool[config.Plug
 	for typeName := range customTypes {
 		enumNames = append(enumNames, typeName)
 	}
+	// sort enum names for deterministic output
+	sort.Strings(enumNames)
 	for _, typeName := range enumNames {
 
 		enumValues := []enumValue{}

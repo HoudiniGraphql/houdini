@@ -3,6 +3,7 @@ package runtimeScalars
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -38,10 +39,13 @@ func TransformVariables[PluginConfig any](
 	}
 
 	// we need a list of all the runtime scalars
-	runtimeScalars := ""
+	var runtimeScalarsBuilder strings.Builder
 	for scalar := range projectConfig.RuntimeScalars {
-		runtimeScalars += `'` + scalar + `',`
+		runtimeScalarsBuilder.WriteRune('\'')
+		runtimeScalarsBuilder.WriteString(scalar)
+		runtimeScalarsBuilder.WriteString("',")
 	}
+	runtimeScalars := runtimeScalarsBuilder.String()
 	if runtimeScalars == "" {
 		runtimeScalars = ","
 	}

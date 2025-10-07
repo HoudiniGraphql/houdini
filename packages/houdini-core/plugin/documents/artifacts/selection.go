@@ -421,15 +421,17 @@ func getDocumentData(
 	}
 	defer query.Finalize()
 
+	var printedBuilder strings.Builder
 	err = db.StepStatement(ctx, query, func() {
-		d.Printed += query.GetText("printed") + "\n\n"
+		printedBuilder.WriteString(query.GetText("printed"))
+		printedBuilder.WriteString("\n\n")
 	})
 	if err != nil {
 		return d, err
 	}
 
 	// strip the trailing newlines
-	d.Printed = strings.TrimSpace(d.Printed)
+	d.Printed = strings.TrimSpace(printedBuilder.String())
 
 	// compute hash based on the complete printed content (including dependencies)
 	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
@@ -1213,7 +1215,7 @@ func stringifyOperations(
 	}
 
 	// we might need to look for operationString
-	operationString := ""
+	var operationStringBuilder strings.Builder
 	// look for fragments on the field for any indications of an operation
 	for _, operation := range operations {
 		list := ""
@@ -1250,19 +1252,20 @@ func stringifyOperations(
 %s"parentID": %s`, indent5, operation.ParentID)
 		}
 
-		operationString += fmt.Sprintf(`{
+		fmt.Fprintf(&operationStringBuilder, `{
 %s"action": "%s"%s%s%s%s%s%s
 %s},
 `, indent5, operation.Action, list, typ, position, target, when, parentID, indent4)
 
 	}
-	if operationString != "" {
-		operationString = fmt.Sprintf(`
+	if operationStringBuilder.Len() > 0 {
+		operationStr := operationStringBuilder.String()
+		return fmt.Sprintf(`
 
-%s"operations": [%s],`, indent4, operationString[:len(operationString)-2])
+%s"operations": [%s],`, indent4, operationStr[:len(operationStr)-2])
 	}
 
-	return operationString
+	return ""
 }
 
 func extractOperation(

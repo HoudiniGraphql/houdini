@@ -138,9 +138,12 @@ directive @componentField(field: String, prop: String) on FIELD_DEFINITION | FRA
 """@runtimeScalar is used to register a scalar with the runtime"""
 directive @__houdini__runtimeScalar(type: String!) on QUERY
 
-enum PaginateMode {
-  Infinite
-  SinglePage
+enum CachePolicy {
+  CacheAndNetwork
+  CacheOnly
+  CacheOrNetwork
+  NetworkOnly
+  NoCache
 }
 
 enum DedupeMatchMode {
@@ -149,12 +152,9 @@ enum DedupeMatchMode {
   Variables
 }
 
-enum CachePolicy {
-  CacheAndNetwork
-  CacheOnly
-  CacheOrNetwork
-  NetworkOnly
-  NoCache
+enum PaginateMode {
+  Infinite
+  SinglePage
 }
 
 `,
