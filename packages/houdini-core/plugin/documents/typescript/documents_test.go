@@ -17,8 +17,13 @@ func TestTypescriptGeneration(t *testing.T) {
 				}
 
 				type Query {
-								"""Get a user."""
-					user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
+					"""Get a user."""
+					user(
+						id: ID, 
+						filter: UserFilter, 
+						filterList: [UserFilter!], 
+						enumArg: MyEnum
+					): User
 					users(
 						filter: UserFilter,
 						list: [UserFilter!]!,
@@ -89,18 +94,18 @@ func TestTypescriptGeneration(t *testing.T) {
 					name: String!
 				}
 
-						"""A user in the system"""
+				"""A user in the system"""
 				type User implements Node {
 					id: ID!
 
-								"""The user's first name"""
+					"""The user's first name"""
 					firstName(pattern: String): String!
-								"""The user's first name"""
-								firstname: String! @deprecated(reason: "Use firstName instead")
+					"""The user's first name"""
+					firstname: String! @deprecated(reason: "Use firstName instead")
 					nickname: String
 					parent: User
 					friends: [User]
-								"""An enum value"""
+					"""An enum value"""
 					enumValue: MyEnum
 
 					admin: Boolean
@@ -121,7 +126,9 @@ func TestTypescriptGeneration(t *testing.T) {
 					`,
 					`
 						fragment otherInfo on User {
-								enumValue, age, firstname
+								enumValue 
+								age 
+								firstname
 						}
 					`,
 				},
@@ -159,6 +166,35 @@ func TestTypescriptGeneration(t *testing.T) {
 							export type TestQuery$input = null;
 
 							export type TestQuery$artifact = artifact
+					`),
+					"otherInfo": tests.Dedent(`
+							import { MyEnum } from "$houdini/graphql/enums";
+							import type { ValueOf } from "$houdini/runtime/lib/types";
+							export type otherInfo$input = {};
+
+							import artifact from './otherInfo'
+
+							export type otherInfo = {
+									readonly "shape"?: otherInfo$data;
+									readonly " $fragments": {
+											"otherInfo": any;
+									};
+							};
+
+							export type otherInfo$data = {
+									/**
+									 * An enum value
+									*/
+									readonly enumValue: ValueOf<typeof MyEnum> | null;
+									readonly age: number | null;
+									/**
+									 * The user's first name
+									 * @deprecated Use firstName instead
+									*/
+									readonly firstname: string;
+							};
+
+							export type otherInfo$artifact = artifact
 					`),
 				},
 			},
