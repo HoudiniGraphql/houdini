@@ -255,7 +255,15 @@ func runFullGeneration(
 	p.DB.SetProjectConfig(projectConfig)
 
 	// Use the REAL generation function instead of manual steps
+	// First generate documents/artifacts to ensure hashing is done
 	_, err = p.GenerateDocuments(context.Background())
+	if err != nil {
+		require.False(t, test.Pass, err.Error())
+		return nil, err
+	}
+
+	// Then generate runtime which includes persistent queries
+	_, err = p.GenerateRuntime(context.Background())
 	if err != nil {
 		require.False(t, test.Pass, err.Error())
 		return nil, err

@@ -356,7 +356,13 @@ func runFullGeneration(ctx context.Context, p *plugin.HoudiniCore) error {
 	projectConfig.PersistedQueriesPath = "./dummy-queries.json"
 	p.DB.SetProjectConfig(projectConfig)
 
+	// Generate documents first to create fragments, then runtime for schema definitions
 	_, err = p.GenerateDocuments(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.GenerateRuntime(ctx)
 
 	projectConfig.PersistedQueriesPath = originalPath
 	p.DB.SetProjectConfig(projectConfig)
