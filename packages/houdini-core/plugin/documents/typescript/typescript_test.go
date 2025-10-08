@@ -175,7 +175,7 @@ func TestConvertScalarType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := typescript.ConvertScalarType(config, tt.typeName)
+			result := typescript.ConvertScalarType(config, tt.typeName, false)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -345,6 +345,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 				tt.kind,
 				tt.typeName,
 				tt.typeModifiers,
+				false, // isInput = false for these tests
 			)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
@@ -565,7 +566,7 @@ func TestConvertScalarType_WithRuntimeScalars(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := typescript.ConvertScalarType(config, tt.typeName)
+			result := typescript.ConvertScalarType(config, tt.typeName, false)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -661,6 +662,7 @@ func TestConvertToTypeScriptType_WithRuntimeScalars(t *testing.T) {
 				tt.kind,
 				tt.typeName,
 				tt.typeModifiers,
+				false, // isInput = false for these tests
 			)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
@@ -720,7 +722,7 @@ func TestConvertScalarType_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := typescript.ConvertScalarType(tt.config, tt.typeName)
+			result := typescript.ConvertScalarType(tt.config, tt.typeName, false)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

@@ -14,11 +14,12 @@ func ConvertToTypeScriptType(
 	db plugins.DatabasePool[config.PluginConfig],
 	config plugins.ProjectConfig,
 	kind, typeName, typeModifiers string,
+	isInput bool,
 ) (string, error) {
 	var baseType string
 	switch kind {
 	case "SCALAR":
-		baseType = ConvertScalarType(config, typeName)
+		baseType = ConvertScalarType(config, typeName, isInput)
 	case "ENUM":
 		baseType = fmt.Sprintf("ValueOf<typeof %s>", typeName)
 	case "INPUT":
@@ -86,11 +87,11 @@ func IsOptionalField(typeModifiers string) bool {
 	return !strings.HasSuffix(typeModifiers, "!")
 }
 
-func ConvertScalarType(config plugins.ProjectConfig, typeName string) string {
-	return convertScalarTypeWithVisited(config, typeName, make(map[string]bool))
+func ConvertScalarType(config plugins.ProjectConfig, typeName string, isInput bool) string {
+	return convertScalarTypeWithVisited(config, typeName, isInput, make(map[string]bool))
 }
 
-func convertScalarTypeWithVisited(config plugins.ProjectConfig, typeName string, visited map[string]bool) string {
+func convertScalarTypeWithVisited(config plugins.ProjectConfig, typeName string, isInput bool, visited map[string]bool) string {
 	// Check for cycles to prevent infinite recursion
 	if visited[typeName] {
 		return "any" // Fallback for circular references
@@ -106,12 +107,17 @@ func convertScalarTypeWithVisited(config plugins.ProjectConfig, typeName string,
 			return "any"
 		}
 		// Recursively convert the runtime scalar's equivalent type
-		return convertScalarTypeWithVisited(config, runtimeType, visited)
+		return convertScalarTypeWithVisited(config, runtimeType, isInput, visited)
 	}
 
 	// Then check built-in GraphQL scalars
 	switch typeName {
-	case "String", "ID":
+	case "String":
+		return "string"
+	case "ID":
+		if isInput {
+			return "string | number"
+		}
 		return "string"
 	case "Int", "Float":
 		return "number"

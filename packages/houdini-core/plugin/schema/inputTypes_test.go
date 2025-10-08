@@ -15,9 +15,18 @@ import (
 func TestInputTypeDefinitions(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig]{
 		Schema: `
-				enum MyEnum { 
+				enum MyEnum {
 					Value1
 					Value2
+				}
+				enum Status {
+					ACTIVE
+					INACTIVE
+				}
+				enum Priority {
+					HIGH
+					MEDIUM
+					LOW
 				}
 				input UserFilter {
 					middle: NestedUserFilter
@@ -34,10 +43,22 @@ func TestInputTypeDefinitions(t *testing.T) {
 					age: Int
 					weight: Float
 				}
+
+				input TaskFilter {
+					status: Status
+					priority: Priority
+					backupStatus: Status
+				}
+
+				input SimpleFilter {
+					name: String
+					age: Int
+					active: Boolean
+				}
     `,
 		Tests: []tests.Test[config.PluginConfig]{
 			{
-				Name: "happy path",
+				Name: "generates input type definitions with enum import deduplication",
 				Pass: true,
 			},
 		},
@@ -49,14 +70,28 @@ func TestInputTypeDefinitions(t *testing.T) {
 			targetPath := path.Join(config.DefinitionsDirectory(), "inputs.d.ts")
 
 			expected := tests.Dedent(`
-				type ValuesOf<T> = T[keyof T];
+				import { MyEnum, Priority, Status } from './enums.js';
+
+				type ValueOf<T> = T[keyof T];
 
 				export type NestedUserFilter = {
 				    admin?: boolean | null | undefined;
 				    age?: number | null | undefined;
 				    firstName: string;
-				    id: string;
+				    id: string | number;
 				    weight?: number | null | undefined;
+				};
+
+				export type SimpleFilter = {
+				    active?: boolean | null | undefined;
+				    age?: number | null | undefined;
+				    name?: string | null | undefined;
+				};
+
+				export type TaskFilter = {
+				    backupStatus?: ValueOf<typeof Status> | null | undefined;
+				    priority?: ValueOf<typeof Priority> | null | undefined;
+				    status?: ValueOf<typeof Status> | null | undefined;
 				};
 
 				export type UserFilter = {
@@ -75,3 +110,5 @@ func TestInputTypeDefinitions(t *testing.T) {
 		},
 	})
 }
+
+

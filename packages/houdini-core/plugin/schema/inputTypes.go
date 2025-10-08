@@ -29,8 +29,9 @@ func generateInputTypeDefinitions(
 
 	// we are going to generate type definitions for all of the input types in the schema
 	var content strings.Builder
-	// start off with the value of type
-	content.WriteString("type ValuesOf<T> = T[keyof T];\n\n")
+
+	// track enum types that are referenced by input fields to generate imports
+	referencedEnums := make(map[string]bool)
 
 	// build up a map of input types to their fields
 	inputTypesWithFields := make(map[string][]InputField)
@@ -77,6 +78,11 @@ func generateInputTypeDefinitions(
 		content.WriteString(fmt.Sprintf("export type %s = {\n", typeName))
 
 		for _, field := range fields {
+			// collect enum references for import generation
+			if field.Kind == "ENUM" {
+				referencedEnums[field.Type] = true
+			}
+
 			tsType, err := typescript.ConvertToTypeScriptType(
 				ctx,
 				db,
@@ -84,6 +90,7 @@ func generateInputTypeDefinitions(
 				field.Kind,
 				field.Type,
 				field.TypeModifiers,
+				true, // isInput = true for input type definitions
 			)
 			if err != nil {
 				return err
@@ -105,9 +112,38 @@ func generateInputTypeDefinitions(
 		}
 	}
 
+	// build the final file content with imports at the top
+	var finalContent strings.Builder
+
+	// generate import statements for referenced enums
+	if len(referencedEnums) > 0 {
+		// collect enum names and sort them for deterministic output
+		enumNames := make([]string, 0, len(referencedEnums))
+		for enumName := range referencedEnums {
+			enumNames = append(enumNames, enumName)
+		}
+		sort.Strings(enumNames)
+
+		// generate import statement
+		finalContent.WriteString("import { ")
+		for i, enumName := range enumNames {
+			if i > 0 {
+				finalContent.WriteString(", ")
+			}
+			finalContent.WriteString(enumName)
+		}
+		finalContent.WriteString(" } from './enums.js';\n\n")
+	}
+
+	// add the ValueOf type definition
+	finalContent.WriteString("type ValueOf<T> = T[keyof T];\n\n")
+
+	// add the generated type definitions
+	finalContent.WriteString(content.String())
+
 	// write the content to the file
 	targetPath := path.Join(config.DefinitionsDirectory(), "inputs.d.ts")
-	return afero.WriteFile(fs, targetPath, []byte(content.String()), 0o644)
+	return afero.WriteFile(fs, targetPath, []byte(finalContent.String()), 0o644)
 }
 
 type InputType struct {

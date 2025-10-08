@@ -448,6 +448,7 @@ func generateIdFields(
 			"",
 			field.Type,
 			field.TypeModifiers,
+			false, // isInput = false for cache key fields
 		)
 		if err != nil {
 			return "", err
@@ -590,7 +591,7 @@ func generateFieldType(
 	var baseType string
 	switch typeInfo.Kind {
 	case "SCALAR":
-		baseType = typescript.ConvertScalarType(config, field.Type)
+		baseType = typescript.ConvertScalarType(config, field.Type, false) // isInput = false for cache field types
 	case "ENUM":
 		baseType = field.Type
 	case "OBJECT":
@@ -661,6 +662,7 @@ func generateFieldArguments(
 			"",
 			arg.Type,
 			arg.TypeModifiers,
+			true, // isInput = true for field arguments (these are inputs to GraphQL operations)
 		)
 		if err != nil {
 			return "", err
