@@ -879,8 +879,9 @@ func generateListFiltersFromData(args []FieldArgument) string {
 
 	var argStrings []string
 	for _, arg := range args {
-		// Convert to TypeScript type (we'll need to handle this without db access)
-		tsType := convertToTypeScriptTypeSimple(arg.Type, arg.TypeModifiers)
+		// Convert to TypeScript type using the exported function
+		baseType := typescript.ConvertScalarType(plugins.ProjectConfig{}, arg.Type, false)
+		tsType := typescript.ApplyTypeModifiers(baseType, arg.TypeModifiers)
 
 		// All filter arguments are optional
 		argStrings = append(argStrings, fmt.Sprintf("\n\t\t\t\t\t%s?: %s;", arg.Name, tsType))
@@ -889,25 +890,7 @@ func generateListFiltersFromData(args []FieldArgument) string {
 	return fmt.Sprintf("{%s\n\t\t\t\t}", strings.Join(argStrings, ""))
 }
 
-// Simplified type conversion that doesn't require database access
-func convertToTypeScriptTypeSimple(typeName, typeModifiers string) string {
-	var baseType string
-	switch typeName {
-	case "String", "ID":
-		baseType = "string"
-	case "Int", "Float":
-		baseType = "number"
-	case "Boolean":
-		baseType = "boolean"
-	default:
-		// For complex types, we'll use the type name directly
-		// This handles input types and enums
-		baseType = typeName
-	}
 
-	// Apply type modifiers
-	return typescript.ApplyTypeModifiers(baseType, typeModifiers)
-}
 
 func generateQueriesSection(
 	ctx context.Context,

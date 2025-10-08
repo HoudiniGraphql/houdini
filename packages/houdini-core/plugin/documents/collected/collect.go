@@ -242,6 +242,12 @@ func collectDoc(
 					alias = &aliasValue
 				}
 
+				var description *string
+				if !statements.Search.IsNull("description") {
+					descValue := statements.Search.GetText("description")
+					description = &descValue
+				}
+
 				// create the collected selection from the information we have
 				selection := &Selection{
 					FieldName:     fieldName,
@@ -249,6 +255,7 @@ func collectDoc(
 					TypeModifiers: typeModifiers,
 					Alias:         alias,
 					Kind:          kind,
+					Description:   description,
 				}
 
 				if fragmentRef != "" {
@@ -780,6 +787,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           type_fields.type_modifiers,
           selections.alias,
           selections.kind,
+          type_fields.description,
           d.id AS document_id,
           d.name AS document_name,
           d.kind AS document_kind,
@@ -824,6 +832,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           type_fields.type_modifiers,
           selections.alias,
           selections.kind,
+          type_fields.description,
           st.document_id AS document_id,
           st.document_name AS document_name,
           st.kind AS document_kind,
@@ -865,6 +874,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       fragment_ref,
       type_modifiers,
       alias,
+      description,
       arguments,
       directives,
       parent_id,

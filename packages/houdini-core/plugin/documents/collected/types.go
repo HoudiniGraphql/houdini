@@ -22,6 +22,7 @@ type Selection struct {
 	FragmentRef    *string
 	TypeModifiers  *string
 	Kind           string
+	Description    *string
 	Visible        bool
 	List           *List
 	Paginated      bool

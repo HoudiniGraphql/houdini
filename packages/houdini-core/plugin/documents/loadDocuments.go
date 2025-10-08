@@ -961,6 +961,7 @@ func processSelection[PluginConfig any](
 		if s.Alias != "" {
 			statements.InsertSelection.BindText(2, s.Alias)
 		}
+
 		if err := db.ExecStatement(statements.InsertSelection, map[string]any{
 			"field_name": s.Name,
 			"kind":       "field",

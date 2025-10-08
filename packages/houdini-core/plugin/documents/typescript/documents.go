@@ -14,9 +14,9 @@ import (
 
 // DocumentContext holds document-specific state that was previously stored in global variables
 type DocumentContext struct {
-	Name                string
-	HasLoading          bool
-	HasComplexFields    bool
+	Name             string
+	HasLoading       bool
+	HasComplexFields bool
 }
 
 func GenerateDocumentTypeDefs(
@@ -90,7 +90,13 @@ func generateDocumentTypeDef(
 		if needsEnumImport {
 			enumTypes := getEnumTypes(collectedDocs, doc)
 			if len(enumTypes) > 0 {
-				imports = append(imports, fmt.Sprintf(`import { %s } from "$houdini/graphql/enums";`, strings.Join(enumTypes, ", ")))
+				imports = append(
+					imports,
+					fmt.Sprintf(
+						`import { %s } from "$houdini/graphql/enums";`,
+						strings.Join(enumTypes, ", "),
+					),
+				)
 			}
 		}
 		if needsValueOfImport {
@@ -227,7 +233,10 @@ func hasEnumFields(collectedDocs *collected.Documents, doc *collected.Document) 
 	return false
 }
 
-func checkSelectionsForEnums(collectedDocs *collected.Documents, selections []*collected.Selection) bool {
+func checkSelectionsForEnums(
+	collectedDocs *collected.Documents,
+	selections []*collected.Selection,
+) bool {
 	for _, sel := range selections {
 		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
 			return true
@@ -291,7 +300,11 @@ func getInputTypes(collectedDocs *collected.Documents, doc *collected.Document) 
 }
 
 // Helper function to collect enum types from selections recursively
-func collectEnumTypesFromSelections(collectedDocs *collected.Documents, selections []*collected.Selection, enumTypes map[string]bool) {
+func collectEnumTypesFromSelections(
+	collectedDocs *collected.Documents,
+	selections []*collected.Selection,
+	enumTypes map[string]bool,
+) {
 	for _, sel := range selections {
 		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
 			enumTypes[sel.FieldType] = true
@@ -301,8 +314,6 @@ func collectEnumTypesFromSelections(collectedDocs *collected.Documents, selectio
 		}
 	}
 }
-
-
 
 func generateFragmentTypes(
 	ctx context.Context,
@@ -319,7 +330,11 @@ func generateFragmentTypes(
 	if len(doc.Variables) > 0 {
 		var inputFields []string
 		for _, variable := range doc.Variables {
-			tsType := convertToTypeScriptTypeSimple(variable.Type, &variable.TypeModifiers, collectedDocs)
+			tsType := convertToTypeScriptTypeSimple(
+				variable.Type,
+				&variable.TypeModifiers,
+				collectedDocs,
+			)
 			optional := ""
 			if !strings.HasSuffix(variable.TypeModifiers, "!") {
 				optional = "?"
@@ -458,7 +473,11 @@ func generateOperationTypes(
 	if len(doc.Variables) > 0 {
 		var inputFields []string
 		for _, variable := range doc.Variables {
-			tsType := convertToTypeScriptTypeSimple(variable.Type, &variable.TypeModifiers, collectedDocs)
+			tsType := convertToTypeScriptTypeSimple(
+				variable.Type,
+				&variable.TypeModifiers,
+				collectedDocs,
+			)
 			optional := ""
 			if !strings.HasSuffix(variable.TypeModifiers, "!") {
 				optional = "?"
@@ -481,7 +500,16 @@ func generateOperationTypes(
 
 	// Generate optimistic type for mutations
 	if doc.Kind == "mutation" {
-		optimisticType, _ := generateOptimisticType(ctx, db, projectConfig, doc.Selections, true, 0, docCtx, collectedDocs)
+		optimisticType, _ := generateOptimisticType(
+			ctx,
+			db,
+			projectConfig,
+			doc.Selections,
+			true,
+			0,
+			docCtx,
+			collectedDocs,
+		)
 		types = append(
 			types,
 			fmt.Sprintf("export type %s = %s;", optimisticTypeName, optimisticType),
@@ -628,10 +656,10 @@ func generateSelectionType(
 			readonlyPrefix = "readonly "
 		}
 
-		// Add JSDoc comment if this is a documented field
+		// Add JSDoc comment if this field has a description
 		var fieldDef string
 		indent := strings.Repeat("\t", indentLevel+1)
-		if shouldAddFieldComment(selection) {
+		if selection.Description != nil && *selection.Description != "" {
 			comment := getFieldCommentWithIndent(selection, indentLevel+1)
 			fieldDef = fmt.Sprintf(
 				"%s%s\n%s%s%s: %s;",
@@ -717,7 +745,13 @@ func generateInterfaceUnionType(
 	}
 
 	// Add a non-exhaustive case
-	unionParts = append(unionParts, fmt.Sprintf("({\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})", readonlyPrefix))
+	unionParts = append(
+		unionParts,
+		fmt.Sprintf(
+			"({\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
+			readonlyPrefix,
+		),
+	)
 
 	// Create the union type
 	unionType := fmt.Sprintf("{} & (%s)", strings.Join(unionParts, " | "))
@@ -746,8 +780,6 @@ func hasAnyLoadingDirectives(selections []*collected.Selection) bool {
 	}
 	return false
 }
-
-
 
 func hasParentField(selections []*collected.Selection) bool {
 	for _, selection := range selections {
@@ -845,8 +877,8 @@ func generateOptimisticType(
 			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs)
 		}
 
-		// Add JSDoc comment if needed
-		if shouldAddFieldComment(selection) {
+		// Add JSDoc comment if this field has a description
+		if selection.Description != nil && *selection.Description != "" {
 			comment := getFieldCommentWithIndent(selection, indentLevel+1)
 			fields = append(fields, comment)
 		}
@@ -1075,8 +1107,8 @@ func generateLoadingStateType(
 			}
 		}
 
-		// Add JSDoc comment if needed
-		if shouldAddFieldComment(selection) {
+		// Add JSDoc comment if this field has a description
+		if selection.Description != nil && *selection.Description != "" {
 			comment := getFieldCommentWithIndent(selection, indentLevel+1)
 			fields = append(fields, comment)
 		}
@@ -1113,80 +1145,56 @@ func generateLoadingStateType(
 	return fmt.Sprintf("{\n%s\n%s}", strings.Join(fields, "\n"), closingIndent), nil
 }
 
-
-
-func shouldAddFieldComment(selection *collected.Selection) bool {
-	// For now, don't add field comments since we don't have description data in collected.Selection
-	// In a real implementation, this would check if the field has documentation in the schema
-	return false
-}
-
-// convertToTypeScriptTypeSimple converts GraphQL types to TypeScript without requiring database access
-func convertToTypeScriptTypeSimple(typeName string, typeModifiers *string, collectedDocs *collected.Documents) string {
+// convertToTypeScriptTypeSimple converts GraphQL types to TypeScript using the exported functions
+func convertToTypeScriptTypeSimple(
+	typeName string,
+	typeModifiers *string,
+	collectedDocs *collected.Documents,
+) string {
 	var baseType string
+	var kind string
 
 	// Check if it's an enum type
 	if _, isEnum := collectedDocs.EnumValues[typeName]; isEnum {
-		baseType = fmt.Sprintf("ValueOf<typeof %s>", typeName)
+		kind = "ENUM"
 	} else {
 		// Handle scalar and input types
 		switch typeName {
-		case "String", "ID":
-			baseType = "string"
-		case "Int", "Float":
-			baseType = "number"
-		case "Boolean":
-			baseType = "boolean"
+		case "String", "ID", "Int", "Float", "Boolean":
+			kind = "SCALAR"
 		default:
-			// For input types and unknown types, use the type name directly
-			baseType = typeName
+			// For input types and unknown types
+			kind = "INPUT"
 		}
 	}
 
-	// Apply type modifiers (nullability and arrays)
+	// Use the exported ConvertScalarType function for scalars
+	if kind == "SCALAR" {
+		baseType = ConvertScalarType(plugins.ProjectConfig{}, typeName, false)
+	} else if kind == "ENUM" {
+		baseType = fmt.Sprintf("ValueOf<typeof %s>", typeName)
+	} else {
+		baseType = typeName
+	}
+
+	// Apply type modifiers using the exported function
+	modifiers := ""
 	if typeModifiers != nil {
-		return applyTypeModifiers(baseType, *typeModifiers)
+		modifiers = *typeModifiers
 	}
 
-	return baseType
-}
-
-// applyTypeModifiers applies GraphQL type modifiers to a TypeScript base type
-func applyTypeModifiers(baseType, typeModifiers string) string {
-	result := baseType
-
-	// Process type modifiers from right to left
-	// Example: "[String!]!" becomes "string[]"
-	for i := len(typeModifiers) - 1; i >= 0; i-- {
-		char := typeModifiers[i]
-		switch char {
-		case '!':
-			// Non-null modifier - doesn't change the type, just removes nullability
-			continue
-		case ']':
-			// End of array - wrap in array type
-			result = fmt.Sprintf("(%s)[]", result)
-		case '[':
-			// Start of array - add nullability if not followed by !
-			if i+1 < len(typeModifiers) && typeModifiers[i+1] != '!' {
-				result = result + " | null"
-			}
-		}
-	}
-
-	// Add nullability to the root type if it's not non-null
-	if !strings.HasSuffix(typeModifiers, "!") {
-		result = result + " | null"
-	}
-
-	return result
+	return ApplyTypeModifiers(baseType, modifiers)
 }
 
 func getFieldCommentWithIndent(selection *collected.Selection, indentLevel int) string {
 	indent := strings.Repeat("\t", indentLevel)
 
-	// For now, just use the field name since we don't have description data
-	// In a real implementation, this would use the actual field description from the schema
+	// Use the actual field description from the schema if available
+	if selection.Description != nil && *selection.Description != "" {
+		return fmt.Sprintf("%s/** %s */", indent, *selection.Description)
+	}
+
+	// Fallback to field name if no description is available
 	return fmt.Sprintf("%s/** %s */", indent, selection.FieldName)
 }
 
@@ -1202,22 +1210,3 @@ func isKeyFieldName(fieldName string) bool {
 	}
 	return keyFieldNames[fieldName]
 }
-
-// Helper function to determine if a field is likely an auto-added key field that should be skipped
-func isLikelyAutoAddedKeyField(selection *collected.Selection, docCtx *DocumentContext, explicitFieldCount, indentLevel int, onlyFragments bool) bool {
-	if !isKeyFieldName(selection.FieldName) {
-		return false
-	}
-
-	// Skip key fields in specific cases when they appear to be auto-added
-	return (!docCtx.HasLoading && explicitFieldCount <= 3) || onlyFragments
-}
-
-func isExplicitlyRequested(selection *collected.Selection) bool {
-	// Heuristic: if the selection has many siblings, the id field is likely explicitly requested
-	// This is not perfect but works for the test cases
-	// In a real implementation, we'd need to track which fields were explicitly requested vs auto-added
-	return true // For now, include id fields - we'll refine this later
-}
-
-
