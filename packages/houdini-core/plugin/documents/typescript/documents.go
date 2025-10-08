@@ -3,6 +3,7 @@ package typescript
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -34,14 +35,30 @@ func GenerateDocumentTypeDefs(
 		return nil, err
 	}
 
+	// Look up actual root type names from the schema
+	rootTypes, err := getRootTypeNames(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
 	// Process each document
 	for _, doc := range collectedDefinitions.Selections {
 		if doc == nil {
 			continue
 		}
 
+		// Calculate root type name once per document
+		rootTypeName := getRootTypeName(doc, rootTypes)
+
 		// Generate TypeScript type definitions for this document
-		typeDef, err := generateDocumentTypeDef(ctx, db, projectConfig, doc, collectedDefinitions)
+		typeDef, err := generateDocumentTypeDef(
+			ctx,
+			db,
+			projectConfig,
+			rootTypeName,
+			doc,
+			collectedDefinitions,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -63,6 +80,7 @@ func generateDocumentTypeDef(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	projectConfig plugins.ProjectConfig,
+	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
 ) (string, error) {
@@ -110,7 +128,15 @@ func generateDocumentTypeDef(
 		}
 
 		// Generate fragment types
-		fragmentTypes := generateFragmentTypes(ctx, db, projectConfig, doc, docCtx, collectedDocs)
+		fragmentTypes := generateFragmentTypes(
+			ctx,
+			db,
+			projectConfig,
+			rootTypeName,
+			doc,
+			docCtx,
+			collectedDocs,
+		)
 
 		// Add input type first
 		typeDefinitions = append(typeDefinitions, fragmentTypes[0])
@@ -143,7 +169,7 @@ func generateDocumentTypeDef(
 			}
 		}
 
-		typeDefinitions = append(typeDefinitions, generateOperationTypes(ctx, db, projectConfig, doc, docCtx, collectedDocs)...)
+		typeDefinitions = append(typeDefinitions, generateOperationTypes(ctx, db, projectConfig, rootTypeName, doc, docCtx, collectedDocs)...)
 	}
 
 	// Add artifact type
@@ -319,6 +345,7 @@ func generateFragmentTypes(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	projectConfig plugins.ProjectConfig,
+	rootTypeName string,
 	doc *collected.Document,
 	docCtx *DocumentContext,
 	collectedDocs *collected.Documents,
@@ -374,6 +401,7 @@ func generateFragmentTypes(
 			doc.Selections,
 			true,
 			0,
+			rootTypeName,
 			docCtx,
 			collectedDocs,
 		)
@@ -385,7 +413,7 @@ func generateFragmentTypes(
 			doc.Selections,
 			true,
 			0,
-			"",
+			rootTypeName,
 			hasGlobalLoading,
 			docCtx,
 			collectedDocs,
@@ -394,7 +422,7 @@ func generateFragmentTypes(
 		types = append(types, fmt.Sprintf("export type %s = %s;", dataTypeName, dataType))
 	} else {
 		// Generate normal single type
-		dataType, _ := generateSelectionType(ctx, db, projectConfig, doc.Selections, true, 0, docCtx, collectedDocs)
+		dataType, _ := generateSelectionType(ctx, db, projectConfig, doc.Selections, true, 0, rootTypeName, docCtx, collectedDocs)
 		types = append(types, fmt.Sprintf("export type %s = %s;", dataTypeName, dataType))
 	}
 
@@ -405,6 +433,7 @@ func generateOperationTypes(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	projectConfig plugins.ProjectConfig,
+	rootTypeName string,
 	doc *collected.Document,
 	docCtx *DocumentContext,
 	collectedDocs *collected.Documents,
@@ -445,6 +474,7 @@ func generateOperationTypes(
 			doc.Selections,
 			true,
 			0,
+			rootTypeName,
 			docCtx,
 			collectedDocs,
 		)
@@ -456,7 +486,7 @@ func generateOperationTypes(
 			doc.Selections,
 			true,
 			0,
-			"",
+			rootTypeName,
 			hasGlobalLoading,
 			docCtx,
 			collectedDocs,
@@ -465,7 +495,7 @@ func generateOperationTypes(
 		types = append(types, fmt.Sprintf("export type %s = %s;", resultTypeName, resultType))
 	} else {
 		// Generate normal single type
-		resultType, _ := generateSelectionType(ctx, db, projectConfig, doc.Selections, true, 0, docCtx, collectedDocs)
+		resultType, _ := generateSelectionType(ctx, db, projectConfig, doc.Selections, true, 0, rootTypeName, docCtx, collectedDocs)
 		types = append(types, fmt.Sprintf("export type %s = %s;", resultTypeName, resultType))
 	}
 
@@ -507,6 +537,7 @@ func generateOperationTypes(
 			doc.Selections,
 			true,
 			0,
+			rootTypeName,
 			docCtx,
 			collectedDocs,
 		)
@@ -526,6 +557,7 @@ func generateSelectionType(
 	selections []*collected.Selection,
 	readonly bool,
 	indentLevel int,
+	parentType string,
 	docCtx *DocumentContext,
 	collectedDocs *collected.Documents,
 ) (string, error) {
@@ -562,7 +594,7 @@ func generateSelectionType(
 
 		// For non-fragment fields, check if they would be skipped
 		// Use a preliminary check that doesn't depend on explicitFieldCount
-		isKeyField := isKeyFieldName(sel.FieldName)
+		isKeyField := isKeyFieldName(parentType, sel.FieldName, projectConfig)
 		wouldBeSkipped := isKeyField && (!docCtx.HasLoading || fragmentCount > 0)
 
 		if !wouldBeSkipped {
@@ -626,7 +658,7 @@ func generateSelectionType(
 				fieldType = generateInterfaceUnionType(selection, readonly, collectedDocs)
 			} else {
 				// Regular nested object type
-				childType, childErr := generateSelectionType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, docCtx, collectedDocs)
+				childType, childErr := generateSelectionType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldType, docCtx, collectedDocs)
 				if childErr != nil {
 					return "", childErr
 				}
@@ -660,7 +692,7 @@ func generateSelectionType(
 		var fieldDef string
 		indent := strings.Repeat("\t", indentLevel+1)
 		if selection.Description != nil && *selection.Description != "" {
-			comment := getFieldCommentWithIndent(selection, indentLevel+1)
+			comment := fieldComment(selection, indentLevel+1)
 			fieldDef = fmt.Sprintf(
 				"%s%s\n%s%s%s: %s;",
 				indent,
@@ -810,6 +842,7 @@ func generateOptimisticType(
 	selections []*collected.Selection,
 	readonly bool,
 	indentLevel int,
+	parentType string,
 	docCtx *DocumentContext,
 	collectedDocs *collected.Documents,
 ) (string, error) {
@@ -823,7 +856,16 @@ func generateOptimisticType(
 	// First pass: determine which fields will actually be visible
 	var visibleSelections []*collected.Selection
 	explicitFieldCount := 0
+	fragmentCount := 0
 
+	// Count fragments first
+	for _, sel := range selections {
+		if sel.Kind == "fragment" {
+			fragmentCount++
+		}
+	}
+
+	// Count explicit fields that would be visible (excluding key fields that would be auto-skipped)
 	for _, sel := range selections {
 		if sel.Kind == "fragment" {
 			visibleSelections = append(visibleSelections, sel)
@@ -831,7 +873,7 @@ func generateOptimisticType(
 		}
 
 		// For non-fragment fields, check if they would be skipped
-		isKeyField := isKeyFieldName(sel.FieldName)
+		isKeyField := isKeyFieldName(parentType, sel.FieldName, projectConfig)
 		wouldBeSkipped := isKeyField && !docCtx.HasLoading
 
 		if !wouldBeSkipped {
@@ -867,7 +909,7 @@ func generateOptimisticType(
 			fieldType = generateInterfaceUnionType(selection, readonly, collectedDocs)
 		} else if len(selection.Children) > 0 {
 			// Regular nested object type
-			childType, childErr := generateOptimisticType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, docCtx, collectedDocs)
+			childType, childErr := generateOptimisticType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldType, docCtx, collectedDocs)
 			if childErr != nil {
 				return "", childErr
 			}
@@ -879,7 +921,7 @@ func generateOptimisticType(
 
 		// Add JSDoc comment if this field has a description
 		if selection.Description != nil && *selection.Description != "" {
-			comment := getFieldCommentWithIndent(selection, indentLevel+1)
+			comment := fieldComment(selection, indentLevel+1)
 			fields = append(fields, comment)
 		}
 
@@ -920,7 +962,7 @@ func generateLoadingStateType(
 	selections []*collected.Selection,
 	readonly bool,
 	indentLevel int,
-	parentField string,
+	parentType string,
 	hasGlobalLoading bool,
 	docCtx *DocumentContext,
 	collectedDocs *collected.Documents,
@@ -946,7 +988,7 @@ func generateLoadingStateType(
 		}
 
 		// For non-fragment fields, check if they would be skipped
-		isKeyField := isKeyFieldName(sel.FieldName)
+		isKeyField := isKeyFieldName(parentType, sel.FieldName, projectConfig)
 		wouldBeSkipped := isKeyField && (!docCtx.HasLoading || fragmentCount > 0)
 
 		if !wouldBeSkipped {
@@ -1051,7 +1093,7 @@ func generateLoadingStateType(
 						selection.Children,
 						readonly,
 						indentLevel+1,
-						selection.FieldName,
+						selection.FieldType,
 						hasGlobalLoading,
 						docCtx,
 						collectedDocs,
@@ -1069,7 +1111,7 @@ func generateLoadingStateType(
 
 				} else if hasAnyLoadingDirectives(selection.Children) {
 					// Field with @loading directive that has children with loading - generate nested loading structure
-					childType, childErr := generateLoadingStateType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldName, hasGlobalLoading, docCtx, collectedDocs)
+					childType, childErr := generateLoadingStateType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldType, hasGlobalLoading, docCtx, collectedDocs)
 					if childErr != nil {
 						return "", childErr
 					}
@@ -1096,7 +1138,7 @@ func generateLoadingStateType(
 			// Field without @loading directive is omitted in loading state, unless it has children with @loading
 			if len(selection.Children) > 0 && hasAnyLoadingDirectives(selection.Children) {
 				// Nested object with loading children - generate loading state for children
-				childType, childErr := generateLoadingStateType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldName, hasGlobalLoading, docCtx, collectedDocs)
+				childType, childErr := generateLoadingStateType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldType, hasGlobalLoading, docCtx, collectedDocs)
 				if childErr != nil {
 					return "", childErr
 				}
@@ -1109,7 +1151,7 @@ func generateLoadingStateType(
 
 		// Add JSDoc comment if this field has a description
 		if selection.Description != nil && *selection.Description != "" {
-			comment := getFieldCommentWithIndent(selection, indentLevel+1)
+			comment := fieldComment(selection, indentLevel+1)
 			fields = append(fields, comment)
 		}
 
@@ -1186,7 +1228,62 @@ func convertToTypeScriptTypeSimple(
 	return ApplyTypeModifiers(baseType, modifiers)
 }
 
-func getFieldCommentWithIndent(selection *collected.Selection, indentLevel int) string {
+// RootTypeNames holds the actual root type names from the schema
+type RootTypeNames struct {
+	Query        string
+	Mutation     string
+	Subscription string
+}
+
+// Helper function to look up actual root type names from the schema
+func getRootTypeNames(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (*RootTypeNames, error) {
+	rootTypes := &RootTypeNames{}
+
+	// Look up the actual root type names from the types table
+	err := db.StepQuery(ctx, `
+		SELECT name, operation
+		FROM types
+		WHERE operation IN ('query', 'mutation', 'subscription')
+	`, map[string]any{}, func(stmt *sqlite.Stmt) {
+		typeName := stmt.ColumnText(0)
+		operation := stmt.ColumnText(1)
+
+		switch operation {
+		case "query":
+			rootTypes.Query = typeName
+		case "mutation":
+			rootTypes.Mutation = typeName
+		case "subscription":
+			rootTypes.Subscription = typeName
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return rootTypes, nil
+}
+
+// Helper function to determine the root type name for a document
+func getRootTypeName(doc *collected.Document, rootTypes *RootTypeNames) string {
+	switch doc.Kind {
+	case "query":
+		return rootTypes.Query
+	case "mutation":
+		return rootTypes.Mutation
+	case "subscription":
+		return rootTypes.Subscription
+	case "fragment":
+		return doc.TypeCondition
+	default:
+		return rootTypes.Query // fallback
+	}
+}
+
+func fieldComment(selection *collected.Selection, indentLevel int) string {
 	indent := strings.Repeat("\t", indentLevel)
 
 	// Use the actual field description from the schema if available
@@ -1198,15 +1295,30 @@ func getFieldCommentWithIndent(selection *collected.Selection, indentLevel int) 
 	return fmt.Sprintf("%s/** %s */", indent, selection.FieldName)
 }
 
-// Helper function to check if a field name is a key field
-func isKeyFieldName(fieldName string) bool {
-	keyFieldNames := map[string]bool{
-		"id":       true,
-		"_id":      true,
-		"uuid":     true,
-		"key":      true,
-		"nodeId":   true,
-		"globalId": true,
+// Helper function to check if a field name is a key field for a specific type
+func isKeyFieldName(
+	typeName string,
+	fieldName string,
+	projectConfig plugins.ProjectConfig,
+) bool {
+	// Get key fields for this type using ProjectConfig
+	keyFields := getKeyFieldsForType(typeName, projectConfig)
+
+	// Check if the field name is in the list of key fields
+	return slices.Contains(keyFields, fieldName)
+}
+
+// Helper function to get key fields for a type using ProjectConfig (similar to keyFieldsForType in runtime)
+func getKeyFieldsForType(
+	typeName string,
+	projectConfig plugins.ProjectConfig,
+) []string {
+	// First try to get type-specific keys from ProjectConfig.TypeConfig
+	if typeConfig, exists := projectConfig.TypeConfig[typeName]; exists &&
+		len(typeConfig.Keys) > 0 {
+		return typeConfig.Keys
 	}
-	return keyFieldNames[fieldName]
+
+	// If no type-specific keys found, use default keys from project config
+	return projectConfig.DefaultKeys
 }
