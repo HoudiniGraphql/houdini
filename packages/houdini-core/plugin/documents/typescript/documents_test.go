@@ -987,6 +987,38 @@ func TestTypescriptGeneration(t *testing.T) {
 					`),
 				},
 			},
+			{
+				Name: "explicit __typename field",
+				Input: []string{
+					`
+						query UserQuery {
+							user(id: "123") {
+								__typename
+								firstName
+							}
+						}
+					`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UserQuery": tests.Dedent(`
+						import type artifact from './UserQuery'
+
+						export type UserQuery = {
+							readonly "result": UserQuery$result | undefined;
+						};
+
+						export type UserQuery$result = {
+							readonly user: {
+								readonly __typename: string;
+								readonly firstName: string;
+							} | null;
+						};
+
+						export type UserQuery$artifact = typeof artifact
+					`),
+				},
+			},
 		},
 	})
 }
