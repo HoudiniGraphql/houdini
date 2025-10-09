@@ -9,15 +9,15 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
+	"code.houdinigraphql.com/plugins/schema"
 	"github.com/spf13/afero"
 	"zombiezen.com/go/sqlite"
 )
 
 // DocumentContext holds document-specific state that was previously stored in global variables
 type DocumentContext struct {
-	Name             string
-	HasLoading       bool
-	HasComplexFields bool
+	Name       string
+	HasLoading bool
 }
 
 func GenerateDocumentTypeDefs(
@@ -86,8 +86,7 @@ func generateDocumentTypeDef(
 ) (string, error) {
 	// Create document context to pass state instead of using global variables
 	docCtx := &DocumentContext{
-		Name:             doc.Name,
-		HasComplexFields: hasParentField(doc.Selections),
+		Name: doc.Name,
 	}
 	hasFieldLoading := hasAnyLoadingDirectives(doc.Selections)
 	hasGlobalLoading := hasDocumentLevelLoading(doc)
@@ -247,25 +246,27 @@ func generateDocumentTypeDef(
 
 func hasEnumFields(collectedDocs *collected.Documents, doc *collected.Document) bool {
 	// Check if any selections reference enum types
-	var checkSelectionsForEnums func([]*collected.Selection) bool
-	checkSelectionsForEnums = func(selections []*collected.Selection) bool {
-		for _, sel := range selections {
-			if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
-				return true
-			}
-			if checkSelectionsForEnums(sel.Children) {
-				return true
-			}
-		}
-		return false
-	}
-
-	if checkSelectionsForEnums(doc.Selections) {
+	if checkSelectionsForEnums(collectedDocs, doc.Selections) {
 		return true
 	}
 	// Also check variables for enum types
 	for _, variable := range doc.Variables {
 		if _, exists := collectedDocs.EnumValues[variable.Type]; exists {
+			return true
+		}
+	}
+	return false
+}
+
+func checkSelectionsForEnums(
+	collectedDocs *collected.Documents,
+	selections []*collected.Selection,
+) bool {
+	for _, sel := range selections {
+		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
+			return true
+		}
+		if checkSelectionsForEnums(collectedDocs, sel.Children) {
 			return true
 		}
 	}
@@ -287,18 +288,7 @@ func getEnumTypes(collectedDocs *collected.Documents, doc *collected.Document) [
 	enumTypes := make(map[string]bool)
 
 	// Check selections
-	var collectEnumTypesFromSelections func([]*collected.Selection)
-	collectEnumTypesFromSelections = func(selections []*collected.Selection) {
-		for _, sel := range selections {
-			if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
-				enumTypes[sel.FieldType] = true
-			}
-			if len(sel.Children) > 0 {
-				collectEnumTypesFromSelections(sel.Children)
-			}
-		}
-	}
-	collectEnumTypesFromSelections(doc.Selections)
+	collectEnumTypesFromSelections(collectedDocs, doc.Selections, enumTypes)
 
 	// Check variables
 	for _, variable := range doc.Variables {
@@ -313,6 +303,22 @@ func getEnumTypes(collectedDocs *collected.Documents, doc *collected.Document) [
 		result = append(result, enumType)
 	}
 	return result
+}
+
+// Helper function to collect enum types from selections recursively
+func collectEnumTypesFromSelections(
+	collectedDocs *collected.Documents,
+	selections []*collected.Selection,
+	enumTypes map[string]bool,
+) {
+	for _, sel := range selections {
+		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
+			enumTypes[sel.FieldType] = true
+		}
+		if len(sel.Children) > 0 {
+			collectEnumTypesFromSelections(collectedDocs, sel.Children, enumTypes)
+		}
+	}
 }
 
 // Helper function to get all input types used in a document
@@ -617,7 +623,7 @@ func generateSelectionType(
 		// Check if this field has @loading directive (for future use)
 		hasLoadingDirective := false
 		for _, directive := range selection.Directives {
-			if directive.Name == "loading" {
+			if directive.Name == schema.LoadingDirective {
 				hasLoadingDirective = true
 				break
 			}
@@ -650,7 +656,12 @@ func generateSelectionType(
 		if len(selection.Children) > 0 {
 			if hasInlineFragments {
 				// Interface/Union type - generate union with discriminators
-				fieldType = generateInterfaceUnionType(selection, readonly, collectedDocs)
+				fieldType = generateInterfaceUnionType(
+					selection,
+					readonly,
+					collectedDocs,
+					projectConfig,
+				)
 			} else {
 				// Regular nested object type
 				childType, childErr := generateSelectionType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldType, docCtx, collectedDocs)
@@ -734,6 +745,7 @@ func generateInterfaceUnionType(
 	selection *collected.Selection,
 	readonly bool,
 	collectedDocs *collected.Documents,
+	projectConfig plugins.ProjectConfig,
 ) string {
 	readonlyPrefix := ""
 	if readonly {
@@ -759,26 +771,41 @@ func generateInterfaceUnionType(
 		// Build the type literal for this possible type
 		var fields []string
 
-		// Add a generic key field (we'll use "id" as default since we don't have key field info in collected data)
-		// In a real implementation, this would come from the schema configuration
-		fields = append(fields, fmt.Sprintf("\t\t%sid: string;", readonlyPrefix))
+		// Generate fields from the actual selection children for this concrete type
+		// We need to filter selections that apply to this specific type
+		for _, child := range selection.Children {
+			if child.Kind == "field" {
+				// Regular field - include it for all types
+				fieldType := convertToTypeScriptTypeSimple(
+					child.FieldType,
+					child.TypeModifiers,
+					collectedDocs,
+					projectConfig,
+				)
+				fields = append(fields, fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, child.FieldName, fieldType))
+			} else if child.Kind == "inline_fragment" && child.FieldName == typeName {
+				// Inline fragment specific to this type - include its fields
+				for _, fragmentChild := range child.Children {
+					if fragmentChild.Kind == "field" {
+						fieldType := convertToTypeScriptTypeSimple(
+							fragmentChild.FieldType,
+							fragmentChild.TypeModifiers,
+							collectedDocs,
+							projectConfig,
+						)
+						fields = append(fields, fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, fragmentChild.FieldName, fieldType))
+					}
+				}
+			}
+		}
 
-		// Add __typename field
+		// Always add __typename field for discrimination
 		fields = append(fields, fmt.Sprintf("\t\t%s__typename: \"%s\";", readonlyPrefix, typeName))
 
 		// Create the type literal
-		unionPart := fmt.Sprintf("({\n%s\n\t})", strings.Join(fields, "\n"))
-		unionParts = append(unionParts, unionPart)
+		typeLiteral := fmt.Sprintf("({\n%s\n\t})", strings.Join(fields, "\n"))
+		unionParts = append(unionParts, typeLiteral)
 	}
-
-	// Add a non-exhaustive case
-	unionParts = append(
-		unionParts,
-		fmt.Sprintf(
-			"({\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
-			readonlyPrefix,
-		),
-	)
 
 	// Create the union type
 	unionType := fmt.Sprintf("{} & (%s)", strings.Join(unionParts, " | "))
@@ -796,7 +823,7 @@ func hasAnyLoadingDirectives(selections []*collected.Selection) bool {
 	for _, selection := range selections {
 		// Check if this field has @loading directive
 		for _, directive := range selection.Directives {
-			if directive.Name == "loading" {
+			if directive.Name == schema.LoadingDirective {
 				return true
 			}
 		}
@@ -808,22 +835,10 @@ func hasAnyLoadingDirectives(selections []*collected.Selection) bool {
 	return false
 }
 
-func hasParentField(selections []*collected.Selection) bool {
-	for _, selection := range selections {
-		if selection.FieldName == "parent" {
-			return true
-		}
-		if len(selection.Children) > 0 && hasParentField(selection.Children) {
-			return true
-		}
-	}
-	return false
-}
-
 func hasDocumentLevelLoading(doc *collected.Document) bool {
 	// Check if the document has @loading directive at the document level
 	for _, directive := range doc.Directives {
-		if directive.Name == "loading" {
+		if directive.Name == schema.LoadingDirective {
 			return true
 		}
 	}
@@ -901,7 +916,12 @@ func generateOptimisticType(
 
 		if hasInlineFragments {
 			// Generate union type for interface/union fields
-			fieldType = generateInterfaceUnionType(selection, readonly, collectedDocs)
+			fieldType = generateInterfaceUnionType(
+				selection,
+				readonly,
+				collectedDocs,
+				projectConfig,
+			)
 		} else if len(selection.Children) > 0 {
 			// Regular nested object type
 			childType, childErr := generateOptimisticType(ctx, db, projectConfig, selection.Children, readonly, indentLevel+1, selection.FieldType, docCtx, collectedDocs)
@@ -1004,7 +1024,7 @@ func generateLoadingStateType(
 			hasFragmentLoading := hasGlobalLoading // Global loading treats all fragments as having @loading
 			if !hasFragmentLoading {
 				for _, directive := range selection.Directives {
-					if directive.Name == "loading" {
+					if directive.Name == schema.LoadingDirective {
 						hasFragmentLoading = true
 						break
 					}
@@ -1037,7 +1057,7 @@ func generateLoadingStateType(
 		// Check if this field has @loading directive
 		hasLoading := false
 		for _, directive := range selection.Directives {
-			if directive.Name == "loading" {
+			if directive.Name == schema.LoadingDirective {
 				hasLoading = true
 				break
 			}
@@ -1055,7 +1075,7 @@ func generateLoadingStateType(
 						childHasLoading := hasGlobalLoading // Global loading treats all fragments as having @loading
 						if !childHasLoading {
 							for _, directive := range child.Directives {
-								if directive.Name == "loading" {
+								if directive.Name == schema.LoadingDirective {
 									childHasLoading = true
 									break
 								}
@@ -1066,12 +1086,12 @@ func generateLoadingStateType(
 						} else {
 							onlyLoadingFragments = false
 						}
-					} else if child.FieldName != "__typename" && child.FieldName != "id" {
+					} else if child.FieldName != "__typename" && !slices.Contains(projectConfig.DefaultKeys, child.FieldName) {
 						// Explicit field (not auto-added) - this breaks the "only fragments" rule
 						hasExplicitFields = true
 						onlyLoadingFragments = false
 					}
-					// Ignore __typename and id fields as they are auto-added
+					// Ignore __typename and default key fields as they are auto-added
 				}
 
 				// Only consider it "only loading fragments" if we have loading fragments and no explicit fields
@@ -1205,7 +1225,11 @@ func convertToTypeScriptTypeSimple(
 }
 
 // determineTypeKind automatically determines the GraphQL type kind based on collected documents and project config
-func determineTypeKind(typeName string, collectedDocs *collected.Documents, projectConfig plugins.ProjectConfig) string {
+func determineTypeKind(
+	typeName string,
+	collectedDocs *collected.Documents,
+	projectConfig plugins.ProjectConfig,
+) string {
 	if _, isEnum := collectedDocs.EnumValues[typeName]; isEnum {
 		return "ENUM"
 	}

@@ -1,64 +1,38 @@
 package schema
 
-import "fmt"
+// Re-export all constants from the plugins/schema package for backwards compatibility
+import "code.houdinigraphql.com/plugins/schema"
 
-// componentFieldFragmentName returns the name of the fragment that holds the component field information
-func ComponentFieldFragmentName(typ string, field string) string {
-	return fmt.Sprintf("__componentField__%s_%s", typ, field)
-}
+// Re-export the function
+var ComponentFieldFragmentName = schema.ComponentFieldFragmentName
 
-const ComponentScalar = "Component"
+// Re-export all constants
+const ComponentScalar = schema.ComponentScalar
+const ListDirective = schema.ListDirective
+const PaginationDirective = schema.PaginationDirective
+const PrependDirective = schema.PrependDirective
+const AppendDirective = schema.AppendDirective
+const DedupeDirective = schema.DedupeDirective
+const OptimisticKeyDirective = schema.OptimisticKeyDirective
+const AllListsDirective = schema.AllListsDirective
+const ParentIDDirective = schema.ParentIDDirective
+const WhenDirective = schema.WhenDirective
+const WhenNotDirective = schema.WhenNotDirective
+const ArgumentsDirective = schema.ArgumentsDirective
+const WithDirective = schema.WithDirective
+const CacheDirective = schema.CacheDirective
+const EnableMaskDirective = schema.EnableMaskDirective
+const DisableMaskDirective = schema.DisableMaskDirective
+const LoadingDirective = schema.LoadingDirective
+const RequiredDirective = schema.RequiredDirective
+const ComponentFieldDirective = schema.ComponentFieldDirective
+const RuntimeScalarDirective = schema.RuntimeScalarDirective
+const ListOperationSuffixInsert = schema.ListOperationSuffixInsert
+const ListOperationSuffixRemove = schema.ListOperationSuffixRemove
+const ListOperationSuffixToggle = schema.ListOperationSuffixToggle
+const ListOperationSuffixDelete = schema.ListOperationSuffixDelete
+const PaginationModeInfinite = schema.PaginationModeInfinite
+const PaginationModeSinglePage = schema.PaginationModeSinglePage
 
-const ListDirective = "list"
-
-const PaginationDirective = "paginate"
-
-const PrependDirective = "prepend"
-
-const AppendDirective = "append"
-
-const DedupeDirective = "dedupe"
-
-const OptimisticKeyDirective = "optimisticKey"
-
-const AllListsDirective = "allLists"
-
-const ParentIDDirective = "parentID"
-
-const WhenDirective = "when"
-
-const WhenNotDirective = "when_not"
-
-const ArgumentsDirective = "arguments"
-
-const WithDirective = "with"
-
-const CacheDirective = "cache"
-
-const EnableMaskDirective = "mask_enable"
-
-const DisableMaskDirective = "mask_disable"
-
-const LoadingDirective = "loading"
-
-const RequiredDirective = "required"
-
-const ComponentFieldDirective = "componentField"
-
-const RuntimeScalarDirective = "__houdini__runtimeScalar"
-
-const ListOperationSuffixInsert = "_insert"
-
-const ListOperationSuffixRemove = "_remove"
-
-const ListOperationSuffixToggle = "_toggle"
-
-const ListOperationSuffixDelete = "_delete"
-
-const PaginationModeInfinite = "Infinite"
-
-const PaginationModeSinglePage = "SinglePage"
-
-func FragmentPaginationQueryName(fragmentName string) string {
-	return fmt.Sprintf("%s_Pagination_Query", fragmentName)
-}
+// Re-export the function
+var FragmentPaginationQueryName = schema.FragmentPaginationQueryName

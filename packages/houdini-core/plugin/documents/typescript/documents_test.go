@@ -601,6 +601,291 @@ func TestTypescriptGeneration(t *testing.T) {
 				},
 			},
 			{
+				Name: "complex interface with multiple fields",
+				Input: []string{
+					`query ComplexQuery {
+						nodes {
+							id
+							... on User {
+								firstName
+								admin
+								age
+							}
+							... on Cat {
+								kitty
+								names
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"ComplexQuery": tests.Dedent(`
+						import type artifact from './ComplexQuery'
+
+						export type ComplexQuery = {
+							readonly "input": ComplexQuery$input;
+							readonly "result": ComplexQuery$result | undefined;
+						};
+
+						export type ComplexQuery$result = {
+							readonly nodes: ({} & (({
+								readonly id: string;
+								readonly firstName: string;
+								readonly admin: boolean | null | undefined;
+								readonly age: number | null | undefined;
+								readonly __typename: "User";
+							}) | ({
+								readonly id: string;
+								readonly kitty: boolean;
+								readonly names: (string | null | undefined)[];
+								readonly __typename: "Cat";
+							})))[];
+						};
+
+						export type ComplexQuery$input = null;
+
+						export type ComplexQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "union with shared and specific fields",
+				Input: []string{
+					`query UnionQuery {
+						entities {
+							... on User {
+								id
+								firstName
+								admin
+							}
+							... on Cat {
+								id
+								kitty
+								isAnimal
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UnionQuery": tests.Dedent(`
+						import type artifact from './UnionQuery'
+
+						export type UnionQuery = {
+							readonly "input": UnionQuery$input;
+							readonly "result": UnionQuery$result | undefined;
+						};
+
+						export type UnionQuery$result = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly firstName: string;
+								readonly admin: boolean | null | undefined;
+								readonly __typename: "User";
+							}) | ({
+								readonly id: string;
+								readonly kitty: boolean;
+								readonly isAnimal: boolean;
+								readonly __typename: "Cat";
+							})))[] | null;
+						};
+
+						export type UnionQuery$input = null;
+
+						export type UnionQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "interface with shared fields and type-specific fields",
+				Input: []string{
+					`query MixedQuery {
+						nodes {
+							id
+							... on User {
+								id
+								firstName
+							}
+							... on Cat {
+								id
+								kitty
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"MixedQuery": tests.Dedent(`
+						import type artifact from './MixedQuery'
+
+						export type MixedQuery = {
+							readonly "input": MixedQuery$input;
+							readonly "result": MixedQuery$result | undefined;
+						};
+
+						export type MixedQuery$result = {
+							readonly nodes: ({} & (({
+								readonly id: string;
+								readonly firstName: string;
+								readonly __typename: "User";
+							}) | ({
+								readonly id: string;
+								readonly kitty: boolean;
+								readonly __typename: "Cat";
+							})))[];
+						};
+
+						export type MixedQuery$input = null;
+
+						export type MixedQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "abstract and concrete inline fragments merged",
+				Input: []string{
+					`query AbstractConcreteQuery {
+						entities {
+							... on Node {
+								id
+							}
+							... on User {
+								firstName
+								admin
+							}
+							... on Cat {
+								kitty
+								isAnimal
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"AbstractConcreteQuery": tests.Dedent(`
+						import type artifact from './AbstractConcreteQuery'
+
+						export type AbstractConcreteQuery = {
+							readonly "input": AbstractConcreteQuery$input;
+							readonly "result": AbstractConcreteQuery$result | undefined;
+						};
+
+						export type AbstractConcreteQuery$result = {
+							readonly entities: ({} & (({
+								readonly id: string;
+								readonly firstName: string;
+								readonly admin: boolean | null | undefined;
+								readonly __typename: "User";
+							}) | ({
+								readonly id: string;
+								readonly kitty: boolean;
+								readonly isAnimal: boolean;
+								readonly __typename: "Cat";
+							})))[] | null;
+						};
+
+						export type AbstractConcreteQuery$input = null;
+
+						export type AbstractConcreteQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "union with abstract and concrete fragments",
+				Input: []string{
+					`query UnionAbstractQuery {
+						entities {
+							... on Entity {
+								... on User {
+									firstName
+								}
+								... on Cat {
+									kitty
+								}
+							}
+							... on User {
+								admin
+								age
+							}
+							... on Cat {
+								isAnimal
+								names
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"UnionAbstractQuery": tests.Dedent(`
+						import type artifact from './UnionAbstractQuery'
+
+						export type UnionAbstractQuery = {
+							readonly "input": UnionAbstractQuery$input;
+							readonly "result": UnionAbstractQuery$result | undefined;
+						};
+
+						export type UnionAbstractQuery$result = {
+							readonly entities: ({} & (({
+								readonly firstName: string;
+								readonly admin: boolean | null | undefined;
+								readonly age: number | null | undefined;
+								readonly __typename: "User";
+							}) | ({
+								readonly kitty: boolean;
+								readonly isAnimal: boolean;
+								readonly names: (string | null | undefined)[];
+								readonly __typename: "Cat";
+							})))[] | null;
+						};
+
+						export type UnionAbstractQuery$input = null;
+
+						export type UnionAbstractQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
+				Name: "interface fragment with concrete type fragment",
+				Input: []string{
+					`query AnimalCatQuery {
+						entities {
+							... on Animal {
+								isAnimal
+							}
+							... on Cat {
+								kitty
+							}
+						}
+					}`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"AnimalCatQuery": tests.Dedent(`
+						import type artifact from './AnimalCatQuery'
+
+						export type AnimalCatQuery = {
+							readonly "input": AnimalCatQuery$input;
+							readonly "result": AnimalCatQuery$result | undefined;
+						};
+
+						export type AnimalCatQuery$result = {
+							readonly entities: ({} & (({
+								readonly __typename: "User";
+							}) | ({
+								readonly isAnimal: boolean;
+								readonly kitty: boolean;
+								readonly __typename: "Cat";
+							})))[] | null;
+						};
+
+						export type AnimalCatQuery$input = null;
+
+						export type AnimalCatQuery$artifact = typeof artifact
+					`),
+				},
+			},
+			{
 				Name: "mutation with input list",
 				Input: []string{
 					`mutation MyMutation(
