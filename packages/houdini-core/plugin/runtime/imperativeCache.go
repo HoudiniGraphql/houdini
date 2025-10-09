@@ -29,6 +29,16 @@ func GenerateImperativeCacheTypeDefs(
 	// Target file path
 	targetPath := path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "generated.d.ts")
 
+	// Before we generate the content, let's look at the current content
+	existingContent := ""
+	if exists, err := afero.Exists(fs, targetPath); err == nil && exists {
+		existingContentByte, err := afero.ReadFile(fs, targetPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read existing generated.d.ts: %w", err)
+		}
+		existingContent = string(existingContentByte)
+	}
+
 	// Generate the TypeScript content
 	content, err := generateCacheTypeDefContent(ctx, db, projectConfig)
 	if err != nil {
@@ -41,7 +51,12 @@ func GenerateImperativeCacheTypeDefs(
 		return nil, fmt.Errorf("failed to write generated.d.ts: %w", err)
 	}
 
-	return []string{targetPath}, nil
+	// Only return the filepath if the content changed
+	if existingContent != content {
+		return []string{targetPath}, nil
+	}
+
+	return []string{}, nil
 }
 
 func generateCacheTypeDefContent(
