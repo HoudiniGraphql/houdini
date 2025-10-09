@@ -16,20 +16,24 @@ func ConvertToTypeScriptType(
 	kind, typeName, typeModifiers string,
 	isInput bool,
 ) (string, error) {
-	var baseType string
-	switch kind {
-	case "SCALAR":
-		baseType = ConvertScalarType(config, typeName, isInput)
-	case "ENUM":
-		baseType = fmt.Sprintf("ValueOf<typeof %s>", typeName)
-	case "INPUT":
-		baseType = typeName
-	default:
-		baseType = "any"
-	}
-
+	baseType := convertBaseType(kind, typeName, config, isInput)
 	// Apply type modifiers (lists and nullability)
 	return ApplyTypeModifiers(baseType, typeModifiers), nil
+}
+
+// convertBaseType handles the conversion of GraphQL base types to TypeScript base types
+// This shared logic is used by both ConvertToTypeScriptType and convertToTypeScriptTypeSimple
+func convertBaseType(kind, typeName string, config plugins.ProjectConfig, isInput bool) string {
+	switch kind {
+	case "SCALAR":
+		return ConvertScalarType(config, typeName, isInput)
+	case "ENUM":
+		return fmt.Sprintf("ValueOf<typeof %s>", typeName)
+	case "INPUT":
+		return typeName
+	default:
+		return "any"
+	}
 }
 
 func ApplyTypeModifiers(baseType, modifiers string) string {

@@ -247,27 +247,25 @@ func generateDocumentTypeDef(
 
 func hasEnumFields(collectedDocs *collected.Documents, doc *collected.Document) bool {
 	// Check if any selections reference enum types
-	if checkSelectionsForEnums(collectedDocs, doc.Selections) {
+	var checkSelectionsForEnums func([]*collected.Selection) bool
+	checkSelectionsForEnums = func(selections []*collected.Selection) bool {
+		for _, sel := range selections {
+			if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
+				return true
+			}
+			if checkSelectionsForEnums(sel.Children) {
+				return true
+			}
+		}
+		return false
+	}
+
+	if checkSelectionsForEnums(doc.Selections) {
 		return true
 	}
 	// Also check variables for enum types
 	for _, variable := range doc.Variables {
 		if _, exists := collectedDocs.EnumValues[variable.Type]; exists {
-			return true
-		}
-	}
-	return false
-}
-
-func checkSelectionsForEnums(
-	collectedDocs *collected.Documents,
-	selections []*collected.Selection,
-) bool {
-	for _, sel := range selections {
-		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
-			return true
-		}
-		if checkSelectionsForEnums(collectedDocs, sel.Children) {
 			return true
 		}
 	}
@@ -289,7 +287,18 @@ func getEnumTypes(collectedDocs *collected.Documents, doc *collected.Document) [
 	enumTypes := make(map[string]bool)
 
 	// Check selections
-	collectEnumTypesFromSelections(collectedDocs, doc.Selections, enumTypes)
+	var collectEnumTypesFromSelections func([]*collected.Selection)
+	collectEnumTypesFromSelections = func(selections []*collected.Selection) {
+		for _, sel := range selections {
+			if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
+				enumTypes[sel.FieldType] = true
+			}
+			if len(sel.Children) > 0 {
+				collectEnumTypesFromSelections(sel.Children)
+			}
+		}
+	}
+	collectEnumTypesFromSelections(doc.Selections)
 
 	// Check variables
 	for _, variable := range doc.Variables {
@@ -325,22 +334,6 @@ func getInputTypes(collectedDocs *collected.Documents, doc *collected.Document) 
 	return result
 }
 
-// Helper function to collect enum types from selections recursively
-func collectEnumTypesFromSelections(
-	collectedDocs *collected.Documents,
-	selections []*collected.Selection,
-	enumTypes map[string]bool,
-) {
-	for _, sel := range selections {
-		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
-			enumTypes[sel.FieldType] = true
-		}
-		if len(sel.Children) > 0 {
-			collectEnumTypesFromSelections(collectedDocs, sel.Children, enumTypes)
-		}
-	}
-}
-
 func generateFragmentTypes(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -361,6 +354,7 @@ func generateFragmentTypes(
 				variable.Type,
 				&variable.TypeModifiers,
 				collectedDocs,
+				projectConfig,
 			)
 			optional := ""
 			if !strings.HasSuffix(variable.TypeModifiers, "!") {
@@ -507,6 +501,7 @@ func generateOperationTypes(
 				variable.Type,
 				&variable.TypeModifiers,
 				collectedDocs,
+				projectConfig,
 			)
 			optional := ""
 			if !strings.HasSuffix(variable.TypeModifiers, "!") {
@@ -679,7 +674,7 @@ func generateSelectionType(
 			}
 		} else {
 			// Scalar field - use simplified type conversion
-			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs)
+			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs, projectConfig)
 		}
 
 		// Add readonly modifier if needed
@@ -916,7 +911,7 @@ func generateOptimisticType(
 			fieldType = childType
 		} else {
 			// Leaf field - convert the GraphQL type to TypeScript
-			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs)
+			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs, projectConfig)
 		}
 
 		// Add JSDoc comment if this field has a description
@@ -1187,37 +1182,18 @@ func generateLoadingStateType(
 	return fmt.Sprintf("{\n%s\n%s}", strings.Join(fields, "\n"), closingIndent), nil
 }
 
-// convertToTypeScriptTypeSimple converts GraphQL types to TypeScript using the exported functions
+// convertToTypeScriptTypeSimple converts GraphQL types to TypeScript using automatic kind detection
 func convertToTypeScriptTypeSimple(
 	typeName string,
 	typeModifiers *string,
 	collectedDocs *collected.Documents,
+	projectConfig plugins.ProjectConfig,
 ) string {
-	var baseType string
-	var kind string
+	// Determine the kind automatically based on collected documents and project config
+	kind := determineTypeKind(typeName, collectedDocs, projectConfig)
 
-	// Check if it's an enum type
-	if _, isEnum := collectedDocs.EnumValues[typeName]; isEnum {
-		kind = "ENUM"
-	} else {
-		// Handle scalar and input types
-		switch typeName {
-		case "String", "ID", "Int", "Float", "Boolean":
-			kind = "SCALAR"
-		default:
-			// For input types and unknown types
-			kind = "INPUT"
-		}
-	}
-
-	// Use the exported ConvertScalarType function for scalars
-	if kind == "SCALAR" {
-		baseType = ConvertScalarType(plugins.ProjectConfig{}, typeName, false)
-	} else if kind == "ENUM" {
-		baseType = fmt.Sprintf("ValueOf<typeof %s>", typeName)
-	} else {
-		baseType = typeName
-	}
+	// Use the shared base type conversion logic with simple defaults
+	baseType := convertBaseType(kind, typeName, projectConfig, false)
 
 	// Apply type modifiers using the exported function
 	modifiers := ""
@@ -1226,6 +1202,42 @@ func convertToTypeScriptTypeSimple(
 	}
 
 	return ApplyTypeModifiers(baseType, modifiers)
+}
+
+// determineTypeKind automatically determines the GraphQL type kind based on collected documents and project config
+func determineTypeKind(typeName string, collectedDocs *collected.Documents, projectConfig plugins.ProjectConfig) string {
+	if _, isEnum := collectedDocs.EnumValues[typeName]; isEnum {
+		return "ENUM"
+	}
+
+	// Check if it's a scalar type (built-in or custom)
+	if isScalarType(typeName, projectConfig) {
+		return "SCALAR"
+	}
+
+	// Default to INPUT for unknown types
+	return "INPUT"
+}
+
+// isScalarType checks if a type is a scalar (built-in GraphQL scalar or custom scalar)
+func isScalarType(typeName string, projectConfig plugins.ProjectConfig) bool {
+	// Check built-in GraphQL scalars
+	switch typeName {
+	case "String", "ID", "Int", "Float", "Boolean":
+		return true
+	}
+
+	// Check runtime scalars
+	if _, exists := projectConfig.RuntimeScalars[typeName]; exists {
+		return true
+	}
+
+	// Check custom scalars
+	if _, exists := projectConfig.Scalars[typeName]; exists {
+		return true
+	}
+
+	return false
 }
 
 // RootTypeNames holds the actual root type names from the schema
@@ -1302,23 +1314,16 @@ func isKeyFieldName(
 	projectConfig plugins.ProjectConfig,
 ) bool {
 	// Get key fields for this type using ProjectConfig
-	keyFields := getKeyFieldsForType(typeName, projectConfig)
-
-	// Check if the field name is in the list of key fields
-	return slices.Contains(keyFields, fieldName)
-}
-
-// Helper function to get key fields for a type using ProjectConfig (similar to keyFieldsForType in runtime)
-func getKeyFieldsForType(
-	typeName string,
-	projectConfig plugins.ProjectConfig,
-) []string {
+	var keyFields []string
 	// First try to get type-specific keys from ProjectConfig.TypeConfig
 	if typeConfig, exists := projectConfig.TypeConfig[typeName]; exists &&
 		len(typeConfig.Keys) > 0 {
-		return typeConfig.Keys
+		keyFields = typeConfig.Keys
+	} else {
+		// If no type-specific keys found, use default keys from project config
+		keyFields = projectConfig.DefaultKeys
 	}
 
-	// If no type-specific keys found, use default keys from project config
-	return projectConfig.DefaultKeys
+	// Check if the field name is in the list of key fields
+	return slices.Contains(keyFields, fieldName)
 }
