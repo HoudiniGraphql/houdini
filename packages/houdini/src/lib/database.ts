@@ -294,6 +294,7 @@ CREATE TABLE IF NOT EXISTS selection_refs (
     document INTEGER NOT NULL,
 	row INTEGER NOT NULL,
 	column INTEGER NOT NULL,
+	internal BOOLEAN NOT NULL DEFAULT false,
     FOREIGN KEY (parent_id) REFERENCES selections(id) ON DELETE CASCADE,
     FOREIGN KEY (child_id) REFERENCES selections(id) ON DELETE CASCADE,
     FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE

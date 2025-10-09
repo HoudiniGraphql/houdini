@@ -1158,6 +1158,7 @@ func processSelection[PluginConfig any](
 		"document":   operationID,
 		"row":        line,
 		"column":     column,
+		"internal":   false,
 	}); err != nil {
 		return &plugins.Error{
 			Message: "could not store selection ref",

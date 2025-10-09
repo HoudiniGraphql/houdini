@@ -127,7 +127,7 @@ func AddDocumentFields[PluginConfig any](
 	}
 	defer insertSelection.Finalize()
 	insertSelectionRef, err := conn.Prepare(
-		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)",
+		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index, $internal)",
 	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -167,6 +167,7 @@ func AddDocumentFields[PluginConfig any](
 			"row":        0,
 			"column":     0,
 			"path_index": 0,
+			"internal":   true,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -257,6 +258,7 @@ func AddDocumentFields[PluginConfig any](
 				"row":        0,
 				"column":     0,
 				"path_index": 0,
+				"internal":   true,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -272,6 +274,7 @@ func AddDocumentFields[PluginConfig any](
 			"row":        0,
 			"column":     0,
 			"path_index": 0,
+			"internal":   true,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -298,6 +301,7 @@ func AddDocumentFields[PluginConfig any](
 			"row":        0,
 			"column":     0,
 			"path_index": 0,
+			"internal":   true,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

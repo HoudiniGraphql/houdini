@@ -155,7 +155,7 @@ func PreparePaginationDocuments(
 	}
 	defer insertSelection.Finalize()
 	insertSelectionRef, err := conn.Prepare(`
-		INSERT INTO selection_refs (document, child_id, parent_id, row, column, path_index) VALUES ($document, $child_id, $parent_id, 0, 0, 0)
+		INSERT INTO selection_refs (document, child_id, parent_id, row, column, path_index, internal) VALUES ($document, $child_id, $parent_id, 0, 0, 0, $internal)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -507,6 +507,7 @@ func PreparePaginationDocuments(
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
 					"document": queryDocument,
 					"child_id": fragmentSpreadID,
+					"internal": true,
 				})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
@@ -529,6 +530,7 @@ func PreparePaginationDocuments(
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
 					"document": queryDocument,
 					"child_id": resolveSelection,
+					"internal": true,
 				})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))
@@ -540,6 +542,7 @@ func PreparePaginationDocuments(
 					"document":  queryDocument,
 					"child_id":  fragmentSpreadID,
 					"parent_id": resolveSelection,
+					"internal":  true,
 				})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))

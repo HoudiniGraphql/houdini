@@ -90,6 +90,11 @@ func (c *fieldCollection) Add(
 	// we need to figur eout if we want to include the selection in the final result
 	hidden := external
 
+	// auto-added fields (marked as internal) should always be masked
+	if selection.Internal {
+		hidden = true
+	}
+
 	// look to see if masking was explicitly enabled
 	for _, directive := range selection.Directives {
 		if directive.Name == schema.EnableMaskDirective {

@@ -169,7 +169,6 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "firstName": {
@@ -181,7 +180,6 @@ func TestListArtifacts(t *testing.T) {
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
-                                          "visible": true,
                                       },
                                   },
                               },
@@ -316,7 +314,6 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "edges": {
@@ -329,13 +326,11 @@ func TestListArtifacts(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "cursor": {
                                                       "type": "String",
                                                       "keyRaw": "cursor",
-                                                      "visible": true,
                                                   },
 
                                                   "node": {
@@ -348,7 +343,6 @@ func TestListArtifacts(t *testing.T) {
                                                               "__typename": {
                                                                   "type": "String",
                                                                   "keyRaw": "__typename",
-                                                                  "visible": true,
                                                               },
 
                                                               "firstName": {
@@ -360,7 +354,6 @@ func TestListArtifacts(t *testing.T) {
                                                               "id": {
                                                                   "type": "ID",
                                                                   "keyRaw": "id",
-                                                                  "visible": true,
                                                               },
                                                           },
                                                       },
@@ -384,21 +377,18 @@ func TestListArtifacts(t *testing.T) {
                                                       "keyRaw": "endCursor",
                                                       "updates": ["append", "prepend"],
                                                       "nullable": true,
-                                                      "visible": true,
                                                   },
 
                                                   "hasNextPage": {
                                                       "type": "Boolean",
                                                       "keyRaw": "hasNextPage",
                                                       "updates": ["append", "prepend"],
-                                                      "visible": true,
                                                   },
 
                                                   "hasPreviousPage": {
                                                       "type": "Boolean",
                                                       "keyRaw": "hasPreviousPage",
                                                       "updates": ["append", "prepend"],
-                                                      "visible": true,
                                                   },
 
                                                   "startCursor": {
@@ -406,12 +396,10 @@ func TestListArtifacts(t *testing.T) {
                                                       "keyRaw": "startCursor",
                                                       "updates": ["append", "prepend"],
                                                       "nullable": true,
-                                                      "visible": true,
                                                   },
                                               },
                                           },
 
-                                          "visible": true,
                                       },
                                   },
                               },
@@ -560,7 +548,6 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "edges": {
@@ -573,13 +560,11 @@ func TestListArtifacts(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "cursor": {
                                                       "type": "String",
                                                       "keyRaw": "cursor",
-                                                      "visible": true,
                                                   },
 
                                                   "node": {
@@ -592,7 +577,6 @@ func TestListArtifacts(t *testing.T) {
                                                               "__typename": {
                                                                   "type": "String",
                                                                   "keyRaw": "__typename",
-                                                                  "visible": true,
                                                               },
 
                                                               "firstName": {
@@ -604,7 +588,6 @@ func TestListArtifacts(t *testing.T) {
                                                               "id": {
                                                                   "type": "ID",
                                                                   "keyRaw": "id",
-                                                                  "visible": true,
                                                               },
                                                           },
                                                       },
@@ -628,21 +611,18 @@ func TestListArtifacts(t *testing.T) {
                                                       "keyRaw": "endCursor",
                                                       "updates": ["append", "prepend"],
                                                       "nullable": true,
-                                                      "visible": true,
                                                   },
 
                                                   "hasNextPage": {
                                                       "type": "Boolean",
                                                       "keyRaw": "hasNextPage",
                                                       "updates": ["append", "prepend"],
-                                                      "visible": true,
                                                   },
 
                                                   "hasPreviousPage": {
                                                       "type": "Boolean",
                                                       "keyRaw": "hasPreviousPage",
                                                       "updates": ["append", "prepend"],
-                                                      "visible": true,
                                                   },
 
                                                   "startCursor": {
@@ -650,12 +630,10 @@ func TestListArtifacts(t *testing.T) {
                                                       "keyRaw": "startCursor",
                                                       "updates": ["append", "prepend"],
                                                       "nullable": true,
-                                                      "visible": true,
                                                   },
                                               },
                                           },
 
-                                          "visible": true,
                                       },
                                   },
                               },
@@ -826,7 +804,6 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "pageInfo": {
@@ -838,7 +815,6 @@ func TestListArtifacts(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "endCursor": {
@@ -878,7 +854,6 @@ func TestListArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "edges": {
                                                   "type": "MonkeyEdge",
@@ -940,7 +915,6 @@ func TestListArtifacts(t *testing.T) {
                                                           "__typename": {
                                                               "type": "String",
                                                               "keyRaw": "__typename",
-                                                              "visible": true,
                                                           },
 
                                                           "endCursor": {
@@ -1086,7 +1060,6 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "edges": {
@@ -1254,13 +1227,11 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -1269,12 +1240,10 @@ func TestListArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
@@ -1286,12 +1255,10 @@ func TestListArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
@@ -1401,7 +1368,6 @@ func TestListArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "edges": {
@@ -1413,13 +1379,11 @@ func TestListArtifacts(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "cursor": {
                                                       "type": "String",
                                                       "keyRaw": "cursor",
-                                                      "visible": true,
                                                   },
 
                                                   "node": {
@@ -1432,7 +1396,6 @@ func TestListArtifacts(t *testing.T) {
                                                               "__typename": {
                                                                   "type": "String",
                                                                   "keyRaw": "__typename",
-                                                                  "visible": true,
                                                               },
 
                                                               "firstName": {
@@ -1443,7 +1406,6 @@ func TestListArtifacts(t *testing.T) {
                                                               "id": {
                                                                   "type": "ID",
                                                                   "keyRaw": "id",
-                                                                  "visible": true,
                                                               },
                                                           },
 
@@ -1472,31 +1434,26 @@ func TestListArtifacts(t *testing.T) {
                                                       "type": "String",
                                                       "keyRaw": "endCursor",
                                                       "nullable": true,
-                                                      "visible": true,
                                                   },
 
                                                   "hasNextPage": {
                                                       "type": "Boolean",
                                                       "keyRaw": "hasNextPage",
-                                                      "visible": true,
                                                   },
 
                                                   "hasPreviousPage": {
                                                       "type": "Boolean",
                                                       "keyRaw": "hasPreviousPage",
-                                                      "visible": true,
                                                   },
 
                                                   "startCursor": {
                                                       "type": "String",
                                                       "keyRaw": "startCursor",
                                                       "nullable": true,
-                                                      "visible": true,
                                                   },
                                               },
                                           },
 
-                                          "visible": true,
                                       },
                                   },
                               },

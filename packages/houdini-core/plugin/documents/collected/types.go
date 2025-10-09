@@ -24,6 +24,7 @@ type Selection struct {
 	Kind           string
 	Description    *string
 	Visible        bool
+	Internal       bool
 	List           *List
 	Paginated      bool
 	Arguments      []*Argument
@@ -117,6 +118,7 @@ func (s *Selection) Clone(includeChildren bool) *Selection {
 		FieldType:      s.FieldType,
 		Kind:           s.Kind,
 		Visible:        s.Visible,
+		Internal:       s.Internal,
 		ComponentField: s.ComponentField,
 	}
 

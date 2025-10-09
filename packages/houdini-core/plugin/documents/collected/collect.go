@@ -225,6 +225,7 @@ func collectDoc(
 				componentFieldField := statements.Search.GetText("component_field_field")
 				componentFieldFragment := statements.Search.GetText("component_field_fragment")
 				componentFieldProp := statements.Search.GetText("component_field_prop")
+				internal := statements.Search.GetBool("internal")
 
 				if listMode == "" {
 					listMode = "Infinite"
@@ -256,6 +257,7 @@ func collectDoc(
 					Alias:         alias,
 					Kind:          kind,
 					Description:   description,
+					Internal:      internal,
 				}
 
 				if fragmentRef != "" {
@@ -808,7 +810,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.embedded as list_embedded,
           discovered_lists.mode as list_mode,
           discovered_lists.target_type as list_target_type,
-          discovered_lists.cursor_type as list_cursor_type
+          discovered_lists.cursor_type as list_cursor_type,
+          selection_refs.internal
         FROM selections
           JOIN selection_refs
             ON selection_refs.child_id = selections.id
@@ -853,7 +856,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.embedded as list_embedded,
           discovered_lists.mode as list_mode,
           discovered_lists.target_type as list_target_type,
-          discovered_lists.cursor_type as list_cursor_type
+          discovered_lists.cursor_type as list_cursor_type,
+          selection_refs.internal
         FROM selection_refs
           JOIN selection_tree st ON selection_refs.parent_id = st.id
           JOIN selections on selection_refs.child_id = selections.id
@@ -896,7 +900,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       component_fields.type as component_field_type,
       component_fields.prop as component_field_prop,
       component_fields.field as component_field_field,
-      component_fields.fragment as component_field_fragment
+      component_fields.fragment as component_field_fragment,
+      selection_tree.internal
     FROM selection_tree
       LEFT JOIN component_fields ON selection_tree.kind = 'fragment' AND component_fields.fragment = selection_tree.field_name
     ORDER BY parent_id ASC

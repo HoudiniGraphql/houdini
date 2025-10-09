@@ -39,13 +39,14 @@ func InsertOperationDocuments(
 	// into a document
 	copySelection, err := conn.Prepare(`
 		INSERT
-			INTO selection_refs (document, child_id, row, column, path_index)
+			INTO selection_refs (document, child_id, row, column, path_index, internal)
 		SELECT
 			$document AS document,
 			child_id,
 			row,
 			column,
-			path_index
+			path_index,
+			internal
 		FROM selection_refs WHERE parent_id = $selection_parent
 	`)
 	if err != nil {
@@ -153,7 +154,7 @@ func InsertOperationDocuments(
 
 	// a statement to insert selection refs
 	insertSelectionRef, err := conn.Prepare(
-		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)",
+		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index, $internal)",
 	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -463,6 +464,7 @@ func InsertOperationDocuments(
 					"row":        0,
 					"column":     0,
 					"path_index": 0,
+					"internal":   true,
 				})
 				if err != nil {
 					errs.Append(plugins.WrapError(err))

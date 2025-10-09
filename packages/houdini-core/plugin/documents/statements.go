@@ -63,7 +63,7 @@ func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatement
 		return DocumentInsertStatements{}, err, nil
 	}
 	insertSelectionRef, err := conn.Prepare(
-		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index)",
+		"INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal) VALUES ($parent_id, $child_id, $document, $row, $column, $path_index, $internal)",
 	)
 	if err != nil {
 		return DocumentInsertStatements{}, err, nil

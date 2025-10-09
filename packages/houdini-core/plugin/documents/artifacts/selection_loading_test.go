@@ -161,7 +161,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "edges": {
@@ -222,7 +221,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "endCursor": {
@@ -343,7 +341,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "cats": {
@@ -361,7 +358,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "id": {
@@ -397,7 +393,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "cats": {
                                                   "type": "Cat",
@@ -414,7 +409,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                           "__typename": {
                                                               "type": "String",
                                                               "keyRaw": "__typename",
-                                                              "visible": true,
                                                           },
 
                                                           "id": {
@@ -460,7 +454,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                           },
                                       },
@@ -554,7 +547,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -563,12 +555,10 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
@@ -589,7 +579,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
@@ -608,7 +597,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                           },
                                       },
@@ -704,7 +692,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -713,7 +700,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
@@ -832,7 +818,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -841,12 +826,10 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
@@ -858,7 +841,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
@@ -877,7 +859,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                           },
                                       },
@@ -966,7 +947,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                           "loading": {
                                               "kind": "value",
                                           },
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -978,7 +958,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
@@ -986,7 +965,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
@@ -1004,7 +982,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
@@ -1020,7 +997,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                           },
                                       },
@@ -1120,7 +1096,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -1129,7 +1104,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
@@ -1139,7 +1113,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                           },
                                       },
@@ -1175,7 +1148,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                           "loading": {
                                               "kind": "value",
                                           },
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -1187,7 +1159,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
@@ -1195,7 +1166,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",
@@ -1213,7 +1183,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                               "firstName": {
                                                   "type": "String",
@@ -1229,7 +1198,6 @@ func TestLoadingArtifacts(t *testing.T) {
                                                   "loading": {
                                                       "kind": "value",
                                                   },
-                                                  "visible": true,
                                               },
                                           },
                                       },
