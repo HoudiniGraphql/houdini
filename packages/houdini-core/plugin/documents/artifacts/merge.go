@@ -90,7 +90,7 @@ func (c *fieldCollection) Add(
 	// we need to figur eout if we want to include the selection in the final result
 	hidden := external
 
-	// auto-added fields (marked as internal) should always be masked
+	// if the selection is internal then we should hide it
 	if selection.Internal {
 		hidden = true
 	}

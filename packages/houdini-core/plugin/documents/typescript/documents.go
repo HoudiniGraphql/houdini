@@ -163,7 +163,13 @@ func generateDocumentTypeDef(
 			for inputType := range docCtx.InputTypes {
 				inputTypes = append(inputTypes, inputType)
 			}
-			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/inputs";`, strings.Join(inputTypes, ", ")))
+			imports = append(
+				imports,
+				fmt.Sprintf(
+					`import type { %s } from "$houdini/graphql/inputs";`,
+					strings.Join(inputTypes, ", "),
+				),
+			)
 		}
 	} else {
 		// For operations, artifact import comes first
@@ -264,8 +270,6 @@ func generateDocumentTypeDef(
 
 	return result.String(), nil
 }
-
-
 
 func generateFragmentTypes(
 	ctx context.Context,
@@ -707,7 +711,10 @@ func generateInterfaceUnionType(
 					projectConfig,
 					docCtx,
 				)
-				fields = append(fields, fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, child.FieldName, fieldType))
+				fields = append(
+					fields,
+					fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, child.FieldName, fieldType),
+				)
 			} else if child.Kind == "inline_fragment" && child.FieldName == typeName {
 				// Inline fragment specific to this type - include its fields
 				for _, fragmentChild := range child.Children {
@@ -992,7 +999,7 @@ func generateLoadingStateType(
 
 		if hasLoading || hasGlobalLoading {
 			if len(selection.Children) > 0 {
-				// Check if children only contain fragment spreads with @loading (ignoring auto-added fields)
+				// Check if children only contain fragment spreads with @loading
 				onlyLoadingFragments := true
 				hasLoadingFragments := false
 				hasExplicitFields := false
@@ -1013,12 +1020,10 @@ func generateLoadingStateType(
 						} else {
 							onlyLoadingFragments = false
 						}
-					} else if child.FieldName != "__typename" && !slices.Contains(projectConfig.DefaultKeys, child.FieldName) {
-						// Explicit field (not auto-added) - this breaks the "only fragments" rule
+					} else if !child.Internal {
 						hasExplicitFields = true
 						onlyLoadingFragments = false
 					}
-					// Ignore __typename and default key fields as they are auto-added
 				}
 
 				// Only consider it "only loading fragments" if we have loading fragments and no explicit fields
