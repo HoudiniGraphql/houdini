@@ -18,6 +18,10 @@ import (
 type DocumentContext struct {
 	Name       string
 	HasLoading bool
+	// EnumTypes accumulates enum types encountered during type generation (used as a set)
+	EnumTypes map[string]bool
+	// InputTypes accumulates input types encountered during type generation (used as a set)
+	InputTypes map[string]bool
 }
 
 func GenerateDocumentTypeDefs(
@@ -86,46 +90,29 @@ func generateDocumentTypeDef(
 ) (string, error) {
 	// Create document context to pass state instead of using global variables
 	docCtx := &DocumentContext{
-		Name: doc.Name,
+		Name:       doc.Name,
+		EnumTypes:  make(map[string]bool),
+		InputTypes: make(map[string]bool),
 	}
 	hasFieldLoading := hasAnyLoadingDirectives(doc.Selections)
 	hasGlobalLoading := hasDocumentLevelLoading(doc)
 	docCtx.HasLoading = hasFieldLoading || hasGlobalLoading
 
+	// Collect dependencies from variables upfront
+	for _, variable := range doc.Variables {
+		if _, exists := collectedDocs.EnumValues[variable.Type]; exists {
+			docCtx.EnumTypes[variable.Type] = true
+		}
+		if _, exists := collectedDocs.InputTypes[variable.Type]; exists {
+			docCtx.InputTypes[variable.Type] = true
+		}
+	}
+
 	var imports []string
 	var typeDefinitions []string
 
-	// Analyze the document to determine what imports we need
-	needsEnumImport := hasEnumFields(collectedDocs, doc)
-	needsInputImport := hasInputTypes(collectedDocs, doc)
-	needsValueOfImport := needsEnumImport // ValueOf is needed when we have enums
-	needsLoadingImport := docCtx.HasLoading
-
-	// Generate type definitions based on document kind
+	// Generate type definitions first to collect dependencies
 	if doc.Kind == "fragment" {
-		// For fragments, only add imports that are actually needed
-		if needsEnumImport {
-			enumTypes := getEnumTypes(collectedDocs, doc)
-			if len(enumTypes) > 0 {
-				imports = append(
-					imports,
-					fmt.Sprintf(
-						`import { %s } from "$houdini/graphql/enums";`,
-						strings.Join(enumTypes, ", "),
-					),
-				)
-			}
-		}
-		if needsValueOfImport {
-			imports = append(imports, `import type { ValueOf } from "$houdini/runtime/lib/types";`)
-		}
-		if needsLoadingImport {
-			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
-		}
-		if needsInputImport {
-			imports = append(imports, `import type { UserFilter } from "$houdini/graphql/inputs";`)
-		}
-
 		// Generate fragment types
 		fragmentTypes := generateFragmentTypes(
 			ctx,
@@ -145,30 +132,64 @@ func generateDocumentTypeDef(
 
 		// For fragments, we'll handle the artifact import specially in the output generation
 	} else {
+		// Generate operation types
+		typeDefinitions = append(typeDefinitions, generateOperationTypes(ctx, db, projectConfig, rootTypeName, doc, docCtx, collectedDocs)...)
+	}
+
+	// Now generate imports based on collected dependencies
+	if doc.Kind == "fragment" {
+		// For fragments, add imports based on collected dependencies
+		if len(docCtx.EnumTypes) > 0 {
+			var enumTypes []string
+			for enumType := range docCtx.EnumTypes {
+				enumTypes = append(enumTypes, enumType)
+			}
+			imports = append(
+				imports,
+				fmt.Sprintf(
+					`import { %s } from "$houdini/graphql/enums";`,
+					strings.Join(enumTypes, ", "),
+				),
+			)
+		}
+		if len(docCtx.EnumTypes) > 0 {
+			imports = append(imports, `import type { ValueOf } from "$houdini/runtime/lib/types";`)
+		}
+		if docCtx.HasLoading {
+			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
+		}
+		if len(docCtx.InputTypes) > 0 {
+			var inputTypes []string
+			for inputType := range docCtx.InputTypes {
+				inputTypes = append(inputTypes, inputType)
+			}
+			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/inputs";`, strings.Join(inputTypes, ", ")))
+		}
+	} else {
 		// For operations, artifact import comes first
 		imports = append(imports, `import type artifact from './`+doc.Name+`'`)
 
-		// Add imports based on what the operation needs
-		if needsValueOfImport {
+		// Add imports based on collected dependencies
+		if len(docCtx.EnumTypes) > 0 {
 			imports = append(imports, `import type { ValueOf } from "$houdini/runtime/lib/types";`)
 		}
-		if needsLoadingImport {
+		if docCtx.HasLoading {
 			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
 		}
-		if needsEnumImport {
-			enumTypes := getEnumTypes(collectedDocs, doc)
-			if len(enumTypes) > 0 {
-				imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/enums";`, strings.Join(enumTypes, ", ")))
+		if len(docCtx.EnumTypes) > 0 {
+			var enumTypes []string
+			for enumType := range docCtx.EnumTypes {
+				enumTypes = append(enumTypes, enumType)
 			}
+			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/enums";`, strings.Join(enumTypes, ", ")))
 		}
-		if needsInputImport {
-			inputTypes := getInputTypes(collectedDocs, doc)
-			if len(inputTypes) > 0 {
-				imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/inputs";`, strings.Join(inputTypes, ", ")))
+		if len(docCtx.InputTypes) > 0 {
+			var inputTypes []string
+			for inputType := range docCtx.InputTypes {
+				inputTypes = append(inputTypes, inputType)
 			}
+			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/inputs";`, strings.Join(inputTypes, ", ")))
 		}
-
-		typeDefinitions = append(typeDefinitions, generateOperationTypes(ctx, db, projectConfig, rootTypeName, doc, docCtx, collectedDocs)...)
 	}
 
 	// Add artifact type
@@ -244,101 +265,7 @@ func generateDocumentTypeDef(
 	return result.String(), nil
 }
 
-func hasEnumFields(collectedDocs *collected.Documents, doc *collected.Document) bool {
-	// Check if any selections reference enum types
-	if checkSelectionsForEnums(collectedDocs, doc.Selections) {
-		return true
-	}
-	// Also check variables for enum types
-	for _, variable := range doc.Variables {
-		if _, exists := collectedDocs.EnumValues[variable.Type]; exists {
-			return true
-		}
-	}
-	return false
-}
 
-func checkSelectionsForEnums(
-	collectedDocs *collected.Documents,
-	selections []*collected.Selection,
-) bool {
-	for _, sel := range selections {
-		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
-			return true
-		}
-		if checkSelectionsForEnums(collectedDocs, sel.Children) {
-			return true
-		}
-	}
-	return false
-}
-
-func hasInputTypes(collectedDocs *collected.Documents, doc *collected.Document) bool {
-	// Check if any variables reference input types
-	for _, variable := range doc.Variables {
-		if _, exists := collectedDocs.InputTypes[variable.Type]; exists {
-			return true
-		}
-	}
-	return false
-}
-
-// Helper function to get all enum types used in a document
-func getEnumTypes(collectedDocs *collected.Documents, doc *collected.Document) []string {
-	enumTypes := make(map[string]bool)
-
-	// Check selections
-	collectEnumTypesFromSelections(collectedDocs, doc.Selections, enumTypes)
-
-	// Check variables
-	for _, variable := range doc.Variables {
-		if _, exists := collectedDocs.EnumValues[variable.Type]; exists {
-			enumTypes[variable.Type] = true
-		}
-	}
-
-	// Convert to slice
-	var result []string
-	for enumType := range enumTypes {
-		result = append(result, enumType)
-	}
-	return result
-}
-
-// Helper function to collect enum types from selections recursively
-func collectEnumTypesFromSelections(
-	collectedDocs *collected.Documents,
-	selections []*collected.Selection,
-	enumTypes map[string]bool,
-) {
-	for _, sel := range selections {
-		if _, exists := collectedDocs.EnumValues[sel.FieldType]; exists {
-			enumTypes[sel.FieldType] = true
-		}
-		if len(sel.Children) > 0 {
-			collectEnumTypesFromSelections(collectedDocs, sel.Children, enumTypes)
-		}
-	}
-}
-
-// Helper function to get all input types used in a document
-func getInputTypes(collectedDocs *collected.Documents, doc *collected.Document) []string {
-	inputTypes := make(map[string]bool)
-
-	// Check variables
-	for _, variable := range doc.Variables {
-		if _, exists := collectedDocs.InputTypes[variable.Type]; exists {
-			inputTypes[variable.Type] = true
-		}
-	}
-
-	// Convert to slice
-	var result []string
-	for inputType := range inputTypes {
-		result = append(result, inputType)
-	}
-	return result
-}
 
 func generateFragmentTypes(
 	ctx context.Context,
@@ -361,6 +288,7 @@ func generateFragmentTypes(
 				&variable.TypeModifiers,
 				collectedDocs,
 				projectConfig,
+				docCtx,
 			)
 			optional := ""
 			if !strings.HasSuffix(variable.TypeModifiers, "!") {
@@ -508,6 +436,7 @@ func generateOperationTypes(
 				&variable.TypeModifiers,
 				collectedDocs,
 				projectConfig,
+				docCtx,
 			)
 			optional := ""
 			if !strings.HasSuffix(variable.TypeModifiers, "!") {
@@ -661,6 +590,7 @@ func generateSelectionType(
 					readonly,
 					collectedDocs,
 					projectConfig,
+					docCtx,
 				)
 			} else {
 				// Regular nested object type
@@ -678,7 +608,7 @@ func generateSelectionType(
 			}
 		} else {
 			// Scalar field - use simplified type conversion
-			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs, projectConfig)
+			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs, projectConfig, docCtx)
 		}
 
 		// Add readonly modifier if needed
@@ -739,6 +669,7 @@ func generateInterfaceUnionType(
 	readonly bool,
 	collectedDocs *collected.Documents,
 	projectConfig plugins.ProjectConfig,
+	docCtx *DocumentContext,
 ) string {
 	readonlyPrefix := ""
 	if readonly {
@@ -774,6 +705,7 @@ func generateInterfaceUnionType(
 					child.TypeModifiers,
 					collectedDocs,
 					projectConfig,
+					docCtx,
 				)
 				fields = append(fields, fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, child.FieldName, fieldType))
 			} else if child.Kind == "inline_fragment" && child.FieldName == typeName {
@@ -785,6 +717,7 @@ func generateInterfaceUnionType(
 							fragmentChild.TypeModifiers,
 							collectedDocs,
 							projectConfig,
+							docCtx,
 						)
 						fields = append(fields, fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, fragmentChild.FieldName, fieldType))
 					}
@@ -914,6 +847,7 @@ func generateOptimisticType(
 				readonly,
 				collectedDocs,
 				projectConfig,
+				docCtx,
 			)
 		} else if len(selection.Children) > 0 {
 			// Regular nested object type
@@ -924,7 +858,7 @@ func generateOptimisticType(
 			fieldType = childType
 		} else {
 			// Leaf field - convert the GraphQL type to TypeScript
-			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs, projectConfig)
+			fieldType = convertToTypeScriptTypeSimple(selection.FieldType, selection.TypeModifiers, collectedDocs, projectConfig, docCtx)
 		}
 
 		// Add JSDoc comment if this field has a description
@@ -1201,9 +1135,23 @@ func convertToTypeScriptTypeSimple(
 	typeModifiers *string,
 	collectedDocs *collected.Documents,
 	projectConfig plugins.ProjectConfig,
+	docCtx *DocumentContext,
 ) string {
 	// Determine the kind automatically based on collected documents and project config
 	kind := determineTypeKind(typeName, collectedDocs, projectConfig)
+
+	// Collect dependencies as we encounter them
+	if docCtx != nil {
+		switch kind {
+		case "ENUM":
+			docCtx.EnumTypes[typeName] = true
+		case "INPUT":
+			// Only collect input types that are actually input types (not scalars)
+			if _, exists := collectedDocs.InputTypes[typeName]; exists {
+				docCtx.InputTypes[typeName] = true
+			}
+		}
+	}
 
 	// Use the shared base type conversion logic with simple defaults
 	baseType := convertBaseType(kind, typeName, projectConfig, false)
