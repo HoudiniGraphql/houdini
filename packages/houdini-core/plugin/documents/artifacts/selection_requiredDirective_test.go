@@ -123,13 +123,11 @@ func TestRequiredDirective(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "id": {
                                           "type": "ID",
                                           "keyRaw": "id",
-                                          "visible": true,
                                       },
                                   },
                                   "abstractFields": {
@@ -138,12 +136,10 @@ func TestRequiredDirective(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                               "legends": {
                                                   "type": "Legend",
@@ -200,12 +196,10 @@ func TestRequiredDirective(t *testing.T) {
                                               "__typename": {
                                                   "type": "String",
                                                   "keyRaw": "__typename",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
                                                   "keyRaw": "id",
-                                                  "visible": true,
                                               },
                                               "name": {
                                                   "type": "String",

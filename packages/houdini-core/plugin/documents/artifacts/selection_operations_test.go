@@ -528,7 +528,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -552,7 +551,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -563,7 +561,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -647,7 +644,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -674,7 +670,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -685,7 +680,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -881,7 +875,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -893,7 +886,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "id": {
@@ -984,7 +976,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1003,7 +994,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -1014,7 +1004,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1096,7 +1085,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1114,13 +1102,11 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1203,7 +1189,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1222,7 +1207,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -1233,7 +1217,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1318,7 +1301,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1337,7 +1319,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "field": {
@@ -1354,7 +1335,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1445,7 +1425,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1464,7 +1443,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -1475,7 +1453,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1561,7 +1538,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1579,7 +1555,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -1590,7 +1565,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1672,7 +1646,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -1689,13 +1662,11 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
@@ -1766,7 +1737,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "userID": {
@@ -1844,7 +1814,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "userID": {
@@ -1936,7 +1905,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "userID": {
@@ -2040,7 +2008,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                       "__typename": {
                                           "type": "String",
                                           "keyRaw": "__typename",
-                                          "visible": true,
                                       },
 
                                       "friend": {
@@ -2063,7 +2030,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "__typename": {
                                                       "type": "String",
                                                       "keyRaw": "__typename",
-                                                      "visible": true,
                                                   },
 
                                                   "firstName": {
@@ -2074,7 +2040,6 @@ func TestArtifactOperationsGeneration(t *testing.T) {
                                                   "id": {
                                                       "type": "ID",
                                                       "keyRaw": "id",
-                                                      "visible": true,
                                                   },
                                               },
 
