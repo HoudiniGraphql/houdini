@@ -52,7 +52,7 @@ func ApplyTypeModifiers(baseType, modifiers string) string {
 	listDepth := strings.Count(modifiers, "]")
 
 	// Apply list wrappers from innermost to outermost
-	for i := 0; i < listDepth; i++ {
+	for range listDepth {
 		// Find the position of the current ']' bracket (from left to right)
 		bracketPos := strings.Index(modifiers, "]")
 		if bracketPos == -1 {
@@ -91,7 +91,12 @@ func ConvertScalarType(config plugins.ProjectConfig, typeName string, isInput bo
 	return convertScalarTypeWithVisited(config, typeName, isInput, make(map[string]bool))
 }
 
-func convertScalarTypeWithVisited(config plugins.ProjectConfig, typeName string, isInput bool, visited map[string]bool) string {
+func convertScalarTypeWithVisited(
+	config plugins.ProjectConfig,
+	typeName string,
+	isInput bool,
+	visited map[string]bool,
+) string {
 	// Check for cycles to prevent infinite recursion
 	if visited[typeName] {
 		return "any" // Fallback for circular references

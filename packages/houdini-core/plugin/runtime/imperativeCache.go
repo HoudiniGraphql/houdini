@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"slices"
 	"sort"
 	"strings"
 
@@ -564,33 +565,6 @@ type TypeField struct {
 	TypeModifiers string
 }
 
-func getTypeFields(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	typeName string,
-) ([]TypeField, error) {
-	var fields []TypeField
-
-	err := db.StepQuery(ctx, `
-		SELECT id, name, type, type_modifiers
-		FROM type_fields
-		WHERE parent = $typeName AND internal = 0
-		ORDER BY name
-	`, map[string]any{"typeName": typeName}, func(stmt *sqlite.Stmt) {
-		field := TypeField{
-			ID:   stmt.ColumnText(0),
-			Name: stmt.ColumnText(1),
-			Type: stmt.ColumnText(2),
-		}
-		if stmt.ColumnType(3) == sqlite.TypeText {
-			field.TypeModifiers = stmt.ColumnText(3)
-		}
-		fields = append(fields, field)
-	})
-
-	return fields, err
-}
-
 func generateFieldType(
 	ctx context.Context,
 	config plugins.ProjectConfig,
@@ -606,7 +580,11 @@ func generateFieldType(
 	var baseType string
 	switch typeInfo.Kind {
 	case "SCALAR":
-		baseType = typescript.ConvertScalarType(config, field.Type, false) // isInput = false for cache field types
+		baseType = typescript.ConvertScalarType(
+			config,
+			field.Type,
+			false,
+		) // isInput = false for cache field types
 	case "ENUM":
 		baseType = field.Type
 	case "OBJECT":
@@ -844,14 +822,7 @@ func getDiscoveredListsWithFilters(
 		}
 
 		// Add possible type if not already present
-		found := false
-		for _, existing := range list.PossibleTypes {
-			if existing == possibleType {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !slices.Contains(list.PossibleTypes, possibleType) {
 			list.PossibleTypes = append(list.PossibleTypes, possibleType)
 		}
 
@@ -905,8 +876,6 @@ func generateListFiltersFromData(args []FieldArgument) string {
 	return fmt.Sprintf("{%s\n\t\t\t\t}", strings.Join(argStrings, ""))
 }
 
-
-
 func generateQueriesSection(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -919,7 +888,6 @@ func generateQueriesSection(
 
 	var queryTuples []string
 	var queryNames []string
-
 	// Collect query names for sorting
 	for name, doc := range documentsWithArgs {
 		if doc.Kind == "query" {
