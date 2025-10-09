@@ -668,20 +668,13 @@ func generateSelectionType(
 				if childErr != nil {
 					return "", childErr
 				}
-				fieldType = childType
 
-				// Check if this is a list type
+				// Apply type modifiers (lists, nullability) using the proper function
+				modifiers := ""
 				if selection.TypeModifiers != nil {
-					if strings.Contains(*selection.TypeModifiers, "]") {
-						// This is a list type, wrap in array syntax
-						fieldType = fmt.Sprintf("(%s | null)[]", fieldType)
-					}
-
-					// Apply nullability for the list itself
-					if !strings.HasSuffix(*selection.TypeModifiers, "!") {
-						fieldType = fieldType + " | null"
-					}
+					modifiers = *selection.TypeModifiers
 				}
+				fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
 			}
 		} else {
 			// Scalar field - use simplified type conversion
@@ -1221,7 +1214,7 @@ func convertToTypeScriptTypeSimple(
 		modifiers = *typeModifiers
 	}
 
-	return ApplyTypeModifiers(baseType, modifiers)
+	return ApplyTypeModifiers(baseType, modifiers, false) // Output type
 }
 
 // determineTypeKind automatically determines the GraphQL type kind based on collected documents and project config

@@ -608,7 +608,7 @@ func generateFieldType(
 	}
 
 	// Apply type modifiers
-	return typescript.ApplyTypeModifiers(baseType, field.TypeModifiers), nil
+	return typescript.ApplyTypeModifiers(baseType, field.TypeModifiers, false), nil // Output type (cache field)
 }
 
 func getPossibleTypes(
@@ -867,7 +867,7 @@ func generateListFiltersFromData(args []FieldArgument) string {
 	for _, arg := range args {
 		// Convert to TypeScript type using the exported function
 		baseType := typescript.ConvertScalarType(plugins.ProjectConfig{}, arg.Type, false)
-		tsType := typescript.ApplyTypeModifiers(baseType, arg.TypeModifiers)
+		tsType := typescript.ApplyTypeModifiers(baseType, arg.TypeModifiers, true) // Input type (filter argument)
 
 		// All filter arguments are optional
 		argStrings = append(argStrings, fmt.Sprintf("\n\t\t\t\t\t%s?: %s;", arg.Name, tsType))

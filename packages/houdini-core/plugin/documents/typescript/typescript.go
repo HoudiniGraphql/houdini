@@ -18,7 +18,7 @@ func ConvertToTypeScriptType(
 ) (string, error) {
 	baseType := convertBaseType(kind, typeName, config, isInput)
 	// Apply type modifiers (lists and nullability)
-	return ApplyTypeModifiers(baseType, typeModifiers), nil
+	return ApplyTypeModifiers(baseType, typeModifiers, isInput), nil
 }
 
 // convertBaseType handles the conversion of GraphQL base types to TypeScript base types
@@ -36,9 +36,13 @@ func convertBaseType(kind, typeName string, config plugins.ProjectConfig, isInpu
 	}
 }
 
-func ApplyTypeModifiers(baseType, modifiers string) string {
+func ApplyTypeModifiers(baseType, modifiers string, isInput bool) string {
 	if modifiers == "" {
-		return baseType + " | null | undefined"
+		if isInput {
+			return baseType + " | null | undefined"
+		} else {
+			return baseType + " | null"
+		}
 	}
 
 	// Parse the type modifiers to build the correct TypeScript type
@@ -70,8 +74,8 @@ func ApplyTypeModifiers(baseType, modifiers string) string {
 			// Elements are non-null
 			result = fmt.Sprintf("(%s)[]", result)
 		} else {
-			// Elements can be null
-			result = fmt.Sprintf("(%s | null | undefined)[]", result)
+			// Elements can be null (but never undefined, even for input types)
+			result = fmt.Sprintf("(%s | null)[]", result)
 		}
 
 		// Remove the processed part for next iteration
@@ -80,7 +84,11 @@ func ApplyTypeModifiers(baseType, modifiers string) string {
 
 	// Check if the final type (or list) is nullable
 	if !strings.HasSuffix(modifiers, "!") {
-		result = result + " | null | undefined"
+		if isInput {
+			result = result + " | null | undefined"
+		} else {
+			result = result + " | null"
+		}
 	}
 
 	return result

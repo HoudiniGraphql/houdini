@@ -37,13 +37,13 @@ func TestApplyTypeModifiers(t *testing.T) {
 			name:      "nullable list of nullable items: [String]",
 			baseType:  "string",
 			modifiers: "]",
-			expected:  "(string | null | undefined)[] | null | undefined",
+			expected:  "(string | null)[] | null | undefined",
 		},
 		{
 			name:      "non-null list of nullable items: [String]!",
 			baseType:  "string",
 			modifiers: "]!",
-			expected:  "(string | null | undefined)[]",
+			expected:  "(string | null)[]",
 		},
 		{
 			name:      "nullable list of non-null items: [String!]",
@@ -63,7 +63,7 @@ func TestApplyTypeModifiers(t *testing.T) {
 			name:      "nullable list of nullable lists of nullable items: [[String]]",
 			baseType:  "string",
 			modifiers: "]]",
-			expected:  "((string | null | undefined)[] | null | undefined)[] | null | undefined",
+			expected:  "((string | null)[] | null)[] | null | undefined",
 		},
 		{
 			name:      "non-null list of non-null lists of non-null items: [[String!]!]!",
@@ -75,13 +75,13 @@ func TestApplyTypeModifiers(t *testing.T) {
 			name:      "nullable list of non-null lists of nullable items: [[String]!]",
 			baseType:  "string",
 			modifiers: "]!]",
-			expected:  "((string | null | undefined)[])[] | null | undefined",
+			expected:  "((string | null)[])[] | null | undefined",
 		},
 		{
 			name:      "non-null list of nullable lists of non-null items: [[String!]]!",
 			baseType:  "string",
 			modifiers: "!]]!",
-			expected:  "((string)[] | null | undefined)[]",
+			expected:  "((string)[] | null)[]",
 		},
 		
 		// Complex nested scenarios
@@ -103,7 +103,7 @@ func TestApplyTypeModifiers(t *testing.T) {
 			name:      "boolean nullable array",
 			baseType:  "boolean",
 			modifiers: "]",
-			expected:  "(boolean | null | undefined)[] | null | undefined",
+			expected:  "(boolean | null)[] | null | undefined",
 		},
 		{
 			name:      "custom type array",
@@ -115,13 +115,13 @@ func TestApplyTypeModifiers(t *testing.T) {
 			name:      "enum type array",
 			baseType:  "ValueOf<typeof MyEnum>",
 			modifiers: "]!",
-			expected:  "(ValueOf<typeof MyEnum> | null | undefined)[]",
+			expected:  "(ValueOf<typeof MyEnum> | null)[]",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers)
+			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers, true) // Input type
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -206,7 +206,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "SCALAR",
 			typeName:      "String",
 			typeModifiers: "",
-			expected:      "string | null | undefined",
+			expected:      "string | null",
 		},
 		{
 			name:          "non-null String scalar",
@@ -220,7 +220,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "SCALAR",
 			typeName:      "ID",
 			typeModifiers: "",
-			expected:      "string | null | undefined",
+			expected:      "string | null",
 		},
 		{
 			name:          "non-null Int scalar",
@@ -234,7 +234,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "SCALAR",
 			typeName:      "Float",
 			typeModifiers: "",
-			expected:      "number | null | undefined",
+			expected:      "number | null",
 		},
 		{
 			name:          "non-null Boolean scalar",
@@ -257,7 +257,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "ENUM",
 			typeName:      "Status",
 			typeModifiers: "",
-			expected:      "ValueOf<typeof Status> | null | undefined",
+			expected:      "ValueOf<typeof Status> | null",
 		},
 		{
 			name:          "non-null enum",
@@ -273,7 +273,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "INPUT",
 			typeName:      "UserInput",
 			typeModifiers: "",
-			expected:      "UserInput | null | undefined",
+			expected:      "UserInput | null",
 		},
 		{
 			name:          "non-null input type",
@@ -305,7 +305,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "SCALAR",
 			typeName:      "Int",
 			typeModifiers: "]",
-			expected:      "(number | null | undefined)[] | null | undefined",
+			expected:      "(number | null)[] | null",
 		},
 
 		// Array types with enums
@@ -314,7 +314,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "ENUM",
 			typeName:      "Color",
 			typeModifiers: "]!",
-			expected:      "(ValueOf<typeof Color> | null | undefined)[]",
+			expected:      "(ValueOf<typeof Color> | null)[]",
 		},
 
 		// Array types with input types
@@ -323,7 +323,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "INPUT",
 			typeName:      "FilterInput",
 			typeModifiers: "!]",
-			expected:      "(FilterInput)[] | null | undefined",
+			expected:      "(FilterInput)[] | null",
 		},
 
 		// Nested arrays
@@ -376,7 +376,7 @@ func TestApplyTypeModifiers_EdgeCases(t *testing.T) {
 			name:      "complex base type with parentheses",
 			baseType:  "(string | number)",
 			modifiers: "]!",
-			expected:  "((string | number) | null | undefined)[]",
+			expected:  "((string | number) | null)[]",
 		},
 		{
 			name:      "very deeply nested arrays",
@@ -388,13 +388,13 @@ func TestApplyTypeModifiers_EdgeCases(t *testing.T) {
 			name:      "mixed nullability in deep nesting",
 			baseType:  "number",
 			modifiers: "]!]!]",
-			expected:  "(((number | null | undefined)[])[])[] | null | undefined",
+			expected:  "(((number | null)[])[])[] | null | undefined",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers)
+			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers, true) // Input type
 			assert.Equal(t, tt.expected, result)
 		})
 	}
@@ -434,14 +434,14 @@ func TestApplyTypeModifiers_RealWorldScenarios(t *testing.T) {
 			name:      "optional list of optional strings",
 			baseType:  "string",
 			modifiers: "]",
-			expected:  "(string | null | undefined)[] | null | undefined",
+			expected:  "(string | null)[] | null | undefined",
 			graphql:   "[String]",
 		},
 		{
 			name:      "required list of optional strings",
 			baseType:  "string",
 			modifiers: "]!",
-			expected:  "(string | null | undefined)[]",
+			expected:  "(string | null)[]",
 			graphql:   "[String]!",
 		},
 		{
@@ -455,7 +455,7 @@ func TestApplyTypeModifiers_RealWorldScenarios(t *testing.T) {
 			name:      "pagination connection edges",
 			baseType:  "Edge",
 			modifiers: "]",
-			expected:  "(Edge | null | undefined)[] | null | undefined",
+			expected:  "(Edge | null)[] | null | undefined",
 			graphql:   "[Edge]",
 		},
 		{
@@ -476,8 +476,102 @@ func TestApplyTypeModifiers_RealWorldScenarios(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers)
+			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers, true) // Input type
 			assert.Equal(t, tt.expected, result, "GraphQL type: %s", tt.graphql)
+		})
+	}
+}
+
+func TestApplyTypeModifiers_OutputTypes(t *testing.T) {
+	// Test cases for output types (no | undefined)
+	tests := []struct {
+		name      string
+		baseType  string
+		modifiers string
+		expected  string
+	}{
+		{
+			name:      "nullable scalar output",
+			baseType:  "string",
+			modifiers: "",
+			expected:  "string | null",
+		},
+		{
+			name:      "non-null scalar output",
+			baseType:  "string",
+			modifiers: "!",
+			expected:  "string",
+		},
+		{
+			name:      "nullable array of nullable items output",
+			baseType:  "string",
+			modifiers: "]",
+			expected:  "(string | null)[] | null",
+		},
+		{
+			name:      "non-null array of non-null items output",
+			baseType:  "string",
+			modifiers: "!]!",
+			expected:  "(string)[]",
+		},
+		{
+			name:      "nullable array of non-null items output",
+			baseType:  "string",
+			modifiers: "!]",
+			expected:  "(string)[] | null",
+		},
+		{
+			name:      "non-null array of nullable items output",
+			baseType:  "string",
+			modifiers: "]!",
+			expected:  "(string | null)[]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers, false) // Output type
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestApplyTypeModifiers_InputArrayElements(t *testing.T) {
+	// Test cases specifically for the rule that array elements should never have | undefined
+	tests := []struct {
+		name      string
+		baseType  string
+		modifiers string
+		expected  string
+		note      string
+	}{
+		{
+			name:      "nullable array of nullable IDs - correct behavior",
+			baseType:  "string | number",
+			modifiers: "]",
+			expected:  "(string | number | null)[] | null | undefined",
+			note:      "Array elements can be null but never undefined",
+		},
+		{
+			name:      "deeply nested arrays - no undefined in elements",
+			baseType:  "string",
+			modifiers: "]]",
+			expected:  "((string | null)[] | null)[] | null | undefined",
+			note:      "Only outermost type gets | undefined",
+		},
+		{
+			name:      "three-level nesting - undefined only at root",
+			baseType:  "string",
+			modifiers: "]]]",
+			expected:  "(((string | null)[] | null)[] | null)[] | null | undefined",
+			note:      "All array elements use | null, only root uses | undefined",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := typescript.ApplyTypeModifiers(tt.baseType, tt.modifiers, true) // Input type
+			assert.Equal(t, tt.expected, result, "Note: %s", tt.note)
 		})
 	}
 }
@@ -607,7 +701,7 @@ func TestConvertToTypeScriptType_WithRuntimeScalars(t *testing.T) {
 			kind:          "SCALAR",
 			typeName:      "DateTime",
 			typeModifiers: "",
-			expected:      "string | null | undefined",
+			expected:      "string | null",
 		},
 		{
 			name:          "runtime scalar DateTime as non-null",
@@ -635,7 +729,7 @@ func TestConvertToTypeScriptType_WithRuntimeScalars(t *testing.T) {
 			kind:          "SCALAR",
 			typeName:      "UserFromSession",
 			typeModifiers: "]",
-			expected:      "(string | null | undefined)[] | null | undefined",
+			expected:      "(string | null)[] | null",
 		},
 		{
 			name:          "regular custom scalar Money",
