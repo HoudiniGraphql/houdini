@@ -98,7 +98,7 @@ func TestInputTypeDefinitions(t *testing.T) {
 				    enum?: ValueOf<typeof MyEnum> | null | undefined;
 				    listRequired: (string)[];
 				    middle?: NestedUserFilter | null | undefined;
-				    nullList?: (string | null | undefined)[] | null | undefined;
+				    nullList?: (string | null)[] | null | undefined;
 				    recursive?: UserFilter | null | undefined;
 				};
 			`)
@@ -110,5 +110,3 @@ func TestInputTypeDefinitions(t *testing.T) {
 		},
 	})
 }
-
-
