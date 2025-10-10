@@ -1,15 +1,15 @@
-import * as graphql from "graphql";
-import type { SourceMapInput } from "rollup";
+import * as graphql from 'graphql'
+import type { SourceMapInput } from 'rollup'
 import type {
 	Plugin as VitePlugin,
 	UserConfig,
 	ResolvedConfig,
 	ConfigEnv,
 	EnvironmentModuleNode,
-} from "vite";
+} from 'vite'
 
-import generate from "../codegen";
-import type { Config, PluginConfig } from "../lib";
+import generate from '../codegen'
+import type { Config, PluginConfig } from '../lib'
 import {
 	path,
 	getConfig,
@@ -21,27 +21,27 @@ import {
 	loadLocalSchema,
 	isSecondaryBuild,
 	writeTsConfig,
-} from "../lib";
-import { isGraphQLFile, shouldReactToFileChange } from "./hmr";
+} from '../lib'
+import { isGraphQLFile, shouldReactToFileChange } from './hmr'
 
-let config: Config;
-let viteConfig: ResolvedConfig;
-let viteEnv: ConfigEnv;
-let devServer = false;
+let config: Config
+let viteConfig: ResolvedConfig
+let viteEnv: ConfigEnv
+let devServer = false
 
 export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 	// Save last generation timestamp to avoid unnecessary HMR updates
 	// i.e. the same event in different environments
 	let lastHotUpdateEvent: {
-		timestamp: number;
-	};
+		timestamp: number
+	}
 
 	return {
-		name: "houdini",
+		name: 'houdini',
 
 		// houdini will always act as a "meta framework" and process the user's code before it
 		// is processed by the user's library-specific plugins.
-		enforce: "pre",
+		enforce: 'pre',
 
 		async hotUpdate({
 			file,
@@ -51,121 +51,114 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			read,
 		}): Promise<EnvironmentModuleNode[]> {
 			// load the config file
-			const config = await getConfig(opts);
+			const config = await getConfig(opts)
 
 			// Check if directory, file type matches what's defined in houdini config
-			const shouldReact = await shouldReactToFileChange(file, config);
+			const shouldReact = await shouldReactToFileChange(file, config)
 
 			// if the file doesn't depend on .houdini, we don't need to do anything
-			const runtimeDir = path.join(
-				config.projectRoot,
-				config.runtimeDir ?? ".houdini",
-			);
+			const runtimeDir = path.join(config.projectRoot, config.runtimeDir ?? '.houdini')
 
 			// to detect if the file depends on houdini, lets just see if it contains the string
 			// this might result in false-positives but its easier than anything any else
-			const dependsOn = (await read()).includes("$houdini");
+			const dependsOn = (await read()).includes('$houdini')
 
 			// .gql files are not understood by vite, since they're not processed yet at this stage
 			// Thus, we cannot get their dependencies.
 			// However, if it is a graphql file, it for sure depends on houdini
-			const isGqlFile = isGraphQLFile(file);
+			const isGqlFile = isGraphQLFile(file)
 
 			if (!(shouldReact && (dependsOn || isGqlFile))) {
-				return modules;
+				return modules
 			}
 
 			if (config.localSchema) {
 				config.schema = (await server.ssrLoadModule(config.localSchemaPath))
-					.default as graphql.GraphQLSchema;
+					.default as graphql.GraphQLSchema
 				// reload the schema
 				// config.schema = await loadLocalSchema(config)
 			}
 
-			const environment = this.environment;
+			const environment = this.environment
 
 			// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
-			config.pluginMode = true;
+			config.pluginMode = true
 
 			// generate the runtime
 			// only if not debouncing
-			let artifactStats = undefined;
+			let artifactStats = undefined
 			if (!lastHotUpdateEvent || timestamp !== lastHotUpdateEvent.timestamp) {
 				try {
-					artifactStats = await generate(config);
+					artifactStats = await generate(config)
 				} catch (e) {
-					formatErrors(e);
+					formatErrors(e)
 				}
 
 				lastHotUpdateEvent = {
 					timestamp,
-				};
+				}
 			}
 
 			// if there are no changes, don't trigger a reload
 			if (!artifactStats) {
-				return modules;
+				return modules
 			}
 
 			// TODO: return tainted files from generate()
 			// Instead, walk over the entire houdini directory and invalidate all modules
-			const taintedModules: EnvironmentModuleNode[] = [];
+			const taintedModules: EnvironmentModuleNode[] = []
 			for await (const file of fs.walk(runtimeDir)) {
-				const module = environment.moduleGraph.getModuleById(file);
+				const module = environment.moduleGraph.getModuleById(file)
 				if (module) {
-					taintedModules.push(module);
+					taintedModules.push(module)
 				}
 			}
 
 			// invalidate all the codegenerated modules
-			return taintedModules.concat(modules);
+			return taintedModules.concat(modules)
 		},
 
 		// add watch-and-run to their vite config
 		async config(userConfig, env) {
-			config = await getConfig(opts);
+			config = await getConfig(opts)
 
 			// make sure we remember the adapter
-			config.adapter = opts.adapter;
+			config.adapter = opts.adapter
 
-			viteEnv = env;
+			viteEnv = env
 
 			let result: UserConfig = {
 				server: {
 					...userConfig.server,
 					fs: {
 						...userConfig.server?.fs,
-						allow: ["."].concat(userConfig.server?.fs?.allow || []),
+						allow: ['.'].concat(userConfig.server?.fs?.allow || []),
 					},
 				},
-			};
+			}
 
 			// plugins might want to override values
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.config !== "function") {
-					continue;
+				if (typeof plugin.vite?.config !== 'function') {
+					continue
 				}
-				result = deepMerge(
-					"",
-					result,
-					await plugin.vite!.config.call(this, config, env),
-				);
+				result = deepMerge('', result, await plugin.vite!.config.call(this, config, env))
 			}
 
-			return result;
+			return result
 		},
 
 		async configResolved(conf) {
 			if (!isSecondaryBuild()) {
-				viteConfig = conf;
+				viteConfig = conf
 			}
 
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.configResolved !== "function") {
-					continue;
+				if (typeof plugin.vite?.configResolved !== 'function') {
+					continue
 				}
 
-				await plugin.vite!.configResolved.call(this, conf);
+				await plugin.vite!.configResolved.call(this, conf)
 			}
 		},
 
@@ -174,52 +167,49 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 		// this is only called when bundling (ie, not in dev mode)
 		async buildEnd(args) {
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.buildEnd !== "function") {
-					continue;
+				if (typeof plugin.vite?.buildEnd !== 'function') {
+					continue
 				}
 
-				await plugin.vite!.buildEnd.call(this, args, config);
+				await plugin.vite!.buildEnd.call(this, args, config)
 			}
 
-			if (isSecondaryBuild() || viteEnv.mode !== "production" || devServer) {
-				return;
+			if (isSecondaryBuild() || viteEnv.mode !== 'production' || devServer) {
+				return
 			}
 
 			// if we dont' have an adapter, we don't need to do anything
 			if (!opts.adapter) {
-				return;
+				return
 			}
 
 			// dry
-			const outDir = config.routerBuildDirectory;
-			const sourceDir = viteConfig.build.outDir;
+			const outDir = config.routerBuildDirectory
+			const sourceDir = viteConfig.build.outDir
 
 			// tell the user what we're doing
-			console.log("🎩 Generating Deployment Assets...");
+			console.log('🎩 Generating Deployment Assets...')
 
 			// before we can invoke the adpater we need to ensure the build directory is present
 			try {
-				const stat = await fs.stat(config.routerBuildDirectory);
+				const stat = await fs.stat(config.routerBuildDirectory)
 				if (stat?.isDirectory()) {
-					await fs.rmdir(config.routerBuildDirectory);
+					await fs.rmdir(config.routerBuildDirectory)
 				}
 			} catch {}
-			await fs.mkdirp(config.routerBuildDirectory);
+			await fs.mkdirp(config.routerBuildDirectory)
 
 			// load the project manifest
-			const manifest = await load_manifest({ config, includeArtifacts: true });
+			const manifest = await load_manifest({ config, includeArtifacts: true })
 
 			// before we load the adapter we want to do some manual prep on the directories
 			// pull the ssr directory out of assets (if applicable)
 			if (!config.adapter?.disableServer) {
-				await fs.recursiveCopy(
-					path.join(sourceDir, "ssr"),
-					path.join(outDir, "ssr"),
-				);
-				await fs.rmdir(path.join(sourceDir, "ssr"));
+				await fs.recursiveCopy(path.join(sourceDir, 'ssr'), path.join(outDir, 'ssr'))
+				await fs.rmdir(path.join(sourceDir, 'ssr'))
 			}
 			// copy the asset directory into the build directory
-			await fs.recursiveCopy(sourceDir, path.join(outDir, "assets"));
+			await fs.recursiveCopy(sourceDir, path.join(outDir, 'assets'))
 
 			// invoke the adapter
 			await opts.adapter({
@@ -229,135 +219,127 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				publicBase: viteConfig.base,
 				outDir,
 				manifest,
-				adapterPath: "./ssr/entries/adapter",
-			});
+				adapterPath: './ssr/entries/adapter',
+			})
 
 			// if there is a public directory at the root of the project,
-			if (fs.existsSync(path.join(config.projectRoot, "public"))) {
+			if (fs.existsSync(path.join(config.projectRoot, 'public'))) {
 				// copy the contents of the directory into the build directory
-				await fs.recursiveCopy(path.join(config.projectRoot, "public"), outDir);
+				await fs.recursiveCopy(path.join(config.projectRoot, 'public'), outDir)
 			}
 		},
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			await writeTsConfig(config);
+			await writeTsConfig(config)
 
 			// check if the adapter has a pre hook
-			if (
-				config.adapter?.pre &&
-				viteEnv.command === "build" &&
-				!isSecondaryBuild()
-			) {
+			if (config.adapter?.pre && viteEnv.command === 'build' && !isSecondaryBuild()) {
 				await config.adapter.pre({
 					config,
 					conventions: routerConventions,
 					sourceDir: viteConfig.build.outDir,
 					publicBase: viteConfig.base,
 					outDir: config.routerBuildDirectory,
-				});
+				})
 			}
 
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.buildStart !== "function") {
-					continue;
+				if (typeof plugin.vite?.buildStart !== 'function') {
+					continue
 				}
 
 				// @ts-ignore This builds fine but typescript thinks there's an error...
 				await plugin.vite!.buildStart.call(this, {
 					...args,
 					houdiniConfig: config,
-				});
+				})
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (
-				!devServer &&
-				!isSecondaryBuild() &&
-				!process.env.HOUDINI_SKIP_GENERATE
-			) {
+			if (!devServer && !isSecondaryBuild() && !process.env.HOUDINI_SKIP_GENERATE) {
 				// make sure we have an up-to-date schema
 				if (config.localSchema && !config.schema) {
-					config.schema = await loadLocalSchema(config);
+					config.schema = await loadLocalSchema(config)
 				}
 
 				// run the codegen
 				try {
-					await generate(config);
+					await generate(config)
 				} catch (e) {
-					formatErrors(e);
-					throw e;
+					formatErrors(e)
+					throw e
 				}
 			}
 		},
 
 		options(options) {
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.options !== "function") {
-					continue;
+				if (typeof plugin.vite?.options !== 'function') {
+					continue
 				}
 
 				// @ts-expect-error
 				options = plugin.vite!.options.call(this, {
 					...options,
 					houdiniConfig: config,
-				});
+				})
 			}
 
 			return Object.fromEntries(
-				Object.entries(options).filter(([key]) => key !== "houdiniConfig"),
-			);
+				Object.entries(options).filter(([key]) => key !== 'houdiniConfig')
+			)
 		},
 
 		async configureServer(server) {
-			devServer = true;
+			devServer = true
 
-			await writeTsConfig(config);
+			await writeTsConfig(config)
 
 			// if there is a local schema we need to use that when generating
 			if (config.localSchema) {
 				try {
 					config.schema = (await server.ssrLoadModule(config.localSchemaPath))
-						.default as graphql.GraphQLSchema;
+						.default as graphql.GraphQLSchema
 				} catch {
-					config.schema = graphql.buildSchema("type Query");
+					config.schema = graphql.buildSchema('type Query')
 				}
 				// make sure we watch the file for changes
-				server.watcher.add(config.localSchemaPath);
+				server.watcher.add(config.localSchemaPath)
 			}
 
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.configureServer !== "function") {
-					continue;
+				if (typeof plugin.vite?.configureServer !== 'function') {
+					continue
 				}
 
 				await plugin.vite!.configureServer.call(this, {
 					...server,
 					houdiniConfig: config,
-				});
+				})
 			}
 
-			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173);
+			process.env.HOUDINI_PORT = String(server.config.server.port ?? 5173)
 
 			try {
-				await generate(config);
+				await generate(config)
 			} catch (e) {
-				formatErrors(e);
+				formatErrors(e)
 			}
 		},
 
 		// transform the user's code
 		async transform(code, filepath) {
 			// everything internal to houdini should assume posix paths
-			filepath = path.posixify(filepath);
+			filepath = path.posixify(filepath)
 
-			if (filepath.startsWith("/src/")) {
-				filepath = path.join(process.cwd(), filepath);
+			if (filepath.startsWith('/src/')) {
+				filepath = path.join(process.cwd(), filepath)
 			}
 
 			// if the file is not in our configured source path, we need to ignore it
 			if (!config.includeFile(filepath)) {
-				return;
+				return
 			}
 
 			// bundle up the contextual stuff
@@ -368,43 +350,38 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 				filepath,
 				// @ts-ignore
 				map: this.getCombinedSourcemap(),
-			};
+			}
 
 			// run the plugin pipeline
 			for (const plugin of config.plugins) {
 				if (!plugin.transformFile) {
-					continue;
+					continue
 				}
-				const { code, map } = await plugin.transformFile(ctx);
-				ctx.content = code;
-				ctx.map = map;
+				const { code, map } = await plugin.transformFile(ctx)
+				ctx.content = code
+				ctx.map = map
 			}
 
-			return { code: ctx.content, map: ctx.map };
+			return { code: ctx.content, map: ctx.map }
 		},
 
 		async load(id, opts, ...rest) {
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.load !== "function") {
-					continue;
+				if (typeof plugin.vite?.load !== 'function') {
+					continue
 				}
 
-				const result = await plugin.vite!.load.call(
-					this,
-					id,
-					{ ...opts, config },
-					...rest,
-				);
+				const result = await plugin.vite!.load.call(this, id, { ...opts, config }, ...rest)
 				if (result) {
-					return result;
+					return result
 				}
 			}
 		},
 
 		async resolveId(id, two, opts, ...rest) {
 			for (const plugin of config.plugins) {
-				if (typeof plugin.vite?.resolveId !== "function") {
-					continue;
+				if (typeof plugin.vite?.resolveId !== 'function') {
+					continue
 				}
 
 				const result = await plugin.vite!.resolveId.call(
@@ -412,20 +389,20 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 					id,
 					two,
 					{ ...opts, config },
-					...rest,
-				);
+					...rest
+				)
 				if (result) {
-					return result;
+					return result
 				}
 			}
 		},
-	};
+	}
 }
 
 export interface TransformPage {
-	config: Config;
-	content: string;
-	map?: SourceMapInput;
-	filepath: string;
-	watch_file: (path: string) => void;
+	config: Config
+	content: string
+	map?: SourceMapInput
+	filepath: string
+	watch_file: (path: string) => void
 }
