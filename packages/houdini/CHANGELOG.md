@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.11
+
+### Patch Changes
+
+-   [#1547](https://github.com/HoudiniGraphql/houdini/pull/1547) [`a7910b31bce23c60048f9cfe20e0890c884f4daf`](https://github.com/HoudiniGraphql/houdini/commit/a7910b31bce23c60048f9cfe20e0890c884f4daf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix hmr loop when changes affect runtime directory
+
 ## 2.0.0-next.10
 
 ### Patch Changes
