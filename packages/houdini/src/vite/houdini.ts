@@ -69,7 +69,7 @@ export default function Plugin(opts: PluginConfig = {}): VitePlugin {
 			// .gql files are not understood by vite, since they're not processed yet at this stage
 			// Thus, we cannot get their dependencies.
 			// However, if it is a graphql file, it for sure depends on houdini
-			const isGqlFile = isGraphQLFile(file) && !file.includes(config.rootDir);
+			const isGqlFile = isGraphQLFile(file);
 
 			if (!(shouldReact && (dependsOn || isGqlFile))) {
 				return modules;
