@@ -1,16 +1,23 @@
 package plugin
 
 import (
+	"context"
+	"path"
+	"strings"
+
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 )
 
+var Framework = "svelte"
+
 type HoudiniSvelte struct {
 	plugins.Plugin[PluginConfig]
-	Fs afero.Fs
+	Fs           afero.Fs
+	PluginConfig PluginConfig
 }
 
-type PluginConfig = any
+type PluginConfig struct{}
 
 func (p *HoudiniSvelte) Name() string {
 	return "houdini-svelte"
@@ -22,4 +29,25 @@ func (p *HoudiniSvelte) SetFs(fs afero.Fs) {
 
 func (p *HoudiniSvelte) Order() plugins.PluginOrder {
 	return plugins.PluginOrderCore
+}
+
+func (p *HoudiniSvelte) AfterLoad(ctx context.Context) error {
+	// we need to determine if the user is using the plugin in a kit or svelte project
+	// to do that let's look in the package.json for sveltekit as dependency
+	config, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	packageJSON, err := afero.ReadFile(p.Fs, path.Join(config.ProjectRoot, "package.json"))
+	if err != nil {
+		return err
+	}
+
+	// if the package.json references sveltekit, we are in a kit project
+	if strings.Contains(string(packageJSON), "@sveltejs/kit") {
+		Framework = "kit"
+	}
+
+	return nil
 }

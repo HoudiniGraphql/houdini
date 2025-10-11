@@ -87,6 +87,12 @@ func GenerateRuntimeIndexFile(
 	runtimeExport := []string{}
 	err = db.StepStatement(ctx, pluginSearch, func() {
 		name := pluginSearch.GetText("name")
+		// the core runtime goes somewhere special so we dont need ot generate imports for it
+		if name == "houdini-core" {
+			return
+		}
+
+		// make sure the runtime exports the plugin runtime
 		runtimeExport = append(
 			runtimeExport,
 			fmt.Sprintf("export * from './plugins/%s/runtime'", name),

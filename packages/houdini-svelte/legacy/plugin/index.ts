@@ -24,20 +24,12 @@ export let _config: Config
 
 export const pluginHooks = async (): Promise<PluginHooks> => ({
 	/**
-	 * Config
-	 */
-	order: 'core',
-
-	/**
 	 * Generate
 	 */
 
 	extensions: ['.svelte'],
 
-	includeRuntime: {
-		esm: '../runtime-esm',
-		commonjs: '../runtime-cjs',
-	},
+
 
 	transformRuntime: {
 		'adapter.js': ({ content }) => {
