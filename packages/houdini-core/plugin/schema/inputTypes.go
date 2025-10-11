@@ -140,6 +140,10 @@ func generateInputTypeDefinitions(
 	finalContent.WriteString(content.String())
 
 	// write the content to the file
+	err = fs.MkdirAll(config.DefinitionsDirectory(), 0o755)
+	if err != nil {
+		return err
+	}
 	targetPath := path.Join(config.DefinitionsDirectory(), "inputs.d.ts")
 	return afero.WriteFile(fs, targetPath, []byte(finalContent.String()), 0o644)
 }

@@ -1,6 +1,8 @@
 package plugin
 
-import "context"
+import (
+	"context"
+)
 
 func (p *HoudiniSvelte) Schema(ctx context.Context) error {
 	// grab a connection to the database for this
@@ -33,9 +35,33 @@ func (p *HoudiniSvelte) Schema(ctx context.Context) error {
 	}
 	defer insertDirectiveLocation.Finalize()
 
+	directiveSearch, err := conn.Prepare(`
+		select count(*) from directives where name = $name
+	`)
+	if err != nil {
+		return err
+	}
+	defer directiveSearch.Finalize()
+
 	for name, description := range directives {
+		p.DB.BindStatement(directiveSearch, map[string]any{"name": name})
+		found := false
+		err := p.DB.StepStatement(
+			ctx,
+			directiveSearch,
+			func() {
+				found = directiveSearch.ColumnInt(0) > 0
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		if found {
+			continue
+		}
 		// insert the directive
-		err := p.DB.ExecStatement(insertDirective, map[string]any{
+		err = p.DB.ExecStatement(insertDirective, map[string]any{
 			"name":        name,
 			"description": description,
 		})

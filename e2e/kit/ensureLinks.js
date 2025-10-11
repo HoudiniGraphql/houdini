@@ -19,8 +19,8 @@ await fs.chmod('node_modules/.bin/houdini', 0o755);
 // create symlinks for houdini plugins to point to their built directories
 const plugins = [
   {
-    name: 'houdini-react',
-    path: path.resolve(__dirname, '../../packages/houdini-react/build/houdini-react')
+    name: 'houdini-svelte',
+    path: path.resolve(__dirname, '../../packages/houdini-svelte/build/houdini-svelte')
   },
   {
     name: 'houdini-core',

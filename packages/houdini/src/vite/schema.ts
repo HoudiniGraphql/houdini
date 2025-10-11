@@ -163,6 +163,13 @@ export function watch_local_schema(ctx: VitePluginContext): PluginOption {
 				'+schema',
 			)
 
+			// before we go  any further, check if teh file exists
+			try {
+				await fs.access(local_schema_path)
+			} catch {
+				return
+			}
+
 			// load the current schema into the module graph
 			const schema_mod_path = local_schema_path + '?t=' + Date.now()
 			let schema: GraphQLSchema
@@ -197,7 +204,7 @@ export function watch_local_schema(ctx: VitePluginContext): PluginOption {
 			// write the file
 			await fs.writeFile(write_target, fileData)
 		},
-	}
+	} as PluginOption
 }
 
 function depends_on(mod: ModuleNode, filepath: string): boolean {
