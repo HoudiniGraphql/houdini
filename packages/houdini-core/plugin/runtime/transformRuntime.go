@@ -20,21 +20,20 @@ func TransformRuntime(
 	filepath string,
 	content string,
 ) (string, error) {
-	runtimeDir := path.Join(config.ProjectRoot, config.RuntimeDir, "runtime")
-
 	// certain files get special treatment
 	switch filepath {
 
 	// the SITE_URL needs to be expanded
-	case path.Join(runtimeDir, "lib", "constants.js"):
+	case path.Join("lib", "constants.js"):
 		return strings.ReplaceAll(content, "SITE_URL", "https://houdinigraphql.com"), nil
 
 	// plugins can add extra config to the project's runtime config
-	case path.Join(runtimeDir, "imports", "pluginConfig.js"):
+	case path.Join("imports", "pluginConfig.js"):
 		return ExtraConfig(ctx, db, content)
 
 	// we need to add an import to the config file
-	case path.Join(runtimeDir, "imports", "config.js"):
+	case path.Join("imports", "config.js"):
+		runtimeDir := path.Join(config.ProjectRoot, config.RuntimeDir, "runtime")
 		configPath, err := fp.Rel(path.Join(runtimeDir, "imports"), config.Filepath)
 		if err != nil {
 			return "", err
@@ -45,7 +44,7 @@ export default projectConfig;
 `, configPath), nil
 
 		// add any client plugins specified by codegen plugins
-	case path.Join(runtimeDir, "client", "plugins", "injectedPlugins.js"):
+	case path.Join("client", "plugins", "injectedPlugins.js"):
 		return InjectPlugins(ctx, content, db)
 	}
 

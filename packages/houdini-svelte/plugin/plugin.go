@@ -17,8 +17,6 @@ type HoudiniSvelte struct {
 	PluginConfig PluginConfig
 }
 
-type PluginConfig struct{}
-
 func (p *HoudiniSvelte) Name() string {
 	return "houdini-svelte"
 }
@@ -34,20 +32,44 @@ func (p *HoudiniSvelte) Order() plugins.PluginOrder {
 func (p *HoudiniSvelte) AfterLoad(ctx context.Context) error {
 	// we need to determine if the user is using the plugin in a kit or svelte project
 	// to do that let's look in the package.json for sveltekit as dependency
-	config, err := p.DB.ProjectConfig(ctx)
+	pluginConfig, err := p.DB.PluginConfig(ctx)
 	if err != nil {
 		return err
 	}
 
-	packageJSON, err := afero.ReadFile(p.Fs, path.Join(config.ProjectRoot, "package.json"))
-	if err != nil {
-		return err
-	}
+	if pluginConfig.Framework != "" {
+		Framework = pluginConfig.Framework
+		return nil
+	} else {
 
-	// if the package.json references sveltekit, we are in a kit project
-	if strings.Contains(string(packageJSON), "@sveltejs/kit") {
-		Framework = "kit"
+		// load the project config
+		config, err := p.DB.ProjectConfig(ctx)
+		if err != nil {
+			return err
+		}
+
+		// read the contents
+		packageJSON, err := afero.ReadFile(p.Fs, path.Join(config.ProjectRoot, "package.json"))
+		if err != nil {
+			return err
+		}
+
+		// if the package.json references sveltekit, we are in a kit project
+		if strings.Contains(string(packageJSON), "@sveltejs/kit") {
+			Framework = "kit"
+		}
 	}
 
 	return nil
+}
+
+type PluginFramework = string
+
+const (
+	PluginFrameworkSvelte = "svelte"
+	PluginFrameworkKit    = "kit"
+)
+
+type PluginConfig struct {
+	Framework PluginFramework `json:"framework"`
 }

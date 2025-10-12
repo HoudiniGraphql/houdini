@@ -18,7 +18,8 @@ func (p *HoudiniSvelte) TransformRuntime(
 ) (string, error) {
 	switch filepath {
 	case path.Join(plugins.PluginDirFromContext(ctx), "runtime", "adapter.js"):
-	default:
-		return content, nil
 	}
+
+	// no matches, just return
+	return content, nil
 }

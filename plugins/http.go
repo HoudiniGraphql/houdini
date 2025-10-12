@@ -279,8 +279,8 @@ func handleAfterLoad[PluginConfig any](
 
 			// the plugin could have defined a transform for the runtime
 			transform := func(ctx context.Context, source string, content string) (string, error) { return content, nil }
-			if transformer, ok := plugin.(TransformRuntime); ok {
-				transform = transformer.TransformRuntime
+			if transformer, ok := plugin.(TransformStaticRuntime); ok {
+				transform = transformer.TransformStaticRuntime
 			}
 
 			// copy the plugin runtime to the runtime directory

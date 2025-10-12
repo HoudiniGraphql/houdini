@@ -10,13 +10,12 @@ import (
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
-var _pluginName string
-
 type DatabasePool[PluginConfig any] struct {
 	_config       *ProjectConfig
 	_pluginConfig *PluginConfig
 	*sqlitex.Pool
-	Test bool
+	PluginName string
+	Test       bool
 }
 
 func (db *DatabasePool[PluginConfig]) SetProjectConfig(config ProjectConfig) {

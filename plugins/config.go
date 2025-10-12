@@ -240,7 +240,7 @@ func (db *DatabasePool[PluginConfig]) ReloadPluginConfig(ctx context.Context) er
 
 	// look for the plugin entry with the correct name and marshal it into the pluginConfig field
 	return sqlitex.Execute(conn, `SELECT config FROM plugins WHERE name = ?`, &sqlitex.ExecOptions{
-		Args: []any{_pluginName},
+		Args: []any{db.PluginName},
 		ResultFunc: func(stmt *sqlite.Stmt) error {
 			result := stmt.ColumnText(0)
 			// Allocate a new PluginConfig if it is nil.

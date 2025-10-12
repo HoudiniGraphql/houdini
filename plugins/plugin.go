@@ -59,6 +59,12 @@ type TransformRuntime interface {
 	TransformRuntime(ctx context.Context, source string, content string) (string, error)
 }
 
+/* Transform the plugin's static runtime while houdini is copying it .
+ * You must have passed a value to includeRuntime for this hook to matter. */
+type TransformStaticRuntime interface {
+	TransformStaticRuntime(ctx context.Context, source string, content string) (string, error)
+}
+
 /* Generate project scaffolding files that don't necessary depend on a specific task of documents.
  * For  example, a plugin runtime
  */
