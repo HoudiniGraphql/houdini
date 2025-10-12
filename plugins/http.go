@@ -33,7 +33,8 @@ func pluginHooks[PluginConfig any](
 	// --- AfterLoad is triggered for StaticRuntime OR AfterLoad
 	_, isStaticRuntime := plugin.(StaticRuntime)
 	_, isAfterLoad := plugin.(AfterLoad)
-	register("/afterload", "AfterLoad", isStaticRuntime || isAfterLoad,
+	_, hasDefaultConfig := plugin.(DefaultConfig[PluginConfig])
+	register("/afterload", "AfterLoad", isStaticRuntime || isAfterLoad || hasDefaultConfig,
 		InjectContext(EventHook(handleAfterLoad(plugin))))
 
 	// --- GenerateRuntime is triggered for IncludeRuntime OR GenerateRuntime
@@ -262,6 +263,32 @@ func handleAfterLoad[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
 ) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
+		// if the plugin specifies default configuration values we should load that
+		// before anything else
+		if defaultConfig, ok := plugin.(DefaultConfig[PluginConfig]); ok {
+			config, err := defaultConfig.DefaultConfig(ctx)
+			if err != nil {
+				return err
+			}
+
+			marshaled, err := json.Marshal(config)
+			if err != nil {
+				return err
+			}
+
+			// now that we have the updated values we need to persist them to the databse
+			updateConfig := `
+				UPDATE plugins SET config = $config WHERE name = $name
+			`
+			err = plugin.Database().ExecQuery(ctx, updateConfig, map[string]any{
+				"config": string(marshaled),
+				"name":   plugin.Name(),
+			})
+			if err != nil {
+				return err
+			}
+		}
+
 		// if the plugin defines a runtime to include
 		if staticRuntime, ok := plugin.(StaticRuntime); ok {
 			config, err := plugin.Database().ProjectConfig(ctx)

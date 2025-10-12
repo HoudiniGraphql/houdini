@@ -72,6 +72,10 @@ type GenerateRuntime interface {
 	GenerateRuntime(ctx context.Context) ([]string, error)
 }
 
+type DefaultConfig[PluginConfig any] interface {
+	DefaultConfig(ctx context.Context) (PluginConfig, error)
+}
+
 /* The path to a javascript module with an default export that sets configuration values. */
 type Config interface {
 	Config(ctx context.Context) (string, error)

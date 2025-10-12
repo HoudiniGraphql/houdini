@@ -126,6 +126,29 @@ func (db DatabasePool[PluginConfig]) Take(ctx context.Context) (*sqlite.Conn, er
 	return conn, nil
 }
 
+func (db DatabasePool[PluginConfig]) ExecQuery(
+	ctx context.Context,
+	query string,
+	args map[string]any,
+) error {
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return &Error{
+			Message: "could not open connection to database",
+			Detail:  err.Error(),
+		}
+	}
+	defer db.Put(conn)
+	stmt, err := conn.Prepare(query)
+	if err != nil {
+		return &Error{
+			Message: fmt.Sprintf("could not prepare query: %v", err),
+		}
+	}
+	defer stmt.Finalize()
+	return db.ExecStatement(stmt, args)
+}
+
 // StepQuery wraps the common steps for executing a query.
 // It obtains the connection, prepares the query, iterates over rows, and calls the rowHandler callback for each row.
 func (db DatabasePool[PluginConfig]) StepQuery(

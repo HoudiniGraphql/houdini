@@ -85,6 +85,13 @@ export default async function () {
 				await execCmd('chmod', ['+x', path.join(outputDir, bin)], {})
 			}
 
+      // we can't have any worksapce entries in our dev depenendencies
+      for (const [key, value] of Object.entries(packageJSON.devDependencies || {})) {
+        if (value === 'workspace:^') {
+          delete packageJSON.devDependencies[key]
+        }
+      }
+
 			// next we need to add the package.json file
 			await fs.writeFile(
 				path.join(outputDir, 'package.json'),

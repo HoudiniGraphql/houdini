@@ -44,6 +44,7 @@ func (p *HoudiniSvelte) Schema(ctx context.Context) error {
 	defer directiveSearch.Finalize()
 
 	for name, description := range directives {
+		// see if the directive already exists before we insert it
 		p.DB.BindStatement(directiveSearch, map[string]any{"name": name})
 		found := false
 		err := p.DB.StepStatement(

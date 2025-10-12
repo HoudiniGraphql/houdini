@@ -412,8 +412,6 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 	return {
 		client: './src/client',
 		defaultRouteBlocking: false,
-		pageQueryFilename: '+page.gql',
-		layoutQueryFilename: '+layout.gql',
 		static: false,
 		forceRunesMode: false,
 		...cfg,
