@@ -13,7 +13,7 @@ import (
 )
 
 func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
 			enum MyEnum {
 				Hello

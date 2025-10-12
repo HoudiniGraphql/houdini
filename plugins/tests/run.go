@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"reflect"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -15,12 +16,12 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
-type Table[PluginConfig any] struct {
+type Table[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]] struct {
 	Schema        string
 	ProjectConfig plugins.ProjectConfig
 	Tests         []Test[PluginConfig]
-	PerformTest   func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig])
-	VerifyTest    func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig])
+	PerformTest   func(t *testing.T, plugin PluginType, test Test[PluginConfig])
+	VerifyTest    func(t *testing.T, plugin PluginType, test Test[PluginConfig])
 }
 
 type Test[PluginConfig any] struct {
@@ -32,52 +33,69 @@ type Test[PluginConfig any] struct {
 	ProjectConfig func(config *plugins.ProjectConfig)
 }
 
-func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
+func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
+	t *testing.T,
+	table Table[PluginConfig, PluginType],
+) {
 	if table.VerifyTest == nil {
-		table.VerifyTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
+		table.VerifyTest = func(t *testing.T, plugin PluginType, test Test[PluginConfig]) {
 			// make sure we generated what we expected
 			if len(test.Expected) > 0 {
-				ValidateExpectedDocuments(t, plugin.DB, test.Expected)
+				ValidateExpectedDocuments(t, plugin.Database(), test.Expected)
 			}
 		}
 	}
 
 	// if the table doesn't have a custom performance, then we should execute all steps
 	if table.PerformTest == nil {
-		table.PerformTest = func(t *testing.T, plugin *plugin.HoudiniCore, test Test[PluginConfig]) {
+		table.PerformTest = func(t *testing.T, plugin PluginType, test Test[PluginConfig]) {
 			// wire up the plugin
-			err := plugin.AfterExtract(context.Background())
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
+			// Skip AfterExtract for HoudiniCore since it was already called in setup
+			if after, ok := any(plugin).(plugins.AfterExtract); ok {
+				// Check if this is HoudiniCore by checking the plugin name
+				if plugin.Name() != "houdini-core" {
+					err := after.AfterExtract(context.Background())
+					if err != nil {
+						require.False(t, test.Pass, err.Error())
+						return
+					}
+				}
 			}
 
 			// run the validation step to discover lists
-			err = plugin.Validate(context.Background())
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
+			if validate, ok := any(plugin).(plugins.Validate); ok {
+				err := validate.Validate(context.Background())
+				if err != nil {
+					require.False(t, test.Pass, err.Error())
+					return
+				}
 			}
 
 			// perform the necessary afterValidate steps
-			err = plugin.AfterValidate(context.Background())
-			if err != nil {
-				require.False(t, test.Pass, err)
-				return
+			if after, ok := any(plugin).(plugins.AfterValidate); ok {
+				err := after.AfterValidate(context.Background())
+				if err != nil {
+					require.False(t, test.Pass, err)
+					return
+				}
 			}
 
 			// generate the artifacts
-			_, err = plugin.GenerateDocuments(context.Background())
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
+			if generate, ok := any(plugin).(plugins.GenerateDocuments); ok {
+				_, err := generate.GenerateDocuments(context.Background())
+				if err != nil {
+					require.False(t, test.Pass, err.Error())
+					return
+				}
 			}
 
 			// as well as the runtime
-			_, err = plugin.GenerateRuntime(context.Background())
-			if err != nil {
-				require.False(t, test.Pass, err.Error())
-				return
+			if runtime, ok := any(plugin).(plugins.GenerateRuntime); ok {
+				_, err := runtime.GenerateRuntime(context.Background())
+				if err != nil {
+					require.False(t, test.Pass, err.Error())
+					return
+				}
 			}
 
 			require.True(t, test.Pass)
@@ -123,12 +141,13 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 			}
 			defer db.Close()
 
-			plugin := &plugin.HoudiniCore{
-				Fs: afero.NewMemMapFs(),
-			}
+			fs := afero.NewMemMapFs()
+			// we need a core plugin to set up the system
+			core := &plugin.HoudiniCore{}
+			core.SetFilesystem(fs)
 
 			db.SetProjectConfig(projectConfig)
-			plugin.SetDatabase(db)
+			core.SetDatabase(db)
 
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
@@ -140,14 +159,14 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 
 			// Use an in-memory file system.
 			afero.WriteFile(
-				plugin.Fs,
+				core.Fs,
 				path.Join("/project", "schema.graphql"),
 				[]byte(table.Schema),
 				0644,
 			)
 
 			// wire up the plugin
-			err = plugin.Schema(context.Background())
+			err = core.Schema(context.Background())
 			if err != nil {
 				db.Put(conn)
 				t.Fatalf("failed to execute schema: %v", err)
@@ -169,12 +188,20 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 
 			// write the relevant config values
 			insertConfig, err := conn.Prepare(
-				`insert into config (default_keys, include, exclude, schema_path, default_paginate_mode) values ($keys, '*', '*', '*', 'Infinite')`,
+				`insert into config (default_keys, include, exclude, schema_path, default_paginate_mode) values ($keys, $include, $exclude, $schema_path, $paginate_mode)`,
 			)
 			require.Nil(t, err)
 			defer insertConfig.Finalize()
 			defaultKeys, _ := json.Marshal(projectConfig.DefaultKeys)
-			err = db.ExecStatement(insertConfig, map[string]any{"keys": string(defaultKeys)})
+			includeJSON, _ := json.Marshal([]string{"**/*"})
+			excludeJSON, _ := json.Marshal([]string{})
+			err = db.ExecStatement(insertConfig, map[string]any{
+				"keys":          string(defaultKeys),
+				"include":       string(includeJSON),
+				"exclude":       string(excludeJSON),
+				"schema_path":   "*",
+				"paginate_mode": "Infinite",
+			})
 			require.Nil(t, err)
 
 			insertCustomKeys, err := conn.Prepare(
@@ -228,6 +255,37 @@ func RunTable[PluginConfig any](t *testing.T, table Table[PluginConfig]) {
 				})
 				require.Nil(t, err)
 			}
+
+			// run the extraction step to populate the documents table
+			err = core.ExtractDocuments(context.Background(), plugins.ExtractDocumentsInput{})
+			require.NoError(t, err)
+
+			// parse the raw documents into the documents table
+			// If the test expects to fail, parsing errors are acceptable
+			err = core.AfterExtract(context.Background())
+			if err != nil && test.Pass {
+				// Only fail if the test was supposed to pass
+				require.NoError(t, err)
+			}
+
+			// and now we need to instantiate the specific plugin we're using
+			var plugin PluginType
+
+			// Handle pointer types by creating a new instance
+			pluginType := reflect.TypeOf(plugin)
+			if pluginType.Kind() == reflect.Ptr {
+				// Create a new instance of the underlying type
+				plugin = reflect.New(pluginType.Elem()).Interface().(PluginType)
+			}
+
+			pluginDB := plugins.DatabasePool[PluginConfig]{
+				Pool:       db.Pool,
+				PluginName: plugin.Name(),
+				Test:       true,
+			}
+			pluginDB.SetProjectConfig(projectConfig)
+			plugin.SetDatabase(pluginDB)
+			plugin.SetFilesystem(fs)
 
 			table.PerformTest(t, plugin, test)
 		})

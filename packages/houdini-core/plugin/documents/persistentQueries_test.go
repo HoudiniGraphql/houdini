@@ -16,7 +16,7 @@ import (
 )
 
 func TestPersistentQueriesBasicOperations(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
 			type Query {
 				user(id: ID!): User!
@@ -63,7 +63,7 @@ func TestPersistentQueriesBasicOperations(t *testing.T) {
 }
 
 func TestPersistentQueriesFragmentEmbedding(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
 			type Query {
 				user(id: ID!): User!
@@ -128,7 +128,7 @@ func TestPersistentQueriesFragmentEmbedding(t *testing.T) {
 }
 
 func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
 			type Query {
 				user(id: ID!): User!

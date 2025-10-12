@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestLoadingArtifacts(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
       type Query {
 				animals(first: Int, after: String): AnimalConnection

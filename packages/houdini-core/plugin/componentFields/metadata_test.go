@@ -167,9 +167,8 @@ func TestComponentFieldChecks(t *testing.T) {
 				t.Fatalf("failed to create in-memory db: %v", err)
 			}
 			defer db.Close()
-			plugin := &plugin.HoudiniCore{
-				Fs: afero.NewMemMapFs(),
-			}
+			plugin := &plugin.HoudiniCore{}
+			plugin.SetFilesystem(afero.NewMemMapFs())
 
 			db.SetProjectConfig(plugins.ProjectConfig{
 				ProjectRoot: "/project",

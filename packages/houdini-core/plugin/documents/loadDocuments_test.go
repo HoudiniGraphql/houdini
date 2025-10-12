@@ -1612,9 +1612,8 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			}
 			defer db.Close()
 
-			plugin := &plugin.HoudiniCore{
-				Fs: afero.NewMemMapFs(),
-			}
+			plugin := &plugin.HoudiniCore{}
+			plugin.SetFilesystem(afero.NewMemMapFs())
 
 			projectConfig := plugins.ProjectConfig{
 				ProjectRoot: "/project",

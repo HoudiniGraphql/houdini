@@ -12,9 +12,9 @@ import (
 
 func main() {
 	// run the plugin
-	err := plugins.Run(&plugin.HoudiniCore{
-		Fs: afero.NewOsFs(),
-	})
+	core := &plugin.HoudiniCore{}
+	core.SetFilesystem(afero.NewOsFs())
+	err := plugins.Run(core)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

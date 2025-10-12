@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	core "code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestPaginationDocumentGeneration(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *core.HoudiniCore]{
 		Schema: `
 			type Query {
 				users(limit: Int, offset: Int): [User!]!

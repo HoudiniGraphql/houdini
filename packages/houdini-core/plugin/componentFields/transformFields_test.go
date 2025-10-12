@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
 func TestComponentFields_testTransform(t *testing.T) {
 	// print hello
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
       type Query { 
         user: User  

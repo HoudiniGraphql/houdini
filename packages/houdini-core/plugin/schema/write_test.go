@@ -117,7 +117,8 @@ func TestSchema(t *testing.T) {
 			require.Nil(t, err)
 
 			// Create the HoudiniCore instance and set its DB.
-			core := &houdiniCore.HoudiniCore{Fs: fs}
+			core := &houdiniCore.HoudiniCore{}
+			core.SetFilesystem(fs)
 			core.SetDatabase(db)
 
 			// Call the Schema method.

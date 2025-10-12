@@ -16,7 +16,7 @@ import (
 )
 
 func TestDefinitionGeneration(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "generates runtime definitions for each enum",

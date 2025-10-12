@@ -15,7 +15,7 @@ import (
 )
 
 func TestPluginIndexGeneration(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `type Query { hello: String }`,
 		Tests: []tests.Test[config.PluginConfig]{
 			{

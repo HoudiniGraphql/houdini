@@ -1,6 +1,10 @@
 package plugins
 
-import "context"
+import (
+	"context"
+
+	"github.com/spf13/afero"
+)
 
 // all a plugin _must_ provide is a name and its order
 type HoudiniPlugin[PluginConfig any] interface {
@@ -8,10 +12,13 @@ type HoudiniPlugin[PluginConfig any] interface {
 	Order() PluginOrder
 	SetDatabase(DatabasePool[PluginConfig])
 	Database() DatabasePool[PluginConfig]
+	SetFilesystem(fs afero.Fs)
+	Filesystem() afero.Fs
 }
 
 type Plugin[PluginConfig any] struct {
 	DB DatabasePool[PluginConfig]
+	Fs afero.Fs
 }
 
 // SetDatabase is a helper that lets Run() inject the database into the plugin.
@@ -21,6 +28,14 @@ func (p *Plugin[PluginConfig]) SetDatabase(db DatabasePool[PluginConfig]) {
 
 func (p *Plugin[PluginConfig]) Database() DatabasePool[PluginConfig] {
 	return p.DB
+}
+
+func (p *Plugin[PluginConfig]) SetFilesystem(fs afero.Fs) {
+	p.Fs = fs
+}
+
+func (p *Plugin[PluginConfig]) Filesystem() afero.Fs {
+	return p.Fs
 }
 
 // each hook can be implemented by a plugin by implementing the corresponding method

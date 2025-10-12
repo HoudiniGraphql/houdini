@@ -14,7 +14,7 @@ import (
 )
 
 func TestValidate_Houdini(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		ProjectConfig: plugins.ProjectConfig{
 			TypeConfig: map[string]plugins.TypeConfig{
 				"Ghost": {

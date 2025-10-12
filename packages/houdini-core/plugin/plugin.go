@@ -2,9 +2,9 @@ package plugin
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/joho/godotenv"
-	"github.com/spf13/afero"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -12,15 +12,10 @@ import (
 
 type HoudiniCore struct {
 	plugins.Plugin[config.PluginConfig]
-	Fs afero.Fs
 }
 
 func (p *HoudiniCore) Name() string {
 	return "houdini-core"
-}
-
-func (p *HoudiniCore) SetFs(fs afero.Fs) {
-	p.Fs = fs
 }
 
 func (p *HoudiniCore) Order() plugins.PluginOrder {
@@ -45,9 +40,7 @@ func (p *HoudiniCore) Environment(mode string) (map[string]string, error) {
 		}
 
 		// assign the variables to the result
-		for k, v := range env {
-			result[k] = v
-		}
+		maps.Copy(result, env)
 	}
 
 	// we're done

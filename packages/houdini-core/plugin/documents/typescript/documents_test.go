@@ -13,7 +13,7 @@ import (
 )
 
 func TestTypescriptGeneration(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `
         """ Documentation of MyEnum """
 				enum MyEnum {

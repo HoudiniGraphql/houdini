@@ -12,7 +12,7 @@ import (
 )
 
 func TestRuntimeTransform_extraConfig(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `type Query { hello: String }`,
 		Tests: []tests.Test[config.PluginConfig]{
 			{
@@ -56,7 +56,7 @@ plugin_1
 }
 
 func TestRuntimeTransform_injectedPlugins(t *testing.T) {
-	tests.RunTable(t, tests.Table[config.PluginConfig]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `type Query { hello: String }`,
 		Tests: []tests.Test[config.PluginConfig]{
 			{
