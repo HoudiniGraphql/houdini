@@ -1,12 +1,6 @@
 import type { Config, PluginHooks } from 'houdini'
-import { HoudiniError, detectFromPackageJSON, fs, path, plugin } from 'houdini'
-import * as url from 'node:url'
-import { loadEnv } from 'vite'
-
-import { artifactData } from './artifactData'
 import generate from './codegen'
 import {
-	plugin_config,
 	resolve_relative,
 	store_import_path,
 	store_name,
@@ -14,16 +8,12 @@ import {
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'
-import { validate } from './validate'
 
 let framework: Framework = 'svelte'
 
 export let _config: Config
 
 export const pluginHooks = async (): Promise<PluginHooks> => ({
-	// we have some custom document validation logic
-	validate,
-
 	// we need to write the svelte specific runtime
 	generate(input) {
 		return generate({
