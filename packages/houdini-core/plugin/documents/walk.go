@@ -30,10 +30,16 @@ func Walk[PluginConfig any](
 	// build a glob walker that we can use to find all of the files
 	walker := glob.NewWalker()
 	for _, pattern := range config.Include {
-		walker.AddInclude(pattern)
+		err = walker.AddInclude(pattern)
+		if err != nil {
+			return err
+		}
 	}
 	for _, pattern := range config.Exclude {
-		walker.AddExclude(pattern)
+		err = walker.AddExclude(pattern)
+		if err != nil {
+			return err
+		}
 	}
 
 	// we might also need to include static runtimes
