@@ -46,11 +46,65 @@ func TestValidate_svelte(t *testing.T) {
 		},
 		Tests: []tests.Test[PluginConfig]{
 			{
-				Name: "forbidden operation names",
+				Name: "forbidden operation name: Query",
 				Pass: false,
 				Input: []string{
 					`
 						query Query { hello }
+					`,
+				},
+			},
+			{
+				Name: "forbidden operation name: Mutation",
+				Pass: false,
+				Input: []string{
+					`
+						mutation Mutation { hello }
+					`,
+				},
+			},
+			{
+				Name: "forbidden operation name: Subscription",
+				Pass: false,
+				Input: []string{
+					`
+						subscription Subscription { hello }
+					`,
+				},
+			},
+			{
+				Name: "forbidden operation name: Fragment",
+				Pass: false,
+				Input: []string{
+					`
+						fragment Fragment on Query { hello }
+					`,
+				},
+			},
+			{
+				Name: "forbidden operation name: Base",
+				Pass: false,
+				Input: []string{
+					`
+						query Base { hello }
+					`,
+				},
+			},
+			{
+				Name: "allowed operation names",
+				Pass: true,
+				Input: []string{
+					`
+						query GetUser { hello }
+					`,
+					`
+						mutation UpdateUser { hello }
+					`,
+					`
+						subscription UserUpdates { hello }
+					`,
+					`
+						fragment UserInfo on Query { hello }
 					`,
 				},
 			},
