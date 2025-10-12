@@ -1,13 +1,10 @@
 <script lang="ts">
   import { CachePolicy, graphql, paginatedFragment } from '$houdini';
+  import type { PageData } from './$houdini'
 
-  $: queryResult = graphql(`
-    query UserFragmentBidirectionalCursorQuery @load {
-      user(id: "1", snapshot: "pagination-fragment-backwards-cursor") {
-        ...BidirectionalCursorFragment
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $:({ UserFragmentBidirectionalCursorQuery: queryResult } = data);
 
   $: fragmentResult = paginatedFragment(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

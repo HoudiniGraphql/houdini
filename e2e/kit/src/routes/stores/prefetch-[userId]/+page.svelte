@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { stry } from '../../../lib/utils/helpers.js';
+  import { stry } from '@kitql/helpers';
   import type { PageData } from './$types';
 
   export let data: PageData;

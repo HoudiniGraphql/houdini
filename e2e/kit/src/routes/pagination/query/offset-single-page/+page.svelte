@@ -1,14 +1,10 @@
 <script lang="ts">
   import { graphql, CachePolicy } from '$houdini';
+  import type { PageData } from './$houdini'
 
-  $: result = graphql(`
-    query OffsetPaginationSinglePageQuery @load {
-      usersList(limit: 2, snapshot: "pagination-query-offset-single-page")
-        @paginate(mode: SinglePage) {
-        name
-      }
-    }
-  `);
+  export let data: PageData;
+
+  $: ({ OffsetPaginationSinglePageQuery: result } = data);
 </script>
 
 <div id="result">

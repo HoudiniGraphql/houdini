@@ -1,11 +1,9 @@
 <script lang="ts">
   import { graphql, type SessionStore } from '$houdini';
+  import type { PageData } from './$houdini'
 
-  $: Session = graphql<SessionStore>`
-    query Session @load {
-      session
-    }
-  `;
+  export let data: PageData;
+  $: ({ Session } = data)
 </script>
 
 <h1>SSR Session</h1>

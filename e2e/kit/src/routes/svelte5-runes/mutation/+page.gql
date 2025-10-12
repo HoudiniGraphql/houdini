@@ -1,5 +1,0 @@
-query Svelte5MutationGetData {
-  user(id: "1", snapshot: "svelte-5-mutation") {
-    name
-  }
-}

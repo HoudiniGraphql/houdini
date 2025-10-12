@@ -1,17 +1,11 @@
 <script lang="ts">
   import { graphql } from '$houdini';
   import CityDetails from './CityDetails.svelte';
+  import type { PageData } from './$houdini';
 
-  $: store = graphql(`
-    query FragmentDataNullPageQuery @load @cache(partial: false) {
-      city(id: "1") {
-        id
-        name
+  export let data: PageData
 
-        ...CityDetails
-      }
-    }
-  `);
+  $: ({ FragmentDataNullPageQuery: store} = data)
 </script>
 
 <h3>inside +page.svelte</h3>

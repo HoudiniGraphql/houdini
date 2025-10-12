@@ -1,6 +1,0 @@
-query Layout_User($userId: ID!) {
-  user(id: $userId, snapshot: "Page_User", delay: 750) {
-    id
-    ...UserName
-  }
-}

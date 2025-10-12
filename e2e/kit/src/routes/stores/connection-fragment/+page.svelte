@@ -1,15 +1,11 @@
 <script lang="ts">
   import { fragment, graphql } from '$houdini';
 
-  $: queryResult = graphql(`
-    query UserConnectionFragmentQuery @load {
-      user(id: "1", snapshot: "connection-fragment") {
-        friendsConnection(first: 2) {
-          ...ConnectionFragment
-        }
-      }
-    }
-  `);
+  import type { PageData } from './$houdini';
+
+  export let data: PageData;
+
+  $: ({ UserConnectionFragmentQuery: queryResult } = data);
 
   $: frag = fragment(
     $queryResult.data?.user?.friendsConnection ?? null,

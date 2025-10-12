@@ -1,6 +1,0 @@
-query Svelte5SimpleSSR {
-  user(id: "1", snapshot: "hello-svelte-5") {
-    name
-    birthDate
-  }
-}

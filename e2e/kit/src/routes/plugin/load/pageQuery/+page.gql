@@ -1,5 +1,0 @@
-query PageQuery {
-  user(id: "1", snapshot: "page-query") {
-    id
-  }
-}
