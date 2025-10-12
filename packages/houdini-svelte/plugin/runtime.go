@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
@@ -63,4 +64,21 @@ export const redirect = svelteKitRedirect
 
 	// no matches, just return
 	return content, nil
+}
+
+func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	pluginDir, err := filepath.Rel(path.Dir(targetPath), projectConfig.PluginDirectory(p.Name()))
+	if err != nil {
+		return "", err
+	}
+	// we're done
+	return fmt.Sprintf(`
+
+export * from './%s/stores/index.js'
+`, pluginDir), nil
 }

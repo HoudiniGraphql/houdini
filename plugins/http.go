@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"path"
 	"sort"
+
+	"github.com/spf13/afero"
 )
 
 // the hooks that a plugin defines dictate a set of events that the plugin must repond to
@@ -105,6 +107,11 @@ func pluginHooks[PluginConfig any](
 	if p, ok := plugin.(AfterGenerate); ok {
 		register("/aftergenerate", "AfterGenerate", true,
 			InjectContext(EventHook(p.AfterGenerate)))
+	}
+
+	if _, ok := plugin.(IndexFile); ok {
+		register("/IndexFile", "IndexFile", true,
+			InjectContext(EventHook(handleIndexFile(plugin))))
 	}
 
 	// return stable list
@@ -206,6 +213,43 @@ func EventHookWithInput[T any](hook func(context.Context, T) error) http.Handler
 
 type ExtractDocumentsInput struct {
 	Filepaths []string `json:"filepaths"`
+}
+
+func handleIndexFile[PluginConfig any](
+	plugin HoudiniPlugin[PluginConfig],
+) func(ctx context.Context) error {
+	return func(ctx context.Context) error {
+		config, err := plugin.Database().ProjectConfig(ctx)
+		if err != nil {
+			return err
+		}
+
+		updater := plugin.(IndexFile)
+
+		dir := path.Join(config.ProjectRoot, config.RuntimeDir)
+		for _, file := range []string{"index.js", "index.d.ts"} {
+			targetPath := path.Join(dir, file)
+
+			content, err := updater.IndexFile(ctx, targetPath)
+			if err != nil {
+				return err
+			}
+
+			existingContent, err := afero.ReadFile(plugin.Filesystem(), targetPath)
+			if err != nil {
+				return err
+			}
+
+			newContent := string(existingContent) + "\n" + content
+
+			err = afero.WriteFile(plugin.Filesystem(), targetPath, []byte(newContent), 0644)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
 }
 
 func handleGenerateRuntime[PluginConfig any](

@@ -155,7 +155,7 @@ type Hash interface {
 
 /* A hook to modify the root `index.js` of the generated runtime. */
 type IndexFile interface {
-	IndexFile(ctx context.Context, source string) (string, error)
+	IndexFile(ctx context.Context, filepath string) (string, error)
 }
 
 /* A hook to generate custom files for every document in a project. */

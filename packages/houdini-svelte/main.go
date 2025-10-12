@@ -11,10 +11,12 @@ import (
 )
 
 func main() {
+	// set up the plugin
+	svelte := &plugin.HoudiniSvelte{}
+	svelte.SetFilesystem(afero.NewOsFs())
+
 	// run the plugin
-	err := plugins.Run(&plugin.HoudiniSvelte{
-		Fs: afero.NewOsFs(),
-	})
+	err := plugins.Run(svelte)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
