@@ -76,9 +76,7 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 	if err != nil {
 		return "", err
 	}
-	// we're done
-	return fmt.Sprintf(`
 
-export * from './%s/stores/index.js'
-`, pluginDir), nil
+	// we just need to export all of the stores we'll generate
+	return fmt.Sprintf(`export * from './%s/stores/index.js'`, pluginDir), nil
 }

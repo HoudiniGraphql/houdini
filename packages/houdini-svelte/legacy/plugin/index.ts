@@ -40,15 +40,6 @@ export const pluginHooks = async (): Promise<PluginHooks> => ({
 		}
 	},
 
-	// we need to add the exports to the index files (this one file processes index.js and index.d.ts)
-	indexFile({ config, content, exportStarFrom, pluginRoot }) {
-		const storesDir =
-			'./' +
-			path.relative(config.rootDir, stores_directory(pluginRoot)).split(path.sep).join('/')
-
-		return content + exportStarFrom({ module: storesDir })
-	},
-
 	/**
 	 * Transform
 	 */
@@ -56,12 +47,6 @@ export const pluginHooks = async (): Promise<PluginHooks> => ({
 	// transform a file's contents. changes here aren't seen by extractDocuments
 	transformFile(page) {
 		return apply_transforms(framework, page)
-	},
-
-	include({ config, filepath }) {
-		// the files we generate contain some crazy relative paths that we need to make sure we include for transformations
-		// fix the include path and try again
-		return config.includeFile(resolve_relative(config, filepath), { ignore_plugins: true })
 	},
 
 })
