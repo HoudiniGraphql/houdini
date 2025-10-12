@@ -21,11 +21,6 @@ let framework: Framework = 'svelte'
 export let _config: Config
 
 export const pluginHooks = async (): Promise<PluginHooks> => ({
-
-	// add custom artifact data to the artifact document
-	artifactData: artifactData,
-
-
 	// we have some custom document validation logic
 	validate,
 
