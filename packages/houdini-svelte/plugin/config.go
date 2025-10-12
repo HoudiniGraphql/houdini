@@ -73,11 +73,11 @@ func (p *HoudiniSvelte) DefaultConfig(ctx context.Context) (PluginConfig, error)
 	}
 
 	if pluginConfig.CustomStores.Mutation == "" {
-		pluginConfig.CustomStores.Mutation = "../runtime/stores/query.MutationStore"
+		pluginConfig.CustomStores.Mutation = "../runtime/stores/mutation.MutationStore"
 	}
 
 	if pluginConfig.CustomStores.Fragment == "" {
-		pluginConfig.CustomStores.Fragment = "../runtime/stores/query.FragmentStore"
+		pluginConfig.CustomStores.Fragment = "../runtime/stores/fragment.FragmentStore"
 	}
 
 	if pluginConfig.CustomStores.QueryCursor == "" {
@@ -89,11 +89,11 @@ func (p *HoudiniSvelte) DefaultConfig(ctx context.Context) (PluginConfig, error)
 	}
 
 	if pluginConfig.CustomStores.FragmentOffset == "" {
-		pluginConfig.CustomStores.FragmentOffset = "../runtime/stores/query.FragmentStoreOffset"
+		pluginConfig.CustomStores.FragmentOffset = "../runtime/stores/fragment.FragmentStoreOffset"
 	}
 
 	if pluginConfig.CustomStores.FragmentCursor == "" {
-		pluginConfig.CustomStores.FragmentCursor = "../runtime/stores/query.FragmentStoreCursor"
+		pluginConfig.CustomStores.FragmentCursor = "../runtime/stores/fragment.FragmentStoreCursor"
 	}
 
 	return pluginConfig, nil
