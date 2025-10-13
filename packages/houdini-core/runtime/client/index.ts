@@ -1,4 +1,3 @@
-/// <reference path="../../../../../houdini.d.ts" />
 import cacheRef from '../cache'
 import type { Cache } from '../cache/cache'
 import { getCurrentConfig, localApiEndpoint } from '../lib'
@@ -95,9 +94,8 @@ export class HoudiniClient {
 		// if there is no url provided then assume we are using the internal local api
 		this.url =
 			url ??
-			(globalThis.window ? '' : `https://localhost:${serverPort}`) +
+			(globalThis.window ? '' : `http://localhost:${serverPort}`) +
 				localApiEndpoint(getCurrentConfig())
-
 		this.throwOnError = throwOnError
 		this.fetchParams = fetchParams
 		this.pipeline = pipeline

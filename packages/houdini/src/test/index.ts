@@ -1,6 +1,9 @@
-import type { ConfigFile } from 'legacy/lib'
+import type { ConfigFile } from 'houdini'
 
-export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({
+	plugins,
+	...config
+}: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		scalars: {
 			DateTime: {

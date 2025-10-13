@@ -1,21 +1,4 @@
-type ValuesOf<Target> = Target[keyof Target]
-
-export const PaginateMode = {
-	Infinite: 'Infinite',
-	SinglePage: 'SinglePage',
-} as const
-
-export type PaginateModes = ValuesOf<typeof PaginateMode>
-
-export const CachePolicy = {
-	CacheOrNetwork: 'CacheOrNetwork',
-	CacheOnly: 'CacheOnly',
-	NetworkOnly: 'NetworkOnly',
-	CacheAndNetwork: 'CacheAndNetwork',
-	NoCache: 'NoCache',
-} as const
-
-export type CachePolicies = ValuesOf<typeof CachePolicy>
+import type { CachePolicies, PaginateModes } from './types'
 
 // the values we can take in from the config file
 export type ConfigFile = {

@@ -1,3 +1,4 @@
+import { testConfigFile } from '../../../../houdini/src/test'
 import { Cache as _Cache } from '../../cache/cache'
 import {
 	ArtifactKind,
@@ -154,7 +155,7 @@ export type CacheTypeDefTest = {
 	}
 }
 
-export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache())
+export const testCache = () => new Cache<CacheTypeDefTest>(new _Cache(testConfigFile()))
 
 export const testFragment = (selection: SubscriptionSelection): { artifact: FragmentArtifact } => ({
 	artifact: {

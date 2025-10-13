@@ -14,10 +14,21 @@ export default async function generate_typedefs({ plugin }) {
 		await fs.readFile(path.join(process.cwd(), 'package.json'), 'utf-8')
 	)
 
-	// grab any non-tests file
-	const files = (await glob('./src/**/*.ts*', { nodir: true })).filter(
-		(path) => !path.endsWith('.test.ts')
-	)
+	// grab any non-tests file from all TypeScript directories
+	const typescriptDirs = ['src', 'runtime', 'legacy', 'package', 'plugin']
+	let files = []
+
+	for (const dir of typescriptDirs) {
+		try {
+			const dirFiles = await glob(`./${dir}/**/*.ts*`, { nodir: true })
+			files.push(...dirFiles)
+		} catch (e) {
+			// Directory doesn't exist, skip it
+		}
+	}
+
+	// Filter out test files
+	files = files.filter((path) => !path.endsWith('.test.ts'))
 
 	// compile the types
 	compile(files, {

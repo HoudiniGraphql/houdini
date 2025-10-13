@@ -547,6 +547,13 @@ importers:
         version: 1.6.0(@types/node@22.13.1)(@vitest/ui@1.6.0)(terser@5.16.1)
 
   packages/houdini-core:
+    dependencies:
+      '@whatwg-node/server':
+        specifier: ^0.9.14
+        version: 0.9.14
+      graphql-yoga:
+        specifier: ^4.0.4
+        version: 4.0.4(graphql@16.8.1)
     devDependencies:
       scripts:
         specifier: workspace:^
@@ -10683,7 +10690,7 @@ snapshots:
       pathe: 1.1.2
       picocolors: 1.0.0
       sirv: 2.0.4
-      vitest: 1.6.0(@types/node@22.13.1)(@vitest/ui@1.6.0)(terser@5.16.1)
+      vitest: 1.6.0(@types/node@22.18.8)(@vitest/ui@1.6.0)(terser@5.16.1)
 
   '@vitest/utils@1.6.0':
     dependencies:

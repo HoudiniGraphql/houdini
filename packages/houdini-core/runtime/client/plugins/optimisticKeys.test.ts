@@ -1,6 +1,6 @@
+import { sleep } from '@kitql/helpers'
 import { beforeEach, expect, test } from 'vitest'
 
-import { sleep } from '../../../lib'
 import { testConfigFile } from '../../../test'
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'

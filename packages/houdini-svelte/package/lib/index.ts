@@ -27,7 +27,7 @@ export type HoudiniSvelteConfig = {
 	 * set the framework to use. It should be automatically detected but you can override it here.
 	 * @default undefined
 	 */
-	framework: 'kit' | 'svelte' | undefined
+	framework?: 'kit' | 'svelte' | undefined
 
 	/**
 	 * Force Houdini to always use Runes under the hood. Set this to true if you are enabling Runes mode globally for your app.

@@ -1,3 +1,3 @@
-import type { ConfigFile } from '../lib/config'
+import type { ConfigFile } from 'houdini'
 
 export default {} as ConfigFile

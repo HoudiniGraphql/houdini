@@ -1,5 +1,5 @@
 import { getCurrentConfig } from './config'
-import type { ConfigFile } from './types'
+import type { ConfigFile } from 'houdini'
 import { getFieldsForType } from './selection'
 import {
 	fragmentKey,

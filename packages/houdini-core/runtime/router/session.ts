@@ -76,7 +76,7 @@ export type ServerResponse = {
 	set_header(name: string, value: string): void
 }
 
-const session_cookie_name = '__houdini__'
+export const session_cookie_name = '__houdini__'
 
 async function set_session(req: ServerHandlerArgs, response: Response, value: App.Session) {
 	const today = new Date()
@@ -100,6 +100,9 @@ export async function get_session(req: Headers, secrets: string[]): Promise<App.
 	}
 	const cookie = parse(cookies)[session_cookie_name]
 	if (!cookie) {
+		return {}
+	}
+	if (cookie === '{}') {
 		return {}
 	}
 

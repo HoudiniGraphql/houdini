@@ -1,4 +1,4 @@
-import type { ConfigFile } from '../lib/config'
+import type { ConfigFile } from 'houdini'
 
 const configs: ((old: ConfigFile) => ConfigFile)[] = []
 

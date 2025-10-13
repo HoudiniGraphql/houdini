@@ -21,6 +21,8 @@
 		"baseUrl": "./packages/houdini",
 		"paths": {
 			"$houdini": ["../houdini/package"],
+			"houdini": ["../houdini/src/lib"],
+			"houdini/*": ["../houdini/src/lib/*"],
 			"$houdini/*": ["../houdini/package/*"]
 		},
 		"jsx": "react-jsx"

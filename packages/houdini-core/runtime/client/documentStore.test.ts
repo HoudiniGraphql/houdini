@@ -1,7 +1,7 @@
+import { sleep } from '@kitql/helpers'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { createPluginHooks, HoudiniClient } from '.'
-import { sleep } from '../../lib'
 import { setMockConfig } from '../lib/config'
 import type { GraphQLObject } from '../lib/types'
 import { ArtifactKind, DataSource } from '../lib/types'

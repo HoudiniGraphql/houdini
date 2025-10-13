@@ -1,11 +1,12 @@
-import { createServerAdapter as createAdapter } from '@whatwg-node/server'
-import { type GraphQLSchema, parse, execute } from 'graphql'
-import { createYoga } from 'graphql-yoga'
+import { createServerAdapter } from '@whatwg-node/server'
+import type { GraphQLSchema } from 'graphql'
 
 import type { HoudiniClient } from '../client'
-import { localApiSessionKeys, localApiEndpoint, getCurrentConfig } from '../lib/config'
+import { localApiSessionKeys, getCurrentConfig } from '../lib/config'
+import { Server } from '../server'
+import { serialize as encodeCookie } from './cookies'
 import { find_match } from './match'
-import { get_session, handle_request } from './session'
+import { get_session, handle_request, session_cookie_name } from './session'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
 
 // load the plugin config
@@ -14,7 +15,7 @@ const session_keys = localApiSessionKeys(config_file)
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
-	yoga,
+	server,
 	client,
 	production,
 	manifest,
@@ -23,7 +24,7 @@ export function _serverHandler<ComponentType = unknown>({
 	componentCache,
 }: {
 	schema?: GraphQLSchema | null
-	yoga?: ReturnType<typeof createYoga> | null
+	server?: Server<any, any>
 	client: HoudiniClient
 	production: boolean
 	manifest: RouterManifest<ComponentType> | null
@@ -38,27 +39,48 @@ export function _serverHandler<ComponentType = unknown>({
 		componentCache: Record<string, any>
 	}) => Response | Promise<Response | undefined> | undefined
 } & Omit<YogaServerOptions, 'schema'>) {
-	if (schema && !yoga) {
-		yoga = createYoga({
-			schema,
+	if (schema && !server) {
+		server = new Server({
 			landingPage: !production,
-			graphqlEndpoint,
+		})
+	}
+
+	// initialize the server with the project schema and graphql endpoint
+	let requestHandler: ReturnType<typeof createServerAdapter> | null = null
+	if (server && schema) {
+		requestHandler = server.init({
+			schema: schema,
+			endpoint: graphqlEndpoint,
+			getSession: (request: Request) => get_session(request.headers, session_keys),
 		})
 	}
 
 	client.componentCache = componentCache
 
-	// @ts-ignore: schema is defined dynamically
-	if (schema) {
+	// if we have a local schema then requests to this endpoint should resolve locally using the yoga instance so we
+	// inherit any context values
+	if (requestHandler) {
 		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
-			// get the parsed query
-			const parsed = parse(query)
-
-			return await execute(schema, parsed, null, session, variables)
+			const response = await requestHandler!(
+				new Request(`http://localhost/${graphqlEndpoint}`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
+							httpOnly: true,
+						}),
+					},
+					body: JSON.stringify({
+						query,
+						variables,
+					}),
+				})
+			)
+			return await response.json()
 		})
 	}
 
-	return async (request: Request) => {
+	return async (request: Request, ...extraContext: Array<any>) => {
 		if (!manifest) {
 			return new Response(
 				"Adapter did not provide the project's manifest. Please open an issue on github.",
@@ -70,8 +92,8 @@ export function _serverHandler<ComponentType = unknown>({
 		const url = new URL(request.url).pathname
 
 		// if its a request we can process with yoga, do it.
-		if (yoga && url === localApiEndpoint(config_file)) {
-			return yoga(request)
+		if (requestHandler && url === graphqlEndpoint) {
+			return requestHandler(request, ...extraContext)
 		}
 
 		// maybe its a session-related request
@@ -108,8 +130,8 @@ export function _serverHandler<ComponentType = unknown>({
 
 export const serverAdapterFactory = (
 	args: Parameters<typeof _serverHandler>[0]
-): ReturnType<typeof createAdapter> => {
-	return createAdapter(_serverHandler(args))
+): ReturnType<typeof createServerAdapter> => {
+	return createServerAdapter(_serverHandler(args))
 }
 
 export type ServerAdapterFactory = typeof serverAdapterFactory
