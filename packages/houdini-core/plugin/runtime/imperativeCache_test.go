@@ -337,7 +337,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 
 			contents, err := afero.ReadFile(
 				plugin.Fs,
-				path.Join(config.ProjectRoot, config.RuntimeDir, "generated.d.ts"),
+				path.Join(config.ProjectRoot, config.RuntimeDir, "runtime", "generated.d.ts"),
 			)
 			require.NoError(t, err)
 			require.Equal(t, expected, contents)

@@ -28,7 +28,12 @@ func GenerateImperativeCacheTypeDefs(
 	}
 
 	// Target file path
-	targetPath := path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "generated.d.ts")
+	targetPath := path.Join(
+		projectConfig.ProjectRoot,
+		projectConfig.RuntimeDir,
+		"runtime",
+		"generated.d.ts",
+	)
 
 	// Before we generate the content, let's look at the current content
 	existingContent := ""
