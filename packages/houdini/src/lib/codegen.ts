@@ -405,11 +405,7 @@ export async function run_pipeline(
 		const opts: any = { task_id }
 
 		// Set parallel_safe for hooks that support it
-		if (
-			hook === 'Validate' ||
-			hook === 'GenerateDocuments' ||
-			hook === 'GenerateRuntime'
-		) {
+		if (hook === 'Validate' || hook === 'GenerateDocuments') {
 			opts.parallel_safe = true
 		}
 

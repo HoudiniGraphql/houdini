@@ -2,7 +2,8 @@
     "name": "houdini-core",
     "version": "1.4.2",
     "scripts": {
-        "compile": "scripts build-go"
+        "compile": "scripts build-go",
+        "typedefs": "scripts typedefs"
     },
     "devDependencies": {
         "scripts": "workspace:^"
