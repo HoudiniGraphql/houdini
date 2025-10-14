@@ -80,3 +80,9 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 	// we just need to export all of the stores we'll generate
 	return fmt.Sprintf(`export * from './%s/stores/index.js'`, pluginDir), nil
 }
+
+func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
+	// our goal is to add type declarations for the graphql function that's
+	// exported from the runtime index file
+	return nil
+}

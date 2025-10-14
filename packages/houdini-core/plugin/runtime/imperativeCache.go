@@ -45,6 +45,9 @@ func GenerateImperativeCacheTypeDefs(
 		existingContent = string(existingContentByte)
 	}
 
+	// make sure the directory exists
+	fs.MkdirAll(path.Dir(targetPath), 0755)
+
 	// Generate the TypeScript content
 	content, err := generateCacheTypeDefContent(ctx, db, projectConfig)
 	if err != nil {
