@@ -24,7 +24,8 @@ func TestRuntime_graphqlTag(t *testing.T) {
 			},
 		},
 		PerformTest: func(t *testing.T, plugin *plugin.HoudiniSvelte, test tests.Test[plugin.PluginConfig]) {
-			config := plugin.DB.ProjectConfig(context.Background())
+			config, err := plugin.DB.ProjectConfig(context.Background())
+			require.Nil(t, err)
 
 			// before we run the transform, we need to insert a plugin into the database
 			conn, err := plugin.DB.Take(context.Background())
@@ -36,7 +37,7 @@ func TestRuntime_graphqlTag(t *testing.T) {
 				config.ProjectRoot,
 				config.RuntimeDir,
 				"runtime",
-				"generated.d.ts",
+				"index.d.ts",
 			)
 			oldContent := []byte(`
 export declare function graphql<_Payload, _Result = _Payload>(str: TemplateStringsArray): _Result;

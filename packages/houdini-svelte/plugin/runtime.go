@@ -6,6 +6,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/afero"
 )
 
 func (p *HoudiniSvelte) IncludeRuntime(ctx context.Context) (string, error) {
@@ -84,5 +86,108 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 	// our goal is to add type declarations for the graphql function that's
 	// exported from the runtime index file
-	return nil
+
+	// Get project config to determine the target file path
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Target file path
+	targetPath := path.Join(
+		projectConfig.ProjectRoot,
+		projectConfig.RuntimeDir,
+		"runtime",
+		"index.d.ts",
+	)
+
+	// Get database connection
+	conn, err := p.DB.Take(ctx)
+	if err != nil {
+		return err
+	}
+	defer p.DB.Put(conn)
+
+	// Prepare the query statement
+	stmt, err := conn.Prepare(`
+		SELECT d.name, rd.content
+		FROM documents d
+		JOIN raw_documents rd ON d.raw_document = rd.id
+		ORDER BY d.name ASC
+	`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Finalize()
+
+	// Collect document data
+	type docData struct {
+		name    string
+		content string
+	}
+	var docs []docData
+
+	// Execute the query and collect results
+	err = p.DB.StepStatement(ctx, stmt, func() {
+		name := stmt.ColumnText(0)
+		content := stmt.ColumnText(1)
+		docs = append(docs, docData{name: name, content: content})
+	})
+	if err != nil {
+		return err
+	}
+
+	// Build imports and overloads with correct ordering
+	var imports strings.Builder
+	var overloads strings.Builder
+
+	// Imports in alphabetical order (already sorted by query)
+	for _, doc := range docs {
+		imports.WriteString(
+			fmt.Sprintf(
+				"import type %sStore from '$houdini/plugins/houdini-svelte/stores/%s'\n",
+				doc.name,
+				doc.name,
+			),
+		)
+	}
+
+	// Overloads in reverse alphabetical order
+	for i := len(docs) - 1; i >= 0; i-- {
+		doc := docs[i]
+		overloads.WriteString(
+			fmt.Sprintf("export function graphql(str: \"%s\"): %sStore;\n", doc.content, doc.name),
+		)
+	}
+
+	// Read the existing file content
+	existingContent, err := afero.ReadFile(p.Fs, targetPath)
+	if err != nil {
+		return err
+	}
+
+	// Find the position to insert overloads (before the generic function declaration)
+	existingStr := string(existingContent)
+	genericFuncLine := "export declare function graphql<_Payload, _Result = _Payload>(str: string): _Result;"
+	insertPos := strings.Index(existingStr, genericFuncLine)
+	if insertPos == -1 {
+		return fmt.Errorf("could not find generic function declaration in %s", targetPath)
+	}
+
+	// Build the new content
+	var newContent strings.Builder
+
+	// Add imports at the beginning
+	newContent.WriteString("\n")
+	newContent.WriteString(imports.String())
+	newContent.WriteString("\n")
+
+	// Add overloads before the generic function
+	newContent.WriteString(overloads.String())
+
+	// Add the original generic function
+	newContent.WriteString(existingStr[insertPos:])
+
+	// Write the modified content back to the file
+	return afero.WriteFile(p.Fs, targetPath, []byte(newContent.String()), 0644)
 }
