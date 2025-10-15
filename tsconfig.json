@@ -1,6 +1,6 @@
 {
 	"exclude": ["node_modules", "packages/*/build/**"],
-	"include": ["packages/**/*.ts", "packages/**/*.tsx"],
+	"include": ["packages/**/*.ts", "packages/**/*.tsx", "houdini.d.ts"],
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",
@@ -23,7 +23,9 @@
 			"$houdini": ["../houdini/package"],
 			"houdini": ["../houdini/src/lib"],
 			"houdini/*": ["../houdini/src/lib/*"],
-			"$houdini/*": ["../houdini/package/*"]
+			"houdini-core/*": ["../houdini-core/*"],
+			"$houdini/*": ["../houdini/package/*"],
+			"$houdini/runtime/*": ["../houdini-core/runtime/*"]
 		},
 		"jsx": "react-jsx"
 	}

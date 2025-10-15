@@ -8,11 +8,11 @@ import type {
 	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
-import type { DocumentStore } from 'houdini/src/runtime/client'
-import { current_config, key_fields } from 'houdini/src/runtime/lib/config'
-import { siteURL } from 'houdini/src/runtime/lib/constants'
-import { extractPageInfo } from 'houdini/src/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from 'houdini/src/runtime/lib/pagination'
+import type { DocumentStore } from '$houdini/runtime/client'
+import { current_config, key_fields } from '$houdini/runtime/lib/config'
+import { siteURL } from '$houdini/runtime/lib/constants'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 

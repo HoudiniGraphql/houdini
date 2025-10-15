@@ -7,8 +7,8 @@ import type {
 	PageInfo,
 	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
-import { extractPageInfo } from 'houdini/src/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from 'houdini/src/runtime/lib/pagination'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 

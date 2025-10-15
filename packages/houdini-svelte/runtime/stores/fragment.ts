@@ -5,9 +5,9 @@ import type {
 	GraphQLVariables,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
-import cache from 'houdini/src/runtime/cache'
-import { current_config } from 'houdini/src/runtime/lib/config'
-import { marshalInputs } from 'houdini/src/runtime/lib/scalars'
+import cache from '$houdini/runtime/cache'
+import { current_config } from '$houdini/runtime/lib/config'
+import { marshalInputs } from '$houdini/runtime/lib/scalars'
 import { derived } from 'svelte/store'
 
 import { isBrowser } from '../adapter'

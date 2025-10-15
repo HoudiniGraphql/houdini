@@ -258,15 +258,6 @@ func handleGenerateRuntime[PluginConfig any](
 	return func(ctx context.Context) ([]string, error) {
 		paths := []string{}
 
-		if generate, ok := plugin.(GenerateRuntime); ok {
-			filepaths, err := generate.GenerateRuntime(ctx)
-			if err != nil {
-				return nil, err
-			}
-
-			paths = append(paths, filepaths...)
-		}
-
 		// if the plugin defines a runtime to be included then we should include it now
 		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
 			runtimeDir, err := includeRuntime.IncludeRuntime(ctx)
@@ -296,6 +287,15 @@ func handleGenerateRuntime[PluginConfig any](
 
 			// add any updated paths to the list
 			paths = append(paths, updated...)
+		}
+
+		if generate, ok := plugin.(GenerateRuntime); ok {
+			filepaths, err := generate.GenerateRuntime(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			paths = append(paths, filepaths...)
 		}
 
 		// nothing went wrong

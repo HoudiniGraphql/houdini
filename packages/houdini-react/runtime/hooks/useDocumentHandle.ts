@@ -10,9 +10,9 @@ import type {
 	DocumentArtifact,
 	QueryArtifact,
 } from '$houdini/runtime/lib/types'
-import type { DocumentStore } from 'houdini/src/runtime/client'
-import { extractPageInfo } from 'houdini/src/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from 'houdini/src/runtime/lib/pagination'
+import type { DocumentStore } from '$houdini/runtime/client'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import React from 'react'
 
 import { useClient, useLocation, useSession } from '../routing/Router'

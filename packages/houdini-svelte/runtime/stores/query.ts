@@ -8,9 +8,9 @@ import type {
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
-import type { FetchContext } from 'houdini/src/runtime/client/plugins/fetch'
-import { current_config } from 'houdini/src/runtime/lib/config'
-import * as log from 'houdini/src/runtime/lib/log'
+import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
+import { current_config } from '$houdini/runtime/lib/config'
+import * as log from '$houdini/runtime/lib/log'
 import { get } from 'svelte/store'
 
 import type { HoudiniSvelteConfig } from '../../plugin'
@@ -88,7 +88,7 @@ export class QueryStore<
 
 		// if there is a pending load, don't do anything
 		if (this.loadPending && isComponentFetch) {
-			log.error(`⚠️ Encountered fetch from your component while ${this.storeName}.load was running.
+			log.error(`! Encountered fetch from your component while ${this.storeName}.load was running.
 This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.`)
 
 			return get(this.observer)
@@ -116,7 +116,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			// if explicitly set to not_always_blocking, we can't throw, so warn the user.
 			if (config_svelte.defaultRouteBlocking === false) {
 				log.info(
-					'[Houdini] ⚠️ throwOnError with operation "all" or "query", is not compatible with defaultRouteBlocking set to "false"'
+					'[Houdini] ! throwOnError with operation "all" or "query", is not compatible with defaultRouteBlocking set to "false"'
 				)
 			}
 		}

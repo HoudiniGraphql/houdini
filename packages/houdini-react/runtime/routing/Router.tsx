@@ -1,13 +1,13 @@
 import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
 import { QueryArtifact } from '$houdini/runtime/lib/types'
-import type { Cache } from 'houdini/src/runtime/cache/cache'
-import { DocumentStore, HoudiniClient } from 'houdini/src/runtime/client'
-import configFile from 'houdini/src/runtime/imports/config'
-import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
-import { LRUCache } from 'houdini/src/runtime/lib/lru'
-import { marshalSelection, marshalInputs } from 'houdini/src/runtime/lib/scalars'
-import { find_match } from 'houdini/src/runtime/router/match'
-import type { RouterManifest, RouterPageManifest } from 'houdini/src/runtime/router/types'
+import type { Cache } from '$houdini/runtime/cache/cache'
+import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
+import configFile from '$houdini/runtime/imports/config'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import { LRUCache } from '$houdini/runtime/lib/lru'
+import { marshalSelection, marshalInputs } from '$houdini/runtime/lib/scalars'
+import { find_match } from '$houdini/runtime/router/match'
+import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router/types'
 import React from 'react'
 import { useContext } from 'react'
 
@@ -595,7 +595,7 @@ export function useSession(): [App.Session, (newSession: Partial<App.Session>) =
 		}
 		const url = 'redirect' in auth ? auth.redirect : auth.url
 
-		fetch(url, {
+		fetch(url!, {
 			method: 'POST',
 			body: JSON.stringify(newSession),
 			headers: {

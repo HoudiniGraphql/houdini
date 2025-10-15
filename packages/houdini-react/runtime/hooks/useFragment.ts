@@ -1,6 +1,6 @@
 import { fragmentKey } from '$houdini/runtime/lib/types'
 import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from '$houdini/runtime/lib/types'
-import { deepEquals } from 'houdini/src/runtime/lib/deepEquals'
+import { deepEquals } from '$houdini/runtime/lib/deepEquals'
 import * as React from 'react'
 
 import { useRouterContext } from '../routing'

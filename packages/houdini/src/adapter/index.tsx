@@ -1,4 +1,4 @@
-import type { serverAdapterFactory as createAdapter } from '../runtime/router/server'
+import type { serverAdapterFactory as createAdapter } from 'houdini-core/runtime/router/server'
 
 export const endpoint: string = ''
 

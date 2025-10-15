@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process'
 
 import { fs, path } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
-import type { ConfigFile } from '../runtime/lib/config'
+import type { ConfigFile } from '../lib/config'
 
 function pCancel(cancelText = 'Operation cancelled.') {
 	p.cancel(cancelText)
@@ -18,7 +18,7 @@ export async function init(
 	args: {
 		headers?: string[]
 		yes?: boolean
-	}
+	},
 ): Promise<void> {
 	p.intro('🎩 Welcome to Houdini!')
 
@@ -27,7 +27,7 @@ export async function init(
 		await fs.stat(path.resolve('./src'))
 	} catch {
 		throw new Error(
-			'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/'
+			'Please initialize your project first before running init. For svelte projects, you should follow the instructions here: https://kit.svelte.dev/',
 		)
 	}
 
@@ -49,14 +49,16 @@ export async function init(
 	} while (dir !== (dir = path.dirname(dir)))
 
 	if (use_git) {
-		const status = execSync('git status --porcelain', { stdio: 'pipe' }).toString()
+		const status = execSync('git status --porcelain', {
+			stdio: 'pipe',
+		}).toString()
 
 		if (status) {
 			const { confirm } = await p.group(
 				{
 					confirm: () => {
 						p.log.warning(
-							`Your git working directory is dirty — we recommend committing your changes before running this migration.`
+							`Your git working directory is dirty — we recommend committing your changes before running this migration.`,
 						)
 						return p.confirm({
 							message: `Continue anyway?`,
@@ -66,7 +68,7 @@ export async function init(
 				},
 				{
 					onCancel: () => pCancel(),
-				}
+				},
 			)
 
 			if (confirm !== true) {
@@ -90,12 +92,14 @@ export async function init(
 				},
 				{
 					onCancel: () => pCancel(),
-				}
+				},
 			)
 		).is_remote_endpoint
 	}
 
-	let schemaPath = is_remote_endpoint ? './schema.graphql' : 'path/to/src/lib/**/*.graphql'
+	let schemaPath = is_remote_endpoint
+		? './schema.graphql'
+		: 'path/to/src/lib/**/*.graphql'
 
 	let pullSchema_content: string | null = null
 	if (is_remote_endpoint && !args.yes) {
@@ -128,7 +132,7 @@ export async function init(
 				},
 				{
 					onCancel: () => pCancel(),
-				}
+				},
 			)
 
 			url_and_headers = answer.url_and_headers
@@ -138,7 +142,7 @@ export async function init(
 			const local_headers =
 				value_splited.length > 1
 					? // remove the url and app all the headers
-					  extractHeadersStr(value_splited.slice(1).join(' '))
+						extractHeadersStr(value_splited.slice(1).join(' '))
 					: headers
 
 			// Since we don't have a config file yet, we need to provide the default here.
@@ -148,12 +152,12 @@ export async function init(
 				fetchTimeout,
 				schemaPath,
 				local_headers,
-				true
+				true,
 			)
 
 			if (pullSchema_content === null) {
 				const msg = `If you need to pass headers, add them after the URL (eg: '${green(
-					`http://myurl.com/graphql Authorization=Bearer MyToken`
+					`http://myurl.com/graphql Authorization=Bearer MyToken`,
 				)}')`
 				p.log.error(msg)
 			}
@@ -164,7 +168,9 @@ export async function init(
 
 		// if we are here... it means that we have tried x times to pull the schema and it failed
 		if (pullSchema_content === null) {
-			pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
+			pCancel(
+				"We couldn't pull the schema. Please check your URL/headers and try again.",
+			)
 		}
 	} else if (!args.yes) {
 		// the schema is local so ask them for the path
@@ -183,7 +189,7 @@ export async function init(
 			},
 			{
 				onCancel: () => pCancel(),
-			}
+			},
 		)
 
 		schemaPath = answers.schema_path
@@ -195,7 +201,8 @@ export async function init(
 	}
 
 	// try to detect which tools they are using
-	const { frameworkInfo, typescript, module, package_manager } = await detectTools(targetPath)
+	const { frameworkInfo, typescript, module, package_manager } =
+		await detectTools(targetPath)
 
 	// notify the users of what we detected
 	const found_to_log = []
@@ -238,7 +245,7 @@ export async function init(
 		schemaPath,
 		module,
 		frameworkInfo,
-		is_remote_endpoint ? url : null
+		is_remote_endpoint ? url : null,
 	)
 	await houdiniClient(sourceDir, typescript, frameworkInfo, url)
 
@@ -275,19 +282,19 @@ export function finale_logs(package_manager: 'npm' | 'yarn' | 'pnpm') {
 		cmd_run = 'yarn dev'
 	}
 	console.log(`👉 Next Steps`)
-	console.log(`1️⃣  Finalize your installation: ${green(cmd_install)}
-2️⃣  Start your application:     ${green(cmd_run)}
+	console.log(`1  Finalize your installation: ${green(cmd_install)}
+2  Start your application:     ${green(cmd_run)}
 `)
 
 	console.log(
 		gray(
 			italic(
 				`${bold('❔ More help')} at ${cyan(
-					'https://houdinigraphql.com'
+					'https://houdinigraphql.com',
 				)} (📄 Docs, ⭐ Github, 📣 Discord, ...)
-`
-			)
-		)
+`,
+			),
+		),
 	)
 }
 
@@ -299,7 +306,7 @@ async function houdiniConfig(
 	schemaPath: string,
 	module: 'esm' | 'commonjs',
 	frameworkInfo: HoudiniFrameworkInfo,
-	url: string | null
+	url: string | null,
 ): Promise<boolean> {
 	const config: ConfigFile = {}
 
@@ -345,12 +352,12 @@ const config = ${configObj}`
 	const content =
 		module === 'esm'
 			? // ESM default config
-			  `${content_base}
+				`${content_base}
 
 export default config
 `
 			: // CommonJS default config
-			  `${content_base}}
+				`${content_base}}
 
 module.exports = config
 `
@@ -364,7 +371,7 @@ async function houdiniClient(
 	targetPath: string,
 	typescript: boolean,
 	frameworkInfo: HoudiniFrameworkInfo,
-	url: string
+	url: string,
 ) {
 	// where we put the houdiniClient
 	const houdiniClientExt = typescript ? `ts` : `js`
@@ -394,7 +401,11 @@ export default new HoudiniClient({
 /*  Framework specific files  */
 /******************************/
 async function svelteKitConfig(targetPath: string, typescript: boolean) {
-	const svelteMainJsPath = path.join(targetPath, 'src', typescript ? 'main.ts' : 'main.js')
+	const svelteMainJsPath = path.join(
+		targetPath,
+		'src',
+		typescript ? 'main.ts' : 'main.js',
+	)
 
 	const newContent = `import client from "./client";
 import './app.css'
@@ -485,9 +496,12 @@ async function graphqlRC(targetPath: string) {
 async function viteConfig(
 	targetPath: string,
 	frameworkInfo: HoudiniFrameworkInfo,
-	typescript: boolean
+	typescript: boolean,
 ) {
-	const viteConfigPath = path.join(targetPath, typescript ? 'vite.config.ts' : 'vite.config.js')
+	const viteConfigPath = path.join(
+		targetPath,
+		typescript ? 'vite.config.ts' : 'vite.config.js',
+	)
 
 	let content = 'NO_CONTENT_THIS_SHOULD_NEVER_BE_SEEN'
 	if (frameworkInfo.framework === 'svelte') {
@@ -522,7 +536,10 @@ export default defineConfig({
 	await fs.writeFile(viteConfigPath, content)
 }
 
-async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
+async function tjsConfig(
+	targetPath: string,
+	frameworkInfo: HoudiniFrameworkInfo,
+) {
 	// if there is no tsconfig.json, there could be a jsconfig.json
 	let configFile = path.join(targetPath, 'tsconfig.json')
 	try {
@@ -549,7 +566,11 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 		if (frameworkInfo.framework === 'svelte') {
 			tjsConfig.compilerOptions.rootDirs = ['.', './.houdini/types']
 		} else if (frameworkInfo.framework === 'kit') {
-			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.houdini/types']
+			tjsConfig.compilerOptions.rootDirs = [
+				'.',
+				'./.svelte-kit/types',
+				'./.houdini/types',
+			]
 		}
 
 		// In kit, no need to add manually the path. Why? Because:
@@ -570,7 +591,10 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 	return false
 }
 
-async function packageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkInfo) {
+async function packageJSON(
+	targetPath: string,
+	frameworkInfo: HoudiniFrameworkInfo,
+) {
 	let packageJSON: Record<string, any> = {}
 
 	const packagePath = path.join(targetPath, 'package.json')
@@ -585,7 +609,10 @@ async function packageJSON(targetPath: string, frameworkInfo: HoudiniFrameworkIn
 		houdini: '^HOUDINI_PACKAGE_VERSION',
 	}
 
-	if (frameworkInfo.framework === 'svelte' || frameworkInfo.framework === 'kit') {
+	if (
+		frameworkInfo.framework === 'svelte' ||
+		frameworkInfo.framework === 'kit'
+	) {
 		packageJSON.devDependencies = {
 			...packageJSON.devDependencies,
 			'houdini-svelte': '^HOUDINI_SVELTE_PACKAGE_VERSION',
@@ -615,7 +642,9 @@ type DetectedTools = {
 	package_manager: 'npm' | 'yarn' | 'pnpm'
 } & DetectedFromPackageTools
 
-async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTools> {
+async function detectFromPackageJSON(
+	cwd: string,
+): Promise<DetectedFromPackageTools> {
 	// if there's no package.json then there's nothing we can detect
 	try {
 		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'))
@@ -626,14 +655,15 @@ async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTo
 		}
 	} catch {
 		throw new Error(
-			'❌ houdini init must target an existing node project (with a package.json)'
+			'❌ houdini init must target an existing node project (with a package.json)',
 		)
 	}
 
 	// grab the dev dependencies
 	const { devDependencies, dependencies } = packageJSON
 
-	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
+	const hasDependency = (dep: string) =>
+		Boolean(devDependencies?.[dep] || dependencies?.[dep])
 
 	let frameworkInfo: HoudiniFrameworkInfo = { framework: 'svelte' }
 	if (hasDependency('@sveltejs/kit')) {
@@ -646,7 +676,9 @@ async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTo
 	}
 }
 
-async function detectTools(cwd: string = process.cwd()): Promise<DetectedTools> {
+async function detectTools(
+	cwd: string = process.cwd(),
+): Promise<DetectedTools> {
 	let typescript = false
 	try {
 		await fs.stat(path.join(cwd, 'tsconfig.json'))
@@ -676,7 +708,9 @@ async function detectTools(cwd: string = process.cwd()): Promise<DetectedTools> 
 
 function parseJSON(str: string): any {
 	// remove all comments to be able to parse the file, and add stuff to it.
-	str = str.replace(/\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g, (m, g) => (g ? '' : m))
+	str = str.replace(/\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g, (m, g) =>
+		g ? '' : m,
+	)
 	return JSON.parse(str)
 }
 
