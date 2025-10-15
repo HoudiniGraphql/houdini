@@ -27,7 +27,7 @@ export function find_insert_index(script: Program) {
 
 export function find_exported_fn(
 	body: Statement[],
-	name: string
+	name: string,
 ): {
 	declaration:
 		| FunctionDeclaration
@@ -48,7 +48,10 @@ export function find_exported_fn(
 		if (exportDeclaration.declaration?.type === 'FunctionDeclaration') {
 			const value = exportDeclaration.declaration as FunctionDeclaration
 			if (value.id?.name === name) {
-				return { declaration: exportDeclaration.declaration, export: exportDeclaration }
+				return {
+					declaration: exportDeclaration.declaration,
+					export: exportDeclaration,
+				}
 			}
 		}
 
@@ -88,7 +91,10 @@ export function find_exported_fn(
 				init = init.arguments[0]
 			}
 
-			if (init.type === 'FunctionExpression' || init.type === 'ArrowFunctionExpression') {
+			if (
+				init.type === 'FunctionExpression' ||
+				init.type === 'ArrowFunctionExpression'
+			) {
 				return { declaration: init, export: exportDeclaration }
 			}
 
@@ -105,25 +111,37 @@ export function find_exported_fn(
 	const exported = body.find(
 		(expression) =>
 			expression.type === 'ExportNamedDeclaration' &&
-			(((expression as ExportNamedDeclaration).declaration?.type === 'FunctionDeclaration' &&
-				((expression as ExportNamedDeclaration).declaration as FunctionDeclaration).id
-					?.name === name) ||
+			(((expression as ExportNamedDeclaration).declaration?.type ===
+				'FunctionDeclaration' &&
+				(
+					(expression as ExportNamedDeclaration)
+						.declaration as FunctionDeclaration
+				).id?.name === name) ||
 				((expression as ExportNamedDeclaration).declaration?.type ===
 					'VariableDeclaration' &&
-					((expression as ExportNamedDeclaration).declaration as VariableDeclaration)
-						.declarations.length === 1 &&
-					((expression as ExportNamedDeclaration).declaration as VariableDeclaration)
-						.declarations[0].type === 'Identifier' &&
 					(
-						((expression as ExportNamedDeclaration).declaration as VariableDeclaration)
-							.declarations[0] as Identifier
-					).name === name))
+						(expression as ExportNamedDeclaration)
+							.declaration as VariableDeclaration
+					).declarations.length === 1 &&
+					(
+						(expression as ExportNamedDeclaration)
+							.declaration as VariableDeclaration
+					).declarations[0].type === 'Identifier' &&
+					(
+						(
+							(expression as ExportNamedDeclaration)
+								.declaration as VariableDeclaration
+						).declarations[0] as Identifier
+					).name === name)),
 	) as ExportNamedDeclaration
 	if (!exported) {
 		return null
 	}
 
-	return { declaration: exported.declaration as FunctionDeclaration, export: exported }
+	return {
+		declaration: exported.declaration as FunctionDeclaration,
+		export: exported,
+	}
 }
 
 export function find_exported_id(program: Program, name: string) {
@@ -134,6 +152,6 @@ export function find_exported_id(program: Program, name: string) {
 			statement.declaration.declarations.length === 1 &&
 			statement.declaration.declarations[0].type === 'VariableDeclarator' &&
 			statement.declaration.declarations[0].id.type === 'Identifier' &&
-			statement.declaration.declarations[0].id.name === name
+			statement.declaration.declarations[0].id.name === name,
 	)
 }

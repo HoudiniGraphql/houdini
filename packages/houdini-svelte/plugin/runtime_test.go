@@ -45,7 +45,7 @@ export declare function graphql<_Payload, _Result = _Payload>(str: TemplateStrin
 			afero.WriteFile(plugin.Fs, targetPath, []byte(oldContent), 0644)
 
 			// run the generator
-			err = plugin.GenerateRuntime(context.Background())
+			_, err = plugin.GenerateRuntime(context.Background())
 			require.Nil(t, err)
 
 			// read the transformed file

@@ -6,13 +6,15 @@
         "typedefs": "scripts typedefs --plugin --go-package"
     },
     "dependencies": {
-        "houdini": "workspace:^",
-        "vite": "^7.0.0",
         "@sveltejs/kit": "^2.46.5",
-        "svelte": "^5.0.0"
+        "estree-walker": "^3.0.1",
+        "houdini": "workspace:^",
+        "svelte": "^5.0.0",
+        "vite": "^7.0.0"
     },
     "devDependencies": {
         "@sveltejs/kit": "^2.46.5",
+        "ast-types": "^0.16.1",
         "scripts": "workspace:^",
         "svelte": "^5.19.0"
     }

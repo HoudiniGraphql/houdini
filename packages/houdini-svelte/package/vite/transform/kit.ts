@@ -1,6 +1,7 @@
 import * as graphql from 'graphql'
 import type { Config } from 'houdini'
-import { find_graphql, fs, path } from 'houdini'
+import { fs, path } from 'houdini'
+import { find_graphql, } from 'houdini/vite'
 import { ensure_imports } from 'houdini/vite'
 import type * as recast from 'recast'
 

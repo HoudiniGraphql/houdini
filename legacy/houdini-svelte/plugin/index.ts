@@ -1,10 +1,6 @@
 import type { Config, PluginHooks } from 'houdini'
 import generate from './codegen'
 import {
-	resolve_relative,
-	store_import_path,
-	store_name,
-	stores_directory,
 	type Framework,
 } from './kit'
 import apply_transforms from './transforms'

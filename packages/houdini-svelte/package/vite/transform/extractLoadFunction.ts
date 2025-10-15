@@ -104,7 +104,7 @@ async function processScript(
 						mockArtifacts?.[query] ||
 						(
 							await import(
-								path.importPath(path.join(config.artifactDirectory, query + '.js'))
+								path.importPath(path.join(config.root_dir, "artifacts", query + '.js'))
 							)
 						).default
 

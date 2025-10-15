@@ -1,3 +1,5 @@
+import type * as recast from 'recast'
+
 // the correct component tree for a given url
 export type ProjectManifest = {
 	/** All of the pages in the project */
@@ -67,3 +69,9 @@ export const CachePolicy = {
 } as const
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>
+
+export type Maybe<T> = T | null | undefined
+
+export type Script = Program
+
+type Program = recast.types.namedTypes.Program

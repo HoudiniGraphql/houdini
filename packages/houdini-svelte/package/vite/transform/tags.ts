@@ -1,5 +1,5 @@
 import type { Config } from 'houdini'
-import { find_graphql } from 'houdini'
+import { find_graphql } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { store_import } from '../kit'
