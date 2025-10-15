@@ -1,13 +1,13 @@
-import type { Script } from 'houdini'
-import { printJS, parseJS, runPipeline, formatErrors } from 'houdini'
-import type { TransformPage } from 'houdini/vite'
+import type { Script, TransformPage } from 'houdini'
+import { printJS, parseJS } from 'houdini'
+import { runPipeline, formatErrors } from 'houdini/vite'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
-import { parseSvelte } from '../extract'
-import { plugin_config, type Framework } from '../kit'
+import { parseSvelte } from './extract'
+import { plugin_config, type Framework } from './kit'
 import query from './componentQuery'
-import kit from './kit'
+import kit from './kit/index.js'
 import tags from './tags'
 import type { SvelteTransformPage } from './types'
 
@@ -22,8 +22,8 @@ export default async function apply_transforms(
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
-	let script: Script | null = null
-	let position: { start: number; end: number } | null = null
+	let script: Script 
+  let position: { start: number; end: number } | null = null
 	let useRunes = false
 
 	try {
@@ -39,7 +39,7 @@ export default async function apply_transforms(
 				position = { start: 0, end: 0 }
 			}
 		} else {
-			script = await parseJS(page.content)
+			script = parseJS(page.content)
 		}
 	} catch (e) {
 		return { code: page.content, map: page.map }

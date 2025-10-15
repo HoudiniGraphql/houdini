@@ -5,15 +5,15 @@ import type {
 	VariableDeclaratorKind,
 } from 'ast-types/lib/gen/kinds'
 import type * as graphql from 'graphql'
-import type { Config, Script } from 'houdini'
-import { find_graphql, formatErrors } from 'houdini'
-import type { TransformPage } from 'houdini/vite'
+import type { Config, Script, TransformPage } from 'houdini'
+import { find_graphql, formatErrors } from 'houdini/vite'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
 import { is_component, store_import_path } from '../kit'
 import { query_variable_fn } from '../naming'
 import type { SvelteTransformPage } from './types'
+import { extractQueryDefinition } from './kit'
 
 const AST = recast.types.builders
 
@@ -89,21 +89,18 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 	}
 
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
 
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['getCurrentConfig'],
 		sourceModule: '$houdini/runtime/lib/config',
 	})
 
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
@@ -111,7 +108,6 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 
 	// import the browser check
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['isBrowser'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/adapter',
@@ -121,7 +117,6 @@ export default async function QueryProcessor(config: Config, page: SvelteTransfo
 	for (const query of queries) {
 		const factory = ensure_imports({
 			script: page.script,
-			config: page.config,
 			import: [`${query.name!.value}Store`],
 			sourceModule: store_import_path({ config, name: query.name!.value }),
 		}).ids[0]
@@ -289,10 +284,7 @@ export async function find_inline_queries(
 				return false
 			}
 
-			// as long as they have the @load directive
-			return !!queryOperation.directives?.find(
-				(directive) => directive.name.value === page.config.loadDirective
-			)
+      return false
 		},
 		dependency: page.watch_file,
 		tag(tag) {
@@ -300,7 +292,7 @@ export async function find_inline_queries(
 			// part of an inline document. if the operation is a query, we need to add it to the list
 			// so that the load function can have the correct contents
 			const { parsedDocument } = tag
-			const operation = page.config.extractQueryDefinition(parsedDocument)
+			const operation = extractQueryDefinition(parsedDocument)
 			queries.push(operation)
 
 			tag.node.replaceWith(store_id(operation.name!.value))
@@ -312,4 +304,3 @@ export async function find_inline_queries(
 
 export type LoadTarget = graphql.OperationDefinitionNode
 
-const local_input_id = (name: string) => AST.identifier(`_${name}_Input`)

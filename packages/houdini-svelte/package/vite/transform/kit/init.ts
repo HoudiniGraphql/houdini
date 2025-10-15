@@ -1,7 +1,7 @@
 import { ensure_imports } from 'houdini/vite'
 import * as recast from 'recast'
 
-import { is_root_layout } from '../../kit'
+import { is_root_layout } from '../kit'
 import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
@@ -17,19 +17,16 @@ export default async function kit_init(page: SvelteTransformPage) {
 	// make sure we have the right imports
 	const set_client_started = ensure_imports({
 		script: page.script,
-		config: page.config,
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/adapter',
 		import: ['setClientStarted'],
 	}).ids[0]
 	const on_mount = ensure_imports({
 		script: page.script,
-		config: page.config,
 		sourceModule: 'svelte',
 		import: ['onMount'],
 	}).ids[0]
 	const [extract_session, set_session] = ensure_imports({
 		script: page.script,
-		config: page.config,
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 		import: ['extractSession', 'setClientSession'],
 	}).ids
@@ -46,7 +43,6 @@ export default async function kit_init(page: SvelteTransformPage) {
 	// we need to track updates in the page store as the client-side session
 	const store_id = ensure_imports({
 		script: page.script,
-		config: page.config,
 		sourceModule: '$app/stores',
 		import: ['page'],
 	}).ids[0]

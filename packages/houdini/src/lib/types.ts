@@ -1,4 +1,6 @@
 import type * as recast from 'recast'
+import type { Config } from './project'
+import type { SourceMapInput } from 'rollup'
 
 // the correct component tree for a given url
 export type ProjectManifest = {
@@ -75,3 +77,11 @@ export type Maybe<T> = T | null | undefined
 export type Script = Program
 
 type Program = recast.types.namedTypes.Program
+
+export interface TransformPage {
+	config: Config
+	content: string
+	map?: SourceMapInput
+	filepath: string
+	watch_file: (path: string) => void
+}

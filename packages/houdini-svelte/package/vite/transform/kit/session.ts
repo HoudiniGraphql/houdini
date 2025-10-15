@@ -11,7 +11,6 @@ type ReturnStatement = recast.types.namedTypes.ReturnStatement
 type BlockStatement = recast.types.namedTypes.BlockStatement
 type Identifier = recast.types.namedTypes.Identifier
 type ObjectExpression = recast.types.namedTypes.ObjectExpression
-type CallExpression = recast.types.namedTypes.CallExpression
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 type VariableDeclarator = recast.types.namedTypes.VariableDeclarator
 
@@ -74,12 +73,14 @@ function add_load_return(
 
 		// now we need to walk through the body and replace any returns with one
 		// that has the additional information mixed in
+    // @ts-ignore
 		return walk(body, {
 			enter(node) {
 				if (node.type === 'ReturnStatement') {
 					// replace the return statement with a new one that includes the returned value
 					const returnedValue = (node as ReturnStatement).argument
 					this.replace(
+            // @ts-ignore
 						AST.returnStatement(
 							AST.objectExpression([
 								...properties(event_id),

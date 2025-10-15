@@ -649,6 +649,9 @@ importers:
       houdini:
         specifier: workspace:^
         version: link:../houdini
+      rollup:
+        specifier: ^4.28.1
+        version: 4.52.4
       svelte:
         specifier: ^5.0.0
         version: 5.19.0
@@ -2415,11 +2418,6 @@ packages:
       rollup:
         optional: true
 
-  '@rollup/rollup-android-arm-eabi@4.16.4':
-    resolution: {integrity: sha512-GkhjAaQ8oUTOKE4g4gsZ0u8K/IHU1+2WQSgS1TwTcYvL+sjbaQjNHFXbOJ6kgqGHIO1DfUhI/Sphi9GkRT9K+Q==}
-    cpu: [arm]
-    os: [android]
-
   '@rollup/rollup-android-arm-eabi@4.30.1':
     resolution: {integrity: sha512-pSWY+EVt3rJ9fQ3IqlrEUtXh3cGqGtPDH1FQlNZehO2yYxCHEX1SPsz1M//NXwYfbTlcKr9WObLnJX9FsS9K1Q==}
     cpu: [arm]
@@ -2428,11 +2426,6 @@ packages:
   '@rollup/rollup-android-arm-eabi@4.52.4':
     resolution: {integrity: sha512-BTm2qKNnWIQ5auf4deoetINJm2JzvihvGb9R6K/ETwKLql/Bb3Eg2H1FBp1gUb4YGbydMA3jcmQTR73q7J+GAA==}
     cpu: [arm]
-    os: [android]
-
-  '@rollup/rollup-android-arm64@4.16.4':
-    resolution: {integrity: sha512-Bvm6D+NPbGMQOcxvS1zUl8H7DWlywSXsphAeOnVeiZLQ+0J6Is8T7SrjGTH29KtYkiY9vld8ZnpV3G2EPbom+w==}
-    cpu: [arm64]
     os: [android]
 
   '@rollup/rollup-android-arm64@4.30.1':
@@ -2445,11 +2438,6 @@ packages:
     cpu: [arm64]
     os: [android]
 
-  '@rollup/rollup-darwin-arm64@4.16.4':
-    resolution: {integrity: sha512-i5d64MlnYBO9EkCOGe5vPR/EeDwjnKOGGdd7zKFhU5y8haKhQZTN2DgVtpODDMxUr4t2K90wTUJg7ilgND6bXw==}
-    cpu: [arm64]
-    os: [darwin]
-
   '@rollup/rollup-darwin-arm64@4.30.1':
     resolution: {integrity: sha512-r7FQIXD7gB0WJ5mokTUgUWPl0eYIH0wnxqeSAhuIwvnnpjdVB8cRRClyKLQr7lgzjctkbp5KmswWszlwYln03Q==}
     cpu: [arm64]
@@ -2458,11 +2446,6 @@ packages:
   '@rollup/rollup-darwin-arm64@4.52.4':
     resolution: {integrity: sha512-QRWSW+bVccAvZF6cbNZBJwAehmvG9NwfWHwMy4GbWi/BQIA/laTIktebT2ipVjNncqE6GLPxOok5hsECgAxGZg==}
     cpu: [arm64]
-    os: [darwin]
-
-  '@rollup/rollup-darwin-x64@4.16.4':
-    resolution: {integrity: sha512-WZupV1+CdUYehaZqjaFTClJI72fjJEgTXdf4NbW69I9XyvdmztUExBtcI2yIIU6hJtYvtwS6pkTkHJz+k08mAQ==}
-    cpu: [x64]
     os: [darwin]
 
   '@rollup/rollup-darwin-x64@4.30.1':
@@ -2495,11 +2478,6 @@ packages:
     cpu: [x64]
     os: [freebsd]
 
-  '@rollup/rollup-linux-arm-gnueabihf@4.16.4':
-    resolution: {integrity: sha512-ADm/xt86JUnmAfA9mBqFcRp//RVRt1ohGOYF6yL+IFCYqOBNwy5lbEK05xTsEoJq+/tJzg8ICUtS82WinJRuIw==}
-    cpu: [arm]
-    os: [linux]
-
   '@rollup/rollup-linux-arm-gnueabihf@4.30.1':
     resolution: {integrity: sha512-PaMRNBSqCx7K3Wc9QZkFx5+CX27WFpAMxJNiYGAXfmMIKC7jstlr32UhTgK6T07OtqR+wYlWm9IxzennjnvdJg==}
     cpu: [arm]
@@ -2507,11 +2485,6 @@ packages:
 
   '@rollup/rollup-linux-arm-gnueabihf@4.52.4':
     resolution: {integrity: sha512-xRiOu9Of1FZ4SxVbB0iEDXc4ddIcjCv2aj03dmW8UrZIW7aIQ9jVJdLBIhxBI+MaTnGAKyvMwPwQnoOEvP7FgQ==}
-    cpu: [arm]
-    os: [linux]
-
-  '@rollup/rollup-linux-arm-musleabihf@4.16.4':
-    resolution: {integrity: sha512-tJfJaXPiFAG+Jn3cutp7mCs1ePltuAgRqdDZrzb1aeE3TktWWJ+g7xK9SNlaSUFw6IU4QgOxAY4rA+wZUT5Wfg==}
     cpu: [arm]
     os: [linux]
 
@@ -2525,11 +2498,6 @@ packages:
     cpu: [arm]
     os: [linux]
 
-  '@rollup/rollup-linux-arm64-gnu@4.16.4':
-    resolution: {integrity: sha512-7dy1BzQkgYlUTapDTvK997cgi0Orh5Iu7JlZVBy1MBURk7/HSbHkzRnXZa19ozy+wwD8/SlpJnOOckuNZtJR9w==}
-    cpu: [arm64]
-    os: [linux]
-
   '@rollup/rollup-linux-arm64-gnu@4.30.1':
     resolution: {integrity: sha512-hqVyueGxAj3cBKrAI4aFHLV+h0Lv5VgWZs9CUGqr1z0fZtlADVV1YPOij6AhcK5An33EXaxnDLmJdQikcn5NEw==}
     cpu: [arm64]
@@ -2537,11 +2505,6 @@ packages:
 
   '@rollup/rollup-linux-arm64-gnu@4.52.4':
     resolution: {integrity: sha512-4n4gVwhPHR9q/g8lKCyz0yuaD0MvDf7dV4f9tHt0C73Mp8h38UCtSCSE6R9iBlTbXlmA8CjpsZoujhszefqueg==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@rollup/rollup-linux-arm64-musl@4.16.4':
-    resolution: {integrity: sha512-zsFwdUw5XLD1gQe0aoU2HVceI6NEW7q7m05wA46eUAyrkeNYExObfRFQcvA6zw8lfRc5BHtan3tBpo+kqEOxmg==}
     cpu: [arm64]
     os: [linux]
 
@@ -2565,11 +2528,6 @@ packages:
     cpu: [loong64]
     os: [linux]
 
-  '@rollup/rollup-linux-powerpc64le-gnu@4.16.4':
-    resolution: {integrity: sha512-p8C3NnxXooRdNrdv6dBmRTddEapfESEUflpICDNKXpHvTjRRq1J82CbU5G3XfebIZyI3B0s074JHMWD36qOW6w==}
-    cpu: [ppc64]
-    os: [linux]
-
   '@rollup/rollup-linux-powerpc64le-gnu@4.30.1':
     resolution: {integrity: sha512-GLrZraoO3wVT4uFXh67ElpwQY0DIygxdv0BNW9Hkm3X34wu+BkqrDrkcsIapAY+N2ATEbvak0XQ9gxZtCIA5Rw==}
     cpu: [ppc64]
@@ -2578,11 +2536,6 @@ packages:
   '@rollup/rollup-linux-ppc64-gnu@4.52.4':
     resolution: {integrity: sha512-teSACug1GyZHmPDv14VNbvZFX779UqWTsd7KtTM9JIZRDI5NUwYSIS30kzI8m06gOPB//jtpqlhmraQ68b5X2g==}
     cpu: [ppc64]
-    os: [linux]
-
-  '@rollup/rollup-linux-riscv64-gnu@4.16.4':
-    resolution: {integrity: sha512-Lh/8ckoar4s4Id2foY7jNgitTOUQczwMWNYi+Mjt0eQ9LKhr6sK477REqQkmy8YHY3Ca3A2JJVdXnfb3Rrwkng==}
-    cpu: [riscv64]
     os: [linux]
 
   '@rollup/rollup-linux-riscv64-gnu@4.30.1':
@@ -2600,11 +2553,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
 
-  '@rollup/rollup-linux-s390x-gnu@4.16.4':
-    resolution: {integrity: sha512-1xwwn9ZCQYuqGmulGsTZoKrrn0z2fAur2ujE60QgyDpHmBbXbxLaQiEvzJWDrscRq43c8DnuHx3QorhMTZgisQ==}
-    cpu: [s390x]
-    os: [linux]
-
   '@rollup/rollup-linux-s390x-gnu@4.30.1':
     resolution: {integrity: sha512-GWFs97Ruxo5Bt+cvVTQkOJ6TIx0xJDD/bMAOXWJg8TCSTEK8RnFeOeiFTxKniTc4vMIaWvCplMAFBt9miGxgkA==}
     cpu: [s390x]
@@ -2615,11 +2563,6 @@ packages:
     cpu: [s390x]
     os: [linux]
 
-  '@rollup/rollup-linux-x64-gnu@4.16.4':
-    resolution: {integrity: sha512-LuOGGKAJ7dfRtxVnO1i3qWc6N9sh0Em/8aZ3CezixSTM+E9Oq3OvTsvC4sm6wWjzpsIlOCnZjdluINKESflJLA==}
-    cpu: [x64]
-    os: [linux]
-
   '@rollup/rollup-linux-x64-gnu@4.30.1':
     resolution: {integrity: sha512-UtgGb7QGgXDIO+tqqJ5oZRGHsDLO8SlpE4MhqpY9Llpzi5rJMvrK6ZGhsRCST2abZdBqIBeXW6WPD5fGK5SDwg==}
     cpu: [x64]
@@ -2627,11 +2570,6 @@ packages:
 
   '@rollup/rollup-linux-x64-gnu@4.52.4':
     resolution: {integrity: sha512-Wi6AXf0k0L7E2gteNsNHUs7UMwCIhsCTs6+tqQ5GPwVRWMaflqGec4Sd8n6+FNFDw9vGcReqk2KzBDhCa1DLYg==}
-    cpu: [x64]
-    os: [linux]
-
-  '@rollup/rollup-linux-x64-musl@4.16.4':
-    resolution: {integrity: sha512-ch86i7KkJKkLybDP2AtySFTRi5fM3KXp0PnHocHuJMdZwu7BuyIKi35BE9guMlmTpwwBTB3ljHj9IQXnTCD0vA==}
     cpu: [x64]
     os: [linux]
 
@@ -2650,11 +2588,6 @@ packages:
     cpu: [arm64]
     os: [openharmony]
 
-  '@rollup/rollup-win32-arm64-msvc@4.16.4':
-    resolution: {integrity: sha512-Ma4PwyLfOWZWayfEsNQzTDBVW8PZ6TUUN1uFTBQbF2Chv/+sjenE86lpiEwj2FiviSmSZ4Ap4MaAfl1ciF4aSA==}
-    cpu: [arm64]
-    os: [win32]
-
   '@rollup/rollup-win32-arm64-msvc@4.30.1':
     resolution: {integrity: sha512-WabtHWiPaFF47W3PkHnjbmWawnX/aE57K47ZDT1BXTS5GgrBUEpvOzq0FI0V/UYzQJgdb8XlhVNH8/fwV8xDjw==}
     cpu: [arm64]
@@ -2663,11 +2596,6 @@ packages:
   '@rollup/rollup-win32-arm64-msvc@4.52.4':
     resolution: {integrity: sha512-8GKr640PdFNXwzIE0IrkMWUNUomILLkfeHjXBi/nUvFlpZP+FA8BKGKpacjW6OUUHaNI6sUURxR2U2g78FOHWQ==}
     cpu: [arm64]
-    os: [win32]
-
-  '@rollup/rollup-win32-ia32-msvc@4.16.4':
-    resolution: {integrity: sha512-9m/ZDrQsdo/c06uOlP3W9G2ENRVzgzbSXmXHT4hwVaDQhYcRpi9bgBT0FTG9OhESxwK0WjQxYOSfv40cU+T69w==}
-    cpu: [ia32]
     os: [win32]
 
   '@rollup/rollup-win32-ia32-msvc@4.30.1':
@@ -2682,11 +2610,6 @@ packages:
 
   '@rollup/rollup-win32-x64-gnu@4.52.4':
     resolution: {integrity: sha512-UF9KfsH9yEam0UjTwAgdK0anlQ7c8/pWPU2yVjyWcF1I1thABt6WXE47cI71pGiZ8wGvxohBoLnxM04L/wj8mQ==}
-    cpu: [x64]
-    os: [win32]
-
-  '@rollup/rollup-win32-x64-msvc@4.16.4':
-    resolution: {integrity: sha512-YunpoOAyGLDseanENHmbFvQSfVL5BxW3k7hhy0eN4rb3gS/ct75dVD0EXOWIqFT/nE8XYW6LP6vz6ctKRi0k9A==}
     cpu: [x64]
     os: [win32]
 
@@ -2871,9 +2794,6 @@ packages:
 
   '@types/estree@1.0.0':
     resolution: {integrity: sha512-WulqXMDUTYAXCjZnk6JtIHPigp55cVtDgDrO2gHRwhyJto21+1zbVCtOYB2L1F9w4qCQ0rOGWBnBe0FNTiEJIQ==}
-
-  '@types/estree@1.0.5':
-    resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
@@ -7171,19 +7091,9 @@ packages:
   rollup-pluginutils@2.8.2:
     resolution: {integrity: sha512-EEp9NhnUkwY8aif6bxgovPHMoMoNr2FulJziTndpt5H9RdwC47GSGuII9XxpSdzVGM0GWrNPHV6ie1LTNJPaLQ==}
 
-  rollup@3.14.0:
-    resolution: {integrity: sha512-o23sdgCLcLSe3zIplT9nQ1+r97okuaiR+vmAPZPTDYB7/f3tgWIYNyiQveMsZwshBT0is4eGax/HH83Q7CG+/Q==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-
   rollup@3.27.1:
     resolution: {integrity: sha512-tXNDFwOkN6C2w5Blj1g6ForKeFw6c1mDu5jxoeDO3/pmYjgt+8yvIFjKzH5FQUq70OKZBkOt0zzv0THXL7vwzQ==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-
-  rollup@4.16.4:
-    resolution: {integrity: sha512-kuaTJSUbz+Wsb2ATGvEknkI12XV40vIiHmLuFlejoo7HtDok/O5eDDD0UpCVY5bBX5U5RYo8wWP83H7ZsqVEnA==}
-    engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
   rollup@4.30.1:
@@ -10177,57 +10087,51 @@ snapshots:
 
   '@repeaterjs/repeater@3.0.4': {}
 
-  '@rollup/plugin-commonjs@25.0.7(rollup@4.16.4)':
+  '@rollup/plugin-commonjs@25.0.7(rollup@4.52.4)':
     dependencies:
-      '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
+      '@rollup/pluginutils': 5.1.0(rollup@4.52.4)
       commondir: 1.0.1
       estree-walker: 2.0.2
       glob: 8.0.3
       is-reference: 1.2.1
       magic-string: 0.30.17
     optionalDependencies:
-      rollup: 4.16.4
+      rollup: 4.52.4
 
-  '@rollup/plugin-json@6.1.0(rollup@4.16.4)':
+  '@rollup/plugin-json@6.1.0(rollup@4.52.4)':
     dependencies:
-      '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
+      '@rollup/pluginutils': 5.1.0(rollup@4.52.4)
     optionalDependencies:
-      rollup: 4.16.4
+      rollup: 4.52.4
 
-  '@rollup/plugin-node-resolve@15.2.3(rollup@4.16.4)':
+  '@rollup/plugin-node-resolve@15.2.3(rollup@4.52.4)':
     dependencies:
-      '@rollup/pluginutils': 5.1.0(rollup@4.16.4)
+      '@rollup/pluginutils': 5.1.0(rollup@4.52.4)
       '@types/resolve': 1.20.2
       deepmerge: 4.2.2
       is-builtin-module: 3.2.1
       is-module: 1.0.0
       resolve: 1.22.8
     optionalDependencies:
-      rollup: 4.16.4
+      rollup: 4.52.4
 
   '@rollup/pluginutils@4.2.1':
     dependencies:
       estree-walker: 2.0.2
       picomatch: 2.3.1
 
-  '@rollup/pluginutils@5.1.0(rollup@4.16.4)':
+  '@rollup/pluginutils@5.1.0(rollup@4.52.4)':
     dependencies:
       '@types/estree': 1.0.8
       estree-walker: 2.0.2
       picomatch: 2.3.1
     optionalDependencies:
-      rollup: 4.16.4
-
-  '@rollup/rollup-android-arm-eabi@4.16.4':
-    optional: true
+      rollup: 4.52.4
 
   '@rollup/rollup-android-arm-eabi@4.30.1':
     optional: true
 
   '@rollup/rollup-android-arm-eabi@4.52.4':
-    optional: true
-
-  '@rollup/rollup-android-arm64@4.16.4':
     optional: true
 
   '@rollup/rollup-android-arm64@4.30.1':
@@ -10236,16 +10140,10 @@ snapshots:
   '@rollup/rollup-android-arm64@4.52.4':
     optional: true
 
-  '@rollup/rollup-darwin-arm64@4.16.4':
-    optional: true
-
   '@rollup/rollup-darwin-arm64@4.30.1':
     optional: true
 
   '@rollup/rollup-darwin-arm64@4.52.4':
-    optional: true
-
-  '@rollup/rollup-darwin-x64@4.16.4':
     optional: true
 
   '@rollup/rollup-darwin-x64@4.30.1':
@@ -10266,16 +10164,10 @@ snapshots:
   '@rollup/rollup-freebsd-x64@4.52.4':
     optional: true
 
-  '@rollup/rollup-linux-arm-gnueabihf@4.16.4':
-    optional: true
-
   '@rollup/rollup-linux-arm-gnueabihf@4.30.1':
     optional: true
 
   '@rollup/rollup-linux-arm-gnueabihf@4.52.4':
-    optional: true
-
-  '@rollup/rollup-linux-arm-musleabihf@4.16.4':
     optional: true
 
   '@rollup/rollup-linux-arm-musleabihf@4.30.1':
@@ -10284,16 +10176,10 @@ snapshots:
   '@rollup/rollup-linux-arm-musleabihf@4.52.4':
     optional: true
 
-  '@rollup/rollup-linux-arm64-gnu@4.16.4':
-    optional: true
-
   '@rollup/rollup-linux-arm64-gnu@4.30.1':
     optional: true
 
   '@rollup/rollup-linux-arm64-gnu@4.52.4':
-    optional: true
-
-  '@rollup/rollup-linux-arm64-musl@4.16.4':
     optional: true
 
   '@rollup/rollup-linux-arm64-musl@4.30.1':
@@ -10308,16 +10194,10 @@ snapshots:
   '@rollup/rollup-linux-loongarch64-gnu@4.30.1':
     optional: true
 
-  '@rollup/rollup-linux-powerpc64le-gnu@4.16.4':
-    optional: true
-
   '@rollup/rollup-linux-powerpc64le-gnu@4.30.1':
     optional: true
 
   '@rollup/rollup-linux-ppc64-gnu@4.52.4':
-    optional: true
-
-  '@rollup/rollup-linux-riscv64-gnu@4.16.4':
     optional: true
 
   '@rollup/rollup-linux-riscv64-gnu@4.30.1':
@@ -10329,25 +10209,16 @@ snapshots:
   '@rollup/rollup-linux-riscv64-musl@4.52.4':
     optional: true
 
-  '@rollup/rollup-linux-s390x-gnu@4.16.4':
-    optional: true
-
   '@rollup/rollup-linux-s390x-gnu@4.30.1':
     optional: true
 
   '@rollup/rollup-linux-s390x-gnu@4.52.4':
     optional: true
 
-  '@rollup/rollup-linux-x64-gnu@4.16.4':
-    optional: true
-
   '@rollup/rollup-linux-x64-gnu@4.30.1':
     optional: true
 
   '@rollup/rollup-linux-x64-gnu@4.52.4':
-    optional: true
-
-  '@rollup/rollup-linux-x64-musl@4.16.4':
     optional: true
 
   '@rollup/rollup-linux-x64-musl@4.30.1':
@@ -10359,16 +10230,10 @@ snapshots:
   '@rollup/rollup-openharmony-arm64@4.52.4':
     optional: true
 
-  '@rollup/rollup-win32-arm64-msvc@4.16.4':
-    optional: true
-
   '@rollup/rollup-win32-arm64-msvc@4.30.1':
     optional: true
 
   '@rollup/rollup-win32-arm64-msvc@4.52.4':
-    optional: true
-
-  '@rollup/rollup-win32-ia32-msvc@4.16.4':
     optional: true
 
   '@rollup/rollup-win32-ia32-msvc@4.30.1':
@@ -10378,9 +10243,6 @@ snapshots:
     optional: true
 
   '@rollup/rollup-win32-x64-gnu@4.52.4':
-    optional: true
-
-  '@rollup/rollup-win32-x64-msvc@4.16.4':
     optional: true
 
   '@rollup/rollup-win32-x64-msvc@4.30.1':
@@ -10422,11 +10284,11 @@ snapshots:
 
   '@sveltejs/adapter-node@5.0.1(@sveltejs/kit@2.16.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.0)(vite@6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1)))(svelte@5.19.0)(vite@6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1)))':
     dependencies:
-      '@rollup/plugin-commonjs': 25.0.7(rollup@4.16.4)
-      '@rollup/plugin-json': 6.1.0(rollup@4.16.4)
-      '@rollup/plugin-node-resolve': 15.2.3(rollup@4.16.4)
+      '@rollup/plugin-commonjs': 25.0.7(rollup@4.52.4)
+      '@rollup/plugin-json': 6.1.0(rollup@4.52.4)
+      '@rollup/plugin-node-resolve': 15.2.3(rollup@4.52.4)
       '@sveltejs/kit': 2.16.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.0)(vite@6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1)))(svelte@5.19.0)(vite@6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1))
-      rollup: 4.16.4
+      rollup: 4.52.4
 
   '@sveltejs/adapter-static@3.0.2(@sveltejs/kit@2.16.0(@sveltejs/vite-plugin-svelte@5.0.3(svelte@5.19.0)(vite@6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1)))(svelte@5.19.0)(vite@6.0.7(@types/node@22.18.8)(terser@5.16.1)(yaml@2.8.1)))':
     dependencies:
@@ -10670,8 +10532,6 @@ snapshots:
       '@types/estree': 1.0.8
 
   '@types/estree@1.0.0': {}
-
-  '@types/estree@1.0.5': {}
 
   '@types/estree@1.0.6': {}
 
@@ -15898,34 +15758,8 @@ snapshots:
     dependencies:
       estree-walker: 0.6.1
 
-  rollup@3.14.0:
-    optionalDependencies:
-      fsevents: 2.3.3
-
   rollup@3.27.1:
     optionalDependencies:
-      fsevents: 2.3.3
-
-  rollup@4.16.4:
-    dependencies:
-      '@types/estree': 1.0.5
-    optionalDependencies:
-      '@rollup/rollup-android-arm-eabi': 4.16.4
-      '@rollup/rollup-android-arm64': 4.16.4
-      '@rollup/rollup-darwin-arm64': 4.16.4
-      '@rollup/rollup-darwin-x64': 4.16.4
-      '@rollup/rollup-linux-arm-gnueabihf': 4.16.4
-      '@rollup/rollup-linux-arm-musleabihf': 4.16.4
-      '@rollup/rollup-linux-arm64-gnu': 4.16.4
-      '@rollup/rollup-linux-arm64-musl': 4.16.4
-      '@rollup/rollup-linux-powerpc64le-gnu': 4.16.4
-      '@rollup/rollup-linux-riscv64-gnu': 4.16.4
-      '@rollup/rollup-linux-s390x-gnu': 4.16.4
-      '@rollup/rollup-linux-x64-gnu': 4.16.4
-      '@rollup/rollup-linux-x64-musl': 4.16.4
-      '@rollup/rollup-win32-arm64-msvc': 4.16.4
-      '@rollup/rollup-win32-ia32-msvc': 4.16.4
-      '@rollup/rollup-win32-x64-msvc': 4.16.4
       fsevents: 2.3.3
 
   rollup@4.30.1:
@@ -17250,7 +17084,7 @@ snapshots:
       esbuild: 0.16.17
       postcss: 8.4.28
       resolve: 1.22.1
-      rollup: 3.14.0
+      rollup: 3.27.1
     optionalDependencies:
       '@types/node': 22.18.8
       fsevents: 2.3.3
@@ -17271,7 +17105,7 @@ snapshots:
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.1
-      rollup: 4.30.1
+      rollup: 4.52.4
     optionalDependencies:
       '@types/node': 22.13.1
       fsevents: 2.3.3
@@ -17281,7 +17115,7 @@ snapshots:
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.1
-      rollup: 4.30.1
+      rollup: 4.52.4
     optionalDependencies:
       '@types/node': 22.18.8
       fsevents: 2.3.3
@@ -17291,7 +17125,7 @@ snapshots:
     dependencies:
       esbuild: 0.24.2
       postcss: 8.5.1
-      rollup: 4.30.1
+      rollup: 4.52.4
     optionalDependencies:
       '@types/node': 22.13.1
       fsevents: 2.3.3
@@ -17302,7 +17136,7 @@ snapshots:
     dependencies:
       esbuild: 0.24.2
       postcss: 8.5.1
-      rollup: 4.30.1
+      rollup: 4.52.4
     optionalDependencies:
       '@types/node': 22.18.8
       fsevents: 2.3.3

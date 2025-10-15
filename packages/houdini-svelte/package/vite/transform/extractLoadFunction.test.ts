@@ -1,7 +1,7 @@
 import { fs, path } from 'houdini'
 import { test, describe, expect } from 'vitest'
 
-import { test_config } from '../test'
+import { test_config } from './test'
 import { extract_load_function } from './extractLoadFunction'
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_load_fn } from './naming'
 

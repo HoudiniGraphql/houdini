@@ -111,6 +111,25 @@ export class Config {
 
 		return headerValue
 	}
+
+	get artifact_dir() {
+		return path.join(
+			this.root_dir,
+			this.config_file.runtimeDir || '.houdini',
+			'artifacts',
+		)
+	}
+
+	// the location of the artifact generated corresponding to the provided documents
+	artifactPath(document: graphql.DocumentNode): string {
+		// use the operation name for the artifact
+		return path.join(this.artifact_dir, `${documentName(document)}.js`)
+	}
+
+	pluginConfig<ConfigType extends {}>(name: string): ConfigType {
+		// @ts-expect-error
+		return (this.config_file.plugins?.[name] as ConfigType) ?? {}
+	}
 }
 
 // a place to store the current configuration
@@ -364,4 +383,37 @@ export async function load_local_schema(
 		console.error('! Failed to load local schema: ', message)
 		return new graphql.GraphQLSchema({})
 	}
+}
+
+function documentName(document: graphql.DocumentNode) {
+	// if there is an operation in the document
+	const operation = document.definitions.find(
+		({ kind }) => graphql.Kind.OPERATION_DEFINITION,
+	) as graphql.OperationDefinitionNode | null
+	if (operation) {
+		// if the operation does not have a name
+		if (!operation.name) {
+			// we can't give them a file
+			throw new Error(
+				'encountered operation with no name: ' + graphql.print(document),
+			)
+		}
+
+		// use the operation name for the artifact
+		return operation.name.value
+	}
+
+	// look for a fragment definition
+	const fragmentDefinitions = document.definitions.filter(
+		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION,
+	) as graphql.FragmentDefinitionNode[]
+	if (fragmentDefinitions.length) {
+		// join all of the fragment definitions into one
+		return fragmentDefinitions.map((fragment) => fragment.name).join('_')
+	}
+
+	// we don't know how to generate a name for this document
+	throw new Error(
+		'Could not generate artifact name for document: ' + graphql.print(document),
+	)
 }

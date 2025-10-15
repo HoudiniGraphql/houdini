@@ -1,11 +1,13 @@
 import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { formatErrors, fs, TypeWrapper, unwrapType } from 'houdini'
+import { TypeWrapper, unwrapType } from 'houdini'
+import { formatErrors } from 'houdini/vite'
+import { fs } from 'houdini'
 import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
 import * as recast from 'recast'
 
-import { parseSvelte } from '../../extract'
+import { parseSvelte } from '../extract'
 import { extract_load_function } from '../../extractLoadFunction'
 import type { HoudiniRouteScript } from '../../kit'
 import {
@@ -25,8 +27,8 @@ import {
 	houdini_on_error_fn,
 	query_variable_fn,
 } from '../../naming'
-import type { RouteParam } from '../../routing'
-import { route_params } from '../../routing'
+import type { RouteParam } from '../routing'
+import { route_params } from '../routing'
 import type { LoadTarget } from '../componentQuery'
 import { find_inline_queries } from '../componentQuery'
 import type { SvelteTransformPage } from '../types'
@@ -176,13 +178,11 @@ function add_load({
 	// make sure we have RequestContext imported
 	ensure_imports({
 		script: page.script,
-		config: page.config,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/plugins/houdini-svelte/runtime/session',
 	})
 	ensure_imports({
 		script: page.script,
-		config: page.config,
 		import: ['getCurrentConfig'],
 		sourceModule: '$houdini/runtime/lib/config',
 	})
@@ -257,7 +257,6 @@ function add_load({
 	for (const query of queries) {
 		const { ids } = ensure_imports({
 			script: page.script,
-			config: page.config,
 			import: [`load_${query.name!.value}`],
 			sourceModule: store_import_path({ config: page.config, name: query.name!.value }),
 		})
@@ -517,7 +516,6 @@ function variable_function_for_query(
 
 	// make sure that we have the utility to handle scalar args
 	ensure_imports({
-		config: page.config,
 		script: page.script,
 		import: ['parseScalar', 'marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
@@ -531,7 +529,7 @@ function variable_function_for_query(
 
 		// if the type is a runtime scalar, its optional
 		const runtime_scalar =
-			page.config.configFile.features?.runtimeScalars?.[unwrapped.type.name]
+			page.config.config_file.runtimeScalars?.[unwrapped.type.name]
 
 		// we need to remember the definition if
 		// the argument to the operation is non-null

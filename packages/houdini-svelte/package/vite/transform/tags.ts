@@ -4,6 +4,7 @@ import * as recast from 'recast'
 
 import { store_import } from '../kit'
 import type { SvelteTransformPage } from './types'
+import { extractDefinition } from 'houdini/vite'
 
 const AST = recast.types.builders
 
@@ -14,7 +15,7 @@ export default async function GraphQLTagProcessor(config: Config, page: SvelteTr
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument } = tag
-			const operation = config.extractDefinition(parsedDocument)
+			const operation = extractDefinition(parsedDocument)
 
 			const { id } = store_import({ page, artifact: { name: operation.name!.value } })
 

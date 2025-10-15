@@ -1,6 +1,6 @@
 import { test, expect, vi, describe } from 'vitest'
 
-import { component_test } from '../../test'
+import { component_test } from './test'
 
 test('no variables', async function () {
 	const route = await component_test(
@@ -381,7 +381,6 @@ describe('Svelte 5 runes', function () {
 			`,
 			{
 				plugins: {
-					'houdini-plugin-svelte-global-stores': {},
 					'houdini-svelte': {
 						framework: 'kit',
 						forceRunesMode: true,

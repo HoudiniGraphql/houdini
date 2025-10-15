@@ -1,3 +1,4 @@
+export * from './config'
 
 declare module 'houdini' {
 	interface HoudiniPluginConfig {

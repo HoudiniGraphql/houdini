@@ -1,6 +1,6 @@
 import type {
-	TaggedTemplateExpressionKind,
 	CallExpressionKind,
+	TaggedTemplateExpressionKind,
 	TSPropertySignatureKind,
 } from 'ast-types/lib/gen/kinds'
 import type { BaseNode } from 'estree-walker'
@@ -156,7 +156,7 @@ export async function find_graphql(
 
 			// pull out the name of the thing
 			let definitions = [
-				{ raw: documentString, parsed: config.extractDefinition(parsedTag) },
+				{ raw: documentString, parsed: extractDefinition(parsedTag) },
 			] as ExtractedDefinition[]
 			const name = definitions[0].parsed.name?.value
 			let kind: CompiledDocumentKind
@@ -183,8 +183,7 @@ export async function find_graphql(
 					(selection) =>
 						selection.kind === 'InlineFragment' &&
 						selection.directives?.find(
-							(directive) =>
-								directive.name.value === config.componentFieldDirective,
+							(directive) => directive.name.value === 'componentField',
 						),
 				)
 
@@ -192,7 +191,7 @@ export async function find_graphql(
 					definitions = [
 						{ parsed: definitions[0].parsed, raw: definitions[0].raw },
 					]
-				} else if (config.configFile.features?.componentFields) {
+				} else {
 					definitions = extractAnonymousQuery(
 						config,
 						definitions[0].raw,
@@ -258,7 +257,7 @@ function extractAnonymousQuery(
 
 		// make sure we have the component field directive
 		const componentField = selection.directives!.find(
-			(dir) => dir.name.value === config.componentFieldDirective,
+			(dir) => dir.name.value === 'componentField',
 		)
 		const fragmentName = config.componentFieldFragmentName({
 			type: selection.typeCondition!.name.value,
@@ -349,4 +348,28 @@ type ExtractedDefinition = {
 	prop?: string
 	raw: string
 	parsed: graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+}
+
+export function extractDefinition(
+	document: graphql.DocumentNode,
+): graphql.ExecutableDefinitionNode {
+	// make sure there's only one definition
+	if (document.definitions.length !== 1) {
+		throw new Error('Encountered document with multiple definitions')
+	}
+
+	// get the definition
+	const definition = document.definitions[0]
+
+	// make sure that it's an operation definition or a fragment definition
+	if (
+		definition.kind !== 'OperationDefinition' &&
+		definition.kind !== 'FragmentDefinition'
+	) {
+		throw new Error(
+			'Encountered document without a fragment or operation definition',
+		)
+	}
+
+	return definition
 }

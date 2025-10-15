@@ -1,7 +1,5 @@
+import type { TransformPage, Script, Config } from 'houdini'
 import * as recast from 'recast'
-
-import type { Script } from './types'
-import type { TransformPage } from './houdini'
 
 const AST = recast.types.builders
 
@@ -121,7 +119,6 @@ export function artifact_import({
 	local?: string
 }) {
 	const { ids, added } = ensure_imports({
-		config,
 		script,
 		sourceModule: config.artifactImportPath(artifact.name),
 		import: local || `_${artifact.name}Artifact`,

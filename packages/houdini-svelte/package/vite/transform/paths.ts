@@ -5,10 +5,10 @@ import { find_graphql, } from 'houdini/vite'
 import { ensure_imports } from 'houdini/vite'
 import type * as recast from 'recast'
 
-import type { HoudiniSvelteConfig } from '.'
+import type { HoudiniSvelteConfig } from 'houdini-svelte'
 import { parseSvelte } from './extract'
 import { extract_load_function } from './extractLoadFunction'
-import type { SvelteTransformPage } from './transforms/types'
+import type { SvelteTransformPage } from './types'
 
 type Identifier = recast.types.namedTypes.Identifier
 
@@ -20,8 +20,7 @@ export function is_route(config: Config, framework: Framework, filepath: string)
 	}
 
 	if (
-		!filepath.startsWith(config.routesDir) &&
-		!filepath.startsWith(path.join(config.projectRoot, config.routesDir))
+		!filepath.startsWith(path.join(config.root_dir, "src", "routes"))
 	) {
 		return false
 	}
@@ -55,21 +54,21 @@ export function is_layout_script(framework: Framework, filename: string) {
 
 export function is_root_layout(config: Config, filename: string) {
 	return (
-		resolve_relative(config, filename).replace(config.projectRoot, '') ===
+		resolve_relative(config, filename).replace(config.root_dir, '') ===
 		path.sep + path.join('src', 'routes', '+layout.svelte')
 	)
 }
 
 export function is_root_layout_server(config: Config, filename: string) {
 	return (
-		resolve_relative(config, filename).replace(config.projectRoot, '').replace('.ts', '.js') ===
+		resolve_relative(config, filename).replace(config.root_dir, '').replace('.ts', '.js') ===
 		path.sep + path.join('src', 'routes', '+layout.server.js')
 	)
 }
 
 export function is_root_layout_script(config: Config, filename: string) {
 	return (
-		resolve_relative(config, filename).replace(config.projectRoot, '').replace('.ts', '.js') ===
+		resolve_relative(config, filename).replace(config.root_dir, '').replace('.ts', '.js') ===
 		path.sep + path.join('src', 'routes', '+layout.js')
 	)
 }
@@ -95,26 +94,12 @@ export function is_component(config: Config, framework: Framework, filename: str
 	)
 }
 
-export function page_query_path(config: Config, filename: string) {
-	return path.join(
-		path.dirname(resolve_relative(config, filename)),
-		plugin_config(config).pageQueryFilename
-	)
-}
-
-export function layout_query_path(config: Config, filename: string) {
-	return path.join(
-		path.dirname(resolve_relative(config, filename)),
-		plugin_config(config).layoutQueryFilename
-	)
-}
-
 export function resolve_relative(config: Config, filename: string) {
 	// kit generates relative import for our generated files. we need to fix that so that
 	// vites importer can find the file.
 	const match = filename.match('^((../)+)src/routes')
 	if (match) {
-		filename = path.join(config.projectRoot, filename.substring(match[1].length))
+		filename = path.join(config.root_dir, filename.substring(match[1].length))
 	}
 
 	return filename
@@ -124,7 +109,7 @@ export async function walk_routes(
 	config: Config,
 	framework: Framework,
 	visitor: RouteVisitor,
-	dirpath = config.routesDir
+	dirpath = path.join(config.root_dir, 'src', 'routes')
 ) {
 	let pageExports: string[] = []
 	let layoutExports: string[] = []
@@ -190,13 +175,13 @@ export async function walk_routes(
 			await find_graphql(config, script, {
 				where: (tag) => {
 					try {
-						return !!config.extractQueryDefinition(tag)
+						return !!extractQueryDefinition(tag)
 					} catch {
 						return false
 					}
 				},
 				tag: async ({ parsedDocument }) => {
-					let definition = config.extractQueryDefinition(parsedDocument)
+					let definition = extractQueryDefinition(parsedDocument)
 
 					// mutate with optional inlineLayoutQuery. Takes an OperationDefinitionNode
 					await visitor.inlineLayoutQueries?.(definition, childPath)
@@ -221,13 +206,13 @@ export async function walk_routes(
 			await find_graphql(config, script, {
 				where: (tag) => {
 					try {
-						return !!config.extractQueryDefinition(tag)
+						return !!extractQueryDefinition(tag)
 					} catch {
 						return false
 					}
 				},
 				tag: async ({ parsedDocument }) => {
-					let definition = config.extractQueryDefinition(parsedDocument)
+					let definition = extractQueryDefinition(parsedDocument)
 					// mutate with optional inlinePageQuery. Takes an OperationDefinitionNode
 					await visitor.inlinePageQueries?.(definition, childPath)
 					// We push this to pageQueries since it will be the same in the type file anyway
@@ -251,51 +236,19 @@ export async function walk_routes(
 			await find_graphql(config, script, {
 				where: (tag) => {
 					try {
-						return !!config.extractQueryDefinition(tag)
+						return !!extractQueryDefinition(tag)
 					} catch {
 						return false
 					}
 				},
 				tag: async ({ parsedDocument }) => {
-					let definition = config.extractQueryDefinition(parsedDocument)
+					let definition = extractQueryDefinition(parsedDocument)
 					// mutate with optional inlinePageQuery. Takes an OperationDefinitionNode
 					await visitor.routeComponentQuery?.(definition, childPath)
 					// we need to push this to a separate array as we need to generate different types for this
 					componentQueries.push({ query: definition, componentPath: childPath })
 				},
 			})
-		} else if (child === plugin_config(config).layoutQueryFilename) {
-			validRoute = true
-			const contents = await fs.readFile(childPath)
-			if (!contents) {
-				continue
-			}
-			//parse content
-			try {
-				const query = config.extractQueryDefinition(graphql.parse(contents))
-				// mutate with optional routeLayoutQuery. Takes an OperationDefinitionNode
-				await visitor.routeLayoutQuery?.(query, childPath)
-				// push to layoutQueries since once again adding to same file anyway
-				layoutQueries.push(query)
-			} catch (e) {
-				throw routeQueryError(childPath)
-			}
-		} else if (child === plugin_config(config).pageQueryFilename) {
-			validRoute = true
-			const contents = await fs.readFile(childPath)
-			if (!contents) {
-				continue
-			}
-
-			try {
-				const query = config.extractQueryDefinition(graphql.parse(contents))
-				// mutate with optional routePageQuery. Takes an OperationDefinitionNode
-				await visitor.routePageQuery?.(query, childPath)
-				// push to pageQueries since once again adding to same file anyway
-				pageQueries.push(query)
-			} catch (e) {
-				throw routeQueryError(childPath)
-			}
 		} else {
 			continue
 		}
@@ -310,9 +263,9 @@ export async function walk_routes(
 		const relative_path_regex = /src(.*)/
 
 		// here we define the location of the correspoding sveltekit type file
-		const local = dirpath.replace(config.projectRoot, '')
+		const local = dirpath.replace(config.root_dir, '')
 		const svelteTypeFilePath = path.join(
-			config.projectRoot,
+			config.root_dir,
 			'.svelte-kit',
 			'types',
 			local.match(relative_path_regex)?.[0] ?? '',
@@ -390,7 +343,7 @@ export function stores_directory(pluginRoot: string) {
 }
 
 export function type_route_dir(config: Config) {
-	return path.join(config.typeRootDir, 'src', 'routes')
+	return path.join(config.root_dir, ".houdini", "types", 'src', 'routes')
 }
 
 // the path that the runtime can use to import a store
@@ -415,6 +368,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 		defaultRouteBlocking: false,
 		static: false,
 		forceRunesMode: false,
+    framework: 'kit',
 		...cfg,
 		customStores: {
 			query: '../runtime/stores/query.QueryStore',
@@ -440,7 +394,6 @@ export function store_import({
 	local?: string
 }): { id: Identifier; added: number } {
 	const { ids, added } = ensure_imports({
-		config: page.config,
 		script: page.script,
 		sourceModule: store_import_path({ config: page.config, name: artifact.name }),
 		import: [
@@ -455,3 +408,12 @@ export function store_import({
 }
 
 export type Framework = 'kit' | 'svelte'
+
+export function extractQueryDefinition(document: graphql.DocumentNode): graphql.OperationDefinitionNode {
+  const definition = extractQueryDefinition(document)
+  if (definition.kind !== 'OperationDefinition' || definition.operation !== 'query') {
+    throw new Error('Encountered document with non query definition')
+  }
+
+  return definition
+}
