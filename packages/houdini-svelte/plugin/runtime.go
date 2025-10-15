@@ -83,14 +83,15 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 	return fmt.Sprintf(`export * from './%s/stores/index.js'`, pluginDir), nil
 }
 
-func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
+func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
+	fmt.Println("generating runtime...")
 	// our goal is to add type declarations for the graphql function that's
 	// exported from the runtime index file
 
 	// Get project config to determine the target file path
 	projectConfig, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Target file path
@@ -104,7 +105,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 	// Get database connection
 	conn, err := p.DB.Take(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer p.DB.Put(conn)
 
@@ -116,7 +117,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 		ORDER BY d.name ASC
 	`)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer stmt.Finalize()
 
@@ -134,7 +135,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 		docs = append(docs, docData{name: name, content: content})
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Build imports and overloads with correct ordering
@@ -156,14 +157,14 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 	for i := len(docs) - 1; i >= 0; i-- {
 		doc := docs[i]
 		overloads.WriteString(
-			fmt.Sprintf("export function graphql(str: \"%s\"): %sStore;\n", doc.content, doc.name),
+			fmt.Sprintf("export function graphql(str: `%s`): %sStore;\n", doc.content, doc.name),
 		)
 	}
 
 	// Read the existing file content
 	existingContent, err := afero.ReadFile(p.Fs, targetPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Find the position to insert overloads (before the generic function declaration)
@@ -171,7 +172,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 	genericFuncLine := "export declare function graphql<_Payload, _Result = _Payload>(str: string): _Result;"
 	insertPos := strings.Index(existingStr, genericFuncLine)
 	if insertPos == -1 {
-		return fmt.Errorf("could not find generic function declaration in %s", targetPath)
+		return nil, fmt.Errorf("could not find generic function declaration in %s", targetPath)
 	}
 
 	// Build the new content
@@ -188,6 +189,19 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) error {
 	// Add the original generic function
 	newContent.WriteString(existingStr[insertPos:])
 
+	newString := newContent.String()
+	if newString == existingStr {
+		// no changes
+		return []string{}, nil
+	}
+
 	// Write the modified content back to the file
-	return afero.WriteFile(p.Fs, targetPath, []byte(newContent.String()), 0644)
+	return []string{
+			targetPath,
+		}, afero.WriteFile(
+			p.Fs,
+			targetPath,
+			[]byte(newContent.String()),
+			0644,
+		)
 }
