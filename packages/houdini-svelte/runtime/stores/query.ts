@@ -9,12 +9,11 @@ import type {
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
-import { current_config } from '$houdini/runtime/lib/config'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import * as log from '$houdini/runtime/lib/log'
 import { get } from 'svelte/store'
 
-import type { HoudiniSvelteConfig } from '../../plugin'
-import type { PluginArtifactData } from '../../plugin/artifactData'
+import type { HoudiniSvelteConfig } from 'houdini-svelte'
 import { clientStarted, isBrowser } from '../adapter'
 import { initClient } from '../client'
 import { getSession } from '../session'
@@ -100,11 +99,8 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 		}
 
 		// blocking
-		const config = current_config()
+		const config = getCurrentConfig()
 		const config_svelte = (config.plugins as any)['houdini-svelte'] as HoudiniSvelteConfig
-		const pluginArtifact = this.artifact.pluginData['houdini-svelte'] as
-			| PluginArtifactData
-			| undefined
 
 		// Blocking strategy... step by step... Let's respect the order & priority
 		let need_to_block = false
@@ -132,13 +128,6 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 			client.throwOnError_operations.includes('query')
 		) {
 			need_to_block = true
-		}
-
-		// 3/ Artifact
-		if (pluginArtifact?.set_blocking === true) {
-			need_to_block = true
-		} else if (pluginArtifact?.set_blocking === false) {
-			need_to_block = false
 		}
 
 		// 4/ params
@@ -214,7 +203,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 // the parameters we will be passed from the generator
 export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
-	artifact: _Artifact & { pluginData: { 'houdini-svelte': PluginArtifactData } }
+	artifact: _Artifact 
 	storeName: string
 	variables: boolean
 }

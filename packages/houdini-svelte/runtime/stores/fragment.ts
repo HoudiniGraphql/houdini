@@ -6,7 +6,7 @@ import type {
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
 import cache from '$houdini/runtime/cache'
-import { current_config } from '$houdini/runtime/lib/config'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
 import { marshalInputs } from '$houdini/runtime/lib/scalars'
 import { derived } from 'svelte/store'
 
@@ -84,7 +84,7 @@ Please ensure that you have passed a record that has ${this.artifact.name} mixed
 			variables: marshalInputs({
 				artifact: this.artifact,
 				input: variables,
-				config: current_config(),
+				config: getCurrentConfig(),
 				rootType: this.artifact.rootType,
 			}) as _Input,
 			kind: CompiledFragmentKind,
