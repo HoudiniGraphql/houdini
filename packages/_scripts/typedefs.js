@@ -60,9 +60,11 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 					}
 				)
 			}
-			// Remove the now-empty src directory and any houdini directory that was created
+
+
+
+			// Remove the now-empty src directory
 			fsSync.rmSync(plugin_dir, { recursive: true, force: true })
-			fsSync.rmSync(path.resolve('.', 'build', 'houdini'), { recursive: true, force: true })
 		} else {
 			// For Node packages, move directories from 'build/<package name>/src' to 'build' (original behavior)
 			for (const child of await fs.readdir(plugin_dir)) {
@@ -118,6 +120,91 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 				}
 			} catch {
 				// Directory doesn't exist, skip
+			}
+		}
+
+		// For Node packages, also flatten the main package's src directory
+		const srcDir = path.join(buildDir, 'src')
+		try {
+			const srcStats = await fs.stat(srcDir)
+			if (srcStats.isDirectory()) {
+				// Move contents of src directory to build root
+				const srcChildren = await fs.readdir(srcDir)
+				for (const child of srcChildren) {
+					const srcPath = path.join(srcDir, child)
+					const destPath = path.join(buildDir, child)
+
+					// If destination exists, merge directories or overwrite files
+					try {
+						const destStats = await fs.stat(destPath)
+						if (destStats.isDirectory()) {
+							// Merge directories
+							await fs_extra.copy(srcPath, destPath, { overwrite: true })
+						} else {
+							// Overwrite file
+							await fs_extra.move(srcPath, destPath, { overwrite: true })
+						}
+					} catch {
+						// Destination doesn't exist, just move
+						await fs_extra.move(srcPath, destPath, { overwrite: true })
+					}
+				}
+				// Remove the now-empty src directory
+				fsSync.rmSync(srcDir, { recursive: true, force: true })
+			}
+		} catch {
+			// src directory doesn't exist, skip
+		}
+	}
+
+	// For Go packages, move the 'package' directory contents to the package root and remove dependency directories
+	if (goPackage) {
+		const packageDir = path.resolve('.', 'build', package_json.name, 'package')
+		const packageRoot = path.resolve('.', 'build', package_json.name)
+
+		try {
+			const packageStats = await fs.stat(packageDir)
+			if (packageStats.isDirectory()) {
+				// Move contents of package directory to package root (merge with existing files)
+				const packageChildren = await fs.readdir(packageDir)
+				for (const child of packageChildren) {
+					const srcPath = path.join(packageDir, child)
+					const destPath = path.join(packageRoot, child)
+
+					// Check if destination exists and handle accordingly
+					try {
+						const destStats = await fs.stat(destPath)
+						if (destStats.isDirectory()) {
+							// Merge directories (copy TypeScript definitions into existing directory)
+							await fs_extra.copy(srcPath, destPath, { overwrite: false })
+						} else {
+							// Destination is a file, don't overwrite (keep the JS file)
+							const srcStats = await fs.stat(srcPath)
+							if (srcStats.isDirectory()) {
+								// Source is directory, destination is file - this shouldn't happen
+								await fs_extra.copy(srcPath, destPath, { overwrite: false })
+							}
+							// If both are files, don't overwrite (keep the JS file)
+						}
+					} catch {
+						// Destination doesn't exist, just move
+						await fs_extra.move(srcPath, destPath)
+					}
+				}
+
+				// Remove the now-empty package directory
+				fsSync.rmSync(packageDir, { recursive: true, force: true })
+			}
+		} catch {
+			// Package directory doesn't exist, skip
+		}
+
+		// Remove dependency directories for Go packages (they shouldn't be in the final output)
+		// But don't remove the main package directory
+		const dependencyDirs = ['houdini', 'houdini-core']
+		for (const depDir of dependencyDirs) {
+			if (depDir !== package_json.name) {
+				fsSync.rmSync(path.resolve('.', 'build', depDir), { recursive: true, force: true })
 			}
 		}
 	}

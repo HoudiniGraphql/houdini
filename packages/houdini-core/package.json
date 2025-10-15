@@ -3,7 +3,7 @@
     "version": "1.4.2",
     "scripts": {
         "compile": "scripts build-go",
-        "typedefs": "scripts typedefs"
+        "typedefs": "scripts typedefs --go-package"
     },
     "devDependencies": {
         "scripts": "workspace:^"

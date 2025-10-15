@@ -165,7 +165,7 @@ export default async function () {
 		await buildPackage({
 			packageJSONPath,
 			source: packagePath,
-			outDir: path.join(buildDir, packageJSON.name, 'build'),
+			outDir: path.join(buildDir, packageJSON.name),
 		})
 
 		// restore the bin field after buildPackage (only if it was removed)
@@ -200,7 +200,7 @@ export default async function () {
 		await buildPackage({
 			packageJSONPath,
 			source: vitePath,
-			outDir: path.join(buildDir, packageJSON.name, 'build'),
+			outDir: path.join(buildDir, packageJSON.name),
 		})
 
 		// restore the bin field after buildPackage (only if it was removed)
