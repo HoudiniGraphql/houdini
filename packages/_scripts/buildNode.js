@@ -74,7 +74,7 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				import: `./build/${dirname}/index.js`,
 			}
 			package_json.types = `./build/${dirname}/index.d.ts`
-			package_json.typesVersions['*']['.'] = [`build/${dirname}/index.d.ts`]
+			package_json.typesVersions['*']['.'] = [`./build/${dirname}/index.d.ts`]
 		}
 		// runtimes can't be bundled
 		else if (dirname === 'runtime') {
@@ -100,7 +100,7 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}/index.js`,
 			}
-			package_json.typesVersions['*'][dirname] = [`build/${dirname}/index.d.ts`]
+			package_json.typesVersions['*'][dirname] = [`./build/${dirname}/index.d.ts`]
 		}
 	}
 
@@ -145,7 +145,7 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				for (const [subKey, subValue] of Object.entries(value)) {
 					if (Array.isArray(subValue)) {
 						buildPackageJson.typesVersions[key][subKey] = subValue.map((path) =>
-							path.startsWith('build/') ? path.replace('build/', '') : path
+							path.startsWith('./build/') ? path.replace('./build/', './') : path
 						)
 					}
 				}

@@ -47,7 +47,7 @@
     "typesVersions": {
         "*": {
             "app": [
-                "build/app.d.ts"
+                "./build/app.d.ts"
             ]
         }
     }

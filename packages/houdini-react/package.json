@@ -67,7 +67,7 @@
     "typesVersions": {
         "*": {
             "server": [
-                "build/server/index.d.ts"
+                "./build/server/index.d.ts"
             ]
         }
     },

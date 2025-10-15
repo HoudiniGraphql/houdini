@@ -87,16 +87,16 @@
     "typesVersions": {
         "*": {
             "adapter": [
-                "build/adapter/index.d.ts"
+                "./build/adapter/index.d.ts"
             ],
             ".": [
-                "build/lib/index.d.ts"
+                "./build/lib/index.d.ts"
             ],
             "test": [
-                "build/test/index.d.ts"
+                "./build/test/index.d.ts"
             ],
             "vite": [
-                "build/vite/index.d.ts"
+                "./build/vite/index.d.ts"
             ]
         }
     },
