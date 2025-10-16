@@ -1,12 +1,12 @@
-import { ensure_imports } from 'houdini'
+import { Config, ensure_imports } from 'houdini'
 import * as recast from 'recast'
 
 import { is_root_layout } from './paths'
-import type { SvelteTransformPage } from '../../types'
+import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
 
-export default async function kit_init(page: SvelteTransformPage) {
+export default async function kit_init(config: Config, page: SvelteTransformPage) {
 	// we only care about the root layout file
 	if (!is_root_layout(page.config, page.filepath)) {
 		return

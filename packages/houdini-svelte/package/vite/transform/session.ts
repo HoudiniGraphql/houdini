@@ -1,9 +1,9 @@
 import { walk } from 'estree-walker'
-import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini'
+import { find_exported_fn, find_insert_index, ensure_imports, Config } from 'houdini'
 import * as recast from 'recast'
 
 import { is_root_layout_script, is_root_layout_server } from './paths'
-import type { SvelteTransformPage } from '../../types'
+import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
 
@@ -14,7 +14,7 @@ type ObjectExpression = recast.types.namedTypes.ObjectExpression
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 type VariableDeclarator = recast.types.namedTypes.VariableDeclarator
 
-export default function (page: SvelteTransformPage) {
+export default async function session_transform(config: Config, page: SvelteTransformPage) {
 	if (is_root_layout_server(page.config, page.filepath)) {
 		process_root_layout_server(page)
 	} else if (is_root_layout_script(page.config, page.filepath)) {

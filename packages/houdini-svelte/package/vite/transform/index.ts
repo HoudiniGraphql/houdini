@@ -4,15 +4,16 @@ import { runPipeline, formatErrors } from 'houdini'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
-import { parseSvelte } from './parse'
-import kit from './kit/index.js'
+import { parseSvelte } from '../parse'
+import init from './init'
+import session from './session'
 import tags from './tags'
 import type { SvelteTransformPage, Framework } from '../types'
 import { plugin_config } from 'houdini-svelte'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
-const pipeline = [kit, tags]
+const pipeline = [session, init, tags]
 
 export default async function apply_transforms(
 	framework: Framework,

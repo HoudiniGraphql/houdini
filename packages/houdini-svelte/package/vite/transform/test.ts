@@ -4,9 +4,9 @@ import { testConfig } from 'houdini/test'
 import { plugin_config } from 'houdini-svelte'
 
 import { parseSvelte } from '../parse'
-import type { Framework } from '../../types'
+import type { Framework } from '../types'
 import {  route_data_path } from './paths'
-import runTransforms from '..'
+import runTransforms from '.'
 
 const schema = `
 	type User {
