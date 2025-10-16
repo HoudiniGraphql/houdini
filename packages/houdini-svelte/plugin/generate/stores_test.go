@@ -1,4 +1,4 @@
-package plugin_test
+package generate_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"code.houdinigraphql.com/plugins/tests"
 )
 
-func TestGenerate(t *testing.T) {
+func TestGenerateStores(t *testing.T) {
 	tests.RunTable(t, tests.Table[plugin.PluginConfig, *plugin.HoudiniSvelte]{
 		Schema: `
 			type User { 
