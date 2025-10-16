@@ -2,8 +2,8 @@ import { walk } from 'estree-walker'
 import { find_exported_fn, find_insert_index, ensure_imports } from 'houdini'
 import * as recast from 'recast'
 
-import { is_root_layout_script, is_root_layout_server } from '../paths'
-import type { SvelteTransformPage } from '../types'
+import { is_root_layout_script, is_root_layout_server } from './paths'
+import type { SvelteTransformPage } from '../../types'
 
 const AST = recast.types.builders
 

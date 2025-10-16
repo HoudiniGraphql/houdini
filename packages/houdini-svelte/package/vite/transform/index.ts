@@ -4,11 +4,11 @@ import { runPipeline, formatErrors } from 'houdini'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
-import { parseSvelte } from './extract'
-import { plugin_config, type Framework } from './paths'
+import { parseSvelte } from './parse'
 import kit from './kit/index.js'
 import tags from './tags'
-import type { SvelteTransformPage } from './types'
+import type { SvelteTransformPage, Framework } from '../types'
+import { plugin_config } from '..'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports

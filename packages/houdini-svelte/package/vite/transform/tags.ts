@@ -1,10 +1,10 @@
 import type { Config } from 'houdini'
-import { find_graphql, extractDefinition } from 'houdini'
+import { find_graphql, extractDefinition, ensure_imports } from 'houdini'
 import * as recast from 'recast'
 
-import { store_import } from './paths'
-import type { SvelteTransformPage } from './types'
+import type { SvelteTransformPage } from '../types'
 
+type Identifier = recast.types.namedTypes.Identifier
 const AST = recast.types.builders
 
 export default async function GraphQLTagProcessor(config: Config, page: SvelteTransformPage) {
@@ -24,3 +24,22 @@ export default async function GraphQLTagProcessor(config: Config, page: SvelteTr
 		},
 	})
 }
+
+function store_import({
+	page,
+	artifact,
+}: {
+	page: SvelteTransformPage
+	artifact: { name: string }
+}): { id: Identifier; added: number } {
+	const { ids, added } = ensure_imports({
+		script: page.script,
+		sourceModule: `$houdini/plugins/houdini-svelte/stores/${artifact.name}`,
+		import: [ `${artifact.name}Store`],
+	})
+
+	return { id: ids[0], added }
+}
+
+
+
