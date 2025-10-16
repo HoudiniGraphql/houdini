@@ -1,10 +1,9 @@
 import type { Config } from 'houdini'
-import { find_graphql } from 'houdini/vite'
+import { find_graphql, extractDefinition } from 'houdini'
 import * as recast from 'recast'
 
-import { store_import } from '../kit'
+import { store_import } from './paths'
 import type { SvelteTransformPage } from './types'
-import { extractDefinition } from 'houdini/vite'
 
 const AST = recast.types.builders
 

@@ -1,7 +1,7 @@
-import { ensure_imports } from 'houdini/vite'
+import { ensure_imports } from 'houdini'
 import * as recast from 'recast'
 
-import { is_root_layout } from '../kit'
+import { is_root_layout } from '../paths'
 import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders

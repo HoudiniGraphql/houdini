@@ -191,13 +191,6 @@ export async function find_graphql(
 					definitions = [
 						{ parsed: definitions[0].parsed, raw: definitions[0].raw },
 					]
-				} else {
-					definitions = extractAnonymousQuery(
-						config,
-						definitions[0].raw,
-						definitions[0].parsed as graphql.OperationDefinitionNode,
-						propName,
-					)
 				}
 			}
 
@@ -237,111 +230,6 @@ export async function find_graphql(
 			}
 		},
 	})
-}
-
-function extractAnonymousQuery(
-	config: Config,
-	raw: string,
-	expr: graphql.OperationDefinitionNode,
-	propName: string,
-): ExtractedDefinition[] {
-	// if we are handling a component field (when anonIsOkay)
-	// then we are turning the query into multiple documents
-	const definitions = expr.selectionSet.selections.reduce<
-		ExtractedDefinition[]
-	>((defs, selection) => {
-		// again, we only care about inline fragments
-		if (selection.kind !== 'InlineFragment') {
-			return defs
-		}
-
-		// make sure we have the component field directive
-		const componentField = selection.directives!.find(
-			(dir) => dir.name.value === 'componentField',
-		)
-		const fragmentName = config.componentFieldFragmentName({
-			type: selection.typeCondition!.name.value,
-			entry: componentField!,
-		})
-
-		// embed the raw string as an argument so we can get it back
-		if (componentField) {
-			// @ts-expect-error: ignore that its technically read
-			componentField.arguments = [
-				...(componentField?.arguments ?? []),
-				{
-					kind: 'Argument',
-					name: {
-						kind: 'Name',
-						value: 'raw',
-					},
-					value: {
-						kind: 'StringValue',
-						value: raw,
-					},
-				} as graphql.ArgumentNode,
-			]
-		}
-
-		// if there is no field argument, we we to infer it from key of the type literal
-		if (
-			componentField &&
-			propName &&
-			!componentField!.arguments?.find((arg) => arg.name.value === 'prop')
-		) {
-			// @ts-expect-error: ignore that its technically read
-			componentField.arguments = [
-				...(componentField?.arguments ?? []),
-				{
-					kind: 'Argument',
-					name: {
-						kind: 'Name',
-						value: 'prop',
-					},
-					value: {
-						kind: 'StringValue',
-						value: propName,
-					},
-				} as graphql.ArgumentNode,
-			]
-		}
-
-		const parsed: graphql.FragmentDefinitionNode = {
-			kind: graphql.Kind.FRAGMENT_DEFINITION,
-			typeCondition: {
-				kind: graphql.Kind.NAMED_TYPE,
-				name: {
-					kind: graphql.Kind.NAME,
-					value: selection.typeCondition?.name.value || '',
-				},
-			},
-			name: {
-				kind: graphql.Kind.NAME,
-				value: fragmentName,
-			},
-			selectionSet: {
-				kind: graphql.Kind.SELECTION_SET,
-				selections: selection.selectionSet.selections,
-			},
-			directives: selection.directives,
-		}
-
-		// add the fragment definition
-		return defs.concat([
-			{
-				raw: graphql.print(parsed),
-				parsed,
-			},
-		])
-	}, [])
-
-	if (definitions.length > 1) {
-		throw new Error(
-			'Anonymous queries can only contain a single inline fragment',
-		)
-	}
-
-	return definitions
 }
 
 type ExtractedDefinition = {

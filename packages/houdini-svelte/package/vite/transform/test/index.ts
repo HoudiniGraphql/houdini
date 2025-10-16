@@ -1,13 +1,11 @@
-import type { Document, Config, ConfigFile, Script } from 'houdini'
+import type { ConfigFile, Script } from 'houdini'
 import { fs, parseJS, path } from 'houdini'
-import { runPipeline } from 'houdini/codegen'
-import { mockCollectedDoc, testConfig } from 'houdini/test'
+import { testConfig } from 'houdini/test'
 
-import { pluginHooks } from '../plugin'
-import { parseSvelte } from '../plugin/extract'
-import type { Framework } from '../plugin/kit'
-import { layout_query_path, page_query_path, plugin_config, route_data_path } from '../plugin/kit'
-import runTransforms from '../plugin/transforms'
+import { parseSvelte } from '../extract'
+import type { Framework } from '../paths'
+import { plugin_config, route_data_path } from '../paths'
+import runTransforms from '..'
 
 const schema = `
 	type User {
@@ -24,49 +22,12 @@ const schema = `
 	}
 `
 
-export async function test_config(extraConfig: Partial<ConfigFile> = {}) {
-	const config = testConfig(extraConfig)
-	const svelte_plugin = await pluginHooks()
-	config.plugins.push({
-		...svelte_plugin,
-		includeRuntime: './test',
-		filepath: path.join(process.cwd(), 'index.js'),
-		name: 'test',
-	})
-	return config
-}
-
-export async function pipeline_test(
-	documents: string[],
-	extra_config?: Partial<ConfigFile>
-): Promise<{
-	pluginRoot: string
-	docs: Document[]
-	config: Config
-}> {
-	const config = await test_config(extra_config)
-
-	// the first thing to do is to create the list of collected documents
-	const docs: Document[] = documents.map((doc) => mockCollectedDoc(doc))
-
-	// apply the transforms
-	await runPipeline(config, docs)
-
-	return {
-		pluginRoot: config.pluginDirectory('houdini-svelte'),
-		docs,
-		config,
-	}
-}
 
 export async function route_test({
 	component = '',
 	script = '',
-	page_query = '',
-	layout_query = '',
 	layout = '',
 	layout_script = '',
-	config: extra,
 	framework = 'kit',
 	route_path = '',
 }: {
@@ -76,7 +37,6 @@ export async function route_test({
 	layout_query?: string
 	layout?: string
 	layout_script?: string
-	config?: Partial<ConfigFile>
 	framework?: Framework
 	route_path?: string
 }): Promise<{
@@ -86,7 +46,7 @@ export async function route_test({
 	layout_script: Script | null
 }> {
 	// build up the document we'll pass to the processor
-	const config = await test_config({ schema, ...extra })
+	const config = testConfig({ schema })
 
 	// scripts live in src/routes/+page.svelte
 	const page_path = path.join(process.cwd(), 'src/routes', route_path, '+page.svelte')
@@ -99,8 +59,6 @@ export async function route_test({
 	await Promise.all([
 		fs.writeFile(page_path, component),
 		fs.writeFile(route_data_path(config, page_path), script),
-		fs.writeFile(page_query_path(config, page_path), page_query),
-		fs.writeFile(layout_query_path(config, page_path), layout_query),
 		fs.writeFile(layout_path, layout),
 		fs.writeFile(layout_script_path, layout_script),
 	])
@@ -152,7 +110,7 @@ export async function component_test(
 	extra?: Partial<ConfigFile>
 ): Promise<Script | null> {
 	// build up the document we'll pass to the processor
-	const config = await test_config({ schema, ...extra })
+	const config = await testConfig({ schema, ...extra })
 
 	// routes live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
@@ -175,10 +133,10 @@ export async function component_test(
 
 export async function test_transform_svelte(filepath: string, content: string) {
 	// build up the document we'll pass to the processor
-	const config = await test_config({ schema })
+	const config = testConfig({ schema })
 
 	// write the content
-	filepath = path.join(config.projectRoot, filepath)
+	filepath = path.join(config.root_dir, filepath)
 	await fs.mkdirp(path.dirname(filepath))
 	await fs.writeFile(filepath, content)
 
@@ -196,10 +154,10 @@ export async function test_transform_svelte(filepath: string, content: string) {
 
 export async function test_transform_js(filepath: string, content: string) {
 	// build up the document we'll pass to the processor
-	const config = await test_config({ schema })
+	const config = testConfig({ schema })
 
 	// write the content
-	filepath = path.join(config.projectRoot, filepath)
+	filepath = path.join(config.root_dir, filepath)
 	await fs.mkdirp(path.dirname(filepath))
 	await fs.writeFile(filepath, content)
 
@@ -212,5 +170,5 @@ export async function test_transform_js(filepath: string, content: string) {
 	})
 
 	// return both
-	return (await parseJS(result.code)) ?? null
+	return (parseJS(result.code)) ?? null
 }

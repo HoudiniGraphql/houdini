@@ -1,7 +1,7 @@
 import { fs, path } from 'houdini'
+import { testConfig } from 'houdini/test'
 import { test, describe, expect } from 'vitest'
 
-import { test_config } from './test'
 import { extract_load_function } from './extractLoadFunction'
 import { houdini_afterLoad_fn, houdini_before_load_fn, houdini_load_fn } from './naming'
 
@@ -287,7 +287,7 @@ describe('extract_load_function', function () {
 
 	for (const row of table) {
 		test(row.title, async function () {
-			const config = await test_config()
+			const config = testConfig()
 
 			const targetPath = 'src/routes/foo'
 			await fs.mkdirp(path.dirname(targetPath))

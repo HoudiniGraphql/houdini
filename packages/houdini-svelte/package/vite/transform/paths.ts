@@ -1,8 +1,7 @@
 import * as graphql from 'graphql'
 import type { Config } from 'houdini'
 import { fs, path } from 'houdini'
-import { find_graphql, } from 'houdini/vite'
-import { ensure_imports } from 'houdini/vite'
+import { find_graphql, ensure_imports} from 'houdini'
 import type * as recast from 'recast'
 
 import type { HoudiniSvelteConfig } from 'houdini-svelte'

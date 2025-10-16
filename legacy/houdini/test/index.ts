@@ -1,11 +1,6 @@
-import * as graphql from 'graphql'
 import { vol } from 'memfs'
 
-import type { ConfigFile } from '../../src/runtime/lib/config'
-import { ArtifactKind, type ArtifactKinds } from '../../src/runtime/lib/types'
-import { runPipeline } from '../codegen'
-import type { Document } from '../lib'
-import { Config, fs, path } from '../lib'
+import { Config, ConfigFile } from '../lib'
 
 export function clearMock() {
 	// Clear the mock filesystem volume

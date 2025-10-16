@@ -1,36 +1,31 @@
-import type { IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
+import type { ExpressionKind, IdentifierKind, StatementKind } from 'ast-types/lib/gen/kinds'
 import type { namedTypes } from 'ast-types/lib/gen/namedTypes'
 import * as graphql from 'graphql'
-import { TypeWrapper, unwrapType } from 'houdini'
-import { formatErrors } from 'houdini/vite'
-import { fs } from 'houdini'
-import { artifact_import, ensure_imports, find_insert_index } from 'houdini/vite'
+import { find_graphql, Script, TransformPage, TypeWrapper, unwrapType } from 'houdini'
+import { artifact_import, ensure_imports, find_insert_index, formatErrors, fs } from 'houdini'
 import * as recast from 'recast'
 
 import { parseSvelte } from '../extract'
-import { extract_load_function } from '../../extractLoadFunction'
-import type { HoudiniRouteScript } from '../../kit'
+import { extract_load_function } from '../extractLoadFunction'
+import type { HoudiniRouteScript } from '../paths'
 import {
+    extractQueryDefinition,
 	is_layout,
 	is_route,
 	is_route_script,
-	layout_query_path,
-	page_query_path,
 	plugin_config,
 	route_data_path,
 	route_page_path,
 	store_import_path,
-} from '../../kit'
+} from '../paths'
 import {
 	houdini_afterLoad_fn,
 	houdini_before_load_fn,
 	houdini_on_error_fn,
 	query_variable_fn,
-} from '../../naming'
+} from '../naming'
 import type { RouteParam } from '../routing'
 import { route_params } from '../routing'
-import type { LoadTarget } from '../componentQuery'
-import { find_inline_queries } from '../componentQuery'
 import type { SvelteTransformPage } from '../types'
 
 const AST = recast.types.builders
@@ -50,16 +45,13 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 		route
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
 			: artifact_import({
-					config: page.config,
 					script: page.script,
 					page,
 					artifact: { name },
 			  }).id
 
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, layout_query, inline_queries, page_info] = await Promise.all([
-		find_special_query('Page', page),
-		find_special_query('Layout', page),
+	const [inline_queries, page_info] = await Promise.all([
 		find_inline_queries(
 			page,
 			// if we are currently on the route file, there's nothing to parse
@@ -84,15 +76,6 @@ export default async function kit_load_generator(page: SvelteTransformPage) {
 	// add the load functions
 	if (script) {
 		const queries_that_needs_a_load = [...houdini_load_queries, ...inline_queries]
-		// Add special queries files to the list only if we are in the good context
-		const isLayout = is_layout(page.framework, page.filepath)
-		if (isLayout && layout_query) {
-			queries_that_needs_a_load.push(layout_query)
-		}
-		if (!isLayout && page_query) {
-			queries_that_needs_a_load.push(page_query)
-		}
-
 		add_load({
 			page,
 			queries: queries_that_needs_a_load,
@@ -405,38 +388,6 @@ function add_load({
 	}
 }
 
-async function find_special_query(
-	type: `Page` | `Layout`,
-	page: SvelteTransformPage
-): Promise<LoadTarget | null> {
-	// figure out the filepath for the page query
-	const query_path =
-		type === 'Page'
-			? page_query_path(page.config, page.filepath)
-			: layout_query_path(page.config, page.filepath)
-
-	// if the file doesn't exist, we're done
-	const contents = await fs.readFile(query_path)
-	if (!contents) {
-		return null
-	}
-
-	// we have a page query, make sure it contains a query
-	const parsed = graphql.parse(contents)
-
-	// find the query definition
-	const definition = parsed.definitions.find(
-		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
-	) as graphql.OperationDefinitionNode
-	// if it doesn't exist, there is an error, but no discovered query either
-	if (!definition) {
-		formatErrors({ message: 'gql file must contain a query.', filepath: query_path })
-		return null
-	}
-
-	return definition
-}
-
 function load_hook_statements(
 	name: 'before' | 'after',
 	request_context: namedTypes.Identifier,
@@ -616,7 +567,6 @@ function variable_function_for_query(
 								AST.objectProperty(
 									AST.identifier('artifact'),
 									artifact_import({
-										config: page.config,
 										script: page.script,
 										page,
 										artifact: { name: query.name!.value },
@@ -648,3 +598,49 @@ function variable_function_for_query(
 function __variable_fn_name(name: string) {
 	return `__houdini__` + query_variable_fn(name)
 }
+
+export async function find_inline_queries(
+	page: TransformPage,
+	parsed: Script | null,
+	store_id: (name: string) => ExpressionKind
+): Promise<LoadTarget[]> {
+	// if there's nothing to parse, we're done
+	if (!parsed) {
+		return []
+	}
+
+	// build up a list of the queries we run into
+	const queries: LoadTarget[] = []
+
+	// look for inline queries
+	await find_graphql(page.config, parsed, {
+		where(tag) {
+			// only consider query documents
+			const definition = tag.definitions.find((defn) => defn.kind === 'OperationDefinition')
+			if (!definition) {
+				return false
+			}
+			const queryOperation = definition as graphql.OperationDefinitionNode
+			if (queryOperation.operation !== 'query') {
+				return false
+			}
+
+      return false
+		},
+		dependency: page.watch_file,
+		tag(tag) {
+			// if the graphql tag was inside of a call expression, we need to assume that it's a
+			// part of an inline document. if the operation is a query, we need to add it to the list
+			// so that the load function can have the correct contents
+			const { parsedDocument } = tag
+			const operation = extractQueryDefinition(parsedDocument)
+			queries.push(operation)
+
+			tag.node.replaceWith(store_id(operation.name!.value))
+		},
+	})
+
+	return queries
+}
+
+export type LoadTarget = graphql.OperationDefinitionNode

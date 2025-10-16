@@ -1,7 +1,7 @@
 import type { CallExpressionKind } from 'ast-types/lib/gen/kinds'
 import { walk } from 'estree-walker'
 import type { Config, Maybe, Script } from 'houdini'
-import { find_graphql} from 'houdini/vite'
+import { find_graphql} from 'houdini'
 import { parseJS } from 'houdini'
 import * as svelte from 'svelte/compiler'
 

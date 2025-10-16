@@ -5,8 +5,8 @@ import { fs, parseJS, path } from 'houdini'
 import type * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
-import type { HoudiniRouteScript } from './kit'
-import { stores_directory_name, store_suffix } from './kit'
+import type { HoudiniRouteScript } from './paths'
+import { stores_directory_name, store_suffix } from './paths'
 import { houdini_load_fn } from './naming'
 
 type Program = recast.types.namedTypes.Program

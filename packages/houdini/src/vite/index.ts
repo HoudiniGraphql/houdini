@@ -20,8 +20,6 @@ import {
 	refresh_on_schema,
 } from './schema.js'
 
-export * from './lib'
-
 export type PluginConfig = {
 	configPath?: string
 	adapter?: Adapter

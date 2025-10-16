@@ -107,20 +107,18 @@ export function ensure_imports({
 }
 
 export function artifact_import({
-	config,
 	script,
 	artifact,
 	local,
 }: {
 	page: TransformPage
-	config: Config
 	script: Script
 	artifact: { name: string }
 	local?: string
 }) {
 	const { ids, added } = ensure_imports({
 		script,
-		sourceModule: config.artifactImportPath(artifact.name),
+		sourceModule: `$houdini/artifacts/${artifact.name}`,
 		import: local || `_${artifact.name}Artifact`,
 	})
 	return { id: ids, added }

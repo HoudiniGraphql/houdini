@@ -23,6 +23,7 @@
 			"$houdini": ["../houdini/package"],
 			"houdini": ["../houdini/src/lib"],
 			"houdini/vite": ["../houdini/src/vite"],
+			"houdini/test": ["../houdini/src/test"],
 			"houdini/*": ["../houdini/src/lib/*"],
 			"houdini-core/*": ["../houdini-core/*"],
 			"$houdini/*": ["../houdini/package/*"],
