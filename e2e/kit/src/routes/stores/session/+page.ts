@@ -1,7 +1,16 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query Session {
-    session
-  }
-`);
+const store = graphql(`
+    query Session {
+        session
+    }
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        Session: store
+    }
+};

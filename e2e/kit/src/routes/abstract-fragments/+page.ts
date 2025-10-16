@@ -1,15 +1,24 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query MonkeyListQuery {
-    monkeys {
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        startCursor
-        endCursor
-      }
-      ...AnimalsList
+const store = graphql(`
+    query MonkeyListQuery {
+        monkeys {
+            pageInfo {
+                hasPreviousPage
+                hasNextPage
+                startCursor
+                endCursor
+            }
+            ...AnimalsList
+        }
     }
-  }
-`);
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        MonkeyListQuery: store
+    }
+};

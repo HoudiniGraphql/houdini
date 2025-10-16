@@ -1,17 +1,19 @@
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query FragmentUpdateTestQuery($id: ID!) {
-    node(id: $id) {
-      ... on User {
-        ...UserFragmentTestFragment
-      }
+const store = graphql(`
+    query FragmentUpdateTestQuery($id: ID!) {
+        node(id: $id) {
+            ... on User {
+                ...UserFragmentTestFragment
+            }
+        }
     }
-  }
-`);
+`)
 
-export function _FragmentUpdateTestQueryVariables() {
-  return {
-    id: 'preprocess-fragment:1'
-  };
-}
+export const load = async (event) => {
+    await store.fetch({ event, variables: { id: 'preprocess-fragment:1' } })
+
+    return {
+        FragmentUpdateTestQuery: store
+    }
+};

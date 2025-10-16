@@ -1,11 +1,20 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query RentedBooks {
-    rentedBooks {
-      userId
-      bookId
-      rate
+const store = graphql(`
+    query RentedBooks {
+        rentedBooks {
+            userId
+            bookId
+            rate
+        }
     }
-  }
-`);
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        RentedBooks: store
+    }
+};

@@ -1,9 +1,18 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query UserFragmentForwardsCursorQuery {
-    user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
-      ...ForwardsCursorFragment
+const store = graphql(`
+    query UserFragmentForwardsCursorQuery {
+        user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
+            ...ForwardsCursorFragment
+        }
     }
-  }
-`);
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        UserFragmentForwardsCursorQuery: store
+    }
+};

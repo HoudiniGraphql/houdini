@@ -1,9 +1,18 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query SubscriptionTestUserList {
-    user(id: "1", snapshot: "subscription-test") {
-      name
+const store = graphql(`
+    query SubscriptionTestUserList {
+        user(id: "1", snapshot: "subscription-test") {
+            name
+        }
     }
-  }
-`);
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        SubscriptionTestUserList: store
+    }
+};

@@ -1,9 +1,18 @@
+import type { LayoutLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query LayoutTestQuery {
-    user(id: "1", snapshot: "preprocess-query-simple") {
-      name
+const store = graphql(`
+    query LayoutTestQuery {
+        user(id: "1", snapshot: "preprocess-query-simple") {
+            name
+        }
     }
-  }
-`);
+`)
+
+export const load: LayoutLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        LayoutTestQuery: store
+    }
+};

@@ -1,10 +1,19 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query PartialOffChild @cache(partial: false) {
-    user(id: "1", snapshot: "partial-off") {
-      id
-      name
+const store = graphql(`
+    query PartialOffChild @cache(partial: false) {
+        user(id: "1", snapshot: "partial-off") {
+            id
+            name
+        }
     }
-  }
-`);
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        PartialOffChild: store
+    }
+};

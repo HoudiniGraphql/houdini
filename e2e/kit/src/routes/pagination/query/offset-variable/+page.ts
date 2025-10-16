@@ -1,15 +1,18 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query OffsetVariablePaginationQuery($limit: Int!) {
-    usersList(limit: $limit, snapshot: "pagination-query-offset-variables") @paginate {
-      name
+const store = graphql(`
+    query OffsetVariablePaginationQuery($limit: Int!) {
+        usersList(limit: $limit, snapshot: "pagination-query-offset-variables") @paginate {
+            name
+        }
     }
-  }
-`);
+`)
 
-export function _OffsetVariablePaginationQueryVariables() {
-  return {
-    limit: 2
-  };
-}
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event, variables: { limit: 2 } })
+
+    return {
+        OffsetVariablePaginationQuery: store
+    }
+};

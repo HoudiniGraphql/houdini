@@ -1,16 +1,25 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query AorB {
-    aOrB @list(name: "All_AorB") {
-      ... on A {
-        id
-        a
-      }
-      ... on B {
-        id
-        b
-      }
+const store = graphql(`
+    query AorB {
+        aOrB @list(name: "All_AorB") {
+            ... on A {
+                id
+                a
+            }
+            ... on B {
+                id
+                b
+            }
+        }
     }
-  }
-`);
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        AorB: store
+    }
+};

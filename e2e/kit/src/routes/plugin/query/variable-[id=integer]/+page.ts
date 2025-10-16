@@ -1,16 +1,18 @@
-import type { PreprocessorTestQueryVarsVariables as Variables } from './$houdini';
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query PreprocessorTestQueryVars($id: ID!) {
-    user(id: $id, snapshot: "preprocess-query-variable") {
-      name
+const store = graphql(`
+    query PreprocessorTestQueryVars($id: ID!) {
+        user(id: $id, snapshot: "preprocess-query-variable") {
+            name
+        }
     }
-  }
-`);
+`)
 
-export const _PreprocessorTestQueryVarsVariables: Variables = async ({ params }) => {
-  return {
-    id: params.id || '1'
-  };
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event, variables: { id: event.params.id || '1' } })
+
+    return {
+        PreprocessorTestQueryVars: store
+    }
 };

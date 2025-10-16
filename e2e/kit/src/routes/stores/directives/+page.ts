@@ -1,13 +1,22 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
 
-export const _houdini_load = graphql(`
-  query Directives {
-    user(id: "1", snapshot: "directives") {
-      name
+const store = graphql(`
+    query Directives {
+        user(id: "1", snapshot: "directives") {
+            name
+        }
+        cities @include(if: false) {
+            name
+        }
+        hello @skip(if: true)
     }
-    cities @include(if: false) {
-      name
+`)
+
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event })
+
+    return {
+        Directives: store
     }
-    hello @skip(if: true)
-  }
-`);
+};

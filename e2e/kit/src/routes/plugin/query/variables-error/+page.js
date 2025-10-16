@@ -1,14 +1,21 @@
 import { graphql } from '$houdini';
 import { error } from '@sveltejs/kit';
 
-export function _PreprocessorTestQueryErrorVariables() {
-  error(403, 'test');
-}
-
-export const _houdini_load = graphql(`
-  query PreprocessorTestQueryError($id: ID!) {
-    user(id: $id, snapshot: "preprocess-query-variable") {
-      name
+const store = graphql(`
+    query PreprocessorTestQueryError($id: ID!) {
+        user(id: $id, snapshot: "preprocess-query-variable") {
+            name
+        }
     }
-  }
-`);
+`)
+
+export const load = async (event) => {
+    // Throw error as in original variables function
+    error(403, 'test');
+
+    await store.fetch({ event, variables: { id: event.params.id || '1' } })
+
+    return {
+        PreprocessorTestQueryError: store
+    }
+};

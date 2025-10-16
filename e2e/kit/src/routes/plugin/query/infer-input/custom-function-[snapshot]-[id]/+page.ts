@@ -1,17 +1,18 @@
+import type { PageLoad } from './$types';
 import { graphql } from '$houdini';
-import type { CustomFunctionRouteParamsUserQueryVariables } from './$houdini';
 
-export const _houdini_load = graphql(`
-  query CustomFunctionRouteParamsUserQuery($snapshot: String! = "test", $id: ID! = "1") {
-    user(id: $id, snapshot: $snapshot) {
-      name
+const store = graphql(`
+    query CustomFunctionRouteParamsUserQuery($snapshot: String! = "test", $id: ID! = "1") {
+        user(id: $id, snapshot: $snapshot) {
+            name
+        }
     }
-  }
-`);
+`)
 
-export const _CustomFunctionRouteParamsUserQueryVariables: CustomFunctionRouteParamsUserQueryVariables =
-  () => {
+export const load: PageLoad = async (event) => {
+    await store.fetch({ event, variables: { id: '2' } })
+
     return {
-      id: '2'
-    };
-  };
+        CustomFunctionRouteParamsUserQuery: store
+    }
+};
