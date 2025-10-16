@@ -8,7 +8,7 @@ import { parseSvelte } from './parse'
 import kit from './kit/index.js'
 import tags from './tags'
 import type { SvelteTransformPage, Framework } from '../types'
-import { plugin_config } from '..'
+import { plugin_config } from 'houdini-svelte'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports

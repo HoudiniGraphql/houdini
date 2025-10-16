@@ -1,9 +1,8 @@
-import { Config } from 'houdini'
 import { VitePluginContext } from 'houdini/vite'
 import { PluginOption } from 'vite'
-import transform_file from './transform'
 import { path } from 'houdini'
-import type { HoudiniSvelteConfig } from 'houdini-svelte'
+
+import transform_file from './transform'
 
 export default function (ctx: VitePluginContext): PluginOption {
 	return {
@@ -28,27 +27,4 @@ export default function (ctx: VitePluginContext): PluginOption {
 	}
 }
 
-export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
-	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
-
-	return {
-		client: './src/client',
-		defaultRouteBlocking: false,
-		static: false,
-		forceRunesMode: false,
-    framework: 'kit',
-		...cfg,
-		customStores: {
-			query: '../runtime/stores/query.QueryStore',
-			mutation: '../runtime/stores/mutation.MutationStore',
-			fragment: '../runtime/stores/fragment.FragmentStore',
-			subscription: '../runtime/stores/subscription.SubscriptionStore',
-			queryCursor: '../runtime/stores/pagination/query.QueryStoreCursor',
-			queryOffset: '../runtime/stores/pagination/query.QueryStoreOffset',
-			fragmentCursor: '../runtime/stores/pagination/fragment.FragmentStoreCursor',
-			fragmentOffset: '../runtime/stores/pagination/fragment.FragmentStoreOffset',
-			...cfg?.customStores,
-		},
-	}
-}
 
