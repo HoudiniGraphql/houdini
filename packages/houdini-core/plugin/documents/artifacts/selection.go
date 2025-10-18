@@ -13,6 +13,7 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -29,6 +30,7 @@ func writeSelectionDocument(
 	name string,
 	selection []*collected.Selection,
 	sortKeys bool,
+	typeRoots *typescript.RootTypeNames,
 ) (string, error) {
 	// load the project config
 	projectConfig, _ := db.ProjectConfig(ctx)
@@ -42,6 +44,7 @@ func writeSelectionDocument(
 		name,
 		selection,
 		sortKeys,
+		typeRoots,
 	)
 	if err != nil {
 		return "", err
@@ -73,6 +76,7 @@ func GenerateSelectionDocument(
 	name string,
 	selection []*collected.Selection,
 	sortKeys bool,
+	rootTypes *typescript.RootTypeNames,
 ) (string, error) {
 	doc := docs.Selections[name]
 
@@ -356,8 +360,22 @@ func GenerateSelectionDocument(
     "enableLoadingState": "%s",`, flags.HasLoading)
 	}
 
+	// compute the type definitions
+	typeDefs, imports, err := typescript.GenerateDocumentTypeDefs(
+		ctx,
+		db,
+		conn,
+		rootTypes,
+		docs,
+		doc,
+	)
+	if err != nil {
+		return "", err
+	}
+
 	result := strings.TrimSpace(fmt.Sprintf(`
-export default {
+%s
+const artifact = {
     "name": "%s",
     "kind": "%s",
     "hash": "%s",%s
@@ -371,8 +389,13 @@ export default {
     "pluginData": %s,%s%s%s%s%s%s%s
 } as const
 
+export default artifact
+
+%s
+
 "HoudiniHash=%s"
   `,
+		strings.Join(imports, "\n"),
 		name,
 		kind,
 		hash,
@@ -388,6 +411,7 @@ export default {
 		policyValue,
 		partialValue,
 		optimistic,
+		typeDefs,
 		hash,
 	))
 

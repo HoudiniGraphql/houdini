@@ -127,7 +127,12 @@ func InsertOperationDocuments(
 	defer insertArgumentValueChildren.Finalize()
 
 	insertDocument, err := conn.Prepare(
-		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
+		`
+			INSERT INTO documents 
+				(name, raw_document, kind, type_condition, internal, visible)
+			VALUES 
+				($name, $raw_document, $kind, $type_condition, true, false)
+		`,
 	)
 	if err != nil {
 		return commit(plugins.WrapError(err))

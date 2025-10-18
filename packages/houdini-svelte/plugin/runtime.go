@@ -114,6 +114,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 		SELECT d.name, rd.content
 		FROM documents d
 		JOIN raw_documents rd ON d.raw_document = rd.id
+		WHERE d.visible = 1
 		ORDER BY d.name ASC
 	`)
 	if err != nil {

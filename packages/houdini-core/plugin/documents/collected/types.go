@@ -6,6 +6,8 @@ type Document struct {
 	Name                string
 	Kind                string // "query", "mutation", "subscription", or "fragment"
 	TypeCondition       string
+	Internal            bool
+	Visible             bool
 	Hash                string
 	Variables           []*OperationVariable
 	Selections          []*Selection

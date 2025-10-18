@@ -287,6 +287,8 @@ CREATE TABLE documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
   	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
+		internal boolean default false,
+		visible boolean default true,
 	  raw_document INTEGER,
     printed TEXT,
     hash TEXT,

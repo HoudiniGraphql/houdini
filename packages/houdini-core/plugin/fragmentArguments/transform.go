@@ -396,7 +396,9 @@ func processDocument[PluginConfig any](
 		fragmentMutex.Lock()
 
 		// check if a document with this name already exists in the database
-		checkStmt, err := conn.Prepare("SELECT id FROM documents WHERE name = $name AND kind = 'fragment'")
+		checkStmt, err := conn.Prepare(
+			"SELECT id FROM documents WHERE name = $name AND kind = 'fragment'",
+		)
 		if err != nil {
 			fragmentMutex.Unlock()
 			errs.Append(plugins.WrapError(err))
@@ -1231,7 +1233,10 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	insertFragment, err := conn.Prepare(`
-    INSERT INTO documents (name, type_condition, raw_document, kind) VALUES  ($name, $type_condition, $raw_document, 'fragment')
+    INSERT INTO documents 
+			(name, type_condition, raw_document, kind, internal, visible) 
+		VALUES  
+			($name, $type_condition, $raw_document, 'fragment', true, false)
   `)
 	if err != nil {
 		return nil, err

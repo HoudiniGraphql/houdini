@@ -66,6 +66,7 @@ func GenerateStores(
 			AND dl_offset.connection = 0
 		)
 		GROUP BY d.id, d.name, d.kind
+		HAVING d.visible = 1
 		ORDER BY d.name ASC
 	`)
 	if err != nil {

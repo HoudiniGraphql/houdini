@@ -10,6 +10,7 @@ import (
 	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 )
@@ -47,6 +48,11 @@ func GenerateDocumentArtifacts(
 	// we need to build up the filepaths we generate
 	filepaths := plugins.ThreadSafeSlice[string]{}
 
+	typeRoots, err := typescript.GetRootTypes(ctx, db)
+	if err != nil {
+		return nil, plugins.WrapError(err)
+	}
+
 	// start consuming names off of the channel
 	for range 1 {
 		wg.Add(1)
@@ -63,6 +69,10 @@ func GenerateDocumentArtifacts(
 			defer db.Put(conn)
 
 			for name := range docNames {
+				doc := collectedDefinitions.Selections[name]
+				if doc.Internal {
+					continue
+				}
 				// we need to generate the flattened selection
 				selection, err := FlattenSelection(
 					ctx,
@@ -86,6 +96,7 @@ func GenerateDocumentArtifacts(
 					name,
 					selection,
 					sortKeys,
+					typeRoots,
 				)
 				if err != nil {
 					errs.Append(plugins.WrapError(err))

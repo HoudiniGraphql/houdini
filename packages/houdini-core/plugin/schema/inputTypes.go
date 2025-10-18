@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/typescript"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
 	"zombiezen.com/go/sqlite"

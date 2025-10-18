@@ -11,7 +11,6 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
-	"github.com/spf13/afero"
 	"zombiezen.com/go/sqlite"
 )
 
@@ -28,54 +27,31 @@ func GenerateDocumentTypeDefs(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
+	rootTypes *RootTypeNames,
 	collectedDefinitions *collected.Documents,
-	fs afero.Fs,
-) ([]string, error) {
-	var generatedFiles []string
-
+	doc *collected.Document,
+) (string, []string, error) {
 	// Get project config
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	// Look up actual root type names from the schema
-	rootTypes, err := getRootTypeNames(ctx, db)
+	// Calculate root type name once per document
+	rootTypeName := getRootTypeName(doc, rootTypes)
+
+	// Generate TypeScript type definitions for this document
+	typeDef, imports, err := generateDocumentTypeDef(
+		projectConfig,
+		rootTypeName,
+		doc,
+		collectedDefinitions,
+	)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	// Process each document
-	for _, doc := range collectedDefinitions.Selections {
-		if doc == nil {
-			continue
-		}
-
-		// Calculate root type name once per document
-		rootTypeName := getRootTypeName(doc, rootTypes)
-
-		// Generate TypeScript type definitions for this document
-		typeDef, err := generateDocumentTypeDef(
-			projectConfig,
-			rootTypeName,
-			doc,
-			collectedDefinitions,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		// Write the type definition file
-		typeDefPath := projectConfig.ArtifactTypePath(doc.Name)
-		err = afero.WriteFile(fs, typeDefPath, []byte(typeDef), 0644)
-		if err != nil {
-			return nil, err
-		}
-
-		generatedFiles = append(generatedFiles, typeDefPath)
-	}
-
-	return generatedFiles, nil
+	return typeDef, imports, nil
 }
 
 func generateDocumentTypeDef(
@@ -83,7 +59,7 @@ func generateDocumentTypeDef(
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
-) (string, error) {
+) (string, []string, error) {
 	// Create document context to pass state instead of using global variables
 	docCtx := DocumentContext{
 		ProjectConfig: projectConfig,
@@ -170,9 +146,6 @@ func generateDocumentTypeDef(
 			)
 		}
 	} else {
-		// For operations, artifact import comes first
-		imports = append(imports, `import type artifact from './`+doc.Name+`'`)
-
 		// Add imports based on collected dependencies
 		if len(docCtx.EnumTypes) > 0 {
 			imports = append(imports, `import type { ValueOf } from "$houdini/runtime/lib/types";`)
@@ -202,71 +175,17 @@ func generateDocumentTypeDef(
 		fmt.Sprintf("export type %s$artifact = typeof artifact", doc.Name),
 	)
 
-	// Combine imports and type definitions
 	var result strings.Builder
 
-	if doc.Kind == "fragment" {
-		// For fragments, special order: artifact import first, then other imports, then input type, then other types
-		// Exception: for otherInfo fragment, use different order for generates_document_types test
-
-		if doc.Name == "otherInfo" {
-			// Special case for generates_document_types test: enum imports first
-			for _, imp := range imports {
-				result.WriteString(imp)
-				result.WriteString("\n")
-			}
-
-			// Add input type
-			result.WriteString(typeDefinitions[0])
+	// For operations, normal order
+	for i, typeDef := range typeDefinitions {
+		result.WriteString(typeDef)
+		if i < len(typeDefinitions)-1 {
 			result.WriteString("\n\n")
-
-			// Add artifact import
-			result.WriteString(fmt.Sprintf("import type artifact from './%s'", doc.Name))
-			result.WriteString("\n\n")
-
-			// Add remaining type definitions
-			for i := 1; i < len(typeDefinitions); i++ {
-				result.WriteString(typeDefinitions[i])
-				if i < len(typeDefinitions)-1 {
-					result.WriteString("\n\n")
-				}
-			}
-		} else {
-			// Normal fragment order: artifact import first
-			result.WriteString(fmt.Sprintf("import type artifact from './%s'", doc.Name))
-			result.WriteString("\n")
-
-			// Add enum/utility imports
-			for _, imp := range imports {
-				result.WriteString(imp)
-				result.WriteString("\n")
-			}
-			result.WriteString("\n")
-
-			// Add all type definitions
-			for i, typeDef := range typeDefinitions {
-				result.WriteString(typeDef)
-				if i < len(typeDefinitions)-1 {
-					result.WriteString("\n\n")
-				}
-			}
-		}
-	} else {
-		// For operations, normal order
-		for _, imp := range imports {
-			result.WriteString(imp)
-			result.WriteString("\n")
-		}
-		result.WriteString("\n")
-		for i, typeDef := range typeDefinitions {
-			result.WriteString(typeDef)
-			if i < len(typeDefinitions)-1 {
-				result.WriteString("\n\n")
-			}
 		}
 	}
 
-	return result.String(), nil
+	return result.String(), imports, nil
 }
 
 func generateFragmentTypes(
@@ -741,7 +660,15 @@ func generateInterfaceUnionType(
 						fragmentChild.TypeModifiers,
 						collectedDocs,
 					)
-					fields = append(fields, fmt.Sprintf("\t\t%s%s: %s;", readonlyPrefix, fragmentChild.FieldName, fieldType))
+					fields = append(
+						fields,
+						fmt.Sprintf(
+							"\t\t%s%s: %s;",
+							readonlyPrefix,
+							fragmentChild.FieldName,
+							fieldType,
+						),
+					)
 				}
 			}
 		}
@@ -756,7 +683,8 @@ func generateInterfaceUnionType(
 
 	// Add non-exhaustive case for interfaces (not unions)
 	// Check if this is an interface by looking at possible types
-	if possibleTypesMap, exists := collectedDocs.PossibleTypes[selection.FieldType]; exists && len(possibleTypesMap) > len(filteredTypes) {
+	if possibleTypesMap, exists := collectedDocs.PossibleTypes[selection.FieldType]; exists &&
+		len(possibleTypesMap) > len(filteredTypes) {
 		// This is an interface with more possible types than we have fragments for
 		// But only add non-exhaustive case if we don't have fragments for all concrete types
 		var hasFragmentForAllTypes bool = true
@@ -775,7 +703,10 @@ func generateInterfaceUnionType(
 		}
 
 		if !hasFragmentForAllTypes {
-			nonExhaustive := fmt.Sprintf("({\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})", readonlyPrefix)
+			nonExhaustive := fmt.Sprintf(
+				"({\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
+				readonlyPrefix,
+			)
 			unionParts = append(unionParts, nonExhaustive)
 		}
 	}
@@ -1256,7 +1187,7 @@ type RootTypeNames struct {
 }
 
 // Helper function to look up actual root type names from the schema
-func getRootTypeNames(
+func GetRootTypes(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 ) (*RootTypeNames, error) {

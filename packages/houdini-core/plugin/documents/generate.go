@@ -10,7 +10,6 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
-	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/typescript"
 	"code.houdinigraphql.com/plugins"
 )
 
@@ -58,15 +57,6 @@ func Generate(
 	// we can generate the artifacts and type definitions in parallel
 	group, ctx := errgroup.WithContext(ctx)
 	fps := plugins.ThreadSafeSlice[string]{}
-
-	group.Go(func() error {
-		files, err := typescript.GenerateDocumentTypeDefs(ctx, db, conn, collected, fs)
-		if err != nil {
-			return err
-		}
-		fps.Append(files...)
-		return nil
-	})
 
 	group.Go(func() error {
 		files, err := artifacts.GenerateDocumentArtifacts(ctx, db, conn, collected, fs, sortKeys)

@@ -231,6 +231,8 @@ CREATE TABLE IF NOT EXISTS documents (
     type_condition TEXT,
     hash TEXT,
     printed TEXT,
+		internal boolean default false,
+		visible boolean default true,
     FOREIGN KEY (type_condition) REFERENCES types(name) ON DELETE CASCADE,
     FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
 );

@@ -62,19 +62,19 @@ func (p *HoudiniSvelte) DefaultConfig(
 	}
 
 	if pluginConfig.CustomStores.QueryCursor == "" {
-		pluginConfig.CustomStores.QueryCursor = "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreCursor"
+		pluginConfig.CustomStores.QueryCursor = "$houdini/plugins/houdini-svelte/runtime/stores/pagination/query.js#QueryStoreCursor"
 	}
 
 	if pluginConfig.CustomStores.QueryOffset == "" {
-		pluginConfig.CustomStores.QueryOffset = "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreOffset"
+		pluginConfig.CustomStores.QueryOffset = "$houdini/plugins/houdini-svelte/runtime/stores/pagination/query.js#QueryStoreOffset"
 	}
 
 	if pluginConfig.CustomStores.FragmentOffset == "" {
-		pluginConfig.CustomStores.FragmentOffset = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreOffset"
+		pluginConfig.CustomStores.FragmentOffset = "$houdini/plugins/houdini-svelte/runtime/stores/pagination/fragment.js#FragmentStoreOffset"
 	}
 
 	if pluginConfig.CustomStores.FragmentCursor == "" {
-		pluginConfig.CustomStores.FragmentCursor = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreCursor"
+		pluginConfig.CustomStores.FragmentCursor = "$houdini/plugins/houdini-svelte/runtime/stores/pagination/fragment.js#FragmentStoreCursor"
 	}
 
 	return pluginConfig, nil
