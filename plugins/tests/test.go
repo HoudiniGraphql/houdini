@@ -12,7 +12,7 @@ import (
 )
 
 // ExecuteSchema creates the database schema.
-func WriteHoudiniSchema(db *sqlite.Conn) error {
+func WriteDatabaseSchema(db *sqlite.Conn) error {
 	statements := strings.Split(schema, ";")
 	for _, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)

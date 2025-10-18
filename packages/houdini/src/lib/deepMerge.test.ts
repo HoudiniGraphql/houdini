@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { deepMerge } from './deepMerge'
+import { deepMerge } from './deepMerge.js'
 
 describe('deep merge', function () {
 	test('non-conflicting keys', function () {

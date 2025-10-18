@@ -1,5 +1,5 @@
 import * as graphql from 'graphql'
-import type { Config } from './project'
+import type { Config } from './project.js'
 
 export enum TypeWrapper {
 	Nullable = 'Nullable',

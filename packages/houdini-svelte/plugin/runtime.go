@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
 	"github.com/spf13/afero"
 )
 
@@ -31,7 +32,7 @@ func (p *HoudiniSvelte) TransformRuntime(
 	switch fp {
 	case "adapter.js":
 		// the current content is the svelte adapter
-		if pluginConfig.Framework == PluginFrameworkSvelte {
+		if pluginConfig.Framework == config.PluginFrameworkSvelte {
 			return content, nil
 		}
 
@@ -84,7 +85,6 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 }
 
 func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
-	fmt.Println("generating runtime...")
 	// our goal is to add type declarations for the graphql function that's
 	// exported from the runtime index file
 

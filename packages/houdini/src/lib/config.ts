@@ -1,4 +1,4 @@
-import type { CachePolicies, PaginateModes } from './types'
+import type { CachePolicies, PaginateModes } from './types.js'
 
 // the values we can take in from the config file
 export type ConfigFile = {

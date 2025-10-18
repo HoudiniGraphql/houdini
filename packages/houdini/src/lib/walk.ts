@@ -7,13 +7,13 @@ import type { BaseNode } from 'estree-walker'
 import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
 
-import type { CompiledDocumentKind } from './types'
+import type { CompiledDocumentKind } from './types.js'
 import {
 	CompiledFragmentKind,
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-} from './types'
+} from './types.js'
 import type { Script, Config } from 'houdini'
 
 export type EmbeddedGraphqlDocument = {

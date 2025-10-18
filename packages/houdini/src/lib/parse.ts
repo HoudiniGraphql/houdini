@@ -2,8 +2,8 @@ import { parse as parseJavascript, type ParserOptions } from '@babel/parser'
 import type { Options } from 'recast'
 import { print, prettyPrint } from 'recast'
 
-import { deepMerge } from './deepMerge'
-import type { Maybe, Script } from './types'
+import { deepMerge } from './deepMerge.js'
+import type { Maybe, Script } from './types.js'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 

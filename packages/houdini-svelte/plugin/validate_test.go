@@ -1,23 +1,25 @@
-package plugin
+package plugin_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
+	"code.houdinigraphql.com/packages/houdini-svelte/plugin"
+	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/stretchr/testify/require"
 )
 
 func TestValidate_svelte(t *testing.T) {
-	tests.RunTable(t, tests.Table[PluginConfig, *HoudiniSvelte]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniSvelte]{
 		Schema: `
 			type Query { hello: String }
 			type Mutation { hello: String }
 			type Subscription { hello: String }
 		`,
-		PerformTest: func(t *testing.T, plugin *HoudiniSvelte, test tests.Test[PluginConfig]) {
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniSvelte, test tests.Test[config.PluginConfig]) {
 			ctx := context.Background()
 
 			// run the validation
@@ -44,7 +46,7 @@ func TestValidate_svelte(t *testing.T) {
 				}
 			}
 		},
-		Tests: []tests.Test[PluginConfig]{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "forbidden operation name: Query",
 				Pass: false,

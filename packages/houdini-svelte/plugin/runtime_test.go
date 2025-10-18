@@ -6,15 +6,16 @@ import (
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin"
+	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRuntime_graphqlTag(t *testing.T) {
-	tests.RunTable(t, tests.Table[plugin.PluginConfig, *plugin.HoudiniSvelte]{
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniSvelte]{
 		Schema: `type Query { hello: String }`,
-		Tests: []tests.Test[plugin.PluginConfig]{
+		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "injects config updaters into runtime",
 				Input: []string{
@@ -23,7 +24,7 @@ func TestRuntime_graphqlTag(t *testing.T) {
 				},
 			},
 		},
-		PerformTest: func(t *testing.T, plugin *plugin.HoudiniSvelte, test tests.Test[plugin.PluginConfig]) {
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniSvelte, test tests.Test[config.PluginConfig]) {
 			config, err := plugin.DB.ProjectConfig(context.Background())
 			require.Nil(t, err)
 

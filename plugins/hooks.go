@@ -52,6 +52,9 @@ func TriggerHookSerial[PluginConfig any](
 	errs := &ErrorList{}
 
 	for name, port := range pluginPorts {
+		if port == 0 {
+			continue
+		}
 
 		resp, err := http.Post(
 			fmt.Sprintf("http://localhost:%v/%s", port, hook),
@@ -131,6 +134,9 @@ func TriggerHookParallel[PluginConfig any](
 
 		go func(name string, port int64) {
 			defer wg.Done()
+			if port == 0 {
+				return
+			}
 
 			resp, err := http.Post(
 				fmt.Sprintf("http://localhost:%v/%s", port, hook),

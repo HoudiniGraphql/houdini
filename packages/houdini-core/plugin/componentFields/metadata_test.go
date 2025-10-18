@@ -42,7 +42,7 @@ func TestComponentFields(t *testing.T) {
 	require.Nil(t, err)
 
 	// write the schema to the database
-	err = tests.WriteHoudiniSchema(conn)
+	err = tests.WriteDatabaseSchema(conn)
 	require.Nil(t, err)
 	defer db.Put(conn)
 
@@ -190,7 +190,7 @@ func TestComponentFieldChecks(t *testing.T) {
 
 			require.Nil(t, err)
 			// write the internal schema to the database
-			err = tests.WriteHoudiniSchema(conn)
+			err = tests.WriteDatabaseSchema(conn)
 			require.Nil(t, err)
 
 			// wire up the plugin

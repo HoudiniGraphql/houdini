@@ -42,7 +42,7 @@ func TestRuntimeScalars(t *testing.T) {
 	defer db.Put(conn)
 
 	// write the schema to the database
-	err = tests.WriteHoudiniSchema(conn)
+	err = tests.WriteDatabaseSchema(conn)
 	require.Nil(t, err)
 
 	statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)

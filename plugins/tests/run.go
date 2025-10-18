@@ -20,8 +20,18 @@ type Table[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]] str
 	Schema        string
 	ProjectConfig plugins.ProjectConfig
 	Tests         []Test[PluginConfig]
+	Plugin        Plugin[PluginConfig]
+	SetupTest     func(t *testing.T, plugin PluginType, test Test[PluginConfig])
 	PerformTest   func(t *testing.T, plugin PluginType, test Test[PluginConfig])
 	VerifyTest    func(t *testing.T, plugin PluginType, test Test[PluginConfig])
+}
+
+type Plugin[PluginConfig any] struct {
+	Name                 string
+	Hooks                []string
+	IncludeRuntime       string
+	IncludeStaticRuntime string
+	Config               PluginConfig
 }
 
 type Test[PluginConfig any] struct {
@@ -153,8 +163,39 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			require.Nil(t, err)
 			defer db.Put(conn)
 
-			if err := WriteHoudiniSchema(conn); err != nil {
+			if err := WriteDatabaseSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
+			}
+
+			// before we run through the tests we should register tthe plugin if it exists
+			if table.Plugin.Name != "" {
+				insertPlugin, err := conn.Prepare(`
+					INSERT INTO "plugins" 
+									("name", "port", "hooks", "plugin_order", "include_runtime", "include_static_runtime", "config", "config_module", "client_plugins") 
+								VALUES
+									($name, '0', $hooks, 'core', $include_runtime, $include_static_runtime, $config, NULL, NULL)
+				`)
+				require.NoError(t, err)
+
+				// stringify any registered hooks
+				marshaled, err := json.Marshal(table.Plugin.Hooks)
+				require.NoError(t, err)
+				hooks := string(marshaled)
+
+				// stringfy the plugin config
+				marshaled, err = json.Marshal(table.Plugin.Config)
+				require.NoError(t, err)
+				config := string(marshaled)
+
+				// execute the insert
+				err = db.ExecStatement(insertPlugin, map[string]any{
+					"name":                   table.Plugin.Name,
+					"hooks":                  hooks,
+					"config":                 config,
+					"include_runtime":        table.Plugin.IncludeRuntime,
+					"include_static_runtime": table.Plugin.IncludeStaticRuntime,
+				})
+				require.NoError(t, err)
 			}
 
 			// Use an in-memory file system.
@@ -263,6 +304,14 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			// parse the raw documents into the documents table
 			// If the test expects to fail, parsing errors are acceptable
 			err = core.AfterExtract(context.Background())
+			if err != nil && test.Pass {
+				// Only fail if the test was supposed to pass
+				require.NoError(t, err)
+			}
+
+			// run the core plugin's validation step to populate discovered_lists table
+			// This is essential for pagination detection and other list operations
+			err = core.Validate(context.Background())
 			if err != nil && test.Pass {
 				// Only fail if the test was supposed to pass
 				require.NoError(t, err)

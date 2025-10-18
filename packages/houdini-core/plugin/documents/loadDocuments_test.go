@@ -1628,7 +1628,7 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 			defer db.Put(conn)
-			if err := tests.WriteHoudiniSchema(conn); err != nil {
+			if err := tests.WriteDatabaseSchema(conn); err != nil {
 				t.Fatalf("failed to create schema: %v", err)
 			}
 

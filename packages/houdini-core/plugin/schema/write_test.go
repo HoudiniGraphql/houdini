@@ -112,7 +112,7 @@ func TestSchema(t *testing.T) {
 			conn, err := db.Take(context.Background())
 			require.Nil(t, err)
 
-			err = tests.WriteHoudiniSchema(conn)
+			err = tests.WriteDatabaseSchema(conn)
 			db.Put(conn)
 			require.Nil(t, err)
 
