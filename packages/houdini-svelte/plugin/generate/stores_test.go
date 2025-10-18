@@ -97,22 +97,9 @@ func TestGenerateStores(t *testing.T) {
 					"stores",
 					name,
 				)
-				contents, err := afero.ReadFile(plugin.Filesystem(), storePath+".js")
+				contents, err := afero.ReadFile(plugin.Filesystem(), storePath+".ts")
 				require.NoError(t, err)
 				require.Equal(t, expected, string(contents))
-
-				// and make sue the type definition was generated as well
-				exists, err := afero.Exists(
-					plugin.Filesystem(),
-					storePath+".d.ts",
-				)
-				require.NoError(t, err)
-				require.True(
-					t,
-					exists,
-					"expected type definition to be generated for store %s",
-					name,
-				)
 			}
 		},
 		Tests: []tests.Test[config.PluginConfig]{
@@ -125,10 +112,10 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestMutation1": tests.Dedent(`
-						import artifact from '$houdini/artifacts/TestMutation1'
-						import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
+						import artifact, { TestMutation1$result, TestMutation1$input } from '$houdini/artifacts/TestMutation1.js'
+						import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation.js'
 
-						export class TestMutation1Store extends MutationStore {
+						export class TestMutation1Store extends MutationStore<TestMutation1$result, TestMutation1$input> {
 							constructor() {
 								super({
 									artifact,
@@ -143,13 +130,12 @@ func TestGenerateStores(t *testing.T) {
 				Pass: true,
 				Input: []string{
 					`subscription TestSubscription1 { newUser { id } }`,
-					`subscription TestSubscription2 { newUser { id } }`,
 				},
 				Extra: map[string]any{
 					"TestSubscription1": tests.Dedent(`
-						import artifact from '$houdini/artifacts/TestSubscription1'
-						import type { TestSubscription1$input, $TestSubscription1$result } from '$houdini/artifacts/TestSubscription1'
-						import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores/subscription'
+						import artifact, { TestSubscription11$result, TestSubscription11$input }from '$houdini/artifacts/TestSubscription1.js'
+						import type { TestSubscription1$input, $TestSubscription1$result } from '$houdini/artifacts/TestSubscription1.js'
+						import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores/subscription.js'
 
 						export class TestSubscription1Store extends SubscriptionStore<TestSubscription1$result, $TestSubscription1$input> {
 							constructor() {
@@ -169,10 +155,11 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-						import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-						import artifact from '$houdini/artifacts/TestFragment'
+						import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
+						import artifact from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 
-						export class TestFragmentStore extends FragmentStore {
+						export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> { 
 							constructor() {
 								super({
 									artifact,
@@ -193,8 +180,9 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-						import artifact from '$houdini/artifacts/TestQuery'
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+						import artifact from '$houdini/artifacts/TestQuery.js'
+						import type { TestQuery$data, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
 
 						export class TestQueryStore extends QueryStore {
 							constructor() {
@@ -216,10 +204,11 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-						import artifact from '$houdini/artifacts/TestQuery'
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+						import artifact from '$houdini/artifacts/TestQuery.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
 
-						export class TestQueryStore extends QueryStore {
+						export class TestQueryStore<TestQuery$result, TestQuery$input> extends QueryStore {
 							constructor() {
 								super({
 									artifact,
@@ -239,8 +228,9 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-						import artifact from '$houdini/artifacts/TestQuery'
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+						import artifact from '$houdini/artifacts/TestQuery.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
 
 						export class TestQueryStore extends QueryStore {
 							constructor() {
@@ -262,8 +252,9 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-						import artifact from '$houdini/artifacts/TestQuery'
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+						import artifact from '$houdini/artifacts/TestQuery.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
 
 						export class TestQueryStore extends QueryStore {
 							constructor() {
@@ -293,8 +284,9 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+							import artifact from '$houdini/artifacts/TestQuery.js'
+							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
 
 							export class TestQueryStore extends QueryStoreCursor {
 								constructor() {
@@ -324,8 +316,9 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+							import artifact from '$houdini/artifacts/TestQuery.js'
+							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
 
 							export class TestQueryStore extends QueryStoreCursor {
 								constructor() {
@@ -351,8 +344,9 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-							import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+							import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
+							import artifact from '$houdini/artifacts/TestQuery.js'
+							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
 							export class TestQueryStore extends QueryStoreOffset {
 								constructor() {
@@ -374,10 +368,11 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-							import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-							import artifact from '$houdini/artifacts/TestFragment'
+							import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
+							import artifact from '$houdini/artifacts/TestFragment.js'
+							import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 
-							export class TestFragmentStore extends FragmentStore {
+							export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 								constructor() {
 									super({
 										artifact,
@@ -405,11 +400,12 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
-						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-						import artifact from '$houdini/artifacts/TestFragment'
-						import _PaginationArtifact from '$houdini/artifacts/%s'
+						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
+						import artifact from '$houdini/artifacts/TestFragment.js'
+							import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import _PaginationArtifact from '$houdini/artifacts/%s.js'
 
-						export class TestFragmentStore extends FragmentStoreCursor {
+						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 							constructor() {
 								super({
 									artifact,
@@ -440,11 +436,12 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
-						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-						import artifact from '$houdini/artifacts/TestFragment'
-						import _PaginationArtifact from '$houdini/artifacts/%s'
+						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
+						import artifact from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import _PaginationArtifact from '$houdini/artifacts/%s.js'
 
-						export class TestFragmentStore extends FragmentStoreCursor {
+						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 							constructor() {
 								super({
 									artifact,
@@ -472,11 +469,12 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
-						import { FragmentStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-						import artifact from '$houdini/artifacts/TestFragment'
-						import _PaginationArtifact from '$houdini/artifacts/%s'
+						import { FragmentStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
+						import artifact from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import _PaginationArtifact from '$houdini/artifacts/%s.js'
 
-						export class TestFragmentStore extends FragmentStoreOffset {
+						export class TestFragmentStore extends FragmentStoreOffset<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 							constructor() {
 								super({
 									artifact,

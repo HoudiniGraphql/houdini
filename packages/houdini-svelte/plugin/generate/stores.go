@@ -88,23 +88,22 @@ func GenerateStores(
 		refetchMethod := stmt.ColumnText(3)
 
 		var storeContent string
-		var typeDefContent string
 		var err error
 
 		switch kind {
 		case "query":
-			storeContent, typeDefContent, err = generateQueryStore(
+			storeContent, err = generateQueryStore(
 				pluginConfig,
 				name,
 				variablesRequired,
 				refetchMethod,
 			)
 		case "mutation":
-			storeContent, typeDefContent, err = generateMutationStore(pluginConfig, name)
+			storeContent, err = generateMutationStore(pluginConfig, name)
 		case "subscription":
-			storeContent, typeDefContent, err = generateSubscriptionStore(pluginConfig, name)
+			storeContent, err = generateSubscriptionStore(pluginConfig, name)
 		case "fragment":
-			storeContent, typeDefContent, err = generateFragmentStore(
+			storeContent, err = generateFragmentStore(
 				pluginConfig,
 				name,
 				variablesRequired,
@@ -119,20 +118,13 @@ func GenerateStores(
 		}
 
 		// Write the store file
-		storePath := path.Join(storesDir, name+".js")
+		storePath := path.Join(storesDir, name+".ts")
 		err = afero.WriteFile(fs, storePath, []byte(storeContent), 0644)
 		if err != nil {
 			return
 		}
 
-		// Write the type definition file
-		typeDefPath := path.Join(storesDir, name+".d.ts")
-		err = afero.WriteFile(fs, typeDefPath, []byte(typeDefContent), 0644)
-		if err != nil {
-			return
-		}
-
-		generatedFiles = append(generatedFiles, storePath, typeDefPath)
+		generatedFiles = append(generatedFiles, storePath)
 	})
 	if err != nil {
 		return nil, err
@@ -146,14 +138,17 @@ func generateQueryStore(
 	name string,
 	variablesRequired bool,
 	refetchMethod config.StorePaginationType,
-) (string, string, error) {
+) (string, error) {
 	storeName := name + "Store"
 	storeImport := pluginConfig.StoreBaseClassImport("query", refetchMethod)
 
-	storeContent := fmt.Sprintf(`import { %s } from '%s'
+	return fmt.Sprintf(`import { %s } from '%s'
 import artifact from '$houdini/artifacts/%s.js'
+import type { %s$result, %s$input } '$houdini/artifacts/%s.js'
 
-export class %s extends %s {
+
+
+export class %s extends %s<%s$result, %s$input> {
 	constructor() {
 		super({
 			artifact,
@@ -169,42 +164,26 @@ export async function load_%s(params) {
 		return { %s: store }
 
 }
-`, storeImport.Name, storeImport.Module, name, storeName, storeImport.Name, storeName, variablesRequired, name, name, name)
-
-	typeDefContent := fmt.Sprintf(`import type { %s } from '%s'
-import type { QueryStoreFetchParams } from '$houdini'
-import type { %s$input, %s$result } from '$houdini/artifacts/%s.js'
-
-excport declare class %s extends %s<%s$result, %s$input> {
-	constructor() 
-}
-
-		export declare const load_%s(params: QueryStoreFetchParams<%s$result, %s$input>) => Promise<{%s: %s}>
 `,
 		storeImport.Name,
 		storeImport.Module,
 		name,
 		name,
 		name,
-
-		// signature
+		name,
 		storeName,
 		storeImport.Name,
 		name,
 		name,
-
-		// load function
-		name,
-		name,
-		name,
-		name,
 		storeName,
-	)
-
-	return storeContent, typeDefContent, nil
+		variablesRequired,
+		name,
+		name,
+		name,
+	), nil
 }
 
-func generateMutationStore(pluginConfig config.PluginConfig, name string) (string, string, error) {
+func generateMutationStore(pluginConfig config.PluginConfig, name string) (string, error) {
 	storeName := name + "Store"
 	storeImport := pluginConfig.StoreBaseClassImport("mutation", config.StorePaginationTypeNone)
 
@@ -219,15 +198,13 @@ export class %s extends %s {
 	}
 }`, name, storeImport.Name, storeImport.Module, storeName, storeImport.Name)
 
-	typeDefContent := ``
-
-	return storeContent, typeDefContent, nil
+	return storeContent, nil
 }
 
 func generateSubscriptionStore(
 	pluginConfig config.PluginConfig,
 	name string,
-) (string, string, error) {
+) (string, error) {
 	storeName := name + "Store"
 	storeImport := pluginConfig.StoreBaseClassImport("subscription", config.StorePaginationTypeNone)
 
@@ -242,9 +219,7 @@ export class %s extends %s {
 	}
 }`, name, storeImport.Name, storeImport.Module, storeName, storeImport.Name)
 
-	typeDefContent := ``
-
-	return storeContent, typeDefContent, nil
+	return storeContent, nil
 }
 
 func generateFragmentStore(
@@ -252,7 +227,7 @@ func generateFragmentStore(
 	name string,
 	variablesRequired bool,
 	refetchMethod config.StorePaginationType,
-) (string, string, error) {
+) (string, error) {
 	storeName := name + "Store"
 	storeImport := pluginConfig.StoreBaseClassImport("fragment", refetchMethod)
 
@@ -282,7 +257,5 @@ export class %s extends %s {
 	}
 }`, storeImport.Name, storeImport.Module, name, extraImport, storeName, storeImport.Name, storeName, variablesRequired, extraFields)
 
-	typeDefContent := ``
-
-	return storeContent, typeDefContent, nil
+	return storeContent, nil
 }
