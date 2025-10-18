@@ -61,10 +61,6 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 				)
 			}
 
-
-
-			// Remove the now-empty src directory
-			fsSync.rmSync(plugin_dir, { recursive: true, force: true })
 		} else {
 			// For Node packages, move directories from 'build/<package name>/src' to 'build' (original behavior)
 			for (const child of await fs.readdir(plugin_dir)) {

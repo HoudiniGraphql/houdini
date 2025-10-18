@@ -2,6 +2,8 @@ package config
 
 import (
 	"strings"
+
+	"code.houdinigraphql.com/plugins"
 )
 
 type PluginFramework = string
@@ -44,7 +46,7 @@ type Import struct {
 func (c PluginConfig) StoreBaseClassImport(
 	documentType string,
 	paginated StorePaginationType,
-) Import {
+) (Import, error) {
 	// the import specification is defined in the plugin config as <module>.<name>
 	var importString string
 	switch documentType {
@@ -72,10 +74,15 @@ func (c PluginConfig) StoreBaseClassImport(
 		}
 	}
 
-	parts := strings.Split(importString, ".")
+	parts := strings.Split(importString, "#")
+	if len(parts) != 2 {
+		return Import{}, plugins.Error{
+			Message: "invalid store import specification: " + importString,
+		}
+	}
 
 	return Import{
 		Module: parts[0],
 		Name:   parts[1],
-	}
+	}, nil
 }

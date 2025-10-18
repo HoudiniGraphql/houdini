@@ -239,7 +239,7 @@ export async function get_config({
 		const plugins = Object.entries(config_file.plugins ?? {})
 
 		// we need to add the codegen plugin to the list
-		plugins.push(['houdini-core', { foo: 'bar' }])
+		plugins.unshift(['houdini-core', {}])
 
 		// if the environment variable is defined, add it to the list
 		if (process.env.HOUDINI_CODEGEN_PLUGIN) {

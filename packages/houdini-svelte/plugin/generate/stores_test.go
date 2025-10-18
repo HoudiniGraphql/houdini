@@ -21,14 +21,14 @@ func TestGenerateStores(t *testing.T) {
 			IncludeRuntime: "runtime",
 			Config: config.PluginConfig{
 				CustomStores: config.PluginConfigStorePaths{
-					Query:          "$houdini/plugins/houdini-svelte/runtime/stores/query.QueryStore",
-					QueryOffset:    "$houdini/plugins/houdini-svelte/runtime/stores/query.QueryStoreOffset",
-					QueryCursor:    "$houdini/plugins/houdini-svelte/runtime/stores/query.QueryStoreCursor",
-					Fragment:       "$houdini/plugins/houdini-svelte/runtime/stores/fragment.FragmentStore",
-					FragmentOffset: "$houdini/plugins/houdini-svelte/runtime/stores/fragment.FragmentStoreOffset",
-					FragmentCursor: "$houdini/plugins/houdini-svelte/runtime/stores/fragment.FragmentStoreCursor",
-					Mutation:       "$houdini/plugins/houdini-svelte/runtime/stores/mutation.MutationStore",
-					Subscription:   "$houdini/plugins/houdini-svelte/runtime/stores/subscription.SubscriptionStore",
+					Query:          "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStore",
+					QueryOffset:    "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreOffset",
+					QueryCursor:    "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreCursor",
+					Fragment:       "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStore",
+					FragmentOffset: "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreOffset",
+					FragmentCursor: "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreCursor",
+					Mutation:       "$houdini/plugins/houdini-svelte/runtime/stores/mutation.js#MutationStore",
+					Subscription:   "$houdini/plugins/houdini-svelte/runtime/stores/subscription.js#SubscriptionStore",
 				},
 			},
 		},
@@ -116,11 +116,11 @@ func TestGenerateStores(t *testing.T) {
 						import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation.js'
 
 						export class TestMutation1Store extends MutationStore<TestMutation1$result, TestMutation1$input> {
-							constructor() {
-								super({
-									artifact,
-								})
-							}
+						    constructor() {
+						        super({
+						            artifact,
+						        })
+						    }
 						}
 					`),
 				},
@@ -138,11 +138,11 @@ func TestGenerateStores(t *testing.T) {
 						import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores/subscription.js'
 
 						export class TestSubscription1Store extends SubscriptionStore<TestSubscription1$result, $TestSubscription1$input> {
-							constructor() {
-								super({
-									artifact,
-								})
-							}
+						    constructor() {
+						        super({
+						            artifact,
+						        })
+						    }
 						}
 					`),
 				},
@@ -159,14 +159,14 @@ func TestGenerateStores(t *testing.T) {
 						import artifact from '$houdini/artifacts/TestFragment.js'
 						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 
-						export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> { 
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestFragmentStore",
-									variables: false,
-								})
-							}
+						export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestFragmentStore",
+						            variables: false,
+						        })
+						    }
 						}
 
 					`),
@@ -180,18 +180,25 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+						import type { QueryStoreFetchParams } from '$houdini'
 						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 						import artifact from '$houdini/artifacts/TestQuery.js'
-						import type { TestQuery$data, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestQueryStore",
-									variables: false,
-								})
-							}
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestQueryStore",
+						            variables: false,
+						        })
+						    }
+						}
+
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						    const store = new TestQueryStore()
+						    await store.fetch(params)
+						    return { TestQuery: store }
 						}
 					`),
 				},
@@ -204,18 +211,25 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+						import type { QueryStoreFetchParams } from '$houdini'
 						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 						import artifact from '$houdini/artifacts/TestQuery.js'
-						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore<TestQuery$result, TestQuery$input> extends QueryStore {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestQueryStore",
-									variables: true,
-								})
-							}
+						export class TestQueryStore<TestQuery$result, TestQuery$input> extends QueryStore<TestQuery$result, TestQuery$input> {
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestQueryStore",
+						            variables: true,
+						        })
+						    }
+						}
+
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						    const store = new TestQueryStore()
+						    await store.fetch(params)
+						    return { TestQuery: store }
 						}
 					`),
 				},
@@ -228,18 +242,25 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+						import type { QueryStoreFetchParams } from '$houdini'
 						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 						import artifact from '$houdini/artifacts/TestQuery.js'
-						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestQueryStore",
-									variables: false,
-								})
-							}
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestQueryStore",
+						            variables: false,
+						        })
+						    }
+						}
+
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						    const store = new TestQueryStore()
+						    await store.fetch(params)
+						    return { TestQuery: store }
 						}
 					`),
 				},
@@ -252,18 +273,25 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+						import type { QueryStoreFetchParams } from '$houdini'
 						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 						import artifact from '$houdini/artifacts/TestQuery.js'
-						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore extends QueryStore {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestQueryStore",
-									variables: false,
-								})
-							}
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestQueryStore",
+						            variables: false,
+						        })
+						    }
+						}
+
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						    const store = new TestQueryStore()
+						    await store.fetch(params)
+						    return { TestQuery: store }
 						}
 					`),
 				},
@@ -284,18 +312,25 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+							import type { QueryStoreFetchParams } from '$houdini'
 							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 							import artifact from '$houdini/artifacts/TestQuery.js'
-							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
+							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-							export class TestQueryStore extends QueryStoreCursor {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: false,
-									})
-								}
+							export class TestQueryStore extends QueryStoreCursor<TestQuery$result, TestQuery$input> {
+							    constructor() {
+							        super({
+							            artifact,
+							            storeName: "TestQueryStore",
+							            variables: false,
+							        })
+							    }
+							}
+
+							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+							    const store = new TestQueryStore()
+							    await store.fetch(params)
+							    return { TestQuery: store }
 							}
 						`),
 				},
@@ -316,18 +351,25 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+							import type { QueryStoreFetchParams } from '$houdini'
 							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 							import artifact from '$houdini/artifacts/TestQuery.js'
-							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestFragment.js'
+							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-							export class TestQueryStore extends QueryStoreCursor {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: false,
-									})
-								}
+							export class TestQueryStore extends QueryStoreCursor<TestQuery$result, TestQuery$input> {
+							    constructor() {
+							        super({
+							            artifact,
+							            storeName: "TestQueryStore",
+							            variables: false,
+							        })
+							    }
+							}
+
+							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+							    const store = new TestQueryStore()
+							    await store.fetch(params)
+							    return { TestQuery: store }
 							}
 						`),
 				},
@@ -344,20 +386,27 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
+							import type { QueryStoreFetchParams } from '$houdini'
 							import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/query.js'
 							import artifact from '$houdini/artifacts/TestQuery.js'
 							import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-							export class TestQueryStore extends QueryStoreOffset {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: false,
-									})
-								}
+							export class TestQueryStore extends QueryStoreOffset<TestQuery$result, TestQuery$input> {
+							    constructor() {
+							        super({
+							            artifact,
+							            storeName: "TestQueryStore",
+							            variables: false,
+							        })
+							    }
 							}
-						`),
+
+							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+							    const store = new TestQueryStore()
+							    await store.fetch(params)
+							    return { TestQuery: store }
+							}
+					`),
 				},
 			},
 			{
@@ -373,13 +422,13 @@ func TestGenerateStores(t *testing.T) {
 							import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 
 							export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestFragmentStore",
-										variables: false,
-									})
-								}
+							    constructor() {
+							        super({
+							            artifact,
+							            storeName: "TestFragmentStore",
+							            variables: false,
+							        })
+							    }
 							}
 						`),
 				},
@@ -402,18 +451,18 @@ func TestGenerateStores(t *testing.T) {
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
 						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
 						import artifact from '$houdini/artifacts/TestFragment.js'
-							import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 						import _PaginationArtifact from '$houdini/artifacts/%s.js'
 
 						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestFragmentStore",
-									variables: true,
-									paginationArtifact: _PaginationArtifact,
-								})
-							}
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestFragmentStore",
+						            variables: true,
+						            paginationArtifact: _PaginationArtifact,
+						        })
+						    }
 						}
 
 					`,
@@ -442,14 +491,14 @@ func TestGenerateStores(t *testing.T) {
 						import _PaginationArtifact from '$houdini/artifacts/%s.js'
 
 						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestFragmentStore",
-									variables: true,
-									paginationArtifact: _PaginationArtifact,
-								})
-							}
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestFragmentStore",
+						            variables: true,
+						            paginationArtifact: _PaginationArtifact,
+						        })
+						    }
 						}
 
 					`,
@@ -475,14 +524,14 @@ func TestGenerateStores(t *testing.T) {
 						import _PaginationArtifact from '$houdini/artifacts/%s.js'
 
 						export class TestFragmentStore extends FragmentStoreOffset<TestFragment$data, { TestFragment: any }, TestFragment$input> {
-							constructor() {
-								super({
-									artifact,
-									storeName: "TestFragmentStore",
-									variables: true,
-									paginationArtifact: _PaginationArtifact,
-								})
-							}
+						    constructor() {
+						        super({
+						            artifact,
+						            storeName: "TestFragmentStore",
+						            variables: true,
+						            paginationArtifact: _PaginationArtifact,
+						        })
+						    }
 						}
 
 					`,

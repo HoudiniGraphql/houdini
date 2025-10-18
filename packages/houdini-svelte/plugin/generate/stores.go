@@ -35,6 +35,8 @@ func GenerateStores(
 	}
 	defer db.Put(conn)
 
+	errs := &plugins.ErrorList{}
+
 	// Query for all documents with variable and pagination info using JOINs
 	stmt, err := conn.Prepare(`
 		SELECT
@@ -110,6 +112,7 @@ func GenerateStores(
 				refetchMethod,
 			)
 		default:
+			errs.Append(plugins.WrapError(err))
 			return // Skip unknown kinds
 		}
 
@@ -129,6 +132,9 @@ func GenerateStores(
 	if err != nil {
 		return nil, err
 	}
+	if errs.Len() > 0 {
+		return nil, errs
+	}
 
 	return generatedFiles, nil
 }
@@ -140,63 +146,100 @@ func generateQueryStore(
 	refetchMethod config.StorePaginationType,
 ) (string, error) {
 	storeName := name + "Store"
-	storeImport := pluginConfig.StoreBaseClassImport("query", refetchMethod)
-
-	return fmt.Sprintf(`import { %s } from '%s'
-import artifact from '$houdini/artifacts/%s.js'
-import type { %s$result, %s$input } '$houdini/artifacts/%s.js'
-
-
-
-export class %s extends %s<%s$result, %s$input> {
-	constructor() {
-		super({
-			artifact,
-			storeName: "%s",
-			variables: %t,
-		})
+	storeImport, err := pluginConfig.StoreBaseClassImport("query", refetchMethod)
+	if err != nil {
+		return "", err
 	}
+
+	classDeclaration := fmt.Sprintf(
+		"export class %s extends %s<%s$result, %s$input>",
+		storeName,
+		storeImport.Name,
+		name,
+		name,
+	)
+	if variablesRequired {
+		classDeclaration = fmt.Sprintf(
+			"export class %s<%s$result, %s$input> extends %s<%s$result, %s$input>",
+			storeName,
+			name,
+			name,
+			storeImport.Name,
+			name,
+			name,
+		)
+	}
+
+	return fmt.Sprintf(`import type { QueryStoreFetchParams } from '$houdini'
+import { %s } from '%s'
+import artifact from '$houdini/artifacts/%s.js'
+import type { %s$result, %s$input } from '$houdini/artifacts/%s.js'
+
+%s {
+    constructor() {
+        super({
+            artifact,
+            storeName: "%s",
+            variables: %t,
+        })
+    }
 }
 
-export async function load_%s(params) {
-		const store = new %sStore()
-		await store.fetch(params)
-		return { %s: store }
-
-}
-`,
+export async function load_%s(params: QueryStoreFetchParams<%s$result, %s$input>) => Promise<{%s: %s}>{
+    const store = new %s()
+    await store.fetch(params)
+    return { %s: store }
+}`,
 		storeImport.Name,
 		storeImport.Module,
 		name,
 		name,
 		name,
 		name,
-		storeName,
-		storeImport.Name,
-		name,
-		name,
+		classDeclaration,
 		storeName,
 		variablesRequired,
 		name,
 		name,
+		name,
+		name,
+		storeName,
+		storeName,
 		name,
 	), nil
 }
 
 func generateMutationStore(pluginConfig config.PluginConfig, name string) (string, error) {
 	storeName := name + "Store"
-	storeImport := pluginConfig.StoreBaseClassImport("mutation", config.StorePaginationTypeNone)
+	storeImport, err := pluginConfig.StoreBaseClassImport(
+		"mutation",
+		config.StorePaginationTypeNone,
+	)
+	if err != nil {
+		return "", err
+	}
 
-	storeContent := fmt.Sprintf(`import artifact from '$houdini/artifacts/%s.js'
+	storeContent := fmt.Sprintf(
+		`import artifact, { %s$result, %s$input } from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
-export class %s extends %s {
-	constructor() {
-		super({
-			artifact,
-		})
-	}
-}`, name, storeImport.Name, storeImport.Module, storeName, storeImport.Name)
+export class %s extends %s<%s$result, %s$input> {
+    constructor() {
+        super({
+            artifact,
+        })
+    }
+}`,
+		name,
+		name,
+		name,
+		storeImport.Name,
+		storeImport.Module,
+		storeName,
+		storeImport.Name,
+		name,
+		name,
+	)
 
 	return storeContent, nil
 }
@@ -206,18 +249,39 @@ func generateSubscriptionStore(
 	name string,
 ) (string, error) {
 	storeName := name + "Store"
-	storeImport := pluginConfig.StoreBaseClassImport("subscription", config.StorePaginationTypeNone)
+	storeImport, err := pluginConfig.StoreBaseClassImport(
+		"subscription",
+		config.StorePaginationTypeNone,
+	)
+	if err != nil {
+		return "", err
+	}
 
-	storeContent := fmt.Sprintf(`import artifact from '$houdini/artifacts/%s.js'
+	storeContent := fmt.Sprintf(
+		`import artifact, { %s1$result, %s1$input }from '$houdini/artifacts/%s.js'
+import type { %s$input, $%s$result } from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
-export class %s extends %s {
-	constructor() {
-		super({
-			artifact,
-		})
-	}
-}`, name, storeImport.Name, storeImport.Module, storeName, storeImport.Name)
+export class %s extends %s<%s$result, $%s$input> {
+    constructor() {
+        super({
+            artifact,
+        })
+    }
+}`,
+		name,
+		name,
+		name,
+		name,
+		name,
+		name,
+		storeImport.Name,
+		storeImport.Module,
+		storeName,
+		storeImport.Name,
+		name,
+		name,
+	)
 
 	return storeContent, nil
 }
@@ -229,7 +293,10 @@ func generateFragmentStore(
 	refetchMethod config.StorePaginationType,
 ) (string, error) {
 	storeName := name + "Store"
-	storeImport := pluginConfig.StoreBaseClassImport("fragment", refetchMethod)
+	storeImport, err := pluginConfig.StoreBaseClassImport("fragment", refetchMethod)
+	if err != nil {
+		return "", err
+	}
 
 	extraImport := ""
 	extraFields := ""
@@ -240,22 +307,23 @@ import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
 			graphql.FragmentPaginationQueryName(name),
 		)
 		extraFields = `
-			paginationArtifact: _PaginationArtifact,`
+            paginationArtifact: _PaginationArtifact,`
 		variablesRequired = true
 	}
 
-	storeContent := fmt.Sprintf(`import { %s } from '%s.js'
-import artifact from '$houdini/artifacts/%s'%s
+	storeContent := fmt.Sprintf(`import { %s } from '%s'
+import artifact from '$houdini/artifacts/%s.js'
+import type { %s$data, %s$input } from '$houdini/artifacts/%s.js'%s
 
-export class %s extends %s {
-	constructor() {
-		super({
-			artifact,
-			storeName: "%s",
-			variables: %t,%s
-		})
-	}
-}`, storeImport.Name, storeImport.Module, name, extraImport, storeName, storeImport.Name, storeName, variablesRequired, extraFields)
+export class %s extends %s<%s$data, { %s: any }, %s$input> {
+    constructor() {
+        super({
+            artifact,
+            storeName: "%s",
+            variables: %t,%s
+        })
+    }
+}`, storeImport.Name, storeImport.Module, name, name, name, name, extraImport, storeName, storeImport.Name, name, name, name, storeName, variablesRequired, extraFields)
 
 	return storeContent, nil
 }

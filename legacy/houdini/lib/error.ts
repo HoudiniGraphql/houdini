@@ -42,6 +42,7 @@ export function formatErrors(e: unknown, afterError?: (e: Error) => void) {
 			}
 		} else {
 			console.error(`❌ ${error.message}`)
+      console.log(e)
 			if ('description' in error && error.description) {
 				console.error(`${error.description}`)
 			}

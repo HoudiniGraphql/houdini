@@ -41,7 +41,7 @@ func TestRuntime_graphqlTag(t *testing.T) {
 				"index.d.ts",
 			)
 			oldContent := []byte(`
-export declare function graphql<_Payload, _Result = _Payload>(str: TemplateStringsArray): _Result;
+export declare function graphql<_Payload, _Result = _Payload>(str: string): _Result;
 `)
 			afero.WriteFile(plugin.Fs, targetPath, []byte(oldContent), 0644)
 
@@ -59,7 +59,7 @@ import type YourQueryStore from '$houdini/plugins/houdini-svelte/stores/YourQuer
 
 export function graphql(str: "query YourQuery { hello }"): YourQueryStore;
 export function graphql(str: "query MyQuery { hello }"): MyQueryStore;
-export declare function graphql<_Payload, _Result = _Payload>(str: TemplateStringsArray): _Result;
+export declare function graphql<_Payload, _Result = _Payload>(str: string): _Result;
 `)
 			require.Equal(t, expected, found)
 		},

@@ -172,7 +172,11 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 	genericFuncLine := "export declare function graphql<_Payload, _Result = _Payload>(str: string): _Result;"
 	insertPos := strings.Index(existingStr, genericFuncLine)
 	if insertPos == -1 {
-		return nil, fmt.Errorf("could not find generic function declaration in %s", targetPath)
+		return nil, fmt.Errorf(
+			"could not find generic function declaration in %s\n%s",
+			targetPath,
+			existingStr,
+		)
 	}
 
 	// Build the new content

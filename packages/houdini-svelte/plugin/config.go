@@ -14,7 +14,6 @@ import (
 
 func (p *HoudiniSvelte) DefaultConfig(
 	ctx context.Context,
-	pluginConfig config.PluginConfig,
 ) (config.PluginConfig, error) {
 	// we need to determine if the user is using the plugin in a kit or svelte project
 	// to do that let's look in the package.json for sveltekit as dependency
@@ -51,31 +50,31 @@ func (p *HoudiniSvelte) DefaultConfig(
 	}
 
 	if pluginConfig.CustomStores.Query == "" {
-		pluginConfig.CustomStores.Query = "$houdini/plugins/houdini-svelte/runtime/stores/query.QueryStore"
+		pluginConfig.CustomStores.Query = "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStore"
 	}
 
 	if pluginConfig.CustomStores.Mutation == "" {
-		pluginConfig.CustomStores.Mutation = "$houdini/plugins/houdini-svelte/runtime/stores/mutation.MutationStore"
+		pluginConfig.CustomStores.Mutation = "$houdini/plugins/houdini-svelte/runtime/stores/mutation.js#MutationStore"
 	}
 
 	if pluginConfig.CustomStores.Fragment == "" {
-		pluginConfig.CustomStores.Fragment = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.FragmentStore"
+		pluginConfig.CustomStores.Fragment = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStore"
 	}
 
 	if pluginConfig.CustomStores.QueryCursor == "" {
-		pluginConfig.CustomStores.QueryCursor = "$houdini/plugins/houdini-svelte/runtime/stores/query.QueryStoreCursor"
+		pluginConfig.CustomStores.QueryCursor = "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreCursor"
 	}
 
 	if pluginConfig.CustomStores.QueryOffset == "" {
-		pluginConfig.CustomStores.QueryOffset = "$houdini/plugins/houdini-svelte/runtime/stores/query.QueryStoreOffset"
+		pluginConfig.CustomStores.QueryOffset = "$houdini/plugins/houdini-svelte/runtime/stores/query.js#QueryStoreOffset"
 	}
 
 	if pluginConfig.CustomStores.FragmentOffset == "" {
-		pluginConfig.CustomStores.FragmentOffset = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.FragmentStoreOffset"
+		pluginConfig.CustomStores.FragmentOffset = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreOffset"
 	}
 
 	if pluginConfig.CustomStores.FragmentCursor == "" {
-		pluginConfig.CustomStores.FragmentCursor = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.FragmentStoreCursor"
+		pluginConfig.CustomStores.FragmentCursor = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStoreCursor"
 	}
 
 	return pluginConfig, nil

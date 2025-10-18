@@ -72,7 +72,7 @@ export function format_hook_error(
 ) {
 	let message = `-- ${styleText(
 		'red',
-		error.kind + ' error during ' + hook,
+		(error.kind ?? 'internal') + ' error during ' + hook,
 	)} -----------------------------\n`
 	message += error.message + '\n'
 	message += '\n'
