@@ -88,6 +88,20 @@ func ExtractFromFilepaths[PluginConfig any](
 	if err != nil {
 		return err
 	}
+	// build a glob walker that we can use to find all of the files
+	walker := glob.NewWalker()
+	for _, pattern := range config.Include {
+		err = walker.AddInclude(pattern)
+		if err != nil {
+			return err
+		}
+	}
+	for _, pattern := range config.Exclude {
+		err = walker.AddExclude(pattern)
+		if err != nil {
+			return err
+		}
+	}
 
 	root := config.ProjectRoot
 
@@ -97,6 +111,9 @@ func ExtractFromFilepaths[PluginConfig any](
 			rel, err := filepath.Rel(root, fp)
 			if err != nil {
 				return err
+			}
+			if !walker.Matches(rel) {
+				continue
 			}
 			rel = filepath.ToSlash(rel)
 			// send the single filepath to the channel
