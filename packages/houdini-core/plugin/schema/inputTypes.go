@@ -144,7 +144,7 @@ func generateInputTypeDefinitions(
 	if err != nil {
 		return err
 	}
-	targetPath := path.Join(config.DefinitionsDirectory(), "inputs.d.ts")
+	targetPath := path.Join(config.DefinitionsDirectory(), "inputs.ts")
 	return afero.WriteFile(fs, targetPath, []byte(finalContent.String()), 0o644)
 }
 

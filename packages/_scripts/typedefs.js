@@ -15,7 +15,8 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 	)
 
 	// grab any non-tests file from all TypeScript directories
-	const typescriptDirs = ['src', 'runtime', 'legacy', 'package', 'plugin']
+	// Note: 'runtime' is excluded because it should be copied as raw .ts files
+	const typescriptDirs = ['src', 'legacy', 'package', 'plugin']
 	let files = []
 
 	for (const dir of typescriptDirs) {
@@ -28,7 +29,7 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 	}
 
 	// Filter out test files
-	files = files.filter((path) => !path.endsWith('.test.ts'))
+	files = files.filter((path) => !path.endsWith('test.ts'))
 
 	// compile the types
 	compile(files, {

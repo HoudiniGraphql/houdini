@@ -131,7 +131,7 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 
 	// generate the runtime index file
 	g.Go(func() error {
-		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.js")
+		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
 		// before we generate the index file let's look at its current content
 		existingContent := ""

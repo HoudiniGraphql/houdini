@@ -277,6 +277,7 @@ export async function codegen_setup(
 		} else {
 			// if the hook isn't parallel safe, we need to run the plugins in order
 			for (const [name] of plugins) {
+				console.log('triggering hook', hook, 'for plugin', name)
 				result[name] = await invoke_hook(name, hook, payload, task_id)
 			}
 		}

@@ -10,11 +10,7 @@ func (c ProjectConfig) DefinitionsDirectory() string {
 }
 
 func (c ProjectConfig) DefinitionsEnumRuntime() string {
-	return path.Join(c.DefinitionsDirectory(), "enums.js")
-}
-
-func (c ProjectConfig) DefinitionsEnumTypes() string {
-	return path.Join(c.DefinitionsDirectory(), "enums.d.ts")
+	return path.Join(c.DefinitionsDirectory(), "enums.ts")
 }
 
 func (c ProjectConfig) DefinitionsSchemaPath() string {
@@ -26,11 +22,7 @@ func (c ProjectConfig) DefinitionsDocumentsPath() string {
 }
 
 func (c ProjectConfig) DefinitionsIndexJs() string {
-	return path.Join(c.DefinitionsDirectory(), "index.js")
-}
-
-func (c ProjectConfig) DefinitionsIndexDts() string {
-	return path.Join(c.DefinitionsDirectory(), "index.d.ts")
+	return path.Join(c.DefinitionsDirectory(), "index.ts")
 }
 
 func (c ProjectConfig) ArtifactDirectory() string {

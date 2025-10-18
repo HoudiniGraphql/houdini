@@ -99,7 +99,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 		projectConfig.ProjectRoot,
 		projectConfig.RuntimeDir,
 		"runtime",
-		"index.d.ts",
+		"index.ts",
 	)
 
 	// Get database connection
@@ -170,7 +170,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 
 	// Find the position to insert overloads (before the generic function declaration)
 	existingStr := string(existingContent)
-	genericFuncLine := "export declare function graphql<_Payload, _Result = _Payload>(str: string): _Result;"
+	genericFuncLine := "export function graphql<_Payload, _Result = _Payload>(str: string): _Result"
 	insertPos := strings.Index(existingStr, genericFuncLine)
 	if insertPos == -1 {
 		return nil, fmt.Errorf(

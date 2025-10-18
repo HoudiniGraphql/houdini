@@ -32,7 +32,7 @@ func GenerateImperativeCacheTypeDefs(
 		projectConfig.ProjectRoot,
 		projectConfig.RuntimeDir,
 		"runtime",
-		"generated.d.ts",
+		"generated.ts",
 	)
 
 	// Before we generate the content, let's look at the current content
@@ -197,6 +197,7 @@ func getDocumentsWithArguments(
 		       CASE WHEN dd.directive IS NOT NULL THEN 1 ELSE 0 END as has_arguments
 		FROM documents d
 		LEFT JOIN document_directives dd ON d.id = dd.document AND dd.directive = 'arguments'
+		WHERE d.visible = 1
 		ORDER BY d.name
 	`, nil, func(stmt *sqlite.Stmt) {
 		doc := DocumentWithArgs{

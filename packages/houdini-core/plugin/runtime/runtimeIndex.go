@@ -24,12 +24,9 @@ func GenerateRuntimeIndexFile(
 	}
 
 	// we are going to populate the runtime index
-	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.js")
-	dTsPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.d.ts")
+	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
-	// delete both of the files to start fresh
 	_ = fs.Remove(indexPath)
-	_ = fs.Remove(dTsPath)
 
 	definitionsRelative, err := filepath.Rel(config.RuntimeDir, config.DefinitionsDirectory())
 	if err != nil {
@@ -50,7 +47,7 @@ func GenerateRuntimeIndexFile(
 			name 
 		FROM documents 
 		JOIN raw_documents ON documents.raw_document = raw_documents.id
-		WHERE printed IS NOT NULL
+		WHERE printed IS NOT NULL and internal = 0 AND kind = 'fragment'
 		ORDER BY name ASC
 	`)
 	if err != nil {
@@ -116,23 +113,6 @@ export * from './%s'
 
 	// if we got this far then we need to update the file
 	err = afero.WriteFile(fs, indexPath, []byte(indexContent), 0644)
-	if err != nil {
-		return err
-	}
-
-	dTsContent := fmt.Sprintf(`export * from './runtime/client'
-export * from './runtime'
-export * from './%s'
-%s
-%s
-`,
-		definitionsRelative,
-		strings.Join(runtimeExport, "\n"),
-		strings.Join(dTsDocs, "\n"),
-	)
-
-	// if we got this far then we need to update the file
-	err = afero.WriteFile(fs, dTsPath, []byte(dTsContent), 0644)
 	if err != nil {
 		return err
 	}

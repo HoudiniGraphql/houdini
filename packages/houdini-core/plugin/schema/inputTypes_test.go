@@ -67,7 +67,7 @@ func TestInputTypeDefinitions(t *testing.T) {
 			require.NoError(t, err)
 
 			// we need to look at the input definitions file and confirm that we generated the correct types
-			targetPath := path.Join(config.DefinitionsDirectory(), "inputs.d.ts")
+			targetPath := path.Join(config.DefinitionsDirectory(), "inputs.ts")
 
 			expected := tests.Dedent(`
 				import { MyEnum, Priority, Status } from './enums.js';

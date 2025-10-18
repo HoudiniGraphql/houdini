@@ -22,8 +22,7 @@ func GeneratePluginIndex(
 		return err
 	}
 
-	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.js")
-	dtsPath := path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.d.ts")
+	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.ts")
 
 	// both files get the same contents
 	content := `export * from "../runtime/client/plugins/index.js"`
@@ -36,10 +35,6 @@ func GeneratePluginIndex(
 
 	// write the file contents
 	err = afero.WriteFile(fs, indexPath, []byte(content), 0o644)
-	if err != nil {
-		return err
-	}
-	err = afero.WriteFile(fs, dtsPath, []byte(content), 0o644)
 	if err != nil {
 		return err
 	}
