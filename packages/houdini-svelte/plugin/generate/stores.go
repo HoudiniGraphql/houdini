@@ -108,7 +108,6 @@ func GenerateStores(
 			storeContent, err = generateFragmentStore(
 				pluginConfig,
 				name,
-				variablesRequired,
 				refetchMethod,
 			)
 		default:
@@ -158,17 +157,6 @@ func generateQueryStore(
 		name,
 		name,
 	)
-	if variablesRequired {
-		classDeclaration = fmt.Sprintf(
-			"export class %s<%s$result, %s$input> extends %s<%s$result, %s$input>",
-			storeName,
-			name,
-			name,
-			storeImport.Name,
-			name,
-			name,
-		)
-	}
 
 	return fmt.Sprintf(`import type { QueryStoreFetchParams } from '$houdini'
 import { %s } from '%s'
@@ -185,7 +173,7 @@ import type { %s$result, %s$input } from '$houdini/artifacts/%s.js'
     }
 }
 
-export async function load_%s(params: QueryStoreFetchParams<%s$result, %s$input>) => Promise<{%s: %s}>{
+export async function load_%s(params: QueryStoreFetchParams<%s$result, %s$input>): Promise<{%s: %s}>{
     const store = new %s()
     await store.fetch(params)
     return { %s: store }
@@ -289,7 +277,6 @@ export class %s extends %s<%s$result, $%s$input> {
 func generateFragmentStore(
 	pluginConfig config.PluginConfig,
 	name string,
-	variablesRequired bool,
 	refetchMethod config.StorePaginationType,
 ) (string, error) {
 	storeName := name + "Store"
@@ -299,16 +286,12 @@ func generateFragmentStore(
 	}
 
 	extraImport := ""
-	extraFields := ""
 	if refetchMethod != config.StorePaginationTypeNone {
 		extraImport = fmt.Sprintf(
 			`
 import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
 			graphql.FragmentPaginationQueryName(name),
 		)
-		extraFields = `
-            paginationArtifact: _PaginationArtifact,`
-		variablesRequired = true
 	}
 
 	storeContent := fmt.Sprintf(`import { %s } from '%s'
@@ -320,10 +303,9 @@ export class %s extends %s<%s$data, { %s: any }, %s$input> {
         super({
             artifact,
             storeName: "%s",
-            variables: %t,%s
         })
     }
-}`, storeImport.Name, storeImport.Module, name, name, name, name, extraImport, storeName, storeImport.Name, name, name, name, storeName, variablesRequired, extraFields)
+}`, storeImport.Name, storeImport.Module, name, name, name, name, extraImport, storeName, storeImport.Name, name, name, name, storeName)
 
 	return storeContent, nil
 }

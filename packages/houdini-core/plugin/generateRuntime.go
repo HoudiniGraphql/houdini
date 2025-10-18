@@ -95,7 +95,7 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 			"~": ["../src"],
 			"~/*": ["../src/*"]
 		},
-		"rootDirs": ["..", "./types"],
+		"rootDirs": ["..", "./types", "../.svelte-kit/types"],
 		"target": "ESNext",
 		"useDefineForClassFields": true,
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],

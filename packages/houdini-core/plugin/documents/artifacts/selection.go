@@ -364,7 +364,7 @@ export default {
     "raw": `+"`"+printed+"\n`"+`,
 
     "rootType": "%s",
-    "stripVariables": %s,
+    "stripVariables": %s as Array<string>,
 
     "selection": %s,
 

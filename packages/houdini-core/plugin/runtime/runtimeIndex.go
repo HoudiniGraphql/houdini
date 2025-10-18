@@ -65,7 +65,7 @@ func GenerateRuntimeIndexFile(
 		name := documentSearch.GetText("name")
 		indexDocs = append(
 			indexDocs,
-			fmt.Sprintf("export { default as %s } from './artifacts/%s.js'", name, name),
+			fmt.Sprintf("export * from './artifacts/%s'", name),
 		)
 		dTsDocs = append(
 			dTsDocs,

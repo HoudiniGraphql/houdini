@@ -195,7 +195,7 @@ func TestGenerateStores(t *testing.T) {
 						    }
 						}
 
-						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 						    const store = new TestQueryStore()
 						    await store.fetch(params)
 						    return { TestQuery: store }
@@ -226,7 +226,7 @@ func TestGenerateStores(t *testing.T) {
 						    }
 						}
 
-						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 						    const store = new TestQueryStore()
 						    await store.fetch(params)
 						    return { TestQuery: store }
@@ -257,7 +257,7 @@ func TestGenerateStores(t *testing.T) {
 						    }
 						}
 
-						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 						    const store = new TestQueryStore()
 						    await store.fetch(params)
 						    return { TestQuery: store }
@@ -288,7 +288,7 @@ func TestGenerateStores(t *testing.T) {
 						    }
 						}
 
-						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+						export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 						    const store = new TestQueryStore()
 						    await store.fetch(params)
 						    return { TestQuery: store }
@@ -327,7 +327,7 @@ func TestGenerateStores(t *testing.T) {
 							    }
 							}
 
-							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 							    const store = new TestQueryStore()
 							    await store.fetch(params)
 							    return { TestQuery: store }
@@ -366,7 +366,7 @@ func TestGenerateStores(t *testing.T) {
 							    }
 							}
 
-							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 							    const store = new TestQueryStore()
 							    await store.fetch(params)
 							    return { TestQuery: store }
@@ -401,7 +401,7 @@ func TestGenerateStores(t *testing.T) {
 							    }
 							}
 
-							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>) => Promise<{TestQuery: TestQueryStore}>{
+							export async function load_TestQuery(params: QueryStoreFetchParams<TestQuery$result, TestQuery$input>): Promise<{TestQuery: TestQueryStore}>{
 							    const store = new TestQueryStore()
 							    await store.fetch(params)
 							    return { TestQuery: store }
