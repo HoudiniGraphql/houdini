@@ -151,7 +151,7 @@ func generateQueryStore(
 	storeImport := pluginConfig.StoreBaseClassImport("query", refetchMethod)
 
 	storeContent := fmt.Sprintf(`import { %s } from '%s'
-import artifact from '$houdini/artifacts/%s'
+import artifact from '$houdini/artifacts/%s.js'
 
 export class %s extends %s {
 	constructor() {
@@ -161,9 +161,45 @@ export class %s extends %s {
 			variables: %t,
 		})
 	}
-}`, storeImport.Name, storeImport.Module, name, storeName, storeImport.Name, storeName, variablesRequired)
+}
 
-	typeDefContent := ``
+export async function load_%s(params) {
+		const store = new %sStore()
+		await store.fetch(params)
+		return { %s: store }
+
+}
+`, storeImport.Name, storeImport.Module, name, storeName, storeImport.Name, storeName, variablesRequired, name, name, name)
+
+	typeDefContent := fmt.Sprintf(`import type { %s } from '%s'
+import type { QueryStoreFetchParams } from '$houdini'
+import type { %s$input, %s$result } from '$houdini/artifacts/%s.js'
+
+excport declare class %s extends %s<%s$result, %s$input> {
+	constructor() 
+}
+
+		export declare const load_%s(params: QueryStoreFetchParams<%s$result, %s$input>) => Promise<{%s: %s}>
+`,
+		storeImport.Name,
+		storeImport.Module,
+		name,
+		name,
+		name,
+
+		// signature
+		storeName,
+		storeImport.Name,
+		name,
+		name,
+
+		// load function
+		name,
+		name,
+		name,
+		name,
+		storeName,
+	)
 
 	return storeContent, typeDefContent, nil
 }
@@ -172,7 +208,7 @@ func generateMutationStore(pluginConfig config.PluginConfig, name string) (strin
 	storeName := name + "Store"
 	storeImport := pluginConfig.StoreBaseClassImport("mutation", config.StorePaginationTypeNone)
 
-	storeContent := fmt.Sprintf(`import artifact from '$houdini/artifacts/%s'
+	storeContent := fmt.Sprintf(`import artifact from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
 export class %s extends %s {
@@ -195,7 +231,7 @@ func generateSubscriptionStore(
 	storeName := name + "Store"
 	storeImport := pluginConfig.StoreBaseClassImport("subscription", config.StorePaginationTypeNone)
 
-	storeContent := fmt.Sprintf(`import artifact from '$houdini/artifacts/%s'
+	storeContent := fmt.Sprintf(`import artifact from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
 export class %s extends %s {
@@ -225,7 +261,7 @@ func generateFragmentStore(
 	if refetchMethod != config.StorePaginationTypeNone {
 		extraImport = fmt.Sprintf(
 			`
-import _PaginationArtifact from '$houdini/artifacts/%s'`,
+import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
 			graphql.FragmentPaginationQueryName(name),
 		)
 		extraFields = `
@@ -233,7 +269,7 @@ import _PaginationArtifact from '$houdini/artifacts/%s'`,
 		variablesRequired = true
 	}
 
-	storeContent := fmt.Sprintf(`import { %s } from '%s'
+	storeContent := fmt.Sprintf(`import { %s } from '%s.js'
 import artifact from '$houdini/artifacts/%s'%s
 
 export class %s extends %s {

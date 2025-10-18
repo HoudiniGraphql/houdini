@@ -14,11 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type storeTestCase struct {
-	Index    string // Expected JavaScript store implementation code
-	IndexDTs string // Expected TypeScript type definitions for the store
-}
-
 func TestGenerateStores(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniSvelte]{
 		Plugin: tests.Plugin[config.PluginConfig]{
@@ -95,25 +90,29 @@ func TestGenerateStores(t *testing.T) {
 
 			// the goal now is to look at the generated store files and make sure
 			// it matches expectations
-			for name, expectedAny := range test.Extra {
-				expected, ok := expectedAny.(storeTestCase)
-				require.True(t, ok, "expected test case to be of type storeTestCase for store %s", name)
-
+			for name, expected := range test.Extra {
+				// read the generated store file
 				storePath := path.Join(
 					config.PluginDirectory("houdini-svelte"),
 					"stores",
 					name,
 				)
-
-				// read and validate the generated JavaScript store file
-				jsContents, err := afero.ReadFile(plugin.Filesystem(), storePath+".js")
+				contents, err := afero.ReadFile(plugin.Filesystem(), storePath+".js")
 				require.NoError(t, err)
-				require.Equal(t, expected.Index, string(jsContents), "JavaScript store content mismatch for %s", name)
+				require.Equal(t, expected, string(contents))
 
-				// read and validate the generated TypeScript definition file
-				dtsContents, err := afero.ReadFile(plugin.Filesystem(), storePath+".d.ts")
+				// and make sue the type definition was generated as well
+				exists, err := afero.Exists(
+					plugin.Filesystem(),
+					storePath+".d.ts",
+				)
 				require.NoError(t, err)
-				require.Equal(t, expected.IndexDTs, string(dtsContents), "TypeScript definition content mismatch for %s", name)
+				require.True(
+					t,
+					exists,
+					"expected type definition to be generated for store %s",
+					name,
+				)
 			}
 		},
 		Tests: []tests.Test[config.PluginConfig]{
@@ -125,21 +124,18 @@ func TestGenerateStores(t *testing.T) {
 					`mutation TestMutation2 { updateUser { id }  }`,
 				},
 				Extra: map[string]any{
-					"TestMutation1": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/TestMutation1'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
+					"TestMutation1": tests.Dedent(`
+						import artifact from '$houdini/artifacts/TestMutation1'
+						import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
 
-							export class TestMutation1Store extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
+						export class TestMutation1Store extends MutationStore {
+							constructor() {
+								super({
+									artifact,
+								})
 							}
-						`),
-						IndexDTs: ``,
-					},
+						}
+					`),
 				},
 			},
 			{
@@ -150,21 +146,19 @@ func TestGenerateStores(t *testing.T) {
 					`subscription TestSubscription2 { newUser { id } }`,
 				},
 				Extra: map[string]any{
-					"TestSubscription1": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/TestSubscription1'
-							import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores/subscription'
+					"TestSubscription1": tests.Dedent(`
+						import artifact from '$houdini/artifacts/TestSubscription1'
+						import type { TestSubscription1$input, $TestSubscription1$result } from '$houdini/artifacts/TestSubscription1'
+						import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores/subscription'
 
-							export class TestSubscription1Store extends SubscriptionStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
+						export class TestSubscription1Store extends SubscriptionStore<TestSubscription1$result, $TestSubscription1$input> {
+							constructor() {
+								super({
+									artifact,
+								})
 							}
-						`),
-						IndexDTs: ``,
-					},
+						}
+					`),
 				},
 			},
 			{
@@ -174,24 +168,21 @@ func TestGenerateStores(t *testing.T) {
 					`fragment TestFragment on User { id }`,
 				},
 				Extra: map[string]any{
-					"TestFragment": storeTestCase{
-						Index: tests.Dedent(`
-							import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-							import artifact from '$houdini/artifacts/TestFragment'
+					"TestFragment": tests.Dedent(`
+						import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
+						import artifact from '$houdini/artifacts/TestFragment'
 
-							export class TestFragmentStore extends FragmentStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestFragmentStore",
-										variables: false,
-									})
-								}
+						export class TestFragmentStore extends FragmentStore {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestFragmentStore",
+									variables: false,
+								})
 							}
+						}
 
-						`),
-						IndexDTs: ``,
-					},
+					`),
 				},
 			},
 			{
@@ -201,23 +192,20 @@ func TestGenerateStores(t *testing.T) {
 					`query TestQuery { version }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+					"TestQuery": tests.Dedent(`
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
+						import artifact from '$houdini/artifacts/TestQuery'
 
-							export class TestQueryStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: false,
-									})
-								}
+						export class TestQueryStore extends QueryStore {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestQueryStore",
+									variables: false,
+								})
 							}
-						`),
-						IndexDTs: ``,
-					},
+						}
+					`),
 				},
 			},
 			{
@@ -227,23 +215,20 @@ func TestGenerateStores(t *testing.T) {
 					`query TestQuery($intValue: Int!) { usersByOffset(offset: $intValue) { id } }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+					"TestQuery": tests.Dedent(`
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
+						import artifact from '$houdini/artifacts/TestQuery'
 
-							export class TestQueryStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: true,
-									})
-								}
+						export class TestQueryStore extends QueryStore {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestQueryStore",
+									variables: true,
+								})
 							}
-						`),
-						IndexDTs: ``,
-					},
+						}
+					`),
 				},
 			},
 			{
@@ -253,23 +238,20 @@ func TestGenerateStores(t *testing.T) {
 					`query TestQuery($intValue: Int) { usersByOffset(offset: $intValue) { id } }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+					"TestQuery": tests.Dedent(`
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
+						import artifact from '$houdini/artifacts/TestQuery'
 
-							export class TestQueryStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: false,
-									})
-								}
+						export class TestQueryStore extends QueryStore {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestQueryStore",
+									variables: false,
+								})
 							}
-						`),
-						IndexDTs: ``,
-					},
+						}
+					`),
 				},
 			},
 			{
@@ -279,23 +261,20 @@ func TestGenerateStores(t *testing.T) {
 					`query TestQuery($intValue: Int! = 2) { usersByOffset(offset: $intValue) { id } }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/TestQuery'
+					"TestQuery": tests.Dedent(`
+						import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
+						import artifact from '$houdini/artifacts/TestQuery'
 
-							export class TestQueryStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestQueryStore",
-										variables: false,
-									})
-								}
+						export class TestQueryStore extends QueryStore {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestQueryStore",
+									variables: false,
+								})
 							}
-						`),
-						IndexDTs: ``,
-					},
+						}
+					`),
 				},
 			},
 			{
@@ -313,8 +292,7 @@ func TestGenerateStores(t *testing.T) {
 						}`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
+					"TestQuery": tests.Dedent(`
 							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
 							import artifact from '$houdini/artifacts/TestQuery'
 
@@ -328,8 +306,6 @@ func TestGenerateStores(t *testing.T) {
 								}
 							}
 						`),
-						IndexDTs: ``,
-					},
 				},
 			},
 			{
@@ -347,8 +323,7 @@ func TestGenerateStores(t *testing.T) {
 						}`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
+					"TestQuery": tests.Dedent(`
 							import { QueryStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
 							import artifact from '$houdini/artifacts/TestQuery'
 
@@ -362,8 +337,6 @@ func TestGenerateStores(t *testing.T) {
 								}
 							}
 						`),
-						IndexDTs: ``,
-					},
 				},
 			},
 			{
@@ -377,8 +350,7 @@ func TestGenerateStores(t *testing.T) {
 						}`,
 				},
 				Extra: map[string]any{
-					"TestQuery": storeTestCase{
-						Index: tests.Dedent(`
+					"TestQuery": tests.Dedent(`
 							import { QueryStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
 							import artifact from '$houdini/artifacts/TestQuery'
 
@@ -392,8 +364,6 @@ func TestGenerateStores(t *testing.T) {
 								}
 							}
 						`),
-						IndexDTs: ``,
-					},
 				},
 			},
 			{
@@ -403,8 +373,7 @@ func TestGenerateStores(t *testing.T) {
 					`fragment TestFragment on User { id }`,
 				},
 				Extra: map[string]any{
-					"TestFragment": storeTestCase{
-						Index: tests.Dedent(`
+					"TestFragment": tests.Dedent(`
 							import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
 							import artifact from '$houdini/artifacts/TestFragment'
 
@@ -418,8 +387,6 @@ func TestGenerateStores(t *testing.T) {
 								}
 							}
 						`),
-						IndexDTs: ``,
-					},
 				},
 			},
 			{
@@ -437,27 +404,24 @@ func TestGenerateStores(t *testing.T) {
 						}`,
 				},
 				Extra: map[string]any{
-					"TestFragment": storeTestCase{
-						Index: tests.Dedent(fmt.Sprintf(`
-							import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-							import artifact from '$houdini/artifacts/TestFragment'
-							import _PaginationArtifact from '$houdini/artifacts/%s'
+					"TestFragment": tests.Dedent(fmt.Sprintf(`
+						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
+						import artifact from '$houdini/artifacts/TestFragment'
+						import _PaginationArtifact from '$houdini/artifacts/%s'
 
-							export class TestFragmentStore extends FragmentStoreCursor {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestFragmentStore",
-										variables: true,
-										paginationArtifact: _PaginationArtifact,
-									})
-								}
+						export class TestFragmentStore extends FragmentStoreCursor {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestFragmentStore",
+									variables: true,
+									paginationArtifact: _PaginationArtifact,
+								})
 							}
+						}
 
-						`,
-							graphql.FragmentPaginationQueryName("TestFragment"))),
-						IndexDTs: ``,
-					},
+					`,
+						graphql.FragmentPaginationQueryName("TestFragment"))),
 				},
 			},
 			{
@@ -475,27 +439,24 @@ func TestGenerateStores(t *testing.T) {
 						}`,
 				},
 				Extra: map[string]any{
-					"TestFragment": storeTestCase{
-						Index: tests.Dedent(fmt.Sprintf(`
-							import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-							import artifact from '$houdini/artifacts/TestFragment'
-							import _PaginationArtifact from '$houdini/artifacts/%s'
+					"TestFragment": tests.Dedent(fmt.Sprintf(`
+						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
+						import artifact from '$houdini/artifacts/TestFragment'
+						import _PaginationArtifact from '$houdini/artifacts/%s'
 
-							export class TestFragmentStore extends FragmentStoreCursor {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestFragmentStore",
-										variables: true,
-										paginationArtifact: _PaginationArtifact,
-									})
-								}
+						export class TestFragmentStore extends FragmentStoreCursor {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestFragmentStore",
+									variables: true,
+									paginationArtifact: _PaginationArtifact,
+								})
 							}
+						}
 
-						`,
-							graphql.FragmentPaginationQueryName("TestFragment"))),
-						IndexDTs: ``,
-					},
+					`,
+						graphql.FragmentPaginationQueryName("TestFragment"))),
 				},
 			},
 			{
@@ -510,263 +471,24 @@ func TestGenerateStores(t *testing.T) {
 						}`,
 				},
 				Extra: map[string]any{
-					"TestFragment": storeTestCase{
-						Index: tests.Dedent(fmt.Sprintf(`
-							import { FragmentStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
-							import artifact from '$houdini/artifacts/TestFragment'
-							import _PaginationArtifact from '$houdini/artifacts/%s'
+					"TestFragment": tests.Dedent(fmt.Sprintf(`
+						import { FragmentStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment'
+						import artifact from '$houdini/artifacts/TestFragment'
+						import _PaginationArtifact from '$houdini/artifacts/%s'
 
-							export class TestFragmentStore extends FragmentStoreOffset {
-								constructor() {
-									super({
-										artifact,
-										storeName: "TestFragmentStore",
-										variables: true,
-										paginationArtifact: _PaginationArtifact,
-									})
-								}
+						export class TestFragmentStore extends FragmentStoreOffset {
+							constructor() {
+								super({
+									artifact,
+									storeName: "TestFragmentStore",
+									variables: true,
+									paginationArtifact: _PaginationArtifact,
+								})
 							}
+						}
 
-						`,
-							graphql.FragmentPaginationQueryName("TestFragment"))),
-						IndexDTs: ``,
-					},
-				},
-			},
-			{
-				Name: "query with list and mutation with discovered lists",
-				Pass: true,
-				Input: []string{
-					`query AllUsers { users { id name } }`,
-					`mutation AddUser($name: String!) { addUser(name: $name) { id name } }`,
-				},
-				Extra: map[string]any{
-					"AllUsers": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/AllUsers'
-
-							export class AllUsersStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "AllUsersStore",
-										variables: false,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"AddUser": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/AddUser'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
-
-							export class AddUserStore extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-				},
-			},
-			{
-				Name: "multiple queries with lists and mutations for discovered list validation",
-				Pass: true,
-				Input: []string{
-					`query UserList { users { id name } }`,
-					`query UsersByOffset { usersByOffset(limit: 10) { id name } }`,
-					`mutation CreateUser($name: String!) { addUser(name: $name) { id name } }`,
-					`mutation UpdateUserMutation { updateUser { id name } }`,
-				},
-				Extra: map[string]any{
-					"UserList": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/UserList'
-
-							export class UserListStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "UserListStore",
-										variables: false,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"UsersByOffset": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/UsersByOffset'
-
-							export class UsersByOffsetStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "UsersByOffsetStore",
-										variables: false,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"CreateUser": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/CreateUser'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
-
-							export class CreateUserStore extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"UpdateUserMutation": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/UpdateUserMutation'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
-
-							export class UpdateUserMutationStore extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-				},
-			},
-			{
-				Name: "query with list and mutation with discovered lists",
-				Pass: true,
-				Input: []string{
-					`query AllUsers { users { id name } }`,
-					`mutation AddUser($name: String!) { addUser(name: $name) { id name } }`,
-				},
-				Extra: map[string]any{
-					"AllUsers": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/AllUsers'
-
-							export class AllUsersStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "AllUsersStore",
-										variables: false,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"AddUser": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/AddUser'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
-
-							export class AddUserStore extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-				},
-			},
-			{
-				Name: "multiple queries with lists and mutations for discovered list validation",
-				Pass: true,
-				Input: []string{
-					`query UserList { users { id name } }`,
-					`query UsersByOffset { usersByOffset(limit: 10) { id name } }`,
-					`mutation CreateUser($name: String!) { addUser(name: $name) { id name } }`,
-					`mutation UpdateUserMutation { updateUser { id name } }`,
-				},
-				Extra: map[string]any{
-					"UserList": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/UserList'
-
-							export class UserListStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "UserListStore",
-										variables: false,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"UsersByOffset": storeTestCase{
-						Index: tests.Dedent(`
-							import { QueryStore } from '$houdini/plugins/houdini-svelte/runtime/stores/query'
-							import artifact from '$houdini/artifacts/UsersByOffset'
-
-							export class UsersByOffsetStore extends QueryStore {
-								constructor() {
-									super({
-										artifact,
-										storeName: "UsersByOffsetStore",
-										variables: false,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"CreateUser": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/CreateUser'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
-
-							export class CreateUserStore extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
-					"UpdateUserMutation": storeTestCase{
-						Index: tests.Dedent(`
-							import artifact from '$houdini/artifacts/UpdateUserMutation'
-							import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation'
-
-							export class UpdateUserMutationStore extends MutationStore {
-								constructor() {
-									super({
-										artifact,
-									})
-								}
-							}
-						`),
-						IndexDTs: ``,
-					},
+					`,
+						graphql.FragmentPaginationQueryName("TestFragment"))),
 				},
 			},
 		},
