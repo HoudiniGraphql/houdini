@@ -24,9 +24,11 @@ func convertBaseType(kind, typeName string, config plugins.ProjectConfig, isInpu
 	case "SCALAR":
 		return ConvertScalarType(config, typeName, isInput)
 	case "ENUM":
-		return fmt.Sprintf("ValueOf<typeof %s>", typeName)
+		return fmt.Sprintf("%s$options", typeName)
 	case "INPUT":
 		return typeName
+	case "OBJECT", "INTERFACE", "UNION":
+		return fmt.Sprintf(`Record<CacheTypeDef, '%s'`, typeName)
 	default:
 		return "any"
 	}

@@ -1,5 +1,6 @@
 import type { PaginateModes, } from 'houdini'
 export type { ConfigFile, PaginateModes, } from 'houdini'
+import type { CacheTypeDef } from '../generated'
 
 type ValuesOf<Target> = Target[keyof Target]
 
@@ -176,7 +177,7 @@ export type GraphQLObject = { [key: string]: GraphQLValue }
 
 export type GraphQLDefaultScalar = string | number | boolean
 
-export type GraphQLValue = GraphQLDefaultScalar | null | GraphQLObject | GraphQLValue[] | undefined
+export type GraphQLValue = GraphQLDefaultScalar | CacheTypeDef['scalars'] | null | GraphQLObject | GraphQLValue[] | undefined
 
 export type GraphQLVariables = { [key: string]: any } | null
 

@@ -137,9 +137,6 @@ func generateImports(
 		}
 	}
 
-	// Add utility imports
-	imports.WriteString(`import type { ValueOf } from "$houdini/runtime/lib/types";` + "\n")
-
 	// Add enum imports - only user-defined enums, not internal ones
 	enumNames, err := getEnumNames(ctx, db)
 	if err != nil {
@@ -147,7 +144,18 @@ func generateImports(
 	}
 	for _, enumName := range enumNames {
 		imports.WriteString(fmt.Sprintf(
-			`import type { %s } from "$houdini/graphql/enums";`+"\n",
+			`import type { %s$options } from "$houdini/graphql/enums";`+"\n",
+			enumName,
+		))
+	}
+
+	inputNames, err := getInputNames(ctx, db)
+	if err != nil {
+		return "", err
+	}
+	for _, enumName := range inputNames {
+		imports.WriteString(fmt.Sprintf(
+			`import type { %s } from "$houdini/graphql/inputs";`+"\n",
 			enumName,
 		))
 	}
@@ -233,6 +241,24 @@ func getEnumNames(
 	return enumNames, err
 }
 
+func getInputNames(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) ([]string, error) {
+	var enumNames []string
+
+	err := db.StepQuery(ctx, `
+		SELECT name
+		FROM types
+		WHERE kind = 'INPUT' AND built_in = 0 AND internal = 0
+		ORDER BY name
+	`, nil, func(stmt *sqlite.Stmt) {
+		enumNames = append(enumNames, stmt.ColumnText(0))
+	})
+
+	return enumNames, err
+}
+
 type TypeInfo struct {
 	Name string
 	Kind string
@@ -299,6 +325,14 @@ func generateCacheTypeDef(
 	content.WriteString(queriesSection)
 	content.WriteString(";\n")
 
+	scalarUnion, err := generateScalarUnion(ctx, db)
+	if err != nil {
+		return "", err
+	}
+	content.WriteString("\t\tscalars: ")
+	content.WriteString(scalarUnion)
+	content.WriteString(";\n")
+
 	content.WriteString("};\n")
 
 	return content.String(), nil
@@ -312,7 +346,7 @@ func generateTypesSection(
 	var content strings.Builder
 
 	// Get all concrete types with their fields in a single query
-	typesWithFields, err := getConcreteTypesWithFields(ctx, db)
+	typesWithFields, err := getTypesypesWithFields(ctx, db)
 	if err != nil {
 		return "", err
 	}
@@ -394,7 +428,7 @@ type ConcreteTypeWithFields struct {
 	Fields    []TypeField
 }
 
-func getConcreteTypesWithFields(
+func getTypesypesWithFields(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 ) (map[string]ConcreteTypeWithFields, error) {
@@ -405,7 +439,7 @@ func getConcreteTypesWithFields(
 		       f.id as field_id, f.name as field_name, f.type, f.type_modifiers
 		FROM types t
 		LEFT JOIN type_fields f ON t.name = f.parent AND f.internal = 0
-		WHERE t.kind = 'OBJECT' AND t.built_in = 0 AND t.internal = 0
+		WHERE t.kind in ('OBJECT', 'INTERFACE') AND t.built_in = 0 AND t.internal = 0
 		ORDER BY t.name, f.name
 	`, nil, func(stmt *sqlite.Stmt) {
 		typeName := stmt.ColumnText(0)
@@ -516,7 +550,7 @@ func getKeyFields(
 		err := db.StepQuery(ctx, `
 			SELECT name, type, type_modifiers
 			FROM type_fields
-			WHERE parent = $typeName AND name = $key
+			WHERE parent = $typeName AND name = $key AND internal = false
 		`, map[string]any{"typeName": typeName, "key": key}, func(stmt *sqlite.Stmt) {
 			field := InputField{
 				Name: stmt.ColumnText(0),
@@ -593,7 +627,7 @@ func generateFieldType(
 			false,
 		) // isInput = false for cache field types
 	case "ENUM":
-		baseType = field.Type
+		baseType = fmt.Sprintf("%s$options", field.Type)
 	case "OBJECT":
 		baseType = fmt.Sprintf("Record<CacheTypeDef, \"%s\">", field.Type)
 	case "INTERFACE", "UNION":
@@ -661,7 +695,7 @@ func generateFieldArguments(
 	for _, arg := range args {
 		tsType, err := typescript.ConvertToTypeScriptType(
 			projectConfig,
-			"",
+			arg.Kind,
 			arg.Type,
 			arg.TypeModifiers,
 			true, // isInput = true for field arguments (these are inputs to GraphQL operations)
@@ -687,6 +721,7 @@ func generateFieldArguments(
 type FieldArgument struct {
 	Name          string
 	Type          string
+	Kind          string
 	TypeModifiers string
 }
 
@@ -698,14 +733,16 @@ func getFieldArguments(
 	var args []FieldArgument
 
 	err := db.StepQuery(ctx, `
-		SELECT name, type, type_modifiers
+		SELECT type_field_arguments.name, type, type_modifiers, types.kind
 		FROM type_field_arguments
+		JOIN types on type_field_arguments.type = types.name
 		WHERE field = $fieldID
-		ORDER BY name
+		ORDER BY type_field_arguments.name
 	`, map[string]any{"fieldID": fieldID}, func(stmt *sqlite.Stmt) {
 		arg := FieldArgument{
 			Name: stmt.ColumnText(0),
 			Type: stmt.ColumnText(1),
+			Kind: stmt.ColumnText(3),
 		}
 		if stmt.ColumnType(2) == sqlite.TypeText {
 			arg.TypeModifiers = stmt.ColumnText(2)
@@ -890,6 +927,25 @@ func generateListFiltersFromData(args []FieldArgument) string {
 	}
 
 	return fmt.Sprintf("{%s\n\t\t\t\t}", strings.Join(argStrings, ""))
+}
+
+func generateScalarUnion(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (string, error) {
+	// our goal here is to generate a typescript-safe union of the runtime values that could be seen in a selection (the default scalars + any custom config)
+	scalarValues := []string{"number", "boolean", "string"}
+
+	err := db.StepQuery(ctx, `
+		SELECT DISTINCT "type" from scalar_config
+	`, nil, func(stmt *sqlite.Stmt) {
+		scalarValues = append(scalarValues, stmt.GetText("type"))
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join(scalarValues, " | "), nil
 }
 
 func generateQueriesSection(

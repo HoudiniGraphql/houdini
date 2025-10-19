@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 
@@ -135,6 +136,13 @@ func WriteProjectSchema[PluginConfig any](
 			for _, field := range typ.Fields {
 				fieldTypeName, fieldTypeModifiers := ParseFieldType(field.Type.String())
 
+				// there are some fields we consider internal and don't make accessible
+				internal := false
+				if strings.HasPrefix(typ.Name, "__") ||
+					(typ.Name == "Query" && (field.Name == "__schema" || field.Name == "__type")) {
+					internal = true
+				}
+
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
 				err = db.ExecStatement(statements.InsertTypeField, map[string]any{
 					"id":             fieldID,
@@ -143,6 +151,7 @@ func WriteProjectSchema[PluginConfig any](
 					"type":           fieldTypeName,
 					"type_modifiers": fieldTypeModifiers,
 					"description":    field.Description,
+					"internal":       internal,
 				})
 				if err != nil {
 					errors.Append(&plugins.Error{
@@ -202,6 +211,7 @@ func WriteProjectSchema[PluginConfig any](
 					"type":           "String",
 					"type_modifiers": "!",
 					"description":    "",
+					"internal":       false,
 				})
 			}
 
@@ -210,6 +220,7 @@ func WriteProjectSchema[PluginConfig any](
 			for _, field := range typ.Fields {
 				fieldTypeName, fieldTypeModifiers := ParseFieldType(field.Type.String())
 				fieldID := fmt.Sprintf("%s.%s", typ.Name, field.Name)
+
 				err = db.ExecStatement(statements.InsertTypeField,
 					map[string]any{
 						"id":             fieldID,
@@ -218,6 +229,7 @@ func WriteProjectSchema[PluginConfig any](
 						"type":           fieldTypeName,
 						"type_modifiers": fieldTypeModifiers,
 						"description":    field.Description,
+						"internal":       false,
 					})
 				if err != nil {
 					errors.Append(&plugins.Error{
@@ -252,6 +264,7 @@ func WriteProjectSchema[PluginConfig any](
 						"type":           fieldTypeName,
 						"type_modifiers": fieldTypeModifiers,
 						"description":    field.Description,
+						"internal":       false,
 					})
 				if err != nil {
 					errors.Append(&plugins.Error{
@@ -337,6 +350,7 @@ func WriteProjectSchema[PluginConfig any](
 					"type":           "String",
 					"type_modifiers": "!",
 					"description":    "",
+					"internal":       false,
 				})
 			}
 
@@ -376,6 +390,7 @@ func WriteProjectSchema[PluginConfig any](
 					"type":           "String",
 					"type_modifiers": "!",
 					"description":    "",
+					"internal":       false,
 				})
 			}
 
@@ -793,6 +808,7 @@ then the request will never be deduplicated.`,
 		"name":           "type",
 		"type":           "String",
 		"type_modifiers": "!",
+		"internal":       true,
 	})
 	if err != nil {
 		return err

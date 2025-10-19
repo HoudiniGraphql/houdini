@@ -459,7 +459,7 @@ class CacheInternal {
 		)
 
 		// data is an object with fields that we need to write to the store
-		for (const [field, value] of Object.entries(data)) {
+		for (let [field, value] of Object.entries(data)) {
 			// grab the selection info we care about
 			if (!selection || !targetSelection[field]) {
 				continue
@@ -589,6 +589,10 @@ class CacheInternal {
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
+        // exclude any objects that might have been pull in the generated runtime
+        // if we got this far, we know that the value is not a scalar, custom or otherwise
+        value = value as GraphQLObject
+
 				// the previous value is a string holding the id of the object to link to
 
 				// if we ran into an interface we need to look at the __typename field

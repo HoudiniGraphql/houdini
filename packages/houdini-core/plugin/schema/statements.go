@@ -40,9 +40,9 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
 	)
 	insertTypeFieldStmt := db.Prep(
 		`INSERT INTO type_fields 
-        (id, parent, name, type, type_modifiers, default_value, description) 
+        (id, parent, name, type, type_modifiers, default_value, description, internal) 
     VALUES 
-        ($id, $parent, $name, $type, $type_modifiers, $default_value, $description) 
+        ($id, $parent, $name, $type, $type_modifiers, $default_value, $description, $internal) 
     ON CONFLICT DO UPDATE SET 
         parent = excluded.parent, 
         name = excluded.name,

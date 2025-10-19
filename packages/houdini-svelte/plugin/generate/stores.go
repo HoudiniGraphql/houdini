@@ -127,7 +127,6 @@ func GenerateStores(
 
 		// Write the store file
 		storePath := path.Join(storesDir, name+".ts")
-		fmt.Println("generating store for:", name, "of kind:", kind, "path:", storePath)
 		err = afero.WriteFile(fs, storePath, []byte(storeContent), 0644)
 		if err != nil {
 			return
@@ -215,10 +214,10 @@ func generateMutationStore(pluginConfig config.PluginConfig, name string) (strin
 	}
 
 	storeContent := fmt.Sprintf(
-		`import artifact, { %s$result, %s$input } from '$houdini/artifacts/%s.js'
+		`import artifact, { %s$result, %s$input, %s$optimistic } from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
-export class %s extends %s<%s$result, %s$input> {
+export class %s extends %s<%s$result, %s$input, %s$optimistic> {
     constructor() {
         super({
             artifact,
@@ -228,10 +227,12 @@ export class %s extends %s<%s$result, %s$input> {
 		name,
 		name,
 		name,
+		name,
 		storeImport.Name,
 		storeImport.Module,
 		storeName,
 		storeImport.Name,
+		name,
 		name,
 		name,
 	)

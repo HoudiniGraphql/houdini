@@ -187,6 +187,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 	newContent.WriteString("\n")
 	newContent.WriteString(imports.String())
 	newContent.WriteString("\n")
+	newContent.WriteString(existingStr[:insertPos])
 
 	// Add overloads before the generic function
 	newContent.WriteString(overloads.String())
