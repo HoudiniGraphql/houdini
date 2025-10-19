@@ -95,7 +95,8 @@ export async function codegen_setup(
 	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
 
 	// when plugins announce themselves, they provide a port
-	const plugin_specs: Record<string, PluginSpec> = {}
+	const plugin_specs: Array<PluginSpec> = []
+	const spec_results: Record<string, PluginSpec> = {}
 
 	// we need a function that waits for a plugin to register itself
 	const wait_for_plugin = (name: string) =>
@@ -136,7 +137,7 @@ export async function codegen_setup(
 					}
 
 					// store the spec
-					plugin_specs[name] = spec
+					spec_results[name] = spec
 
 					// if the row specifies a config module then we need to import it and invoke it
 					if (row.config_module) {
@@ -199,6 +200,11 @@ export async function codegen_setup(
 			console.timeEnd(`Spawn ${plugin.name}`)
 		}),
 	)
+
+	for (const plugin of config.plugins) {
+		plugin_specs.push(spec_results[plugin.name])
+	}
+
 	console.timeEnd('Start Plugins')
 
 	const invoke_hook = async (
@@ -207,7 +213,11 @@ export async function codegen_setup(
 		payload: Record<string, any> = {},
 		task_id?: string,
 	) => {
-		const { port, directory } = plugin_specs[name]
+		const plugin = plugin_specs.find((spec) => spec.name === name)
+		if (!plugin) {
+			throw new Error(`unknkown plugin: ${name}`)
+		}
+		const { port, directory } = plugin
 
 		// make the request
 		const response = await fetch(
@@ -261,23 +271,25 @@ export async function codegen_setup(
 		const timeName = hook + (task_id ? ` (${task_id})` : '')
 		console.time(timeName)
 		// look for all of the plugins that have registered for this hook
-		const plugins = Object.entries(plugin_specs).filter(([, { hooks }]) =>
-			hooks.has(hook),
-		)
+		const plugins = plugin_specs.filter(({ hooks }) => hooks.has(hook))
 
 		const result: Record<string, any> = {}
 
 		// if the hook is parallel safe, we can run all of the plugins in parallel
 		if (parallel_safe) {
 			await Promise.all(
-				plugins.map(async ([plugin]) => {
-					result[plugin] = await invoke_hook(plugin, hook, payload, task_id)
+				plugins.map(async (plugin) => {
+					result[plugin.name] = await invoke_hook(
+						plugin.name,
+						hook,
+						payload,
+						task_id,
+					)
 				}),
 			)
 		} else {
 			// if the hook isn't parallel safe, we need to run the plugins in order
-			for (const [name] of plugins) {
-				console.log('triggering hook', hook, 'for plugin', name)
+			for (const { name } of plugins) {
 				result[name] = await invoke_hook(name, hook, payload, task_id)
 			}
 		}

@@ -197,7 +197,7 @@ func getDocumentsWithArguments(
 		       CASE WHEN dd.directive IS NOT NULL THEN 1 ELSE 0 END as has_arguments
 		FROM documents d
 		LEFT JOIN document_directives dd ON d.id = dd.document AND dd.directive = 'arguments'
-		WHERE d.visible = 1
+		WHERE d.visible = 1 
 		ORDER BY d.name
 	`, nil, func(stmt *sqlite.Stmt) {
 		doc := DocumentWithArgs{
@@ -727,7 +727,7 @@ func getFragmentsByType(
 		       CASE WHEN dd.directive IS NOT NULL THEN 1 ELSE 0 END as has_arguments
 		FROM documents d
 		LEFT JOIN document_directives dd ON d.id = dd.document AND dd.directive = 'arguments'
-		WHERE d.kind = 'fragment' AND d.type_condition IS NOT NULL
+		WHERE d.kind = 'fragment' AND d.type_condition IS NOT NULL AND d.visible = 1
 		ORDER BY d.type_condition, d.name
 	`, nil, func(stmt *sqlite.Stmt) {
 		typeName := stmt.ColumnText(0)
@@ -762,6 +762,9 @@ func generateListsSection(
 	// Sort lists by name for consistent output
 	var listNames []string
 	for name := range listsWithFilters {
+		if name == "" {
+			continue
+		}
 		listNames = append(listNames, name)
 	}
 	sort.Strings(listNames)

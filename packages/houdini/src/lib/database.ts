@@ -439,7 +439,7 @@ export async function write_config(
 		hook: string,
 		args: Record<string, any>,
 	) => Promise<Record<string, any>>,
-	plugins: Record<string, PluginSpec>,
+	plugins: Array<PluginSpec>,
 	mode: string,
 ) {
 	// in order to know our configuration values, we need to load the current environment
@@ -450,7 +450,7 @@ export async function write_config(
 	console.time('Environment')
 	// look at each plugin
 	await Promise.all(
-		Object.values(plugins).map(async (plugin) => {
+		plugins.map(async (plugin) => {
 			// if the plugin supports the environment hook
 			if (plugin.hooks.has('Environment')) {
 				// we need to hit the corresponding endpoint in the plugin server

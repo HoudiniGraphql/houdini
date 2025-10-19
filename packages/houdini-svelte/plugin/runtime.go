@@ -147,7 +147,7 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 	for _, doc := range docs {
 		imports.WriteString(
 			fmt.Sprintf(
-				"import type %sStore from '$houdini/plugins/houdini-svelte/stores/%s'\n",
+				"import type { %sStore } from '$houdini/plugins/houdini-svelte/stores/%s'\n",
 				doc.name,
 				doc.name,
 			),

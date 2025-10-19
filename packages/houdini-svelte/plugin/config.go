@@ -61,6 +61,10 @@ func (p *HoudiniSvelte) DefaultConfig(
 		pluginConfig.CustomStores.Fragment = "$houdini/plugins/houdini-svelte/runtime/stores/fragment.js#FragmentStore"
 	}
 
+	if pluginConfig.CustomStores.Subscription == "" {
+		pluginConfig.CustomStores.Subscription = "$houdini/plugins/houdini-svelte/runtime/stores/subscription.js#SubscriptionStore"
+	}
+
 	if pluginConfig.CustomStores.QueryCursor == "" {
 		pluginConfig.CustomStores.QueryCursor = "$houdini/plugins/houdini-svelte/runtime/stores/pagination/query.js#QueryStoreCursor"
 	}

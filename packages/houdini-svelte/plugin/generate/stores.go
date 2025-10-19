@@ -115,13 +115,19 @@ func GenerateStores(
 			errs.Append(plugins.WrapError(err))
 			return // Skip unknown kinds
 		}
+		if errs.Len() > 0 {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
 
 		if err != nil {
+			errs.Append(plugins.WrapError(err))
 			return
 		}
 
 		// Write the store file
 		storePath := path.Join(storesDir, name+".ts")
+		fmt.Println("generating store for:", name, "of kind:", kind, "path:", storePath)
 		err = afero.WriteFile(fs, storePath, []byte(storeContent), 0644)
 		if err != nil {
 			return

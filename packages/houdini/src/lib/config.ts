@@ -1,5 +1,7 @@
 import type { CachePolicies, PaginateModes } from './types.js'
 
+declare namespace App {}
+
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
@@ -147,6 +149,7 @@ export type ConfigFile = {
 }
 
 export type RuntimeScalarPayload = {
+	// @ts-ignore
 	session?: App.Session | null | undefined
 }
 
@@ -228,8 +231,10 @@ export type ScalarSpec = {
 
 // this type is meant to be extended by plugins to provide type definitions
 // for config
+// @ts-ignore
 export interface HoudiniPluginConfig {}
 
 // this type is meant to be extended by client plugins to provide type definitions
 // for config
+// @ts-ignore
 export interface HoudiniClientPluginConfig {}
