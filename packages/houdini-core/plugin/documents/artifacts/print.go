@@ -3,6 +3,7 @@ package artifacts
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"runtime"
 	"sort"
@@ -315,7 +316,9 @@ func printSelection(
 
 		// add the directives
 		if len(selection.Directives) > 0 {
-			resultBuilder.WriteString(printDirectives(selection.Directives, usedVariables, includeHidden))
+			resultBuilder.WriteString(
+				printDirectives(selection.Directives, usedVariables, includeHidden),
+			)
 		}
 
 		// add the subselections
@@ -369,7 +372,11 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 		resultBuilder.WriteRune(']')
 		return resultBuilder.String()
 	default:
-		return value.Raw
+		marshaled, err := json.Marshal(value.Raw)
+		if err != nil {
+			return value.Raw
+		}
+		return string(marshaled)
 	}
 }
 

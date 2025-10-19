@@ -31,7 +31,7 @@ let inflightRequests: Record<
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables | undefined
 > extends Writable<QueryResult<_Data, _Input>> {
 	readonly artifact: DocumentArtifact
 	#client: HoudiniClient | null

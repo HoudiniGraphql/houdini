@@ -32,7 +32,7 @@ export type HoudiniClientConstructorArgs = {
 export type ObserveParams<
 	_Data extends GraphQLObject,
 	_Artifact extends DocumentArtifact = DocumentArtifact,
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables| undefined = GraphQLVariables
 > = {
 	artifact: _Artifact
 	enableCache?: boolean
@@ -132,7 +132,7 @@ export class HoudiniClient {
 		)
 	}
 
-	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
+	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables | undefined>({
 		enableCache = true,
 		fetching = false,
 		...rest

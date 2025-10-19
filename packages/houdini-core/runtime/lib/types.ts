@@ -251,7 +251,7 @@ export type FetchQueryResult<_Data> = {
 	source: DataSources | null
 }
 
-export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables> = {
+export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undefined> = {
 	data: _Data | null
 	errors: { message: string }[] | null
 	fetching: boolean

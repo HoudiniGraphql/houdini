@@ -12,7 +12,7 @@ import { fetchParams } from './query'
 
 export class MutationStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables,
+	_Input extends GraphQLVariables | undefined | null,
 	_Optimistic extends GraphQLObject
 > extends BaseStore<_Data, _Input, MutationArtifact> {
 	kind = 'HoudiniMutation' as const

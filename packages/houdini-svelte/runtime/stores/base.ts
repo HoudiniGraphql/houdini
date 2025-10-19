@@ -13,7 +13,7 @@ import { getClient, initClient } from '../client'
 
 export class BaseStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables,
+	_Input extends GraphQLVariables | undefined,
 	_Artifact extends DocumentArtifact = DocumentArtifact
 > {
 	// the underlying data

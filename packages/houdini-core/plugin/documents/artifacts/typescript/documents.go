@@ -116,7 +116,7 @@ func generateDocumentTypeDef(
 		if len(docCtx.EnumTypes) > 0 {
 			var enumTypes []string
 			for enumType := range docCtx.EnumTypes {
-				enumTypes = append(enumTypes, enumType)
+				enumTypes = append(enumTypes, enumType+"$options")
 			}
 			imports = append(
 				imports,
@@ -125,9 +125,6 @@ func generateDocumentTypeDef(
 					strings.Join(enumTypes, ", "),
 				),
 			)
-		}
-		if len(docCtx.EnumTypes) > 0 {
-			imports = append(imports, `import type { ValueOf } from "$houdini/runtime/lib/types";`)
 		}
 		if docCtx.HasLoading {
 			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
@@ -147,16 +144,13 @@ func generateDocumentTypeDef(
 		}
 	} else {
 		// Add imports based on collected dependencies
-		if len(docCtx.EnumTypes) > 0 {
-			imports = append(imports, `import type { ValueOf } from "$houdini/runtime/lib/types";`)
-		}
 		if docCtx.HasLoading {
 			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
 		}
 		if len(docCtx.EnumTypes) > 0 {
 			var enumTypes []string
 			for enumType := range docCtx.EnumTypes {
-				enumTypes = append(enumTypes, enumType)
+				enumTypes = append(enumTypes, enumType+"$options")
 			}
 			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/enums";`, strings.Join(enumTypes, ", ")))
 		}
