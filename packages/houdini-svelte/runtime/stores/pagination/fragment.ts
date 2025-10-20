@@ -6,6 +6,7 @@ import type {
 	PageInfo,
 	CursorHandlers,
 	GraphQLVariables,
+    fragmentKey,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
 import type { DocumentStore } from '$houdini/runtime/client'
@@ -28,7 +29,7 @@ type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	FragmentArtifact
 > & { paginationArtifact: QueryArtifact }
 
-class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
+class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType extends {}, _Input> {
 	// all paginated stores need to have a flag to distinguish from other fragment stores
 	paginated = true
 
@@ -77,10 +78,13 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> {
 // both cursor paginated stores add a page info to their subscribe
 export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
+  _ReferenceType extends {},
 	_Input extends GraphQLVariables
-> extends BasePaginatedFragmentStore<_Data, _Input> {
+> extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
-	get(initialValue: _Data | null) {
+	get(
+		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
+	) {
 		const base = new FragmentStore<_Data, {}, _Input>({
 			artifact: this.artifact,
 			storeName: this.name,
@@ -95,7 +99,7 @@ export class FragmentStoreCursor<
 
 		const handlers = this.storeHandlers(
 			paginationStore,
-			initialValue,
+			store.initialValue,
 			() => get(store),
 			// the variables that are needed for this query are the store's values and the ids
 			() => store.variables as NonNullable<_Input>
@@ -179,8 +183,9 @@ export class FragmentStoreCursor<
 
 export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
+  _ReferenceType extends {},
 	_Input extends GraphQLVariables
-> extends BasePaginatedFragmentStore<_Data, _Input> {
+> extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
 	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {
 		const base = new FragmentStore<_Data, {}, _Input>({
 			artifact: this.artifact,

@@ -25,13 +25,13 @@ import { QueryStore } from '../query'
 
 export type CursorStoreResult<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables | null | undefined
 > = QueryResult<_Data, _Input> & { pageInfo: PageInfo }
 
 // both cursor paginated stores add a page info to their subscribe
 export class QueryStoreCursor<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables | null | undefined
 > extends QueryStore<_Data, _Input> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
@@ -136,7 +136,7 @@ export class QueryStoreCursor<
 
 export class QueryStoreOffset<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables | null | undefined
 > extends QueryStore<_Data, _Input> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true

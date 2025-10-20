@@ -6,6 +6,21 @@ const config = {
   plugins: [
     houdini(),
     sveltekit(),
+    { name: 'aliases',
+      config(config, env) {
+        return {
+          ...config,
+          resolve: {
+          ...config.resolve,
+            alias: {
+              '$lib': '/src/lib',
+              '$lib/*': '/src/lib/*',
+            }
+          }
+        }
+      },
+
+    }
   ]
 };
 

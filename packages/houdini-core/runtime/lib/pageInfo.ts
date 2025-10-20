@@ -11,7 +11,7 @@ export function missingPageSizeError(fnName: string) {
 	}
 }
 
-export function extractPageInfo(data: any, path: string[]): PageInfo {
+export function extractPageInfo(data: any, path: readonly string[]): PageInfo {
 	if (!data) {
 		return {
 			startCursor: null,
@@ -35,7 +35,7 @@ export function extractPageInfo(data: any, path: string[]): PageInfo {
 }
 
 export function countPage<_Data extends GraphQLObject>(
-	source: string[],
+	source: readonly string[],
 	value: _Data | null
 ): number {
 	let data = value

@@ -13,7 +13,7 @@ import { BaseStore } from './base'
 
 export class SubscriptionStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables | null | undefined
 > extends BaseStore<_Data, _Input, SubscriptionArtifact> {
 	kind = CompiledSubscriptionKind
 	fetchingStore: Writable<boolean>

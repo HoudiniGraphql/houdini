@@ -108,7 +108,7 @@ export type InputObject = {
 	runtimeScalars: Record<string, string>
 }
 
-export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
+export type BaseCompiledDocument<_Kind extends ArtifactKinds> = Readonly<{
 	name: string
 	kind: _Kind
 	raw: string
@@ -119,7 +119,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 	hasComponents?: boolean
 	stripVariables: Array<string>
 	refetch?: {
-		path: string[]
+		path: readonly string[]
 		method: 'cursor' | 'offset'
 		pageSize: number
 		start?: string | number
@@ -130,7 +130,7 @@ export type BaseCompiledDocument<_Kind extends ArtifactKinds> = {
 		mode: PaginateModes
 	}
 	pluginData: Record<string, any>
-}
+}>
 
 export type HoudiniFetchContext = {
 	variables: () => {}
@@ -185,26 +185,26 @@ export type LoadingSpec =
 	| { kind: 'continue'; list?: { depth: number; count: number } }
 	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
 
-export type SubscriptionSelection = {
+export type SubscriptionSelection = Readonly<{
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
 	components?: Record<string, { prop: string; attribute: string }>
 	fields?: {
-		[fieldName: string]: {
+		[fieldName: string]: Readonly<{
 			type: string
 			keyRaw: string
 			nullable?: boolean
 			// @required directive (bubbles nullability up)
 			required?: boolean
-			operations?: MutationOperation[]
+			operations?: readonly MutationOperation[]
 			list?: {
 				name: string
 				connection: boolean
 				type: string
 			}
 			loading?: LoadingSpec
-			directives?: { name: string; arguments: ValueMap }[]
-			updates?: string[]
+			directives?: readonly { name: string; arguments: ValueMap }[]
+			updates?: readonly string[]
 			visible?: boolean
 			filters?: Record<
 				string,
@@ -225,7 +225,7 @@ export type SubscriptionSelection = {
 				variables: ValueMap | null
 			}
 			optimisticKey?: boolean
-		}
+		}>
 	}
 	abstractFields?: {
 		fields: {
@@ -236,15 +236,15 @@ export type SubscriptionSelection = {
 			[typeName: string]: string
 		}
 	}
-}
+}>
 
-export type SubscriptionSpec = {
+export type SubscriptionSpec = Readonly<{
 	rootType: string
 	selection: SubscriptionSelection
 	set: (data: any) => void
 	parentID?: string
 	variables?: () => any
-}
+}>
 
 export type FetchQueryResult<_Data> = {
 	result: RequestPayload<_Data | null>

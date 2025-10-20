@@ -1446,6 +1446,7 @@ func stripSuffix(s string, suffix string) string {
 func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 	indent0 := strings.Repeat(spacing, level)
 	indent1 := strings.Repeat(spacing, level+1)
+	indent2 := strings.Repeat(spacing, level+2)
 	// the first thing we need to do is figure out the kind
 	var kind string
 	switch arg.Kind {
@@ -1458,7 +1459,14 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 	// the attributes that define the node depend on the kind
 	attrs := ""
 	switch arg.Kind {
-	case "Variable", "String", "Enum":
+	case "Variable":
+		attrs = fmt.Sprintf(`
+%sname: {
+%s"kind": "Name",
+%s"value": "%s",
+%s},
+%s"value": "%s"`, indent1, indent2, indent2, arg.Raw, indent1, indent1, arg.Raw)
+	case "String", "Enum":
 		attrs = fmt.Sprintf(`
 %s"value": "%s"`, indent1, arg.Raw)
 	case "Int", "Float", "Boolean":

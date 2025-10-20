@@ -11103,7 +11103,7 @@ snapshots:
       pathe: 1.1.2
       picocolors: 1.0.0
       sirv: 2.0.4
-      vitest: 1.6.0(@types/node@22.18.8)(@vitest/ui@1.6.0)(terser@5.16.1)
+      vitest: 1.6.0(@types/node@22.13.1)(@vitest/ui@1.6.0)(terser@5.16.1)
 
   '@vitest/utils@1.6.0':
     dependencies:

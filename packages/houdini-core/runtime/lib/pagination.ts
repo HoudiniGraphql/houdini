@@ -12,7 +12,7 @@ import type {
 	FetchParams,
 } from './types'
 
-export function cursorHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
+export function cursorHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables | null | undefined>({
 	artifact,
 	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
@@ -202,7 +202,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input extends Graph
 						(variables?.['last'] && variables?.['before'])
 					)
 				) {
-					console.warn(`⚠️ Encountered a fetch() in the middle of the connection.
+					console.warn(`! Encountered a fetch() in the middle of the connection.
 Make sure to pass a cursor value by hand that includes the current set (ie the entry before startCursor)
 `)
 				}
@@ -238,7 +238,7 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 	}
 }
 
-export function offsetHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables>({
+export function offsetHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables | null | undefined>({
 	artifact,
 	storeName,
 	getState,

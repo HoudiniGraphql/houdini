@@ -27,7 +27,7 @@ import { BaseStore } from './base'
 
 export class QueryStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables | null | undefined
 > extends BaseStore<_Data, _Input, QueryArtifact> {
 	// whether the store requires variables for input
 	variables: boolean

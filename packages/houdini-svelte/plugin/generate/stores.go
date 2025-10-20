@@ -119,6 +119,7 @@ func GenerateStores(
 				name,
 				storeName,
 				refetchMethod,
+				variablesRequired,
 			)
 		default:
 			errs.Append(plugins.WrapError(err))
@@ -222,7 +223,7 @@ export async function load_%s(params: QueryStoreFetchParams<%s$result, %s$input>
 
 func generateMutationStore(
 	pluginConfig config.PluginConfig,
-	storeName, name string,
+	name string, storeName string,
 ) (string, error) {
 	storeImport, err := pluginConfig.StoreBaseClassImport(
 		"mutation",
@@ -302,6 +303,7 @@ func generateFragmentStore(
 	name string,
 	storeName string,
 	refetchMethod config.StorePaginationType,
+	variablesRequired bool,
 ) (string, error) {
 	storeImport, err := pluginConfig.StoreBaseClassImport("fragment", refetchMethod)
 	if err != nil {
@@ -309,12 +311,16 @@ func generateFragmentStore(
 	}
 
 	extraImport := ""
+	extraFields := ""
 	if refetchMethod != config.StorePaginationTypeNone {
 		extraImport = fmt.Sprintf(
 			`
 import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
 			graphql.FragmentPaginationQueryName(name),
 		)
+		extraFields = fmt.Sprintf(`
+            variables: %t,
+            paginationArtifact: _PaginationArtifact,`, variablesRequired)
 	}
 
 	storeContent := fmt.Sprintf(`import { %s } from '%s'
@@ -325,10 +331,10 @@ export class %s extends %s<%s$data, { %s: any }, %s$input> {
     constructor() {
         super({
             artifact,
-            storeName: "%s",
+            storeName: "%s",%s
         })
     }
-}`, storeImport.Name, storeImport.Module, name, name, name, name, extraImport, storeName, storeImport.Name, name, name, name, storeName)
+}`, storeImport.Name, storeImport.Module, name, name, name, name, extraImport, storeName, storeImport.Name, name, name, name, storeName, extraFields)
 
 	return storeContent, nil
 }

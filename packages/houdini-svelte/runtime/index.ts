@@ -7,7 +7,7 @@ export * from './stores/index.js'
 export * from './fragments.js'
 export * from './types.js'
 
-type LoadResult = Promise<{ [key: string]: QueryStore<any, GraphQLVariables> }>
+type LoadResult = Promise<{ [key: string]: QueryStore<any, GraphQLVariables | null | undefined> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
 // gets all the values from an object
