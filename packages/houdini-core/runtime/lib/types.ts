@@ -177,7 +177,7 @@ export type GraphQLObject = { [key: string]: GraphQLValue }
 
 export type GraphQLDefaultScalar = string | number | boolean
 
-export type GraphQLValue = GraphQLDefaultScalar | CacheTypeDef['scalars'] | null | GraphQLObject | GraphQLValue[] | undefined
+export type GraphQLValue = GraphQLDefaultScalar | CacheTypeDef['scalars'] | Symbol | null | GraphQLObject | GraphQLValue[] | undefined
 
 export type GraphQLVariables = { [key: string]: any } | null
 

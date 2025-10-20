@@ -226,26 +226,23 @@ func handleIndexFile[PluginConfig any](
 
 		updater := plugin.(IndexFile)
 
-		dir := path.Join(config.ProjectRoot, config.RuntimeDir)
-		for _, file := range []string{"index.js", "index.d.ts"} {
-			targetPath := path.Join(dir, file)
+		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
-			content, err := updater.IndexFile(ctx, targetPath)
-			if err != nil {
-				return err
-			}
+		content, err := updater.IndexFile(ctx, targetPath)
+		if err != nil {
+			return err
+		}
 
-			existingContent, err := afero.ReadFile(plugin.Filesystem(), targetPath)
-			if err != nil {
-				return err
-			}
+		existingContent, err := afero.ReadFile(plugin.Filesystem(), targetPath)
+		if err != nil {
+			return err
+		}
 
-			newContent := string(existingContent) + "\n" + content
+		newContent := string(existingContent) + "\n" + content
 
-			err = afero.WriteFile(plugin.Filesystem(), targetPath, []byte(newContent), 0644)
-			if err != nil {
-				return err
-			}
+		err = afero.WriteFile(plugin.Filesystem(), targetPath, []byte(newContent), 0644)
+		if err != nil {
+			return err
 		}
 
 		return nil

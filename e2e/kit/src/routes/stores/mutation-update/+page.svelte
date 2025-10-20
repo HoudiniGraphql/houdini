@@ -1,6 +1,6 @@
 <script lang="ts">
   import { GQL_UpdateUser } from '$houdini';
-  import { stry } from '@kitql/helpers';
+  import { stry } from 'houdini';
   import type { PageData } from './$types';
 
   export let data: PageData;

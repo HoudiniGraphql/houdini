@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
   import UserDetails from './UserDetails.svelte';
 
   export let data: PageData;

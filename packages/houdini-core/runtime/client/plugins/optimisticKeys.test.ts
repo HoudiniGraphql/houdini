@@ -1,7 +1,7 @@
-import { sleep } from '@kitql/helpers'
 import { beforeEach, expect, test } from 'vitest'
 
-import { testConfigFile } from '../../../test'
+import { sleep } from 'houdini'
+import { testConfigFile } from 'houdini/test'
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, type QueryResult, type GraphQLObject } from '../../lib/types'

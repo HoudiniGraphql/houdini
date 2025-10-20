@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphql, CachePolicy } from '$houdini';
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
   
   export let data: PageData;
 

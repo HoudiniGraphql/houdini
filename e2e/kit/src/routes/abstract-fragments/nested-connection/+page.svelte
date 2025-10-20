@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fragment, graphql } from '$houdini';
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
   import MonkeyList from './MonkeyList.svelte';
 
   export let data: PageData;

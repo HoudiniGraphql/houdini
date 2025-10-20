@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
 
   interface Props {
     data: PageData;

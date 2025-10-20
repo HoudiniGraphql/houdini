@@ -1,5 +1,6 @@
 import { routes } from './routes.js';
-import { sleep, stry } from '@kitql/helpers';
+import { sleep } from 'houdini';
+import { stry } from 'houdini';
 import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 

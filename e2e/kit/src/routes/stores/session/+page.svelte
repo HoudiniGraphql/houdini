@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphql, type SessionStore } from '$houdini';
-  import type { PageData } from './$houdini'
+  import type { PageData } from './$types'
 
   export let data: PageData;
   $: ({ Session } = data)

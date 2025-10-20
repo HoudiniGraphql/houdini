@@ -24,7 +24,6 @@ func GeneratePluginIndex(
 
 	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.ts")
 
-	// both files get the same contents
 	content := `export * from "../runtime/client/plugins/index.js"`
 
 	// make sure the direcotry exists

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { CachePolicy } from '$houdini';
   import { page } from '$app/stores';
-  import { stry } from '@kitql/helpers';
-  import type { PageData } from './$houdini';
+  import { stry } from 'houdini';
+  import type { PageData } from './$types';
 
   export let data: PageData;
 

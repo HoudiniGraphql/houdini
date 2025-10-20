@@ -232,7 +232,7 @@ function addKeysToResponse(args: {
 						addKeysToResponse({
 							...args,
 							selection: fieldSelection,
-							response: item,
+							response: item as GraphQLObject,
 							type,
 							path: `${pathSoFar}[${index}]`,
 						})
@@ -242,7 +242,7 @@ function addKeysToResponse(args: {
 				addKeysToResponse({
 					...args,
 					selection: fieldSelection,
-					response: value,
+					response: value as GraphQLObject,
 					type,
 					path: pathSoFar,
 				})
@@ -282,7 +282,7 @@ function extractInputKeys(
 				}
 			}
 		} else if (value && typeof value === 'object') {
-			extractInputKeys(value, store, found)
+			extractInputKeys(value as GraphQLObject, store, found)
 		}
 	}
 
@@ -356,7 +356,7 @@ function extractResponseKeys(
 		else if (value && typeof value === 'object' && fieldSelection) {
 			extractResponseKeys(
 				cache,
-				value,
+				value as GraphQLObject,
 				fieldSelection,
 				keyMap,
 				mutationID,
@@ -427,7 +427,7 @@ function replaceKeyWithVariable(
 				}
 			}
 		} else if (value && typeof value === 'object') {
-			replaceKeyWithVariable(value, keys)
+			replaceKeyWithVariable(value as GraphQLObject, keys)
 		}
 	}
 

@@ -12,14 +12,14 @@ func ConvertToTypeScriptType(
 	kind, typeName, typeModifiers string,
 	isInput bool,
 ) (string, error) {
-	baseType := convertBaseType(kind, typeName, config, isInput)
+	baseType := convertScalarType(kind, typeName, config, isInput)
 	// Apply type modifiers (lists and nullability)
 	return ApplyTypeModifiers(baseType, typeModifiers, isInput), nil
 }
 
-// convertBaseType handles the conversion of GraphQL base types to TypeScript base types
+// convertScalarType handles the conversion of GraphQL base types to TypeScript base types
 // This shared logic is used by both ConvertToTypeScriptType and convertToTypeScriptTypeSimple
-func convertBaseType(kind, typeName string, config plugins.ProjectConfig, isInput bool) string {
+func convertScalarType(kind, typeName string, config plugins.ProjectConfig, isInput bool) string {
 	switch kind {
 	case "SCALAR":
 		return ConvertScalarType(config, typeName, isInput)
@@ -27,8 +27,6 @@ func convertBaseType(kind, typeName string, config plugins.ProjectConfig, isInpu
 		return fmt.Sprintf("%s$options", typeName)
 	case "INPUT":
 		return typeName
-	case "OBJECT", "INTERFACE", "UNION":
-		return fmt.Sprintf(`Record<CacheTypeDef, '%s'`, typeName)
 	default:
 		return "any"
 	}

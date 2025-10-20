@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/spf13/afero"
 
@@ -83,12 +84,18 @@ func GenerateStores(
 		return nil, fmt.Errorf("failed to create stores directory: %w", err)
 	}
 
+	var indexValue strings.Builder
+
 	// Execute the query and generate stores
 	err = db.StepStatement(ctx, stmt, func() {
 		name := stmt.ColumnText(0)
 		kind := stmt.ColumnText(1)
 		variablesRequired := stmt.ColumnBool(2)
 		refetchMethod := stmt.ColumnText(3)
+
+		storeName := name + "Store"
+
+		fmt.Fprintf(&indexValue, "export * from './%s.js'\n", name)
 
 		var storeContent string
 		var err error
@@ -98,17 +105,19 @@ func GenerateStores(
 			storeContent, err = generateQueryStore(
 				pluginConfig,
 				name,
+				storeName,
 				variablesRequired,
 				refetchMethod,
 			)
 		case "mutation":
-			storeContent, err = generateMutationStore(pluginConfig, name)
+			storeContent, err = generateMutationStore(pluginConfig, name, storeName)
 		case "subscription":
-			storeContent, err = generateSubscriptionStore(pluginConfig, name)
+			storeContent, err = generateSubscriptionStore(pluginConfig, name, storeName)
 		case "fragment":
 			storeContent, err = generateFragmentStore(
 				pluginConfig,
 				name,
+				storeName,
 				refetchMethod,
 			)
 		default:
@@ -141,16 +150,24 @@ func GenerateStores(
 		return nil, errs
 	}
 
+	// we have everything we need to write the index file
+	indexFilePath := path.Join(storesDir, "index.ts")
+	err = afero.WriteFile(fs, indexFilePath, []byte(indexValue.String()), 0o644)
+	if err != nil {
+		return nil, err
+	}
+	generatedFiles = append(generatedFiles, indexFilePath)
+
 	return generatedFiles, nil
 }
 
 func generateQueryStore(
 	pluginConfig config.PluginConfig,
 	name string,
+	storeName string,
 	variablesRequired bool,
 	refetchMethod config.StorePaginationType,
 ) (string, error) {
-	storeName := name + "Store"
 	storeImport, err := pluginConfig.StoreBaseClassImport("query", refetchMethod)
 	if err != nil {
 		return "", err
@@ -203,8 +220,10 @@ export async function load_%s(params: QueryStoreFetchParams<%s$result, %s$input>
 	), nil
 }
 
-func generateMutationStore(pluginConfig config.PluginConfig, name string) (string, error) {
-	storeName := name + "Store"
+func generateMutationStore(
+	pluginConfig config.PluginConfig,
+	storeName, name string,
+) (string, error) {
 	storeImport, err := pluginConfig.StoreBaseClassImport(
 		"mutation",
 		config.StorePaginationTypeNone,
@@ -243,8 +262,8 @@ export class %s extends %s<%s$result, %s$input, %s$optimistic> {
 func generateSubscriptionStore(
 	pluginConfig config.PluginConfig,
 	name string,
+	storeName string,
 ) (string, error) {
-	storeName := name + "Store"
 	storeImport, err := pluginConfig.StoreBaseClassImport(
 		"subscription",
 		config.StorePaginationTypeNone,
@@ -254,20 +273,16 @@ func generateSubscriptionStore(
 	}
 
 	storeContent := fmt.Sprintf(
-		`import artifact, { %s1$result, %s1$input }from '$houdini/artifacts/%s.js'
-import type { %s$input, $%s$result } from '$houdini/artifacts/%s.js'
+		`import artifact, { %s$result, %s$input }from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
-export class %s extends %s<%s$result, $%s$input> {
+export class %s extends %s<%s$result, %s$input> {
     constructor() {
         super({
             artifact,
         })
     }
 }`,
-		name,
-		name,
-		name,
 		name,
 		name,
 		name,
@@ -285,9 +300,9 @@ export class %s extends %s<%s$result, $%s$input> {
 func generateFragmentStore(
 	pluginConfig config.PluginConfig,
 	name string,
+	storeName string,
 	refetchMethod config.StorePaginationType,
 ) (string, error) {
-	storeName := name + "Store"
 	storeImport, err := pluginConfig.StoreBaseClassImport("fragment", refetchMethod)
 	if err != nil {
 		return "", err

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { PendingValue } from '$houdini';
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
   export let data: PageData;
   import CityInfoWithLoadingState from './CityInfoWithLoadingState.svelte';
 

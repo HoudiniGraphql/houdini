@@ -1,7 +1,7 @@
 <script lang="ts">
   import { graphql } from '$houdini';
   import CityDetails from './CityDetails.svelte';
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
 
   export let data: PageData
 

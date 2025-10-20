@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData } from './$houdini';
+  import type { PageData } from './$types';
   import UserDetailsSvelte5 from './UserDetailsSvelte5.svelte';
 
   interface Props {

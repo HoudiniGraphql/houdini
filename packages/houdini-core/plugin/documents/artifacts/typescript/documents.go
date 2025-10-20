@@ -70,34 +70,17 @@ func generateDocumentTypeDef(
 	hasGlobalLoading := hasDocumentLevelLoading(doc)
 	docCtx.HasLoading = hasFieldLoading || hasGlobalLoading
 
-	// Collect dependencies from variables upfront
-	for _, variable := range doc.Variables {
-		if _, exists := collectedDocs.EnumValues[variable.Type]; exists {
-			docCtx.EnumTypes[variable.Type] = true
-		}
-		if _, exists := collectedDocs.InputTypes[variable.Type]; exists {
-			docCtx.InputTypes[variable.Type] = true
-		}
-	}
-
 	var imports []string
 	var typeDefinitions []string
 
 	// Generate type definitions first to collect dependencies
 	if doc.Kind == "fragment" {
-		// Generate fragment types
-		fragmentTypes := generateFragmentTypes(
+		typeDefinitions = append(typeDefinitions, generateFragmentTypes(
 			docCtx,
 			rootTypeName,
 			doc,
 			collectedDocs,
-		)
-
-		// Add input type first
-		typeDefinitions = append(typeDefinitions, fragmentTypes[0])
-
-		// Add remaining fragment types
-		typeDefinitions = append(typeDefinitions, fragmentTypes[1:]...)
+		)...)
 
 		// For fragments, we'll handle the artifact import specially in the output generation
 	} else {
@@ -110,57 +93,35 @@ func generateDocumentTypeDef(
 		)...)
 	}
 
-	// Now generate imports based on collected dependencies
-	if doc.Kind == "fragment" {
-		// For fragments, add imports based on collected dependencies
-		if len(docCtx.EnumTypes) > 0 {
-			var enumTypes []string
-			for enumType := range docCtx.EnumTypes {
-				enumTypes = append(enumTypes, enumType+"$options")
-			}
-			imports = append(
-				imports,
-				fmt.Sprintf(
-					`import { %s } from "$houdini/graphql/enums";`,
-					strings.Join(enumTypes, ", "),
-				),
-			)
+	// the first thing we have to do is add the imports
+	if docCtx.HasLoading {
+		imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
+	}
+	if len(docCtx.EnumTypes) > 0 {
+		var enumTypes []string
+		for enumType := range docCtx.EnumTypes {
+			enumTypes = append(enumTypes, enumType+"$options")
 		}
-		if docCtx.HasLoading {
-			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
+		imports = append(
+			imports,
+			fmt.Sprintf(
+				`import type { %s } from "$houdini/graphql/enums";`,
+				strings.Join(enumTypes, ", "),
+			),
+		)
+	}
+	if len(docCtx.InputTypes) > 0 {
+		var inputTypes []string
+		for inputType := range docCtx.InputTypes {
+			inputTypes = append(inputTypes, inputType)
 		}
-		if len(docCtx.InputTypes) > 0 {
-			var inputTypes []string
-			for inputType := range docCtx.InputTypes {
-				inputTypes = append(inputTypes, inputType)
-			}
-			imports = append(
-				imports,
-				fmt.Sprintf(
-					`import type { %s } from "$houdini/graphql/inputs";`,
-					strings.Join(inputTypes, ", "),
-				),
-			)
-		}
-	} else {
-		// Add imports based on collected dependencies
-		if docCtx.HasLoading {
-			imports = append(imports, `import { LoadingType } from "$houdini/runtime/lib/types";`)
-		}
-		if len(docCtx.EnumTypes) > 0 {
-			var enumTypes []string
-			for enumType := range docCtx.EnumTypes {
-				enumTypes = append(enumTypes, enumType+"$options")
-			}
-			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/enums";`, strings.Join(enumTypes, ", ")))
-		}
-		if len(docCtx.InputTypes) > 0 {
-			var inputTypes []string
-			for inputType := range docCtx.InputTypes {
-				inputTypes = append(inputTypes, inputType)
-			}
-			imports = append(imports, fmt.Sprintf(`import type { %s } from "$houdini/graphql/inputs";`, strings.Join(inputTypes, ", ")))
-		}
+		imports = append(
+			imports,
+			fmt.Sprintf(
+				`import type { %s } from "$houdini/graphql/inputs";`,
+				strings.Join(inputTypes, ", "),
+			),
+		)
 	}
 
 	// Add artifact type
@@ -195,7 +156,7 @@ func generateFragmentTypes(
 	if len(doc.Variables) > 0 {
 		var inputFields []string
 		for _, variable := range doc.Variables {
-			tsType := convertToTypeScriptTypeSimple(
+			tsType := convertLeafType(
 				ctx,
 				variable.Type,
 				&variable.TypeModifiers,
@@ -217,7 +178,7 @@ func generateFragmentTypes(
 		)
 		types = append(types, inputType)
 	} else {
-		types = append(types, fmt.Sprintf("export type %s = {};", inputTypeName))
+		types = append(types, fmt.Sprintf("export type %s = never;", inputTypeName))
 	}
 
 	// Generate main fragment type
@@ -325,7 +286,7 @@ func generateOperationTypes(
 	if len(doc.Variables) > 0 {
 		var inputFields []string
 		for _, variable := range doc.Variables {
-			tsType := convertToTypeScriptTypeSimple(
+			tsType := convertLeafType(
 				ctx,
 				variable.Type,
 				&variable.TypeModifiers,
@@ -500,7 +461,7 @@ func generateSelectionType(
 			}
 		} else {
 			// Scalar field - use simplified type conversion
-			fieldType = convertToTypeScriptTypeSimple(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
 		}
 
 		// Add readonly modifier if needed
@@ -648,12 +609,67 @@ func generateInterfaceUnionType(
 					}
 					fieldSet[fragmentChild.FieldName] = true
 
-					fieldType := convertToTypeScriptTypeSimple(
-						ctx,
-						fragmentChild.FieldType,
-						fragmentChild.TypeModifiers,
-						collectedDocs,
-					)
+					var fieldType string
+
+					// Check if this field has children (nested object type)
+					if len(fragmentChild.Children) > 0 {
+						// Check if this field has inline fragments (interface/union type)
+						hasInlineFragments := false
+						for _, child := range fragmentChild.Children {
+							if child.Kind == "inline_fragment" {
+								hasInlineFragments = true
+								break
+							}
+						}
+
+						if hasInlineFragments {
+							// Interface/Union type - generate union with discriminators
+							unionType := generateInterfaceUnionType(
+								ctx,
+								fragmentChild,
+								readonly,
+								collectedDocs,
+							)
+
+							// Apply type modifiers (lists, nullability) to the union type
+							modifiers := ""
+							if fragmentChild.TypeModifiers != nil {
+								modifiers = *fragmentChild.TypeModifiers
+							}
+							fieldType = ApplyTypeModifiers(
+								unionType,
+								modifiers,
+								false,
+							) // Output type
+						} else {
+							// Regular nested object type
+							childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs)
+							if childErr != nil {
+								// Fallback to simple type conversion on error
+								fieldType = convertLeafType(
+									ctx,
+									fragmentChild.FieldType,
+									fragmentChild.TypeModifiers,
+									collectedDocs,
+								)
+							} else {
+								// Apply type modifiers (lists, nullability) using the proper function
+								modifiers := ""
+								if fragmentChild.TypeModifiers != nil {
+									modifiers = *fragmentChild.TypeModifiers
+								}
+								fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
+							}
+						}
+					} else {
+						fieldType = convertLeafType(
+							ctx,
+							fragmentChild.FieldType,
+							fragmentChild.TypeModifiers,
+							collectedDocs,
+						)
+					}
+
 					fields = append(
 						fields,
 						fmt.Sprintf(
@@ -819,7 +835,7 @@ func generateOptimisticType(
 			fieldType = childType
 		} else {
 			// Leaf field - convert the GraphQL type to TypeScript
-			fieldType = convertToTypeScriptTypeSimple(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
+			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
 		}
 
 		// Add JSDoc comment if this field has a description
@@ -1095,8 +1111,8 @@ func generateLoadingStateType(
 	return fmt.Sprintf("{\n%s\n%s}", strings.Join(fields, "\n"), closingIndent), nil
 }
 
-// convertToTypeScriptTypeSimple converts GraphQL types to TypeScript using automatic kind detection
-func convertToTypeScriptTypeSimple(
+// convertLeafType converts GraphQL leaf types to TypeScript using automatic kind detection
+func convertLeafType(
 	ctx DocumentContext,
 	typeName string,
 	typeModifiers *string,
@@ -1105,24 +1121,23 @@ func convertToTypeScriptTypeSimple(
 	// Determine the kind automatically based on collected documents and project config
 	kind := determineTypeKind(ctx.ProjectConfig, typeName, collectedDocs)
 
-	// Special handling for known enum types
-	if typeName == "MyEnum" {
-		kind = "ENUM"
-	}
-
 	// Collect dependencies as we encounter them
+	typeStr := ""
 	switch kind {
 	case "ENUM":
 		ctx.EnumTypes[typeName] = true
+
+		typeStr = fmt.Sprintf("%s$options", typeName)
 	case "INPUT":
 		// Only collect input types that are actually input types (not scalars)
 		if _, exists := collectedDocs.InputTypes[typeName]; exists {
 			ctx.InputTypes[typeName] = true
 		}
-	}
 
-	// Use the shared base type conversion logic with simple defaults
-	baseType := convertBaseType(kind, typeName, ctx.ProjectConfig, false)
+		typeStr = typeName
+	case "SCALAR":
+		typeStr = convertScalarType(kind, typeName, ctx.ProjectConfig, false)
+	}
 
 	// Apply type modifiers using the exported function
 	modifiers := ""
@@ -1130,7 +1145,7 @@ func convertToTypeScriptTypeSimple(
 		modifiers = *typeModifiers
 	}
 
-	return ApplyTypeModifiers(baseType, modifiers, false) // Output type
+	return ApplyTypeModifiers(typeStr, modifiers, false)
 }
 
 // determineTypeKind automatically determines the GraphQL type kind based on collected documents and project config

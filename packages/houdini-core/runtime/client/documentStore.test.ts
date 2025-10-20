@@ -1,4 +1,4 @@
-import { sleep } from '@kitql/helpers'
+import { sleep } from 'houdini'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { createPluginHooks, HoudiniClient } from '.'
