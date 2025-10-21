@@ -82,53 +82,6 @@ func (p *HoudiniCore) GenerateRuntime(ctx context.Context) ([]string, error) {
 		return nil
 	})
 
-	// generate the root type config
-	g.Go(func() error {
-		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "tsconfig.json")
-
-		content := `{
-	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"$houdini": ["."],
-			"$houdini/*": ["./*"],
-			"~": ["../src"],
-			"~/*": ["../src/*"]
-		},
-		"rootDirs": ["..", "./types", "../.svelte-kit/types"],
-		"target": "ESNext",
-		"useDefineForClassFields": true,
-		"lib": ["DOM", "DOM.Iterable", "ESNext"],
-		"allowJs": false,
-		"skipLibCheck": true,
-		"esModuleInterop": false,
-		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"module": "ESNext",
-		"moduleResolution": "Node",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"noEmit": true,
-		"jsx": "react-jsx"
-	},
-	"include": [
-		"ambient.d.ts",
-		"./types/**/$types.d.ts",
-		"../vite.config.ts",
-		"../src/**/*.js",
-		"../src/**/*.ts",
-		"../src/**/*.jsx",
-		"../src/**/*.tsx",
-		"../src/+app.d.ts"
-	],
-	"exclude": ["../node_modules/**", "./[!ambient.d.ts]**"]
-}
-`
-
-		return afero.WriteFile(p.Fs, targetPath, []byte(content), 0o644)
-	})
-
 	// generate the runtime index file
 	g.Go(func() error {
 		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")

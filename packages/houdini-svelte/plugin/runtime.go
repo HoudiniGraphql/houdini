@@ -30,7 +30,7 @@ func (p *HoudiniSvelte) TransformRuntime(
 	}
 
 	switch fp {
-	case "adapter.js":
+	case "adapter.ts":
 		// the current content is the svelte adapter
 		if pluginConfig.Framework == config.PluginFrameworkSvelte {
 			return content, nil
@@ -53,7 +53,7 @@ export const error = svelteKitError
 export const redirect = svelteKitRedirect
 `, nil
 
-	case "client.js":
+	case "client.ts":
 		// compute the relative path from the client import file to the user's client
 		clientPath := path.Join(projectConfig.ProjectRoot, pluginConfig.ClientPath)
 		relPath, err := filepath.Rel(projectConfig.PluginRuntimeDirectory(p.Name()), clientPath)
@@ -62,7 +62,7 @@ export const redirect = svelteKitRedirect
 		}
 
 		// replace the constant
-		return strings.Replace(content, "HOUDINI_CLIENT_PATH", relPath, 1), nil
+		return strings.ReplaceAll(content, "HOUDINI_CLIENT_PATH", relPath), nil
 	}
 
 	// no matches, just return
@@ -202,12 +202,40 @@ func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
 	}
 
 	// Write the modified content back to the file
+	err = afero.WriteFile(
+		p.Fs,
+		targetPath,
+		[]byte(newContent.String()),
+		0644,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// there needs to always be a stores/index.ts file even if nothing has been generated yet
+	storeIndexPath := path.Join(
+		projectConfig.PluginDirectory(p.Name()),
+		"stores",
+		"index.ts",
+	)
+	err = p.Fs.MkdirAll(path.Dir(storeIndexPath), 0755)
+	if err != nil {
+		return nil, err
+	}
+	exists, err := afero.Exists(p.Fs, storeIndexPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		err = afero.WriteFile(p.Fs, storeIndexPath, []byte(""), 0644)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// we're done
 	return []string{
-			targetPath,
-		}, afero.WriteFile(
-			p.Fs,
-			targetPath,
-			[]byte(newContent.String()),
-			0644,
-		)
+		targetPath,
+	}, nil
 }

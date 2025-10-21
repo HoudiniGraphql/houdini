@@ -83,9 +83,12 @@ func PreparePaginationDocuments(
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
 			JOIN selections on discovered_lists.list_field = selections.id
-			JOIN selection_refs on selection_refs.child_id = selections.id
-			JOIN documents on selection_refs.document = documents.id
-			LEFT JOIN document_variables on document_variables."document" = selection_refs.document
+			JOIN selection_refs on selection_refs.child_id = selections.id					
+		  JOIN documents on selection_refs.document = documents.id
+		      AND documents.raw_document = discovered_lists.raw_document
+		      AND documents.id = discovered_lists.raw_document
+		  LEFT JOIN document_variables on document_variables."document" = selection_refs.document
+		       AND document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset')
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
           AND selection_arguments.document = documents.id
 			LEFT JOIN argument_values on selection_arguments.value = argument_values.id
@@ -96,9 +99,8 @@ func PreparePaginationDocuments(
 			LEFT JOIN type_fields tf
 				ON tf.parent = documents.type_condition
 				AND tf.name = je.value
-		WHERE (document_variables."name"  is null OR document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
-			AND (selection_arguments."name" is null OR selection_arguments."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
-			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+		WHERE (selection_arguments."name" is null OR selection_arguments."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
+       AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY discovered_lists.id
 	`)
 	if err != nil {

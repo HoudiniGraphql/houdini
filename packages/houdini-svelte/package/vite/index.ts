@@ -2,11 +2,11 @@ import { VitePluginContext } from 'houdini/vite'
 import { PluginOption } from 'vite'
 import { path } from 'houdini'
 
-import transform_file from './transform'
+import transform_file from './transform/index.js'
 
 export default function (ctx: VitePluginContext): PluginOption {
 	return {
-		name: 'houdini-react',
+		name: 'houdini-svelte',
     transform(code: string, filepath: string) {
 			// everything internal to houdini should assume posix paths
 			filepath = path.posixify(filepath)

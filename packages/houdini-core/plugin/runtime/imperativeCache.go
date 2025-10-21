@@ -131,7 +131,7 @@ func generateImports(
 	for _, doc := range sortedDocs {
 		if doc.Kind == "query" {
 			imports.WriteString(fmt.Sprintf(
-				`import { %s$result, %s$input } from "../artifacts/%s";`+"\n",
+				`import type { %s$result, %s$input } from "../artifacts/%s";`+"\n",
 				doc.Name, doc.Name, doc.Name,
 			))
 		}
@@ -166,12 +166,12 @@ func generateImports(
 			// Use pre-loaded argument info
 			if doc.HasArguments {
 				imports.WriteString(fmt.Sprintf(
-					`import { %s$input } from "../artifacts/%s";`+"\n",
+					`import type { %s$input } from "../artifacts/%s";`+"\n",
 					doc.Name, doc.Name,
 				))
 			}
 			imports.WriteString(fmt.Sprintf(
-				`import { %s$data } from "../artifacts/%s";`+"\n",
+				`import type { %s$data } from "../artifacts/%s";`+"\n",
 				doc.Name, doc.Name,
 			))
 		}

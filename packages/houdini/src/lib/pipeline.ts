@@ -1,4 +1,4 @@
-import type { Config } from 'houdini'
+import type { Config } from './project'
 
 // transforms are functions that takes the collected documents. some will mutate
 // the document definition, some check the definition for errors (undefined fields, etc)

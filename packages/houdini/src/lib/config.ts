@@ -1,6 +1,8 @@
 import type { CachePolicies, PaginateModes } from './types.js'
 
-declare namespace App {}
+declare namespace App {
+	interface Session {}
+}
 
 // the values we can take in from the config file
 export type ConfigFile = {

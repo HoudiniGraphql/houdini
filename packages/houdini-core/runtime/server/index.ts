@@ -1,6 +1,6 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { ServerAdapterRequestHandler } from '@whatwg-node/server'
-import { YogaServer } from 'graphql-yoga'
+import { YogaServer , type YogaServerOptions, type YogaInitialContext} from 'graphql-yoga'
 import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
 
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]
@@ -32,7 +32,7 @@ export class Server<
 			...this.opts,
 			schema: schema,
 			graphqlEndpoint: endpoint,
-			context: async (ctx) => {
+			context: async (ctx: YogaInitialContext) => {
 				const userContext = !this.opts
 					? {}
 					: typeof this.opts.context === 'function'

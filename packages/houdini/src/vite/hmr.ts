@@ -56,33 +56,14 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				await run_pipeline(compiler.trigger_hook, {
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
-					through: 'Validate',
+					// through: 'Validate',
 				})
 			} catch {}
 
 			// we also want to generate the initial file contents but skip the rest of the codegen
-			try {
-				await compiler.trigger_hook('GenerateRuntime')
-			} catch {}
-		},
-
-		// this is called when a module is being resolved
-		async resolveId(id) {
-			// check if this is an artifact import
-			if (id.startsWith('$houdini/artifacts/')) {
-				const match = id.match(/^\$houdini\/artifacts\/(.+)$/)
-				const artifactName = match ? match[1] : null
-				if (artifactName && ctx.db && compiler) {
-					try {
-						// ensure the artifact and its dependencies are generated
-						await ensureArtifactGenerated(artifactName, ctx.db, compiler)
-					} catch (error) {
-						console.error(error)
-					}
-				}
-			}
-			// let vite handle the actual resolution
-			return null
+			// try {
+			// 	await compiler.trigger_hook('GenerateRuntime')
+			// } catch {}
 		},
 
 		// this is called when a file is created or modified

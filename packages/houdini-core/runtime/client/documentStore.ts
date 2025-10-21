@@ -420,15 +420,17 @@ export class DocumentStore<
 					throw abortError
 				}
 
-				// @ts-expect-error
 				// invoke the target with the correct handlers
+				// @ts-expect-error
 				const result = target(draft, handlers)
 
 				// if we got _something_ back it's a promise so we need to make
 				// sure something is listening for error
-				result?.catch((err) => {
-					this.#step('error', { ...ctx, index: index - 1 }, err)
-				})
+        if (result) {
+          result?.catch((err) => {
+            this.#step('error', { ...ctx, index: index - 1 }, err)
+          })
+				}
 			} catch (err) {
 				// if an exception was thrown it was a synchronous hook so catch the exception
 				this.#step('error', { ...ctx, index: index - 1 }, err)

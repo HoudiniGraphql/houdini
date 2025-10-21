@@ -126,6 +126,7 @@ export class QueryStoreCursor<
 			return {
 				// @ts-ignore
 				...$parent,
+				// @ts-ignore
 				pageInfo: extractPageInfo($parent.data, this.artifact.refetch!.path),
 			}
 		})

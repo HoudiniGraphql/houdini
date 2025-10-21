@@ -1,4 +1,4 @@
-import type { TransformPage, Script, Config } from 'houdini'
+import type { TransformPage, Script } from './types'
 import * as recast from 'recast'
 
 const AST = recast.types.builders

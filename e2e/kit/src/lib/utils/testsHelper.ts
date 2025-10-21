@@ -1,6 +1,5 @@
 import { routes } from './routes.js';
-import { sleep } from 'houdini';
-import { stry } from 'houdini';
+import { sleep } from 'houdini'
 import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 
@@ -213,4 +212,23 @@ export async function expectToContain(page: Page, toBe: string, selector = 'div[
 
 export async function waitForConsole(page: Page, type: 'info' | 'error' = 'info') {
   return await page.waitForEvent('console', { predicate: (msg) => msg.type() === type });
+}
+
+export function stry(value: any, indent?: number): string {
+	try {
+		if (value === null || value === undefined) {
+			return String(value)
+		}
+		
+		// If indent is provided, use it for pretty printing
+		if (typeof indent === 'number') {
+			return JSON.stringify(value, null, indent)
+		}
+		
+		// Default to compact JSON
+		return JSON.stringify(value)
+	} catch (error) {
+		// Fallback for circular references or other stringify errors
+		return String(value)
+	}
 }

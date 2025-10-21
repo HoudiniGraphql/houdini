@@ -1,5 +1,5 @@
 import { Config } from "houdini"
-import { HoudiniSvelteConfig } from "."
+import type { HoudiniSvelteConfig } from "houdini-svelte"
 
 export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')

@@ -2,7 +2,7 @@ import type { Config } from 'houdini'
 import { find_graphql, extractDefinition, ensure_imports } from 'houdini'
 import * as recast from 'recast'
 
-import type { SvelteTransformPage } from '../types'
+import type { SvelteTransformPage } from '../types.js'
 
 type Identifier = recast.types.namedTypes.Identifier
 const AST = recast.types.builders

@@ -1,13 +1,12 @@
-import type { GraphQLVariables } from '$houdini/runtime/lib/types'
-
 import type { QueryStore } from './stores/index.js'
 
 export * from './adapter.js'
 export * from './stores/index.js'
 export * from './fragments.js'
 export * from './types.js'
+export * from './session.js'
 
-type LoadResult = Promise<{ [key: string]: QueryStore<any, GraphQLVariables | null | undefined> }>
+type LoadResult = Promise<{ [key: string]: QueryStore<any, any> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
 // gets all the values from an object
@@ -49,7 +48,7 @@ export async function loadAll<
 // its really the only thing from lib that users should import so it makes sense to have it here....
 export async function loadAll(
 	...loads: LoadAllInput[]
-): Promise<Record<string, QueryStore<any, {}>>> {
+): Promise<Record<string, QueryStore<any, any>>> {
 	// we need to collect all of the promises in a single list that we will await in promise.all and then build up
 	const promises: LoadResult[] = []
 

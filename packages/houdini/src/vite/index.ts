@@ -125,6 +125,12 @@ async function load_vite_plugins(
 
 						pluginModule = await import(viteFileUrl)
 					} catch (resolveError) {
+						console.log(
+							'skipping plugin',
+							plugin.name,
+							'due to resolution error:',
+							resolveError,
+						)
 						// if resolution fails, skip this plugin
 						return null
 					}

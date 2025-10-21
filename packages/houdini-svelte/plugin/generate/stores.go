@@ -64,7 +64,7 @@ func GenerateStores(
 		)
 		LEFT JOIN discovered_lists dl_offset ON (
 			dl_offset.raw_document = d.raw_document
-			AND dl_offset.connection = 0
+			AND dl_offset.connection = 0 AND dl_offset.paginate is not null
 		)
 		GROUP BY d.id, d.name, d.kind
 		HAVING d.visible = 1
@@ -234,7 +234,8 @@ func generateMutationStore(
 	}
 
 	storeContent := fmt.Sprintf(
-		`import artifact, { %s$result, %s$input, %s$optimistic } from '$houdini/artifacts/%s.js'
+		`import artifact from '$houdini/artifacts/%s.js'
+import type { %s$result, %s$input, %s$optimistic } from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
 export class %s extends %s<%s$result, %s$input, %s$optimistic> {
@@ -244,6 +245,7 @@ export class %s extends %s<%s$result, %s$input, %s$optimistic> {
         })
     }
 }`,
+		name,
 		name,
 		name,
 		name,
@@ -274,7 +276,8 @@ func generateSubscriptionStore(
 	}
 
 	storeContent := fmt.Sprintf(
-		`import artifact, { %s$result, %s$input }from '$houdini/artifacts/%s.js'
+		`import artifact from '$houdini/artifacts/%s.js'
+import type { %s$result, %s$input }from '$houdini/artifacts/%s.js'
 import { %s } from '%s'
 
 export class %s extends %s<%s$result, %s$input> {
@@ -284,6 +287,7 @@ export class %s extends %s<%s$result, %s$input> {
         })
     }
 }`,
+		name,
 		name,
 		name,
 		name,
@@ -313,6 +317,7 @@ func generateFragmentStore(
 	extraImport := ""
 	extraFields := ""
 	if refetchMethod != config.StorePaginationTypeNone {
+		variablesRequired = true
 		extraImport = fmt.Sprintf(
 			`
 import _PaginationArtifact from '$houdini/artifacts/%s.js'`,

@@ -13,8 +13,9 @@ import {
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
+	Script,
 } from './types.js'
-import type { Script, Config } from 'houdini'
+import type { Config } from './project.js'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode

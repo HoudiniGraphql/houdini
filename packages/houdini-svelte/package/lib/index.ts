@@ -1,5 +1,3 @@
-export * from './config.js'
-
 declare module 'houdini' {
 	interface HoudiniPluginConfig {
 		'houdini-svelte': HoudiniSvelteConfig
