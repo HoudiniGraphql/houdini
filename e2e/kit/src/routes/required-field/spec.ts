@@ -1,6 +1,7 @@
 import { routes } from '../../lib/utils/routes.js';
 import { expect_n_gql, expect_to_be, goto } from '../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
+import { stringify } from '../../lib/utils/stringify.js';
 
 test.describe('required-field', () => {
   test('Get null and non-null required field', async ({ page }) => {
@@ -24,7 +25,7 @@ test.describe('required-field', () => {
     await expect_n_gql(page, 'button[id="getNonNull"]', 2);
     await expect_to_be(
       page,
-      JSON.stringify(
+      stringify(
         {
           withRequired: {
             id: 'user-required:1',
@@ -44,7 +45,7 @@ test.describe('required-field', () => {
     );
     await expect_to_be(
       page,
-      JSON.stringify(
+      stringify(
         {
           withRequired: {
             name: 'Bruce Willis',
@@ -69,7 +70,7 @@ test.describe('required-field', () => {
     await expect_n_gql(page, 'button[id="getNull"]', 2);
     await expect_to_be(
       page,
-      JSON.stringify(
+      stringify(
         {
           withRequired: null,
           withoutRequired: {
@@ -85,7 +86,7 @@ test.describe('required-field', () => {
     );
     await expect_to_be(
       page,
-      JSON.stringify(
+      stringify(
         {
           withRequired: null,
           withoutRequired: {

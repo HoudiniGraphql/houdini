@@ -6,6 +6,7 @@
     UserRequiredFragmentsStore,
     graphql
   } from '$houdini';
+  import { stringify } from '$lib/utils/stringify';
 
   const userRequired = new UserRequiredStore();
   const userRequiredFragments = new UserRequiredFragmentsStore();
@@ -51,12 +52,12 @@
 
 <h1>Queries</h1>
 <div id="query-result">
-  <pre>{JSON.stringify($userRequired.data, null, 2)}</pre>
+  <pre>{stringify($userRequired.data, null, 2)}</pre>
 </div>
 
 <h1>Fragments</h1>
 <div id="fragment-result">
-  <pre>{JSON.stringify(
+  <pre>{stringify(
       { withRequired: $withRequired, withoutRequired: $withoutRequired },
       null,
       2

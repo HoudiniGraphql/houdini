@@ -1,6 +1,7 @@
 import { routes } from '../../../lib/utils/routes.js';
 import { expect_1_gql, goto, expect_to_be } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
+import { stringify } from '../../../lib/utils/stringify.js';
 
 test.describe('mutation store', function () {
   test('mutation inputs and values get marshaled into complex values', async function ({ page }) {
@@ -12,7 +13,7 @@ test.describe('mutation store', function () {
     // make sure that the result updated with unmarshaled data
     await expect_to_be(
       page,
-      '{"updateUser":{"id":"update-user-mutation:6","name":"Harrison Ford","birthDate":"1986-11-07T00:00:00.000Z"}}'
+      stringify({"updateUser":{"id":"update-user-mutation:6","name":"Harrison Ford","birthDate":"1986-11-07T00:00:00.000Z"}})
     );
   });
 });

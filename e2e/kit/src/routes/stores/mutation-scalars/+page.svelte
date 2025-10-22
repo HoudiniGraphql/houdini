@@ -1,5 +1,6 @@
 <script lang="ts">
   import { UpdateUserStore } from '$houdini';
+  import { stringify } from '$lib/utils/stringify';
 
   const updateUser = new UpdateUserStore();
 
@@ -16,5 +17,5 @@
 <button id="mutate" on:click={update}>Update User</button>
 
 <div id="result">
-  {JSON.stringify($updateUser.data)}
+  {stringify($updateUser.data)}
 </div>
