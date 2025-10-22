@@ -61,7 +61,7 @@ export async function expect_n_gql(
       timing.push(new Date().valueOf() - start);
       try {
         const json = await response.json();
-        const str = stry(json, 0);
+        const str = stringify(json, null, 0);
         listStr.push(str as string);
         nbResponse++;
       } catch (error) {
@@ -214,19 +214,14 @@ export async function waitForConsole(page: Page, type: 'info' | 'error' = 'info'
   return await page.waitForEvent('console', { predicate: (msg) => msg.type() === type });
 }
 
-export function stry(value: any, indent?: number): string {
+export function stringify(value: any, replacer?: any, space?: number): string {
 	try {
 		if (value === null || value === undefined) {
 			return String(value)
 		}
-		
-		// If indent is provided, use it for pretty printing
-		if (typeof indent === 'number') {
-			return JSON.stringify(value, null, indent)
-		}
-		
-		// Default to compact JSON
-		return JSON.stringify(value)
+
+		// Use the standard JSON.stringify signature
+		return JSON.stringify(value, replacer, space)
 	} catch (error) {
 		// Fallback for circular references or other stringify errors
 		return String(value)

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { UpdateUserStore } from '$houdini';
-  import { stry } from '$lib/utils/stry';
+  import { stringify } from '$lib/utils/stringify';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -39,5 +39,5 @@
 </ul>
 
 <pre>
-  {stry($updateUser)}
+  {stringify($updateUser)}
 </pre>

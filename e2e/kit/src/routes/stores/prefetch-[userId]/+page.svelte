@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { stry } from '$lib/utils/stry';
+  import { stringify } from '$lib/utils/stringify';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -16,6 +16,6 @@
 
 <div id="result">
   <pre>
-    {stry($User, 0)}
+    {stringify($User, null, 0)}
   </pre>
 </div>
