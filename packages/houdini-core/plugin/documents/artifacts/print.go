@@ -348,7 +348,7 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 	case "Variable":
 		usedVariables[value.Raw] = true
 		return "$" + value.Raw
-	case "Int", "Float", "Boolean", "Enum":
+	case "Int", "Float", "Boolean":
 		return value.Raw
 	case "Object":
 		var resultBuilder strings.Builder
