@@ -1,7 +1,6 @@
 <script lang="ts">
   import { CachePolicy } from '$houdini';
   import { page } from '$app/stores';
-  import { stry } from 'houdini';
   import type { PageData } from './$types';
 
   export let data: PageData;

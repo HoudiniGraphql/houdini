@@ -5,7 +5,7 @@ import {
   goto,
   locator_click
 } from '../../../../lib/utils/testsHelper.js';
-import { sleep } from 'houdini';
+import { sleep } from '$lib/utils/sleep';
 import { test } from '@playwright/test';
 
 test.describe('Partial Pages', () => {

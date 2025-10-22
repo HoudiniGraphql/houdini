@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { stry } from 'houdini';
+  import { stry } from '$lib/utils/stry';
   import type { PageData } from './$types';
 
   export let data: PageData;

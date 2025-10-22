@@ -28,7 +28,8 @@
 		"build:generate": "pnpm build: && pnpm houdini generate",
 		"build:build": "pnpm build: && pnpm build",
 		"houdini": "node ensureLinks.js && houdini",
-		"build": "vite build"
+		"build": "vite build",
+		"preview": "vite preview"
   },
   "devDependencies": {
     "@playwright/test": "1.48.0",

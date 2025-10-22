@@ -1,5 +1,5 @@
 import { routes } from './routes.js';
-import { sleep } from 'houdini'
+import { sleep } from '$lib/utils/sleep'
 import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 

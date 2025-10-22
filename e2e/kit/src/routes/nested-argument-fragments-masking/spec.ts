@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { sleep } from 'houdini'
+import { sleep } from '$lib/utils/sleep'
 import { goto, } from '../../lib/utils/testsHelper.js';
 
 test('Nested fragment argument masking', async ({ page }) => {
