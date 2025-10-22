@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { GQL_EnumMutation, MyEnum, TypeOfUser } from '$houdini';
+  import { EnumMutationStore, MyEnum, TypeOfUser } from '$houdini';
+
+  const enumMutation = new EnumMutationStore();
 
   async function update() {
-    await GQL_EnumMutation.mutate({
+    await enumMutation.mutate({
       birthDate: new Date(),
       name: 'Foo',
       snapshot: 'foo',
@@ -17,9 +19,9 @@
 <button id="mutate" on:click={update}>Update User</button>
 
 <div id="result">
-  {JSON.stringify($GQL_EnumMutation.data?.addUser?.enumValue === MyEnum.Value1)}
+  {JSON.stringify($enumMutation.data?.addUser?.enumValue === MyEnum.Value1)}
 </div>
 
 <div id="result-type">
-  {JSON.stringify($GQL_EnumMutation.data?.addUser?.types)}
+  {JSON.stringify($enumMutation.data?.addUser?.types)}
 </div>

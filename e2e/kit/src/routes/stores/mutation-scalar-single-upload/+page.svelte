@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { GQL_singleUpload } from '$houdini';
+  import { singleUploadStore } from '$houdini';
+
+  const singleUpload = new singleUploadStore();
 
   async function upload() {
     const file = new File(['Houdini'], 'foo.txt', {
       type: 'text/plain'
     });
 
-    await GQL_singleUpload.mutate({ file: file });
+    await singleUpload.mutate({ file: file });
   }
 </script>
 
@@ -15,5 +17,5 @@
 <button id="mutate" on:click={upload}>Upload file</button>
 
 <div id="result">
-  {JSON.stringify($GQL_singleUpload.data)}
+  {JSON.stringify($singleUpload.data)}
 </div>

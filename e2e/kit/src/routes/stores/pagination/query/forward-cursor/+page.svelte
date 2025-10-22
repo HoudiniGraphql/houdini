@@ -1,28 +1,30 @@
 <script lang="ts">
-  import { CachePolicy, GQL_StoreForwardCursorPaginationQuery } from '$houdini';
+  import { CachePolicy, StoreForwardCursorPaginationQueryStore } from '$houdini';
   import { onMount } from 'svelte';
 
+  const storeForwardCursorPaginationQuery = new StoreForwardCursorPaginationQueryStore();
+
   onMount(() => {
-    GQL_StoreForwardCursorPaginationQuery.fetch();
+    storeForwardCursorPaginationQuery.fetch();
   });
 
   function loadNextPage() {
-    GQL_StoreForwardCursorPaginationQuery.loadNextPage();
+    storeForwardCursorPaginationQuery.loadNextPage();
   }
 
   function refetch() {
-    GQL_StoreForwardCursorPaginationQuery.fetch({ policy: CachePolicy.NetworkOnly });
+    storeForwardCursorPaginationQuery.fetch({ policy: CachePolicy.NetworkOnly });
   }
 </script>
 
 <div id="result">
-  {$GQL_StoreForwardCursorPaginationQuery?.data?.usersConnection.edges
+  {$storeForwardCursorPaginationQuery?.data?.usersConnection.edges
     .map(({ node }) => node?.name)
     .join(', ')}
 </div>
 
 <div id="pageInfo">
-  {JSON.stringify($GQL_StoreForwardCursorPaginationQuery?.pageInfo)}
+  {JSON.stringify($storeForwardCursorPaginationQuery?.pageInfo)}
 </div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>

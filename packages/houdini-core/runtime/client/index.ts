@@ -18,7 +18,8 @@ import {
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
-export { DocumentStore, type ClientPlugin, type SendParams } from './documentStore'
+export { DocumentStore } from './documentStore.js'
+export type { ClientPlugin, SendParams} from './documentStore.js'
 export { fetch, mutation, query, subscription } from './plugins'
 
 export type HoudiniClientConstructorArgs = {

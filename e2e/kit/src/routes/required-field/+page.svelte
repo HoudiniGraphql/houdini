@@ -2,18 +2,21 @@
   import {
     CachePolicy,
     fragment,
-    GQL_UserRequired,
-    GQL_UserRequiredFragments,
+    UserRequiredStore,
+    UserRequiredFragmentsStore,
     graphql
   } from '$houdini';
 
+  const userRequired = new UserRequiredStore();
+  const userRequiredFragments = new UserRequiredFragmentsStore();
+
   async function getUser(id: string, forceNullDate: boolean) {
     await Promise.all([
-      GQL_UserRequired.fetch({
+      userRequired.fetch({
         variables: { id, forceNullDate },
         policy: CachePolicy.NetworkOnly
       }),
-      GQL_UserRequiredFragments.fetch({
+      userRequiredFragments.fetch({
         variables: { id, forceNullDate },
         policy: CachePolicy.NetworkOnly
       })
@@ -21,7 +24,7 @@
   }
 
   $: withRequired = fragment(
-    $GQL_UserRequiredFragments.data?.user,
+    $userRequiredFragments.data?.user,
     graphql(`
       fragment UserWithRequired on User {
         name
@@ -31,7 +34,7 @@
   );
 
   $: withoutRequired = fragment(
-    $GQL_UserRequiredFragments.data?.user,
+    $userRequiredFragments.data?.user,
     graphql(`
       fragment UserWithoutRequired on User {
         name
@@ -48,7 +51,7 @@
 
 <h1>Queries</h1>
 <div id="query-result">
-  <pre>{JSON.stringify($GQL_UserRequired.data, null, 2)}</pre>
+  <pre>{JSON.stringify($userRequired.data, null, 2)}</pre>
 </div>
 
 <h1>Fragments</h1>

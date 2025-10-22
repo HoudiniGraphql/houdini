@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { GQL_UsersListSubUnSub } from '$houdini';
+  import { UsersListSubUnSubStore } from '$houdini';
   import { onMount } from 'svelte';
 
+  const usersListSubUnSub = new UsersListSubUnSubStore();
+
   onMount(() => {
-    GQL_UsersListSubUnSub.fetch();
+    usersListSubUnSub.fetch();
   });
 </script>
 
 <h1>Sub Unsub - List</h1>
 
 <ul>
-  {#each $GQL_UsersListSubUnSub.data?.usersList ?? [] as user}
+  {#each $usersListSubUnSub.data?.usersList ?? [] as user}
     <li>
       {user.id} - {user.name}
     </li>

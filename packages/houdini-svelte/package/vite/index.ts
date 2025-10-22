@@ -7,7 +7,8 @@ import transform_file from './transform/index.js'
 export default function (ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-svelte',
-    transform(code: string, filepath: string) {
+    enforce: 'pre',
+    async transform(code: string, filepath: string) {
 			// everything internal to houdini should assume posix paths
 			filepath = path.posixify(filepath)
 
@@ -16,13 +17,15 @@ export default function (ctx: VitePluginContext): PluginOption {
 			}
 
       // apply the transforms
-      return transform_file('kit', {
+      const result = await transform_file('kit', {
         config: ctx.config,
         content: code,
         filepath,
 				watch_file: this.addWatchFile.bind(this),
 				map: this.getCombinedSourcemap(),
       })
+
+      return result
     }
 	}
 }

@@ -69,9 +69,9 @@ export default async function apply_transforms(
 
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
-		code: !page.filepath.endsWith('.svelte')
-			? code
-			: replace_tag_content(page.content, position!.start, position!.end, code),
+		code: page.filepath.endsWith('.svelte')
+			? replace_tag_content(page.content, position!.start, position!.end, code)
+      : code,
 		map,
 	}
 }

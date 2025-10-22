@@ -1,15 +1,17 @@
 <script lang="ts">
-  import { GQL_usersListComp } from '$houdini';
+  import { usersListCompStore } from '$houdini';
   import { onMount } from 'svelte';
 
+  const usersListComp = new usersListCompStore();
+
   onMount(() => {
-    GQL_usersListComp.fetch();
+    usersListComp.fetch();
   });
 </script>
 
 <p id="QueryExt-result">
   Query Comp - Number of users: {JSON.stringify(
-    $GQL_usersListComp.data?.usersList?.length,
+    $usersListComp.data?.usersList?.length,
     null,
     2
   )}

@@ -1,17 +1,20 @@
 <script lang="ts">
-  import { GQL_Hello, GQL_usersList } from '$houdini';
+  import { HelloStore, usersListStore } from '$houdini';
   import { onMount } from 'svelte';
 
+  const hello = new HelloStore();
+  const usersList = new usersListStore();
+
   onMount(() => {
-    GQL_usersList.fetch();
-    GQL_Hello.fetch();
+    usersList.fetch();
+    hello.fetch();
   });
 </script>
 
 <h1>NETWORK</h1>
 
 <ul>
-  {#each $GQL_usersList.data?.usersList ?? [] as user}
+  {#each $usersList.data?.usersList ?? [] as user}
     <li>
       {user.id} - {user.name}
     </li>
@@ -19,5 +22,5 @@
 </ul>
 
 <div id="result">
-  {$GQL_Hello.data?.hello}
+  {$hello.data?.hello}
 </div>

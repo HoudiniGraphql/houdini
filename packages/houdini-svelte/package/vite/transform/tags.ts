@@ -8,6 +8,7 @@ type Identifier = recast.types.namedTypes.Identifier
 const AST = recast.types.builders
 
 export default async function GraphQLTagProcessor(config: Config, page: SvelteTransformPage) {
+  let replaced = false
 	// all graphql documents need to be turned into a reference to the appropriate store
 	await find_graphql(config, page.script, {
 		dependency: page.watch_file,
@@ -21,8 +22,13 @@ export default async function GraphQLTagProcessor(config: Config, page: SvelteTr
 			// we're going to turn the graphql tag into a reference to the document's
 			// store
 			node.replaceWith(AST.newExpression(id, []))
+      replaced = true
 		},
 	})
+
+  // if (replaced) {
+  //   console.log(page.filepath + '\n' + recast.print(page.script).code)
+  // }
 }
 
 function store_import({

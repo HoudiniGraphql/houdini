@@ -1,69 +1,78 @@
 <script lang="ts">
   import {
-    GQL_Cities,
-    GQL_AddCity,
-    GQL_AddLibrary,
-    GQL_AddBook,
-    GQL_DeleteCity,
-    GQL_DeleteLibrary,
-    GQL_DeleteBook,
+    CitiesStore,
+    AddCityStore,
+    AddLibraryStore,
+    AddBookStore,
+    DeleteCityStore,
+    DeleteLibraryStore,
+    DeleteBookStore,
     type ForceReturn$options,
-    GQL_RemoveBook
+    RemoveBookStore
   } from '$houdini';
   import { onMount } from 'svelte';
 
+  const cities = new CitiesStore();
+  const addCity = new AddCityStore();
+  const addLibrary = new AddLibraryStore();
+  const addBook = new AddBookStore();
+  const deleteCity = new DeleteCityStore();
+  const deleteLibrary = new DeleteLibraryStore();
+  const deleteBook = new DeleteBookStore();
+  const removeBook = new RemoveBookStore();
+
   onMount(() => {
-    GQL_Cities.fetch();
+    cities.fetch();
   });
 
-  const addCity = (event: Event) => {
+  const addCityHandler = (event: Event) => {
     const target = event?.target as HTMLInputElement;
-    GQL_AddCity.mutate({ name: target.value });
+    addCity.mutate({ name: target.value });
     target.value = '';
   };
 
-  const deleteCity = (event: Event) => {
+  const deleteCityHandler = (event: Event) => {
     const target = event?.target as HTMLButtonElement;
     if (!target.dataset.id) {
       return;
     }
-    GQL_DeleteCity.mutate({ city: target.dataset.id });
+    deleteCity.mutate({ city: target.dataset.id });
   };
 
-  const addLibrary = (event: Event) => {
-    const target = event?.target as HTMLInputElement;
-    if (!target.dataset.id) {
-      return;
-    }
-
-    GQL_AddLibrary.mutate({ city: target.dataset.id, name: target.value });
-    target.value = '';
-  };
-
-  const deleteLibrary = (event: Event) => {
-    const target = event?.target as HTMLButtonElement;
-    if (!target.dataset.id) {
-      return;
-    }
-    GQL_DeleteLibrary.mutate({ library: target.dataset.id });
-  };
-
-  const addBook = (event: Event) => {
+  const addLibraryHandler = (event: Event) => {
     const target = event?.target as HTMLInputElement;
     if (!target.dataset.id) {
       return;
     }
 
-    GQL_AddBook.mutate({ library: target.dataset.id, title: target.value });
+    addLibrary.mutate({ city: target.dataset.id, name: target.value });
     target.value = '';
   };
 
-  const removeBook = (event: Event) => {
+  const deleteLibraryHandler = (event: Event) => {
     const target = event?.target as HTMLButtonElement;
     if (!target.dataset.id) {
       return;
     }
-    GQL_RemoveBook.mutate(
+    deleteLibrary.mutate({ library: target.dataset.id });
+  };
+
+  const addBookHandler = (event: Event) => {
+    const target = event?.target as HTMLInputElement;
+    if (!target.dataset.id) {
+      return;
+    }
+
+    addBook.mutate({ library: target.dataset.id, title: target.value });
+    target.value = '';
+  };
+
+  const removeBookHandler = (event: Event) => {
+    const target = event?.target as HTMLButtonElement;
+    if (!target.dataset.id) {
+      return;
+    }
+    removeBook.mutate(
       {
         book: target.dataset.id,
         force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL'
@@ -72,12 +81,12 @@
     );
   };
 
-  const deleteBook = (event: Event) => {
+  const deleteBookHandler = (event: Event) => {
     const target = event?.target as HTMLButtonElement;
     if (!target.dataset.id) {
       return;
     }
-    GQL_DeleteBook.mutate(
+    deleteBook.mutate(
       {
         book: target.dataset.id,
         force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL'
@@ -90,49 +99,49 @@
 <h1>Nested - List</h1>
 
 <ul>
-  {#each $GQL_Cities.data?.cities ?? [] as city}
+  {#each $cities.data?.cities ?? [] as city}
     <li>
       {city?.id}: {city?.name}
-      <button data-id={city?.id} on:click={deleteCity}>Delete</button>
+      <button data-id={city?.id} on:click={deleteCityHandler}>Delete</button>
       <ul>
         {#each city?.libraries ?? [] as library}
           <li>
             {library?.id}: {library?.name}
-            <button data-id={library?.id} on:click={deleteLibrary}>Delete</button>
+            <button data-id={library?.id} on:click={deleteLibraryHandler}>Delete</button>
             <ul>
               {#each library?.books ?? [] as book}
                 <li>
                   {book?.id}: {book?.title}
-                  <button data-id={book?.id} on:click={removeBook}>Remove</button>
-                  <button data-id={book?.id} data-force="NULL" on:click={removeBook}
+                  <button data-id={book?.id} on:click={removeBookHandler}>Remove</button>
+                  <button data-id={book?.id} data-force="NULL" on:click={removeBookHandler}
                     >Remove (null)</button
                   >
-                  <button data-id={book?.id} data-force="ERROR" on:click={removeBook}
+                  <button data-id={book?.id} data-force="ERROR" on:click={removeBookHandler}
                     >Remove (error)</button
                   >
-                  <button data-id={book?.id} on:click={deleteBook}>Delete</button>
-                  <button data-id={book?.id} data-force="NULL" on:click={deleteBook}
+                  <button data-id={book?.id} on:click={deleteBookHandler}>Delete</button>
+                  <button data-id={book?.id} data-force="NULL" on:click={deleteBookHandler}
                     >Delete (null)</button
                   >
-                  <button data-id={book?.id} data-force="ERROR" on:click={deleteBook}
+                  <button data-id={book?.id} data-force="ERROR" on:click={deleteBookHandler}
                     >Delete (error)</button
                   >
                 </li>
               {/each}
-              <li><input data-id={library?.id} on:change={addBook} /></li>
+              <li><input data-id={library?.id} on:change={addBookHandler} /></li>
             </ul>
           </li>
         {/each}
-        <li><input data-id={city?.id} on:change={addLibrary} /></li>
+        <li><input data-id={city?.id} on:change={addLibraryHandler} /></li>
       </ul>
     </li>
   {/each}
   <li>
-    <input on:change={addCity} />
+    <input on:change={addCityHandler} />
   </li>
 </ul>
 
-<pre>{JSON.stringify($GQL_Cities?.data, null, 4)}</pre>
+<pre>{JSON.stringify($cities?.data, null, 4)}</pre>
 
 <style>
   button {

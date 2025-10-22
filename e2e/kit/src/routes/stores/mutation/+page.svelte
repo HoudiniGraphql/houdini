@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { graphql, GQL_UpdateUser } from '$houdini';
+  import { graphql, UpdateUserStore } from '$houdini';
   import { stry } from 'houdini';
   import type { PageData } from './$types';
 
@@ -7,8 +7,10 @@
 
   $: ({ OptimisticUserQuery : query } = data)
 
+  const updateUser = new UpdateUserStore();
+
   async function add() {
-    await GQL_UpdateUser.mutate(
+    await updateUser.mutate(
       { id: '1', name: 'JYC', birthDate: new Date('1986-11-07') },
       {
         optimisticResponse: {
@@ -31,5 +33,5 @@
 </div>
 
 <div id="store-value">
-  {stry($GQL_UpdateUser)}
+  {stry($updateUser)}
 </div>

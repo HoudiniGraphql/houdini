@@ -1,6 +1,6 @@
-import { ReporterDescription, defineConfig } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
-const reporters: ReporterDescription[] = [['list'], ['html', { open: 'never' }]];
+const reporters = [['list'], ['html', { open: 'never' }]];
 if (process.env.CI) {
   reporters.push(['github']);
 }

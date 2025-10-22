@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { GQL_UpdateUserSubUnsub } from '$houdini';
+  import { UpdateUserSubUnsubStore } from '$houdini';
+
+  const updateUserSubUnsub = new UpdateUserSubUnsubStore();
+
   async function mutate() {
-    await GQL_UpdateUserSubUnsub.mutate({
+    await updateUserSubUnsub.mutate({
       id: '1',
       name: 'JYC & Alec!'
     });

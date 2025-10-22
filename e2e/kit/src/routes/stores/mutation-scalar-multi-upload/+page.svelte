@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { GQL_multipleUpload } from '$houdini';
+  import { multipleUploadStore } from '$houdini';
+
+  const multipleUpload = new multipleUploadStore();
 
   async function upload() {
     const file = new File(['Houdini'], 'foo.txt', {
       type: 'text/plain'
     });
 
-    await GQL_multipleUpload.mutate({ files: [file, file] });
+    await multipleUpload.mutate({ files: [file, file] });
   }
 </script>
 
@@ -15,5 +17,5 @@
 <button id="mutate" on:click={upload}>Upload files</button>
 
 <div id="result">
-  {JSON.stringify($GQL_multipleUpload.data)}
+  {JSON.stringify($multipleUpload.data)}
 </div>
