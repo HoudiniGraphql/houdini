@@ -2,6 +2,8 @@ import { routes } from './routes.js';
 import { sleep } from '$lib/utils/sleep'
 import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
+export { stringify } from './stringify.js';
+import { stringify } from './stringify.js';
 
 /**
  *
@@ -196,7 +198,7 @@ export async function expect_to_be(
   selector = 'div[id=result]',
   trimed = true
 ) {
-  const result = await page.locator(selector).textContent({ timeout: 2997 });
+  const result = await page.locator(selector).textContent({ timeout: 500 });
   // If the selector is not found, we will get an error: Timeout.
   // It's usually because the page is not loading properly!
   expect(trimed ? result?.trim() : result, `element "${selector}" must BE 👇`).toBe(toBe);
@@ -214,16 +216,3 @@ export async function waitForConsole(page: Page, type: 'info' | 'error' = 'info'
   return await page.waitForEvent('console', { predicate: (msg) => msg.type() === type });
 }
 
-export function stringify(value: any, replacer?: any, space?: number): string {
-	try {
-		if (value === null || value === undefined) {
-			return String(value)
-		}
-
-		// Use the standard JSON.stringify signature
-		return JSON.stringify(value, replacer, space)
-	} catch (error) {
-		// Fallback for circular references or other stringify errors
-		return String(value)
-	}
-}

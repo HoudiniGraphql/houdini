@@ -5,7 +5,8 @@ import {
   expect_0_gql,
   expect_1_gql,
   expect_to_be,
-  goto
+  goto,
+  stringify
 } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('forwards cursor paginatedFragment with required arguments', () => {

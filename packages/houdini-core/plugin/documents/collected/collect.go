@@ -195,7 +195,7 @@ func collectDoc(
 			// build up a mapping of document name to the collected version
 			documents := map[string]*Document{}
 			// and in order to build up the correct tree structure we need a mapping of selection ID
-			// to the actual selection
+			// to the actual selection (selections can be shared across multiple documents)
 			selections := map[int64]*Selection{}
 
 			// as a follow up, we need to recreate the arguments and directives that were assigned to the selection
@@ -253,56 +253,60 @@ func collectDoc(
 					description = &descValue
 				}
 
-				// create the collected selection from the information we have
-				selection := &Selection{
-					FieldName:     fieldName,
-					FieldType:     fieldType,
-					TypeModifiers: typeModifiers,
-					Alias:         alias,
-					Kind:          kind,
-					Description:   description,
-					Internal:      internal,
-				}
-
-				if fragmentRef != "" {
-					selection.FragmentRef = &fragmentRef
-				}
-
-				// add the component field spec if we detected a match
-				if componentFieldField != "" {
-					selection.ComponentField = &ComponentFieldSpec{
-						Type:     componentFieldType,
-						Field:    componentFieldField,
-						Fragment: componentFieldFragment,
-						Prop:     componentFieldProp,
+				// check if this selection already exists (shared across documents)
+				selection, exists := selections[selectionID]
+				if !exists {
+					// create the collected selection from the information we have
+					selection = &Selection{
+						FieldName:     fieldName,
+						FieldType:     fieldType,
+						TypeModifiers: typeModifiers,
+						Alias:         alias,
+						Kind:          kind,
+						Description:   description,
+						Internal:      internal,
 					}
-				}
 
-				if listType != "" {
-					selection.List = &List{
-						Name:       listName,
-						Type:       listType,
-						Connection: listConnection,
-						PageSize:   int(listPageSize),
-						Mode:       listMode,
-						Embedded:   listEmbedded,
-						TargetType: listTargetType,
-						CursorType: listCursorType,
+					if fragmentRef != "" {
+						selection.FragmentRef = &fragmentRef
 					}
-					if !statements.Search.IsNull("list_paginated") {
-						selection.List.Paginated = true
-						selection.Paginated = true
-						selection.List.SupportsBackward = statements.Search.GetBool(
-							"list_supports_backward",
-						)
-						selection.List.SupportsForward = statements.Search.GetBool(
-							"list_supports_forward",
-						)
-					}
-				}
 
-				// save the ID in the selection map
-				selections[selectionID] = selection
+					// add the component field spec if we detected a match
+					if componentFieldField != "" {
+						selection.ComponentField = &ComponentFieldSpec{
+							Type:     componentFieldType,
+							Field:    componentFieldField,
+							Fragment: componentFieldFragment,
+							Prop:     componentFieldProp,
+						}
+					}
+
+					if listType != "" {
+						selection.List = &List{
+							Name:       listName,
+							Type:       listType,
+							Connection: listConnection,
+							PageSize:   int(listPageSize),
+							Mode:       listMode,
+							Embedded:   listEmbedded,
+							TargetType: listTargetType,
+							CursorType: listCursorType,
+						}
+						if !statements.Search.IsNull("list_paginated") {
+							selection.List.Paginated = true
+							selection.Paginated = true
+							selection.List.SupportsBackward = statements.Search.GetBool(
+								"list_supports_backward",
+							)
+							selection.List.SupportsForward = statements.Search.GetBool(
+								"list_supports_forward",
+							)
+						}
+					}
+
+					// save the ID in the selection map
+					selections[selectionID] = selection
+				}
 
 				// if there is no parent then we have a root selection
 				if statements.Search.IsNull("parent_id") {
@@ -331,7 +335,17 @@ func collectDoc(
 					parentID := statements.Search.GetInt64("parent_id")
 					parent, ok := selections[parentID]
 					if ok {
-						parent.Children = append(parent.Children, selection)
+						// check if this child is already in the parent's children to avoid duplicates
+						childExists := false
+						for _, existingChild := range parent.Children {
+							if existingChild == selection {
+								childExists = true
+								break
+							}
+						}
+						if !childExists {
+							parent.Children = append(parent.Children, selection)
+						}
 					} else {
 						if _, ok := missingParents[parentID]; !ok {
 							missingParents[parentID] = []*Selection{}
@@ -413,7 +427,17 @@ func collectDoc(
 					errs.Append(plugins.Errorf("Missing parent selection"))
 				}
 				for _, selection := range parentSelections {
-					parent.Children = append(parent.Children, selection)
+					// check if this child is already in the parent's children to avoid duplicates
+					childExists := false
+					for _, existingChild := range parent.Children {
+						if existingChild == selection {
+							childExists = true
+							break
+						}
+					}
+					if !childExists {
+						parent.Children = append(parent.Children, selection)
+					}
 				}
 			}
 

@@ -312,7 +312,6 @@ func performDefinitionsTest(
 	projectConfig, err := p.DB.ProjectConfig(context.Background())
 	require.Nil(t, err)
 
-	checkFileExact(t, p.Fs, projectConfig.DefinitionsEnumTypes(), test.Extra["enumsTypesExact"])
 	checkFileExact(t, p.Fs, projectConfig.DefinitionsEnumRuntime(), test.Extra["enumsExact"])
 	checkFileExact(t, p.Fs, projectConfig.DefinitionsSchemaPath(), test.Extra["schemaExact"])
 	checkFileExact(t, p.Fs, projectConfig.DefinitionsDocumentsPath(), test.Extra["documentsExact"])

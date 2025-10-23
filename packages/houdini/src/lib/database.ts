@@ -522,7 +522,7 @@ export async function write_config(
 		config_file.defaultLifetime ?? null,
 		config_file.defaultListPosition ?? null,
 		config_file.defaultListTarget ?? null,
-		config_file.defaultPaginateMode ?? null,
+		config_file.defaultPaginateMode ?? 'Infinite',
 		config_file.supressPaginationDeduplication ? 1 : 0,
 		config_file.logLevel ?? null,
 		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,

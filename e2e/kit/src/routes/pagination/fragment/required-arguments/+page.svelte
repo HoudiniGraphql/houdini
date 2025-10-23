@@ -1,6 +1,7 @@
 <script lang="ts">
   import { graphql, paginatedFragment } from '$houdini';
   import type { PageData } from './$types';
+  import { stringify } from '$lib/utils/stringify';
 
   export let data: PageData;
 
@@ -28,7 +29,7 @@
 </div>
 
 <div id="pageInfo">
-  {JSON.stringify($fragmentResult.pageInfo)}
+  {stringify($fragmentResult.pageInfo)}
 </div>
 
 <button id="next" on:click={() => fragmentResult.loadNextPage()}>next</button>

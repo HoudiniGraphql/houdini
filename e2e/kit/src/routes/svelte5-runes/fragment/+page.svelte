@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import UserDetailsSvelte5 from './UserDetailsSvelte5.svelte';
+  import { stringify } from '$lib/utils/stringify';
 
   interface Props {
     data: PageData;
@@ -20,6 +21,6 @@
     </ul>
   {/if}
 
-  <div id="pageInfo">{JSON.stringify($Svelte5UsersList.pageInfo)}</div>
+  <div id="pageInfo">{stringify($Svelte5UsersList.pageInfo)}</div>
   <button id="next" onclick={()=> Svelte5UsersList.loadNextPage()}>load more</button>
 </div>

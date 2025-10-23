@@ -495,7 +495,9 @@ func DiscoverListsThenValidate(
             LEFT JOIN argument_values AS document_values 
                 ON document_variables.default_value = document_values.id 
                 AND document_values."document" = documents.id
-            LEFT JOIN selection_directive_arguments AS mode_argument ON mode_argument."name" = 'mode'
+					  LEFT JOIN selection_directive_arguments AS mode_argument
+							  ON selection_directives.id = mode_argument.parent
+							  AND mode_argument."name" = 'mode'
             LEFT JOIN argument_values as mode_argument_value ON mode_argument."value" = mode_argument_value.id
           WHERE selection_directives.directive IN ($paginate_directive, $list_directive)
             AND (raw_documents.current_task = $task_id OR $task_id IS NULL)

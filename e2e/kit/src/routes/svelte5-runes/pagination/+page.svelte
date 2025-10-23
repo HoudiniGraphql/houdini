@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { stringify } from '$lib/utils/stringify';
 
   interface Props {
     data: PageData;
@@ -12,6 +13,6 @@
   {$Svelte5Pagination.data?.usersConnection.edges.map(({ node }) => node?.name).join(', ')}
 </div>
 
-<div id="pageInfo">{JSON.stringify($Svelte5Pagination.pageInfo)}</div>
+<div id="pageInfo">{stringify($Svelte5Pagination.pageInfo)}</div>
 
 <button id="next" onclick={() => Svelte5Pagination.loadNextPage()}>load more</button>

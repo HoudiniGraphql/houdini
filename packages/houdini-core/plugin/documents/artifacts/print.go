@@ -136,7 +136,7 @@ func PrintCollectedDocument(doc *collected.Document, includeHidden bool) string 
 
 	// which means we need to build up up the pieces and then join them later
 	documentDirectives := printDirectives(doc.Directives, usedVariables, includeHidden)
-	selection := printSelection(1, doc.Selections, usedVariables, includeHidden)
+	selection := printSelection(doc, 1, doc.Selections, usedVariables, includeHidden)
 
 	// we're now ready to buil up the query
 	var printedBuilder strings.Builder
@@ -279,6 +279,7 @@ func printDocumentVariables(
 }
 
 func printSelection(
+	doc *collected.Document,
 	level int,
 	selections []*collected.Selection,
 	usedVariables map[string]bool,
@@ -287,7 +288,6 @@ func printSelection(
 	indent := strings.Repeat("    ", level)
 	var resultBuilder strings.Builder
 	for _, selection := range selections {
-
 		// before we print children and directives we need
 		// to handle the specific selection type
 		switch selection.Kind {
@@ -304,6 +304,7 @@ func printSelection(
 			if selection.Alias != nil && *selection.Alias != selection.FieldName {
 				alias = fmt.Sprintf("%s: ", *selection.Alias)
 			}
+
 			// add the selection name
 			fmt.Fprintf(&resultBuilder,
 				"%s%s%s%s",
@@ -325,7 +326,7 @@ func printSelection(
 		if len(selection.Children) > 0 {
 			fmt.Fprintf(&resultBuilder,
 				" {\n%s%s}",
-				printSelection(level+1, selection.Children, usedVariables, includeHidden),
+				printSelection(doc, level+1, selection.Children, usedVariables, includeHidden),
 				indent,
 			)
 		}

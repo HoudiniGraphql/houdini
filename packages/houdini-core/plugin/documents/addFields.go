@@ -258,7 +258,7 @@ func AddDocumentFields[PluginConfig any](
 				"row":        0,
 				"column":     0,
 				"path_index": 0,
-				"internal":   true,
+				"internal":   false,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -267,14 +267,14 @@ func AddDocumentFields[PluginConfig any](
 		}
 
 		// and add the pageInfo selection to the edges field
-		err := db.ExecStatement(insertSelectionRef, map[string]any{
+		err = db.ExecStatement(insertSelectionRef, map[string]any{
 			"parent_id":  listField,
 			"child_id":   pageInfoSelection,
 			"document":   docID,
 			"row":        0,
 			"column":     0,
 			"path_index": 0,
-			"internal":   true,
+			"internal":   false,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))

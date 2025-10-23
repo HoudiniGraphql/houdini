@@ -5,7 +5,8 @@ import {
   expect_0_gql,
   expect_to_be,
   expectToContain,
-  goto
+  goto,
+  stringify
 } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('backwards cursor paginatedQuery', () => {
@@ -30,8 +31,42 @@ test.describe('backwards cursor paginatedQuery', () => {
     // wait for the api response
     const response = await expect_1_gql(page, 'button[id=refetch]');
     expect(response).toBe(
-      '{"data":{"usersConnection":{"edges":[{"cursor":"YXJyYXljb25uZWN0aW9uOjQ=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:5","name":"Will Smith"}},{"cursor":"YXJyYXljb25uZWN0aW9uOjU=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:6","name":"Harrison Ford"}},{"cursor":"YXJyYXljb25uZWN0aW9uOjY=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:7","name":"Eddie Murphy"}},{"cursor":"YXJyYXljb25uZWN0aW9uOjc=","node":{"__typename":"User","id":"pagination-query-backwards-cursor:8","name":"Clint Eastwood"}}],"pageInfo":{"endCursor":"YXJyYXljb25uZWN0aW9uOjc=","hasNextPage":false,"hasPreviousPage":true,"startCursor":"YXJyYXljb25uZWN0aW9uOjQ="}}}}'
-    );
+      stringify({"data":{"usersConnection":{
+        "__typename":"UserConnection", 
+        "edges":[
+          {
+           "__typename":"UserEdge", 
+            "cursor":"YXJyYXljb25uZWN0aW9uOjQ=",
+            "node":{
+              "__typename":"User","id":"pagination-query-backwards-cursor:5","name":"Will Smith"
+            }
+          },
+          {
+           "__typename":"UserEdge", 
+            "cursor":"YXJyYXljb25uZWN0aW9uOjU=",
+            "node":{
+              "__typename":"User","id":"pagination-query-backwards-cursor:6","name":"Harrison Ford"
+            }
+          },
+          {
+           "__typename":"UserEdge", 
+            "cursor":"YXJyYXljb25uZWN0aW9uOjY=",
+            "node":{"__typename":"User","id":"pagination-query-backwards-cursor:7","name":"Eddie Murphy"}
+          },
+          {
+           "__typename":"UserEdge", 
+            "cursor":"YXJyYXljb25uZWN0aW9uOjc=",
+            "node":{"__typename":"User","id":"pagination-query-backwards-cursor:8","name":"Clint Eastwood"}
+          },
+        ],
+        "pageInfo":{
+          "endCursor":"YXJyYXljb25uZWN0aW9uOjc=",
+          "hasNextPage":false,
+          "hasPreviousPage":true,
+          "startCursor":"YXJyYXljb25uZWN0aW9uOjQ="
+        }
+      }
+    }}));
   });
 
   test('page info tracks connection state', async ({ page }) => {

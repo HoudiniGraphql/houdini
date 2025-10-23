@@ -4,7 +4,8 @@ import {
   expect_to_be,
   expectToContain,
   expect_1_gql,
-  goto
+  goto,
+  stringify
 } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('bidirectional cursor paginated query', () => {

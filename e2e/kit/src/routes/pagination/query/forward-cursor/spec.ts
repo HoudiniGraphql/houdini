@@ -5,7 +5,8 @@ import {
   expect_0_gql,
   expect_to_be,
   expectToContain,
-  goto
+  goto,
+  stringify
 } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('forwards cursor paginatedQuery', () => {

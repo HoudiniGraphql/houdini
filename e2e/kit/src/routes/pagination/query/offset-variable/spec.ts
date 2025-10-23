@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
-import { expect_1_gql, expect_to_be, goto } from '../../../../lib/utils/testsHelper.js';
+import { expect_1_gql, expect_to_be, goto, stringify } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('offset paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {
@@ -24,7 +24,12 @@ test.describe('offset paginatedQuery', () => {
     // wait for the api response
     const response = await expect_1_gql(page, 'button[id=refetch]');
     expect(response).toBe(
-      '{"data":{"usersList":[{"id":"pagination-query-offset-variables:1","name":"Bruce Willis"},{"id":"pagination-query-offset-variables:2","name":"Samuel Jackson"},{"id":"pagination-query-offset-variables:3","name":"Morgan Freeman"},{"id":"pagination-query-offset-variables:4","name":"Tom Hanks"}]}}'
+      stringify({"data":{"usersList":[
+        {"__typename":"User","id":"pagination-query-offset-variables:1","name":"Bruce Willis"},
+        {"__typename":"User","id":"pagination-query-offset-variables:2","name":"Samuel Jackson"},
+        {"__typename":"User","id":"pagination-query-offset-variables:3","name":"Morgan Freeman"},
+        {"__typename":"User","id":"pagination-query-offset-variables:4","name":"Tom Hanks"}
+      ]}})
     );
   });
 });
