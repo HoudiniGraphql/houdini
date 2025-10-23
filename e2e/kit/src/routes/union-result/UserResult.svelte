@@ -1,5 +1,6 @@
 <script lang="ts">
   import { CachePolicy, UserResultStore } from '$houdini';
+  import { stringify } from '$lib/utils/stringify';
 
   export let id: string;
 
@@ -15,4 +16,4 @@
 
 <button id="getUser" on:click={getUser}>GET User</button>
 
-<pre>{JSON.stringify($userResult?.data, null, 2)}</pre>
+<pre>{stringify($userResult?.data, null, 2)}</pre>

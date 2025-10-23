@@ -1,6 +1,7 @@
 <script lang="ts">
   import { graphql } from '$houdini';
   import type { PageData } from './$types';
+  import { stringify } from '$lib/utils/stringify';
 
   export let data: PageData;
 
@@ -27,5 +28,5 @@
 <button id="addB" on:click={() => addB.mutate({ b: 'MyB' })}>Add B</button>
 
 <div id="result">
-  <pre>{JSON.stringify($AorB?.data, null, 0)}</pre>
+  <pre>{stringify($AorB?.data, null, 0)}</pre>
 </div>
