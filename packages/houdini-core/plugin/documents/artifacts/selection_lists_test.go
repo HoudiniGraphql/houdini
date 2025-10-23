@@ -232,6 +232,236 @@ func TestListArtifacts(t *testing.T) {
 				},
 			},
 			{
+				Name: "list gets refetch spec",
+				Pass: true,
+				Input: []string{
+					`query TestQuery {
+            usersByCursor @list(name: "All_Users") {
+              edges {
+                node {
+                  firstName
+                }
+              }
+            }
+          }`,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+              export default {
+                  "name": "TestQuery",
+                  "kind": "HoudiniQuery",
+                  "hash": "2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212",
+
+                  "refetch": {
+                      "path": ["usersByCursor"],
+                      "method": "cursor",
+                      "pageSize": 10,
+                      "embedded": false,
+                      "targetType": "Query",
+                      "paginated": false,
+                      "direction": "both",
+                      "mode": "Infinite"
+                  },
+
+                  "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
+                  usersByCursor(after: $after, before: $before, first: $first, last: $last) {
+                      edges {
+                          node {
+                              firstName
+                              __typename
+                              id
+                          }
+                          __typename
+                          cursor
+                      }
+                      __typename
+                      pageInfo {
+                          hasNextPage
+                          hasPreviousPage
+                          startCursor
+                          endCursor
+                      }
+                  }
+              }
+              ` + "`" + `,
+
+                  "rootType": "Query",
+                  "stripVariables": [],
+
+                  "selection": {
+                      "fields": {
+                          "usersByCursor": {
+                              "type": "UserConnection",
+                              "keyRaw": "usersByCursor::paginated",
+
+                              "directives": [{
+                                  "name": "list",
+                                  "arguments": {
+                                      "name": {
+                                          "kind": "StringValue",
+                                          "value": "All_Users"
+                                      }
+                                  }
+                              }],
+
+                              "list": {
+                                  "name": "All_Users",
+                                  "connection": true,
+                                  "type": "User"
+                              },
+
+                              "selection": {
+                                  "fields": {
+                                      "__typename": {
+                                          "type": "String",
+                                          "keyRaw": "__typename",
+                                      },
+
+                                      "edges": {
+                                          "type": "UserEdge",
+                                          "keyRaw": "edges",
+                                          "updates": ["append", "prepend"],
+
+                                          "selection": {
+                                              "fields": {
+                                                  "__typename": {
+                                                      "type": "String",
+                                                      "keyRaw": "__typename",
+                                                  },
+
+                                                  "cursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "cursor",
+                                                  },
+
+                                                  "node": {
+                                                      "type": "User",
+                                                      "keyRaw": "node",
+                                                      "nullable": true,
+
+                                                      "selection": {
+                                                          "fields": {
+                                                              "__typename": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "__typename",
+                                                              },
+
+                                                              "firstName": {
+                                                                  "type": "String",
+                                                                  "keyRaw": "firstName",
+                                                                  "visible": true,
+                                                              },
+
+                                                              "id": {
+                                                                  "type": "ID",
+                                                                  "keyRaw": "id",
+                                                              },
+                                                          },
+                                                      },
+
+                                                      "visible": true,
+                                                  },
+                                              },
+                                          },
+
+                                          "visible": true,
+                                      },
+
+                                      "pageInfo": {
+                                          "type": "PageInfo",
+                                          "keyRaw": "pageInfo",
+
+                                          "selection": {
+                                              "fields": {
+                                                  "endCursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "endCursor",
+                                                      "updates": ["append", "prepend"],
+                                                      "nullable": true,
+                                                  },
+
+                                                  "hasNextPage": {
+                                                      "type": "Boolean",
+                                                      "keyRaw": "hasNextPage",
+                                                      "updates": ["append", "prepend"],
+                                                  },
+
+                                                  "hasPreviousPage": {
+                                                      "type": "Boolean",
+                                                      "keyRaw": "hasPreviousPage",
+                                                      "updates": ["append", "prepend"],
+                                                  },
+
+                                                  "startCursor": {
+                                                      "type": "String",
+                                                      "keyRaw": "startCursor",
+                                                      "updates": ["append", "prepend"],
+                                                      "nullable": true,
+                                                  },
+                                              },
+                                          },
+
+                                      },
+                                  },
+                              },
+
+                              "filters": {
+                                  "after": {
+                                      "kind": "Variable",
+                                      "value": "after"
+                                  },
+                                  "before": {
+                                      "kind": "Variable",
+                                      "value": "before"
+                                  },
+                                  "first": {
+                                      "kind": "Variable",
+                                      "value": "first"
+                                  },
+                                  "last": {
+                                      "kind": "Variable",
+                                      "value": "last"
+                                  },
+                              },
+                              "visible": true,
+                          },
+                      },
+                  },
+
+                  "pluginData": {},
+
+                  "dedupe": {
+                      "cancel": "last",
+                      "match": "Variables"
+                  },
+
+                  "input": {
+                      "fields": {
+                          "after": "String",
+                          "before": "String",
+                          "first": "Int",
+                          "last": "Int",
+                      },
+
+                      "types": {},
+
+                      "defaults": {
+                          "first": 10,
+                      },
+
+                      "runtimeScalars": {},
+                  },
+
+                  "policy": "CacheOrNetwork",
+                  "partial": false
+              } as const
+
+              "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
+
+          `),
+				},
+			},
+			{
 				Name: "tracks paginate name",
 				Pass: true,
 				Input: []string{

@@ -855,8 +855,7 @@ func stringifyFieldSelection(
 			updates = append(updates, "prepend")
 		}
 
-		// if the list is paginated then it requires a refetch spec
-		if selection.List.Paginated {
+		if selection.List != nil {
 			flags.Refetch = &RefetchSpec{
 				Path:       path,
 				Paginated:  selection.List.Paginated,
