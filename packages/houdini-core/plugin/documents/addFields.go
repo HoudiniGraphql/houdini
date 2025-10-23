@@ -274,7 +274,7 @@ func AddDocumentFields[PluginConfig any](
 			"row":        0,
 			"column":     0,
 			"path_index": 0,
-			"internal":   true,
+			"internal":   false,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
