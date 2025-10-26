@@ -150,7 +150,7 @@ func PreparePaginationDocuments(
 	}
 	defer insertSelectionArgument.Finalize()
 	insertSelection, err := conn.Prepare(`
-		INSERT INTO selections (field_name, kind, alias, type) VALUES ($field_name, $kind, $field_name, $type)
+		INSERT INTO selections (field_name, kind, alias, type, fragment_args) VALUES ($field_name, $kind, $field_name, $type, $fragment_args)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -417,9 +417,14 @@ func PreparePaginationDocuments(
 			queryDocument = conn.LastInsertRowID()
 
 			// we need to embed the fragment in the document selection
+			usedArgs := []string{}
+			for _, arg := range argumentsToAdd {
+				usedArgs = append(usedArgs, arg.Name)
+			}
 			err = db.ExecStatement(insertSelection, map[string]any{
-				"field_name": documentName,
-				"kind":       "fragment",
+				"field_name":    documentName,
+				"kind":          "fragment",
+				"fragment_args": usedArgs,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))

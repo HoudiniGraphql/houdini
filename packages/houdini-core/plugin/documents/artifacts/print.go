@@ -293,7 +293,7 @@ func printSelection(
 		switch selection.Kind {
 		case "fragment":
 			fmt.Fprintf(&resultBuilder, "%s...%s", indent, selection.FieldName)
-			if selection.FragmentRef != nil {
+			if len(selection.FragmentArgs) > 0 {
 				for _, arg := range selection.FragmentArgs {
 					usedVariables[arg] = true
 				}
