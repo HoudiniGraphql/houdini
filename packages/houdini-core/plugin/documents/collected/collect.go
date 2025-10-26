@@ -217,6 +217,7 @@ func collectDoc(
 				fieldName := statements.Search.GetText("field_name")
 				fieldType := statements.Search.GetText("type")
 				fragmentRef := statements.Search.GetText("fragment_ref")
+				fragmentArgs := statements.Search.GetText("fragment_args")
 				listName := statements.Search.GetText("list_name")
 				listType := statements.Search.GetText("list_type")
 				listConnection := statements.Search.GetBool("list_connection")
@@ -269,6 +270,16 @@ func collectDoc(
 
 					if fragmentRef != "" {
 						selection.FragmentRef = &fragmentRef
+
+						if fragmentArgs != "" {
+							usedVariables := []string{}
+							err = json.Unmarshal([]byte(fragmentArgs), &usedVariables)
+							if err != nil {
+								errs.Append(plugins.WrapError(err))
+								return
+							}
+							selection.FragmentArgs = usedVariables
+						}
 					}
 
 					// add the component field spec if we detected a match
@@ -816,6 +827,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           selections.id,
           selections.field_name,
           selections.fragment_ref,
+          selections.fragment_args,
           type_fields.type_modifiers,
           selections.alias,
           selections.kind,
@@ -863,6 +875,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           selections.id,
           selections.field_name,
           selections.fragment_ref,
+          selections.fragment_args,
           type_fields.type_modifiers,
           selections.alias,
           selections.kind,
@@ -934,7 +947,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
       component_fields.field as component_field_field,
       component_fields.fragment as component_field_fragment,
       selection_tree.internal,
-			document_internal
+			document_internal,
+			fragment_args
     FROM selection_tree
       LEFT JOIN component_fields ON selection_tree.kind = 'fragment' AND component_fields.fragment = selection_tree.field_name
     ORDER BY parent_id ASC

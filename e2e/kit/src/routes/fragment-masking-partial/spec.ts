@@ -1,7 +1,8 @@
 import { sleep } from '$lib/utils/sleep';
 import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expect_to_be, goto_expect_n_gql } from '../../lib/utils/testsHelper.js';
+import { expect_to_be, goto_expect_n_gql, stringify } from '../../lib/utils/testsHelper.js';
+
 
 test.describe('Fragment Masking Partial Hits', () => {
   test('Fragment of page query should load completely', async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Fragment Masking Partial Hits', () => {
 
     await expect_to_be(
       page,
-      '{"id":"1","name":"Alexandria","libraries":[{"id":"1","name":"The Library of Alexandria"},{"id":"2","name":"Bibliotheca Alexandrina"}],"__typename":"City"}'
+      stringify({"id":"1","name":"Alexandria","libraries":[{"id":"1","name":"The Library of Alexandria"},{"id":"2","name":"Bibliotheca Alexandrina"}],"__typename":"City"})
     );
   });
 });

@@ -414,15 +414,22 @@ func processDocument[PluginConfig any](
 			return
 		}
 
+		// compute the used variables
+		usedVars := []string{}
+		for key := range fragmentScope {
+			usedVars = append(usedVars, key)
+		}
+
 		if hasExisting {
 			checkStmt.Finalize()
 			fragmentMutex.Unlock()
 
 			// fragment already exists, just update the selection to point to it
 			err = db.ExecStatement(statements.UpdateSelectionFieldName, map[string]any{
-				"selection_id": selectionID,
-				"field_name":   newFragmentName,
-				"fragment_ref": fragmentName,
+				"selection_id":  selectionID,
+				"field_name":    newFragmentName,
+				"fragment_ref":  fragmentName,
+				"fragment_args": usedVars,
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -464,9 +471,10 @@ func processDocument[PluginConfig any](
 
 		// and finally update the selection to point to the new fragment
 		err = db.ExecStatement(statements.UpdateSelectionFieldName, map[string]any{
-			"selection_id": selectionID,
-			"field_name":   newFragmentName,
-			"fragment_ref": fragmentName,
+			"selection_id":  selectionID,
+			"field_name":    newFragmentName,
+			"fragment_ref":  fragmentName,
+			"fragment_args": usedVars,
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -1383,7 +1391,7 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	updateSelectionFieldName, err := conn.Prepare(`
-    UPDATE selections SET field_name = $field_name, fragment_ref = $fragment_ref WHERE id = $selection_id
+    UPDATE selections SET field_name = $field_name, fragment_ref = $fragment_ref, fragment_args = $fragment_args WHERE id = $selection_id
   `)
 	if err != nil {
 		return nil, err

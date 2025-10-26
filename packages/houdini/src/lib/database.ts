@@ -243,7 +243,8 @@ CREATE TABLE IF NOT EXISTS selections (
 	kind TEXT NOT NULL CHECK (kind IN ('field', 'fragment', 'inline_fragment')),
     alias TEXT,
     type TEXT, -- should be something like User.Avatar
-    fragment_ref TEXT -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
+    fragment_ref TEXT, -- used when fragment arguments cause a hash to be inlined (removing the ability to track what the original fragment is)
+		fragment_args JSON -- used to store the arguments that are used when fragment variables are expanded
 );
 
 CREATE TABLE IF NOT EXISTS selection_directives (

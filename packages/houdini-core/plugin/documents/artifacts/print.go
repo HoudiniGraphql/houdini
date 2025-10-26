@@ -293,6 +293,11 @@ func printSelection(
 		switch selection.Kind {
 		case "fragment":
 			fmt.Fprintf(&resultBuilder, "%s...%s", indent, selection.FieldName)
+			if selection.FragmentRef != nil {
+				for _, arg := range selection.FragmentArgs {
+					usedVariables[arg] = true
+				}
+			}
 		case "inline_fragment":
 			typeCondition := ""
 			if selection.FieldName != "" {
@@ -342,7 +347,22 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 	}
 
 	switch value.Kind {
+	case "Enum":
+		return value.Raw
+	default:
+		return stringifyValue(value, usedVariables)
+	}
+}
+
+func stringifyValue(value *collected.ArgumentValue, usedVariables map[string]bool) string {
+	if value == nil {
+		return "null"
+	}
+
+	switch value.Kind {
 	case "String":
+		return fmt.Sprintf("%q", value.Raw)
+	case "Enum":
 		return fmt.Sprintf("%q", value.Raw)
 	case "Block":
 		return fmt.Sprintf(`"""%s"""`, value.Raw)
@@ -355,7 +375,7 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 		var resultBuilder strings.Builder
 		resultBuilder.WriteRune('{')
 		for i, v := range value.Children {
-			fmt.Fprintf(&resultBuilder, "%s: %s", v.Name, printValue(v.Value, usedVariables))
+			fmt.Fprintf(&resultBuilder, "%s: %s", v.Name, stringifyValue(v.Value, usedVariables))
 			if i != len(value.Children)-1 {
 				resultBuilder.WriteString(", ")
 			}
@@ -367,7 +387,7 @@ func printValue(value *collected.ArgumentValue, usedVariables map[string]bool) s
 		resultBuilder.WriteRune('[')
 
 		for i, v := range value.Children {
-			resultBuilder.WriteString(printValue(v.Value, usedVariables))
+			resultBuilder.WriteString(stringifyValue(v.Value, usedVariables))
 			if i != len(value.Children)-1 {
 				resultBuilder.WriteString(", ")
 			}

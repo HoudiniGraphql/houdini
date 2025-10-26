@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fragment, graphql, type CityDetails } from '$houdini';
+  import { stringify } from '$lib/utils/stringify.js'
 
   export let city: CityDetails | null;
 
@@ -19,5 +20,5 @@
 </script>
 
 {#if $data}
-  <p>{JSON.stringify($data)}</p>
+  <p>{stringify($data)}</p>
 {/if}

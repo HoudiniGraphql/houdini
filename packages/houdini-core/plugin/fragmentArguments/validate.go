@@ -307,7 +307,17 @@ func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentV
 //   - An empty modifier string indicates a scalar (no children, non-empty raw value).
 //   - If the modifiers contain a ']', we expect a list.
 //   - A trailing '!' indicates that the list (or scalar) is non-null.
+//
+// This function follows GraphQL type compatibility rules where non-null values
+// can be passed to nullable parameters.
 func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType, modifiers string) bool {
+	// Special case: if the argument is a variable reference, it's always compatible
+	// because the actual type compatibility will be validated elsewhere when the
+	// variable is used in the schema field.
+	if arg.Kind == "Variable" {
+		return true
+	}
+
 	// No modifiers: expect a scalar value.
 	if modifiers == "" {
 		return len(arg.Children) == 0 && arg.Raw != ""

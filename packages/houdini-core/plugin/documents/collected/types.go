@@ -22,6 +22,7 @@ type Selection struct {
 	Alias          *string
 	FieldType      string
 	FragmentRef    *string
+	FragmentArgs   []string
 	TypeModifiers  *string
 	Kind           string
 	Description    *string

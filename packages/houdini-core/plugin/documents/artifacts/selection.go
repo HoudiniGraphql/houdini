@@ -242,7 +242,7 @@ func GenerateSelectionDocument(
             "%s": "%s",`, variable.Name, variable.Type)
 			if variable.DefaultValue != nil {
 				fmt.Fprintf(&defaultsBuilder, `
-            "%s": %s,`, variable.Name, printValue(variable.DefaultValue, map[string]bool{}))
+            "%s": %s,`, variable.Name, stringifyValue(variable.DefaultValue, map[string]bool{}))
 			}
 		}
 
@@ -1113,7 +1113,7 @@ func stringifyFieldSelection(
 
 		// we also need to record which filters are currently being applied to the list field
 		for _, arg := range selection.Arguments {
-			value := printValue(arg.Value, map[string]bool{})
+			value := stringifyValue(arg.Value, map[string]bool{})
 			if arg.Value.Kind == "Variable" {
 				value = `"` + arg.Value.Raw + `"`
 			}
@@ -1315,7 +1315,7 @@ func extractOperation(
 %s"%s": %s,`,
 					indent2,
 					arg.Name,
-					printValue(arg.Value, map[string]bool{}),
+					stringifyValue(arg.Value, map[string]bool{}),
 				)
 			}
 			when += fmt.Sprintf(`
@@ -1332,7 +1332,7 @@ func extractOperation(
 %s"%s": %s,`,
 					indent2,
 					arg.Name,
-					printValue(arg.Value, map[string]bool{}),
+					stringifyValue(arg.Value, map[string]bool{}),
 				)
 			}
 			when += fmt.Sprintf(`

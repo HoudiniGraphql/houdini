@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -89,6 +90,12 @@ func (db DatabasePool[PluginConfig]) BindStatement(stmt *sqlite.Stmt, args map[s
 			stmt.SetNull("$" + key)
 		case bool:
 			stmt.SetBool("$"+key, val)
+		case []string:
+			str, err := json.Marshal(val)
+			if err != nil {
+				return err
+			}
+			stmt.SetText("$"+key, string(str))
 		default:
 			return fmt.Errorf("unsupported type: %T", arg)
 		}
