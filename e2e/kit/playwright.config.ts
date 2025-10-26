@@ -10,7 +10,8 @@ export default defineConfig({
   use: {
     headless: true,
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure'
+    screenshot: 'only-on-failure',
+    timezoneId: 'UTC'
   },
   retries: process.env.CI ? 3 : 0,
   workers: 5,

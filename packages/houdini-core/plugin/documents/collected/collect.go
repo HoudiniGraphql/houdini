@@ -266,8 +266,8 @@ func collectDoc(
 						Kind:          kind,
 						Description:   description,
 						Internal:      internal,
+						Visible:       !internal, // Internal fields are not visible by default
 					}
-
 					if fragmentRef != "" {
 						selection.FragmentRef = &fragmentRef
 
@@ -317,6 +317,16 @@ func collectDoc(
 
 					// save the ID in the selection map
 					selections[selectionID] = selection
+				} else {
+					// if this selection already exists, we need to merge the internal/visible flags
+					// If the existing selection is internal but this reference is not internal,
+					// then this field was explicitly requested by the user and should be visible
+					if selection.Internal && !internal {
+						selection.Internal = false
+						selection.Visible = true
+					}
+					// If this reference is internal but the existing selection is not,
+					// keep the existing non-internal status (user-requested takes precedence)
 				}
 
 				// if there is no parent then we have a root selection
