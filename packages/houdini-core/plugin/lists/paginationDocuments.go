@@ -5,12 +5,49 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 )
+
+type variableInfo struct {
+	Variable string `json:"variable"`
+	ID       int    `json:"id"`
+}
+
+type paginationArgumentInfo struct {
+	Argument string `json:"argument"`
+	ID       int    `json:"id"`
+	Value    int    `json:"value"`
+	Kind     string `json:"kind"`
+	Raw      string `json:"raw"`
+}
+
+type paginationFieldArgumentSpec struct {
+	Name string
+	Kind string
+}
+
+type paginationContext struct {
+	conn                             *sqlite.Conn
+	db                               plugins.DatabasePool[config.PluginConfig]
+	insertDocument                   *sqlite.Stmt
+	insertFragment                   *sqlite.Stmt
+	insertDocumentVariable           *sqlite.Stmt
+	insertSelectionArgument          *sqlite.Stmt
+	insertSelection                  *sqlite.Stmt
+	insertSelectionRef               *sqlite.Stmt
+	insertArgumentValue              *sqlite.Stmt
+	insertDocumentDirectives         *sqlite.Stmt
+	insertDocumentDirectiveArgument  *sqlite.Stmt
+	deleteSelectionArgument          *sqlite.Stmt
+	insertSelectionDirective         *sqlite.Stmt
+	insertSelectionDirectiveArgument *sqlite.Stmt
+	copyArgumentValue                *sqlite.Stmt
+}
 
 func PreparePaginationDocuments(
 	ctx context.Context,
@@ -61,6 +98,7 @@ func PreparePaginationDocuments(
 			discovered_lists.supports_backward,
 			discovered_lists."connection",
 			selections.type,
+			field_info.name as field_name,
 			documents.name,
 			CASE
 				WHEN types.operation is not null THEN null
@@ -83,6 +121,7 @@ func PreparePaginationDocuments(
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
 			JOIN selections on discovered_lists.list_field = selections.id
+			LEFT JOIN type_fields field_info on selections.type = field_info.id
 			JOIN selection_refs on selection_refs.child_id = selections.id
 		  JOIN documents on selection_refs.document = documents.id
 		      AND documents.raw_document = discovered_lists.raw_document
@@ -108,24 +147,6 @@ func PreparePaginationDocuments(
 
 	defer query.Finalize()
 
-	type variableInfo struct {
-		Variable string `json:"variable"`
-		ID       int    `json:"id"`
-	}
-
-	type paginationArgumentInfo struct {
-		Argument string `json:"argument"`
-		ID       int    `json:"id"`
-		Value    int    `json:"value"`
-		Kind     string `json:"kind"`
-		Raw      string `json:"raw"`
-	}
-
-	type paginationFieldArgumentSpec struct {
-		Name string
-		Kind string
-	}
-
 	// once we have a row, we'll need to insert variables and arguments into the document (and maybe extra documents)
 	insertDocument, err := conn.Prepare(`
 		INSERT INTO documents (name, kind, raw_document, internal, visible) VALUES ($name, 'query', $raw_document, false, false)
@@ -134,6 +155,13 @@ func PreparePaginationDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer insertDocument.Finalize()
+	insertFragment, err := conn.Prepare(`
+		INSERT INTO documents (name, kind, raw_document, type_condition, internal, visible) VALUES ($name, 'fragment', $raw_document, $type_condition, true, false)
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertFragment.Finalize()
 	insertDocumentVariable, err := conn.Prepare(`
 		INSERT INTO document_variables (document, "name", type, type_modifiers, default_value, row, column) VALUES ($document, $name, $type, $type_modifiers, $default_value, 0, 0)
 	`)
@@ -220,10 +248,30 @@ func PreparePaginationDocuments(
 	}
 	defer copyArgumentValue.Finalize()
 
+	// create pagination context with all prepared statements
+	paginationCtx := &paginationContext{
+		conn:                             conn,
+		db:                               db,
+		insertDocument:                   insertDocument,
+		insertFragment:                   insertFragment,
+		insertDocumentVariable:           insertDocumentVariable,
+		insertSelectionArgument:          insertSelectionArgument,
+		insertSelection:                  insertSelection,
+		insertSelectionRef:               insertSelectionRef,
+		insertArgumentValue:              insertArgumentValue,
+		insertDocumentDirectives:         insertDocumentDirectives,
+		insertDocumentDirectiveArgument:  insertDocumentDirectiveArgument,
+		deleteSelectionArgument:          deleteSelectionArgument,
+		insertSelectionDirective:         insertSelectionDirective,
+		insertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
+		copyArgumentValue:                copyArgumentValue,
+	}
+
 	// iterate over the rows. each row represents a field that is tagged with @paginate
 	errs := &plugins.ErrorList{}
 	// track processed discovered lists to avoid duplicates
 	processedLists := make(map[string]bool)
+
 	err = db.StepStatement(ctx, query, func() {
 		// pull out the row values
 		rawDocument := query.ColumnInt(0)
@@ -235,10 +283,12 @@ func PreparePaginationDocuments(
 		supportsForward := query.ColumnBool(6)
 		supportsBackward := query.ColumnBool(7)
 		connection := query.ColumnBool(8)
-		fieldName := query.ColumnText(9)
-		documentName := query.ColumnText(10)
-		resolveQuery := query.ColumnText(11)
-		resolveKeys := query.ColumnText(12)
+		fieldType := query.ColumnText(9)
+		fieldName := query.ColumnText(10)
+		documentName := query.ColumnText(11)
+		resolveQuery := query.ColumnText(12)
+		resolveKeys := query.ColumnText(13)
+		typeCondition := query.ColumnText(14)
 		cursorType := query.GetText("cursor_type")
 
 		if query.IsNull("paginate") {
@@ -278,370 +328,54 @@ func PreparePaginationDocuments(
 			}
 		}
 
-		// now we need to make sure that the tagged field has all of the necessary argument definitions
-		argumentsToAdd := []paginationFieldArgumentSpec{}
-		if connection {
-			if supportsForward {
-				argumentsToAdd = append(argumentsToAdd,
-					paginationFieldArgumentSpec{
-						Name: "first",
-						Kind: "Int",
-					},
-					paginationFieldArgumentSpec{
-						Name: "after",
-						Kind: cursorType,
-					},
-				)
-			}
-			if supportsBackward {
-				argumentsToAdd = append(argumentsToAdd,
-					paginationFieldArgumentSpec{
-						Name: "last",
-						Kind: "Int",
-					},
-					paginationFieldArgumentSpec{
-						Name: "before",
-						Kind: cursorType,
-					},
-				)
-			}
-		} else {
-			if supportsForward {
-				argumentsToAdd = append(argumentsToAdd,
-					paginationFieldArgumentSpec{
-						Name: "limit",
-						Kind: "Int",
-					},
-					paginationFieldArgumentSpec{
-						Name: "offset",
-						Kind: "Int",
-					},
-				)
-			}
-		}
+		// determine which pagination arguments to add based on connection type and support
+		argumentsToAdd := determinePaginationArguments(
+			connection,
+			supportsForward,
+			supportsBackward,
+			cursorType,
+		)
 
-		// now that the field has all of the arguments we need to define the corresponding variables
-		// on the document
-	ARGUMENTS:
-		for _, arg := range argumentsToAdd {
-			// if the variable is already defined then we have a value ID to use as the default value
-			var defaultValue any
-			for _, appliedArg := range arguments {
-				if appliedArg.Argument == arg.Name {
-					if appliedArg.Kind != "Variable" {
-						defaultValue = appliedArg.Value
-					}
-					break
-				}
-			}
-
-			// if the variable is already defined, skip it
-			for _, variable := range variables {
-				if variable.Variable == arg.Name {
-					continue ARGUMENTS
-				}
-			}
-
-			// add the variable to the document
-			err = db.ExecStatement(insertDocumentVariable, map[string]any{
-				"document":      document,
-				"name":          arg.Name,
-				"type":          arg.Kind,
-				"default_value": defaultValue,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-		}
-
-		// loop over the arguments and make sure the field document has the necessary variables defined
-		for _, arg := range argumentsToAdd {
-			// the argument might already be defined on the field, in which case we can just delete the row in the database
-			// we'll replace it with the variable reference later
-			for _, existingArg := range arguments {
-				if existingArg.Argument == arg.Name {
-
-					// if the argument is already defined, we need to make sure that the type matches
-					err = db.ExecStatement(
-						deleteSelectionArgument,
-						map[string]any{"id": existingArg.ID},
-					)
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-
-					break
-				}
-			}
-
-			// create the variable value and make sure it is used inside of the document
-			// with the paginated field
-			err = db.ExecStatement(insertArgumentValue, map[string]any{
-				"kind":          "Variable",
-				"raw":           arg.Name,
-				"expected_type": arg.Kind,
-				"document":      document,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			// add the argument to the field
-			err = db.ExecStatement(insertSelectionArgument, map[string]any{
-				"selection_id":   listField,
-				"name":           arg.Name,
-				"value":          conn.LastInsertRowID(),
-				"field_argument": fmt.Sprintf("%s.%s", fieldName, arg.Name),
-				"document":       document,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-		}
-
-		// the arguments that we want to add have to show up in 2 different documents:
-		// - the paginated document needs them passed to the specific field
-		// - the query document needs them added to hold their top-level definition
-
-		// the document that performs the query changes between queries and fragments. this document will get
-		// the dedupe directive as well as require new variables
-		queryDocument := document
-
-		// if we processing a fragment with the pagination directive then we need to insert a document with the fragment embedded
+		// handle fragment vs query processing differently
 		if docType == "fragment" {
-			// insert a document with a name derived from the fragment name
-			err = db.ExecStatement(insertDocument, map[string]any{
-				"name":         graphql.FragmentPaginationQueryName(documentName),
-				"raw_document": rawDocument,
-			})
+			// for fragments, create a new paginated fragment document
+			_, err := processFragmentPagination(
+				paginationCtx,
+				projectConfig,
+				rawDocument,
+				document,
+				documentName,
+				typeCondition,
+				listField,
+				fieldName,
+				fieldType,
+				argumentsToAdd,
+				arguments,
+				resolveQuery,
+				keys,
+			)
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
 				return
 			}
-
-			// this new document should now be considered the one that needs a dedupe directive
-			queryDocument = conn.LastInsertRowID()
-
-			// we need to embed the fragment in the document selection
-			usedArgs := []string{}
-			for _, arg := range argumentsToAdd {
-				usedArgs = append(usedArgs, arg.Name)
-			}
-			err = db.ExecStatement(insertSelection, map[string]any{
-				"field_name":    documentName,
-				"kind":          "fragment",
-				"fragment_args": usedArgs,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			fragmentSpreadID := conn.LastInsertRowID()
-
-			// we need to add the with directive to the fragment spread
-			err = db.ExecStatement(insertSelectionDirective, map[string]any{
-				"selection": fragmentSpreadID,
-				"directive": graphql.WithDirective,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			withID := conn.LastInsertRowID()
-
-			// since we are create the document that embeds the paginated fields we know that every argument
-			// that we want to add needs a new variable in the generated document
-			for _, arg := range argumentsToAdd {
-				// create the variable value and make sure it is used inside of the document
-				// with the paginated field
-				err = db.ExecStatement(insertArgumentValue, map[string]any{
-					"kind":          "Variable",
-					"raw":           arg.Name,
-					"expected_type": arg.Kind,
-					"document":      queryDocument,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-
-				// if the argument is already defined, we need to make sure that the type matches
-				err = db.ExecStatement(insertSelectionDirectiveArgument, map[string]any{
-					"parent":   withID,
-					"name":     arg.Name,
-					"value":    conn.LastInsertRowID(),
-					"document": queryDocument,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-
-				// if the variable is already defined then we have a value ID to use as the default value
-				var defaultValue any
-				for _, appliedArg := range arguments {
-					if appliedArg.Argument == arg.Name {
-						if appliedArg.Kind != "Variable" {
-							defaultValue = appliedArg.Value
-						}
-						break
-					}
-				}
-
-				// if we found a default value then we need to create a copy of the argument value for the generated document
-				if defaultValue != nil {
-					err = db.ExecStatement(
-						copyArgumentValue,
-						map[string]any{"id": defaultValue, "document": queryDocument},
-					)
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-					defaultValue = conn.LastInsertRowID()
-				}
-
-				// add the variable to the document
-				err = db.ExecStatement(insertDocumentVariable, map[string]any{
-					"document":      queryDocument,
-					"name":          arg.Name,
-					"type":          arg.Kind,
-					"default_value": defaultValue,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-			}
-
-			// if we don't have a resolve query, all we need to do is insert the fragment spread into the document
-			if resolveQuery == "" {
-				// insert a selection ref with the fragment spread as a child
-				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"document": queryDocument,
-					"child_id": fragmentSpreadID,
-					"internal": true,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-			} else {
-				// we need to create a selection with the resolveQuery
-				err = db.ExecStatement(insertSelection, map[string]any{
-					"field_name": resolveQuery,
-					"kind":       "field",
-					"type":       fmt.Sprintf("%s.%s", "Query", resolveQuery),
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-				resolveSelection := conn.LastInsertRowID()
-
-				// add the selection to the document
-				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"document": queryDocument,
-					"child_id": resolveSelection,
-					"internal": true,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-
-				// and add the fragment spread to the resolve selection
-				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"document":  queryDocument,
-					"child_id":  fragmentSpreadID,
-					"parent_id": resolveSelection,
-					"internal":  true,
-				})
-				if err != nil {
-					errs.Append(plugins.WrapError(err))
-					return
-				}
-
-				// if we have keys to add, then we need to add them to document
-				for _, key := range keys {
-					// we need a variable that references the key
-					err = db.ExecStatement(insertArgumentValue, map[string]any{
-						"kind":          "Variable",
-						"raw":           key.Name,
-						"expected_type": key.Kind,
-						"document":      queryDocument,
-					})
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-
-					// and add the key as an argumnent to the resolve field
-					err = db.ExecStatement(insertSelectionArgument, map[string]any{
-						"selection_id":   resolveSelection,
-						"name":           key.Name,
-						"value":          conn.LastInsertRowID(),
-						"field_argument": fmt.Sprintf("%s.%s.%s", "Query", resolveQuery, key.Name),
-						"document":       queryDocument,
-					})
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-
-					// we also need a document variable
-					err = db.ExecStatement(insertDocumentVariable, map[string]any{
-						"document":       queryDocument,
-						"name":           key.Name,
-						"type":           key.Kind,
-						"type_modifiers": "!",
-					})
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-				}
-			}
+			// skip the rest of the processing for fragments
+			return
 		}
 
-		// if we aren't supposed to suppress the dedupe directive, we need to add it to the document
-		if !projectConfig.SuppressPaginationDeduplication {
-			// add the dedupe directive to the document
-			err = db.ExecStatement(insertDocumentDirectives, map[string]any{
-				"document":  queryDocument,
-				"directive": graphql.DedupeDirective,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-
-			directiveID := conn.LastInsertRowID()
-
-			// set the match argument to Variables
-			err = db.ExecStatement(insertArgumentValue, map[string]any{
-				"kind":          "Enum",
-				"raw":           "Variables",
-				"expected_type": "DedupeMatchMode",
-				"document":      queryDocument,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-
-			err = db.ExecStatement(insertDocumentDirectiveArgument, map[string]any{
-				"document_directive": directiveID,
-				"argument":           "match",
-				"value":              conn.LastInsertRowID(),
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
+		// for queries, process pagination in-place
+		err := processQueryPagination(
+			paginationCtx,
+			projectConfig,
+			document,
+			listField,
+			fieldName,
+			argumentsToAdd,
+			arguments,
+			variables,
+		)
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
 		}
 	})
 	if err != nil {
@@ -653,4 +387,523 @@ func PreparePaginationDocuments(
 
 	// we're done
 	return commit(nil)
+}
+
+// determinePaginationArguments determines which pagination arguments to add based on connection type and support
+func determinePaginationArguments(
+	connection bool,
+	supportsForward bool,
+	supportsBackward bool,
+	cursorType string,
+) []paginationFieldArgumentSpec {
+	var argumentsToAdd []paginationFieldArgumentSpec
+
+	if connection {
+		if supportsForward {
+			argumentsToAdd = append(argumentsToAdd,
+				paginationFieldArgumentSpec{
+					Name: "first",
+					Kind: "Int",
+				},
+				paginationFieldArgumentSpec{
+					Name: "after",
+					Kind: cursorType,
+				},
+			)
+		}
+		if supportsBackward {
+			argumentsToAdd = append(argumentsToAdd,
+				paginationFieldArgumentSpec{
+					Name: "last",
+					Kind: "Int",
+				},
+				paginationFieldArgumentSpec{
+					Name: "before",
+					Kind: cursorType,
+				},
+			)
+		}
+	} else {
+		if supportsForward {
+			argumentsToAdd = append(argumentsToAdd,
+				paginationFieldArgumentSpec{
+					Name: "limit",
+					Kind: "Int",
+				},
+				paginationFieldArgumentSpec{
+					Name: "offset",
+					Kind: "Int",
+				},
+			)
+		}
+	}
+
+	return argumentsToAdd
+}
+
+// processFragmentPagination creates a paginated fragment document and associated query document
+func processFragmentPagination(
+	ctx *paginationContext,
+	projectConfig plugins.ProjectConfig,
+	rawDocument int,
+	document int64,
+	documentName string,
+	typeCondition string,
+	listField string,
+	fieldName string,
+	fieldType string,
+	argumentsToAdd []paginationFieldArgumentSpec,
+	arguments []paginationArgumentInfo,
+	resolveQuery string,
+	keys []paginationFieldArgumentSpec,
+) (int64, error) {
+	// create a new paginated fragment document
+	paginatedFragmentName := documentName + "_paginated"
+	err := ctx.db.ExecStatement(ctx.insertFragment, map[string]any{
+		"name":           paginatedFragmentName,
+		"type_condition": typeCondition,
+		"raw_document":   rawDocument,
+	})
+	if err != nil {
+		return 0, err
+	}
+	paginatedFragmentID := ctx.conn.LastInsertRowID()
+
+	// copy all selections from the original fragment EXCEPT the paginated field
+	copySelectionsQuery, err := ctx.conn.Prepare(`
+		INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal)
+		SELECT parent_id, child_id, $new_document, row, column, path_index, internal
+		FROM selection_refs
+		WHERE document = $original_document AND child_id != $paginated_field
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer copySelectionsQuery.Finalize()
+
+	err = ctx.db.ExecStatement(copySelectionsQuery, map[string]any{
+		"new_document":      paginatedFragmentID,
+		"original_document": document,
+		"paginated_field":   listField,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// create a new selection for the paginated field with pagination arguments
+	err = ctx.db.ExecStatement(ctx.insertSelection, map[string]any{
+		"field_name":    fieldName,
+		"kind":          "field",
+		"type":          fieldType,
+		"fragment_args": nil,
+	})
+	if err != nil {
+		return 0, err
+	}
+	newPaginatedSelectionID := ctx.conn.LastInsertRowID()
+
+	// add the selection ref for the new paginated field
+	err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
+		"document": paginatedFragmentID,
+		"child_id": newPaginatedSelectionID,
+		"internal": false,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// add pagination arguments to the new selection
+	for _, arg := range argumentsToAdd {
+		// create the variable value
+		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Variable",
+			"raw":           arg.Name,
+			"expected_type": arg.Kind,
+			"document":      paginatedFragmentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// add the argument to the field
+		err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
+			"selection_id":   newPaginatedSelectionID,
+			"name":           arg.Name,
+			"value":          ctx.conn.LastInsertRowID(),
+			"field_argument": fmt.Sprintf("%s.%s", fieldName, arg.Name),
+			"document":       paginatedFragmentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// copy child selections of the paginated field
+	copyChildSelectionsQuery, err := ctx.conn.Prepare(`
+		INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal)
+		SELECT $new_parent_id, child_id, $new_document, row, column, path_index, internal
+		FROM selection_refs
+		WHERE document = $original_document AND parent_id = $original_parent_id
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer copyChildSelectionsQuery.Finalize()
+
+	err = ctx.db.ExecStatement(copyChildSelectionsQuery, map[string]any{
+		"new_parent_id":      newPaginatedSelectionID,
+		"new_document":       paginatedFragmentID,
+		"original_document":  document,
+		"original_parent_id": listField,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// add @paginate directive to the new selection
+	err = ctx.db.ExecStatement(ctx.insertSelectionDirective, map[string]any{
+		"selection": newPaginatedSelectionID,
+		"directive": "paginate",
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// create query document that uses the paginated fragment
+	err = ctx.db.ExecStatement(ctx.insertDocument, map[string]any{
+		"name":         graphql.FragmentPaginationQueryName(documentName),
+		"raw_document": rawDocument,
+	})
+	if err != nil {
+		return 0, err
+	}
+	queryDocumentID := ctx.conn.LastInsertRowID()
+
+	// create fragment spread selection that references the paginated fragment
+	err = ctx.db.ExecStatement(ctx.insertSelection, map[string]any{
+		"field_name":    paginatedFragmentName,
+		"kind":          "fragment",
+		"type":          "",
+		"fragment_args": nil,
+	})
+	if err != nil {
+		return 0, err
+	}
+	fragmentSpreadID := ctx.conn.LastInsertRowID()
+
+	// handle resolve query logic
+	if resolveQuery == "" {
+		// no resolve query needed, add fragment spread directly to document
+		err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
+			"document": queryDocumentID,
+			"child_id": fragmentSpreadID,
+			"internal": true,
+		})
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		// need to create a resolve query field first
+		err = ctx.db.ExecStatement(ctx.insertSelection, map[string]any{
+			"field_name":    resolveQuery,
+			"kind":          "field",
+			"type":          fmt.Sprintf("Query.%s", resolveQuery),
+			"fragment_args": nil,
+		})
+		if err != nil {
+			return 0, err
+		}
+		resolveSelectionID := ctx.conn.LastInsertRowID()
+
+		// add resolve selection to document
+		err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
+			"document": queryDocumentID,
+			"child_id": resolveSelectionID,
+			"internal": true,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// add fragment spread as child of resolve selection
+		err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
+			"document":  queryDocumentID,
+			"child_id":  fragmentSpreadID,
+			"parent_id": resolveSelectionID,
+			"internal":  true,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// add resolve query arguments (keys)
+		for _, key := range keys {
+			// create variable value for resolve query argument
+			err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+				"kind":          "Variable",
+				"raw":           key.Name,
+				"expected_type": key.Kind,
+				"document":      queryDocumentID,
+			})
+			if err != nil {
+				return 0, err
+			}
+
+			// add argument to resolve selection
+			err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
+				"selection_id":   resolveSelectionID,
+				"name":           key.Name,
+				"value":          ctx.conn.LastInsertRowID(),
+				"field_argument": fmt.Sprintf("Query.%s.%s", resolveQuery, key.Name),
+				"document":       queryDocumentID,
+			})
+			if err != nil {
+				return 0, err
+			}
+
+			// add document variable for resolve query argument
+			err = ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+				"document":       queryDocumentID,
+				"name":           key.Name,
+				"type":           key.Kind,
+				"type_modifiers": "!",
+			})
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	// add @with directive to fragment spread
+	err = ctx.db.ExecStatement(ctx.insertSelectionDirective, map[string]any{
+		"selection": fragmentSpreadID,
+		"directive": graphql.WithDirective,
+	})
+	if err != nil {
+		return 0, err
+	}
+	withDirectiveID := ctx.conn.LastInsertRowID()
+
+	// add arguments to @with directive and document variables
+	for _, arg := range argumentsToAdd {
+		// create variable value for @with directive
+		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Variable",
+			"raw":           arg.Name,
+			"expected_type": arg.Kind,
+			"document":      queryDocumentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// add argument to @with directive
+		err = ctx.db.ExecStatement(ctx.insertSelectionDirectiveArgument, map[string]any{
+			"parent":   withDirectiveID,
+			"name":     arg.Name,
+			"value":    ctx.conn.LastInsertRowID(),
+			"document": queryDocumentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// find default value from original arguments
+		var defaultValue any
+		for _, appliedArg := range arguments {
+			if appliedArg.Argument == arg.Name {
+				if appliedArg.Kind != "Variable" {
+					defaultValue = appliedArg.Value
+				}
+				break
+			}
+		}
+
+		// copy default value if it exists
+		if defaultValue != nil {
+			err = ctx.db.ExecStatement(ctx.copyArgumentValue, map[string]any{
+				"id":       defaultValue,
+				"document": queryDocumentID,
+			})
+			if err != nil {
+				return 0, err
+			}
+			defaultValue = ctx.conn.LastInsertRowID()
+		}
+
+		// add document variable
+		err = ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+			"document":      queryDocumentID,
+			"name":          arg.Name,
+			"type":          arg.Kind,
+			"default_value": defaultValue,
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// add @dedupe directive to query document if not suppressed
+	if !projectConfig.SuppressPaginationDeduplication {
+		// add @dedupe directive to query document
+		err = ctx.db.ExecStatement(ctx.insertDocumentDirectives, map[string]any{
+			"document":  queryDocumentID,
+			"directive": graphql.DedupeDirective,
+		})
+		if err != nil {
+			return 0, err
+		}
+		dedupeDirectiveID := ctx.conn.LastInsertRowID()
+
+		// add match argument to @dedupe directive
+		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Enum",
+			"raw":           "Variables",
+			"expected_type": "DedupeMatchMode",
+			"document":      queryDocumentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		err = ctx.db.ExecStatement(ctx.insertDocumentDirectiveArgument, map[string]any{
+			"document_directive": dedupeDirectiveID,
+			"argument":           "match",
+			"value":              ctx.conn.LastInsertRowID(),
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return paginatedFragmentID, nil
+}
+
+// processQueryPagination handles pagination processing for query documents
+func processQueryPagination(
+	ctx *paginationContext,
+	projectConfig plugins.ProjectConfig,
+	document int64,
+	listField string,
+	fieldName string,
+	argumentsToAdd []paginationFieldArgumentSpec,
+	arguments []paginationArgumentInfo,
+	variables []variableInfo,
+) error {
+	// now that the field has all of the arguments we need to define the corresponding variables
+	// on the document
+ARGUMENTS:
+	for _, arg := range argumentsToAdd {
+		// if the variable is already defined then we have a value ID to use as the default value
+		var defaultValue any
+		for _, appliedArg := range arguments {
+			if appliedArg.Argument == arg.Name {
+				if appliedArg.Kind != "Variable" {
+					defaultValue = appliedArg.Value
+				}
+				break
+			}
+		}
+
+		// if the variable is already defined, skip it
+		for _, variable := range variables {
+			if variable.Variable == arg.Name {
+				continue ARGUMENTS
+			}
+		}
+
+		// add the variable to the document
+		err := ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+			"document":      document,
+			"name":          arg.Name,
+			"type":          arg.Kind,
+			"default_value": defaultValue,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// loop over the arguments and make sure the field document has the necessary variables defined
+	for _, arg := range argumentsToAdd {
+		// the argument might already be defined on the field, in which case we can just delete the row in the database
+		// we'll replace it with the variable reference later
+		for _, existingArg := range arguments {
+			if existingArg.Argument == arg.Name {
+
+				// if the argument is already defined, we need to make sure that the type matches
+				err := ctx.db.ExecStatement(
+					ctx.deleteSelectionArgument,
+					map[string]any{"id": existingArg.ID},
+				)
+				if err != nil {
+					return err
+				}
+
+				break
+			}
+		}
+
+		// create the variable value and make sure it is used inside of the document
+		// with the paginated field
+		err := ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Variable",
+			"raw":           arg.Name,
+			"expected_type": arg.Kind,
+			"document":      document,
+		})
+		if err != nil {
+			return err
+		}
+		// add the argument to the field
+		err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
+			"selection_id":   listField,
+			"name":           arg.Name,
+			"value":          ctx.conn.LastInsertRowID(),
+			"field_argument": fmt.Sprintf("%s.%s", fieldName, arg.Name),
+			"document":       document,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// for queries, the document that performs the query is the same document
+	queryDocument := document
+
+	// if we aren't supposed to suppress the dedupe directive, we need to add it to the document
+	if !projectConfig.SuppressPaginationDeduplication {
+		// add the dedupe directive to the document
+		err := ctx.db.ExecStatement(ctx.insertDocumentDirectives, map[string]any{
+			"document":  queryDocument,
+			"directive": graphql.DedupeDirective,
+		})
+		if err != nil {
+			return err
+		}
+
+		directiveID := ctx.conn.LastInsertRowID()
+
+		// set the match argument to Variables
+		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Enum",
+			"raw":           "Variables",
+			"expected_type": "DedupeMatchMode",
+			"document":      queryDocument,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = ctx.db.ExecStatement(ctx.insertDocumentDirectiveArgument, map[string]any{
+			"document_directive": directiveID,
+			"argument":           "match",
+			"value":              ctx.conn.LastInsertRowID(),
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
