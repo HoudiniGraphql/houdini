@@ -207,6 +207,12 @@ func AddDocumentFields[PluginConfig any](
 	// to add to the field for every match
 	var pageInfoSelection int64
 	pageInfoFields := []int64{}
+	// track which documents already have pageInfo fields linked to avoid duplicates
+	pageInfoLinkedDocs := make(map[int64]bool)
+	// track which edge fields already have cursor selections to avoid duplicates
+	cursorAddedEdges := make(map[int64]bool)
+	// track which list fields already have pageInfo selections added to avoid duplicates
+	pageInfoAddedLists := make(map[int64]bool)
 
 	err = db.StepStatement(ctx, connectionWalk, func() {
 		listField := connectionWalk.ColumnInt64(0)
@@ -249,11 +255,33 @@ func AddDocumentFields[PluginConfig any](
 
 		// by now we can assume that we have a pageInfo selection along with selections for each field
 
-		// link up the page fields to the info selection within the context of the matching document
-		for _, field := range pageInfoFields {
-			err := db.ExecStatement(insertSelectionRef, map[string]any{
-				"parent_id":  pageInfoSelection,
-				"child_id":   field,
+		// only link up the page fields to the info selection if we haven't done it for this document yet
+		if !pageInfoLinkedDocs[docID] {
+			// link up the page fields to the info selection within the context of the matching document
+			for _, field := range pageInfoFields {
+				err := db.ExecStatement(insertSelectionRef, map[string]any{
+					"parent_id":  pageInfoSelection,
+					"child_id":   field,
+					"document":   docID,
+					"row":        0,
+					"column":     0,
+					"path_index": 0,
+					"internal":   false,
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
+			}
+			pageInfoLinkedDocs[docID] = true
+		}
+
+		// only add the pageInfo selection to the list field if we haven't done it yet
+		if !pageInfoAddedLists[listField] {
+			// and add the pageInfo selection to the edges field
+			err = db.ExecStatement(insertSelectionRef, map[string]any{
+				"parent_id":  listField,
+				"child_id":   pageInfoSelection,
 				"document":   docID,
 				"row":        0,
 				"column":     0,
@@ -264,48 +292,38 @@ func AddDocumentFields[PluginConfig any](
 				errs.Append(plugins.WrapError(err))
 				return
 			}
+			pageInfoAddedLists[listField] = true
 		}
 
-		// and add the pageInfo selection to the edges field
-		err = db.ExecStatement(insertSelectionRef, map[string]any{
-			"parent_id":  listField,
-			"child_id":   pageInfoSelection,
-			"document":   docID,
-			"row":        0,
-			"column":     0,
-			"path_index": 0,
-			"internal":   false,
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
+		// only add cursor selection if we haven't added it for this edges field yet
+		if !cursorAddedEdges[edgesField] {
+			// next we need to add a selection for the cursor on the edges field
+			err = db.ExecStatement(insertSelection, map[string]any{
+				"field_name": "cursor",
+				"alias":      "cursor",
+				"kind":       "field",
+				"type":       fmt.Sprintf("%s.cursor", edgeType),
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 
-		// next we need to add a selection for the cursor on the edges field
-		err = db.ExecStatement(insertSelection, map[string]any{
-			"field_name": "cursor",
-			"alias":      "cursor",
-			"kind":       "field",
-			"type":       fmt.Sprintf("%s.cursor", edgeType),
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-
-		// and link it up to the edges field
-		err = db.ExecStatement(insertSelectionRef, map[string]any{
-			"parent_id":  edgesField,
-			"child_id":   conn.LastInsertRowID(),
-			"document":   docID,
-			"row":        0,
-			"column":     0,
-			"path_index": 0,
-			"internal":   true,
-		})
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
+			// and link it up to the edges field
+			err = db.ExecStatement(insertSelectionRef, map[string]any{
+				"parent_id":  edgesField,
+				"child_id":   conn.LastInsertRowID(),
+				"document":   docID,
+				"row":        0,
+				"column":     0,
+				"path_index": 0,
+				"internal":   true,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
+			cursorAddedEdges[edgesField] = true
 		}
 	})
 	if err != nil {

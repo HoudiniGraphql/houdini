@@ -83,10 +83,9 @@ func PreparePaginationDocuments(
 		FROM discovered_lists
 			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
 			JOIN selections on discovered_lists.list_field = selections.id
-			JOIN selection_refs on selection_refs.child_id = selections.id					
+			JOIN selection_refs on selection_refs.child_id = selections.id
 		  JOIN documents on selection_refs.document = documents.id
 		      AND documents.raw_document = discovered_lists.raw_document
-		      AND documents.id = discovered_lists.raw_document
 		  LEFT JOIN document_variables on document_variables."document" = selection_refs.document
 		       AND document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset')
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
@@ -223,6 +222,8 @@ func PreparePaginationDocuments(
 
 	// iterate over the rows. each row represents a field that is tagged with @paginate
 	errs := &plugins.ErrorList{}
+	// track processed discovered lists to avoid duplicates
+	processedLists := make(map[string]bool)
 	err = db.StepStatement(ctx, query, func() {
 		// pull out the row values
 		rawDocument := query.ColumnInt(0)
@@ -243,6 +244,14 @@ func PreparePaginationDocuments(
 		if query.IsNull("paginate") {
 			return
 		}
+
+		// create a unique key for this discovered list to avoid processing duplicates
+		// use discovered_lists.id if available, otherwise fall back to composite key
+		listKey := fmt.Sprintf("%s-%d-%s", listField, document, fieldName)
+		if processedLists[listKey] {
+			return // already processed this list
+		}
+		processedLists[listKey] = true
 
 		// unmarshal the variables
 		var variables []variableInfo

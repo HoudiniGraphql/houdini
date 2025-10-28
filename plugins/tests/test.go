@@ -271,7 +271,7 @@ CREATE TABLE document_dependencies (
 CREATE TABLE document_variables (
  	id INTEGER PRIMARY KEY AUTOINCREMENT,
     document TEXT NOT NULL,
-    name INTEGER NOT NULL,
+    name TEXT NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
     default_value INT,
@@ -279,7 +279,8 @@ CREATE TABLE document_variables (
     column INTEGER NOT NULL,
 
     FOREIGN KEY (default_value) REFERENCES argument_values(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (document) REFERENCES documents(id)
+    FOREIGN KEY (document) REFERENCES documents(id),
+    UNIQUE (document, name)
 );
 
 -- this is pulled out separately from operations and fragments so foreign keys can be used

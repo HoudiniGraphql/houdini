@@ -1478,6 +1478,7 @@ func (s *transformStatements[PluginConfig]) ReplaceVariables(
 
 		// if the variable does not have a scoped value then we need to set it to null
 		if !ok {
+			// unless the value is a variable reference in which case its been validated already and will be passed down
 			if s.nullValue == 0 {
 				// and we only want to insert a single null value per document
 				err := db.ExecStatement(s.InsertNullValue, map[string]any{"document": documentID})

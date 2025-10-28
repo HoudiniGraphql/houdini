@@ -169,13 +169,13 @@ func InsertOperationDocuments(
 	// now we can step through each discovered list and insert the necessary documents
 	errs := &plugins.ErrorList{}
 	searchLists, err := conn.Prepare(`
-		SELECT 
-      discovered_lists.name, 
-      discovered_lists.node_type, 
-      discovered_lists.node, 
-      discovered_lists.raw_document, 
+		SELECT
+      discovered_lists.name,
+      discovered_lists.node_type,
+      discovered_lists.node,
+      discovered_lists.raw_document,
       documents.id as document_id,
-      CASE 
+      CASE
         WHEN document_variables.id IS NULL THEN json('[]')
         ELSE json_group_array(
           json_object(
@@ -187,7 +187,7 @@ func InsertOperationDocuments(
       END as document_arguments
 		FROM discovered_lists
 			JOIN raw_documents ON raw_documents.id = discovered_lists.raw_document
-      JOIN documents ON documents.raw_document = raw_documents.id
+      JOIN documents ON documents.raw_document = raw_documents.id AND documents.kind != 'fragment'
       LEFT JOIN document_variables ON document_variables.document = documents.id
 		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
     GROUP BY discovered_lists.name
@@ -198,7 +198,7 @@ func InsertOperationDocuments(
 	defer searchLists.Finalize()
 
 	insertDocumentArgument, err := conn.Prepare(`
-    INSERT INTO document_variables (document, name, type, row, column, type_modifiers)
+    INSERT OR IGNORE INTO document_variables (document, name, type, row, column, type_modifiers)
     VALUES ($document, $name, $type, 0, 0, $type_modifiers)
   `)
 	if err != nil {
@@ -269,6 +269,10 @@ func InsertOperationDocuments(
 					"type_modifiers": arg.TypeModifiers,
 					"document":       fragmentID,
 				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
+				}
 			}
 		}
 
