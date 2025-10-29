@@ -207,6 +207,11 @@ func collectDoc(
 			// after the original loading so we need to hold onto a list of selections that need to be patched
 			missingParents := map[int64][]*Selection{}
 
+			// track parent references for building paths on-demand
+			parentRefs := map[int64]int64{} // maps child selection ID to parent selection ID
+
+
+
 			// step through the selections and build up the tree
 			err = db.StepStatement(ctx, statements.Search, func() {
 				// pull out the columns we care about
@@ -226,6 +231,8 @@ func collectDoc(
 				listEmbedded := statements.Search.GetBool("list_embedded")
 				listMode := statements.Search.GetText("list_mode")
 				listCursorType := statements.Search.GetText("cursor_type")
+				listSupportsForward := statements.Search.GetBool("list_supports_forward")
+				listSupportsBackward := statements.Search.GetBool("list_supports_backward")
 				componentFieldType := statements.Search.GetText("component_field_type")
 				componentFieldField := statements.Search.GetText("component_field_field")
 				componentFieldFragment := statements.Search.GetText("component_field_fragment")
@@ -303,15 +310,40 @@ func collectDoc(
 							TargetType: listTargetType,
 							CursorType: listCursorType,
 						}
-						if !statements.Search.IsNull("list_paginated") {
-							selection.List.Paginated = true
-							selection.Paginated = true
-							selection.List.SupportsBackward = statements.Search.GetBool(
-								"list_supports_backward",
-							)
-							selection.List.SupportsForward = statements.Search.GetBool(
-								"list_supports_forward",
-							)
+
+						// if this is a paginated field, set document-level refetch
+						if listPageSize > 0 { // indicates this is a paginated field
+							// build path to this selection on-demand
+							currentPath := buildPathToSelection(selectionID, selections, parentRefs)
+
+							// determine pagination method
+							method := "offset"
+							if listConnection {
+								method = "cursor"
+							}
+
+							// determine direction
+							direction := "forward"
+							if listSupportsForward && listSupportsBackward {
+								direction = "both"
+							} else if listSupportsBackward {
+								direction = "backward"
+							}
+
+							// find the document this selection belongs to
+							doc := documents[documentName]
+							if doc != nil && doc.Refetch == nil {
+								doc.Refetch = &DocumentRefetch{
+									Path:      currentPath,
+									Method:    method,
+									PageSize:  int(listPageSize),
+									Mode:      listMode,
+									TargetType: listTargetType,
+									Embedded:  listEmbedded,
+									Paginated: true,
+									Direction: direction,
+								}
+							}
 						}
 					}
 
@@ -348,12 +380,19 @@ func collectDoc(
 						documents[documentName] = doc
 					}
 
+
+
 					// add the selection to the doc
 					doc.Selections = append(doc.Selections, selection)
+
+
 
 				} else {
 					// if we have a parent then we need to save it in the parent's children
 					parentID := statements.Search.GetInt64("parent_id")
+					// track parent reference for path building
+					parentRefs[selectionID] = parentID
+
 					parent, ok := selections[parentID]
 					if ok {
 						// check if this child is already in the parent's children to avoid duplicates
@@ -863,6 +902,17 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.mode as list_mode,
           discovered_lists.target_type as list_target_type,
           discovered_lists.cursor_type as list_cursor_type,
+          dl_doc.name as doc_list_name,
+          dl_doc.node_type as doc_list_type,
+          dl_doc.connection as doc_list_connection,
+          dl_doc.paginate as doc_list_paginated,
+          dl_doc.supports_forward as doc_list_supports_forward,
+          dl_doc.supports_backward as doc_list_supports_backward,
+          dl_doc.page_size as doc_list_page_size,
+          dl_doc.embedded as doc_list_embedded,
+          dl_doc.mode as doc_list_mode,
+          dl_doc.target_type as doc_list_target_type,
+          dl_doc.cursor_type as doc_list_cursor_type,
           selection_refs.internal,
 					d.internal as document_internal
         FROM selections
@@ -877,6 +927,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN type_fields on selections.type = type_fields.id
           LEFT JOIN types on d.kind = types.operation
           LEFT JOIN discovered_lists on discovered_lists.list_field = selections.id
+          LEFT JOIN discovered_lists dl_doc on dl_doc.document = $document
 
         UNION ALL
 
@@ -911,6 +962,17 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           discovered_lists.mode as list_mode,
           discovered_lists.target_type as list_target_type,
           discovered_lists.cursor_type as list_cursor_type,
+          dl_doc.name as doc_list_name,
+          dl_doc.node_type as doc_list_type,
+          dl_doc.connection as doc_list_connection,
+          dl_doc.paginate as doc_list_paginated,
+          dl_doc.supports_forward as doc_list_supports_forward,
+          dl_doc.supports_backward as doc_list_supports_backward,
+          dl_doc.page_size as doc_list_page_size,
+          dl_doc.embedded as doc_list_embedded,
+          dl_doc.mode as doc_list_mode,
+          dl_doc.target_type as doc_list_target_type,
+          dl_doc.cursor_type as doc_list_cursor_type,
           selection_refs.internal,
 					d.internal as document_internal
         FROM selection_refs
@@ -922,6 +984,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           LEFT JOIN directives_agg dct ON dct.selection_id = selections.id
           LEFT JOIN arguments_agg a ON a.selection_id = selections.id
           LEFT JOIN discovered_lists on discovered_lists.list_field = selections.id
+          LEFT JOIN discovered_lists dl_doc on dl_doc.document = selection_refs.document
         WHERE selection_refs.document = st.document_id
       )
     SELECT
@@ -1169,6 +1232,69 @@ func (s *CollectStatements) Finalize() {
 	s.PossibleTypes.Finalize()
 	s.InputTypes.Finalize()
 }
+
+// buildPathToSelection builds the field path to a selection by walking up the parent chain
+func buildPathToSelection(selectionID int64, selections map[int64]*Selection, parentRefs map[int64]int64) []string {
+	var path []string
+	current := selectionID
+
+	// walk up the parent chain to build the path
+	for {
+		selection := selections[current]
+		if selection == nil {
+			break
+		}
+
+		// use alias if available, otherwise use field name
+		fieldName := selection.FieldName
+		if selection.Alias != nil {
+			fieldName = *selection.Alias
+		}
+
+		// prepend to build path from root to current
+		path = append([]string{fieldName}, path...)
+
+		// move to parent
+		parentID, hasParent := parentRefs[current]
+		if !hasParent {
+			break
+		}
+		current = parentID
+	}
+
+	return path
+}
+
+
+
+// parsePathFields converts a comma-separated quoted path string into a slice of field names
+// e.g., `,"node","friendsConnection"` becomes ["node", "friendsConnection"]
+func parsePathFields(path string) []string {
+	if path == "" || path == ",\"\"" {
+		return []string{}
+	}
+
+	// remove leading comma and split by comma
+	trimmed := strings.TrimPrefix(path, ",")
+	if trimmed == "" {
+		return []string{}
+	}
+
+	parts := strings.Split(trimmed, ",")
+	fields := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		// remove quotes and whitespace
+		field := strings.Trim(strings.TrimSpace(part), "\"")
+		if field != "" {
+			fields = append(fields, field)
+		}
+	}
+
+	return fields
+}
+
+
 
 func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.Stmt, error) {
 	placeholders := make([]string, len(valueIDs))

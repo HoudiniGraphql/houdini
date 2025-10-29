@@ -48,8 +48,8 @@ func GenerateStores(
 				ELSE 0
 			END as variables_required,
 			CASE
-				WHEN COUNT(dl_cursor.raw_document) > 0 THEN 'cursor'
-				WHEN COUNT(dl_offset.raw_document) > 0 THEN 'offset'
+				WHEN COUNT(dl_cursor.document) > 0 THEN 'cursor'
+				WHEN COUNT(dl_offset.document) > 0 THEN 'offset'
 				ELSE ''
 			END as refetch_method
 		FROM documents d
@@ -59,11 +59,11 @@ func GenerateStores(
 			AND dv_required.default_value IS NULL
 		)
 		LEFT JOIN discovered_lists dl_cursor ON (
-			dl_cursor.raw_document = d.raw_document
+			dl_cursor.document = d.id
 			AND dl_cursor.connection = 1
 		)
 		LEFT JOIN discovered_lists dl_offset ON (
-			dl_offset.raw_document = d.raw_document
+			dl_offset.document = d.id
 			AND dl_offset.connection = 0 AND dl_offset.paginate is not null
 		)
 		GROUP BY d.id, d.name, d.kind

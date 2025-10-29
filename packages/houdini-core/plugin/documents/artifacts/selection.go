@@ -66,6 +66,7 @@ func writeSelectionDocument(
 type DocumentData struct {
 	Printed string
 	Hash    string
+	Refetch *collected.DocumentRefetch // pagination metadata collected during traversal
 }
 
 func GenerateSelectionDocument(
@@ -224,7 +225,7 @@ func GenerateSelectionDocument(
 		&SelectionFlags{},
 		nil,
 		[]string{},
-		"",
+		[]string{},
 		forceLoading,
 	)
 	// build up the input specification
@@ -319,9 +320,39 @@ func GenerateSelectionDocument(
     "optimisticKeys": true`
 	}
 
-	// there might a refetch spec associated with the document
+	// determine refetch specification from document or selection metadata
+	// document-level refetch takes precedence when available
+	refetchSpec := flags.Refetch
+	if documentData.Refetch != nil {
+		// convert document refetch to selection refetch format
+		refetchSpec = &RefetchSpec{
+			Path:       documentData.Refetch.Path,
+			Method:     RefetchMethod(documentData.Refetch.Method),
+			PageSize:   documentData.Refetch.PageSize,
+			Mode:       RefetchMode(documentData.Refetch.Mode),
+			TargetType: documentData.Refetch.TargetType,
+			Embedded:   documentData.Refetch.Embedded,
+			Paginated:  documentData.Refetch.Paginated,
+			Direction:  RefetchDirection(documentData.Refetch.Direction),
+		}
+	}
+
 	refetch := ""
-	if flags.Refetch != nil {
+	if refetchSpec != nil {
+		// generate JSON array from path slice in one pass
+		var pathBuilder strings.Builder
+		pathBuilder.WriteByte('[')
+		for i, field := range refetchSpec.Path {
+			if i > 0 {
+				pathBuilder.WriteByte(',')
+			}
+			pathBuilder.WriteByte('"')
+			pathBuilder.WriteString(field)
+			pathBuilder.WriteByte('"')
+		}
+		pathBuilder.WriteByte(']')
+		pathJSON := pathBuilder.String()
+
 		refetch = fmt.Sprintf(`
 
     "refetch": {
@@ -335,14 +366,14 @@ func GenerateSelectionDocument(
         "mode": "%s"
     },
 `,
-			"["+flags.Refetch.Path[1:]+"]",
-			flags.Refetch.Method,
-			flags.Refetch.PageSize,
-			flags.Refetch.Embedded,
-			flags.Refetch.TargetType,
-			flags.Refetch.Paginated,
-			flags.Refetch.Direction,
-			flags.Refetch.Mode,
+			pathJSON,
+			refetchSpec.Method,
+			refetchSpec.PageSize,
+			refetchSpec.Embedded,
+			refetchSpec.TargetType,
+			refetchSpec.Paginated,
+			refetchSpec.Direction,
+			refetchSpec.Mode,
 		)
 	}
 
@@ -418,6 +449,8 @@ export default artifact
 	return result, nil
 }
 
+
+
 func getDocumentData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -437,8 +470,15 @@ func getDocumentData(
 	// the query that looks up the printed value needs a whereIn for every referenced document
 	whereIn := strings.Join(dependentDocs, ", ")
 
+	// fetch document content from database
 	query, err := conn.Prepare(fmt.Sprintf(`
-    SELECT printed, name, hash FROM documents WHERE name in (%s) ORDER BY name
+    SELECT
+      documents.printed,
+      documents.name,
+      documents.hash
+    FROM documents
+    WHERE documents.name in (%s)
+    ORDER BY documents.name
   `, whereIn))
 	if err != nil {
 		return d, err
@@ -446,6 +486,7 @@ func getDocumentData(
 	defer query.Finalize()
 
 	var printedBuilder strings.Builder
+
 	err = db.StepStatement(ctx, query, func() {
 		printedBuilder.WriteString(query.GetText("printed"))
 		printedBuilder.WriteString("\n\n")
@@ -460,9 +501,122 @@ func getDocumentData(
 	// compute hash based on the complete printed content (including dependencies)
 	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
 
+	// get refetch data from collected document if available
+	if collectedDoc := docs.Selections[name]; collectedDoc != nil {
+		d.Refetch = collectedDoc.Refetch
+	}
+
+	// special handling for fragment-based pagination queries
+	if strings.HasSuffix(name, "_Pagination_Query") {
+		// build refetch specification for fragment-based pagination queries
+		refetch, err := buildFragmentPaginationRefetch(ctx, conn, name, docs)
+		if err == nil && refetch != nil {
+			d.Refetch = refetch
+		}
+	}
+
 	// we're done
 	return d, nil
 }
+
+// buildFragmentPaginationRefetch builds refetch specification for fragment-based pagination queries
+func buildFragmentPaginationRefetch(ctx context.Context, conn *sqlite.Conn, queryName string, docs *collected.Documents) (*collected.DocumentRefetch, error) {
+	// query to get pagination metadata for this pagination query
+	query, err := conn.Prepare(`
+		SELECT
+			dl.page_size,
+			dl.mode,
+			dl.target_type,
+			dl.embedded,
+			dl.connection,
+			dl.supports_forward,
+			dl.supports_backward,
+			s_parent.field_name as parent_field,
+			s_parent.alias as parent_alias,
+			s_paginated.field_name as paginated_field,
+			s_paginated.alias as paginated_alias
+		FROM discovered_lists dl
+		JOIN documents d ON dl.document = d.id
+		JOIN selections s_fragment ON dl.list_field = s_fragment.id
+		JOIN selection_refs sr ON sr.child_id = s_fragment.id AND sr.document = d.id
+		JOIN selections s_parent ON sr.parent_id = s_parent.id
+		JOIN selections s_paginated ON dl.node = s_paginated.id
+		WHERE d.name = $query_name
+		LIMIT 1
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer query.Finalize()
+
+	query.SetText("$query_name", queryName)
+
+	hasRow, err := query.Step()
+	if err != nil {
+		return nil, err
+	}
+	if !hasRow {
+		return nil, nil // no pagination metadata found
+	}
+
+	pageSize := int(query.ColumnInt64(0))
+	mode := query.ColumnText(1)
+	targetType := query.ColumnText(2)
+	embedded := query.ColumnBool(3)
+	connection := query.ColumnBool(4)
+	supportsForward := query.ColumnBool(5)
+	supportsBackward := query.ColumnBool(6)
+	parentField := query.ColumnText(7)
+	parentAlias := query.ColumnText(8)
+	paginatedField := query.ColumnText(9)
+	paginatedAlias := query.ColumnText(10)
+
+	// build the path: [parent_field, paginated_field]
+	var path []string
+
+	// add the parent field where the fragment is spread (e.g., "node")
+	if parentAlias != "" && parentAlias != parentField {
+		path = append(path, parentAlias)
+	} else {
+		path = append(path, parentField)
+	}
+
+	// add the paginated field name (use alias if available)
+	if paginatedAlias != "" && paginatedAlias != paginatedField {
+		path = append(path, paginatedAlias)
+	} else {
+		path = append(path, paginatedField)
+	}
+
+	// determine pagination method
+	method := "offset"
+	if connection {
+		method = "cursor"
+	}
+
+	// determine direction
+	direction := "forward"
+	if supportsForward && supportsBackward {
+		direction = "both"
+	} else if supportsBackward {
+		direction = "backward"
+	}
+
+	return &collected.DocumentRefetch{
+		Path:      path,
+		Method:    method,
+		PageSize:  pageSize,
+		Mode:      mode,
+		TargetType: targetType,
+		Embedded:  embedded,
+		Paginated: true,
+		Direction: direction,
+	}, nil
+}
+
+
+
+
 
 func stringifySelection(
 	docs *collected.Documents,
@@ -475,7 +629,7 @@ func stringifySelection(
 	parentSelectionFlags *SelectionFlags,
 	paginatedMode *string,
 	updates []string,
-	path string,
+	path []string,
 	forceLoading bool,
 ) string {
 	indent := strings.Repeat(spacing, level)
@@ -527,6 +681,11 @@ func stringifySelection(
 				}
 			}
 
+			// create new path by appending current field
+			fieldPath := make([]string, len(path)+1)
+			copy(fieldPath, path)
+			fieldPath[len(path)] = *selection.Alias
+
 			fieldsBuilder.WriteString(stringifyFieldSelection(
 				projectConfig,
 				docs,
@@ -536,7 +695,7 @@ func stringifySelection(
 				flags,
 				parentSelectionFlags,
 				updates,
-				path+`,"`+*selection.Alias+`"`,
+				fieldPath,
 				forceLoading,
 			))
 
@@ -833,7 +992,7 @@ func stringifyFieldSelection(
 	flags *ArtifactFlags,
 	parentSelectionFlags *SelectionFlags,
 	updates []string,
-	path string,
+	path []string,
 	forceLoading bool,
 ) string {
 	indent3 := strings.Repeat(spacing, level+2)
@@ -856,6 +1015,7 @@ func stringifyFieldSelection(
 		}
 
 		if selection.List != nil {
+			// use the computed path for pagination operations
 			flags.Refetch = &RefetchSpec{
 				Path:       path,
 				Paginated:  selection.List.Paginated,
@@ -1518,7 +1678,7 @@ type SelectionFlags struct {
 }
 
 type RefetchSpec struct {
-	Path       string
+	Path       []string
 	Method     RefetchMethod
 	PageSize   int
 	Start      any

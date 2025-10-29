@@ -188,13 +188,14 @@ func AddDocumentFields[PluginConfig any](
 		SELECT
 			list_field,
 			selection_refs.parent_id as edges_field,
-			document,
+			discovered_lists.document,
       edge_type,
       connection_type,
       node_type
 		FROM discovered_lists
 			JOIN selection_refs ON selection_refs.child_id = discovered_lists.node
-			JOIN raw_documents ON raw_documents.id = discovered_lists.raw_document
+			JOIN documents ON documents.id = discovered_lists.document
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
 		WHERE connection = true
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`)

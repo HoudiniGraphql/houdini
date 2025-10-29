@@ -255,7 +255,7 @@ func generateDocumentsFile(
 	err := db.StepQuery(ctx, `
 		SELECT d.printed
 		FROM discovered_lists dl
-		JOIN documents d ON dl.raw_document = d.raw_document
+		JOIN documents d ON dl.document = d.id
 		WHERE d.kind = 'fragment'
 		ORDER BY dl.name, d.rowid
 	`, nil, func(stmt *sqlite.Stmt) {

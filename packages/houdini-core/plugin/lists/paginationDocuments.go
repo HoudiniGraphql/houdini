@@ -47,6 +47,7 @@ type paginationContext struct {
 	insertSelectionDirective         *sqlite.Stmt
 	insertSelectionDirectiveArgument *sqlite.Stmt
 	copyArgumentValue                *sqlite.Stmt
+	insertDiscoveredLists            *sqlite.Stmt
 }
 
 func PreparePaginationDocuments(
@@ -119,12 +120,12 @@ func PreparePaginationDocuments(
 			discovered_lists.paginate,
       discovered_lists.cursor_type as cursor_type
 		FROM discovered_lists
-			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
+			JOIN documents on discovered_lists.document = documents.id
+			JOIN raw_documents on documents.raw_document = raw_documents.id
 			JOIN selections on discovered_lists.list_field = selections.id
 			LEFT JOIN type_fields field_info on selections.type = field_info.id
 			JOIN selection_refs on selection_refs.child_id = selections.id
-		  JOIN documents on selection_refs.document = documents.id
-		      AND documents.raw_document = discovered_lists.raw_document
+		      AND selection_refs.document = documents.id
 		  LEFT JOIN document_variables on document_variables."document" = selection_refs.document
 		       AND document_variables."name" in ('first', 'last', 'limit', 'before', 'after', 'offset')
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
@@ -247,6 +248,49 @@ func PreparePaginationDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer copyArgumentValue.Finalize()
+	// statement to insert discovered lists entries
+	insertDiscoveredLists, err := conn.Prepare(`
+		INSERT INTO discovered_lists
+      (
+        name,
+        node_type,
+        edge_type,
+        connection_type,
+        document,
+        connection,
+        list_field,
+        paginate,
+        node,
+        page_size,
+        mode,
+        embedded,
+        target_type,
+        supports_forward,
+        supports_backward,
+        cursor_type
+      ) VALUES (
+        $name,
+        $node_type,
+        $edge_type,
+        $connection_type,
+        $document,
+        $connection,
+        $list_field,
+        $paginate,
+        $node,
+        $page_size,
+        $mode,
+        $embedded,
+        $target_type,
+        $supports_forward,
+        $supports_backward,
+        $cursor_type
+      )
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertDiscoveredLists.Finalize()
 
 	// create pagination context with all prepared statements
 	paginationCtx := &paginationContext{
@@ -265,6 +309,7 @@ func PreparePaginationDocuments(
 		insertSelectionDirective:         insertSelectionDirective,
 		insertSelectionDirectiveArgument: insertSelectionDirectiveArgument,
 		copyArgumentValue:                copyArgumentValue,
+		insertDiscoveredLists:            insertDiscoveredLists,
 	}
 
 	// iterate over the rows. each row represents a field that is tagged with @paginate
@@ -290,6 +335,7 @@ func PreparePaginationDocuments(
 		resolveKeys := query.ColumnText(13)
 		typeCondition := query.ColumnText(14)
 		cursorType := query.GetText("cursor_type")
+		paginate := query.GetText("paginate")
 
 		if query.IsNull("paginate") {
 			return
@@ -353,6 +399,11 @@ func PreparePaginationDocuments(
 				arguments,
 				resolveQuery,
 				keys,
+				supportsForward,
+				supportsBackward,
+				connection,
+				cursorType,
+				paginate,
 			)
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -456,6 +507,11 @@ func processFragmentPagination(
 	arguments []paginationArgumentInfo,
 	resolveQuery string,
 	keys []paginationFieldArgumentSpec,
+	supportsForward bool,
+	supportsBackward bool,
+	connection bool,
+	cursorType string,
+	paginate string,
 ) (int64, error) {
 	// create a new paginated fragment document
 	paginatedFragmentName := documentName + "_paginated"
@@ -774,6 +830,96 @@ func processFragmentPagination(
 		if err != nil {
 			return 0, err
 		}
+	}
+
+	// create discovered_lists entry for the pagination query
+	// first, get the pagination metadata from the original fragment's discovered_lists entry
+	getOriginalListQuery, err := ctx.conn.Prepare(`
+		SELECT node_type, edge_type, connection_type, page_size, mode, node
+		FROM discovered_lists
+		WHERE document = $document AND list_field = $list_field
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer getOriginalListQuery.Finalize()
+
+	err = ctx.db.BindStatement(getOriginalListQuery, map[string]any{
+		"document":   document,
+		"list_field": listField,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	var nodeType, edgeType, connectionType, mode string
+	var pageSize, node int64
+	hasRow, err := getOriginalListQuery.Step()
+	if err != nil {
+		return 0, err
+	}
+	if hasRow {
+		nodeType = getOriginalListQuery.ColumnText(0)
+		edgeType = getOriginalListQuery.ColumnText(1)
+		connectionType = getOriginalListQuery.ColumnText(2)
+		pageSize = getOriginalListQuery.ColumnInt64(3)
+		mode = getOriginalListQuery.ColumnText(4)
+		node = getOriginalListQuery.ColumnInt64(5)
+	}
+
+
+
+	// retrieve the field name or alias for the paginated field
+	getPaginatedFieldAliasQuery, err := ctx.conn.Prepare(`
+		SELECT COALESCE(NULLIF(s.alias, s.field_name), s.field_name) as field_alias
+		FROM selections s
+		WHERE s.id = $list_field
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer getPaginatedFieldAliasQuery.Finalize()
+
+	err = ctx.db.BindStatement(getPaginatedFieldAliasQuery, map[string]any{
+		"list_field": listField,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	hasFieldRow, err := getPaginatedFieldAliasQuery.Step()
+	if err != nil {
+		return 0, err
+	}
+	if hasFieldRow {
+		// field alias is available but not needed for current implementation
+		_ = getPaginatedFieldAliasQuery.ColumnText(0)
+	}
+
+	// use fragment spread as the list field for pagination query metadata
+	listFieldForQuery := fragmentSpreadID
+
+	// store pagination metadata for the generated query document
+	err = ctx.db.ExecStatement(ctx.insertDiscoveredLists, map[string]any{
+		"name":             "",
+		"node_type":        nodeType,
+		"edge_type":        edgeType,
+		"connection_type":  connectionType,
+		"document":         queryDocumentID,
+		"connection":       connection,
+		"list_field":       listFieldForQuery,
+		"paginate":         paginate,
+		"node":             node,
+		"page_size":        pageSize,
+		"mode":             mode,
+		"embedded":         false, // pagination queries are not embedded
+		"target_type":      "Query", // pagination queries target Query type
+		"supports_forward": supportsForward,
+		"supports_backward": supportsBackward,
+		"cursor_type":      cursorType,
+	})
+	if err != nil {
+		return 0, err
 	}
 
 	return paginatedFragmentID, nil

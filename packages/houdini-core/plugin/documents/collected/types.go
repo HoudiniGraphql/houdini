@@ -14,6 +14,7 @@ type Document struct {
 	Directives          []*Directive
 	ReferencedFragments []string
 	UnusedVariables     []string
+	Refetch             *DocumentRefetch // pagination metadata collected during traversal
 }
 
 // Selection represents a field selection in a GraphQL document
@@ -49,6 +50,18 @@ type List struct {
 	TargetType       string
 	Embedded         bool
 	CursorType       string
+}
+
+// DocumentRefetch represents pagination metadata collected during document traversal
+type DocumentRefetch struct {
+	Path            []string // field path to the paginated selection
+	Method          string   // "cursor" or "offset"
+	PageSize        int
+	Mode            string
+	TargetType      string
+	Embedded        bool
+	Paginated       bool
+	Direction       string // "forward", "backward", or "both"
 }
 
 // OperationVariable represents a variable in a GraphQL operation

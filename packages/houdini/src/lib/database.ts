@@ -355,7 +355,7 @@ CREATE TABLE IF NOT EXISTS discovered_lists (
     connection_type TEXT NOT NULL,
     node INTEGER NOT NULL,
     page_size INTEGER NOT NULL,
-    raw_document INTEGER NOT NULL,
+    document INTEGER NOT NULL,
     mode TEXT NOT NULL,
     embedded BOOLEAN NOT NULL,
     target_type TEXT NOT NULL,
@@ -369,7 +369,7 @@ CREATE TABLE IF NOT EXISTS discovered_lists (
     FOREIGN KEY (list_field) REFERENCES selections(id) ON DELETE CASCADE,
 	  FOREIGN KEY (node) REFERENCES selections(id) ON DELETE CASCADE,
     FOREIGN KEY (node_type) REFERENCES types(name) ON DELETE CASCADE,
-    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) ON DELETE CASCADE
+    FOREIGN KEY (document) REFERENCES documents(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS document_dependencies (
@@ -385,7 +385,7 @@ CREATE TABLE IF NOT EXISTS document_dependencies (
 -----------------------------------------------------------
 
 CREATE INDEX IF NOT EXISTS idx_component_fields_type_fields ON component_fields(type_field);
-CREATE INDEX IF NOT EXISTS idx_discovered_lists_raw_document ON discovered_lists(raw_document);
+CREATE INDEX IF NOT EXISTS idx_discovered_lists_document ON discovered_lists(document);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_node ON discovered_lists(node);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_list_field ON discovered_lists(list_field);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_connection ON discovered_lists(connection);

@@ -173,8 +173,9 @@ func InsertOperationDocuments(
       discovered_lists.name,
       discovered_lists.node_type,
       discovered_lists.node,
-      discovered_lists.raw_document,
+      discovered_lists.document,
       documents.id as document_id,
+      documents.raw_document,
       CASE
         WHEN document_variables.id IS NULL THEN json('[]')
         ELSE json_group_array(
@@ -186,8 +187,8 @@ func InsertOperationDocuments(
         )
       END as document_arguments
 		FROM discovered_lists
-			JOIN raw_documents ON raw_documents.id = discovered_lists.raw_document
-      JOIN documents ON documents.raw_document = raw_documents.id AND documents.kind != 'fragment'
+			JOIN documents ON documents.id = discovered_lists.document AND documents.kind != 'fragment'
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
       LEFT JOIN document_variables ON document_variables.document = documents.id
 		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
     GROUP BY discovered_lists.name
@@ -210,8 +211,8 @@ func InsertOperationDocuments(
 		name := searchLists.ColumnText(0)
 		listType := searchLists.ColumnText(1)
 		selectionParent := searchLists.ColumnInt64(2)
-		rawDocument := searchLists.ColumnInt64(3)
 		documentID := searchLists.GetInt64("document_id")
+		rawDocument := searchLists.GetInt64("raw_document")
 		documentArgmentsString := searchLists.GetText("document_arguments")
 
 		arguments := []struct {
@@ -390,8 +391,9 @@ func InsertOperationDocuments(
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
 		WITH lists AS (
-			select * from discovered_lists
-			JOIN raw_documents on discovered_lists.raw_document = raw_documents.id
+			select discovered_lists.*, documents.raw_document from discovered_lists
+			JOIN documents on discovered_lists.document = documents.id
+			JOIN raw_documents on documents.raw_document = raw_documents.id
 			WHERE raw_documents.current_task = $task_id or $task_id is NULL
 		)
 

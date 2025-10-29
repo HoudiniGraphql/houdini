@@ -20,21 +20,21 @@ func ValidateConflictingPrependAppend(
 ) {
 	query := `
 	SELECT
-	  rd.filepath,
-	  rd.offset_line,
-	  rd.offset_column,
-	  sd.row as line,
-	  sd.column,
-	  d.name AS documentName,
-	  GROUP_CONCAT(DISTINCT sd.directive) AS directives
-	FROM selection_directives sd
-	  JOIN selection_refs sr ON sr.child_id = sd.selection_id
-	  JOIN documents d ON d.id = sr.document
-	  JOIN raw_documents rd ON rd.id = d.raw_document
-	WHERE sd.directive IN ($prepend, $append)
-		AND (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY sd.selection_id, rd.filepath, rd.offset_line, rd.offset_column, d.name
-	HAVING COUNT(DISTINCT sd.directive) > 1
+	  raw_documents.filepath,
+	  raw_documents.offset_line,
+	  raw_documents.offset_column,
+	  selection_directives.row as line,
+	  selection_directives.column,
+	  documents.name AS documentName,
+	  GROUP_CONCAT(DISTINCT selection_directives.directive) AS directives
+	FROM selection_directives
+	  JOIN selection_refs ON selection_refs.child_id = selection_directives.selection_id
+	  JOIN documents ON documents.id = selection_refs.document
+	  JOIN raw_documents ON raw_documents.id = documents.raw_document
+	WHERE selection_directives.directive IN ($prepend, $append)
+		AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	GROUP BY selection_directives.selection_id, raw_documents.filepath, raw_documents.offset_line, raw_documents.offset_column, documents.name
+	HAVING COUNT(DISTINCT selection_directives.directive) > 1
 	`
 	bindings := map[string]any{
 		"prepend": graphql.PrependDirective,
@@ -471,7 +471,7 @@ func DiscoverListsThenValidate(
             raw_documents.filepath  AS filepath,
             selections.id           AS selection_id,
             selection_directives.directive,
-            raw_documents.id        AS raw_document_id,
+            documents.id            AS document_id,
             CAST(COALESCE(document_values.raw, page_argument.raw) AS INTEGER) AS page_size,
             documents.kind == 'fragment' as embedded,
           	documents.type_condition as target_type,
@@ -519,7 +519,7 @@ func DiscoverListsThenValidate(
         SELECT
           b.selection_id,
           s_edges.id       AS edges_id,
-          b.raw_document_id,
+          b.document_id,
           tf_edges.type    AS edge_type
         FROM base b
           JOIN selection_refs sr
@@ -538,7 +538,7 @@ func DiscoverListsThenValidate(
           e.selection_id,
           s_node.id        AS node_id,
           tf_node.type     AS node_list_type,
-          e.raw_document_id,
+          e.document_id,
           e.edge_type
         FROM edges e
           JOIN selection_refs sr2
@@ -561,18 +561,15 @@ func DiscoverListsThenValidate(
         ELSE n.node_list_type
       END AS final_list_type,
 
-      CASE
-        WHEN b.type_modifiers LIKE '%]%' THEN b.selection_id
-        ELSE n.node_id
-      END AS node_id,
+      b.selection_id AS node_id,
 
-      b.raw_document_id,
-      (b.type_modifiers NOT LIKE '%]%')    AS connection, 
+      b.document_id,
+      (b.type_modifiers NOT LIKE '%]%')    AS connection,
 
       b.selection_id,
       b.directive,
 
-      n.edge_type,                        
+      n.edge_type,
       b.base_list_type AS connection_type,
       b.page_size,
       b.embedded,
@@ -596,7 +593,7 @@ func DiscoverListsThenValidate(
 		SelectionID    int
 		ListField      int
 		Filepath       string
-		RawDocument    int
+		Document       int
 		NodeType       string
 		EdgeType       any
 		ConnectionType any
@@ -618,7 +615,7 @@ func DiscoverListsThenValidate(
 		filepath := nameStatement.ColumnText(3)
 		finalType := nameStatement.ColumnText(4)
 		selectionID := nameStatement.ColumnInt(5)
-		rawDocument := nameStatement.ColumnInt(6)
+		document := nameStatement.ColumnInt(6)
 		connection := nameStatement.ColumnBool(7)
 		listField := nameStatement.ColumnInt(8)
 		directive := nameStatement.ColumnText(9)
@@ -646,7 +643,7 @@ func DiscoverListsThenValidate(
 				ListName:       listName,
 				SelectionID:    selectionID,
 				Filepath:       filepath,
-				RawDocument:    rawDocument,
+				Document:       document,
 				NodeType:       finalType,
 				EdgeType:       edgeType,
 				ConnectionType: connectionType,
@@ -683,16 +680,16 @@ func DiscoverListsThenValidate(
 	// - we'll consider them when validating directive and fragment spreads
 	// - we'll use them to insert the operation schema items
 	insertDiscoveredLists, err := conn.Prepare(`
-		INSERT INTO discovered_lists 
+		INSERT INTO discovered_lists
       (
-        name, 
-        node_type, 
-        edge_type, 
-        connection_type, 
-        raw_document, 
-        connection, 
+        name,
+        node_type,
+        edge_type,
+        connection_type,
+        document,
+        connection,
         list_field,
-        paginate, 
+        paginate,
         node,
         page_size,
         mode,
@@ -700,13 +697,13 @@ func DiscoverListsThenValidate(
         target_type
       ) VALUES (
         $name,
-        $node_type, 
-        $edge_type, 
-        $connection_type, 
-        $raw_document,
-        $connection, 
-        $list_field, 
-        $paginate, 
+        $node_type,
+        $edge_type,
+        $connection_type,
+        $document,
+        $connection,
+        $list_field,
+        $paginate,
         $node,
         $page_size,
         $mode,
@@ -746,14 +743,13 @@ func DiscoverListsThenValidate(
 			list.TargetType = "Query"
 		}
 
-		// insert the discovered list into the database
 		err = db.ExecStatement(insertDiscoveredLists, map[string]any{
 			"name":            list.ListName,
 			"node_type":       list.NodeType,
 			"connection_type": list.ConnectionType,
 			"edge_type":       list.EdgeType,
 			"node":            list.SelectionID,
-			"raw_document":    list.RawDocument,
+			"document":        list.Document,
 			"connection":      list.Connection,
 			"list_field":      list.ListField,
 			"page_size":       list.PageSize,
@@ -808,34 +804,34 @@ func validateDirectives(
 			FROM discovered_lists
 		)
 		SELECT
-			sd.directive,
-			rd.filepath,
-			sd.row,
-			sd.column
-		FROM selection_directives sd
-			JOIN selections s ON s.id = sd.selection_id
-			JOIN selection_refs sr ON sr.child_id = s.id
-			JOIN documents d ON d.id = sr.document
-			JOIN raw_documents rd ON rd.id = d.raw_document
-			LEFT JOIN directives dir ON sd.directive = dir.name
-			LEFT JOIN discovered_directives dl ON sd.directive = dl.key
-		WHERE dir.name IS NULL AND dl.key IS NULL
-			AND (rd.current_task = $task_id OR $task_id IS NULL)
+			selection_directives.directive,
+			raw_documents.filepath,
+			selection_directives.row,
+			selection_directives.column
+		FROM selection_directives
+			JOIN selections ON selections.id = selection_directives.selection_id
+			JOIN selection_refs ON selection_refs.child_id = selections.id
+			JOIN documents ON documents.id = selection_refs.document
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+			LEFT JOIN directives ON selection_directives.directive = directives.name
+			LEFT JOIN discovered_directives ON selection_directives.directive = discovered_directives.key
+		WHERE directives.name IS NULL AND discovered_directives.key IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 
 		UNION ALL
 
 		SELECT
-			dd.directive,
-			rd.filepath,
-			dd.row,
-			dd.column
-		FROM document_directives dd
-			JOIN documents d ON d.id = dd.document
-			JOIN raw_documents rd ON rd.id = d.raw_document
-			LEFT JOIN directives dir ON dd.directive = dir.name
-			LEFT JOIN discovered_directives dl ON dd.directive = dl.key
-		WHERE dir.name IS NULL AND dl.key IS NULL
-			AND (rd.current_task = $task_id OR $task_id IS NULL)
+			document_directives.directive,
+			raw_documents.filepath,
+			document_directives.row,
+			document_directives.column
+		FROM document_directives
+			JOIN documents ON documents.id = document_directives.document
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+			LEFT JOIN directives ON document_directives.directive = directives.name
+			LEFT JOIN discovered_directives ON document_directives.directive = discovered_directives.key
+		WHERE directives.name IS NULL AND discovered_directives.key IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
 	bindings := map[string]any{
 		"delete_prefix": graphql.ListOperationSuffixDelete,

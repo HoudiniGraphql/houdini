@@ -237,7 +237,7 @@ CREATE TABLE discovered_lists (
     edge_type TEXT,
     connection_type TEXT NOT NULL,
     node INTEGER NOT NULL,
-    raw_document INTEGER NOT NULL,
+    document INTEGER NOT NULL,
     connection BOOLEAN default false,
     list_field INTEGER NOT NULL,
     page_size INTEGER NOT NULL,
@@ -251,8 +251,8 @@ CREATE TABLE discovered_lists (
 
     FOREIGN KEY (list_field) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (node) REFERENCES selections(id) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (node_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED
-    FOREIGN KEY (raw_document) REFERENCES raw_documents(id) DEFERRABLE INITIALLY DEFERRED
+    FOREIGN KEY (node_type) REFERENCES types(name) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (document) REFERENCES documents(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE document_dependencies (
