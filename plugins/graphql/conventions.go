@@ -59,5 +59,7 @@ func ComponentFieldFragmentName(typ string, field string) string {
 }
 
 func FragmentPaginationQueryName(fragmentName string) string {
-	return fmt.Sprintf("%s_Pagination_Query", fragmentName)
+	return fragmentName + PaginationQuerySuffix
 }
+
+const PaginationQuerySuffix = "_Pagination_Query"

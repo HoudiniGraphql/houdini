@@ -1267,32 +1267,7 @@ func buildPathToSelection(selectionID int64, selections map[int64]*Selection, pa
 
 
 
-// parsePathFields converts a comma-separated quoted path string into a slice of field names
-// e.g., `,"node","friendsConnection"` becomes ["node", "friendsConnection"]
-func parsePathFields(path string) []string {
-	if path == "" || path == ",\"\"" {
-		return []string{}
-	}
 
-	// remove leading comma and split by comma
-	trimmed := strings.TrimPrefix(path, ",")
-	if trimmed == "" {
-		return []string{}
-	}
-
-	parts := strings.Split(trimmed, ",")
-	fields := make([]string, 0, len(parts))
-
-	for _, part := range parts {
-		// remove quotes and whitespace
-		field := strings.Trim(strings.TrimSpace(part), "\"")
-		if field != "" {
-			fields = append(fields, field)
-		}
-	}
-
-	return fields
-}
 
 
 

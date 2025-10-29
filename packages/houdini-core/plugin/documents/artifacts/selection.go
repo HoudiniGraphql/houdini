@@ -214,6 +214,7 @@ func GenerateSelectionDocument(
 	}
 
 	// build up the selection string
+	pathBuilder := NewPathBuilder(8) // reasonable initial capacity for most documents
 	selectionValues := stringifySelection(
 		docs,
 		projectConfig,
@@ -225,7 +226,7 @@ func GenerateSelectionDocument(
 		&SelectionFlags{},
 		nil,
 		[]string{},
-		[]string{},
+		pathBuilder,
 		forceLoading,
 	)
 	// build up the input specification
@@ -507,7 +508,7 @@ func getDocumentData(
 	}
 
 	// special handling for fragment-based pagination queries
-	if strings.HasSuffix(name, "_Pagination_Query") {
+	if strings.HasSuffix(name, graphql.PaginationQuerySuffix) {
 		// build refetch specification for fragment-based pagination queries
 		refetch, err := buildFragmentPaginationRefetch(ctx, conn, name, docs)
 		if err == nil && refetch != nil {
@@ -614,6 +615,45 @@ func buildFragmentPaginationRefetch(ctx context.Context, conn *sqlite.Conn, quer
 	}, nil
 }
 
+// PathBuilder provides memory-efficient path building with backtracking
+type PathBuilder struct {
+	path []string
+}
+
+// NewPathBuilder creates a new path builder with optional initial capacity
+func NewPathBuilder(initialCap int) *PathBuilder {
+	return &PathBuilder{
+		path: make([]string, 0, initialCap),
+	}
+}
+
+// Push adds a field to the current path
+func (pb *PathBuilder) Push(field string) {
+	pb.path = append(pb.path, field)
+}
+
+// Pop removes the last field from the current path
+func (pb *PathBuilder) Pop() {
+	if len(pb.path) > 0 {
+		pb.path = pb.path[:len(pb.path)-1]
+	}
+}
+
+// Current returns a copy of the current path (only when needed for RefetchSpec)
+func (pb *PathBuilder) Current() []string {
+	if len(pb.path) == 0 {
+		return []string{}
+	}
+	result := make([]string, len(pb.path))
+	copy(result, pb.path)
+	return result
+}
+
+// Len returns the current path depth
+func (pb *PathBuilder) Len() int {
+	return len(pb.path)
+}
+
 
 
 
@@ -629,7 +669,7 @@ func stringifySelection(
 	parentSelectionFlags *SelectionFlags,
 	paginatedMode *string,
 	updates []string,
-	path []string,
+	pathBuilder *PathBuilder,
 	forceLoading bool,
 ) string {
 	indent := strings.Repeat(spacing, level)
@@ -681,10 +721,8 @@ func stringifySelection(
 				}
 			}
 
-			// create new path by appending current field
-			fieldPath := make([]string, len(path)+1)
-			copy(fieldPath, path)
-			fieldPath[len(path)] = *selection.Alias
+			// push current field to path, process, then pop
+			pathBuilder.Push(*selection.Alias)
 
 			fieldsBuilder.WriteString(stringifyFieldSelection(
 				projectConfig,
@@ -695,9 +733,12 @@ func stringifySelection(
 				flags,
 				parentSelectionFlags,
 				updates,
-				fieldPath,
+				pathBuilder,
 				forceLoading,
 			))
+
+			// pop the field we just processed
+			pathBuilder.Pop()
 
 		case "fragment":
 			// the applied fragment might have arguments
@@ -801,7 +842,7 @@ func stringifySelection(
 							flags,
 							parentSelectionFlags,
 							[]string{},
-							path,
+							pathBuilder,
 							forceLoading,
 						))
 					}
@@ -992,7 +1033,7 @@ func stringifyFieldSelection(
 	flags *ArtifactFlags,
 	parentSelectionFlags *SelectionFlags,
 	updates []string,
-	path []string,
+	pathBuilder *PathBuilder,
 	forceLoading bool,
 ) string {
 	indent3 := strings.Repeat(spacing, level+2)
@@ -1017,7 +1058,7 @@ func stringifyFieldSelection(
 		if selection.List != nil {
 			// use the computed path for pagination operations
 			flags.Refetch = &RefetchSpec{
-				Path:       path,
+				Path:       pathBuilder.Current(), // only copy when needed
 				Paginated:  selection.List.Paginated,
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
@@ -1130,7 +1171,7 @@ func stringifyFieldSelection(
 				selectionFlags,
 				paginatedMode,
 				subSelUpdates,
-				path,
+				pathBuilder,
 				forceLoading,
 			),
 		)
