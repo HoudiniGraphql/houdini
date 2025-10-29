@@ -1055,11 +1055,11 @@ func stringifyFieldSelection(
 			updates = append(updates, "prepend")
 		}
 
-		if selection.List != nil {
+		if selection.List != nil && selection.List.Paginated {
 			// use the computed path for pagination operations
 			flags.Refetch = &RefetchSpec{
 				Path:       pathBuilder.Current(), // only copy when needed
-				Paginated:  selection.List.Paginated,
+				Paginated:  true, // this is a paginated field
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
 				TargetType: selection.List.TargetType,

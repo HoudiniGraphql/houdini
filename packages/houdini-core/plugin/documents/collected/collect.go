@@ -301,14 +301,17 @@ func collectDoc(
 
 					if listType != "" {
 						selection.List = &List{
-							Name:       listName,
-							Type:       listType,
-							Connection: listConnection,
-							PageSize:   int(listPageSize),
-							Mode:       listMode,
-							Embedded:   listEmbedded,
-							TargetType: listTargetType,
-							CursorType: listCursorType,
+							Name:             listName,
+							Type:             listType,
+							Connection:       listConnection,
+							Paginated:        listPageSize > 0, // true if this is a paginated field
+							SupportsForward:  listSupportsForward,
+							SupportsBackward: listSupportsBackward,
+							PageSize:         int(listPageSize),
+							Mode:             listMode,
+							Embedded:         listEmbedded,
+							TargetType:       listTargetType,
+							CursorType:       listCursorType,
 						}
 
 						// if this is a paginated field, set document-level refetch
