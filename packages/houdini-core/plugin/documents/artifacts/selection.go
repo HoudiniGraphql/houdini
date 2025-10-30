@@ -324,6 +324,8 @@ func GenerateSelectionDocument(
 	// determine refetch specification from document or selection metadata
 	refetchSpec := flags.Refetch
 	if documentData.Refetch != nil {
+		direction := RefetchDirection(documentData.Refetch.Direction)
+
 		refetchSpec = &RefetchSpec{
 			Path:       documentData.Refetch.Path,
 			Method:     RefetchMethod(documentData.Refetch.Method),
@@ -332,8 +334,11 @@ func GenerateSelectionDocument(
 			TargetType: documentData.Refetch.TargetType,
 			Embedded:   documentData.Refetch.Embedded,
 			Paginated:  documentData.Refetch.Paginated,
-			Direction:  RefetchDirection(documentData.Refetch.Direction),
+			Direction:  direction,
 		}
+	}
+	if refetchSpec != nil && refetchSpec.Direction == "" {
+		refetchSpec.Direction = RefetchDirectionForward
 	}
 
 	refetch := ""
