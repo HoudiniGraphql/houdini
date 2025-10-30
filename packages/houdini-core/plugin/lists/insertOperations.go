@@ -36,18 +36,38 @@ func InsertOperationDocuments(
 	insertedDirectives := map[string]bool{}
 
 	// we need a query that copys the subselection for the list field
-	// into a document
+	// into a document - this finds all descendants and copies them preserving relationships
+	// The key insight: we're only creating new refs, not new selections, so parent_id relationships should be preserved
 	copySelection, err := conn.Prepare(`
-		INSERT
-			INTO selection_refs (document, child_id, row, column, path_index, internal)
+		WITH RECURSIVE subtree AS (
+			-- Start with the selection parent itself
+			SELECT $selection_parent as selection_id
+
+			UNION ALL
+
+			-- Add all descendants recursively
+			SELECT sr.child_id
+			FROM selection_refs sr
+			JOIN subtree st ON sr.parent_id = st.selection_id
+		)
+		-- Copy all selection references where both parent and child are in our subtree
+		-- BUT exclude the selection_parent itself - we only want its children
+		INSERT INTO selection_refs (document, parent_id, child_id, row, column, path_index, internal)
 		SELECT
 			$document AS document,
-			child_id,
-			row,
-			column,
-			path_index,
-			internal
-		FROM selection_refs WHERE parent_id = $selection_parent
+			CASE
+				WHEN sr.parent_id = $selection_parent THEN NULL  -- Direct children of selection_parent become roots
+				ELSE sr.parent_id
+			END as parent_id,
+			sr.child_id,
+			sr.row,
+			sr.column,
+			sr.path_index,
+			sr.internal
+		FROM selection_refs sr
+		WHERE sr.parent_id IN (SELECT selection_id FROM subtree)
+		  AND sr.child_id IN (SELECT selection_id FROM subtree)
+		  AND sr.child_id != $selection_parent  -- Exclude the selection_parent itself
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
