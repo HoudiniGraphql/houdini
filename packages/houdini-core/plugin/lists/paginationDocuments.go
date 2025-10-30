@@ -19,11 +19,13 @@ type variableInfo struct {
 }
 
 type paginationArgumentInfo struct {
-	Argument string `json:"argument"`
-	ID       int    `json:"id"`
-	Value    int    `json:"value"`
-	Kind     string `json:"kind"`
-	Raw      string `json:"raw"`
+	Argument      string `json:"argument"`
+	ID            int    `json:"id"`
+	Value         int    `json:"value"`
+	Kind          string `json:"kind"`
+	Raw           string `json:"raw"`
+	ExpectedType  string `json:"expected_type"`
+	TypeModifiers string `json:"type_modifiers"`
 }
 
 type paginationFieldArgumentSpec struct {
@@ -32,6 +34,7 @@ type paginationFieldArgumentSpec struct {
 }
 
 type paginationContext struct {
+	context.Context
 	conn                             *sqlite.Conn
 	db                               plugins.DatabasePool[config.PluginConfig]
 	insertDocument                   *sqlite.Stmt
@@ -92,7 +95,9 @@ func PreparePaginationDocuments(
 				'id', selection_arguments.id,
 				'value', selection_arguments."value",
 				'kind', argument_values.kind,
-				'raw', argument_values.raw
+				'raw', argument_values.raw,
+				'expected_type', argument_values.expected_type,
+				'type_modifiers', COALESCE(fragment_vars.type_modifiers, '')
 			)
 			) FILTER (WHERE selection_arguments.id IS NOT NULL) as arguments,
 			discovered_lists.supports_forward,
@@ -131,6 +136,8 @@ func PreparePaginationDocuments(
 			LEFT JOIN selection_arguments on discovered_lists.list_field = selection_arguments.selection_id
           AND selection_arguments.document = documents.id
 			LEFT JOIN argument_values on selection_arguments.value = argument_values.id
+			LEFT JOIN document_variables fragment_vars on fragment_vars.document = documents.id
+				AND fragment_vars.name = selection_arguments.name
 			LEFT JOIN types on documents.type_condition = types."name"
 			LEFT JOIN type_configs on documents.type_condition = type_configs."name"
 			JOIN config
@@ -138,8 +145,7 @@ func PreparePaginationDocuments(
 			LEFT JOIN type_fields tf
 				ON tf.parent = documents.type_condition
 				AND tf.name = je.value
-		WHERE (selection_arguments."name" is null OR selection_arguments."name" in ('first', 'last', 'limit', 'before', 'after', 'offset'))
-       AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY discovered_lists.id
 	`)
 	if err != nil {
@@ -296,6 +302,7 @@ func PreparePaginationDocuments(
 	paginationCtx := &paginationContext{
 		conn:                             conn,
 		db:                               db,
+		Context:                          ctx,
 		insertDocument:                   insertDocument,
 		insertFragment:                   insertFragment,
 		insertDocumentVariable:           insertDocumentVariable,
@@ -594,6 +601,44 @@ func processFragmentPagination(
 		}
 	}
 
+	// add fragment arguments (non-pagination arguments) to the paginated field
+	for _, arg := range arguments {
+		// skip pagination arguments as they're already handled above
+		isPaginationArg := false
+		for _, paginationArg := range argumentsToAdd {
+			if arg.Argument == paginationArg.Name {
+				isPaginationArg = true
+				break
+			}
+		}
+		if isPaginationArg {
+			continue
+		}
+
+		// create the variable value
+		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Variable",
+			"raw":           arg.Argument,
+			"expected_type": arg.ExpectedType,
+			"document":      paginatedFragmentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// add the argument to the field
+		err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
+			"selection_id":   newPaginatedSelectionID,
+			"name":           arg.Argument,
+			"value":          ctx.conn.LastInsertRowID(),
+			"field_argument": fmt.Sprintf("%s.%s", fieldName, arg.Argument),
+			"document":       paginatedFragmentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
 	// copy child selections of the paginated field
 	copyChildSelectionsQuery, err := ctx.conn.Prepare(`
 		INSERT INTO selection_refs (parent_id, child_id, document, row, column, path_index, internal)
@@ -616,10 +661,21 @@ func processFragmentPagination(
 		return 0, err
 	}
 
-	// add @paginate directive to the new selection
-	err = ctx.db.ExecStatement(ctx.insertSelectionDirective, map[string]any{
-		"selection": newPaginatedSelectionID,
-		"directive": "paginate",
+	// copy the original pagination directive (@paginate or @list) to the new selection
+	copyDirectiveQuery, err := ctx.conn.Prepare(`
+		INSERT INTO selection_directives (selection_id, directive, row, column)
+		SELECT $new_selection_id, directive, row, column
+		FROM selection_directives
+		WHERE selection_id = $original_selection_id AND directive IN ('paginate', 'list')
+	`)
+	if err != nil {
+		return 0, err
+	}
+	defer copyDirectiveQuery.Finalize()
+
+	err = ctx.db.ExecStatement(copyDirectiveQuery, map[string]any{
+		"new_selection_id":      newPaginatedSelectionID,
+		"original_selection_id": listField,
 	})
 	if err != nil {
 		return 0, err
@@ -740,7 +796,7 @@ func processFragmentPagination(
 	}
 	withDirectiveID := ctx.conn.LastInsertRowID()
 
-	// add arguments to @with directive and document variables
+	// add pagination arguments to @with directive and document variables
 	for _, arg := range argumentsToAdd {
 		// create variable value for @with directive
 		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
@@ -789,10 +845,73 @@ func processFragmentPagination(
 
 		// add document variable
 		err = ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+			"document":       queryDocumentID,
+			"name":           arg.Name,
+			"type":           arg.Kind,
+			"type_modifiers": "", // pagination arguments don't have type modifiers
+			"default_value":  defaultValue,
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// add fragment arguments (non-pagination arguments) to @with directive and document variables
+	for _, arg := range arguments {
+		// skip pagination arguments as they're already handled above
+		isPaginationArg := false
+		for _, paginationArg := range argumentsToAdd {
+			if arg.Argument == paginationArg.Name {
+				isPaginationArg = true
+				break
+			}
+		}
+		if isPaginationArg {
+			continue
+		}
+
+		// create variable value for @with directive
+		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
+			"kind":          "Variable",
+			"raw":           arg.Argument,
+			"expected_type": arg.ExpectedType,
 			"document":      queryDocumentID,
-			"name":          arg.Name,
-			"type":          arg.Kind,
-			"default_value": defaultValue,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// add argument to @with directive
+		err = ctx.db.ExecStatement(ctx.insertSelectionDirectiveArgument, map[string]any{
+			"parent":   withDirectiveID,
+			"name":     arg.Argument,
+			"value":    ctx.conn.LastInsertRowID(),
+			"document": queryDocumentID,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		// copy default value if it exists
+		var defaultValue any
+		if arg.Kind != "Variable" {
+			err = ctx.db.ExecStatement(ctx.copyArgumentValue, map[string]any{
+				"id":       arg.Value,
+				"document": queryDocumentID,
+			})
+			if err != nil {
+				return 0, err
+			}
+			defaultValue = ctx.conn.LastInsertRowID()
+		}
+
+		// add document variable
+		err = ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+			"document":       queryDocumentID,
+			"name":           arg.Argument,
+			"type":           arg.ExpectedType,
+			"type_modifiers": arg.TypeModifiers, // preserve type modifiers from fragment arguments
+			"default_value":  defaultValue,
 		})
 		if err != nil {
 			return 0, err
@@ -844,6 +963,9 @@ func processFragmentPagination(
 	}
 	defer getOriginalListQuery.Finalize()
 
+	var nodeType, edgeType, connectionType, mode string
+	var pageSize, node int64
+
 	err = ctx.db.BindStatement(getOriginalListQuery, map[string]any{
 		"document":   document,
 		"list_field": listField,
@@ -852,24 +974,19 @@ func processFragmentPagination(
 		return 0, err
 	}
 
-	var nodeType, edgeType, connectionType, mode string
-	var pageSize, node int64
-	hasRow, err := getOriginalListQuery.Step()
-	if err != nil {
-		return 0, err
-	}
-	if hasRow {
+	err = ctx.db.StepStatement(ctx, getOriginalListQuery, func() {
 		nodeType = getOriginalListQuery.ColumnText(0)
 		edgeType = getOriginalListQuery.ColumnText(1)
 		connectionType = getOriginalListQuery.ColumnText(2)
 		pageSize = getOriginalListQuery.ColumnInt64(3)
 		mode = getOriginalListQuery.ColumnText(4)
 		node = getOriginalListQuery.ColumnInt64(5)
+	})
+	if err != nil {
+		return 0, err
 	}
 
-
-
-	// retrieve the field name or alias for the paginated field
+	// This will be implemented in a future iteration
 	getPaginatedFieldAliasQuery, err := ctx.conn.Prepare(`
 		SELECT COALESCE(NULLIF(s.alias, s.field_name), s.field_name) as field_alias
 		FROM selections s
@@ -896,33 +1013,47 @@ func processFragmentPagination(
 		_ = getPaginatedFieldAliasQuery.ColumnText(0)
 	}
 
-	// use fragment spread as the list field for pagination query metadata
-	listFieldForQuery := fragmentSpreadID
+	// use the field from the base paginated fragment for the pagination query
+	// the fragment variant will inherit the pagination metadata from the base fragment
+	listFieldForQuery := newPaginatedSelectionID
 
 	// store pagination metadata for the generated query document
+	// ensure paginate is always non-null for pagination queries to get ::paginated suffix
+	paginateValue := paginate
+	if paginateValue == "" {
+		paginateValue = "forward" // default to forward pagination
+	}
+	// Determine the target type for fragment pagination queries
+	// If the type condition has a custom resolve query in the config, use that type
+	// Otherwise, default to "Node" which uses the node(id: $id) query field
+	targetType := "Node" // default fallback
+	if typeConfig, exists := projectConfig.TypeConfig[typeCondition]; exists && typeConfig.ResolveQuery != "" {
+		targetType = typeCondition
+	}
+
 	err = ctx.db.ExecStatement(ctx.insertDiscoveredLists, map[string]any{
-		"name":             "",
-		"node_type":        nodeType,
-		"edge_type":        edgeType,
-		"connection_type":  connectionType,
-		"document":         queryDocumentID,
-		"connection":       connection,
-		"list_field":       listFieldForQuery,
-		"paginate":         paginate,
-		"node":             node,
-		"page_size":        pageSize,
-		"mode":             mode,
-		"embedded":         false, // pagination queries are not embedded
-		"target_type":      "Query", // pagination queries target Query type
-		"supports_forward": supportsForward,
+		"name":              "",
+		"node_type":         nodeType,
+		"edge_type":         edgeType,
+		"connection_type":   connectionType,
+		"document":          queryDocumentID,
+		"connection":        connection,
+		"list_field":        listFieldForQuery,
+		"paginate":          true,
+		"node":              node,
+		"page_size":         pageSize,
+		"mode":              mode,
+		"embedded":          false, // pagination queries are not embedded
+		"target_type":       targetType, // smart target type selection for fragment pagination
+		"supports_forward":  supportsForward,
 		"supports_backward": supportsBackward,
-		"cursor_type":      cursorType,
+		"cursor_type":       cursorType,
 	})
 	if err != nil {
 		return 0, err
 	}
 
-	return paginatedFragmentID, nil
+	return queryDocumentID, nil
 }
 
 // processQueryPagination handles pagination processing for query documents

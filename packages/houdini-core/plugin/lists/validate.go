@@ -561,7 +561,10 @@ func DiscoverListsThenValidate(
         ELSE n.node_list_type
       END AS final_list_type,
 
-      b.selection_id AS node_id,
+      CASE
+        WHEN b.type_modifiers LIKE '%]%' THEN b.selection_id
+        ELSE COALESCE(n.node_id, b.selection_id)
+      END AS node_id,
 
       b.document_id,
       (b.type_modifiers NOT LIKE '%]%')    AS connection,
@@ -743,12 +746,15 @@ func DiscoverListsThenValidate(
 			list.TargetType = "Query"
 		}
 
+		// Use the node selection ID from the query result
+		nodeSelectionID := list.SelectionID
+
 		err = db.ExecStatement(insertDiscoveredLists, map[string]any{
 			"name":            list.ListName,
 			"node_type":       list.NodeType,
 			"connection_type": list.ConnectionType,
 			"edge_type":       list.EdgeType,
-			"node":            list.SelectionID,
+			"node":            nodeSelectionID,
 			"document":        list.Document,
 			"connection":      list.Connection,
 			"list_field":      list.ListField,

@@ -871,6 +871,13 @@ func cloneDocument[PluginConfig any](
 		}
 	}
 
+	// copy discovered_lists entries that reference selections in the source document
+	// to create new entries pointing to the corresponding selections in the cloned document
+	err = copyDiscoveredListsForClonedFragment(ctx, db, conn, sourceDocument, documentID, selectionMap)
+	if err != nil {
+		return 0, nil, err
+	}
+
 	// before we finish lets figure out the new scope
 	newScope, err := statements.CopyScope(ctx, db, conn, fragmentScope, documentID)
 	if err != nil {
@@ -878,6 +885,148 @@ func cloneDocument[PluginConfig any](
 	}
 
 	return documentID, newScope, nil
+}
+
+// copyDiscoveredListsForClonedFragment copies discovered_lists entries that reference selections
+// in the source fragment to create new entries pointing to the corresponding selections in the cloned fragment
+func copyDiscoveredListsForClonedFragment[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	conn *sqlite.Conn,
+	sourceDocument int64,
+	targetDocument int64,
+	selectionMap map[int64]int64,
+) error {
+	// find all discovered_lists entries that point to selections in the source document
+	searchStmt, err := conn.Prepare(`
+		SELECT
+			dl.id,
+			dl.name,
+			dl.node_type,
+			dl.edge_type,
+			dl.connection_type,
+			dl.document,
+			dl.connection,
+			dl.list_field,
+			dl.paginate,
+			dl.node,
+			dl.page_size,
+			dl.mode,
+			dl.embedded,
+			dl.target_type,
+			dl.supports_forward,
+			dl.supports_backward,
+			dl.cursor_type
+		FROM discovered_lists dl
+		JOIN selections s ON dl.list_field = s.id
+		JOIN selection_refs sr ON sr.child_id = s.id
+		WHERE sr.document = $source_document
+	`)
+	if err != nil {
+		return err
+	}
+	defer searchStmt.Finalize()
+
+	// prepare insert statement for new discovered_lists entries
+	insertStmt, err := conn.Prepare(`
+		INSERT INTO discovered_lists (
+			name,
+			node_type,
+			edge_type,
+			connection_type,
+			document,
+			connection,
+			list_field,
+			paginate,
+			node,
+			page_size,
+			mode,
+			embedded,
+			target_type,
+			supports_forward,
+			supports_backward,
+			cursor_type
+		) VALUES (
+			$name,
+			$node_type,
+			$edge_type,
+			$connection_type,
+			$document,
+			$connection,
+			$list_field,
+			$paginate,
+			$node,
+			$page_size,
+			$mode,
+			$embedded,
+			$target_type,
+			$supports_forward,
+			$supports_backward,
+			$cursor_type
+		)
+	`)
+	if err != nil {
+		return err
+	}
+	defer insertStmt.Finalize()
+
+	// bind the source document parameter
+	searchStmt.SetInt64("$source_document", sourceDocument)
+
+	// iterate through discovered_lists entries and copy them
+	for {
+		hasRow, err := searchStmt.Step()
+		if err != nil {
+			return err
+		}
+		if !hasRow {
+			break
+		}
+
+		// get the original list_field and node
+		originalListField := searchStmt.GetInt64("list_field")
+		originalNode := searchStmt.GetInt64("node")
+
+		// check if this selection was mapped to a new selection
+		newListField, exists := selectionMap[originalListField]
+		if !exists {
+			// if the selection wasn't mapped, skip this discovered_lists entry
+			continue
+		}
+
+		// map the node field as well (for cursor-based pagination, this should point to the cloned node selection)
+		newNode, nodeExists := selectionMap[originalNode]
+		if !nodeExists {
+			// if the node selection wasn't mapped, fall back to the original node
+			// this can happen for offset-based pagination where node == list_field
+			newNode = originalNode
+		}
+
+		// copy the discovered_lists entry with the new list_field, node, and target document
+		err = db.ExecStatement(insertStmt, map[string]any{
+			"name":              searchStmt.GetText("name"),
+			"node_type":         searchStmt.GetText("node_type"),
+			"edge_type":         searchStmt.GetText("edge_type"),
+			"connection_type":   searchStmt.GetText("connection_type"),
+			"document":          targetDocument,
+			"connection":        searchStmt.GetBool("connection"),
+			"list_field":        newListField,
+			"paginate":          searchStmt.GetText("paginate"),
+			"node":              newNode,
+			"page_size":         searchStmt.GetInt64("page_size"),
+			"mode":              searchStmt.GetText("mode"),
+			"embedded":          searchStmt.GetBool("embedded"),
+			"target_type":       searchStmt.GetText("target_type"),
+			"supports_forward":  searchStmt.GetBool("supports_forward"),
+			"supports_backward": searchStmt.GetBool("supports_backward"),
+			"cursor_type":       searchStmt.GetText("cursor_type"),
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type transformStatements[PluginConfig any] struct {

@@ -31,7 +31,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 			type User implements Node {
 				id: ID!
 				firstName: String!
-				friends(first:Int, after: String, last: Int, before: String): UserConnection!
+				friends(first:Int, after: String, last: Int, before: String, snapshot: String): UserConnection!
 			}
 
 			type UserConnection {
@@ -624,6 +624,59 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							}
 						`,
 							graphql.FragmentPaginationQueryName("AllUsers"),
+						)),
+				},
+			},
+			{
+				Name: "fragment with required arguments preserves type modifiers",
+				Pass: true,
+				Input: []string{
+					`
+						fragment UserFriends on User @arguments(snapshot: { type: "String!" }) {
+							friends(first: 2, snapshot: $snapshot) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment UserFriends_paginated_SAvn1 on User {
+							id
+							__typename
+							friends(first: $first, after: $after, last: $last, before: $before, snapshot: $snapshot) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									__typename
+									cursor
+								}
+								__typename
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 2, $after: String, $before: String, $last: Int, $id: ID!, $snapshot: String!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...UserFriends_paginated_SAvn1 @with(first: $first, after: $after, before: $before, last: $last, snapshot: $snapshot)
+								}
+							}
+						`,
+							graphql.FragmentPaginationQueryName("UserFriends"),
 						)),
 				},
 			},

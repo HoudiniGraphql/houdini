@@ -322,10 +322,8 @@ func GenerateSelectionDocument(
 	}
 
 	// determine refetch specification from document or selection metadata
-	// document-level refetch takes precedence when available
 	refetchSpec := flags.Refetch
 	if documentData.Refetch != nil {
-		// convert document refetch to selection refetch format
 		refetchSpec = &RefetchSpec{
 			Path:       documentData.Refetch.Path,
 			Method:     RefetchMethod(documentData.Refetch.Method),
@@ -340,10 +338,19 @@ func GenerateSelectionDocument(
 
 	refetch := ""
 	if refetchSpec != nil {
+		// For fragment pagination queries, we need to strip the first path entry
+		// because the pagination query artifact includes the "node" field (or custom resolve query)
+		// but the actual fragment data structure doesn't include this wrapper.
+		// This ensures extractPageInfo can find the correct path to the pageInfo data.
+		pathToUse := refetchSpec.Path
+		if strings.HasSuffix(name, graphql.PaginationQuerySuffix) && len(refetchSpec.Path) > 0 {
+			pathToUse = refetchSpec.Path[1:]
+		}
+
 		// generate JSON array from path slice in one pass
 		var pathBuilder strings.Builder
 		pathBuilder.WriteByte('[')
-		for i, field := range refetchSpec.Path {
+		for i, field := range pathToUse {
 			if i > 0 {
 				pathBuilder.WriteByte(',')
 			}
@@ -450,8 +457,6 @@ export default artifact
 	return result, nil
 }
 
-
-
 func getDocumentData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -507,112 +512,8 @@ func getDocumentData(
 		d.Refetch = collectedDoc.Refetch
 	}
 
-	// special handling for fragment-based pagination queries
-	if strings.HasSuffix(name, graphql.PaginationQuerySuffix) {
-		// build refetch specification for fragment-based pagination queries
-		refetch, err := buildFragmentPaginationRefetch(ctx, conn, name, docs)
-		if err == nil && refetch != nil {
-			d.Refetch = refetch
-		}
-	}
-
 	// we're done
 	return d, nil
-}
-
-// buildFragmentPaginationRefetch builds refetch specification for fragment-based pagination queries
-func buildFragmentPaginationRefetch(ctx context.Context, conn *sqlite.Conn, queryName string, docs *collected.Documents) (*collected.DocumentRefetch, error) {
-	// query to get pagination metadata for this pagination query
-	query, err := conn.Prepare(`
-		SELECT
-			dl.page_size,
-			dl.mode,
-			dl.target_type,
-			dl.embedded,
-			dl.connection,
-			dl.supports_forward,
-			dl.supports_backward,
-			s_parent.field_name as parent_field,
-			s_parent.alias as parent_alias,
-			s_paginated.field_name as paginated_field,
-			s_paginated.alias as paginated_alias
-		FROM discovered_lists dl
-		JOIN documents d ON dl.document = d.id
-		JOIN selections s_fragment ON dl.list_field = s_fragment.id
-		JOIN selection_refs sr ON sr.child_id = s_fragment.id AND sr.document = d.id
-		JOIN selections s_parent ON sr.parent_id = s_parent.id
-		JOIN selections s_paginated ON dl.node = s_paginated.id
-		WHERE d.name = $query_name
-		LIMIT 1
-	`)
-	if err != nil {
-		return nil, err
-	}
-	defer query.Finalize()
-
-	query.SetText("$query_name", queryName)
-
-	hasRow, err := query.Step()
-	if err != nil {
-		return nil, err
-	}
-	if !hasRow {
-		return nil, nil // no pagination metadata found
-	}
-
-	pageSize := int(query.ColumnInt64(0))
-	mode := query.ColumnText(1)
-	targetType := query.ColumnText(2)
-	embedded := query.ColumnBool(3)
-	connection := query.ColumnBool(4)
-	supportsForward := query.ColumnBool(5)
-	supportsBackward := query.ColumnBool(6)
-	parentField := query.ColumnText(7)
-	parentAlias := query.ColumnText(8)
-	paginatedField := query.ColumnText(9)
-	paginatedAlias := query.ColumnText(10)
-
-	// build the path: [parent_field, paginated_field]
-	var path []string
-
-	// add the parent field where the fragment is spread (e.g., "node")
-	if parentAlias != "" && parentAlias != parentField {
-		path = append(path, parentAlias)
-	} else {
-		path = append(path, parentField)
-	}
-
-	// add the paginated field name (use alias if available)
-	if paginatedAlias != "" && paginatedAlias != paginatedField {
-		path = append(path, paginatedAlias)
-	} else {
-		path = append(path, paginatedField)
-	}
-
-	// determine pagination method
-	method := "offset"
-	if connection {
-		method = "cursor"
-	}
-
-	// determine direction
-	direction := "forward"
-	if supportsForward && supportsBackward {
-		direction = "both"
-	} else if supportsBackward {
-		direction = "backward"
-	}
-
-	return &collected.DocumentRefetch{
-		Path:      path,
-		Method:    method,
-		PageSize:  pageSize,
-		Mode:      mode,
-		TargetType: targetType,
-		Embedded:  embedded,
-		Paginated: true,
-		Direction: direction,
-	}, nil
 }
 
 // PathBuilder provides memory-efficient path building with backtracking
@@ -653,10 +554,6 @@ func (pb *PathBuilder) Current() []string {
 func (pb *PathBuilder) Len() int {
 	return len(pb.path)
 }
-
-
-
-
 
 func stringifySelection(
 	docs *collected.Documents,
@@ -986,7 +883,11 @@ func stringifySelection(
 
 func keyField(field *collected.Selection, paginatedMode *string) string {
 	if len(field.Arguments) == 0 {
-		return `"` + *field.Alias + `"`
+		paginationSuffix := ""
+		if paginatedMode != nil {
+			paginationSuffix = "::paginated"
+		}
+		return `"` + *field.Alias + paginationSuffix + `"`
 	}
 
 	// if we are generating the key for a paginated field then we need to strip away
@@ -1010,6 +911,7 @@ func keyField(field *collected.Selection, paginatedMode *string) string {
 		a := *arg
 		args = append(args, &a)
 	}
+
 	paginationSuffix := ""
 	if paginatedMode != nil {
 		paginationSuffix = "::paginated"
@@ -1055,11 +957,20 @@ func stringifyFieldSelection(
 			updates = append(updates, "prepend")
 		}
 
-		if selection.List != nil && selection.List.Paginated {
-			// use the computed path for pagination operations
+		if selection.List != nil {
+			// use the computed path for list operations (both paginated and non-paginated)
+			currentPath := pathBuilder.Current()
+
+			// For list fields (both @list and @paginate), ensure the field is included in the path
+			// This handles cases where fragments don't include the field in the path
+			fullPath := currentPath
+			if len(currentPath) == 0 || currentPath[len(currentPath)-1] != *selection.Alias {
+				fullPath = append(currentPath, *selection.Alias)
+			}
+
 			flags.Refetch = &RefetchSpec{
-				Path:       pathBuilder.Current(), // only copy when needed
-				Paginated:  true, // this is a paginated field
+				Path:       fullPath,                 // use the corrected path
+				Paginated:  selection.List.Paginated, // true for @paginate, false for @list
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
 				TargetType: selection.List.TargetType,

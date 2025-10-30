@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 	"sort"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
@@ -127,16 +126,28 @@ func (c *fieldCollection) Add(
 			}
 
 			// only append directives we haven't seen yet
+			// but skip @required directive when merging from external fragments that are masked
+			// to prevent it from affecting parent query
 			for _, dir := range selection.Directives {
-				if !containsDirective(sel.Field.Directives, dir) {
+				shouldSkipRequired := external && dir.Name == graphql.RequiredDirective && hidden
+				if !containsDirective(sel.Field.Directives, dir) && !shouldSkipRequired {
 					sel.Directives = append(sel.Field.Directives, dir)
 				}
 			}
 		} else {
 			// if we haven't seen the field before we need to add a place for the selection
+			// filter out @required directive when merging from external fragments that are masked
+			// to prevent it from affecting parent query
+			filteredDirectives := make([]*collected.Directive, 0, len(selection.Directives))
+			for _, dir := range selection.Directives {
+				shouldSkipRequired := external && dir.Name == graphql.RequiredDirective && hidden
+				if !shouldSkipRequired {
+					filteredDirectives = append(filteredDirectives, dir)
+				}
+			}
 			c.Fields[*selection.Alias] = &fieldCollectionField{
 				Field:      selection,
-				Directives: slices.Clone(selection.Directives),
+				Directives: filteredDirectives,
 				Selection: newFieldCollection(
 					c.DocumentName,
 					c.CollectedDocuments,

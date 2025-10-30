@@ -435,7 +435,11 @@ export const resolvers = {
 			return dataBooks.find((book) => book.title === args.title)
 		},
 		usersList: (_, args) => {
-			return [...getUserSnapshot(args.snapshot)].splice(args.offset || 0, args.limit)
+			const data = [...getUserSnapshot(args.snapshot)]
+			const offset = args.offset || 0
+			// If limit is null or undefined, use default value of 4 (matching schema default)
+			const limit = args.limit != null ? args.limit : 4
+			return data.slice(offset, offset + limit)
 		},
 		userNodes: (_, args) => {
 			const allData = [...getUserSnapshot(args.snapshot)]

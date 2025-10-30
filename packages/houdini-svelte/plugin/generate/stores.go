@@ -60,7 +60,7 @@ func GenerateStores(
 		)
 		LEFT JOIN discovered_lists dl_cursor ON (
 			dl_cursor.document = d.id
-			AND dl_cursor.connection = 1
+			AND dl_cursor.connection = 1 AND dl_cursor.paginate is not null
 		)
 		LEFT JOIN discovered_lists dl_offset ON (
 			dl_offset.document = d.id
