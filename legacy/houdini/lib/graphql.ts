@@ -1,9 +1,9 @@
 import * as graphql from 'graphql'
 import crypto from 'node:crypto'
 
-import type { Document, Config } from '.'
-import { HoudiniError } from '../lib/error'
-import * as path from '../lib/path'
+import type { Document } from './types.js'
+import type { Config } from './config.js'
+import { HoudiniError } from '../lib/error.js'
 
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	// if the type is non-null, unwrap and go again

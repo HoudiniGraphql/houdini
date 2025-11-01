@@ -1,9 +1,8 @@
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
-import type { GraphQLSchema } from 'graphql'
 import { pathToFileURL } from 'node:url'
 
-import type { ConfigFile } from './config.js'
+import { Config, type ConfigFile } from './config.js'
 import { houdini_root, local_api_dir } from './conventions.js'
 import { HoudiniError } from './error.js'
 import * as fs from './fs.js'
@@ -28,108 +27,6 @@ export const default_config: ConfigFile = {
 	defaultPaginateMode: 'Infinite',
 	defaultFragmentMasking: 'enable',
 	defaultCachePolicy: 'CacheOrNetwork',
-}
-
-// we need to include some extra meta data along with the config file
-export class Config {
-	public config_file: ConfigFile
-	public filepath: string
-	public plugins: PluginMeta[]
-	public root_dir: string
-	public schema: GraphQLSchema
-
-	constructor(init: {
-		config_file: ConfigFile
-		filepath: string
-		plugins: PluginMeta[]
-		root_dir: string
-		schema: GraphQLSchema
-	}) {
-		this.config_file = init.config_file
-		this.filepath = init.filepath
-		this.plugins = init.plugins
-		this.root_dir = init.root_dir
-		this.schema = init.schema
-	}
-
-	schema_path() {
-		return (
-			this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
-		)
-	}
-
-	async api_url() {
-		const apiURL = this.config_file.watchSchema?.url
-		if (!apiURL) {
-			return ''
-		}
-
-		return this.process_env_values(process.env, apiURL)
-	}
-
-	async schema_pull_headers() {
-		const env = process.env
-
-		// if the whole thing is a function, just call it
-		const config_headers = this.config_file.watchSchema?.headers
-		if (typeof config_headers === 'function') {
-			return config_headers(env)
-		}
-
-		// we need to turn the map into the correct key/value pairs
-		const headers = Object.fromEntries(
-			Object.entries(config_headers || {})
-				.map(([key, value]) => {
-					const headerValue = this.process_env_values(env, value)
-
-					// if there was no value, dont add anything
-					if (!headerValue) {
-						return []
-					}
-
-					return [key, headerValue]
-				})
-				.filter(([key]) => key),
-		)
-
-		// we're done
-		return headers
-	}
-
-	process_env_values(
-		env: Record<string, string | undefined>,
-		value: string | ((env: any) => string),
-	) {
-		let headerValue: string | undefined
-		if (typeof value === 'function') {
-			headerValue = value(env)
-		} else if (value.startsWith('env:')) {
-			headerValue = env[value.slice('env:'.length)]
-		} else {
-			headerValue = value
-		}
-
-		return headerValue
-	}
-
-	get artifact_dir() {
-		return path.join(
-			this.root_dir,
-			this.config_file.runtimeDir || '.houdini',
-			'artifacts',
-		)
-	}
-
-	// the location of the artifact generated corresponding to the provided documents
-	artifactPath(document: graphql.DocumentNode): string {
-		// use the operation name for the artifact
-		return path.join(this.artifact_dir, `${documentName(document)}.js`)
-	}
-
-	pluginConfig<ConfigType extends {}>(name: string): ConfigType {
-		// @ts-expect-error
-		return (this.config_file.plugins?.[name] as ConfigType) ?? {}
-	}
 }
 
 // a place to store the current configuration
@@ -383,37 +280,4 @@ export async function load_local_schema(
 		console.error('! Failed to load local schema: ', message)
 		return new graphql.GraphQLSchema({})
 	}
-}
-
-function documentName(document: graphql.DocumentNode) {
-	// if there is an operation in the document
-	const operation = document.definitions.find(
-		({ kind }) => graphql.Kind.OPERATION_DEFINITION,
-	) as graphql.OperationDefinitionNode | null
-	if (operation) {
-		// if the operation does not have a name
-		if (!operation.name) {
-			// we can't give them a file
-			throw new Error(
-				'encountered operation with no name: ' + graphql.print(document),
-			)
-		}
-
-		// use the operation name for the artifact
-		return operation.name.value
-	}
-
-	// look for a fragment definition
-	const fragmentDefinitions = document.definitions.filter(
-		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION,
-	) as graphql.FragmentDefinitionNode[]
-	if (fragmentDefinitions.length) {
-		// join all of the fragment definitions into one
-		return fragmentDefinitions.map((fragment) => fragment.name).join('_')
-	}
-
-	// we don't know how to generate a name for this document
-	throw new Error(
-		'Could not generate artifact name for document: ' + graphql.print(document),
-	)
 }

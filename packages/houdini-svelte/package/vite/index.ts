@@ -16,6 +16,18 @@ export default function (ctx: VitePluginContext): PluginOption {
 				filepath = path.join(process.cwd(), filepath)
 			}
 
+			// if the file is not in our configured source path, we need to ignore it
+			if (!ctx.config.includeFile(filepath)) {
+				return
+			}
+
+			// everything internal to houdini should assume posix paths
+			filepath = path.posixify(filepath)
+
+			if (filepath.startsWith('/src/')) {
+				filepath = path.join(process.cwd(), filepath)
+			}
+
       // apply the transforms
       const result = await transform_file('kit', {
         config: ctx.config,

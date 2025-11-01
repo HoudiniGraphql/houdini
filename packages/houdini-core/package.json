@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@whatwg-node/server": "^0.9.14",
-        "graphql-yoga": "^4.0.4"
+        "graphql-yoga": "^4.0.4",
+        "minimatch": "^5.1.0"
     }
 }

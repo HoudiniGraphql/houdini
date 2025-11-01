@@ -15,7 +15,7 @@ import {
 	CompiledSubscriptionKind,
 	Script,
 } from './types.js'
-import type { Config } from './project.js'
+import type { Config } from './config.js'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode

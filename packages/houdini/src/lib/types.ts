@@ -1,6 +1,7 @@
 import type * as recast from 'recast'
-import type { Config } from './project.js'
 import type { SourceMapInput } from 'rollup'
+
+import type { Config } from './config.js'
 
 // the correct component tree for a given url
 export type ProjectManifest = {

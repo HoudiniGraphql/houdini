@@ -1,7 +1,7 @@
 import { houdini_mode } from './constants.js'
 import * as fs from './fs.js'
 import * as path from './path.js'
-import { type Config } from './project.js'
+import { type Config } from './config.js'
 
 /** The location of the project's router */
 export function router_path(config: Config) {
@@ -45,15 +45,23 @@ export function layout_unit_path(config: Config, id: string, base?: string) {
 	return path.join(layout_units_dir(config, base), `${id}.jsx`)
 }
 
-export function componentField_unit_path(config: Config, id: string, base?: string) {
-	return path.join(units_dir(config, base), 'componentFields', `wrapper_${id}.jsx`)
+export function componentField_unit_path(
+	config: Config,
+	id: string,
+	base?: string,
+) {
+	return path.join(
+		units_dir(config, base),
+		'componentFields',
+		`wrapper_${id}.jsx`,
+	)
 }
 
 export function fallback_unit_path(
 	config: Config,
 	which: 'page' | 'layout',
 	id: string,
-	base?: string
+	base?: string,
 ) {
 	return path.join(fallbacks_units_dir(config, which, base), `${id}.jsx`)
 }
@@ -149,7 +157,11 @@ function layout_units_dir(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'layouts')
 }
 
-function fallbacks_units_dir(config: Config, which: 'page' | 'layout', base?: string) {
+function fallbacks_units_dir(
+	config: Config,
+	which: 'page' | 'layout',
+	base?: string,
+) {
 	return path.join(units_dir(config, base), 'fallbacks', which)
 }
 
@@ -166,13 +178,18 @@ function base_dir(config: Config) {
 }
 
 function root_plugin_dir(config: Config) {
-	return houdini_mode.is_testing ? '../../../' : path.join(houdini_root(config), 'plugins')
+	return houdini_mode.is_testing
+		? '../../../'
+		: path.join(houdini_root(config), 'plugins')
 }
 
-function plugin_dir(config: Config, name: string) {
+export function plugin_dir(config: Config, name: string) {
 	return path.join(root_plugin_dir(config), name)
 }
 
-export function serialized_manifest_path(config: Config, base: string = base_dir(config)): string {
+export function serialized_manifest_path(
+	config: Config,
+	base: string = base_dir(config),
+): string {
 	return path.join(base, 'manifest.json')
 }

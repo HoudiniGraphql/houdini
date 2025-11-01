@@ -1,4 +1,4 @@
-import type { Config } from './project'
+import type { Config } from './config.js'
 
 // transforms are functions that takes the collected documents. some will mutate
 // the document definition, some check the definition for errors (undefined fields, etc)

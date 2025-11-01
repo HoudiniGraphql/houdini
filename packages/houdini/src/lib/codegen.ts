@@ -8,7 +8,7 @@ import type * as routerConventions from './conventions.js'
 import { create_schema, write_config } from './database.js'
 import { format_hook_error, type HookError } from './error.js'
 import * as fs from './fs.js'
-import type { Config } from './project.js'
+import type { Config } from './config.js'
 
 export type PluginSpec = {
 	name: string

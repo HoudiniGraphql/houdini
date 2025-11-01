@@ -1,4 +1,10 @@
+import * as graphql from 'graphql'
+import type { GraphQLSchema } from 'graphql'
+import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
+import minimatch from 'minimatch'
+import { plugin_dir } from './conventions.js'
+import * as path from './path.js'
 
 declare namespace App {
 	interface Session {}
@@ -240,3 +246,224 @@ export interface HoudiniPluginConfig {}
 // for config
 // @ts-ignore
 export interface HoudiniClientPluginConfig {}
+
+// we need to include some extra meta data along with the config file
+export class Config {
+	public config_file: ConfigFile
+	public filepath: string
+	public plugins: PluginMeta[]
+	public root_dir: string
+	public schema: GraphQLSchema
+
+	constructor(init: {
+		config_file: ConfigFile
+		filepath: string
+		plugins: PluginMeta[]
+		root_dir: string
+		schema: GraphQLSchema
+	}) {
+		this.config_file = init.config_file
+		this.filepath = init.filepath
+		this.plugins = init.plugins
+		this.root_dir = init.root_dir
+		this.schema = init.schema
+	}
+
+	schema_path() {
+		return (
+			this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+		)
+	}
+
+	async api_url() {
+		const apiURL = this.config_file.watchSchema?.url
+		if (!apiURL) {
+			return ''
+		}
+
+		return this.process_env_values(process.env, apiURL)
+	}
+
+	get include(): Array<string> {
+		// if the config file has one, use it
+		if (this.config_file.include) {
+			return Array.isArray(this.config_file.include)
+				? this.config_file.include
+				: [this.config_file.include]
+		}
+
+		// by default, any file of a valid extension in src is good enough
+		const include = [`src/**/*`]
+
+		// if any of the plugins specify included runtimes then their paths might have
+		// documents
+		for (const plugin of this.plugins) {
+			const runtimeDir = path.join(plugin_dir(this, plugin.name), 'runtime')
+			const staticDir = path.join(plugin_dir(this, plugin.name), 'static')
+
+			// skip plugins that dont' include runtimes
+			if (!runtimeDir && !staticDir) {
+				continue
+			}
+
+			for (const dir of [runtimeDir, staticDir]) {
+				if (!dir) {
+					continue
+				}
+
+				// the include path is relative to root of the vite project
+				const includePath = path.relative(this.root_dir, dir)
+
+				// add the plugin's directory to the include pile
+				include.push(`${includePath}/**/*`)
+			}
+		}
+
+		return include
+	}
+
+	includeFile(
+		filepath: string,
+		{ root = this.root_dir }: { root?: string; ignore_plugins?: boolean } = {},
+	) {
+		const parsed = path.parse(filepath)
+		filepath = `${parsed.dir}/${parsed.name}${parsed.ext.split('?')[0]}`
+
+		let included = false
+		// if the filepath doesn't match the include we're done
+		if (
+			!included &&
+			!this.include.some((pattern) =>
+				minimatch(filepath, path.join(root, pattern)),
+			)
+		) {
+			return false
+		}
+
+		// if there is an exclude, make sure the path doesn't match any of the exclude patterns
+		return !this.excludeFile(filepath, { root })
+	}
+
+	get exclude(): Array<string> {
+		// if there is nothing specified we'll use an empty array
+		if (!this.config_file.exclude) {
+			return []
+		}
+
+		return Array.isArray(this.config_file.exclude)
+			? this.config_file.exclude
+			: [this.config_file.exclude]
+	}
+
+	excludeFile(filepath: string, { root = this.root_dir }: { root?: string }) {
+		// if the configured exclude does not allow this file, we're done
+		if (
+			this.exclude.length > 0 &&
+			this.exclude.some((pattern) =>
+				minimatch(filepath, path.join(root, pattern)),
+			)
+		) {
+			return true
+		}
+
+		// if we got this far, we shouldn't exclude
+		return false
+	}
+
+	async schema_pull_headers() {
+		const env = process.env
+
+		// if the whole thing is a function, just call it
+		const config_headers = this.config_file.watchSchema?.headers
+		if (typeof config_headers === 'function') {
+			return config_headers(env)
+		}
+
+		// we need to turn the map into the correct key/value pairs
+		const headers = Object.fromEntries(
+			Object.entries(config_headers || {})
+				.map(([key, value]) => {
+					const headerValue = this.process_env_values(env, value)
+
+					// if there was no value, dont add anything
+					if (!headerValue) {
+						return []
+					}
+
+					return [key, headerValue]
+				})
+				.filter(([key]) => key),
+		)
+
+		// we're done
+		return headers
+	}
+
+	process_env_values(
+		env: Record<string, string | undefined>,
+		value: string | ((env: any) => string),
+	) {
+		let headerValue: string | undefined
+		if (typeof value === 'function') {
+			headerValue = value(env)
+		} else if (value.startsWith('env:')) {
+			headerValue = env[value.slice('env:'.length)]
+		} else {
+			headerValue = value
+		}
+
+		return headerValue
+	}
+
+	get artifact_dir() {
+		return path.join(
+			this.root_dir,
+			this.config_file.runtimeDir || '.houdini',
+			'artifacts',
+		)
+	}
+
+	// the location of the artifact generated corresponding to the provided documents
+	artifactPath(document: graphql.DocumentNode): string {
+		// use the operation name for the artifact
+		return path.join(this.artifact_dir, `${documentName(document)}.js`)
+	}
+
+	pluginConfig<ConfigType extends {}>(name: string): ConfigType {
+		// @ts-expect-error
+		return (this.config_file.plugins?.[name] as ConfigType) ?? {}
+	}
+}
+
+function documentName(document: graphql.DocumentNode) {
+	// if there is an operation in the document
+	const operation = document.definitions.find(
+		({ kind }) => graphql.Kind.OPERATION_DEFINITION,
+	) as graphql.OperationDefinitionNode | null
+	if (operation) {
+		// if the operation does not have a name
+		if (!operation.name) {
+			// we can't give them a file
+			throw new Error(
+				'encountered operation with no name: ' + graphql.print(document),
+			)
+		}
+
+		// use the operation name for the artifact
+		return operation.name.value
+	}
+
+	// look for a fragment definition
+	const fragmentDefinitions = document.definitions.filter(
+		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION,
+	) as graphql.FragmentDefinitionNode[]
+	if (fragmentDefinitions.length) {
+		// join all of the fragment definitions into one
+		return fragmentDefinitions.map((fragment) => fragment.name).join('_')
+	}
+
+	// we don't know how to generate a name for this document
+	throw new Error(
+		'Could not generate artifact name for document: ' + graphql.print(document),
+	)
+}
