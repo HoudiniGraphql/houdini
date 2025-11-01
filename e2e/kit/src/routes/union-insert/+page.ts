@@ -4,6 +4,7 @@ import { graphql } from '$houdini';
 const store = graphql(`
     query AorB {
         aOrB @list(name: "All_AorB") {
+            __typename
             ... on A {
                 id
                 a

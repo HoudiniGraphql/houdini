@@ -3096,69 +3096,75 @@ func TestArtifactGeneration(t *testing.T) {
           `),
 				},
 			},
-		},
-		{
-			Name: "Required directive not merged from masked fragments",
-			Pass: true,
-			Input: []string{
-				`query UserRequiredFragments {
-				  user {
-				    ...UserWithRequired
-				    ...UserWithoutRequired
-				  }
-				}`,
-				`fragment UserWithRequired on User {
-				  name
-				  field @required
-				}`,
-				`fragment UserWithoutRequired on User {
-				  name
-				  field
-				}`,
-			},
-			Extra: map[string]any{
-				"UserRequiredFragments": tests.Dedent(`
-				export default {
-				    "name": "UserRequiredFragments",
-				    "kind": "HoudiniQuery",
-				    "hash": "test_hash_placeholder",
-				    "selection": {
-				        "fields": {
-				            "user": {
-				                "type": "User",
-				                "keyRaw": "user",
-				                "selection": {
-				                    "fields": {
-				                        "field": {
-				                            "type": "String",
-				                            "keyRaw": "field",
-				                            "nullable": true,
-				                            "visible": false,
-				                        },
-				                        "name": {
-				                            "type": "String",
-				                            "keyRaw": "name",
-				                            "visible": false,
-				                        },
-				                    },
-				                    "fragments": {
-				                        "UserWithRequired": {
-				                            "arguments": {}
-				                        },
-				                        "UserWithoutRequired": {
-				                            "arguments": {}
-				                        },
-				                    },
-				                },
-				                "visible": true,
-				            },
-				        },
-				    },
-				    "pluginData": {},
-				    "policy": "CacheOrNetwork",
-				    "partial": false
-				} as const
+			{
+				Name: "Required directive not merged from masked fragments",
+				Pass: true,
+				Input: []string{
+					`
+						query UserRequiredFragments {
+							user {
+								...UserWithRequired
+								...UserWithoutRequired
+							}
+						}
+					`,
+					`
+						fragment UserWithRequired on User {
+							name
+							field @required
+						}
+					`,
+					`
+						fragment UserWithoutRequired on User {
+							name
+							field
+						}
+					`,
+				},
+				Extra: map[string]any{
+					"UserRequiredFragments": tests.Dedent(`
+							export default {
+									"name": "UserRequiredFragments",
+									"kind": "HoudiniQuery",
+									"hash": "test_hash_placeholder",
+									"selection": {
+											"fields": {
+													"user": {
+															"type": "User",
+															"keyRaw": "user",
+															"selection": {
+																	"fields": {
+																			"field": {
+																					"type": "String",
+																					"keyRaw": "field",
+																					"nullable": true,
+																					"visible": false,
+																			},
+																			"name": {
+																					"type": "String",
+																					"keyRaw": "name",
+																					"visible": false,
+																			},
+																	},
+																	"fragments": {
+																			"UserWithRequired": {
+																					"arguments": {}
+																			},
+																			"UserWithoutRequired": {
+																					"arguments": {}
+																			},
+																	},
+															},
+															"visible": true,
+													},
+											},
+									},
+									"pluginData": {},
+									"policy": "CacheOrNetwork",
+									"partial": false
+							} as const
 				`),
+				},
 			},
 		},
 	})

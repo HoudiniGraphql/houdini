@@ -13,7 +13,7 @@ test.describe('Fragment Masking Partial Hits', () => {
 
     await expect_to_be(
       page,
-      stringify({"id":"1","name":"Alexandria","libraries":[{"id":"1","name":"The Library of Alexandria"},{"id":"2","name":"Bibliotheca Alexandrina"}],"__typename":"City"})
+      stringify({__typename: "City", "id":"1","name":"Alexandria","libraries":[{"id":"1","name":"The Library of Alexandria"},{"id":"2","name":"Bibliotheca Alexandrina"}]})
     );
   });
 });

@@ -14,7 +14,7 @@ test.describe('union-result', () => {
     await expect_1_gql(page, 'button[id="addA"]');
 
     // expect 1 element in the array
-    await expect_to_be(page, '{"aOrB":[{"id":"1","a":"MyA","__typename":"A"}]}');
+    await expect_to_be(page, stringify({"aOrB":[{"id":"1","a":"MyA","__typename":"A"}]}));
 
     // we click on the button to getAllUsers
     await expect_1_gql(page, 'button[id="addB"]');

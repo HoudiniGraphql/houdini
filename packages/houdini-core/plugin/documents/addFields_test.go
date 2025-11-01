@@ -34,6 +34,7 @@ func TestAddFields(t *testing.T) {
 			type User implements Entity{
 				id: ID!
 				firstName: String!
+				bestFriend: User
 			}
 
 			interface Entity {
@@ -266,6 +267,34 @@ func TestAddFields(t *testing.T) {
 							},
 						},
 					},
+				},
+			},
+			{
+				Name: "adds id fields to nested selections",
+				Pass: true,
+				Input: []string{`
+					query Friends {
+						user { 
+							bestFriend { 
+								firstName
+							}
+						}
+					}
+				`},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query Friends {
+							user { 
+								__typename
+								id
+								bestFriend { 
+									firstName
+									__typename
+									id
+								}
+							}
+						}
+					`),
 				},
 			},
 		},
