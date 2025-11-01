@@ -56,14 +56,14 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				await run_pipeline(compiler.trigger_hook, {
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
-					// through: 'Validate',
+					through: 'Validate',
 				})
 			} catch {}
 
 			// we also want to generate the initial file contents but skip the rest of the codegen
-			// try {
-			// 	await compiler.trigger_hook('GenerateRuntime')
-			// } catch {}
+			try {
+				await compiler.trigger_hook('GenerateRuntime')
+			} catch {}
 		},
 
 		// this is called when a file is created or modified
@@ -235,7 +235,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				// the task now includes every document that we need to process
 				const results = await run_pipeline(compiler.trigger_hook, {
 					task_id,
-					after: 'AfterExtract',
+					after: 'Validate',
 				})
 
 				// the return value of each generate invocation is the list of modules that were updated
@@ -259,6 +259,40 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				}
 			})
 		},
+
+		// this is called when a module is being resolved
+		async resolveId(id) {
+			const runtimeDir = ctx.config.config_file.runtimeDir ?? '.houdini'
+
+			const resolvingArtifact =
+				id.startsWith(`/${runtimeDir}/artifacts`) ||
+				id.includes(path.join(ctx.config.root_dir, runtimeDir, 'artifacts'))
+
+			if (resolvingArtifact) {
+				// escape regex metacharacters in runtimeDir (like the dot in `.houdini`)
+				const escapedRuntimeDir = runtimeDir.replace(
+					/[.*+?^${}()|[\]\\]/g,
+					'\\$&',
+				)
+
+				// match .../.houdini/artifacts/<name> (ignore extension)
+				const pattern = new RegExp(
+					`[\\\\/]${escapedRuntimeDir}[\\\\/]artifacts[\\\\/]([^/\\\\]+?)(?:\\.[^.\\\\/]+)?$`,
+				)
+				const match = id.match(pattern)
+				const artifactName = match ? match[1] : null
+
+				if (artifactName && ctx.db && compiler) {
+					try {
+						await ensureArtifactGenerated(artifactName, ctx.db, compiler)
+					} catch (error) {
+						console.error(error)
+					}
+				}
+			}
+
+			return null
+		},
 	}
 }
 
@@ -270,6 +304,7 @@ async function ensureArtifactGenerated(
 	db: DatabaseSync,
 	compiler: CompilerProxy,
 ): Promise<void> {
+	console.log('ensuring artifact generated:', artifactName)
 	// before we do anything let's see if the artifact has been generated already
 	try {
 		const config = await get_config()
@@ -327,7 +362,7 @@ async function ensureArtifactGenerated(
 				SELECT name FROM seed
 				UNION
 				SELECT dd.depends_on
-				FROM down v
+				FROM walk v
 				JOIN documents d          ON d.name = v.name
 				JOIN document_dependencies dd ON dd.document = d.id
 			),
@@ -338,7 +373,7 @@ async function ensureArtifactGenerated(
 				JOIN walk v        ON v.name = d.name
 				JOIN raw_documents rd ON rd.id = d.raw_document
 				WHERE d.raw_document IS NOT NULL
-			),
+			)
 
 			UPDATE raw_documents
 			SET current_task = $task_id
@@ -349,7 +384,7 @@ async function ensureArtifactGenerated(
 	// Run the compilation pipeline for this task
 	await run_pipeline(compiler.trigger_hook, {
 		task_id,
-		after: 'AfterExtract',
+		after: 'Validate',
 	})
 
 	// Clean up the task

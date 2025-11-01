@@ -85,7 +85,7 @@ func TestGenerateStores(t *testing.T) {
 			require.NoError(t, err)
 
 			// run the document generator first
-			_, err = plugin.GenerateDocuments(ctx)
+			_, err = plugin.GenerateRuntime(ctx)
 			require.NoError(t, err)
 
 			// the goal now is to look at the generated store files and make sure

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
+	"code.houdinigraphql.com/packages/houdini-svelte/plugin/generate"
 	"github.com/spf13/afero"
 )
 
@@ -85,6 +86,26 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 }
 
 func (p *HoudiniSvelte) GenerateRuntime(ctx context.Context) ([]string, error) {
+	// for now, we only need to update the index files
+	files, err := p.UpdateIndexFiles(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// and generate the stores
+	storeFiles, err := generate.GenerateStores(ctx, p.Database(), p.Filesystem())
+	if err != nil {
+		return nil, err
+	}
+
+	// keep the slice of files up to date
+	files = append(files, storeFiles...)
+
+	// we're done
+	return files, nil
+}
+
+func (p *HoudiniSvelte) UpdateIndexFiles(ctx context.Context) ([]string, error) {
 	// our goal is to add type declarations for the graphql function that's
 	// exported from the runtime index file
 
