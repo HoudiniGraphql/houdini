@@ -243,7 +243,7 @@ export async function codegen_setup(
 				? responseJSON
 				: [responseJSON]
 			errors.forEach((error) => {
-				format_hook_error(config.root_dir, error, name)
+				format_hook_error(config.root_dir, error, name, hook)
 			})
 			// errors
 			throw new Error(`Failed to call ${name}/${hook.toLowerCase()}`)

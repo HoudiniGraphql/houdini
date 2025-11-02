@@ -32,6 +32,18 @@ export let compiler: CompilerProxy
 export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
 
+	const debounceArtifacts = createDebounceQueue<string>(
+		50, // 50ms debounce window for artifacts
+		(artifacts) => Array.from(artifacts), // convert Set to Array
+		async (artifactNames) => {
+			try {
+				await ensureArtifactsGenerated(artifactNames, ctx.db, compiler)
+			} catch (error) {
+				console.error(error)
+			}
+		},
+	)
+
 	return {
 		name: 'houdini',
 
@@ -283,11 +295,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				const artifactName = match ? match[1] : null
 
 				if (artifactName && ctx.db && compiler) {
-					try {
-						await ensureArtifactGenerated(artifactName, ctx.db, compiler)
-					} catch (error) {
-						console.error(error)
-					}
+					// Add artifact to debounced queue and wait for processing to complete
+					await debounceArtifacts(artifactName)
 				}
 			}
 
@@ -297,55 +306,75 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 }
 
 /**
- * Ensure that the specified artifact and all its dependencies are generated
+ * Ensure that the specified artifacts and all their dependencies are generated in batch
  */
-async function ensureArtifactGenerated(
-	artifactName: string,
+async function ensureArtifactsGenerated(
+	artifactNames: string[],
 	db: DatabaseSync,
 	compiler: CompilerProxy,
 ): Promise<void> {
-	console.log('ensuring artifact generated:', artifactName)
-	// before we do anything let's see if the artifact has been generated already
-	try {
-		const config = await get_config()
-
-		await fs.access(
-			path.join(
-				config.root_dir,
-				config.config_file.runtimeDir ?? '.houdini',
-				'artifacts',
-				artifactName,
-			),
-			fs.constants.R_OK,
-		)
-		// if stat doesn't throw, the file exists
-		return
-	} catch {}
-
-	const timestamp = Date.now()
-	const task_id = `artifact_${artifactName}_${timestamp}`
-
-	// Check if the artifact document exists in the database
-	const documentQuery = db.prepare(`
-		SELECT d.id, d.name, rd.id as raw_document_id
-		FROM documents d
-		LEFT JOIN raw_documents rd ON rd.id = d.raw_document
-		WHERE d.name = ?
-	`)
-	const document = documentQuery.get(artifactName) as
-		| { id: number; name: string; raw_document_id: number | null }
-		| undefined
-
-	// if document doesn't exist, there's nothing to generate
-	if (!document || !document.raw_document_id) {
+	if (artifactNames.length === 0) {
 		return
 	}
 
-	// mark the document as part of this task
-	db.prepare(`UPDATE raw_documents SET current_task = ? WHERE id = ?`).run(
-		task_id,
-		document.raw_document_id,
-	)
+	console.log('ensuring artifacts generated:', artifactNames)
+
+	// Filter out artifacts that already exist
+	const config = await get_config()
+	const artifactsToGenerate: string[] = []
+
+	for (const artifactName of artifactNames) {
+		try {
+			await fs.access(
+				path.join(
+					config.root_dir,
+					config.config_file.runtimeDir ?? '.houdini',
+					'artifacts',
+					artifactName,
+				),
+				fs.constants.R_OK,
+			)
+			// if access doesn't throw, the file exists, skip it
+		} catch {
+			// file doesn't exist, add to generation list
+			artifactsToGenerate.push(artifactName)
+		}
+	}
+
+	if (artifactsToGenerate.length === 0) {
+		return
+	}
+
+	const timestamp = Date.now()
+	const task_id = `artifacts_batch_${timestamp}`
+
+	// Find all documents that need to be generated
+	const placeholders = artifactsToGenerate.map(() => '?').join(', ')
+	const documentsQuery = db.prepare(`
+		SELECT d.id, d.name, rd.id as raw_document_id
+		FROM documents d
+		LEFT JOIN raw_documents rd ON rd.id = d.raw_document
+		WHERE d.name IN (${placeholders})
+	`)
+	const documents = documentsQuery.all(...artifactsToGenerate) as Array<{
+		id: number
+		name: string
+		raw_document_id: number | null
+	}>
+
+	// Filter out documents that don't exist or don't have raw documents
+	const validDocuments = documents.filter((doc) => doc.raw_document_id !== null)
+
+	if (validDocuments.length === 0) {
+		return
+	}
+
+	// Mark all documents as part of this task
+	const rawDocumentIds = validDocuments.map((doc) => doc.raw_document_id!)
+	const rawDocPlaceholders = rawDocumentIds.map(() => '?').join(', ')
+	db.prepare(
+		`UPDATE raw_documents SET current_task = ? WHERE id IN (${rawDocPlaceholders})`,
+	).run(task_id, ...rawDocumentIds)
 
 	// Find all dependencies using the same recursive query as handleHotUpdate
 	db.prepare(
@@ -397,6 +426,64 @@ type BatchCallback = (
 	filesWithContent: Record<string, string>,
 	batchId: string,
 ) => void | Promise<void>
+
+/**
+ * Creates a generic debounced queue handler that batches items
+ * @param debounceMs - Debounce window in milliseconds
+ * @param transform - Function to transform the collected items before processing
+ * @param callback - Function to process the transformed items
+ * @returns debounce function that returns a Promise
+ */
+export function createDebounceQueue<T, R = T[]>(
+	debounceMs: number,
+	transform: (items: Set<T>) => R,
+	callback: (transformedItems: R) => void | Promise<void>,
+) {
+	const itemQueue = new Set<T>()
+	const pendingPromises = new Map<
+		T,
+		{ resolve: () => void; reject: (error: any) => void }
+	>()
+	let timer: NodeJS.Timeout | null = null
+
+	return function debounceQueue(item: T): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			// Add item to queue and store its promise resolvers
+			itemQueue.add(item)
+			pendingPromises.set(item, { resolve, reject })
+
+			// Clear existing timer
+			if (timer) {
+				clearTimeout(timer)
+			}
+
+			// Set new timer
+			timer = setTimeout(async () => {
+				// Capture current queue and promises
+				const itemsToProcess = new Set(itemQueue)
+				const promisesToResolve = new Map(pendingPromises)
+				itemQueue.clear()
+				pendingPromises.clear()
+				timer = null
+
+				try {
+					const transformedItems = transform(itemsToProcess)
+					await callback(transformedItems)
+
+					// Resolve all promises for processed items
+					promisesToResolve.forEach(({ resolve }) => {
+						resolve()
+					})
+				} catch (error) {
+					// Reject all promises on error
+					promisesToResolve.forEach(({ reject }) => {
+						reject(error)
+					})
+				}
+			}, debounceMs)
+		})
+	}
+}
 
 /**
  * Creates a debounced HMR handler that batches file changes

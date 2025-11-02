@@ -1,4 +1,4 @@
-import { MyEnum } from '$houdini';
+import { MyEnum } from '$houdini/graphql';
 // this is here to silence the warning that MyEnum isn't being used :facepalm:
 // eslint-disable-next-line
 MyEnum;
