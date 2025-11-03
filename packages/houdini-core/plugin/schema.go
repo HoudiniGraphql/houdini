@@ -3,7 +3,7 @@ package plugin
 import (
 	"context"
 	"io"
-	"path"
+	"path/filepath"
 
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -29,7 +29,7 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	defer p.DB.Put(conn)
 
 	// read the schema file
-	schemaPath := path.Join(config.ProjectRoot, config.SchemaPath)
+	schemaPath := filepath.Join(config.ProjectRoot, config.SchemaPath)
 	file, err := p.Fs.Open(schemaPath)
 	if err != nil {
 		return plugins.Error{

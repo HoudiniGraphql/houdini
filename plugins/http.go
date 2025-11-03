@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"path"
+	"path/filepath"
 	"sort"
 
 	"github.com/spf13/afero"
@@ -226,7 +226,7 @@ func handleIndexFile[PluginConfig any](
 
 		updater := plugin.(IndexFile)
 
-		targetPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
+		targetPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
 		content, err := updater.IndexFile(ctx, targetPath)
 		if err != nil {
@@ -267,7 +267,7 @@ func handleGenerateRuntime[PluginConfig any](
 				return nil, err
 			}
 
-			runtimePath := path.Join(PluginDirFromContext(ctx), runtimeDir)
+			runtimePath := filepath.Join(PluginDirFromContext(ctx), runtimeDir)
 			targetPath := config.PluginRuntimeDirectory(plugin.Name())
 
 			// the plugin could have defined a transform for the runtime
@@ -344,7 +344,7 @@ func handleAfterLoad[PluginConfig any](
 				return err
 			}
 
-			runtimeSource := path.Join(PluginDirFromContext(ctx), runtimePath)
+			runtimeSource := filepath.Join(PluginDirFromContext(ctx), runtimePath)
 			targetPath := config.PluginStaticRuntimeDirectory(plugin.Name())
 
 			// the plugin could have defined a transform for the runtime

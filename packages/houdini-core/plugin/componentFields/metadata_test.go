@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -179,7 +179,7 @@ func TestComponentFieldChecks(t *testing.T) {
 			// Use an in-memory file system.
 			afero.WriteFile(
 				plugin.Fs,
-				path.Join("/project", "schema.graphql"),
+				filepath.Join("/project", "schema.graphql"),
 				[]byte(schema),
 				0644,
 			)

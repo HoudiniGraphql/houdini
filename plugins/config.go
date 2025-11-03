@@ -3,7 +3,7 @@ package plugins
 import (
 	"context"
 	"encoding/json"
-	"path"
+	"path/filepath"
 
 	"zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -35,19 +35,19 @@ type ProjectConfig struct {
 }
 
 func (config ProjectConfig) PluginDirectory(name string) string {
-	return path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", name)
+	return filepath.Join(config.ProjectRoot, config.RuntimeDir, "plugins", name)
 }
 
 func (config ProjectConfig) PluginRuntimeDirectory(name string) string {
 	// the core runtime goes into a special place
 	if name == "houdini-core" {
-		return path.Join(config.ProjectRoot, config.RuntimeDir, "runtime")
+		return filepath.Join(config.ProjectRoot, config.RuntimeDir, "runtime")
 	}
-	return path.Join(config.PluginDirectory(name), "runtime")
+	return filepath.Join(config.PluginDirectory(name), "runtime")
 }
 
 func (config ProjectConfig) PluginStaticRuntimeDirectory(name string) string {
-	return path.Join(config.PluginDirectory(name), "static")
+	return filepath.Join(config.PluginDirectory(name), "static")
 }
 
 func (db DatabasePool[PluginConfig]) ProjectConfig(ctx context.Context) (ProjectConfig, error) {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
@@ -31,7 +31,7 @@ func (p *HoudiniSvelte) DefaultConfig(
 
 		packageJSON, err := afero.ReadFile(
 			p.Fs,
-			path.Join(projectConfig.ProjectRoot, "package.json"),
+			filepath.Join(projectConfig.ProjectRoot, "package.json"),
 		)
 		if err != nil {
 			return pluginConfig, err
@@ -95,7 +95,7 @@ func (p *HoudiniSvelte) AfterLoad(ctx context.Context) error {
 	}
 
 	// the first thing we need to do is verify the client path is valid
-	clientPath := path.Join(projectConfig.ProjectRoot, pluginConfig.ClientPath)
+	clientPath := filepath.Join(projectConfig.ProjectRoot, pluginConfig.ClientPath)
 
 	// we need to check 3 paths for existence (the client path and then ts and js extensions)
 	found := false

@@ -3,7 +3,7 @@ package documents_test
 import (
 	"context"
 	"encoding/json"
-	"path"
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -156,7 +156,7 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 			projectConfig, err := p.DB.ProjectConfig(context.Background())
 			require.NoError(t, err)
 
-			artifactDir := path.Join(
+			artifactDir := filepath.Join(
 				projectConfig.ProjectRoot,
 				projectConfig.RuntimeDir,
 				"artifacts",
@@ -175,7 +175,7 @@ func TestPersistentQueriesArtifactHashConsistency(t *testing.T) {
 				)
 
 				operationName := matches[1]
-				artifactPath := path.Join(artifactDir, operationName+".ts")
+				artifactPath := filepath.Join(artifactDir, operationName+".ts")
 
 				// Read the artifact file
 				exists, err := afero.Exists(p.Fs, artifactPath)
@@ -270,7 +270,7 @@ func runFullGeneration(
 	}
 
 	// Read the REAL persistent queries that got generated
-	fullPath := path.Join(projectConfig.ProjectRoot, testPersistentQueriesPath)
+	fullPath := filepath.Join(projectConfig.ProjectRoot, testPersistentQueriesPath)
 	content, err := afero.ReadFile(p.Fs, fullPath)
 	require.NoError(t, err)
 

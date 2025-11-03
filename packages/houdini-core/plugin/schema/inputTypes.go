@@ -3,7 +3,7 @@ package schema
 import (
 	"context"
 	"fmt"
-	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -144,7 +144,7 @@ func generateInputTypeDefinitions(
 	if err != nil {
 		return err
 	}
-	targetPath := path.Join(config.DefinitionsDirectory(), "inputs.ts")
+	targetPath := filepath.Join(config.DefinitionsDirectory(), "inputs.ts")
 	return afero.WriteFile(fs, targetPath, []byte(finalContent.String()), 0o644)
 }
 

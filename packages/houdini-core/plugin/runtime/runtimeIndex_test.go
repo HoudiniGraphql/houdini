@@ -2,7 +2,7 @@ package runtime_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -32,7 +32,7 @@ func TestRuntimeIndexGeneration(t *testing.T) {
 
 			// read the index contents
 			indexContent, err := afero.ReadFile(plugin.Fs,
-				path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts"),
+				filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts"),
 			)
 			require.Nil(t, err)
 

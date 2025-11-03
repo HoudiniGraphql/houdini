@@ -3,7 +3,6 @@ package runtime
 import (
 	"context"
 	"fmt"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -24,7 +23,7 @@ func GenerateRuntimeIndexFile(
 	}
 
 	// we are going to populate the runtime index
-	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
+	indexPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
 	_ = fs.Remove(indexPath)
 
