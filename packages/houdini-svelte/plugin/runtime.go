@@ -60,6 +60,7 @@ export const redirect = svelteKitRedirect
 		if err != nil {
 			return "", err
 		}
+		relPath = filepath.ToSlash(relPath)
 
 		// replace the constant
 		return strings.ReplaceAll(content, "HOUDINI_CLIENT_PATH", relPath), nil
@@ -79,6 +80,7 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 	if err != nil {
 		return "", err
 	}
+	pluginDir = filepath.ToSlash(pluginDir)
 
 	// we just need to export all of the stores we'll generate
 	return fmt.Sprintf(`export * from './%s/stores/index.js'`, pluginDir), nil

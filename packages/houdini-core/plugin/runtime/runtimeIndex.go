@@ -32,6 +32,7 @@ func GenerateRuntimeIndexFile(
 	if err != nil {
 		return err
 	}
+	definitionsRelative = filepath.ToSlash(definitionsRelative)
 
 	// before we doing any kind of file io let's determine the value we will write so we can compare with the existing value to know if we changed anything
 
