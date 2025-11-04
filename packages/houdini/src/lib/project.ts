@@ -143,9 +143,11 @@ let pending_config_promises: Promise<Config> | null = null
 export async function get_config({
 	force_reload,
 	config_path: _config_path,
+	skip_schema,
 }: {
 	config_path?: string
 	force_reload?: boolean
+	skip_schema?: boolean
 } = {}): Promise<Config> {
 	let config_path = _config_path ?? ''
 
@@ -225,10 +227,14 @@ export async function get_config({
 
 		_config = new Config({
 			...(partialConfig as Config),
-			schema: local_schema
-				? await load_local_schema(config_file, local_schema)
-				: await load_schema_file(config_file.schemaPath),
 		})
+
+		// when we're pulling the schema, we don't yet have a schema to read.
+		if (!skip_schema) {
+			_config.schema = local_schema
+				? await load_local_schema(config_file, local_schema)
+				: await load_schema_file(config_file.schemaPath)
+		}
 
 		// we need to process the plugins before we instantiate the config object
 		// so that we can compute the final config_file
