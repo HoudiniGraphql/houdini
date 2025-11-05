@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -127,7 +128,7 @@ func InjectContext(next http.Handler) http.Handler {
 	// the task id is passed in the request headers
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get the task id from the request headers
-		taskID := r.Header.Get("X-Task-ID")
+		taskID := r.Header.Get("X-Task-Id")
 
 		// add the task id to the context
 		ctx := ContextWithPluginDir(
@@ -395,6 +396,7 @@ func handleEnvironment(ctx context.Context, plugin Environment) http.Handler {
 }
 
 func handleError(w http.ResponseWriter, err error) {
+	fmt.Println(err)
 	w.WriteHeader(http.StatusInternalServerError)
 
 	// if the error is a list of plugin errors then we should serialize the full list

@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"strings"
 	"sync"
@@ -69,6 +70,7 @@ func GenerateDocumentArtifacts(
 			defer db.Put(conn)
 
 			for name := range docNames {
+				fmt.Println("Generating artifact for document:", name)
 				doc := collectedDefinitions.Selections[name]
 				if doc.Internal {
 					continue

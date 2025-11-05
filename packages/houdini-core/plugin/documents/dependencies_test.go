@@ -51,6 +51,10 @@ func TestDocumentDependencies(t *testing.T) {
             }
           `,
 				},
+				Extra: map[string]any{
+					"getUsers": []string{"UserInfo", "MoreInfo"},
+					"UserInfo": []string{"MoreInfo"},
+				},
 			},
 			{
 				Name: "No duplicate dependencies with multiple references",
@@ -82,6 +86,11 @@ func TestDocumentDependencies(t *testing.T) {
             }
           `,
 				},
+				Extra: map[string]any{
+					"FirstQuery":      []string{"SharedFragment"},
+					"SecondQuery":     []string{"SharedFragment"},
+					"AnotherFragment": []string{"SharedFragment"},
+				},
 			},
 			{
 				Name: "Multiple dependency loading runs should not create duplicates",
@@ -100,6 +109,9 @@ func TestDocumentDependencies(t *testing.T) {
             }
           `,
 				},
+				Extra: map[string]any{
+					"TestQuery": []string{"TestFragment"},
+				},
 			},
 		},
 		VerifyTest: func(
@@ -107,40 +119,25 @@ func TestDocumentDependencies(t *testing.T) {
 			p *plugin.HoudiniCore,
 			test tests.Test[config.PluginConfig],
 		) {
-			// Define expected dependencies for each test case
-			var dependencies map[string][]string
-
 			switch test.Name {
-			case "Register document dependencies":
-				dependencies = map[string][]string{
-					"getUsers": {"UserInfo", "MoreInfo"},
-					"UserInfo": {"MoreInfo"},
-				}
-			case "No duplicate dependencies with multiple references":
-				dependencies = map[string][]string{
-					"FirstQuery":      {"SharedFragment"},
-					"SecondQuery":     {"SharedFragment"},
-					"AnotherFragment": {"SharedFragment"},
-				}
 			case "Multiple dependency loading runs should not create duplicates":
-				// For this test, we'll run the dependency loading multiple times
-				// to ensure no duplicates are created
-				dependencies = map[string][]string{
-					"TestQuery": {"TestFragment"},
-				}
-
 				// Run LoadDocumentDependencies multiple times to test for duplicates
 				// The INSERT OR IGNORE with UNIQUE constraint should prevent duplicates
 				for i := 0; i < 3; i++ {
 					errs := &plugins.ErrorList{}
 					documents.LoadDocumentDependencies(context.Background(), p.DB, errs)
-					require.Equal(t, 0, errs.Len(), "LoadDocumentDependencies should not produce errors on run %d", i+1)
+					require.Equal(
+						t,
+						0,
+						errs.Len(),
+						"LoadDocumentDependencies should not produce errors on run %d",
+						i+1,
+					)
 				}
-			default:
-				t.Fatalf("Unknown test case: %s", test.Name)
 			}
 
-			for document, dependsOn := range dependencies {
+			for document, docNames := range test.Extra {
+				docs := docNames.([]string)
 				// search for the rows encoding the dependency
 				query := `
             SELECT documents.name as name, document_dependencies.depends_on, COUNT(*) as count
@@ -164,13 +161,27 @@ func TestDocumentDependencies(t *testing.T) {
 				require.Nil(t, err)
 
 				// Verify we have the expected number of dependencies
-				require.Len(t, foundDependsOn, len(dependsOn))
+				require.Len(t, foundDependsOn, len(docs))
 
 				// Verify each expected dependency exists and appears exactly once
-				for _, doc := range dependsOn {
+				for _, doc := range docs {
 					count, exists := foundDependsOn[doc]
-					require.True(t, exists, "Expected dependency %s for document %s not found", doc, document)
-					require.Equal(t, 1, count, "Dependency %s for document %s appears %d times, expected exactly 1", doc, document, count)
+					require.True(
+						t,
+						exists,
+						"Expected dependency %s for document %s not found",
+						doc,
+						document,
+					)
+					require.Equal(
+						t,
+						1,
+						count,
+						"Dependency %s for document %s appears %d times, expected exactly 1",
+						doc,
+						document,
+						count,
+					)
 				}
 			}
 
@@ -195,8 +206,15 @@ func TestDocumentDependencies(t *testing.T) {
 					documentName := q.GetText("document_name")
 					dependsOn := q.GetText("depends_on")
 					count := q.GetInt64("count")
-					duplicates = append(duplicates,
-						fmt.Sprintf("Document '%s' depends on '%s' %d times", documentName, dependsOn, count))
+					duplicates = append(
+						duplicates,
+						fmt.Sprintf(
+							"Document '%s' depends on '%s' %d times",
+							documentName,
+							dependsOn,
+							count,
+						),
+					)
 				})
 			require.Nil(t, err)
 			require.Empty(t, duplicates, "Found duplicate dependencies: %v", duplicates)

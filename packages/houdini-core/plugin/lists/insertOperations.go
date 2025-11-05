@@ -159,9 +159,22 @@ func InsertOperationDocuments(
 	}
 	defer insertDocument.Finalize()
 
+	insertDocumentDependency, err := conn.Prepare(
+		`
+			INSERT INTO document_dependencies
+				(document, depends_on)
+			VALUES 
+				($document, $depends_on)
+		`,
+	)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer insertDocumentDependency.Finalize()
+
 	// a statement to insert internal directives
 	insertInternalDirectiveStmt, err := conn.Prepare(
-		"INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, true)",
+		"INSERT INTO directives (name, description, internal, visible) VALUES ($name, $description, true, true)ON CONFLICT (name) DO NOTHING",
 	)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -205,7 +218,8 @@ func InsertOperationDocuments(
             'type_modifiers', document_variables.type_modifiers
           )
         )
-      END as document_arguments
+      END as document_arguments,
+			documents.name as document_name
 		FROM discovered_lists
 			JOIN documents ON documents.id = discovered_lists.document AND documents.kind != 'fragment'
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
@@ -234,6 +248,7 @@ func InsertOperationDocuments(
 		documentID := searchLists.GetInt64("document_id")
 		rawDocument := searchLists.GetInt64("raw_document")
 		documentArgmentsString := searchLists.GetText("document_arguments")
+		documentName := searchLists.GetText("document_name")
 
 		arguments := []struct {
 			Name          string `json:"name"`
@@ -272,6 +287,16 @@ func InsertOperationDocuments(
 
 			fragmentID := conn.LastInsertRowID()
 			copyTargets = append(copyTargets, fragmentID)
+
+			// insert the document dependency
+			err = db.ExecStatement(insertDocumentDependency, map[string]any{
+				"document":   fragmentID,
+				"depends_on": documentName,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 
 			// copy the selection from the selection parent to the new document
 			err = db.ExecStatement(copySelection, map[string]any{
@@ -410,16 +435,17 @@ func InsertOperationDocuments(
 	}
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
-		WITH lists AS (
-			select discovered_lists.*, documents.raw_document from discovered_lists
+		SELECT 
+			discovered_lists.name, 
+			discovered_lists.node_type, 
+			tc.keys, 
+			raw_documents.id as raw_document, 
+			documents.name as document_name
+		FROM discovered_lists
 			JOIN documents on discovered_lists.document = documents.id
 			JOIN raw_documents on documents.raw_document = raw_documents.id
-			WHERE raw_documents.current_task = $task_id or $task_id is NULL
-		)
-
-		SELECT lists.name, lists.node_type, tc.keys, lists.raw_document
-		FROM lists
-		LEFT JOIN type_configs tc ON tc.name = lists.node_type
+			LEFT JOIN type_configs tc ON tc.name = discovered_lists.node_type
+		WHERE raw_documents.current_task = $task_id or $task_id is NULL
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -431,6 +457,7 @@ func InsertOperationDocuments(
 		typeName := statementWithKeys.GetText("node_type")
 		keysStr := statementWithKeys.GetText("keys")
 		rawDocument := statementWithKeys.GetText("raw_document")
+		documentName := statementWithKeys.GetText("document_name")
 
 		keys := []string{}
 		if keysStr != "" {
@@ -473,6 +500,16 @@ func InsertOperationDocuments(
 			}
 
 			fragmentID := conn.LastInsertRowID()
+
+			// insert the document dependency
+			err = db.ExecStatement(insertDocumentDependency, map[string]any{
+				"document":   fragmentID,
+				"depends_on": documentName,
+			})
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 
 			// now we need a selection for each key and a ref that links it up to the parent
 			for _, key := range append(keys, "__typename") {

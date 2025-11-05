@@ -219,6 +219,8 @@ export async function codegen_setup(
 		}
 		const { port, directory } = plugin
 
+		console.log(`Invoking hook ${hook} on plugin ${name} at port ${port}`)
+
 		// make the request
 		const response = await fetch(
 			`http://localhost:${port}/${hook.toLowerCase()}`,

@@ -2,7 +2,6 @@ package plugins
 
 import (
 	"context"
-	"strconv"
 )
 
 func ContextWithTaskID(ctx context.Context, taskID string) context.Context {
@@ -10,26 +9,25 @@ func ContextWithTaskID(ctx context.Context, taskID string) context.Context {
 		return ctx
 	}
 
-	id, err := strconv.ParseInt(taskID, 10, 64)
-	if err != nil {
-		return ctx
-	}
-
-	return context.WithValue(ctx, "taskID", &id)
+	return context.WithValue(ctx, taskIDCtxKey{}, &taskID)
 }
 
 func ContextWithPluginDir(ctx context.Context, directory string) context.Context {
-	return context.WithValue(ctx, "pluginDir", directory)
+	return context.WithValue(ctx, pluginDirCtxKey{}, directory)
 }
 
-func TaskIDFromContext(ctx context.Context) *int64 {
-	taskID := ctx.Value("taskID")
+func TaskIDFromContext(ctx context.Context) *string {
+	taskID := ctx.Value(taskIDCtxKey{})
 	if taskID == nil {
 		return nil
 	}
-	return taskID.(*int64)
+	return taskID.(*string)
 }
 
 func PluginDirFromContext(ctx context.Context) string {
-	return ctx.Value("pluginDir").(string)
+	return ctx.Value(pluginDirCtxKey{}).(string)
 }
+
+type taskIDCtxKey struct{}
+
+type pluginDirCtxKey struct{}

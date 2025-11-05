@@ -204,7 +204,7 @@ func bindTaskID(ctx context.Context, statement *sqlite.Stmt) {
 	if taskID != nil {
 		for i := range statement.BindParamCount() {
 			if statement.BindParamName(i+1) == "$task_id" {
-				statement.SetInt64("$task_id", *taskID)
+				statement.SetText("$task_id", *taskID)
 				break
 			}
 		}

@@ -103,7 +103,7 @@ func CollectDocuments(
 
 	// create a pool of worker goroutines to process the documents
 	var wg sync.WaitGroup
-	for range runtime.NumCPU() {
+	for range 1 {
 		wg.Add(1)
 		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList, sortKeys)
 	}

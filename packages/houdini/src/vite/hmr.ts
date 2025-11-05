@@ -33,7 +33,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
 
 	const debounceArtifacts = createDebounceQueue<string>(
-		50, // 50ms debounce window for artifacts
+		200, // 50ms debounce window for artifacts
 		(artifacts) => Array.from(artifacts), // convert Set to Array
 		async (artifactNames) => {
 			try {
@@ -68,7 +68,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				await run_pipeline(compiler.trigger_hook, {
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
-					through: 'Validate',
+					through: 'AfterValidate',
 				})
 			} catch {}
 
@@ -247,7 +247,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				// the task now includes every document that we need to process
 				const results = await run_pipeline(compiler.trigger_hook, {
 					task_id,
-					after: 'Validate',
+					after: 'AfterValidate',
 				})
 
 				// the return value of each generate invocation is the list of modules that were updated
@@ -317,8 +317,6 @@ async function ensureArtifactsGenerated(
 		return
 	}
 
-	console.log('ensuring artifacts generated:', artifactNames)
-
 	// Filter out artifacts that already exist
 	const config = await get_config()
 	const artifactsToGenerate: string[] = []
@@ -330,7 +328,7 @@ async function ensureArtifactsGenerated(
 					config.root_dir,
 					config.config_file.runtimeDir ?? '.houdini',
 					'artifacts',
-					artifactName,
+					artifactName + '.ts',
 				),
 				fs.constants.R_OK,
 			)
@@ -347,6 +345,7 @@ async function ensureArtifactsGenerated(
 
 	const timestamp = Date.now()
 	const task_id = `artifacts_batch_${timestamp}`
+	console.log('ensuring artifacts generated:', artifactNames, task_id)
 
 	// Find all documents that need to be generated
 	const placeholders = artifactsToGenerate.map(() => '?').join(', ')
@@ -364,13 +363,12 @@ async function ensureArtifactsGenerated(
 
 	// Filter out documents that don't exist or don't have raw documents
 	const validDocuments = documents.filter((doc) => doc.raw_document_id !== null)
-
 	if (validDocuments.length === 0) {
 		return
 	}
 
 	// Mark all documents as part of this task
-	const rawDocumentIds = validDocuments.map((doc) => doc.raw_document_id!)
+	const rawDocumentIds = validDocuments.map((doc) => doc.raw_document_id)
 	const rawDocPlaceholders = rawDocumentIds.map(() => '?').join(', ')
 	db.prepare(
 		`UPDATE raw_documents SET current_task = ? WHERE id IN (${rawDocPlaceholders})`,
@@ -413,7 +411,7 @@ async function ensureArtifactsGenerated(
 	// Run the compilation pipeline for this task
 	await run_pipeline(compiler.trigger_hook, {
 		task_id,
-		after: 'Validate',
+		after: 'AfterValidate',
 	})
 
 	// Clean up the task
