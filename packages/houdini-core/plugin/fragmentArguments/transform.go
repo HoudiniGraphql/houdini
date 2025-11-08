@@ -278,7 +278,9 @@ func processDocument[PluginConfig any](
 	            json_object(
 	              'name', document_variables."name",
 	              'default_value', document_variables."default_value",
-	              'raw', document_variable_default_values."raw"
+	              'raw', document_variable_default_values."raw",
+              	'type', document_variables."type",
+              	'type_modifiers', document_variables."type_modifiers"
 	            )
 	          )
 	      END as doc_variables,
@@ -332,11 +334,6 @@ func processDocument[PluginConfig any](
 			}
 		}
 
-		type DocArg struct {
-			Name         string `json:"name"`
-			DefaultValue int64  `json:"default_value"`
-			Raw          string `json:"raw"`
-		}
 		docArgs := []DocArg{}
 		if docVariablesStr != "" {
 			err = json.Unmarshal([]byte(docVariablesStr), &docArgs)
@@ -352,6 +349,7 @@ func processDocument[PluginConfig any](
 		// the first thing we have to do is compute the set of values being passed to the processedFragments
 		fragmentHashArgs := map[string]string{}
 		documentScope := map[string]DocArg{}
+		fragmentScopeVariables := []DocArg{}
 		for _, arg := range docArgs {
 			if arg.DefaultValue != 0 {
 				documentScope[arg.Name] = arg
@@ -362,12 +360,22 @@ func processDocument[PluginConfig any](
 			// if the argument kind is a variable then we have 2 options, we either use the
 			// parent scope or we have a default value
 			if arg.Kind == "Variable" {
+				for _, docArg := range docArgs {
+					if arg.Name == docArg.Name {
+						fragmentScopeVariables = append(fragmentScopeVariables, docArg)
+					}
+				}
+
+				// we have a local value
 				if docArg, ok := scope[arg.Name]; ok {
 					fragmentScope[arg.Name] = docArg
 					fragmentHashArgs[arg.Name] = arg.Name
+
+					// there is a document variable
 				} else if fragmentArg, ok := documentScope[arg.Name]; ok {
 					fragmentScope[arg.Name] = fragmentArg.DefaultValue
 					fragmentHashArgs[arg.Name] = fragmentArg.Raw
+					fragmentScopeVariables = append(fragmentScopeVariables, fragmentArg)
 				}
 			} else {
 				fragmentScope[arg.Name] = arg.Value
@@ -454,6 +462,7 @@ func processDocument[PluginConfig any](
 			typeCondition,
 			statements,
 			fragmentScope,
+			fragmentScopeVariables,
 		)
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
@@ -530,6 +539,7 @@ func cloneDocument[PluginConfig any](
 	typeCondition string,
 	statements *transformStatements[PluginConfig],
 	fragmentScope map[string]int64,
+	fragmentScopeVariables []DocArg,
 ) (int64, map[string]int64, error) {
 	// the first thing we have to do is create a new document with the correct name
 	err := db.ExecStatement(statements.InsertFragment, map[string]any{
@@ -541,6 +551,24 @@ func cloneDocument[PluginConfig any](
 		return 0, nil, err
 	}
 	documentID := conn.LastInsertRowID()
+
+	// we need to add any document variables that correspond to variables that
+	// are found in the new definition
+	for _, arg := range fragmentScopeVariables {
+		variable := map[string]any{
+			"document":       documentID,
+			"name":           arg.Name,
+			"type":           arg.Type,
+			"type_modifiers": arg.TypeModifiers,
+		}
+		if arg.DefaultValue != 0 {
+			variable["default_value"] = arg.DefaultValue
+		}
+		err = db.ExecStatement(statements.InsertDocumentVariable, variable)
+		if err != nil {
+			return 0, nil, err
+		}
+	}
 
 	// we'll perform the copy in a few steps - the first is to look for any selections
 	// in the parent document that don't have arguments and copy those by just duplicating the
@@ -873,7 +901,14 @@ func cloneDocument[PluginConfig any](
 
 	// copy discovered_lists entries that reference selections in the source document
 	// to create new entries pointing to the corresponding selections in the cloned document
-	err = copyDiscoveredListsForClonedFragment(ctx, db, conn, sourceDocument, documentID, selectionMap)
+	err = copyDiscoveredListsForClonedFragment(
+		ctx,
+		db,
+		conn,
+		sourceDocument,
+		documentID,
+		selectionMap,
+	)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -1041,6 +1076,7 @@ type transformStatements[PluginConfig any] struct {
 	UpdateSelectionArgument            *sqlite.Stmt
 	CopySelectionsNoArgs               *sqlite.Stmt
 	InsertFragment                     *sqlite.Stmt
+	InsertDocumentVariable             *sqlite.Stmt
 	DocumentArgumentValueSearch        *sqlite.Stmt
 	InsertArgumentValue                *sqlite.Stmt
 	InsertArgumentValueChildren        *sqlite.Stmt
@@ -1257,6 +1293,8 @@ func prepareTransformStatements[PluginConfig any](
             json_object(
               'name', document_variables."name",
               'default_value', document_variables."default_value",
+              'type', document_variables."type",
+              'type_modifiers', document_variables."type_modifiers",
               'raw', document_variable_default_values."raw"
             )
           ) 
@@ -1424,6 +1462,13 @@ func prepareTransformStatements[PluginConfig any](
 		return nil, err
 	}
 
+	insertDocumentVariable, err := conn.Prepare(`
+		INSERT INTO document_variables (document, name, default_value, type, type_modifiers, row, column) VALUES ($document, $name, $default_value, $type, $type_modifiers, 0, 0)
+	`)
+	if err != nil {
+		return nil, err
+	}
+
 	insertArgumentValue, err := conn.Prepare(`
     INSERT INTO argument_values (
       kind, 
@@ -1562,6 +1607,7 @@ func prepareTransformStatements[PluginConfig any](
 		NoSelectionArgsDirectiveArgsSearch: noArgSelectionsDirectiveArgsSearch,
 		InsertArgumentValue:                insertArgumentValue,
 		InsertArgumentValueChildren:        insertArgumentValueChildren,
+		InsertDocumentVariable:             insertDocumentVariable,
 		SearchSelectionsWithArgs:           searchSelectionsWithArgs,
 		InsertSelection:                    insertSelection,
 		InsertSelectionRef:                 insertSelectionRef,
@@ -1586,6 +1632,7 @@ func (s *transformStatements[PluginConfig]) Finalize() {
 	s.DocumentArgumentValueSearch.Finalize()
 	s.InsertArgumentValue.Finalize()
 	s.InsertArgumentValueChildren.Finalize()
+	s.InsertDocumentVariable.Finalize()
 	s.SearchSelectionsWithArgs.Finalize()
 	s.InsertSelection.Finalize()
 	s.InsertSelectionRef.Finalize()
@@ -1675,4 +1722,12 @@ type FoundChildValue struct {
 	Name     string
 	Value    int64
 	Filepath string
+}
+
+type DocArg struct {
+	Name          string `json:"name"`
+	Type          string `json:"type"`
+	TypeModifiers string `json:"type_modifiers"`
+	DefaultValue  int64  `json:"default_value"`
+	Raw           string `json:"raw"`
 }

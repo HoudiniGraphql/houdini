@@ -924,50 +924,65 @@ func validatePaginateArgs(
 	errs *plugins.ErrorList,
 ) {
 	conn, err := db.Take(ctx)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
 	defer db.Put(conn)
 
 	// This query retrieves paginate usage info plus field definitions
 	usageQuery, err := conn.Prepare(`
-		SELECT
-			s.alias,
-			d.name,
-			rd.filepath,
-			sr.row,
-			sr.column,
-			GROUP_CONCAT(DISTINCT sa.name) AS appliedArgs,
-			argument_values.raw as paginateMode,
-			GROUP_CONCAT(DISTINCT field_args.name || ':' || field_args.type) AS fieldArgDefs,
-			discovered_lists.name,
-			selection_directives.directive,
-			type_fields.type_modifiers,
-			discovered_lists.id,
-      COALESCE(
-        MAX(CASE WHEN field_args.name = 'after'  THEN field_args.type END),
-        MAX(CASE WHEN field_args.name = 'before' THEN field_args.type END)
-      ) AS cursor_type
-		FROM discovered_lists
-			JOIN selections s ON discovered_lists.list_field = s.id
-			JOIN selection_refs sr ON sr.child_id = s.id
-			JOIN documents d ON d.id = sr.document
-			JOIN raw_documents rd ON rd.id = d.raw_document
-			JOIN selection_directives
-				ON s.id = selection_directives.selection_id
-				AND selection_directives.directive in ($paginate_directive, $list_directive)
-			LEFT JOIN selection_directive_arguments
-				ON selection_directive_arguments.parent = selection_directives.id
-				AND selection_directive_arguments.name = $paginate_mode_arg
-			LEFT JOIN argument_values ON selection_directive_arguments.value = argument_values.id
-			LEFT JOIN selection_arguments sa ON sa.selection_id = s.id AND sa.document = d.id
-			LEFT JOIN selections parent_ref ON parent_ref.id = sr.parent_id
-			LEFT JOIN type_fields ON type_fields.id = parent_ref.type
-			LEFT JOIN type_field_arguments field_args ON field_args.field = s.type
-		GROUP BY discovered_lists.id
-	`)
-	db.BindStatement(usageQuery, map[string]any{
-		"paginate_mode_arg":  "mode",
+			SELECT
+				s.alias AS alias,
+				d.name AS name,
+				rd.filepath AS filepath,
+				GROUP_CONCAT(
+					DISTINCT CASE
+						WHEN sa_values.kind != 'Variable' THEN sa.name
+      			WHEN sa_values.kind = 'Variable' AND dv.default_value IS NOT NULL THEN sa.name
+      			WHEN sa_values.kind = 'Variable' AND dv.type_modifiers LIKE '%!'  THEN sa.name
+					END
+				) AS appliedArgs,
+				argument_values.raw AS paginateMode,
+				GROUP_CONCAT(
+					DISTINCT COALESCE(field_args.name,'') || ':' || COALESCE(field_args.type,'')
+				) AS fieldArgDefs,
+				discovered_lists.name AS discovered_list_name,
+				GROUP_CONCAT(DISTINCT selection_directives.directive) AS directive,
+				type_fields.type_modifiers AS type_modifiers,
+				discovered_lists.id AS discovered_list_id,
+				COALESCE(
+					MAX(CASE WHEN field_args.name = 'after'  THEN field_args.type END),
+					MAX(CASE WHEN field_args.name = 'before' THEN field_args.type END)
+				) AS cursor_type,
+				s.id AS selection_id
+			FROM selections s
+				JOIN discovered_lists ON discovered_lists.list_field = s.id
+				LEFT JOIN selection_refs refs ON refs.child_id = s.id
+				LEFT JOIN documents d ON d.id = refs.document
+				LEFT JOIN raw_documents rd ON rd.id = d.raw_document
+				LEFT JOIN selection_directives	ON selection_directives.selection_id = s.id AND selection_directives.directive IN ($paginate_directive, $list_directive)
+				LEFT JOIN selection_directive_arguments	ON selection_directive_arguments.parent = selection_directives.id AND selection_directive_arguments.name = $paginate
+				LEFT JOIN argument_values	ON argument_values.id = selection_directive_arguments.value
+				LEFT JOIN selection_arguments sa	ON sa.selection_id = s.id AND (refs.document IS NULL OR sa.document = refs.document)
+				LEFT JOIN argument_values sa_values	ON sa_values.id = sa.value
+				LEFT JOIN document_variables dv	ON dv.document = d.id AND dv.name = sa_values.raw
+				LEFT JOIN selections parent_ref	ON parent_ref.id = refs.parent_id
+				LEFT JOIN type_fields	ON type_fields.id = parent_ref.type
+				LEFT JOIN type_field_arguments field_args	ON field_args.field = s.type
+			WHERE (rd.current_task = $task_id OR $task_id IS NULL)
+			GROUP BY s.id
+		`)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	err = db.BindStatement(usageQuery, map[string]any{
 		"paginate_directive": graphql.PaginationDirective,
 		"list_directive":     graphql.ListDirective,
 	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
 	defer usageQuery.Finalize()
 
 	// if we discover a connection-based pagination we should update the discovered list with the direction
@@ -1004,19 +1019,19 @@ func validatePaginateArgs(
 
 	seenNames := map[string]string{}
 
-	db.StepStatement(ctx, usageQuery, func() {
-		fieldName := usageQuery.ColumnText(0)
-		documentName := usageQuery.ColumnText(1)
-		filepath := usageQuery.ColumnText(2)
-		row := usageQuery.ColumnInt(3)
-		column := usageQuery.ColumnInt(4)
-		appliedArgs := usageQuery.ColumnText(5)
-		paginateMode := usageQuery.ColumnText(6)
-		fieldArgDefs := usageQuery.ColumnText(7)
-		listName := usageQuery.ColumnText(8)
-		directive := usageQuery.ColumnText(9)
-		typeModifiers := usageQuery.ColumnText(10)
-		listID := usageQuery.ColumnInt(11)
+	err = db.StepStatement(ctx, usageQuery, func() {
+		fieldName := usageQuery.GetText("alias")
+		documentName := usageQuery.GetText("name")
+		filepath := usageQuery.GetText("filepath")
+		row := int(usageQuery.GetInt64("row"))
+		column := int(usageQuery.GetInt64("column"))
+		appliedArgs := usageQuery.GetText("appliedArgs")
+		paginateMode := usageQuery.GetText("paginateMode")
+		fieldArgDefs := usageQuery.GetText("fieldArgDefs")
+		listName := usageQuery.GetText("listName")
+		directive := usageQuery.GetText("directive")
+		typeModifiers := usageQuery.GetText("type_modifiers")
+		listID := usageQuery.GetInt64("discovered_list_id")
 		cursorType := usageQuery.GetText("cursor_type")
 
 		// Ensure that the list name is unique across files
@@ -1068,7 +1083,7 @@ func validatePaginateArgs(
 		appliedSet := make(map[string]bool)
 		if appliedArgs != "" {
 			for _, arg := range strings.Split(appliedArgs, ",") {
-				appliedSet[strings.TrimSpace(arg)] = true
+				appliedSet[arg] = true
 			}
 		}
 
@@ -1092,9 +1107,10 @@ func validatePaginateArgs(
 			}
 
 			if forwardApplied && backwardsApplied && paginateMode != "SinglePage" {
+				fmt.Println(appliedArgs)
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf(
-						"Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode",
+						"Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode.",
 						fieldName,
 						documentName,
 					),
@@ -1151,4 +1167,8 @@ func validatePaginateArgs(
 			})
 		}
 	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
 }

@@ -1,8 +1,6 @@
 package tests
 
 import (
-	"fmt"
-
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
 )
@@ -161,8 +159,6 @@ func ExpectedDoc(query string) ExpectedDocument {
 	}
 	doc, err := parser.ParseQuery(source)
 	if err != nil {
-		fmt.Println(source)
-		fmt.Println(err)
 		return ExpectedDocument{}
 	}
 

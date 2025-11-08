@@ -447,7 +447,28 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 								}
 							}
 						}
-					`),
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
 					tests.ExpectedDoc(
 						fmt.Sprintf(`
 							query %s($first: Int = 10, $after: String, $before: String, $last: Int ) @dedupe(match: Variables) {

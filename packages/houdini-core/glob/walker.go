@@ -52,7 +52,8 @@ func (w *Walker) AddExclude(pattern string) error {
 }
 
 func (w *Walker) Matches(fp string) bool {
-	return matchHelper(w.excludeTree, strings.Split(fp, "/"))
+	target := strings.Split(fp, "/")
+	return matchHelper(w.includeTree, target) && !matchHelper(w.excludeTree, target)
 }
 
 // Walk traverses the filesystem in parallel starting at root.

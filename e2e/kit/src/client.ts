@@ -1,4 +1,4 @@
-import { HoudiniClient, type ClientPlugin } from '$houdini';
+import { HoudiniClient, type ClientPlugin } from '$houdini/runtime/client';
 import { createClient } from 'graphql-ws';
 import { error } from '@sveltejs/kit';
 import { subscription } from '$houdini/plugins';

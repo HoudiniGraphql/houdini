@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -396,7 +395,6 @@ func handleEnvironment(ctx context.Context, plugin Environment) http.Handler {
 }
 
 func handleError(w http.ResponseWriter, err error) {
-	fmt.Println(err)
 	w.WriteHeader(http.StatusInternalServerError)
 
 	// if the error is a list of plugin errors then we should serialize the full list

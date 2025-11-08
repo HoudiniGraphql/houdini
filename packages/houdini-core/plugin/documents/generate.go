@@ -2,7 +2,6 @@ package documents
 
 import (
 	"context"
-	"fmt"
 	"path"
 
 	"github.com/spf13/afero"
@@ -32,14 +31,12 @@ func Generate(
 		return nil, err
 	}
 
-	fmt.Println("Collecting documents...")
 	// the first thing we need to do is collect the definitions of all of the necessary documents
 	collected, err := collected.CollectDocuments(ctx, db, conn, sortKeys)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("Ensuring documents are printed...")
 	//  make sure that the documents are printed
 	err = artifacts.EnsureDocumentsPrinted(ctx, db, conn, collected, false)
 	if err != nil {
@@ -62,7 +59,6 @@ func Generate(
 	fps := plugins.ThreadSafeSlice[string]{}
 
 	group.Go(func() error {
-		fmt.Println("Generating document artifacts...")
 		files, err := artifacts.GenerateDocumentArtifacts(ctx, db, conn, collected, fs, sortKeys)
 		if err != nil {
 			return err

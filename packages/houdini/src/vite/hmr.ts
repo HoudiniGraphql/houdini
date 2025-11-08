@@ -28,21 +28,10 @@ import {
  */
 
 export let compiler: CompilerProxy
+const VIRTUAL_PREFIX = '\0houdini:artifact:'
 
 export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
-
-	const debounceArtifacts = createDebounceQueue<string>(
-		200, // 50ms debounce window for artifacts
-		(artifacts) => Array.from(artifacts), // convert Set to Array
-		async (artifactNames) => {
-			try {
-				await ensureArtifactsGenerated(artifactNames, ctx.db, compiler)
-			} catch (error) {
-				console.error(error)
-			}
-		},
-	)
 
 	return {
 		name: 'houdini',
@@ -61,20 +50,12 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				compiler.close()
 			})
 
-			// before we can do anything we need to discover what documents exist on the filesystem
-			// we need to trigger validate in order to discover lists which might not appear in the normal JIT path
-			// TODO: discover lists earlier
+			// before we do anyting we neeed to make sure everything has run
 			try {
 				await run_pipeline(compiler.trigger_hook, {
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
-					through: 'AfterValidate',
 				})
-			} catch {}
-
-			// we also want to generate the initial file contents but skip the rest of the codegen
-			try {
-				await compiler.trigger_hook('GenerateRuntime')
 			} catch {}
 		},
 
@@ -255,6 +236,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					results.GenerateDocuments || {},
 				).flat() as Array<string>
 
+				console.log({ updated_modules })
+
 				// and finally we can remove the task id association
 				ctx.db
 					.prepare(
@@ -271,153 +254,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				}
 			})
 		},
-
-		// this is called when a module is being resolved
-		async resolveId(id) {
-			const runtimeDir = ctx.config.config_file.runtimeDir ?? '.houdini'
-
-			const resolvingArtifact =
-				id.startsWith(`/${runtimeDir}/artifacts`) ||
-				id.includes(path.join(ctx.config.root_dir, runtimeDir, 'artifacts'))
-
-			if (resolvingArtifact) {
-				// escape regex metacharacters in runtimeDir (like the dot in `.houdini`)
-				const escapedRuntimeDir = runtimeDir.replace(
-					/[.*+?^${}()|[\]\\]/g,
-					'\\$&',
-				)
-
-				// match .../.houdini/artifacts/<name> (ignore extension)
-				const pattern = new RegExp(
-					`[\\\\/]${escapedRuntimeDir}[\\\\/]artifacts[\\\\/]([^/\\\\]+?)(?:\\.[^.\\\\/]+)?$`,
-				)
-				const match = id.match(pattern)
-				const artifactName = match ? match[1] : null
-
-				if (artifactName && ctx.db && compiler) {
-					// Add artifact to debounced queue and wait for processing to complete
-					await debounceArtifacts(artifactName)
-				}
-			}
-
-			return null
-		},
 	}
-}
-
-/**
- * Ensure that the specified artifacts and all their dependencies are generated in batch
- */
-async function ensureArtifactsGenerated(
-	artifactNames: string[],
-	db: DatabaseSync,
-	compiler: CompilerProxy,
-): Promise<void> {
-	if (artifactNames.length === 0) {
-		return
-	}
-
-	// Filter out artifacts that already exist
-	const config = await get_config()
-	const artifactsToGenerate: string[] = []
-
-	for (const artifactName of artifactNames) {
-		try {
-			await fs.access(
-				path.join(
-					config.root_dir,
-					config.config_file.runtimeDir ?? '.houdini',
-					'artifacts',
-					artifactName + '.ts',
-				),
-				fs.constants.R_OK,
-			)
-			// if access doesn't throw, the file exists, skip it
-		} catch {
-			// file doesn't exist, add to generation list
-			artifactsToGenerate.push(artifactName)
-		}
-	}
-
-	if (artifactsToGenerate.length === 0) {
-		return
-	}
-
-	const timestamp = Date.now()
-	const task_id = `artifacts_batch_${timestamp}`
-	console.log('ensuring artifacts generated:', artifactNames, task_id)
-
-	// Find all documents that need to be generated
-	const placeholders = artifactsToGenerate.map(() => '?').join(', ')
-	const documentsQuery = db.prepare(`
-		SELECT d.id, d.name, rd.id as raw_document_id
-		FROM documents d
-		LEFT JOIN raw_documents rd ON rd.id = d.raw_document
-		WHERE d.name IN (${placeholders})
-	`)
-	const documents = documentsQuery.all(...artifactsToGenerate) as Array<{
-		id: number
-		name: string
-		raw_document_id: number | null
-	}>
-
-	// Filter out documents that don't exist or don't have raw documents
-	const validDocuments = documents.filter((doc) => doc.raw_document_id !== null)
-	if (validDocuments.length === 0) {
-		return
-	}
-
-	// Mark all documents as part of this task
-	const rawDocumentIds = validDocuments.map((doc) => doc.raw_document_id)
-	const rawDocPlaceholders = rawDocumentIds.map(() => '?').join(', ')
-	db.prepare(
-		`UPDATE raw_documents SET current_task = ? WHERE id IN (${rawDocPlaceholders})`,
-	).run(task_id, ...rawDocumentIds)
-
-	// Find all dependencies using the same recursive query as handleHotUpdate
-	db.prepare(
-		`
-			WITH RECURSIVE
-			seed AS (
-				SELECT DISTINCT d.name
-				FROM raw_documents rd
-				JOIN documents d ON d.raw_document = rd.id
-				WHERE rd.current_task = $task_id
-			),
-
-			walk AS (
-				SELECT name FROM seed
-				UNION
-				SELECT dd.depends_on
-				FROM walk v
-				JOIN documents d          ON d.name = v.name
-				JOIN document_dependencies dd ON dd.document = d.id
-			),
-
-			targets AS (
-				SELECT DISTINCT d.raw_document AS raw_id
-				FROM documents d
-				JOIN walk v        ON v.name = d.name
-				JOIN raw_documents rd ON rd.id = d.raw_document
-				WHERE d.raw_document IS NOT NULL
-			)
-
-			UPDATE raw_documents
-			SET current_task = $task_id
-			WHERE id IN (SELECT raw_id FROM targets);
-		`,
-	).run({ task_id: task_id })
-
-	// Run the compilation pipeline for this task
-	await run_pipeline(compiler.trigger_hook, {
-		task_id,
-		after: 'AfterValidate',
-	})
-
-	// Clean up the task
-	db.prepare(
-		`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`,
-	).run(task_id)
 }
 
 type BatchCallback = (
@@ -425,69 +262,6 @@ type BatchCallback = (
 	batchId: string,
 ) => void | Promise<void>
 
-/**
- * Creates a generic debounced queue handler that batches items
- * @param debounceMs - Debounce window in milliseconds
- * @param transform - Function to transform the collected items before processing
- * @param callback - Function to process the transformed items
- * @returns debounce function that returns a Promise
- */
-export function createDebounceQueue<T, R = T[]>(
-	debounceMs: number,
-	transform: (items: Set<T>) => R,
-	callback: (transformedItems: R) => void | Promise<void>,
-) {
-	const itemQueue = new Set<T>()
-	const pendingPromises = new Map<
-		T,
-		{ resolve: () => void; reject: (error: any) => void }
-	>()
-	let timer: NodeJS.Timeout | null = null
-
-	return function debounceQueue(item: T): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			// Add item to queue and store its promise resolvers
-			itemQueue.add(item)
-			pendingPromises.set(item, { resolve, reject })
-
-			// Clear existing timer
-			if (timer) {
-				clearTimeout(timer)
-			}
-
-			// Set new timer
-			timer = setTimeout(async () => {
-				// Capture current queue and promises
-				const itemsToProcess = new Set(itemQueue)
-				const promisesToResolve = new Map(pendingPromises)
-				itemQueue.clear()
-				pendingPromises.clear()
-				timer = null
-
-				try {
-					const transformedItems = transform(itemsToProcess)
-					await callback(transformedItems)
-
-					// Resolve all promises for processed items
-					promisesToResolve.forEach(({ resolve }) => {
-						resolve()
-					})
-				} catch (error) {
-					// Reject all promises on error
-					promisesToResolve.forEach(({ reject }) => {
-						reject(error)
-					})
-				}
-			}, debounceMs)
-		})
-	}
-}
-
-/**
- * Creates a debounced HMR handler that batches file changes
- * @param debounceMs - Debounce window in milliseconds
- * @returns debounceHmr function
- */
 export function createDebounceHmr(debounceMs: number = 50) {
 	const updateQueue = new Map<string, () => string | Promise<string>>()
 	let updateTimer: NodeJS.Timeout | null = null
@@ -526,19 +300,19 @@ export function createDebounceHmr(debounceMs: number = 50) {
 			try {
 				// Read all files in parallel
 				const filesWithContent: Record<string, string> = {}
-				const readPromises = Array.from(filesToProcess.entries()).map(
-					async ([filepath, readFn]) => {
-						try {
-							const content = await readFn()
-							filesWithContent[filepath] = content
-						} catch (error) {
-							// Store empty string or rethrow based on your needs
-							filesWithContent[filepath] = ''
-						}
-					},
+				await Promise.all(
+					Array.from(filesToProcess.entries()).map(
+						async ([filepath, readFn]) => {
+							try {
+								const content = await readFn()
+								filesWithContent[filepath] = content
+							} catch (error) {
+								// Store empty string or rethrow based on your needs
+								filesWithContent[filepath] = ''
+							}
+						},
+					),
 				)
-
-				await Promise.all(readPromises)
 
 				try {
 					await callback(filesWithContent, currentBatchId.toString())

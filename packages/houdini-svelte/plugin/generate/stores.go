@@ -134,15 +134,26 @@ func GenerateStores(
 			errs.Append(plugins.WrapError(err))
 			return
 		}
-
 		// Write the store file
 		storePath := path.Join(storesDir, name+".ts")
-		err = afero.WriteFile(fs, storePath, []byte(storeContent), 0644)
-		if err != nil {
-			return
+
+		var currentValue []byte
+		if exists, err := afero.Exists(fs, storePath); err == nil && exists {
+			currentValue, err = afero.ReadFile(fs, storePath)
+			if err != nil {
+				errs.Append(plugins.WrapError(err))
+				return
+			}
 		}
 
-		generatedFiles = append(generatedFiles, storePath)
+		if string(currentValue) != storeContent {
+			err = afero.WriteFile(fs, storePath, []byte(storeContent), 0644)
+			if err != nil {
+				return
+			}
+
+			generatedFiles = append(generatedFiles, storePath)
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -153,11 +164,33 @@ func GenerateStores(
 
 	// we have everything we need to write the index file
 	indexFilePath := path.Join(storesDir, "index.ts")
-	err = afero.WriteFile(fs, indexFilePath, []byte(indexValue.String()), 0o644)
-	if err != nil {
-		return nil, err
+	indexContent := indexValue.String()
+
+	var currentValue []byte
+	if exists, err := afero.Exists(fs, indexFilePath); err == nil && exists {
+		currentValue, err = afero.ReadFile(fs, indexFilePath)
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return nil, err
+		}
 	}
-	generatedFiles = append(generatedFiles, indexFilePath)
+
+	if string(currentValue) != indexContent {
+		// fmt.Println(
+		// 	"changed value\n----------",
+		// 	string(currentValue),
+		// 	"\n----------\n",
+		// 	indexContent,
+		// )
+		err = afero.WriteFile(fs, indexFilePath, []byte(indexContent), 0644)
+		if err != nil {
+			return nil, err
+		}
+
+		generatedFiles = append(generatedFiles, indexFilePath)
+	}
+
+	// fmt.Println("generated files in store gen", strings.Join(generatedFiles, ", "))
 
 	return generatedFiles, nil
 }

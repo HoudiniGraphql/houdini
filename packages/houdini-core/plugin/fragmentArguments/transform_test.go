@@ -445,7 +445,13 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
               id
               __typename
             }
-          `),
+          `).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name:          "name",
+							Type:          "String",
+							TypeModifiers: "!",
+						},
+					),
 				},
 			},
 		},

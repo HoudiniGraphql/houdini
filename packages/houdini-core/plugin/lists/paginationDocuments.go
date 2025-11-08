@@ -41,6 +41,7 @@ type discoveredList struct {
 	TypeCondition    string
 	ListField        string
 	FieldName        string
+	FieldParentType  string
 	FieldType        string
 	ArgumentsToAdd   []fieldArgumentSpec
 	Arguments        []argumentInfo
@@ -149,7 +150,8 @@ func PreparePaginationDocuments(
 			END as resolve_key_objects,
 			documents.type_condition,
 			discovered_lists.paginate,
-      discovered_lists.cursor_type as cursor_type
+      discovered_lists.cursor_type as cursor_type,
+			field_info.parent as parent_type
 		FROM discovered_lists
 			JOIN documents on discovered_lists.document = documents.id
 			JOIN raw_documents on documents.raw_document = raw_documents.id
@@ -439,6 +441,7 @@ func PreparePaginationDocuments(
 		typeCondition := query.ColumnText(14)
 		cursorType := query.GetText("cursor_type")
 		paginate := query.GetText("paginate")
+		parentType := query.GetText("parent_type")
 
 		if query.IsNull("paginate") {
 			return
@@ -447,7 +450,7 @@ func PreparePaginationDocuments(
 		// create a unique key for this discovered list to avoid processing duplicates
 		// use discovered_lists.id if available, otherwise fall back to composite key
 		listKey := fmt.Sprintf("%s-%d-%s", listField, document, fieldName)
-		if processedLists[listKey].ID == 0 {
+		if processedLists[listKey].ID != 0 {
 			return // already processed this list
 		}
 
@@ -493,6 +496,7 @@ func PreparePaginationDocuments(
 			TypeCondition:    typeCondition,
 			ListField:        listField,
 			FieldName:        fieldName,
+			FieldParentType:  parentType,
 			FieldType:        fieldType,
 			ArgumentsToAdd:   argumentsToAdd,
 			Arguments:        arguments,
@@ -667,11 +671,16 @@ func processFragmentPagination(
 
 		// add the argument to the field
 		err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
-			"selection_id":   newPaginatedSelectionID,
-			"name":           arg.Name,
-			"value":          ctx.conn.LastInsertRowID(),
-			"field_argument": fmt.Sprintf("%s.%s", list.FieldName, arg.Name),
-			"document":       paginatedFragmentID,
+			"selection_id": newPaginatedSelectionID,
+			"name":         arg.Name,
+			"value":        ctx.conn.LastInsertRowID(),
+			"field_argument": fmt.Sprintf(
+				"%s.%s.%s",
+				list.FieldParentType,
+				list.FieldName,
+				arg.Name,
+			),
+			"document": paginatedFragmentID,
 		})
 		if err != nil {
 			return 0, err
@@ -705,11 +714,16 @@ func processFragmentPagination(
 
 		// add the argument to the field
 		err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
-			"selection_id":   newPaginatedSelectionID,
-			"name":           arg.Argument,
-			"value":          ctx.conn.LastInsertRowID(),
-			"field_argument": fmt.Sprintf("%s.%s", list.FieldName, arg.Argument),
-			"document":       paginatedFragmentID,
+			"selection_id": newPaginatedSelectionID,
+			"name":         arg.Argument,
+			"value":        ctx.conn.LastInsertRowID(),
+			"document":     paginatedFragmentID,
+			"field_argument": fmt.Sprintf(
+				"%s.%s.%s",
+				list.FieldParentType,
+				list.FieldName,
+				arg.Argument,
+			),
 		})
 		if err != nil {
 			return 0, err
@@ -1039,15 +1053,6 @@ func processFragmentPagination(
 		return 0, err
 	}
 
-	hasFieldRow, err := ctx.getPaginatedFieldAliasQuery.Step()
-	if err != nil {
-		return 0, err
-	}
-	if hasFieldRow {
-		// field alias is available but not needed for current implementation
-		_ = ctx.getPaginatedFieldAliasQuery.ColumnText(0)
-	}
-
 	// use the field from the base paginated fragment for the pagination query
 	// the fragment variant will inherit the pagination metadata from the base fragment
 	listFieldForQuery := newPaginatedSelectionID
@@ -1185,11 +1190,16 @@ ARGUMENTS:
 		}
 		// add the argument to the field
 		err = ctx.db.ExecStatement(ctx.insertSelectionArgument, map[string]any{
-			"selection_id":   list.ListField,
-			"name":           arg.Name,
-			"value":          ctx.conn.LastInsertRowID(),
-			"field_argument": fmt.Sprintf("%s.%s", list.FieldName, arg.Name),
-			"document":       list.ID,
+			"selection_id": list.ListField,
+			"name":         arg.Name,
+			"value":        ctx.conn.LastInsertRowID(),
+			"field_argument": fmt.Sprintf(
+				"%s.%s.%s",
+				list.FieldParentType,
+				list.FieldName,
+				arg.Name,
+			),
+			"document": list.ID,
 		})
 		if err != nil {
 			return err

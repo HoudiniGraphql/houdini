@@ -709,6 +709,7 @@ func ValidateUndefinedVariables(
 			AND opv.name = av.raw
 	WHERE av.kind = 'Variable'
 		AND opv.name IS NULL
+		AND d.internal = 0
 		AND (r.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY d.id, av.raw
 	`
@@ -795,24 +796,29 @@ func ValidateRepeatingNonRepeatable(
 	// provide the file path and location information.
 	// Finally, we join to the directives table (d2) to filter for non-repeatable directives.
 	query := `
-	SELECT
-		sd.selection_id,
-		sd.directive,
-		d.id AS documentID,
-		rd.filepath,
-		json_group_array(
-			json_object('line', sr.row, 'column', sr.column)
-		) AS locations
-	FROM selection_directives sd
-		JOIN selections s ON s.id = sd.selection_id
-		JOIN selection_refs sr ON sr.child_id = s.id
-		JOIN documents d ON d.id = sr.document
-		JOIN raw_documents rd ON rd.id = d.raw_document
-		JOIN directives d2 ON sd.directive = d2.name
-	WHERE d2.repeatable = 0
-		AND (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY sd.selection_id, sd.directive
-	HAVING COUNT(*) > 1
+		WITH repeated AS (
+			SELECT sd.selection_id, sd.directive
+			FROM selection_directives sd
+			JOIN directives d2 ON d2.name = sd.directive
+			WHERE d2.repeatable = 0
+			GROUP BY sd.selection_id, sd.directive
+			HAVING COUNT(*) > 1 
+		)
+		SELECT
+			r.selection_id,
+			r.directive,
+			d.id AS documentID,
+			rd.filepath,
+			json_group_array(
+				json_object('line', sr.row, 'column', sr.column)
+			) AS locations
+		FROM repeated r
+			JOIN selections s     ON s.id = r.selection_id
+			JOIN selection_refs sr ON sr.child_id = s.id
+			JOIN documents d      ON d.id = sr.document
+			JOIN raw_documents rd ON rd.id = d.raw_document
+		WHERE (rd.current_task = $task_id OR $task_id IS NULL)
+		GROUP BY r.selection_id, r.directive
 	`
 
 	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
@@ -879,14 +885,14 @@ func ValidateDuplicateArgumentInField(
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE (rd.current_task = $task_id OR $task_id IS NULL)
-	GROUP BY sargs.selection_id, sargs.name
+	GROUP BY sargs.selection_id, sargs.name, sargs.document
 	HAVING COUNT(DISTINCT sargs.id) > 1
 	`
 
 	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
 		selectionID := row.ColumnText(0)
 		argName := row.ColumnText(1)
-		filepath := row.ColumnText(2)
+		filepath := row.ColumnText(3)
 		rowNum := row.ColumnInt(4)
 		colNum := row.ColumnInt(5)
 

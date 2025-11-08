@@ -35,6 +35,7 @@ export function formatErrors(e: unknown, afterError?: (e: Error) => void) {
 	for (const error of errors) {
 		// if we have filepath, show that to the user
 		if ('filepath' in error && error.filepath) {
+      console.log({filepath: error.filepath})
 			const relative = path.relative(process.cwd(), error.filepath)
 			console.error(`❌ Encountered error in ${relative}`)
 			if (error.message) {
