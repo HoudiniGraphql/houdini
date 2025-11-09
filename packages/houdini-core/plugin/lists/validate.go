@@ -1121,6 +1121,9 @@ func validatePaginateArgs(
 				})
 			}
 		} else if offsetPagination {
+			if documentName == "OffsetFragment_paginated" {
+				fmt.Println(appliedArgs)
+			}
 			if !appliedSet["limit"] {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf("Field %q in document %q with offset-based pagination must have an 'limit' argument", fieldName, documentName),

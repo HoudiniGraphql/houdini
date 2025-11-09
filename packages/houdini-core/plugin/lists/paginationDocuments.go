@@ -927,6 +927,9 @@ func processFragmentPagination(
 
 	// add fragment arguments (non-pagination arguments) to @with directive and document variables
 	for _, arg := range list.Arguments {
+		if list.DocumentName == "OffsetFragment_paginated" {
+			fmt.Println("adding arg", arg)
+		}
 		// skip pagination arguments as they're already handled above
 		isPaginationArg := false
 		for _, paginationArg := range list.ArgumentsToAdd {

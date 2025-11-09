@@ -203,34 +203,44 @@ func InsertOperationDocuments(
 	errs := &plugins.ErrorList{}
 	searchLists, err := conn.Prepare(`
 		SELECT
-      discovered_lists.name,
-      discovered_lists.node_type,
-      discovered_lists.node,
-      discovered_lists.document,
-      documents.id as document_id,
-      documents.raw_document,
-      CASE
-        WHEN document_variables.id IS NULL THEN json('[]')
-        ELSE json_group_array(
-          json_object(
-            'name', document_variables.name,
-            'type', document_variables.type,
-            'type_modifiers', document_variables.type_modifiers
-          )
-        )
-      END as document_arguments,
-			documents.name as document_name
+					discovered_lists.name,
+					discovered_lists.node_type,
+					discovered_lists.node,
+					discovered_lists.document,
+					documents.id as document_id,
+					documents.raw_document,
+					CASE
+						WHEN document_variables.id IS NULL THEN json('[]')
+						ELSE json_group_array(
+							json_object(
+								'name', document_variables.name,
+								'type', document_variables.type,
+								'type_modifiers', document_variables.type_modifiers
+							)
+						)
+					END as document_arguments,
+				documents.name as document_name
 		FROM discovered_lists
 			JOIN documents ON documents.id = discovered_lists.document AND documents.kind != 'fragment'
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
-      LEFT JOIN document_variables ON document_variables.document = documents.id
-		WHERE raw_documents.current_task = $task_id OR $task_id IS NULL
-    GROUP BY discovered_lists.name
+			LEFT JOIN document_variables ON document_variables.document = documents.id
+			LEFT JOIN documents operations ON operations.name = discovered_lists.name || $toggle_suffix
+		WHERE 
+			discovered_lists.name IS NOT '' and discovered_lists.name IS NOT NULL 
+			AND operations.id IS NULL 
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+		GROUP BY discovered_lists.name
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer searchLists.Finalize()
+	err = db.BindStatement(searchLists, map[string]any{
+		"toggle_suffix": graphql.ListOperationSuffixToggle,
+	})
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
 
 	insertDocumentArgument, err := conn.Prepare(`
     INSERT OR IGNORE INTO document_variables (document, name, type, row, column, type_modifiers)
@@ -435,22 +445,33 @@ func InsertOperationDocuments(
 	}
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
-		SELECT 
-			discovered_lists.name, 
-			discovered_lists.node_type, 
-			tc.keys, 
-			raw_documents.id as raw_document, 
-			documents.name as document_name
-		FROM discovered_lists
-			JOIN documents on discovered_lists.document = documents.id
-			JOIN raw_documents on documents.raw_document = raw_documents.id
-			LEFT JOIN type_configs tc ON tc.name = discovered_lists.node_type
-		WHERE raw_documents.current_task = $task_id or $task_id is NULL
+		SELECT
+			dl.name,
+			dl.node_type,
+			MIN(tc.keys)                  AS keys,         
+			rd.id                         AS raw_document,
+			MIN(op_doc.name)              AS document_name 
+		FROM discovered_lists dl
+		JOIN documents doc        ON dl.document     = doc.id
+		JOIN raw_documents rd     ON doc.raw_document = rd.id
+		LEFT JOIN type_configs tc ON tc.name = dl.node_type
+		LEFT JOIN documents op_doc ON op_doc.name = dl.name || '_toggle'
+		WHERE dl.name IS NOT '' AND dl.name IS NOT NULL
+			AND op_doc.id IS NULL
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+		GROUP BY
+			dl.id, dl.name, dl.node_type, rd.id;
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer statementWithKeys.Finalize()
+	err = db.BindStatement(statementWithKeys, map[string]any{
+		"toggle_suffix": graphql.ListOperationSuffixToggle,
+	})
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
 
 	err = db.StepStatement(ctx, statementWithKeys, func() {
 		listName := statementWithKeys.GetText("name")
