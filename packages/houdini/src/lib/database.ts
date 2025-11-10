@@ -401,6 +401,8 @@ CREATE INDEX IF NOT EXISTS idx_documents_raw_document ON documents(raw_document)
 CREATE INDEX IF NOT EXISTS idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX IF NOT EXISTS idx_selection_refs_child_id ON selection_refs(child_id);
 CREATE INDEX IF NOT EXISTS idx_selection_refs_document ON selection_refs(document);
+-- Composite index for common query patterns in CollectDocuments
+CREATE INDEX IF NOT EXISTS idx_selection_refs_document_parent_id ON selection_refs(document, parent_id);
 CREATE INDEX IF NOT EXISTS idx_document_variable_directives_parent ON document_variable_directives(parent);
 CREATE INDEX IF NOT EXISTS idx_document_variable_directives_directive ON document_variable_directives(directive);
 CREATE INDEX IF NOT EXISTS idx_document_variable_directive_arguments_parent ON document_variable_directive_arguments(parent);

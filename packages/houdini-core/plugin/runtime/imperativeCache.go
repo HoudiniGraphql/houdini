@@ -347,7 +347,7 @@ func generateTypesSection(
 	var content strings.Builder
 
 	// Get all concrete types with their fields in a single query
-	typesWithFields, err := getTypesypesWithFields(ctx, db)
+	typesWithFields, err := getTypesWithFields(ctx, db)
 	if err != nil {
 		return "", err
 	}
@@ -416,6 +416,83 @@ func generateTypesSection(
 	return content.String(), nil
 }
 
+// generateTypesSectionWithKeyFields is an optimized version that uses pre-fetched key fields
+func generateTypesSectionWithKeyFields(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	projectConfig plugins.ProjectConfig,
+	allKeyFields map[string][]InputField,
+) (string, error) {
+	var content strings.Builder
+
+	// Get all concrete types with their fields in a single query
+	typesWithFields, err := getTypesWithFields(ctx, db)
+	if err != nil {
+		return "", err
+	}
+
+	// Get fragments grouped by type
+	fragmentsByType, err := getFragmentsByType(ctx, db)
+	if err != nil {
+		return "", err
+	}
+
+	// Sort types to ensure __ROOT__ comes first, then alphabetical
+	var sortedTypes []ConcreteTypeWithFields
+	for _, typeInfo := range typesWithFields {
+		sortedTypes = append(sortedTypes, typeInfo)
+	}
+
+	sort.Slice(sortedTypes, func(i, j int) bool {
+		iIsQuery := sortedTypes[i].Operation != nil && *sortedTypes[i].Operation == "query"
+		jIsQuery := sortedTypes[j].Operation != nil && *sortedTypes[j].Operation == "query"
+
+		if iIsQuery && !jIsQuery {
+			return true
+		}
+		if !iIsQuery && jIsQuery {
+			return false
+		}
+		return sortedTypes[i].Name < sortedTypes[j].Name
+	})
+
+	for _, typeInfo := range sortedTypes {
+		typeName := typeInfo.Name
+
+		// Use __ROOT__ for Query type
+		if typeInfo.Operation != nil && *typeInfo.Operation == "query" {
+			typeName = "__ROOT__"
+		}
+
+		content.WriteString(fmt.Sprintf("\t\t\t%s: {\n", typeName))
+
+		// Generate idFields using pre-fetched data
+		idFields, err := generateIdFieldsFromCache(typeInfo.Name, projectConfig, allKeyFields)
+		if err != nil {
+			return "", err
+		}
+		content.WriteString(fmt.Sprintf("\t\t\t\tidFields: %s;\n", idFields))
+
+		// Generate fields
+		fields, err := generateTypeFieldsFromData(ctx, projectConfig, db, typeInfo.Fields)
+		if err != nil {
+			return "", err
+		}
+		content.WriteString(fmt.Sprintf("\t\t\t\tfields: %s;\n", fields))
+
+		// Generate fragments
+		fragments := "[]"
+		if typeFragments, exists := fragmentsByType[typeInfo.Name]; exists {
+			fragments = fmt.Sprintf("[%s]", strings.Join(typeFragments, ", "))
+		}
+		content.WriteString(fmt.Sprintf("\t\t\t\tfragments: %s;\n", fragments))
+
+		content.WriteString("\t\t\t};\n")
+	}
+
+	return content.String(), nil
+}
+
 type ConcreteType struct {
 	Name      string
 	Kind      string
@@ -429,7 +506,7 @@ type ConcreteTypeWithFields struct {
 	Fields    []TypeField
 }
 
-func getTypesypesWithFields(
+func getTypesWithFields(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 ) (map[string]ConcreteTypeWithFields, error) {
@@ -568,6 +645,125 @@ func getKeyFields(
 	}
 
 	return keyFields, nil
+}
+
+// getAllKeyFields fetches all key fields for all types in a single batch query to avoid O(n²) behavior
+func getAllKeyFields(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	projectConfig plugins.ProjectConfig,
+) (map[string][]InputField, error) {
+	allKeyFields := make(map[string][]InputField)
+
+	// First, get all type configs with their keys
+	typeKeys := make(map[string][]string)
+	err := db.StepQuery(ctx, `
+		SELECT name, keys
+		FROM type_configs
+	`, nil, func(stmt *sqlite.Stmt) {
+		typeName := stmt.ColumnText(0)
+		keysJSON := stmt.ColumnText(1)
+		var keys []string
+		json.Unmarshal([]byte(keysJSON), &keys)
+		typeKeys[typeName] = keys
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all types that might need key fields
+	allTypes := make(map[string]bool)
+	err = db.StepQuery(ctx, `
+		SELECT DISTINCT parent
+		FROM type_fields
+		WHERE internal = false
+	`, nil, func(stmt *sqlite.Stmt) {
+		typeName := stmt.ColumnText(0)
+		allTypes[typeName] = true
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// For each type, determine its keys (either from type_configs or default)
+	typeToKeys := make(map[string][]string)
+	for typeName := range allTypes {
+		if keys, exists := typeKeys[typeName]; exists && len(keys) > 0 {
+			typeToKeys[typeName] = keys
+		} else {
+			typeToKeys[typeName] = projectConfig.DefaultKeys
+		}
+	}
+
+	// Now batch query all the key fields for all types
+	for typeName, keys := range typeToKeys {
+		if len(keys) == 0 {
+			continue
+		}
+
+		// Query each key field individually (simpler than building dynamic IN clause)
+		var keyFields []InputField
+		for _, key := range keys {
+			err := db.StepQuery(ctx, `
+				SELECT name, type, type_modifiers
+				FROM type_fields
+				WHERE parent = $typeName AND name = $key AND internal = false
+			`, map[string]any{"typeName": typeName, "key": key}, func(stmt *sqlite.Stmt) {
+				field := InputField{
+					Name: stmt.ColumnText(0),
+					Type: stmt.ColumnText(1),
+				}
+				if stmt.ColumnType(2) == sqlite.TypeText {
+					field.TypeModifiers = stmt.ColumnText(2)
+				}
+				keyFields = append(keyFields, field)
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		allKeyFields[typeName] = keyFields
+	}
+
+	return allKeyFields, nil
+}
+
+// generateIdFieldsFromCache generates idFields using pre-fetched key field data
+func generateIdFieldsFromCache(
+	typeName string,
+	projectConfig plugins.ProjectConfig,
+	allKeyFields map[string][]InputField,
+) (string, error) {
+	// For __ROOT__ (Query type), return empty object
+	if typeName == "Query" {
+		return "{}", nil
+	}
+
+	// Get key fields from cache
+	keyFields, exists := allKeyFields[typeName]
+	if !exists || len(keyFields) == 0 {
+		return "never", nil
+	}
+
+	var fields []string
+	for _, field := range keyFields {
+		tsType, err := typescript.ConvertToTypeScriptType(
+			projectConfig,
+			"",
+			field.Type,
+			field.TypeModifiers,
+			false, // isInput = false for cache key fields
+		)
+		if err != nil {
+			return "", err
+		}
+		// Remove nullability for ID fields
+		tsType = strings.ReplaceAll(tsType, " | null | undefined", "")
+		fields = append(fields, fmt.Sprintf("\n\t\t\t\t\t%s: %s;", field.Name, tsType))
+	}
+
+	return fmt.Sprintf("{%s\n\t\t\t\t}", strings.Join(fields, "")), nil
 }
 
 func generateTypeFieldsFromData(

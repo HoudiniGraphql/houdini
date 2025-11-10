@@ -92,40 +92,67 @@ func GeneratePersistentQueries(
 		return nil, plugins.WrapError(err)
 	}
 
+	// Batch query to get all fragment dependencies for all operations at once
+	operationFragmentDeps := make(map[string][]string)
+
+	// Create a list of operation IDs for the batch query
+	operationIDs := make([]string, 0, len(operations))
 	for _, op := range operations {
-		// Get all fragment dependencies
-		fragmentNames := []string{}
-		err = sqlitex.Execute(conn, `
-			WITH RECURSIVE fragment_deps AS (
-				-- Direct fragments used by this operation
-				SELECT DISTINCT s.field_name as fragment_name
-				FROM selections s 
-				JOIN selection_refs sr ON s.id = sr.child_id 
-				WHERE sr.document = ? AND s.kind = 'fragment'
-				
-				UNION
-				
-				-- Fragments used by other fragments (recursive)
-				SELECT DISTINCT s.field_name
-				FROM selections s
-				JOIN selection_refs sr ON s.id = sr.child_id
-				JOIN documents d ON sr.document = d.id
-				JOIN fragment_deps fd ON d.name = fd.fragment_name
-				WHERE s.kind = 'fragment' AND d.kind = 'fragment'
-			)
-			SELECT DISTINCT fragment_name FROM fragment_deps
-			ORDER BY fragment_name
-		`, &sqlitex.ExecOptions{
-			Args: []any{op.ID},
-			ResultFunc: func(stmt *sqlite.Stmt) error {
-				fragmentName := stmt.ColumnText(0)
-				fragmentNames = append(fragmentNames, fragmentName)
-				return nil
-			},
-		})
-		if err != nil {
-			return nil, plugins.WrapError(err)
-		}
+		operationIDs = append(operationIDs, op.ID)
+	}
+
+	// Build the batch query with placeholders
+	placeholders := make([]string, len(operationIDs))
+	for i := range operationIDs {
+		placeholders[i] = "?"
+	}
+	whereIn := "(" + strings.Join(placeholders, ", ") + ")"
+
+	// Execute the batch query to get all fragment dependencies
+	batchQuery := `
+		WITH RECURSIVE fragment_deps AS (
+			-- Direct fragments used by operations
+			SELECT DISTINCT sr.document as operation_id, s.field_name as fragment_name
+			FROM selections s
+			JOIN selection_refs sr ON s.id = sr.child_id
+			WHERE sr.document IN ` + whereIn + ` AND s.kind = 'fragment'
+
+			UNION
+
+			-- Fragments used by other fragments (recursive)
+			SELECT DISTINCT fd.operation_id, s.field_name
+			FROM selections s
+			JOIN selection_refs sr ON s.id = sr.child_id
+			JOIN documents d ON sr.document = d.id
+			JOIN fragment_deps fd ON d.name = fd.fragment_name
+			WHERE s.kind = 'fragment' AND d.kind = 'fragment'
+		)
+		SELECT operation_id, fragment_name FROM fragment_deps
+		ORDER BY operation_id, fragment_name
+	`
+
+	// Convert operation IDs to interface{} for the query
+	args := make([]any, len(operationIDs))
+	for i, id := range operationIDs {
+		args[i] = id
+	}
+
+	err = sqlitex.Execute(conn, batchQuery, &sqlitex.ExecOptions{
+		Args: args,
+		ResultFunc: func(stmt *sqlite.Stmt) error {
+			operationID := stmt.ColumnText(0)
+			fragmentName := stmt.ColumnText(1)
+			operationFragmentDeps[operationID] = append(operationFragmentDeps[operationID], fragmentName)
+			return nil
+		},
+	})
+	if err != nil {
+		return nil, plugins.WrapError(err)
+	}
+
+	// Now process each operation using the batched fragment dependencies
+	for _, op := range operations {
+		fragmentNames := operationFragmentDeps[op.ID]
 
 		// Get the printed content for all required fragments
 		fragmentDefinitions := []string{}

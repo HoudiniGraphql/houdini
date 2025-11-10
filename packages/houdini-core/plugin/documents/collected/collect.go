@@ -51,26 +51,24 @@ func CollectDocuments(
 
     UNION ALL
 
-    SELECT documents.id,
+    SELECT DISTINCT documents.id,
            documents.name,
            false AS current,
 					 documents.internal,
 					 documents.visible
-    FROM selections
+    FROM documents AS current_task_docs
+      JOIN raw_documents AS current_task_raw
+        ON current_task_docs.raw_document = current_task_raw.id
+      JOIN selection_refs
+        ON selection_refs.document = current_task_docs.id
+      JOIN selections
+        ON selection_refs.child_id = selections.id
+        AND selections.kind = 'fragment'
       JOIN documents
         ON selections.field_name = documents.name
-      JOIN selection_refs
-        ON selection_refs.child_id = selections.id
-      JOIN documents AS selection_docs
-        ON selection_refs.document = selection_docs.id
-      -- only consider selections in documents within the current task
-      JOIN raw_documents
-        ON selection_docs.raw_document = raw_documents.id
-      -- but don't include any documents that were picked up because of the current task
       JOIN raw_documents AS doc_raw
         ON documents.raw_document = doc_raw.id
-    WHERE selections.kind = 'fragment'
-      AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+    WHERE (current_task_raw.current_task = $task_id OR $task_id IS NULL)
       AND NOT (doc_raw.current_task = $task_id OR $task_id IS NULL)
   `)
 	if err != nil {
@@ -91,8 +89,8 @@ func CollectDocuments(
 	// part of the proces
 
 	// the batch size depends on how many there are. at the maximum, the batch size is nDocuments / nCpus
-	// but if that's above 100, then we should cap it at 100
-	batchSize := max(1, min(100, len(docIDs)/runtime.NumCPU()+1))
+	// but if that's above 500, then we should cap it at 500
+	batchSize := max(1, min(500, len(docIDs)/runtime.NumCPU()+1))
 
 	// create a channel to send batches of ids to process
 	batchCh := make(chan []int64, len(docIDs))
@@ -102,6 +100,7 @@ func CollectDocuments(
 	resultCh := make(chan collectResult, len(docIDs))
 
 	// create a pool of worker goroutines to process the documents
+	// use single worker to avoid database contention
 	var wg sync.WaitGroup
 	for range 1 {
 		wg.Add(1)
