@@ -435,8 +435,13 @@ CREATE INDEX IF NOT EXISTS idx_document_dependency_depends_on on document_depend
 -- Performance optimization: composite index for argument_values joins with documents
 CREATE INDEX IF NOT EXISTS idx_argument_values_document_id ON argument_values(document, id);
 -- Additional performance optimizations for the recursive CTE query
-CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent ON argument_value_children(parent);
 CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent_value ON argument_value_children(parent, value);
+-- Complex query optimizations based on query analysis
+CREATE INDEX IF NOT EXISTS idx_selections_field_name_kind ON selections(field_name, kind);
+CREATE INDEX IF NOT EXISTS idx_documents_name_kind ON documents(name, kind);
+CREATE INDEX IF NOT EXISTS idx_document_variables_document_id ON document_variables(document, id);
+CREATE INDEX IF NOT EXISTS idx_argument_values_expected_type_document ON argument_values(expected_type, document);
+CREATE INDEX IF NOT EXISTS idx_document_variables_document_type_modifiers_default ON document_variables(document, type_modifiers, default_value);
 `
 
 export async function write_config(
