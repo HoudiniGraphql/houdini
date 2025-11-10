@@ -140,7 +140,7 @@ func PreparePaginationDocuments(
 				ELSE null
 			END as resolve_query,
 			CASE
-				WHEN COUNT(tf.type) = 0 OR type_condition is null THEN NULL
+				WHEN COUNT(tf.type) = 0 OR documents.type_condition is null THEN NULL
 				ELSE json_group_array(
 					DISTINCT json_object(
 						'name', je.value,
@@ -173,7 +173,10 @@ func PreparePaginationDocuments(
 			LEFT JOIN type_fields tf
 				ON tf.parent = documents.type_condition
 				AND tf.name = je.value
-		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
+			LEFT JOIN documents existing_operations ON existing_operations.name = documents.name || $pagination_suffix
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL) 
+	 	  AND documents.name NOT LIKE '%_paginated%' 
+		  AND existing_operations.id IS NULL
 		GROUP BY discovered_lists.id
 	`)
 	if err != nil {
@@ -181,6 +184,12 @@ func PreparePaginationDocuments(
 	}
 
 	defer query.Finalize()
+	err = db.BindStatement(query, map[string]any{
+		"pagination_suffix": graphql.PaginationQuerySuffix,
+	})
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
 
 	// once we have a row, we'll need to insert variables and arguments into the document (and maybe extra documents)
 	insertDocument, err := conn.Prepare(`
@@ -624,6 +633,54 @@ func processFragmentPagination(
 	}
 	paginatedFragmentID := ctx.conn.LastInsertRowID()
 
+	// make sure that the new documents has all of the ncessary variables
+	addedFragmentArgs := map[string]bool{}
+	for _, arg := range list.Arguments {
+
+		// copy default value if it exists
+		var defaultValue any
+		if arg.Value != 0 {
+			err = ctx.db.ExecStatement(ctx.copyArgumentValue, map[string]any{
+				"id":       arg.Value,
+				"document": paginatedFragmentID,
+			})
+			if err != nil {
+				return 0, err
+			}
+			defaultValue = ctx.conn.LastInsertRowID()
+		}
+
+		// add document variable
+		err = ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+			"document":       paginatedFragmentID,
+			"name":           arg.Argument,
+			"type":           arg.ExpectedType,
+			"type_modifiers": arg.TypeModifiers,
+			"default_value":  defaultValue,
+		})
+		if err != nil {
+			return 0, err
+		}
+
+		addedFragmentArgs[arg.Argument] = true
+	}
+
+	for _, arg := range list.ArgumentsToAdd {
+		// if we already added it, skip it
+		if addedFragmentArgs[arg.Name] {
+			continue
+		}
+
+		err = ctx.db.ExecStatement(ctx.insertDocumentVariable, map[string]any{
+			"document": paginatedFragmentID,
+			"name":     arg.Name,
+			"type":     arg.Kind,
+		})
+		if err != nil {
+			return 0, err
+		}
+		addedFragmentArgs[arg.Name] = true
+	}
 	// copy all selections from the original fragment EXCEPT the paginated field
 	err = ctx.db.ExecStatement(ctx.copySelectionsQuery, map[string]any{
 		"new_document":      paginatedFragmentID,
@@ -866,6 +923,7 @@ func processFragmentPagination(
 	withDirectiveID := ctx.conn.LastInsertRowID()
 
 	// add pagination arguments to @with directive and document variables
+	addedQueryArgs := map[string]bool{}
 	for _, arg := range list.ArgumentsToAdd {
 		// create variable value for @with directive
 		err = ctx.db.ExecStatement(ctx.insertArgumentValue, map[string]any{
@@ -923,12 +981,14 @@ func processFragmentPagination(
 		if err != nil {
 			return 0, err
 		}
+
+		addedQueryArgs[arg.Name] = true
 	}
 
 	// add fragment arguments (non-pagination arguments) to @with directive and document variables
 	for _, arg := range list.Arguments {
-		if list.DocumentName == "OffsetFragment_paginated" {
-			fmt.Println("adding arg", arg)
+		if addedQueryArgs[arg.Argument] {
+			continue
 		}
 		// skip pagination arguments as they're already handled above
 		isPaginationArg := false

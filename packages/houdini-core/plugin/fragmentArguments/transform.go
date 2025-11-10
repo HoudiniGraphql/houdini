@@ -1463,7 +1463,7 @@ func prepareTransformStatements[PluginConfig any](
 	}
 
 	insertDocumentVariable, err := conn.Prepare(`
-		INSERT INTO document_variables (document, name, default_value, type, type_modifiers, row, column) VALUES ($document, $name, $default_value, $type, $type_modifiers, 0, 0)
+		INSERT OR IGNORE INTO document_variables (document, name, default_value, type, type_modifiers, row, column) VALUES ($document, $name, $default_value, $type, $type_modifiers, 0, 0)
 	`)
 	if err != nil {
 		return nil, err

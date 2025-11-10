@@ -1,6 +1,7 @@
 package lists_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 	"code.houdinigraphql.com/plugins/tests"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPaginationDocumentGeneration(t *testing.T) {
@@ -699,6 +701,81 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						`,
 							graphql.FragmentPaginationQueryName("UserFriends"),
 						)),
+				},
+			},
+		},
+	})
+}
+
+func TestPaginationDocumentGeneration_multipleInvocations(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *core.HoudiniCore]{
+		Schema: `
+			type Query {
+				users(limit: Int, offset: Int): [User!]!
+				userConnection(first: Int, after: String, last: Int, before: String): UserConnection!
+				forwardConnection(first: Int, after: String): UserConnection!
+				backwardConnection(last: Int, before: String): UserConnection!
+				node(id: ID!): Node
+				legend(title: String!): Legend
+			}
+
+			type Legend {
+				title: String!
+				believers(limit: Int, offset: Int): [User!]!
+			}
+
+			type User implements Node {
+				id: ID!
+				firstName: String!
+				friends(first:Int, after: String, last: Int, before: String, snapshot: String): UserConnection!
+			}
+
+			type UserConnection {
+				pageInfo: PageInfo!
+				edges: [UserEdge!]!
+			}
+
+			type UserEdge {
+				cursor: String!
+				node: User!
+			}
+
+			type PageInfo {
+				hasNextPage: Boolean!
+				hasPreviousPage: Boolean!
+				startCursor: String
+				endCursor: String
+			}
+
+			interface Node {
+				id: ID!
+			}
+		`,
+		VerifyTest: func(t *testing.T, plugin *core.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			// all we need to do now is run the pagination document generation again
+			err := plugin.AfterValidate(context.Background())
+			require.Nil(t, err)
+
+			// make sure that the documents are still valid
+			err = plugin.Validate(context.Background())
+			require.Nil(t, err)
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "adds full cursor args to forward bidirectional connection",
+				Pass: true,
+				Input: []string{
+					`
+						fragment AllUsers on Query {
+							userConnection(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
 				},
 			},
 		},

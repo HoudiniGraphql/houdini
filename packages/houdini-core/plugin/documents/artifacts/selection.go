@@ -1178,18 +1178,20 @@ func stringifyFieldSelection(
 					}
 				}
 			case "fragment":
-				definition := docs.Selections[child.FieldName]
-				for _, definitionDirective := range definition.Directives {
-					if definitionDirective.Name == graphql.RequiredDirective {
-						isNullable = true
-						childHasRequired = true
-					}
-				}
-				for _, subSel := range definition.Selections {
-					for _, childDirective := range subSel.Directives {
-						if childDirective.Name == graphql.RequiredDirective {
+				definition, ok := docs.Selections[child.FieldName]
+				if ok {
+					for _, definitionDirective := range definition.Directives {
+						if definitionDirective.Name == graphql.RequiredDirective {
 							isNullable = true
 							childHasRequired = true
+						}
+					}
+					for _, subSel := range definition.Selections {
+						for _, childDirective := range subSel.Directives {
+							if childDirective.Name == graphql.RequiredDirective {
+								isNullable = true
+								childHasRequired = true
+							}
 						}
 					}
 				}

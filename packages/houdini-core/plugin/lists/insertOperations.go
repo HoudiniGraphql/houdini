@@ -455,19 +455,19 @@ func InsertOperationDocuments(
 		JOIN documents doc        ON dl.document     = doc.id
 		JOIN raw_documents rd     ON doc.raw_document = rd.id
 		LEFT JOIN type_configs tc ON tc.name = dl.node_type
-		LEFT JOIN documents op_doc ON op_doc.name = dl.name || '_toggle'
+		LEFT JOIN documents op_doc ON op_doc.name = dl.name || $remove_suffix
 		WHERE dl.name IS NOT '' AND dl.name IS NOT NULL
 			AND op_doc.id IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY
-			dl.id, dl.name, dl.node_type, rd.id;
+			dl.id, dl.name, dl.node_type, rd.id
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer statementWithKeys.Finalize()
 	err = db.BindStatement(statementWithKeys, map[string]any{
-		"toggle_suffix": graphql.ListOperationSuffixToggle,
+		"remove_suffix": graphql.ListOperationSuffixRemove,
 	})
 	if err != nil {
 		return commit(plugins.WrapError(err))
