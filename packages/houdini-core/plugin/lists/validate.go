@@ -1107,7 +1107,6 @@ func validatePaginateArgs(
 			}
 
 			if forwardApplied && backwardsApplied && paginateMode != "SinglePage" {
-				fmt.Println(appliedArgs)
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf(
 						"Field %q in document %q with cursor-based pagination cannot have both 'first' and 'last' arguments in Infinite mode.",
@@ -1121,9 +1120,6 @@ func validatePaginateArgs(
 				})
 			}
 		} else if offsetPagination {
-			if documentName == "OffsetFragment_paginated" {
-				fmt.Println(appliedArgs)
-			}
 			if !appliedSet["limit"] {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf("Field %q in document %q with offset-based pagination must have an 'limit' argument", fieldName, documentName),
