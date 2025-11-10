@@ -432,6 +432,11 @@ CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_value ON selection_
 CREATE INDEX IF NOT EXISTS idx_argument_value_children_value ON argument_value_children(value);
 CREATE INDEX IF NOT EXISTS idx_document_dependency_document on document_dependencies(document);
 CREATE INDEX IF NOT EXISTS idx_document_dependency_depends_on on document_dependencies(depends_on);
+-- Performance optimization: composite index for argument_values joins with documents
+CREATE INDEX IF NOT EXISTS idx_argument_values_document_id ON argument_values(document, id);
+-- Additional performance optimizations for the recursive CTE query
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent ON argument_value_children(parent);
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent_value ON argument_value_children(parent, value);
 `
 
 export async function write_config(

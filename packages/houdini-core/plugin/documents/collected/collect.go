@@ -636,61 +636,9 @@ func collectDoc(
 			for id := range argumentValues {
 				valueIDs = append(valueIDs, id)
 			}
-			// recreating the nested structure means we need a mapping of id to values
-			values := map[int64]*ArgumentValue{}
-			argumentValueSearch, err := prepareArgumentValuesSearch(conn, valueIDs)
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			defer argumentValueSearch.Finalize()
 
-			err = db.StepStatement(ctx, argumentValueSearch, func() {
-				// build up the argument value for the match
-				value := &ArgumentValue{
-					Kind: argumentValueSearch.GetText("kind"),
-					Raw:  argumentValueSearch.GetText("raw"),
-				}
-
-				// save the value in the map
-				valueID := argumentValueSearch.GetInt64("id")
-				values[valueID] = value
-
-				// there is no parent so this ID must correspond to one of the values used in a document
-				if argumentValueSearch.IsNull("parent") {
-					_, ok := argumentValues[valueID]
-					if !ok {
-						errs.Append(
-							plugins.WrapError(fmt.Errorf(
-								"argument value %v not found in document %s",
-								valueID,
-								argumentValueSearch.GetText("document_name"),
-							)),
-						)
-						return
-					}
-
-					argumentValues[valueID] = value
-				} else {
-					// if there is a parent, then we need to assign it with the field name
-					parentID := argumentValueSearch.GetInt64("parent")
-					parent, ok := values[parentID]
-					if !ok {
-						errs.Append(
-							plugins.WrapError(
-								fmt.Errorf("parent argument value %v not found for argument value %v",
-									parentID,
-									argumentValueSearch.GetInt64("id"),
-								)),
-						)
-						return
-					}
-					parent.Children = append(parent.Children, &ArgumentValueChildren{
-						Name:  argumentValueSearch.GetText("name"),
-						Value: value,
-					})
-				}
-			})
+			// Process argument values in batches to avoid large SQL queries
+			err = processArgumentValuesInBatches(ctx, db, conn, valueIDs, argumentValues, errs)
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
 				return
@@ -1214,6 +1162,124 @@ func (s *CollectStatements) Finalize() {
 	s.InputTypes.Finalize()
 }
 
+// processArgumentValuesInBatches processes argument values in fixed-size batches
+// to avoid creating extremely large SQL queries with hundreds of placeholders
+func processArgumentValuesInBatches[PluginConfig any](
+	ctx context.Context,
+	db plugins.DatabasePool[PluginConfig],
+	conn *sqlite.Conn,
+	valueIDs []int64,
+	argumentValues map[int64]*ArgumentValue,
+	errs *plugins.ErrorList,
+) error {
+	const batchSize = 1000
+
+	if len(valueIDs) == 0 {
+		return nil
+	}
+
+	// Global map to track all values across batches - this is crucial for parent-child relationships
+	allValues := map[int64]*ArgumentValue{}
+
+	// Track pending parent-child relationships that need to be resolved after all batches
+	type pendingRelationship struct {
+		childValue *ArgumentValue
+		parentID   int64
+		fieldName  string
+	}
+	pendingRelationships := []pendingRelationship{}
+
+	// Process valueIDs in batches
+	for i := 0; i < len(valueIDs); i += batchSize {
+		end := min(i+batchSize, len(valueIDs))
+		batch := valueIDs[i:end]
+
+		stmt, err := prepareArgumentValuesSearch(conn, batch)
+		if err != nil {
+			return err
+		}
+
+		// Collect values from this batch
+		err = db.StepStatement(ctx, stmt, func() {
+			// build up the argument value for the match
+			value := &ArgumentValue{
+				Kind: stmt.GetText("kind"),
+				Raw:  stmt.GetText("raw"),
+			}
+
+			// save the value in the global map
+			valueID := stmt.GetInt64("id")
+			allValues[valueID] = value
+
+			// there is no parent so this ID must correspond to one of the values used in a document
+			if stmt.IsNull("parent") {
+				_, ok := argumentValues[valueID]
+				if !ok {
+					errs.Append(
+						plugins.WrapError(fmt.Errorf(
+							"argument value %v not found in document %s",
+							valueID,
+							stmt.GetText("document_name"),
+						)),
+					)
+					return
+				}
+
+				argumentValues[valueID] = value
+			} else {
+				// Store parent-child relationship info for later processing
+				// We can't process it immediately because the parent might be in a different batch
+				parentID := stmt.GetInt64("parent")
+				fieldName := stmt.GetText("name")
+
+				// Try to find parent in current batch first
+				if parent, ok := allValues[parentID]; ok {
+					parent.Children = append(parent.Children, &ArgumentValueChildren{
+						Name:  fieldName,
+						Value: value,
+					})
+				} else {
+					// Parent not found yet - store for later processing
+					pendingRelationships = append(pendingRelationships, pendingRelationship{
+						childValue: value,
+						parentID:   parentID,
+						fieldName:  fieldName,
+					})
+				}
+			}
+		})
+
+		// Finalize the statement after processing this batch
+		stmt.Finalize()
+
+		if err != nil {
+			return err
+		}
+		if errs.Len() > 0 {
+			return nil // Return early if there are errors
+		}
+	}
+
+	// Second pass: resolve any pending parent-child relationships
+	for _, pending := range pendingRelationships {
+		if parent, ok := allValues[pending.parentID]; ok {
+			parent.Children = append(parent.Children, &ArgumentValueChildren{
+				Name:  pending.fieldName,
+				Value: pending.childValue,
+			})
+		} else {
+			errs.Append(
+				plugins.WrapError(
+					fmt.Errorf("parent argument value %v not found for argument value",
+						pending.parentID,
+					)),
+			)
+		}
+	}
+
+	return nil
+}
+
 func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.Stmt, error) {
 	placeholders := make([]string, len(valueIDs))
 	for i := range valueIDs {
@@ -1242,6 +1308,7 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
           FROM argument_values av
           LEFT JOIN argument_value_children ON argument_value_children."value" = av.id
           JOIN documents ON av.document = documents.id
+          WHERE av.id IN %s
 
           UNION
 
@@ -1268,7 +1335,7 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
       FROM all_values
       WHERE all_values.root_id IN %s
       ORDER BY all_values.id
-    `, whereIn))
+    `, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}
