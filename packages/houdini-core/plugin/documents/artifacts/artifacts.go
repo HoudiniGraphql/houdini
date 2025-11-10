@@ -2,7 +2,7 @@ package artifacts
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -138,7 +138,7 @@ func GenerateDocumentArtifacts(
 			// as the $houdini alias
 			strings.Replace(
 				fp,
-				path.Join(config.ProjectRoot, config.RuntimeDir),
+				filepath.Join(config.ProjectRoot, config.RuntimeDir),
 				"$houdini",
 				1,
 			),

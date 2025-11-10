@@ -3,7 +3,7 @@ package generate
 import (
 	"context"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -76,7 +76,7 @@ func GenerateStores(
 	defer stmt.Finalize()
 
 	var generatedFiles []string
-	storesDir := path.Join(projectConfig.PluginDirectory("houdini-svelte"), "stores")
+	storesDir := filepath.Join(projectConfig.PluginDirectory("houdini-svelte"), "stores")
 
 	// Make sure the stores directory exists
 	err = fs.MkdirAll(storesDir, 0755)
@@ -135,7 +135,7 @@ func GenerateStores(
 			return
 		}
 		// Write the store file
-		storePath := path.Join(storesDir, name+".ts")
+		storePath := filepath.Join(storesDir, name+".ts")
 
 		var currentValue []byte
 		if exists, err := afero.Exists(fs, storePath); err == nil && exists {
@@ -163,7 +163,7 @@ func GenerateStores(
 	}
 
 	// we have everything we need to write the index file
-	indexFilePath := path.Join(storesDir, "index.ts")
+	indexFilePath := filepath.Join(storesDir, "index.ts")
 	indexContent := indexValue.String()
 
 	var currentValue []byte

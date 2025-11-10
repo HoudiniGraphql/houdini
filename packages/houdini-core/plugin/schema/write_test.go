@@ -2,7 +2,7 @@ package schema_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -37,7 +37,7 @@ func TestSchema(t *testing.T) {
 				invalid := "this is not a valid graphql schema"
 				return afero.WriteFile(
 					fs,
-					path.Join("/project", "schema.graphql"),
+					filepath.Join("/project", "schema.graphql"),
 					[]byte(invalid),
 					0644,
 				)
@@ -62,7 +62,7 @@ func TestSchema(t *testing.T) {
 				`
 				return afero.WriteFile(
 					fs,
-					path.Join("/project", "schema.graphql"),
+					filepath.Join("/project", "schema.graphql"),
 					[]byte(schemaContent),
 					0644,
 				)

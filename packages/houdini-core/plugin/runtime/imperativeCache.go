@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -28,7 +29,7 @@ func GenerateImperativeCacheTypeDefs(
 	}
 
 	// Target file path
-	targetPath := path.Join(
+	targetPath := filepath.Join(
 		projectConfig.ProjectRoot,
 		projectConfig.RuntimeDir,
 		"runtime",

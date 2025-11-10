@@ -3,7 +3,6 @@ package runtime
 import (
 	"context"
 	"fmt"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -24,7 +23,7 @@ func GenerateRuntimeIndexFile(
 	}
 
 	// we are going to populate the runtime index
-	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
+	indexPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
 	_ = fs.Remove(indexPath)
 
@@ -32,6 +31,7 @@ func GenerateRuntimeIndexFile(
 	if err != nil {
 		return err
 	}
+	definitionsRelative = filepath.ToSlash(definitionsRelative)
 
 	// before we doing any kind of file io let's determine the value we will write so we can compare with the existing value to know if we changed anything
 

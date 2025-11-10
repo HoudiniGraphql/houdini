@@ -2,7 +2,7 @@ package schema_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -67,7 +67,7 @@ func TestInputTypeDefinitions(t *testing.T) {
 			require.NoError(t, err)
 
 			// we need to look at the input definitions file and confirm that we generated the correct types
-			targetPath := path.Join(config.DefinitionsDirectory(), "inputs.ts")
+			targetPath := filepath.Join(config.DefinitionsDirectory(), "inputs.ts")
 
 			expected := tests.Dedent(`
 				import { MyEnum, Priority, Status } from './enums.js';

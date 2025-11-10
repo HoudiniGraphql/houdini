@@ -3,7 +3,7 @@ package documents
 import (
 	"context"
 	"encoding/json"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -32,7 +32,7 @@ func GeneratePersistentQueries(
 	}
 
 	persistedQueriesPath := projectConfig.PersistedQueriesPath
-	outputPath := path.Join(projectConfig.ProjectRoot, persistedQueriesPath)
+	outputPath := filepath.Join(projectConfig.ProjectRoot, persistedQueriesPath)
 
 	if !strings.HasSuffix(outputPath, ".json") {
 		return nil, &plugins.Error{
@@ -167,7 +167,7 @@ func GeneratePersistentQueries(
 	return []string{
 		strings.Replace(
 			outputPath,
-			path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir),
+			filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir),
 			"$houdini",
 			1,
 		),

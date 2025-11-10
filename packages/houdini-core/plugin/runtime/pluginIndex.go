@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"context"
-	"path"
 	"path/filepath"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -22,7 +21,7 @@ func GeneratePluginIndex(
 		return err
 	}
 
-	indexPath := path.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.ts")
+	indexPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "plugins", "index.ts")
 
 	content := `export * from "../runtime/client/plugins/index.js"`
 

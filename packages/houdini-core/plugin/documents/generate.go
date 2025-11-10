@@ -2,7 +2,7 @@ package documents
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
@@ -48,7 +48,7 @@ func Generate(
 	if err != nil {
 		return nil, err
 	}
-	artifactDirectory := path.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
+	artifactDirectory := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
 	err = fs.MkdirAll(artifactDirectory, 0755)
 	if err != nil {
 		return nil, err

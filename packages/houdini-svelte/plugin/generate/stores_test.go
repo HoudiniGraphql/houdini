@@ -3,7 +3,7 @@ package generate_test
 import (
 	"context"
 	"fmt"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin"
@@ -92,7 +92,7 @@ func TestGenerateStores(t *testing.T) {
 			// it matches expectations
 			for name, expected := range test.Extra {
 				// read the generated store file
-				storePath := path.Join(
+				storePath := filepath.Join(
 					config.PluginDirectory("houdini-svelte"),
 					"stores",
 					name,

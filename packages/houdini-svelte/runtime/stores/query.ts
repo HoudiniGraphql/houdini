@@ -81,7 +81,7 @@ export class QueryStore<
 		// if there is a pending load, don't do anything
 		if (this.loadPending && isComponentFetch) {
 			log.error(`! Encountered fetch from your component while ${this.storeName}.load was running.
-This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.`)
+This will result in duplicate queries. If you are trying to ensure there is always a good value, please use a CachePolicy instead.`)
 
 			return get(this.observer)
 		}

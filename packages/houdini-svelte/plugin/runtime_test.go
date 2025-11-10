@@ -2,7 +2,7 @@ package plugin_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin"
@@ -34,7 +34,7 @@ func TestRuntime_graphqlTag(t *testing.T) {
 			defer plugin.DB.Put(conn)
 
 			// prepare the .d.ts file that will be transformed
-			targetPath := path.Join(
+			targetPath := filepath.Join(
 				config.ProjectRoot,
 				config.RuntimeDir,
 				"runtime",

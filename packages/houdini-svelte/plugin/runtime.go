@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -56,11 +55,12 @@ export const redirect = svelteKitRedirect
 
 	case "client.ts":
 		// compute the relative path from the client import file to the user's client
-		clientPath := path.Join(projectConfig.ProjectRoot, pluginConfig.ClientPath)
+		clientPath := filepath.Join(projectConfig.ProjectRoot, pluginConfig.ClientPath)
 		relPath, err := filepath.Rel(projectConfig.PluginRuntimeDirectory(p.Name()), clientPath)
 		if err != nil {
 			return "", err
 		}
+		relPath = filepath.ToSlash(relPath)
 
 		// replace the constant
 		return strings.ReplaceAll(content, "HOUDINI_CLIENT_PATH", relPath), nil
@@ -76,10 +76,11 @@ func (p *HoudiniSvelte) IndexFile(ctx context.Context, targetPath string) (strin
 		return "", err
 	}
 
-	pluginDir, err := filepath.Rel(path.Dir(targetPath), projectConfig.PluginDirectory(p.Name()))
+	pluginDir, err := filepath.Rel(filepath.Dir(targetPath), projectConfig.PluginDirectory(p.Name()))
 	if err != nil {
 		return "", err
 	}
+	pluginDir = filepath.ToSlash(pluginDir)
 
 	// we just need to export all of the stores we'll generate
 	return fmt.Sprintf(`export * from './%s/stores/index.js'`, pluginDir), nil
@@ -116,7 +117,7 @@ func (p *HoudiniSvelte) UpdateIndexFiles(ctx context.Context) ([]string, error) 
 	}
 
 	// Target file path
-	targetPath := path.Join(
+	targetPath := filepath.Join(
 		projectConfig.ProjectRoot,
 		projectConfig.RuntimeDir,
 		"runtime",
@@ -234,12 +235,12 @@ func (p *HoudiniSvelte) UpdateIndexFiles(ctx context.Context) ([]string, error) 
 	}
 
 	// there needs to always be a stores/index.ts file even if nothing has been generated yet
-	storeIndexPath := path.Join(
+	storeIndexPath := filepath.Join(
 		projectConfig.PluginDirectory(p.Name()),
 		"stores",
 		"index.ts",
 	)
-	err = p.Fs.MkdirAll(path.Dir(storeIndexPath), 0755)
+	err = p.Fs.MkdirAll(filepath.Dir(storeIndexPath), 0755)
 	if err != nil {
 		return nil, err
 	}

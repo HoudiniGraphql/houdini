@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -201,7 +201,7 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			// Use an in-memory file system.
 			afero.WriteFile(
 				core.Fs,
-				path.Join("/project", "schema.graphql"),
+				filepath.Join("/project", "schema.graphql"),
 				[]byte(table.Schema),
 				0644,
 			)

@@ -2,6 +2,7 @@ import { format_error } from '../lib/error.js'
 import { codegen_setup, init_db, run_pipeline } from '../lib/index.js'
 import { get_config } from '../lib/project.js'
 import type { Config } from '../lib/config.js'
+import pull_schema from './pullSchema.js'
 
 export async function generate(
 	args: {
@@ -23,6 +24,11 @@ export async function generate(
 
 	// until we've initialized the pipeline, there's nothing to do on close
 	let on_close = () => {}
+
+	// make sure we pull the schema if we specify
+	if (args.pullSchema) {
+		await pull_schema({ headers: args.headers, output: args.output })
+	}
 
 	try {
 		// grab the config file

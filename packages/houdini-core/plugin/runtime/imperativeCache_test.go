@@ -2,7 +2,7 @@ package runtime_test
 
 import (
 	"context"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -338,7 +338,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 
 			contents, err := afero.ReadFile(
 				plugin.Fs,
-				path.Join(config.ProjectRoot, config.RuntimeDir, "runtime", "generated.ts"),
+				filepath.Join(config.ProjectRoot, config.RuntimeDir, "runtime", "generated.ts"),
 			)
 			require.NoError(t, err)
 			require.Equal(t, expected, contents)
