@@ -13,10 +13,12 @@ export async function generate(
 		log?: string
 		verbose: boolean
 		mode?: string
+		preserveDatabase: boolean
 	} = {
 		pullSchema: false,
 		headers: [],
 		verbose: false,
+		preserveDatabase: false,
 	},
 ) {
 	// make sure there is always a mode
@@ -34,7 +36,7 @@ export async function generate(
 		// grab the config file
 		let config: Config | null = await get_config()
 
-		const [db, dbFilepath] = await init_db(config)
+		const [db, dbFilepath] = await init_db(config, args.preserveDatabase)
 
 		// initialize the codegen pipe
 		const { trigger_hook, close } = await codegen_setup(

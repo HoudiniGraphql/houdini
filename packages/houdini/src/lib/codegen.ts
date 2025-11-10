@@ -57,18 +57,24 @@ export function connect_db(config: Config): [DatabaseSync, string] {
 	return [db, filepath]
 }
 
-export async function init_db(config: Config): Promise<[DatabaseSync, string]> {
-	// we need to create a fresh database for orchestration
+export async function init_db(
+	config: Config,
+	preserve: boolean,
+): Promise<[DatabaseSync, string]> {
 	const db_file = db_path(config)
-	try {
-		await fs.remove(db_file)
-	} catch (e) {}
-	try {
-		await fs.remove(`${db_file}-shm`)
-	} catch (e) {}
-	try {
-		await fs.remove(`${db_file}-wal`)
-	} catch (e) {}
+
+	// we need to create a fresh database for orchestration
+	if (!preserve) {
+		try {
+			await fs.remove(db_file)
+		} catch (e) {}
+		try {
+			await fs.remove(`${db_file}-shm`)
+		} catch (e) {}
+		try {
+			await fs.remove(`${db_file}-wal`)
+		} catch (e) {}
+	}
 	return [connect_db(config)[0], db_file]
 }
 
