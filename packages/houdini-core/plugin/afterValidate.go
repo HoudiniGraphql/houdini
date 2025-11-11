@@ -12,20 +12,20 @@ import (
 func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 	// now that we've validated the documents we can start to process them
 
-	// the first thing we need to do is add the necessary fields to the documents
-	err := documents.AddDocumentFields(ctx, p.DB)
+	// first, we need to add the list operation documents
+	err := lists.InsertOperationDocuments(ctx, p.DB)
 	if err != nil {
 		return err
 	}
 
-	// next, we need to add the list operation documents
-	err = lists.InsertOperationDocuments(ctx, p.DB)
-	if err != nil {
-		return err
-	}
-
-	// we can now prepare the pagination documents
+	// next, we can prepare the pagination documents
 	err = lists.PreparePaginationDocuments(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
+	// finally, add the necessary fields to ALL documents (including newly created ones)
+	err = documents.AddDocumentFields(ctx, p.DB)
 	if err != nil {
 		return err
 	}
@@ -38,6 +38,24 @@ func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 
 	// and finally, realize any fragment any arguments
 	err = fragmentarguments.Transform(ctx, p.DB)
+	if err != nil {
+		return err
+	}
+
+	// mark all documents as processed after successful transformation
+	// This ensures that newly created documents (like pagination docs) are also marked
+	// and prevents reprocessing on subsequent runs
+	err = p.DB.ExecQuery(ctx, `
+		UPDATE documents
+		SET processed = true
+		WHERE (processed = false OR processed IS NULL)
+		  AND documents.id IN (
+		    SELECT documents.id
+		    FROM documents
+		    JOIN raw_documents ON documents.raw_document = raw_documents.id
+				WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
+		  )
+	`, nil)
 	if err != nil {
 		return err
 	}

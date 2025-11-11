@@ -62,6 +62,7 @@ func AddDocumentFields[PluginConfig any](
       JOIN raw_documents rd ON d.raw_document = rd.id
       AND t.operation IS NULL
       AND (rd.current_task = $task_id OR $task_id IS NULL)
+      AND (d.processed = false OR d.processed IS NULL)
     ),
     keys_union AS (
       -- Always include __typename
@@ -197,6 +198,7 @@ func AddDocumentFields[PluginConfig any](
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 		WHERE connection = true
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+			AND (documents.processed = false OR documents.processed IS NULL)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))

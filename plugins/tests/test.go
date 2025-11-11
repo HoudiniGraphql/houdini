@@ -290,6 +290,7 @@ CREATE TABLE documents (
   	kind TEXT NOT NULL CHECK (kind IN ('query', 'mutation', 'subscription', 'fragment')),
 		internal boolean default false,
 		visible boolean default true,
+		processed boolean default false,
 	  raw_document INTEGER,
     printed TEXT,
     hash TEXT,

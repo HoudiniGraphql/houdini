@@ -9,6 +9,7 @@ type DocumentInsertStatements struct {
 	InsertDocumentVariableDirective         *sqlite.Stmt
 	InsertDocumentVariableDirectiveArgument *sqlite.Stmt
 	InsertSelection                         *sqlite.Stmt
+	CheckExistingSelection                  *sqlite.Stmt
 	InsertSelectionRef                      *sqlite.Stmt
 	InsertSelectionArgument                 *sqlite.Stmt
 	InsertArgumentValue                     *sqlite.Stmt

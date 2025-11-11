@@ -174,9 +174,10 @@ func PreparePaginationDocuments(
 				ON tf.parent = documents.type_condition
 				AND tf.name = je.value
 			LEFT JOIN documents existing_operations ON existing_operations.name = documents.name || $pagination_suffix
-		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL) 
-	 	  AND documents.name NOT LIKE '%_paginated%' 
+		WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	 	  AND documents.name NOT LIKE '%_paginated%'
 		  AND existing_operations.id IS NULL
+		  AND (documents.processed = false OR documents.processed IS NULL)
 		GROUP BY discovered_lists.id
 	`)
 	if err != nil {
@@ -227,6 +228,8 @@ func PreparePaginationDocuments(
 		return commit(plugins.WrapError(err))
 	}
 	defer insertSelection.Finalize()
+
+
 	insertSelectionRef, err := conn.Prepare(`
 		INSERT INTO selection_refs (document, child_id, parent_id, row, column, path_index, internal) VALUES ($document, $child_id, $parent_id, 0, 0, 0, $internal)
 	`)
@@ -563,6 +566,18 @@ func PreparePaginationDocuments(
 	return commit(nil)
 }
 
+// createSelection creates a new selection without deduplication
+// Pagination logic needs unique selections for each context
+func (ctx *paginationContext) createSelection(params map[string]any) (int64, error) {
+	// Always create new selections for pagination logic
+	err := ctx.db.ExecStatement(ctx.insertSelection, params)
+	if err != nil {
+		return 0, err
+	}
+
+	return ctx.conn.LastInsertRowID(), nil
+}
+
 // determinePaginationArguments determines which pagination arguments to add based on connection type and support
 func determinePaginationArguments(
 	connection bool,
@@ -692,7 +707,7 @@ func processFragmentPagination(
 	}
 
 	// create a new selection for the paginated field with pagination arguments
-	err = ctx.db.ExecStatement(ctx.insertSelection, map[string]any{
+	newPaginatedSelectionID, err := ctx.createSelection(map[string]any{
 		"field_name":    list.FieldName,
 		"kind":          "field",
 		"type":          list.FieldType,
@@ -701,7 +716,6 @@ func processFragmentPagination(
 	if err != nil {
 		return 0, err
 	}
-	newPaginatedSelectionID := ctx.conn.LastInsertRowID()
 
 	// add the selection ref for the new paginated field
 	err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
@@ -818,7 +832,7 @@ func processFragmentPagination(
 	queryDocumentID := ctx.conn.LastInsertRowID()
 
 	// create fragment spread selection that references the paginated fragment
-	err = ctx.db.ExecStatement(ctx.insertSelection, map[string]any{
+	fragmentSpreadID, err := ctx.createSelection(map[string]any{
 		"field_name":    paginatedFragmentName,
 		"kind":          "fragment",
 		"type":          "",
@@ -827,7 +841,6 @@ func processFragmentPagination(
 	if err != nil {
 		return 0, err
 	}
-	fragmentSpreadID := ctx.conn.LastInsertRowID()
 
 	// handle resolve query logic
 	if list.ResolveQuery == "" {
@@ -842,7 +855,7 @@ func processFragmentPagination(
 		}
 	} else {
 		// need to create a resolve query field first
-		err = ctx.db.ExecStatement(ctx.insertSelection, map[string]any{
+		resolveSelectionID, err := ctx.createSelection(map[string]any{
 			"field_name":    list.ResolveQuery,
 			"kind":          "field",
 			"type":          fmt.Sprintf("Query.%s", list.ResolveQuery),
@@ -851,7 +864,6 @@ func processFragmentPagination(
 		if err != nil {
 			return 0, err
 		}
-		resolveSelectionID := ctx.conn.LastInsertRowID()
 
 		// add resolve selection to document
 		err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{

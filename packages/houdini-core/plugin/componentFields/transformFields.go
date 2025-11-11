@@ -87,6 +87,7 @@ func TransformFields[PluginConfig any](
       JOIN raw_documents ON raw_documents.id = documents.raw_document
       LEFT JOIN selection_arguments ON selection_arguments.selection_id = selections.id AND selection_arguments.document = documents.id
       WHERE (raw_documents.current_task = $task_id OR $task_id IS NULL)
+        AND (documents.processed = false OR documents.processed IS NULL)
     GROUP BY selections.id
   `)
 	if err != nil {

@@ -459,6 +459,7 @@ func InsertOperationDocuments(
 		WHERE dl.name IS NOT '' AND dl.name IS NOT NULL
 			AND op_doc.id IS NULL
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
+			AND (doc.processed = false OR doc.processed IS NULL)
 		GROUP BY
 			dl.id, dl.name, dl.node_type, rd.id
 	`)

@@ -56,6 +56,7 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
     WHERE (documents.type_condition IS NULL OR document_variables."name" IS NULL)
     	AND selection_directives.directive = 'with'
       AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+      AND (documents.processed = false OR documents.processed IS NULL)
     GROUP BY documents.id  
   `)
 	if err != nil {
