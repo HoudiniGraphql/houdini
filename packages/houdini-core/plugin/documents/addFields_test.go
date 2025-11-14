@@ -149,6 +149,47 @@ func TestAddFields(t *testing.T) {
 				},
 			},
 			{
+				Name: "add pagination information to connections",
+				Pass: true,
+				Input: []string{
+					`
+						query Friends { 
+							users(first: 10) @paginate {
+								edges { 
+									node { 
+										firstName 
+									} 
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query Friends($first: Int = 10, $after: String) @dedupe(match: Variables) { 
+						users(first: $first, after: $after) @paginate {
+									__typename
+								edges { 
+									node { 
+										firstName 
+										id
+										__typename
+									} 
+									cursor
+										__typename
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+							}
+						}
+					`),
+				},
+			},
+			{
 				Name: "adds custom id fields to selection sets of objects with them",
 				Pass: true,
 				Input: []string{`

@@ -67,200 +67,201 @@ func TestRequiredDirective(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "49d37523ee0a68c5e0ab528c947fb122c6a50e5efc79555d84155747aad3b518",
-                  "raw": ` + "`" + `fragment GhostWithRequiredLegendAndLegendName on Ghost {
-                  legends {
-                      name
-                      __typename
-                      id
-                  }
-                  __typename
-                  id
-              }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "49d37523ee0a68c5e0ab528c947fb122c6a50e5efc79555d84155747aad3b518",
+    "raw": ` + "`" + `fragment GhostWithRequiredLegendAndLegendName on Ghost {
+    legends {
+        name
+        __typename
+        id
+    }
+    __typename
+    id
+}
 
-              fragment GhostWithRequiredLegendName on Ghost {
-                  legends {
-                      name
-                      __typename
-                      id
-                  }
-                  __typename
-                  id
-              }
+fragment GhostWithRequiredLegendName on Ghost {
+    legends {
+        name
+        __typename
+        id
+    }
+    __typename
+    id
+}
 
-              fragment LegendWithRequiredName on Legend {
-                  name
-                  __typename
-                  id
-              }
+fragment LegendWithRequiredName on Legend {
+    name
+    __typename
+    id
+}
 
-              query TestQuery($id: ID!) {
-                  node(id: $id) {
-                      ...LegendWithRequiredName
-                      ...GhostWithRequiredLegendName
-                      ...GhostWithRequiredLegendAndLegendName
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+query TestQuery($id: ID!) {
+    node(id: $id) {
+        ...LegendWithRequiredName
+        ...GhostWithRequiredLegendName
+        ...GhostWithRequiredLegendAndLegendName
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "node": {
-                              "type": "Node",
-                              "keyRaw": "node(id: $id)",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "node": {
+                "type": "Node",
+                "keyRaw": "node(id: $id)",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Ghost": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "legends": {
-                                                  "type": "Legend",
-                                                  "keyRaw": "legends",
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Ghost": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "legends": {
+                                    "type": "Legend",
+                                    "keyRaw": "legends",
+                                    "nullable": true,
 
-                                                  "directives": [{
-                                                      "name": "required",
-                                                      "arguments": {}
-                                                  }],
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
 
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
+                                            },
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                          },
+                                            "name": {
+                                                "type": "String",
+                                                "keyRaw": "name",
+                                                "nullable": true,
+                                                "visible": true,
+                                            },
+                                        },
+                                    },
 
-                                                          "id": {
-                                                              "type": "ID",
-                                                              "keyRaw": "id",
-                                                          },
+                                    "abstract": true,
+                                    "visible": true,
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "nullable": true,
+                                    "visible": true,
+                                },
+                            },
+                            "Legend": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "nullable": true,
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                                          "name": {
-                                                              "type": "String",
-                                                              "keyRaw": "name",
+                        "typeMap": {
+                            "Ghost": "Legend",
+                        },
+                    },
 
-                                                              "directives": [{
-                                                                  "name": "required",
-                                                                  "arguments": {}
-                                                              }],
+                    "fragments": {
+                        "GhostWithRequiredLegendAndLegendName": {
+                            "arguments": {}
+                        },
+                        "GhostWithRequiredLegendName": {
+                            "arguments": {}
+                        },
+                        "LegendWithRequiredName": {
+                            "arguments": {}
+                        },
+                    },
+                },
 
-                                                              "required": true,
-                                                          },
-                                                      },
-                                                  },
+                "abstract": true,
+                "abstractHasRequired": true,
+                "visible": true,
+            },
+        },
+    },
 
-                                                  "abstract": true,
-                                                  "required": true,
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
+    "pluginData": {},
 
-                                                  "directives": [{
-                                                      "name": "required",
-                                                      "arguments": {}
-                                                  }],
+    "input": {
+        "fields": {
+            "id": "ID",
+        },
 
-                                                  "required": true,
-                                              },
-                                          },
-                                          "Legend": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
+        "types": {},
 
-                                                  "directives": [{
-                                                      "name": "required",
-                                                      "arguments": {}
-                                                  }],
+        "defaults": {},
 
-                                                  "required": true,
-                                              },
-                                          },
-                                      },
+        "runtimeScalars": {},
+    },
 
-                                      "typeMap": {
-                                          "Ghost": "Legend",
-                                      },
-                                  },
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-                                  "fragments": {
-                                      "GhostWithRequiredLegendAndLegendName": {
-                                          "arguments": {}
-                                      },
-                                      "GhostWithRequiredLegendName": {
-                                          "arguments": {}
-                                      },
-                                      "LegendWithRequiredName": {
-                                          "arguments": {}
-                                      },
-                                  },
-                              },
+export default artifact
 
-                              "abstract": true,
-                              "abstractHasRequired": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+export type TestQuery = {
+	readonly "input": TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
 
-                  "pluginData": {},
+export type TestQuery$result = {
+	readonly node: {
+		readonly " $fragments": {
+			LegendWithRequiredName: {};
+			GhostWithRequiredLegendName: {};
+			GhostWithRequiredLegendAndLegendName: {};
+		};
+	} | null;
+};
 
-                  "input": {
-                      "fields": {
-                          "id": "ID",
-                      },
+export type TestQuery$input = {
+	id: string;
+};
 
-                      "types": {},
+export type TestQuery$artifact = typeof artifact
 
-                      "defaults": {},
-
-                      "runtimeScalars": {},
-                  },
-
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
-
-              "HoudiniHash=49d37523ee0a68c5e0ab528c947fb122c6a50e5efc79555d84155747aad3b518"
-          `),
+"HoudiniHash=49d37523ee0a68c5e0ab528c947fb122c6a50e5efc79555d84155747aad3b518"`),
 				},
 			},
 		},

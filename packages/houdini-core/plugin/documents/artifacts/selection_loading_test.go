@@ -110,179 +110,214 @@ func TestLoadingArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"MonkeyListQuery": tests.Dedent(`
-              export default {
-                  "name": "MonkeyListQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2",
-                  "raw": ` + "`" + `fragment AnimalsList on AnimalConnection {
-                  edges {
-                      node {
-                          id
-                          name
-                          __typename
-                      }
-                      __typename
-                  }
-                  __typename
-              }
+					"MonkeyListQuery": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "MonkeyListQuery",
+    "kind": "HoudiniQuery",
+    "hash": "ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2",
+    "raw": ` + "`" + `fragment AnimalsList on AnimalConnection {
+    edges {
+        node {
+            id
+            name
+            __typename
+        }
+        __typename
+    }
+    __typename
+}
 
-              query MonkeyListQuery {
-                  monkeys {
-                      pageInfo {
-                          hasPreviousPage
-                          hasNextPage
-                          startCursor
-                          endCursor
-                          __typename
-                      }
-                      ...AnimalsList
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+query MonkeyListQuery {
+    monkeys {
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+            __typename
+        }
+        ...AnimalsList
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "monkeys": {
-                              "type": "MonkeyConnection",
-                              "keyRaw": "monkeys",
+    "selection": {
+        "fields": {
+            "monkeys": {
+                "type": "MonkeyConnection",
+                "keyRaw": "monkeys",
 
-                              "directives": [{
-                                  "name": "loading",
-                                  "arguments": {}
-                              }],
-
-
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-
-                                      "edges": {
-                                          "type": "AnimalEdge",
-                                          "keyRaw": "edges",
-
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
-
-                                                  "node": {
-                                                      "type": "Animal",
-                                                      "keyRaw": "node",
-                                                      "nullable": true,
-
-                                                      "selection": {
-                                                          "fields": {
-                                                              "__typename": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "__typename",
-                                                              },
-
-                                                              "id": {
-                                                                  "type": "ID",
-                                                                  "keyRaw": "id",
-                                                              },
-
-                                                              "name": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "name",
-                                                              },
-                                                          },
-                                                      },
-
-                                                      "abstract": true,
-                                                  },
-                                              },
-                                          },
-
-                                          "abstract": true,
-                                      },
-
-                                      "pageInfo": {
-                                          "type": "PageInfo",
-                                          "keyRaw": "pageInfo",
-
-                                          "directives": [{
-                                              "name": "loading",
-                                              "arguments": {}
-                                          }],
+                "directives": [{
+                    "name": "loading",
+                    "arguments": {}
+                }],
 
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                                  "endCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "endCursor",
-                                                      "nullable": true,
-                                                      "visible": true,
-                                                  },
+                        "edges": {
+                            "type": "AnimalEdge",
+                            "keyRaw": "edges",
 
-                                                  "hasNextPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasNextPage",
-                                                      "visible": true,
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "hasPreviousPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasPreviousPage",
-                                                      "visible": true,
-                                                  },
+                                    "node": {
+                                        "type": "Animal",
+                                        "keyRaw": "node",
+                                        "nullable": true,
 
-                                                  "startCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "startCursor",
-                                                      "nullable": true,
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
 
-                                          "loading": {
-                                              "kind": "value",
-                                          },
-                                          "visible": true,
-                                      },
-                                  },
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                    "visible": true,
+                                                },
 
-                                  "fragments": {
-                                      "AnimalsList": {
-                                          "arguments": {},
-                                          "loading": true,
-                                      },
-                                  },
-                              },
+                                                "name": {
+                                                    "type": "String",
+                                                    "keyRaw": "name",
+                                                    "visible": true,
+                                                },
+                                            },
+                                        },
 
-                              "loading": {
-                                  "kind": "continue",
-                              },
-                              "visible": true,
-                          },
-                      },
-                  },
+                                        "abstract": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                  "pluginData": {},
-                  "enableLoadingState": "local",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+                            "abstract": true,
+                            "visible": true,
+                        },
 
-              "HoudiniHash=ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2"
-            `),
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
+
+                            "directives": [{
+                                "name": "loading",
+                                "arguments": {}
+                            }],
+
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
+
+                                    "endCursor": {
+                                        "type": "String",
+                                        "keyRaw": "endCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "visible": true,
+                                    },
+
+                                    "hasPreviousPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasPreviousPage",
+                                        "visible": true,
+                                    },
+
+                                    "startCursor": {
+                                        "type": "String",
+                                        "keyRaw": "startCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
+
+                            "loading": {
+                                "kind": "value",
+                            },
+                            "visible": true,
+                        },
+                    },
+
+                    "fragments": {
+                        "AnimalsList": {
+                            "arguments": {},
+                            "loading": true,
+                        },
+                    },
+                },
+
+                "loading": {
+                    "kind": "continue",
+                },
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "enableLoadingState": "local",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type MonkeyListQuery = {
+	readonly "input"?: MonkeyListQuery$input;
+	readonly "result": MonkeyListQuery$result | undefined;
+};
+
+export type MonkeyListQuery$result = {
+	readonly monkeys: {
+		readonly pageInfo: {
+			readonly hasPreviousPage: boolean;
+			readonly hasNextPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+		readonly " $fragments": {
+			AnimalsList: {};
+		};
+	};
+} | {
+	readonly monkeys: {
+		readonly pageInfo: LoadingType;
+		readonly " $fragments": {
+			AnimalsList: {};
+		};
+	};
+};
+
+export type MonkeyListQuery$input = null | undefined;
+
+export type MonkeyListQuery$artifact = typeof artifact
+
+"HoudiniHash=ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2"`),
 				},
 			},
 			{
@@ -301,191 +336,220 @@ func TestLoadingArtifacts(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`
-              export default {
-                  "name": "Query",
-                  "kind": "HoudiniQuery",
-                  "hash": "a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841",
-                  "raw": ` + "`" + `query Query {
-                  catOwners {
-                      cats {
-                          id
-                          __typename
-                      }
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "Query",
+    "kind": "HoudiniQuery",
+    "hash": "a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841",
+    "raw": ` + "`" + `query Query {
+    catOwners {
+        cats {
+            id
+            __typename
+        }
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "catOwners": {
-                              "type": "CatOwner",
-                              "keyRaw": "catOwners",
+    "selection": {
+        "fields": {
+            "catOwners": {
+                "type": "CatOwner",
+                "keyRaw": "catOwners",
 
-                              "directives": [{
-                                  "name": "loading",
-                                  "arguments": {}
-                              }],
-
-
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-
-                                      "cats": {
-                                          "type": "Cat",
-                                          "keyRaw": "cats",
-
-                                          "directives": [{
-                                              "name": "loading",
-                                              "arguments": {}
-                                          }],
+                "directives": [{
+                    "name": "loading",
+                    "arguments": {}
+                }],
 
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
+                        "cats": {
+                            "type": "Cat",
+                            "keyRaw": "cats",
 
-                                                      "directives": [{
-                                                          "name": "loading",
-                                                          "arguments": {}
-                                                      }],
-
-                                                      "loading": {
-                                                          "kind": "value",
-                                                      },
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
-
-                                          "loading": {
-                                              "kind": "continue",
-                                              "list": {
-                                                  "depth": 1,
-                                                  "count": 3,
-                                              },
-                                          },
-                                          "visible": true,
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "cats": {
-                                                  "type": "Cat",
-                                                  "keyRaw": "cats",
-
-                                                  "directives": [{
-                                                      "name": "loading",
-                                                      "arguments": {}
-                                                  }],
+                            "directives": [{
+                                "name": "loading",
+                                "arguments": {}
+                            }],
 
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                          },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                          "id": {
-                                                              "type": "ID",
-                                                              "keyRaw": "id",
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
 
-                                                              "directives": [{
-                                                                  "name": "loading",
-                                                                  "arguments": {}
-                                                              }],
+                                        "directives": [{
+                                            "name": "loading",
+                                            "arguments": {}
+                                        }],
 
-                                                              "loading": {
-                                                                  "kind": "value",
-                                                              },
-                                                              "visible": true,
-                                                          },
-                                                      },
-                                                  },
+                                        "loading": {
+                                            "kind": "value",
+                                        },
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                                  "loading": {
-                                                      "kind": "continue",
-                                                      "list": {
-                                                          "depth": 1,
-                                                          "count": 3,
-                                                      },
-                                                  },
-                                                  "visible": true,
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
+                            "loading": {
+                                "kind": "continue",
+                                "list": {
+                                    "depth": 1,
+                                    "count": 3,
+                                },
+                            },
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "cats": {
+                                    "type": "Cat",
+                                    "keyRaw": "cats",
 
-                                                  "directives": [{
-                                                      "name": "loading",
-                                                      "arguments": {}
-                                                  }],
+                                    "directives": [{
+                                        "name": "loading",
+                                        "arguments": {}
+                                    }],
 
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                          },
-                                      },
 
-                                      "typeMap": {},
-                                  },
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
 
-                                  "loadingTypes": ["User"],
-                              },
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
 
-                              "loading": {
-                                  "kind": "continue",
-                                  "list": {
-                                      "depth": 1,
-                                      "count": 3,
-                                  },
-                              },
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                                                "directives": [{
+                                                    "name": "loading",
+                                                    "arguments": {}
+                                                }],
 
-                  "pluginData": {},
-                  "enableLoadingState": "local",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+                                                "loading": {
+                                                    "kind": "value",
+                                                },
+                                                "visible": true,
+                                            },
+                                        },
+                                    },
 
-              "HoudiniHash=a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841"
-            `),
+                                    "loading": {
+                                        "kind": "continue",
+                                        "list": {
+                                            "depth": 1,
+                                            "count": 3,
+                                        },
+                                    },
+                                    "visible": true,
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
+
+                                    "directives": [{
+                                        "name": "loading",
+                                        "arguments": {}
+                                    }],
+
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                            },
+                        },
+
+                        "typeMap": {},
+                    },
+
+                    "loadingTypes": ["User"],
+                },
+
+                "loading": {
+                    "kind": "continue",
+                    "list": {
+                        "depth": 1,
+                        "count": 3,
+                    },
+                },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "enableLoadingState": "local",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type Query = {
+	readonly "input"?: Query$input;
+	readonly "result": Query$result | undefined;
+};
+
+export type Query$result = {
+	readonly catOwners: ({} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+} | {
+	readonly catOwners: {
+		readonly cats: {
+			readonly id: LoadingType;
+		};
+		readonly User: {
+			readonly firstName: LoadingType;
+		};
+	};
+};
+
+export type Query$input = null | undefined;
+
+export type Query$artifact = typeof artifact
+
+"HoudiniHash=a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841"`),
 				},
 			},
 			{
@@ -506,129 +570,162 @@ func TestLoadingArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`
-              export default {
-                  "name": "Query",
-                  "kind": "HoudiniQuery",
-                  "hash": "75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a",
-                  "raw": ` + "`" + `query Query {
-                  entities {
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      ... on Cat {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "Query",
+    "kind": "HoudiniQuery",
+    "hash": "75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a",
+    "raw": ` + "`" + `query Query {
+    entities {
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "entities": {
-                              "type": "Entity",
-                              "keyRaw": "entities",
+    "selection": {
+        "fields": {
+            "entities": {
+                "type": "Entity",
+                "keyRaw": "entities",
 
-                              "directives": [{
-                                  "name": "loading",
-                                  "arguments": {}
-                              }],
+                "directives": [{
+                    "name": "loading",
+                    "arguments": {}
+                }],
 
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
 
-                                                  "directives": [{
-                                                      "name": "loading",
-                                                      "arguments": {}
-                                                  }],
+                                    "directives": [{
+                                        "name": "loading",
+                                        "arguments": {}
+                                    }],
 
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                            },
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
 
-                                                  "directives": [{
-                                                      "name": "loading",
-                                                      "arguments": {}
-                                                  }],
+                                    "directives": [{
+                                        "name": "loading",
+                                        "arguments": {}
+                                    }],
 
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                          },
-                                      },
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "loadingTypes": ["Cat", "User"],
-                              },
+                    "loadingTypes": ["Cat", "User"],
+                },
 
-                              "loading": {
-                                  "kind": "continue",
-                                  "list": {
-                                      "depth": 1,
-                                      "count": 3,
-                                  },
-                              },
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "loading": {
+                    "kind": "continue",
+                    "list": {
+                        "depth": 1,
+                        "count": 3,
+                    },
+                },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "enableLoadingState": "local",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "enableLoadingState": "local",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"
-            `),
+export default artifact
+
+export type Query = {
+	readonly "input"?: Query$input;
+	readonly "result": Query$result | undefined;
+};
+
+export type Query$result = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+} | {
+	readonly entities: {
+		readonly User: {
+			readonly firstName: LoadingType;
+		};
+		readonly Cat: {
+			readonly name: LoadingType;
+		};
+	};
+};
+
+export type Query$input = null | undefined;
+
+export type Query$artifact = typeof artifact
+
+"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`),
 				},
 			},
 			{
@@ -651,107 +748,132 @@ func TestLoadingArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`
-              export default {
-                  "name": "Query",
-                  "kind": "HoudiniQuery",
-                  "hash": "5ba953f37cfa2e0ce515c4c22ce9c6e3206fc05adc5c96fbc7a3184691d672f1",
-                  "raw": ` + "`" + `fragment Info on Entity {
-                  ... on User {
-                      firstName
-                      __typename
-                      id
-                  }
-                  __typename
-              }
+					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "Query",
+    "kind": "HoudiniQuery",
+    "hash": "5ba953f37cfa2e0ce515c4c22ce9c6e3206fc05adc5c96fbc7a3184691d672f1",
+    "raw": ` + "`" + `fragment Info on Entity {
+    ... on User {
+        firstName
+        __typename
+        id
+    }
+    __typename
+}
 
-              query Query {
-                  entity {
-                      ...Info
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+query Query {
+    entity {
+        ...Info
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "entity": {
-                              "type": "Entity",
-                              "keyRaw": "entity",
+    "selection": {
+        "fields": {
+            "entity": {
+                "type": "Entity",
+                "keyRaw": "entity",
 
-                              "directives": [{
-                                  "name": "loading",
-                                  "arguments": {}
-                              }],
+                "directives": [{
+                    "name": "loading",
+                    "arguments": {}
+                }],
 
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
 
-                                                  "directives": [{
-                                                      "name": "loading",
-                                                      "arguments": {}
-                                                  }],
+                                    "directives": [{
+                                        "name": "loading",
+                                        "arguments": {}
+                                    }],
 
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                          },
-                                      },
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "fragments": {
-                                      "Info": {
-                                          "arguments": {},
-                                          "loading": true,
-                                      },
-                                  },
+                    "fragments": {
+                        "Info": {
+                            "arguments": {},
+                            "loading": true,
+                        },
+                    },
 
-                                  "loadingTypes": ["User"],
-                              },
+                    "loadingTypes": ["User"],
+                },
 
-                              "loading": {
-                                  "kind": "continue",
-                              },
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "loading": {
+                    "kind": "continue",
+                },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "enableLoadingState": "local",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "enableLoadingState": "local",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=5ba953f37cfa2e0ce515c4c22ce9c6e3206fc05adc5c96fbc7a3184691d672f1"
-            `),
+export default artifact
+
+export type Query = {
+	readonly "input"?: Query$input;
+	readonly "result": Query$result | undefined;
+};
+
+export type Query$result = {
+	readonly entity: {
+		readonly " $fragments": {
+			Info: {};
+		};
+	};
+} | {
+	readonly entity: {
+		readonly " $fragments": {
+			Info: {};
+		};
+	};
+};
+
+export type Query$input = null | undefined;
+
+export type Query$artifact = typeof artifact
+
+"HoudiniHash=5ba953f37cfa2e0ce515c4c22ce9c6e3206fc05adc5c96fbc7a3184691d672f1"`),
 				},
 			},
 			{
@@ -772,125 +894,155 @@ func TestLoadingArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`
-              export default {
-                  "name": "Query",
-                  "kind": "HoudiniQuery",
-                  "hash": "75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a",
-                  "raw": ` + "`" + `query Query {
-                  entities {
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      ... on Cat {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "Query",
+    "kind": "HoudiniQuery",
+    "hash": "75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a",
+    "raw": ` + "`" + `query Query {
+    entities {
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "entities": {
-                              "type": "Entity",
-                              "keyRaw": "entities",
+    "selection": {
+        "fields": {
+            "entities": {
+                "type": "Entity",
+                "keyRaw": "entities",
 
-                              "directives": [{
-                                  "name": "loading",
-                                  "arguments": {
-                                      "count": {
-                                          "kind": "IntValue",
-                                          "value": 5
-                                      }
-                                  }
-                              }],
+                "directives": [{
+                    "name": "loading",
+                    "arguments": {
+                        "count": {
+                            "kind": "IntValue",
+                            "value": 5
+                        }
+                    }
+                }],
 
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
 
-                                                  "directives": [{
-                                                      "name": "loading",
-                                                      "arguments": {}
-                                                  }],
+                                    "directives": [{
+                                        "name": "loading",
+                                        "arguments": {}
+                                    }],
 
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                          },
-                                      },
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "loadingTypes": ["User"],
-                              },
+                    "loadingTypes": ["User"],
+                },
 
-                              "loading": {
-                                  "kind": "continue",
-                                  "list": {
-                                      "depth": 1,
-                                      "count": 5,
-                                  },
-                              },
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "loading": {
+                    "kind": "continue",
+                    "list": {
+                        "depth": 1,
+                        "count": 5,
+                    },
+                },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "enableLoadingState": "local",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "enableLoadingState": "local",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"
-            `),
+export default artifact
+
+export type Query = {
+	readonly "input"?: Query$input;
+	readonly "result": Query$result | undefined;
+};
+
+export type Query$result = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+} | {
+	readonly entities: {
+		readonly User: {
+			readonly firstName: LoadingType;
+		};
+	};
+};
+
+export type Query$input = null | undefined;
+
+export type Query$artifact = typeof artifact
+
+"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`),
 				},
 			},
 			{
@@ -909,124 +1061,150 @@ func TestLoadingArtifacts(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`
-              export default {
-                  "name": "Query",
-                  "kind": "HoudiniQuery",
-                  "hash": "75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a",
-                  "raw": ` + "`" + `query Query {
-                  entities {
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      ... on Cat {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "Query",
+    "kind": "HoudiniQuery",
+    "hash": "75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a",
+    "raw": ` + "`" + `query Query {
+    entities {
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "entities": {
-                              "type": "Entity",
-                              "keyRaw": "entities",
+    "selection": {
+        "fields": {
+            "entities": {
+                "type": "Entity",
+                "keyRaw": "entities",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                          "loading": {
-                                              "kind": "value",
-                                          },
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                          },
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "loading": {
+                                "kind": "value",
+                            },
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                            },
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                        "typeMap": {},
+                    },
+                },
 
-                              "loading": {
-                                  "kind": "continue",
-                                  "list": {
-                                      "depth": 1,
-                                      "count": 3,
-                                  },
-                              },
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "loading": {
+                    "kind": "continue",
+                    "list": {
+                        "depth": 1,
+                        "count": 3,
+                    },
+                },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "enableLoadingState": "global",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "enableLoadingState": "global",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"
-            `),
+export default artifact
+
+export type Query = {
+	readonly "input"?: Query$input;
+	readonly "result": Query$result | undefined;
+};
+
+export type Query$result = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+} | {
+	readonly entities: LoadingType[];
+};
+
+export type Query$input = null | undefined;
+
+export type Query$artifact = typeof artifact
+
+"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`),
 				},
 			},
 			{
@@ -1053,181 +1231,215 @@ func TestLoadingArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`
-              export default {
-                  "name": "Query",
-                  "kind": "HoudiniQuery",
-                  "hash": "8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877",
-                  "raw": ` + "`" + `query Query {
-                  entities {
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      ... on Cat {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-                  b: entities {
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+const artifact = {
+    "name": "Query",
+    "kind": "HoudiniQuery",
+    "hash": "8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877",
+    "raw": ` + "`" + `query Query {
+    entities {
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+    }
+    b: entities {
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "b": {
-                              "type": "Entity",
-                              "keyRaw": "b",
+    "selection": {
+        "fields": {
+            "b": {
+                "type": "Entity",
+                "keyRaw": "b",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                          },
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                        "typeMap": {},
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
+                "abstract": true,
+                "visible": true,
+            },
 
-                          "entities": {
-                              "type": "Entity",
-                              "keyRaw": "entities",
+            "entities": {
+                "type": "Entity",
+                "keyRaw": "entities",
 
-                              "directives": [{
-                                  "name": "loading",
-                                  "arguments": {
-                                      "cascade": {
-                                          "kind": "BooleanValue",
-                                          "value": true
-                                      }
-                                  }
-                              }],
+                "directives": [{
+                    "name": "loading",
+                    "arguments": {
+                        "cascade": {
+                            "kind": "BooleanValue",
+                            "value": true
+                        }
+                    }
+                }],
 
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                          "loading": {
-                                              "kind": "value",
-                                          },
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "loading": {
-                                                      "kind": "value",
-                                                  },
-                                              },
-                                          },
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "loading": {
+                                "kind": "value",
+                            },
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                            },
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "loading": {
+                                        "kind": "value",
+                                    },
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                        "typeMap": {},
+                    },
+                },
 
-                              "loading": {
-                                  "kind": "continue",
-                                  "list": {
-                                      "depth": 1,
-                                      "count": 3,
-                                  },
-                              },
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "loading": {
+                    "kind": "continue",
+                    "list": {
+                        "depth": 1,
+                        "count": 3,
+                    },
+                },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "enableLoadingState": "local",
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "enableLoadingState": "local",
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877"
-            `),
+export default artifact
+
+export type Query = {
+	readonly "input"?: Query$input;
+	readonly "result": Query$result | undefined;
+};
+
+export type Query$result = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+	readonly b: ({} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+} | {
+	readonly entities: LoadingType[];
+	readonly entities: LoadingType[];
+};
+
+export type Query$input = null | undefined;
+
+export type Query$artifact = typeof artifact
+
+"HoudiniHash=8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877"`),
 				},
 			},
 		},

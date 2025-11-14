@@ -141,78 +141,107 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-            export default {
-                "name": "TestQuery",
-                "kind": "HoudiniQuery",
-                "hash": "399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777",
-                "raw": ` + "`" + `query TestQuery {
-                version
-            }
-            ` + "`" + `,
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777",
+    "raw": ` + "`" + `query TestQuery {
+    version
+}
+` + "`" + `,
 
-                "rootType": "Query",
-                "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                "selection": {
-                    "fields": {
-                        "version": {
-                            "type": "Int",
-                            "keyRaw": "version",
-                            "visible": true,
-                        },
-                    },
-                },
+    "selection": {
+        "fields": {
+            "version": {
+                "type": "Int",
+                "keyRaw": "version",
+                "visible": true,
+            },
+        },
+    },
 
-                "pluginData": {},
-                "policy": "CacheOrNetwork",
-                "partial": false
-            } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-            "HoudiniHash=399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777"
-          `),
-					"TestFragment": tests.Dedent(`
-            export default {
-                "name": "TestFragment",
-                "kind": "HoudiniFragment",
-                "hash": "4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8",
-                "raw": ` + "`" + `fragment TestFragment on User {
-                firstName
-                id
-                __typename
-            }
-            ` + "`" + `,
+export default artifact
 
-                "rootType": "User",
-                "stripVariables": [],
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
 
-                "selection": {
-                    "fields": {
-                        "__typename": {
-                            "type": "String",
-                            "keyRaw": "__typename",
-                            "visible": true,
-                        },
+export type TestQuery$result = {
+	readonly version: number;
+};
 
-                        "firstName": {
-                            "type": "String",
-                            "keyRaw": "firstName",
-                            "visible": true,
-                        },
+export type TestQuery$input = null | undefined;
 
-                        "id": {
-                            "type": "ID",
-                            "keyRaw": "id",
-                            "visible": true,
-                        },
-                    },
-                },
+export type TestQuery$artifact = typeof artifact
 
-                "pluginData": {},
-            } as const
+"HoudiniHash=399380b224f926ada58db369b887cfdce8b0f08f263f27a48eec3d5e832d1777"`),
+					"TestFragment": tests.Dedent(`const artifact = {
+    "name": "TestFragment",
+    "kind": "HoudiniFragment",
+    "hash": "4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8",
+    "raw": ` + "`" + `fragment TestFragment on User {
+    firstName
+    id
+    __typename
+}
+` + "`" + `,
 
-            "HoudiniHash=4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8"
-          `),
+    "rootType": "User",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "__typename": {
+                "type": "String",
+                "keyRaw": "__typename",
+                "visible": true,
+            },
+
+            "firstName": {
+                "type": "String",
+                "keyRaw": "firstName",
+                "visible": true,
+            },
+
+            "id": {
+                "type": "ID",
+                "keyRaw": "id",
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+} as const
+
+export default artifact
+
+export type TestFragment$input = never;
+
+export type TestFragment = {
+	readonly "shape"?: TestFragment$data;
+	readonly " $fragments": {
+		"TestFragment": any;
+	};
+};
+
+export type TestFragment$data = {
+	readonly firstName: string;
+	readonly id: string;
+};
+
+export type TestFragment$artifact = typeof artifact
+
+"HoudiniHash=4affd9aded0579e0e3a237e934f4c5c2009270115b804ab7076208a2563a32d8"`),
 				},
 			},
 			{
@@ -233,73 +262,90 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-            export default {
-                "name": "TestQuery",
-                "kind": "HoudiniQuery",
-                "hash": "2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275",
-                "raw": ` + "`" + `fragment TestFragment on User {
-                firstName
-                __typename
-                id
-            }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275",
+    "raw": ` + "`" + `fragment TestFragment on User {
+    firstName
+    __typename
+    id
+}
 
-            query TestQuery {
-                user {
-                    ...TestFragment
-                    __typename
-                    id
-                }
-            }
-            ` + "`" + `,
+query TestQuery {
+    user {
+        ...TestFragment
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                "rootType": "Query",
-                "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "user": {
+                "type": "User",
+                "keyRaw": "user",
 
                 "selection": {
                     "fields": {
-                        "user": {
-                            "type": "User",
-                            "keyRaw": "user",
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                            "selection": {
-                                "fields": {
-                                    "__typename": {
-                                        "type": "String",
-                                        "keyRaw": "__typename",
-                                    },
-
-                                    "firstName": {
-                                        "type": "String",
-                                        "keyRaw": "firstName",
-                                    },
-
-                                    "id": {
-                                        "type": "ID",
-                                        "keyRaw": "id",
-                                    },
-                                },
-
-                                "fragments": {
-                                    "TestFragment": {
-                                        "arguments": {}
-                                    },
-                                },
-                            },
-
+                        "firstName": {
+                            "type": "String",
+                            "keyRaw": "firstName",
                             "visible": true,
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
+
+                    "fragments": {
+                        "TestFragment": {
+                            "arguments": {}
                         },
                     },
                 },
 
-                "pluginData": {},
-                "policy": "CacheOrNetwork",
-                "partial": false
-            } as const
+                "visible": true,
+            },
+        },
+    },
 
-            "HoudiniHash=2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275"
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-          `),
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly user: {
+		readonly " $fragments": {
+			TestFragment: {};
+		};
+	};
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=2c9c28f8cb271806d458dfe004805956234eba3596c9ab6f5fded8a16de61275"`),
 				},
 			},
 			{
@@ -321,74 +367,92 @@ func TestArtifactGeneration(t *testing.T) {
   `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee",
-                  "raw": ` + "`" + `fragment TestFragment on User {
-                  firstName
-                  __typename
-                  id
-              }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee",
+    "raw": ` + "`" + `fragment TestFragment on User {
+    firstName
+    __typename
+    id
+}
 
-              query TestQuery {
-                  user {
-                      firstName
-                      ...TestFragment
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+query TestQuery {
+    user {
+        firstName
+        ...TestFragment
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "user": {
-                              "type": "User",
-                              "keyRaw": "user",
+    "selection": {
+        "fields": {
+            "user": {
+                "type": "User",
+                "keyRaw": "user",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "firstName": {
-                                          "type": "String",
-                                          "keyRaw": "firstName",
-                                          "visible": true,
-                                      },
+                        "firstName": {
+                            "type": "String",
+                            "keyRaw": "firstName",
+                            "visible": true,
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
-                                  },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
 
-                                  "fragments": {
-                                      "TestFragment": {
-                                          "arguments": {}
-                                      },
-                                  },
-                              },
+                    "fragments": {
+                        "TestFragment": {
+                            "arguments": {}
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee"
-  `),
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly user: {
+		readonly firstName: string;
+		readonly " $fragments": {
+			TestFragment: {};
+		};
+	};
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=a4461c0ad54e630a8bcefb242ada528478dedb87e1c48a72e5efae7fe66065ee"`),
 				},
 			},
 			{
@@ -406,99 +470,122 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"MyQuery": tests.Dedent(`
-              export default {
-                  "name": "MyQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae",
-                  "raw": ` + "`" + `query MyQuery($id: ID!) {
-                  node(id: $id) {
-                      ... on Friend {
-                          name
-                          __typename
-                      }
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"MyQuery": tests.Dedent(`const artifact = {
+    "name": "MyQuery",
+    "kind": "HoudiniQuery",
+    "hash": "42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae",
+    "raw": ` + "`" + `query MyQuery($id: ID!) {
+    node(id: $id) {
+        ... on Friend {
+            name
+            __typename
+        }
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "node": {
-                              "type": "Node",
-                              "keyRaw": "node(id: $id)",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "node": {
+                "type": "Node",
+                "keyRaw": "node(id: $id)",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Friend": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Friend": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {
-                                          "Cat": "Friend",
-                                          "Dog": "Friend",
-                                          "User": "Friend",
-                                      },
-                                  },
-                              },
+                        "typeMap": {
+                            "Cat": "Friend",
+                            "Dog": "Friend",
+                            "User": "Friend",
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "input": {
-                      "fields": {
-                          "id": "ID",
-                      },
+    "input": {
+        "fields": {
+            "id": "ID",
+        },
 
-                      "types": {},
+        "types": {},
 
-                      "defaults": {},
+        "defaults": {},
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae"
+export default artifact
 
-          `),
+export type MyQuery = {
+	readonly "input": MyQuery$input;
+	readonly "result": MyQuery$result | undefined;
+};
+
+export type MyQuery$result = {
+	readonly node: {} & (({
+		readonly name: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly name: string;
+		readonly __typename: "Dog";
+	}) | ({
+		readonly name: string;
+		readonly __typename: "User";
+	})) | null;
+};
+
+export type MyQuery$input = {
+	id: string;
+};
+
+export type MyQuery$artifact = typeof artifact
+
+"HoudiniHash=42a4210cd0fa0394e1256a751a9c7a8acbbeafb6efc4578260c4c0aa482cc0ae"`),
 				},
 			},
 			{
@@ -524,96 +611,119 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7",
-                  "raw": ` + "`" + `query TestQuery($enumArg: MyEnum, $filter: UserFilter, $filterList: [UserFilter!], $id: ID = "123") {
-                  user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id) {
-                      name
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"TestQuery": tests.Dedent(
+						`import type { MyEnum$options } from "$houdini/graphql/enums";
+import type { UserFilter } from "$houdini/graphql/inputs";
+const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7",
+    "raw": ` + "`" + `query TestQuery($enumArg: MyEnum, $filter: UserFilter, $filterList: [UserFilter!], $id: ID = "123") {
+    user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id) {
+        name
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "user": {
-                              "type": "User",
-                              "keyRaw": "user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id)",
+    "selection": {
+        "fields": {
+            "user": {
+                "type": "User",
+                "keyRaw": "user(enumArg: $enumArg, filter: $filter, filterList: $filterList, id: $id)",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
 
-                                      "name": {
-                                          "type": "String",
-                                          "keyRaw": "name",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "name": {
+                            "type": "String",
+                            "keyRaw": "name",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "input": {
-                      "fields": {
-                          "enumArg": "MyEnum",
-                          "filter": "UserFilter",
-                          "filterList": "UserFilter",
-                          "id": "ID",
-                      },
+    "input": {
+        "fields": {
+            "enumArg": "MyEnum",
+            "filter": "UserFilter",
+            "filterList": "UserFilter",
+            "id": "ID",
+        },
 
-                      "types": {
-                          "NestedUserFilter": {
-                              "admin": "Boolean",
-                              "age": "Int",
-                              "firstName": "String",
-                              "id": "ID",
-                              "weight": "Float",
-                          },
-                          "UserFilter": {
-                              "enum": "MyEnum",
-                              "listRequired": "String",
-                              "middle": "NestedUserFilter",
-                              "name": "String",
-                              "nullList": "String",
-                              "recursive": "UserFilter",
-                          },
-                      },
+        "types": {
+            "NestedUserFilter": {
+                "admin": "Boolean",
+                "age": "Int",
+                "firstName": "String",
+                "id": "ID",
+                "weight": "Float",
+            },
+            "UserFilter": {
+                "enum": "MyEnum",
+                "listRequired": "String",
+                "middle": "NestedUserFilter",
+                "name": "String",
+                "nullList": "String",
+                "recursive": "UserFilter",
+            },
+        },
 
-                      "defaults": {
-                          "id": "123",
-                      },
+        "defaults": {
+            "id": "123",
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7"
+export default artifact
 
-          `),
+export type TestQuery = {
+	readonly "input": TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly user: {
+		readonly name: string;
+	};
+};
+
+export type TestQuery$input = {
+	enumArg?: MyEnum$options | null;
+	filter?: UserFilter | null;
+	filterList?: (UserFilter)[] | null;
+	id?: string | null;
+};
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=fd7aa425b2f63c25bb733385c5337c0f128be116a423c65722b23a616b02d1f7"`,
+					),
 				},
 			},
 			{
@@ -624,122 +734,142 @@ func TestArtifactGeneration(t *testing.T) {
 					`query TestQuery {  friends {... on User { firstName } ...A } }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733",
-                  "raw": ` + "`" + `fragment A on User {
-                  friends {
-                      ... on User {
-                          lastName
-                          __typename
-                          id
-                      }
-                      __typename
-                      id
-                  }
-                  __typename
-                  id
-              }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733",
+    "raw": ` + "`" + `fragment A on User {
+    friends {
+        ... on User {
+            lastName
+            __typename
+            id
+        }
+        __typename
+        id
+    }
+    __typename
+    id
+}
 
-              query TestQuery {
-                  friends {
-                      ... on User {
-                          firstName
-                          __typename
-                          id
-                      }
-                      ...A
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+query TestQuery {
+    friends {
+        ... on User {
+            firstName
+            __typename
+            id
+        }
+        ...A
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "friends": {
-                              "type": "Friend",
-                              "keyRaw": "friends",
+    "selection": {
+        "fields": {
+            "friends": {
+                "type": "Friend",
+                "keyRaw": "friends",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "firstName": {
-                                                  "type": "String",
-                                                  "keyRaw": "firstName",
-                                                  "visible": true,
-                                              },
-                                              "friends": {
-                                                  "type": "User",
-                                                  "keyRaw": "friends",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "firstName": {
+                                    "type": "String",
+                                    "keyRaw": "firstName",
+                                    "visible": true,
+                                },
+                                "friends": {
+                                    "type": "User",
+                                    "keyRaw": "friends",
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                              "visible": true,
-                                                          },
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                                "visible": true,
+                                            },
 
-                                                          "id": {
-                                                              "type": "ID",
-                                                              "keyRaw": "id",
-                                                          },
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
+                                            },
 
-                                                          "lastName": {
-                                                              "type": "String",
-                                                              "keyRaw": "lastName",
-                                                          },
-                                                      },
-                                                  },
+                                            "lastName": {
+                                                "type": "String",
+                                                "keyRaw": "lastName",
+                                                "visible": true,
+                                            },
+                                        },
+                                    },
 
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                          },
-                                      },
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "fragments": {
-                                      "A": {
-                                          "arguments": {}
-                                      },
-                                  },
-                              },
+                    "fragments": {
+                        "A": {
+                            "arguments": {}
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733"
+export default artifact
 
-          `),
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly friends: ({} & (({
+		readonly firstName: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=8671a0ece7987aa1e7d26f011d737b70ff059b7df8ac62179b4f28f022bbb733"`),
 				},
 			},
 			{
@@ -762,124 +892,149 @@ func TestArtifactGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"Friends": tests.Dedent(`
-              export default {
-                  "name": "Friends",
-                  "kind": "HoudiniQuery",
-                  "hash": "5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121",
-                  "raw": ` + "`" + `query Friends {
-                  friends {
-                      __typename
-                      ... on Cat {
-                          id
-                          owner {
-                              firstName
-                              __typename
-                              id
-                          }
-                          __typename
-                      }
-                      ... on User {
-                          name
-                          __typename
-                          id
-                      }
-                  }
-              }
-              ` + "`" + `,
+					"Friends": tests.Dedent(`const artifact = {
+    "name": "Friends",
+    "kind": "HoudiniQuery",
+    "hash": "5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121",
+    "raw": ` + "`" + `query Friends {
+    friends {
+        __typename
+        ... on Cat {
+            id
+            owner {
+                firstName
+                __typename
+                id
+            }
+            __typename
+        }
+        ... on User {
+            name
+            __typename
+            id
+        }
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "friends": {
-                              "type": "Friend",
-                              "keyRaw": "friends",
+    "selection": {
+        "fields": {
+            "friends": {
+                "type": "Friend",
+                "keyRaw": "friends",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                          "visible": true,
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "visible": true,
-                                              },
-                                              "owner": {
-                                                  "type": "User",
-                                                  "keyRaw": "owner",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "owner": {
+                                    "type": "User",
+                                    "keyRaw": "owner",
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                          },
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
 
-                                                          "firstName": {
-                                                              "type": "String",
-                                                              "keyRaw": "firstName",
-                                                              "visible": true,
-                                                          },
+                                            "firstName": {
+                                                "type": "String",
+                                                "keyRaw": "firstName",
+                                                "visible": true,
+                                            },
 
-                                                          "id": {
-                                                              "type": "ID",
-                                                              "keyRaw": "id",
-                                                          },
-                                                      },
-                                                  },
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
+                                            },
+                                        },
+                                    },
 
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                                    "visible": true,
+                                },
+                            },
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                        "typeMap": {},
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121"
-          `),
+export default artifact
+
+export type Friends = {
+	readonly "input"?: Friends$input;
+	readonly "result": Friends$result | undefined;
+};
+
+export type Friends$result = {
+	readonly friends: ({} & (({
+		readonly id: string;
+		readonly owner: {
+			readonly firstName: string;
+		};
+		readonly __typename: "Cat";
+	}) | ({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
+};
+
+export type Friends$input = null | undefined;
+
+export type Friends$artifact = typeof artifact
+
+"HoudiniHash=5e7d291b1068492b9416a5460896b9b5064eacd175ec6ce4312be09c666cc121"`),
 				},
 			},
 			{
@@ -901,121 +1056,140 @@ func TestArtifactGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"Friends": tests.Dedent(`
-              export default {
-                  "name": "Friends",
-                  "kind": "HoudiniQuery",
-                  "hash": "19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d",
-                  "raw": ` + "`" + `query Friends {
-                  pets {
-                      ... on Cat {
-                          id
-                          owner {
-                              firstName
-                              __typename
-                              id
-                          }
-                          __typename
-                      }
-                      ... on Dog {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"Friends": tests.Dedent(`const artifact = {
+    "name": "Friends",
+    "kind": "HoudiniQuery",
+    "hash": "19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d",
+    "raw": ` + "`" + `query Friends {
+    pets {
+        ... on Cat {
+            id
+            owner {
+                firstName
+                __typename
+                id
+            }
+            __typename
+        }
+        ... on Dog {
+            name
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "pets": {
-                              "type": "Pet",
-                              "keyRaw": "pets",
+    "selection": {
+        "fields": {
+            "pets": {
+                "type": "Pet",
+                "keyRaw": "pets",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "visible": true,
-                                              },
-                                              "owner": {
-                                                  "type": "User",
-                                                  "keyRaw": "owner",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "owner": {
+                                    "type": "User",
+                                    "keyRaw": "owner",
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                          },
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
 
-                                                          "firstName": {
-                                                              "type": "String",
-                                                              "keyRaw": "firstName",
-                                                              "visible": true,
-                                                          },
+                                            "firstName": {
+                                                "type": "String",
+                                                "keyRaw": "firstName",
+                                                "visible": true,
+                                            },
 
-                                                          "id": {
-                                                              "type": "ID",
-                                                              "keyRaw": "id",
-                                                          },
-                                                      },
-                                                  },
+                                            "id": {
+                                                "type": "ID",
+                                                "keyRaw": "id",
+                                            },
+                                        },
+                                    },
 
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "Dog": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                                    "visible": true,
+                                },
+                            },
+                            "Dog": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                        "typeMap": {},
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d"
-          `),
+export default artifact
+
+export type Friends = {
+	readonly "input"?: Friends$input;
+	readonly "result": Friends$result | undefined;
+};
+
+export type Friends$result = {
+	readonly pets: ({} & (({
+		readonly id: string;
+		readonly owner: {
+			readonly firstName: string;
+		};
+		readonly __typename: "Cat";
+	})))[];
+};
+
+export type Friends$input = null | undefined;
+
+export type Friends$artifact = typeof artifact
+
+"HoudiniHash=19f6f1c998ae37bb4d4c15b384755c6a08f301fb4b5ccbed724961b186aa338d"`),
 				},
 			},
 			{
@@ -1035,93 +1209,109 @@ func TestArtifactGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"Friends": tests.Dedent(`
-              export default {
-                  "name": "Friends",
-                  "kind": "HoudiniQuery",
-                  "hash": "84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d",
-                  "raw": ` + "`" + `query Friends {
-                  pets {
-                      __typename
-                      ... on Cat {
-                          id
-                          __typename
-                      }
-                      ... on Dog {
-                          name
-                          __typename
-                          id
-                      }
-                  }
-              }
-              ` + "`" + `,
+					"Friends": tests.Dedent(`const artifact = {
+    "name": "Friends",
+    "kind": "HoudiniQuery",
+    "hash": "84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d",
+    "raw": ` + "`" + `query Friends {
+    pets {
+        __typename
+        ... on Cat {
+            id
+            __typename
+        }
+        ... on Dog {
+            name
+            __typename
+            id
+        }
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "pets": {
-                              "type": "Pet",
-                              "keyRaw": "pets",
+    "selection": {
+        "fields": {
+            "pets": {
+                "type": "Pet",
+                "keyRaw": "pets",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                          "visible": true,
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "Dog": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                            },
+                            "Dog": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                        "typeMap": {},
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d"
-          `),
+export default artifact
+
+export type Friends = {
+	readonly "input"?: Friends$input;
+	readonly "result": Friends$result | undefined;
+};
+
+export type Friends$result = {
+	readonly pets: ({} & (({
+		readonly id: string;
+		readonly __typename: "Cat";
+	})))[];
+};
+
+export type Friends$input = null | undefined;
+
+export type Friends$artifact = typeof artifact
+
+"HoudiniHash=84e7a2f0697fdc8af410c52a3c7a15e7f807035c884f302b4572462551052b1d"`),
 				},
 			},
 			{
@@ -1140,108 +1330,145 @@ func TestArtifactGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
-                  "raw": ` + "`" + `query TestQuery($value: String!) {
-                  users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
-                      firstName
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90",
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "refetch": {
+        "path": ["users"],
+        "method": "offset",
+        "pageSize": 0,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "Infinite"
+    },
 
-                  "selection": {
-                      "fields": {
-                          "users": {
-                              "type": "User",
-                              "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+    "raw": ` + "`" + `query TestQuery($value: String!) {
+    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+        firstName
+        __typename
+        id
+    }
+    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+        firstName
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                              "directives": [{
-                                  "name": "list",
-                                  "arguments": {
-                                      "name": {
-                                          "kind": "StringValue",
-                                          "value": "All_Users"
-                                      }
-                                  }
-                              }],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                              "list": {
-                                  "name": "All_Users",
-                                  "connection": false,
-                                  "type": "User"
-                              },
+    "selection": {
+        "fields": {
+            "users": {
+                "type": "User",
+                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "directives": [{
+                    "name": "list",
+                    "arguments": {
+                        "name": {
+                            "kind": "StringValue",
+                            "value": "All_Users"
+                        }
+                    }
+                }],
 
-                                      "firstName": {
-                                          "type": "String",
-                                          "keyRaw": "firstName",
-                                          "visible": true,
-                                      },
+                "list": {
+                    "name": "All_Users",
+                    "connection": false,
+                    "type": "User"
+                },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
-                                  },
-                              },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                              "filters": {
-                                  "boolValue": {
-                                      "kind": "Boolean",
-                                      "value": true
-                                  },
-                                  "floatValue": {
-                                      "kind": "Float",
-                                      "value": 1.2
-                                  },
-                                  "intValue": {
-                                      "kind": "Int",
-                                      "value": 1
-                                  },
-                                  "stringValue": {
-                                      "kind": "Variable",
-                                      "value": "value"
-                                  },
-                              },
-                              "visible": true,
-                          },
-                      },
-                  },
+                        "firstName": {
+                            "type": "String",
+                            "keyRaw": "firstName",
+                            "visible": true,
+                        },
 
-                  "pluginData": {},
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
+                },
 
-                  "input": {
-                      "fields": {
-                          "value": "String",
-                      },
+                "filters": {
+                    "boolValue": {
+                        "kind": "Boolean",
+                        "value": true
+                    },
+                    "floatValue": {
+                        "kind": "Float",
+                        "value": 1.2
+                    },
+                    "intValue": {
+                        "kind": "Int",
+                        "value": 1
+                    },
+                    "stringValue": {
+                        "kind": "Variable",
+                        "value": "value"
+                    },
+                },
+                "visible": true,
+            },
+        },
+    },
 
-                      "types": {},
+    "pluginData": {},
 
-                      "defaults": {},
+    "input": {
+        "fields": {
+            "value": "String",
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "types": {},
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+        "defaults": {},
 
-              "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
-          `),
+        "runtimeScalars": {},
+    },
+
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type TestQuery = {
+	readonly "input": TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly users: ({
+		readonly firstName: string;
+	})[];
+	readonly users: ({
+		readonly firstName: string;
+	})[];
+};
+
+export type TestQuery$input = {
+	value: string;
+};
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90"`),
 				},
 			},
 			{
@@ -1251,55 +1478,70 @@ func TestArtifactGeneration(t *testing.T) {
 					`query TestQuery { allItems { createdAt } }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178",
-                  "raw": ` + "`" + `query TestQuery {
-                  allItems {
-                      createdAt
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178",
+    "raw": ` + "`" + `query TestQuery {
+    allItems {
+        createdAt
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "allItems": {
-                              "type": "TodoItem",
-                              "keyRaw": "allItems",
+    "selection": {
+        "fields": {
+            "allItems": {
+                "type": "TodoItem",
+                "keyRaw": "allItems",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "createdAt": {
-                                          "type": "DateTime",
-                                          "keyRaw": "createdAt",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "createdAt": {
+                            "type": "DateTime",
+                            "keyRaw": "createdAt",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178"
-          `),
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly allItems: ({
+		readonly createdAt: DateTime;
+	})[];
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=6ab84d7e483ecf5559a0ab69cc5983b1c74c8abc61170ff82ed304dca7a6b178"`),
 				},
 			},
 			{
@@ -1315,31 +1557,41 @@ func TestArtifactGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"B": tests.Dedent(`
-            export default {
-                "name": "B",
-                "kind": "HoudiniSubscription",
-                "hash": "296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be",
-                "raw": ` + "`" + `subscription B {
-                newUser {
-                    user {
-                        firstName
-                        __typename
-                        id
-                    }
-                    __typename
-                }
-            }
-            ` + "`" + `,
+					"B": tests.Dedent(`const artifact = {
+    "name": "B",
+    "kind": "HoudiniSubscription",
+    "hash": "296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be",
+    "raw": ` + "`" + `subscription B {
+    newUser {
+        user {
+            firstName
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                "rootType": "Subscription",
-                "stripVariables": [],
+    "rootType": "Subscription",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "newUser": {
+                "type": "NewUserResult",
+                "keyRaw": "newUser",
 
                 "selection": {
                     "fields": {
-                        "newUser": {
-                            "type": "NewUserResult",
-                            "keyRaw": "newUser",
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "user": {
+                            "type": "User",
+                            "keyRaw": "user",
 
                             "selection": {
                                 "fields": {
@@ -1348,31 +1600,15 @@ func TestArtifactGeneration(t *testing.T) {
                                         "keyRaw": "__typename",
                                     },
 
-                                    "user": {
-                                        "type": "User",
-                                        "keyRaw": "user",
-
-                                        "selection": {
-                                            "fields": {
-                                                "__typename": {
-                                                    "type": "String",
-                                                    "keyRaw": "__typename",
-                                                },
-
-                                                "firstName": {
-                                                    "type": "String",
-                                                    "keyRaw": "firstName",
-                                                    "visible": true,
-                                                },
-
-                                                "id": {
-                                                    "type": "ID",
-                                                    "keyRaw": "id",
-                                                },
-                                            },
-                                        },
-
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
                                         "visible": true,
+                                    },
+
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
                                     },
                                 },
                             },
@@ -1382,11 +1618,34 @@ func TestArtifactGeneration(t *testing.T) {
                     },
                 },
 
-                "pluginData": {},
-            } as const
+                "visible": true,
+            },
+        },
+    },
 
-            "HoudiniHash=296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be"
-          `),
+    "pluginData": {},
+} as const
+
+export default artifact
+
+export type B = {
+	readonly "input"?: B$input;
+	readonly "result": B$result | undefined;
+};
+
+export type B$result = {
+	readonly newUser: {
+		readonly user: {
+			readonly firstName: string;
+		};
+	};
+};
+
+export type B$input = null | undefined;
+
+export type B$artifact = typeof artifact
+
+"HoudiniHash=296a21f0071cbe117a6db1565e144775e4c1461a843fd019b4e840c80bfb17be"`),
 				},
 			},
 			{
@@ -1425,110 +1684,129 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"NestedQuery": tests.Dedent(`
-              export default {
-                  "name": "NestedQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2",
-                  "raw": ` + "`" + `query NestedQuery {
-                  node(id: "some_id") {
-                      id
-                      ...NodeDetails
-                      ... on User {
-                          ...UserThings
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"NestedQuery": tests.Dedent(`const artifact = {
+    "name": "NestedQuery",
+    "kind": "HoudiniQuery",
+    "hash": "4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2",
+    "raw": ` + "`" + `query NestedQuery {
+    node(id: "some_id") {
+        id
+        ...NodeDetails
+        ... on User {
+            ...UserThings
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment NodeDetails on Node {
-                  id
-                  ... on User {
-                      id
-                      __typename
-                  }
-                  __typename
-              }
+fragment NodeDetails on Node {
+    id
+    ... on User {
+        id
+        __typename
+    }
+    __typename
+}
 
-              fragment UserThings on User {
-                  id
-                  name
-                  ...NodeDetails
-                  __typename
-              }
-              ` + "`" + `,
+fragment UserThings on User {
+    id
+    name
+    ...NodeDetails
+    __typename
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "node": {
-                              "type": "Node",
-                              "keyRaw": "node(id: \"some_id\")",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "node": {
+                "type": "Node",
+                "keyRaw": "node(id: \"some_id\")",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                          "visible": true,
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                                  "visible": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "visible": true,
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                              },
-                                          },
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "fragments": {
-                                      "NodeDetails": {
-                                          "arguments": {}
-                                      },
-                                      "UserThings": {
-                                          "arguments": {}
-                                      },
-                                  },
-                              },
+                    "fragments": {
+                        "NodeDetails": {
+                            "arguments": {}
+                        },
+                        "UserThings": {
+                            "arguments": {}
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2"
-	      `),
+export default artifact
+
+export type NestedQuery = {
+	readonly "input"?: NestedQuery$input;
+	readonly "result": NestedQuery$result | undefined;
+};
+
+export type NestedQuery$result = {
+	readonly node: {} & (({
+		readonly id: string;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})) | null;
+};
+
+export type NestedQuery$input = null | undefined;
+
+export type NestedQuery$artifact = typeof artifact
+
+"HoudiniHash=4c1b9d55fd57147ec99ed63b461874d1ec4010858f7e1e07710f672f6e02a5f2"`),
 				},
 			},
 			{
@@ -1553,113 +1831,130 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-            export default {
-                "name": "TestQuery",
-                "kind": "HoudiniQuery",
-                "hash": "4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb",
-                "raw": ` + "`" + `fragment NodeDetails on Node {
-                id
-                ... on User {
-                    id
-                    __typename
-                }
-                __typename
-            }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb",
+    "raw": ` + "`" + `fragment NodeDetails on Node {
+    id
+    ... on User {
+        id
+        __typename
+    }
+    __typename
+}
 
-            query TestQuery {
-                node(id: "some_id") {
-                    id @skip(if: true)
-                    ...NodeDetails @include(if: true)
-                    __typename
-                }
-            }
-            ` + "`" + `,
+query TestQuery {
+    node(id: "some_id") {
+        id @skip(if: true)
+        ...NodeDetails @include(if: true)
+        __typename
+    }
+}
+` + "`" + `,
 
-                "rootType": "Query",
-                "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "node": {
+                "type": "Node",
+                "keyRaw": "node(id: \"some_id\")",
+                "nullable": true,
 
                 "selection": {
                     "fields": {
-                        "node": {
-                            "type": "Node",
-                            "keyRaw": "node(id: \"some_id\")",
-                            "nullable": true,
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                            "selection": {
-                                "fields": {
-                                    "__typename": {
-                                        "type": "String",
-                                        "keyRaw": "__typename",
-                                    },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
 
-                                    "id": {
-                                        "type": "ID",
-                                        "keyRaw": "id",
+                            "directives": [{
+                                "name": "skip",
+                                "arguments": {
+                                    "if": {
+                                        "kind": "BooleanValue",
+                                        "value": true
+                                    }
+                                }
+                            }],
 
-                                        "directives": [{
-                                            "name": "skip",
-                                            "arguments": {
-                                                "if": {
-                                                    "kind": "BooleanValue",
-                                                    "value": true
-                                                }
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+
+                                    "directives": [{
+                                        "name": "skip",
+                                        "arguments": {
+                                            "if": {
+                                                "kind": "BooleanValue",
+                                                "value": true
                                             }
-                                        }],
+                                        }
+                                    }],
 
-                                        "visible": true,
-                                    },
-                                },
-                                "abstractFields": {
-                                    "fields": {
-                                        "User": {
-                                            "__typename": {
-                                                "type": "String",
-                                                "keyRaw": "__typename",
-                                            },
-                                            "id": {
-                                                "type": "ID",
-                                                "keyRaw": "id",
-
-                                                "directives": [{
-                                                    "name": "skip",
-                                                    "arguments": {
-                                                        "if": {
-                                                            "kind": "BooleanValue",
-                                                            "value": true
-                                                        }
-                                                    }
-                                                }],
-
-                                                "visible": true,
-                                            },
-                                        },
-                                    },
-
-                                    "typeMap": {},
-                                },
-
-                                "fragments": {
-                                    "NodeDetails": {
-                                        "arguments": {}
-                                    },
+                                    "visible": true,
                                 },
                             },
+                        },
 
-                            "abstract": true,
-                            "visible": true,
+                        "typeMap": {},
+                    },
+
+                    "fragments": {
+                        "NodeDetails": {
+                            "arguments": {}
                         },
                     },
                 },
 
-                "pluginData": {},
-                "policy": "CacheOrNetwork",
-                "partial": false
-            } as const
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-            "HoudiniHash=4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb"
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-          `),
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly node: {
+		readonly id: string;
+		readonly " $fragments": {
+			NodeDetails: {};
+		};
+	} | null;
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=4c2c62f573fb898602ef340af5870e73274c2d1b9b5c7bde3d90ad96a3cdb1eb"`),
 				},
 			},
 			{
@@ -1684,101 +1979,120 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "8425a7a24172dd6c9329e2025bcccbec73e2a0b7adcc8b52228a36497cc48600",
-                  "raw": ` + "`" + `fragment NodeDetails_33ZDpt on Node {
-                  ... on User {
-                      __typename
-                      id
-                      field(filter: "Foo")
-                  }
-                  __typename
-                  id
-              }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "8b69b464e99b7e8d99710bef4974593aff92444ba2a7ce789100877e0969caa8",
+    "raw": ` + "`" + `fragment NodeDetails_33ZDpt on Node {
+    ... on User {
+        __typename
+        id
+        field(filter: "Foo")
+    }
+    __typename
+    id
+}
 
-              query TestQuery {
-                  node(id: "some_id") {
-                      id
-                      ...NodeDetails_33ZDpt
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+query TestQuery() {
+    node(id: "some_id") {
+        id
+        ...NodeDetails_33ZDpt
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "node": {
-                              "type": "Node",
-                              "keyRaw": "node(id: \"some_id\")",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "node": {
+                "type": "Node",
+                "keyRaw": "node(id: \"some_id\")",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                          "visible": true,
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "field": {
-                                                  "type": "String",
-                                                  "keyRaw": "field(filter: \"Foo\")",
-                                                  "nullable": true,
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "field": {
+                                    "type": "String",
+                                    "keyRaw": "field(filter: \"Foo\")",
+                                    "nullable": true,
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "fragments": {
-                                      "NodeDetails": {
-                                          "arguments": {
-                                              "name": {
-                                                  "kind": "StringValue",
-                                                  "value": "Foo"
-                                              },
-                                          }
-                                      },
-                                  },
-                              },
+                    "fragments": {
+                        "NodeDetails": {
+                            "arguments": {
+                                "name": {
+                                    "kind": "StringValue",
+                                    "value": "Foo"
+                                },
+                            }
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=8425a7a24172dd6c9329e2025bcccbec73e2a0b7adcc8b52228a36497cc48600"
-          `),
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly node: {
+		readonly id: string;
+		readonly " $fragments": {
+			NodeDetails: {};
+		};
+	} | null;
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=8b69b464e99b7e8d99710bef4974593aff92444ba2a7ce789100877e0969caa8"`),
 				},
 			},
 			{
@@ -1800,61 +2114,80 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"UserBase": tests.Dedent(`
-              export default {
-                  "name": "UserBase",
-                  "kind": "HoudiniFragment",
-                  "hash": "04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81",
-                  "raw": ` + "`" + `fragment UserBase on User {
-                  id
-                  firstName
-                  ...UserMore
-                  __typename
-              }
+					"UserBase": tests.Dedent(`const artifact = {
+    "name": "UserBase",
+    "kind": "HoudiniFragment",
+    "hash": "04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81",
+    "raw": ` + "`" + `fragment UserBase on User {
+    id
+    firstName
+    ...UserMore
+    __typename
+}
 
-              fragment UserMore on User {
-                  id
-                  firstName
-                  __typename
-              }
-              ` + "`" + `,
+fragment UserMore on User {
+    id
+    firstName
+    __typename
+}
+` + "`" + `,
 
-                  "rootType": "User",
-                  "stripVariables": [],
+    "rootType": "User",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "__typename": {
-                              "type": "String",
-                              "keyRaw": "__typename",
-                              "visible": true,
-                          },
+    "selection": {
+        "fields": {
+            "__typename": {
+                "type": "String",
+                "keyRaw": "__typename",
+                "visible": true,
+            },
 
-                          "firstName": {
-                              "type": "String",
-                              "keyRaw": "firstName",
-                              "visible": true,
-                          },
+            "firstName": {
+                "type": "String",
+                "keyRaw": "firstName",
+                "visible": true,
+            },
 
-                          "id": {
-                              "type": "ID",
-                              "keyRaw": "id",
-                              "visible": true,
-                          },
-                      },
+            "id": {
+                "type": "ID",
+                "keyRaw": "id",
+                "visible": true,
+            },
+        },
 
-                      "fragments": {
-                          "UserMore": {
-                              "arguments": {}
-                          },
-                      },
-                  },
+        "fragments": {
+            "UserMore": {
+                "arguments": {}
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81"
-          `),
+export default artifact
+
+export type UserBase$input = never;
+
+export type UserBase = {
+	readonly "shape"?: UserBase$data;
+	readonly " $fragments": {
+		"UserBase": any;
+	};
+};
+
+export type UserBase$data = {
+	readonly id: string;
+	readonly firstName: string;
+	readonly " $fragments": {
+		UserMore: {};
+	};
+};
+
+export type UserBase$artifact = typeof artifact
+
+"HoudiniHash=04c007b29948cfcf9498fd214b2665243e26b27f8012c26dedceda29ba361c81"`),
 				},
 			},
 			{
@@ -1875,72 +2208,89 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"AnimalsOverview": tests.Dedent(`
-              export default {
-                  "name": "AnimalsOverview",
-                  "kind": "HoudiniQuery",
-                  "hash": "6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757",
-                  "raw": ` + "`" + `query AnimalsOverview($id: ID!) {
-                  node(id: $id) {
-                      id
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"AnimalsOverview": tests.Dedent(`const artifact = {
+    "name": "AnimalsOverview",
+    "kind": "HoudiniQuery",
+    "hash": "6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757",
+    "raw": ` + "`" + `query AnimalsOverview($id: ID!) {
+    node(id: $id) {
+        id
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "node": {
-                              "type": "Node",
-                              "keyRaw": "node(id: $id)",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "node": {
+                "type": "Node",
+                "keyRaw": "node(id: $id)",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "input": {
-                      "fields": {
-                          "id": "ID",
-                      },
+    "input": {
+        "fields": {
+            "id": "ID",
+        },
 
-                      "types": {},
+        "types": {},
 
-                      "defaults": {},
+        "defaults": {},
 
-                      "runtimeScalars": {
-                            "id": "ViewerIDFromSession",
-                      },
-                  },
+        "runtimeScalars": {
+              "id": "ViewerIDFromSession",
+        },
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757"
-            `),
+export default artifact
+
+export type AnimalsOverview = {
+	readonly "input": AnimalsOverview$input;
+	readonly "result": AnimalsOverview$result | undefined;
+};
+
+export type AnimalsOverview$result = {
+	readonly node: {
+		readonly id: string;
+	} | null;
+};
+
+export type AnimalsOverview$input = {
+	id: string;
+};
+
+export type AnimalsOverview$artifact = typeof artifact
+
+"HoudiniHash=6275a980f0b68321c29f28177a4a67a3a78efa4be59f28ad052345ac4b4bc757"`),
 				},
 			},
 			{
@@ -1958,103 +2308,123 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"UserFriends": tests.Dedent(`
-              export default {
-                  "name": "UserFriends",
-                  "kind": "HoudiniQuery",
-                  "hash": "1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73",
-                  "raw": ` + "`" + `query UserFriends($count: Int = 10, $search: String = "bob") {
-                  user {
-                      friendsByOffset(filter: $search, offset: $count) {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"UserFriends": tests.Dedent(`const artifact = {
+    "name": "UserFriends",
+    "kind": "HoudiniQuery",
+    "hash": "1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73",
+    "raw": ` + "`" + `query UserFriends($count: Int = 10, $search: String = "bob") {
+    user {
+        friendsByOffset(filter: $search, offset: $count) {
+            name
+            __typename
+            id
+        }
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "user": {
-                              "type": "User",
-                              "keyRaw": "user",
+    "selection": {
+        "fields": {
+            "user": {
+                "type": "User",
+                "keyRaw": "user",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friendsByOffset": {
-                                          "type": "User",
-                                          "keyRaw": "friendsByOffset(filter: $search, offset: $count)",
+                        "friendsByOffset": {
+                            "type": "User",
+                            "keyRaw": "friendsByOffset(filter: $search, offset: $count)",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
 
-                                                  "name": {
-                                                      "type": "String",
-                                                      "keyRaw": "name",
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                    "name": {
+                                        "type": "String",
+                                        "keyRaw": "name",
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
+                            "visible": true,
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
-                                  },
-                              },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "input": {
-                      "fields": {
-                          "count": "Int",
-                          "search": "String",
-                      },
+    "input": {
+        "fields": {
+            "count": "Int",
+            "search": "String",
+        },
 
-                      "types": {},
+        "types": {},
 
-                      "defaults": {
-                          "count": 10,
-                          "search": "bob",
-                      },
+        "defaults": {
+            "count": 10,
+            "search": "bob",
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73"
-          `),
+export default artifact
+
+export type UserFriends = {
+	readonly "input": UserFriends$input;
+	readonly "result": UserFriends$result | undefined;
+};
+
+export type UserFriends$result = {
+	readonly user: {
+		readonly friendsByOffset: ({
+			readonly name: string;
+		})[];
+	};
+};
+
+export type UserFriends$input = {
+	count?: number | null;
+	search?: string | null;
+};
+
+export type UserFriends$artifact = typeof artifact
+
+"HoudiniHash=1be5e9c7dbda921f62f3e53a7ce7cca4649d50adaa16a7bfcabc5d2e711f7f73"`),
 				},
 			},
 			{
@@ -2070,82 +2440,102 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"ListUsers": tests.Dedent(`
-              export default {
-                  "name": "ListUsers",
-                  "kind": "HoudiniQuery",
-                  "hash": "459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b",
-                  "raw": ` + "`" + `query ListUsers($bool: Boolean = true, $float: Float = 3.14, $int: Int = 5, $string: String = "hello world") {
-                  users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string) {
-                      name
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"ListUsers": tests.Dedent(`const artifact = {
+    "name": "ListUsers",
+    "kind": "HoudiniQuery",
+    "hash": "459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b",
+    "raw": ` + "`" + `query ListUsers($bool: Boolean = true, $float: Float = 3.14, $int: Int = 5, $string: String = "hello world") {
+    users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string) {
+        name
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "users": {
-                              "type": "User",
-                              "keyRaw": "users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string)",
+    "selection": {
+        "fields": {
+            "users": {
+                "type": "User",
+                "keyRaw": "users(boolValue: $bool, floatValue: $float, intValue: $int, stringValue: $string)",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
 
-                                      "name": {
-                                          "type": "String",
-                                          "keyRaw": "name",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "name": {
+                            "type": "String",
+                            "keyRaw": "name",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "input": {
-                      "fields": {
-                          "bool": "Boolean",
-                          "float": "Float",
-                          "int": "Int",
-                          "string": "String",
-                      },
+    "input": {
+        "fields": {
+            "bool": "Boolean",
+            "float": "Float",
+            "int": "Int",
+            "string": "String",
+        },
 
-                      "types": {},
+        "types": {},
 
-                      "defaults": {
-                          "bool": true,
-                          "float": 3.14,
-                          "int": 5,
-                          "string": "hello world",
-                      },
+        "defaults": {
+            "bool": true,
+            "float": 3.14,
+            "int": 5,
+            "string": "hello world",
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b"
-          `),
+export default artifact
+
+export type ListUsers = {
+	readonly "input": ListUsers$input;
+	readonly "result": ListUsers$result | undefined;
+};
+
+export type ListUsers$result = {
+	readonly users: ({
+		readonly name: string;
+	})[];
+};
+
+export type ListUsers$input = {
+	bool?: boolean | null;
+	float?: number | null;
+	int?: number | null;
+	string?: string | null;
+};
+
+export type ListUsers$artifact = typeof artifact
+
+"HoudiniHash=459f81b6ef22858bdc88408194bf27be86886c2819e4498d57f211dca4e6499b"`),
 				},
 			},
 			{
@@ -2161,92 +2551,112 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"FindUser": tests.Dedent(`
-              export default {
-                  "name": "FindUser",
-                  "kind": "HoudiniQuery",
-                  "hash": "f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7",
-                  "raw": ` + "`" + `query FindUser($filter: UserFilter = {name: "bob"}) {
-                  users(filter: $filter, offset: 5) {
-                      name
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"FindUser": tests.Dedent(
+						`import type { UserFilter } from "$houdini/graphql/inputs";
+const artifact = {
+    "name": "FindUser",
+    "kind": "HoudiniQuery",
+    "hash": "f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7",
+    "raw": ` + "`" + `query FindUser($filter: UserFilter = {name: "bob"}) {
+    users(filter: $filter, offset: 5) {
+        name
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "users": {
-                              "type": "User",
-                              "keyRaw": "users(filter: $filter, offset: 5)",
+    "selection": {
+        "fields": {
+            "users": {
+                "type": "User",
+                "keyRaw": "users(filter: $filter, offset: 5)",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
 
-                                      "name": {
-                                          "type": "String",
-                                          "keyRaw": "name",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "name": {
+                            "type": "String",
+                            "keyRaw": "name",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "input": {
-                      "fields": {
-                          "filter": "UserFilter",
-                      },
+    "input": {
+        "fields": {
+            "filter": "UserFilter",
+        },
 
-                      "types": {
-                          "NestedUserFilter": {
-                              "admin": "Boolean",
-                              "age": "Int",
-                              "firstName": "String",
-                              "id": "ID",
-                              "weight": "Float",
-                          },
-                          "UserFilter": {
-                              "enum": "MyEnum",
-                              "listRequired": "String",
-                              "middle": "NestedUserFilter",
-                              "name": "String",
-                              "nullList": "String",
-                              "recursive": "UserFilter",
-                          },
-                      },
+        "types": {
+            "NestedUserFilter": {
+                "admin": "Boolean",
+                "age": "Int",
+                "firstName": "String",
+                "id": "ID",
+                "weight": "Float",
+            },
+            "UserFilter": {
+                "enum": "MyEnum",
+                "listRequired": "String",
+                "middle": "NestedUserFilter",
+                "name": "String",
+                "nullList": "String",
+                "recursive": "UserFilter",
+            },
+        },
 
-                      "defaults": {
-                          "filter": {name: "bob"},
-                      },
+        "defaults": {
+            "filter": {name: "bob"},
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7"
-          `),
+export default artifact
+
+export type FindUser = {
+	readonly "input": FindUser$input;
+	readonly "result": FindUser$result | undefined;
+};
+
+export type FindUser$result = {
+	readonly users: ({
+		readonly name: string;
+	})[];
+};
+
+export type FindUser$input = {
+	filter?: UserFilter | null;
+};
+
+export type FindUser$artifact = typeof artifact
+
+"HoudiniHash=f960d0440b469f47aa1a2471c9f82a1709fec5959ed1d40aae1f0ecf537da4f7"`,
+					),
 				},
 			},
 			{
@@ -2262,66 +2672,81 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"FindUser": tests.Dedent(`
-              export default {
-                  "name": "FindUser",
-                  "kind": "HoudiniQuery",
-                  "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
-                  "raw": ` + "`" + `query FindUser {
-                  users {
-                      name
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"FindUser": tests.Dedent(`const artifact = {
+    "name": "FindUser",
+    "kind": "HoudiniQuery",
+    "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
+    "raw": ` + "`" + `query FindUser {
+    users {
+        name
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "users": {
-                              "type": "User",
-                              "keyRaw": "users",
+    "selection": {
+        "fields": {
+            "users": {
+                "type": "User",
+                "keyRaw": "users",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
 
-                                      "name": {
-                                          "type": "String",
-                                          "keyRaw": "name",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "name": {
+                            "type": "String",
+                            "keyRaw": "name",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "dedupe": {
-                      "cancel": "last",
-                      "match": "Variables"
-                  },
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "dedupe": {
+        "cancel": "last",
+        "match": "Variables"
+    },
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
-	        `),
+export default artifact
+
+export type FindUser = {
+	readonly "input"?: FindUser$input;
+	readonly "result": FindUser$result | undefined;
+};
+
+export type FindUser$result = {
+	readonly users: ({
+		readonly name: string;
+	})[];
+};
+
+export type FindUser$input = null | undefined;
+
+export type FindUser$artifact = typeof artifact
+
+"HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"`),
 				},
 			},
 			{
@@ -2337,66 +2762,81 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"FindUser": tests.Dedent(`
-              export default {
-                  "name": "FindUser",
-                  "kind": "HoudiniQuery",
-                  "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
-                  "raw": ` + "`" + `query FindUser {
-                  users {
-                      name
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"FindUser": tests.Dedent(`const artifact = {
+    "name": "FindUser",
+    "kind": "HoudiniQuery",
+    "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
+    "raw": ` + "`" + `query FindUser {
+    users {
+        name
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "users": {
-                              "type": "User",
-                              "keyRaw": "users",
+    "selection": {
+        "fields": {
+            "users": {
+                "type": "User",
+                "keyRaw": "users",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
 
-                                      "name": {
-                                          "type": "String",
-                                          "keyRaw": "name",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "name": {
+                            "type": "String",
+                            "keyRaw": "name",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "dedupe": {
-                      "cancel": "last",
-                      "match": "Operation"
-                  },
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "dedupe": {
+        "cancel": "last",
+        "match": "Operation"
+    },
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
-	        `),
+export default artifact
+
+export type FindUser = {
+	readonly "input"?: FindUser$input;
+	readonly "result": FindUser$result | undefined;
+};
+
+export type FindUser$result = {
+	readonly users: ({
+		readonly name: string;
+	})[];
+};
+
+export type FindUser$input = null | undefined;
+
+export type FindUser$artifact = typeof artifact
+
+"HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"`),
 				},
 			},
 			{
@@ -2412,66 +2852,81 @@ func TestArtifactGeneration(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"FindUser": tests.Dedent(`
-              export default {
-                  "name": "FindUser",
-                  "kind": "HoudiniQuery",
-                  "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
-                  "raw": ` + "`" + `query FindUser {
-                  users {
-                      name
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"FindUser": tests.Dedent(`const artifact = {
+    "name": "FindUser",
+    "kind": "HoudiniQuery",
+    "hash": "1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7",
+    "raw": ` + "`" + `query FindUser {
+    users {
+        name
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "users": {
-                              "type": "User",
-                              "keyRaw": "users",
+    "selection": {
+        "fields": {
+            "users": {
+                "type": "User",
+                "keyRaw": "users",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
 
-                                      "name": {
-                                          "type": "String",
-                                          "keyRaw": "name",
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                        "name": {
+                            "type": "String",
+                            "keyRaw": "name",
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "dedupe": {
-                      "cancel": "first",
-                      "match": "Variables"
-                  },
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "dedupe": {
+        "cancel": "first",
+        "match": "Variables"
+    },
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"
-	        `),
+export default artifact
+
+export type FindUser = {
+	readonly "input"?: FindUser$input;
+	readonly "result": FindUser$result | undefined;
+};
+
+export type FindUser$result = {
+	readonly users: ({
+		readonly name: string;
+	})[];
+};
+
+export type FindUser$input = null | undefined;
+
+export type FindUser$artifact = typeof artifact
+
+"HoudiniHash=1420307316411f9ff8413670ae0fbe99ececa60b9a06071013ab6e152c6f9ea7"`),
 				},
 			},
 			{
@@ -2490,7 +2945,7 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"CachedFriends": tests.Dedent(`
-              export default {
+              const artifact = {
                   "name": "CachedFriends",
                   "kind": "HoudiniQuery",
                   "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
@@ -2507,7 +2962,7 @@ func TestArtifactGeneration(t *testing.T) {
               ` + "`" + `,
 
                   "rootType": "Query",
-                  "stripVariables": [],
+                  "stripVariables": [] as Array<string>,
 
                   "selection": {
                       "fields": {
@@ -2561,6 +3016,25 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               } as const
 
+              export default artifact
+
+              export type CachedFriends = {
+              	readonly "input"?: CachedFriends$input;
+              	readonly "result": CachedFriends$result | undefined;
+              };
+
+              export type CachedFriends$result = {
+              	readonly user: {
+              		readonly friends: ({
+              			readonly id: string;
+              		})[];
+              	};
+              };
+
+              export type CachedFriends$input = null | undefined;
+
+              export type CachedFriends$artifact = typeof artifact
+
               "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
 				},
@@ -2584,7 +3058,7 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"CachedFriends": tests.Dedent(`
-            export default {
+            const artifact = {
                 "name": "CachedFriends",
                 "kind": "HoudiniQuery",
                 "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
@@ -2601,7 +3075,7 @@ func TestArtifactGeneration(t *testing.T) {
             ` + "`" + `,
 
                 "rootType": "Query",
-                "stripVariables": [],
+                "stripVariables": [] as Array<string>,
 
                 "selection": {
                     "fields": {
@@ -2655,6 +3129,25 @@ func TestArtifactGeneration(t *testing.T) {
                 "partial": false
             } as const
 
+            export default artifact
+
+            export type CachedFriends = {
+            	readonly "input"?: CachedFriends$input;
+            	readonly "result": CachedFriends$result | undefined;
+            };
+
+            export type CachedFriends$result = {
+            	readonly user: {
+            		readonly friends: ({
+            			readonly id: string;
+            		})[];
+            	};
+            };
+
+            export type CachedFriends$input = null | undefined;
+
+            export type CachedFriends$artifact = typeof artifact
+
             "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
           `),
 				},
@@ -2675,7 +3168,7 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"CachedFriends": tests.Dedent(`
-              export default {
+              const artifact = {
                   "name": "CachedFriends",
                   "kind": "HoudiniQuery",
                   "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
@@ -2692,7 +3185,7 @@ func TestArtifactGeneration(t *testing.T) {
               ` + "`" + `,
 
                   "rootType": "Query",
-                  "stripVariables": [],
+                  "stripVariables": [] as Array<string>,
 
                   "selection": {
                       "fields": {
@@ -2745,6 +3238,25 @@ func TestArtifactGeneration(t *testing.T) {
                   "policy": "CacheAndNetwork",
                   "partial": true
               } as const
+
+              export default artifact
+
+              export type CachedFriends = {
+              	readonly "input"?: CachedFriends$input;
+              	readonly "result": CachedFriends$result | undefined;
+              };
+
+              export type CachedFriends$result = {
+              	readonly user: {
+              		readonly friends: ({
+              			readonly id: string;
+              		})[];
+              	};
+              };
+
+              export type CachedFriends$input = null | undefined;
+
+              export type CachedFriends$artifact = typeof artifact
 
               "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
@@ -2769,7 +3281,7 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"CachedFriends": tests.Dedent(`
-              export default {
+              const artifact = {
                   "name": "CachedFriends",
                   "kind": "HoudiniQuery",
                   "hash": "0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a",
@@ -2786,7 +3298,7 @@ func TestArtifactGeneration(t *testing.T) {
               ` + "`" + `,
 
                   "rootType": "Query",
-                  "stripVariables": [],
+                  "stripVariables": [] as Array<string>,
 
                   "selection": {
                       "fields": {
@@ -2839,6 +3351,25 @@ func TestArtifactGeneration(t *testing.T) {
                   "policy": "CacheAndNetwork",
                   "partial": true
               } as const
+
+              export default artifact
+
+              export type CachedFriends = {
+              	readonly "input"?: CachedFriends$input;
+              	readonly "result": CachedFriends$result | undefined;
+              };
+
+              export type CachedFriends$result = {
+              	readonly user: {
+              		readonly friends: ({
+              			readonly id: string;
+              		})[];
+              	};
+              };
+
+              export type CachedFriends$input = null | undefined;
+
+              export type CachedFriends$artifact = typeof artifact
 
               "HoudiniHash=0c6098a719ba87b3bdc37ae86f125da4f8abcf54cc285000f8317ae8060daa8a"
             `),
@@ -2868,36 +3399,36 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"EntityList": tests.Dedent(`
-              export default {
+              const artifact = {
                   "name": "EntityList",
                   "kind": "HoudiniQuery",
                   "hash": "41abe068027a3e99325fd911b69effe90a0a3aabbb2e1cdfed73dd37dd73677e",
                   "raw": ` + "`" + `fragment EntityInfo on Entity {
-                  ... on User {
-                      firstName
-                      __typename
-                      id
-                  }
-                  ... on Cat {
-                      name
-                      __typename
-                      id
-                  }
-                  __typename
-                  id
-              }
+    ... on User {
+        firstName
+        __typename
+        id
+    }
+    ... on Cat {
+        name
+        __typename
+        id
+    }
+    __typename
+    id
+}
 
-              query EntityList {
-                  entities {
-                      ...EntityInfo
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+query EntityList {
+    entities {
+        ...EntityInfo
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
                   "rootType": "Query",
-                  "stripVariables": [],
+                  "stripVariables": [] as Array<string>,
 
                   "selection": {
                       "fields": {
@@ -2931,6 +3462,7 @@ func TestArtifactGeneration(t *testing.T) {
                                               "name": {
                                                   "type": "String",
                                                   "keyRaw": "name",
+                                                  "visible": true,
                                               },
                                           },
                                           "User": {
@@ -2941,6 +3473,7 @@ func TestArtifactGeneration(t *testing.T) {
                                               "firstName": {
                                                   "type": "String",
                                                   "keyRaw": "firstName",
+                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
@@ -2970,6 +3503,25 @@ func TestArtifactGeneration(t *testing.T) {
                   "partial": false
               } as const
 
+              export default artifact
+
+              export type EntityList = {
+              	readonly "input"?: EntityList$input;
+              	readonly "result": EntityList$result | undefined;
+              };
+
+              export type EntityList$result = {
+              	readonly entities: ({
+              		readonly " $fragments": {
+              			EntityInfo: {};
+              		};
+              	})[];
+              };
+
+              export type EntityList$input = null | undefined;
+
+              export type EntityList$artifact = typeof artifact
+
               "HoudiniHash=41abe068027a3e99325fd911b69effe90a0a3aabbb2e1cdfed73dd37dd73677e"
             `),
 				},
@@ -2995,34 +3547,34 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"UserWithAvatar": tests.Dedent(`
-            export default {
+            const artifact = {
                 "name": "UserWithAvatar",
                 "kind": "HoudiniQuery",
                 "hash": "51262f47df33c40c18a8f4b081242dedd62c8ffb0fd94595ee122afb0e83ad71",
                 "raw": ` + "`" + `fragment FriendList on User {
-                firstName
-                __typename
-                id
-            }
+    firstName
+    __typename
+    id
+}
 
-            fragment UserAvatar on User {
-                firstName
-                ...FriendList
-                __typename
-                id
-            }
+fragment UserAvatar on User {
+    firstName
+    ...FriendList
+    __typename
+    id
+}
 
-            query UserWithAvatar {
-                user {
-                    ...UserAvatar
-                    __typename
-                    id
-                }
-            }
-            ` + "`" + `,
+query UserWithAvatar {
+    user {
+        ...UserAvatar
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
                 "rootType": "Query",
-                "stripVariables": [],
+                "stripVariables": [] as Array<string>,
 
                 "selection": {
                     "fields": {
@@ -3040,6 +3592,7 @@ func TestArtifactGeneration(t *testing.T) {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
+                                        "visible": true,
                                     },
 
                                     "id": {
@@ -3056,6 +3609,7 @@ func TestArtifactGeneration(t *testing.T) {
                                             "fragment": "FriendList",
                                             "variables": {}
                                         },
+                                        "visible": true,
                                     },
 
                                     "Avatar": {
@@ -3092,6 +3646,25 @@ func TestArtifactGeneration(t *testing.T) {
                 "partial": false
             } as const
 
+            export default artifact
+
+            export type UserWithAvatar = {
+            	readonly "input"?: UserWithAvatar$input;
+            	readonly "result": UserWithAvatar$result | undefined;
+            };
+
+            export type UserWithAvatar$result = {
+            	readonly user: {
+            		readonly " $fragments": {
+            			UserAvatar: {};
+            		};
+            	};
+            };
+
+            export type UserWithAvatar$input = null | undefined;
+
+            export type UserWithAvatar$artifact = typeof artifact
+
             "HoudiniHash=51262f47df33c40c18a8f4b081242dedd62c8ffb0fd94595ee122afb0e83ad71"
           `),
 				},
@@ -3123,46 +3696,111 @@ func TestArtifactGeneration(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"UserRequiredFragments": tests.Dedent(`
-							export default {
-									"name": "UserRequiredFragments",
-									"kind": "HoudiniQuery",
-									"hash": "test_hash_placeholder",
-									"selection": {
-											"fields": {
-													"user": {
-															"type": "User",
-															"keyRaw": "user",
-															"selection": {
-																	"fields": {
-																			"field": {
-																					"type": "String",
-																					"keyRaw": "field",
-																					"nullable": true,
-																					"visible": false,
-																			},
-																			"name": {
-																					"type": "String",
-																					"keyRaw": "name",
-																					"visible": false,
-																			},
-																	},
-																	"fragments": {
-																			"UserWithRequired": {
-																					"arguments": {}
-																			},
-																			"UserWithoutRequired": {
-																					"arguments": {}
-																			},
-																	},
-															},
-															"visible": true,
-													},
-											},
-									},
-									"pluginData": {},
-									"policy": "CacheOrNetwork",
-									"partial": false
+							const artifact = {
+							    "name": "UserRequiredFragments",
+							    "kind": "HoudiniQuery",
+							    "hash": "67cc15d853c8c680b147a01db88491fc092dac7acb22354144b6107c52d86963",
+							    "raw": ` + "`" + `query UserRequiredFragments {
+							    user {
+							        ...UserWithRequired
+							        ...UserWithoutRequired
+							        __typename
+							        id
+							    }
+							}
+
+							fragment UserWithRequired on User {
+							    name
+							    field
+							    __typename
+							    id
+							}
+
+							fragment UserWithoutRequired on User {
+							    name
+							    field
+							    __typename
+							    id
+							}
+							` + "`" + `,
+
+							    "rootType": "Query",
+							    "stripVariables": [] as Array<string>,
+
+							    "selection": {
+							        "fields": {
+							            "user": {
+							                "type": "User",
+							                "keyRaw": "user",
+							                "nullable": true,
+
+							                "selection": {
+							                    "fields": {
+							                        "__typename": {
+							                            "type": "String",
+							                            "keyRaw": "__typename",
+							                        },
+
+							                        "field": {
+							                            "type": "String",
+							                            "keyRaw": "field",
+							                            "nullable": true,
+							                            "visible": true,
+							                        },
+
+							                        "id": {
+							                            "type": "ID",
+							                            "keyRaw": "id",
+							                        },
+
+							                        "name": {
+							                            "type": "String",
+							                            "keyRaw": "name",
+							                            "visible": true,
+							                        },
+							                    },
+
+							                    "fragments": {
+							                        "UserWithRequired": {
+							                            "arguments": {}
+							                        },
+							                        "UserWithoutRequired": {
+							                            "arguments": {}
+							                        },
+							                    },
+							                },
+
+							                "visible": true,
+							            },
+							        },
+							    },
+
+							    "pluginData": {},
+							    "policy": "CacheOrNetwork",
+							    "partial": false
 							} as const
+
+							export default artifact
+
+							export type UserRequiredFragments = {
+								readonly "input"?: UserRequiredFragments$input;
+								readonly "result": UserRequiredFragments$result | undefined;
+							};
+
+							export type UserRequiredFragments$result = {
+								readonly user: {
+									readonly " $fragments": {
+										UserWithRequired: {};
+										UserWithoutRequired: {};
+									};
+								};
+							};
+
+							export type UserRequiredFragments$input = null | undefined;
+
+							export type UserRequiredFragments$artifact = typeof artifact
+
+							"HoudiniHash=67cc15d853c8c680b147a01db88491fc092dac7acb22354144b6107c52d86963"
 				`),
 				},
 			},

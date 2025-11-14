@@ -127,21 +127,38 @@ func TestListArtifacts(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-              export default {
+              const artifact = {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
+                  "hash": "9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90",
+
+                  "refetch": {
+                      "path": ["users"],
+                      "method": "offset",
+                      "pageSize": 0,
+                      "embedded": false,
+                      "targetType": "Query",
+                      "paginated": false,
+                      "direction": "forward",
+                      "mode": "Infinite"
+                  },
+
                   "raw": ` + "`" + `query TestQuery($value: String!) {
-                  users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
-                      firstName
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+        firstName
+        __typename
+        id
+    }
+    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+        firstName
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
                   "rootType": "Query",
-                  "stripVariables": [],
+                  "stripVariables": [] as Array<string>,
 
                   "selection": {
                       "fields": {
@@ -226,7 +243,29 @@ func TestListArtifacts(t *testing.T) {
                   "partial": false
               } as const
 
-              "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
+              export default artifact
+
+              export type TestQuery = {
+              	readonly "input": TestQuery$input;
+              	readonly "result": TestQuery$result | undefined;
+              };
+
+              export type TestQuery$result = {
+              	readonly users: ({
+              		readonly firstName: string;
+              	})[];
+              	readonly users: ({
+              		readonly firstName: string;
+              	})[];
+              };
+
+              export type TestQuery$input = {
+              	value: string;
+              };
+
+              export type TestQuery$artifact = typeof artifact
+
+              "HoudiniHash=9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90"
 
           `),
 				},
@@ -246,219 +285,204 @@ func TestListArtifacts(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212",
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "58423b5d7c85036fe6b8e96a929e3186b2273e9abeb27af5a149c9b08e5399c8",
 
-                  "refetch": {
-                      "path": ["usersByCursor"],
-                      "method": "cursor",
-                      "pageSize": 10,
-                      "embedded": false,
-                      "targetType": "Query",
-                      "paginated": false,
-                      "direction": "both",
-                      "mode": "Infinite"
-                  },
+    "refetch": {
+        "path": ["usersByCursor"],
+        "method": "cursor",
+        "pageSize": 0,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "Infinite"
+    },
 
-                  "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
-                  usersByCursor(after: $after, before: $before, first: $first, last: $last) {
-                      edges {
-                          node {
-                              firstName
-                              __typename
-                              id
-                          }
-                          __typename
-                          cursor
-                      }
-                      __typename
-                      pageInfo {
-                          hasNextPage
-                          hasPreviousPage
-                          startCursor
-                          endCursor
-                      }
-                  }
-              }
-              ` + "`" + `,
+    "raw": ` + "`" + `query TestQuery {
+    usersByCursor {
+        edges {
+            node {
+                firstName
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "usersByCursor": {
-                              "type": "UserConnection",
-                              "keyRaw": "usersByCursor::paginated",
+    "selection": {
+        "fields": {
+            "usersByCursor": {
+                "type": "UserConnection",
+                "keyRaw": "usersByCursor",
 
-                              "directives": [{
-                                  "name": "list",
-                                  "arguments": {
-                                      "name": {
-                                          "kind": "StringValue",
-                                          "value": "All_Users"
-                                      }
-                                  }
-                              }],
+                "directives": [{
+                    "name": "list",
+                    "arguments": {
+                        "name": {
+                            "kind": "StringValue",
+                            "value": "All_Users"
+                        }
+                    }
+                }],
 
-                              "list": {
-                                  "name": "All_Users",
-                                  "connection": true,
-                                  "type": "User"
-                              },
+                "list": {
+                    "name": "All_Users",
+                    "connection": true,
+                    "type": "User"
+                },
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "edges": {
-                                          "type": "UserEdge",
-                                          "keyRaw": "edges",
-                                          "updates": ["append", "prepend"],
+                        "edges": {
+                            "type": "UserEdge",
+                            "keyRaw": "edges",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "cursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "cursor",
-                                                  },
+                                    "cursor": {
+                                        "type": "String",
+                                        "keyRaw": "cursor",
+                                        "visible": true,
+                                    },
 
-                                                  "node": {
-                                                      "type": "User",
-                                                      "keyRaw": "node",
-                                                      "nullable": true,
+                                    "node": {
+                                        "type": "User",
+                                        "keyRaw": "node",
+                                        "nullable": true,
 
-                                                      "selection": {
-                                                          "fields": {
-                                                              "__typename": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "__typename",
-                                                              },
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
 
-                                                              "firstName": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "firstName",
-                                                                  "visible": true,
-                                                              },
+                                                "firstName": {
+                                                    "type": "String",
+                                                    "keyRaw": "firstName",
+                                                    "visible": true,
+                                                },
 
-                                                              "id": {
-                                                                  "type": "ID",
-                                                                  "keyRaw": "id",
-                                                              },
-                                                          },
-                                                      },
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                },
+                                            },
+                                        },
 
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
+                            "visible": true,
+                        },
 
-                                      "pageInfo": {
-                                          "type": "PageInfo",
-                                          "keyRaw": "pageInfo",
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "endCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "endCursor",
-                                                      "updates": ["append", "prepend"],
-                                                      "nullable": true,
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "endCursor": {
+                                        "type": "String",
+                                        "keyRaw": "endCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "hasNextPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasNextPage",
-                                                      "updates": ["append", "prepend"],
-                                                  },
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "visible": true,
+                                    },
 
-                                                  "hasPreviousPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasPreviousPage",
-                                                      "updates": ["append", "prepend"],
-                                                  },
+                                    "hasPreviousPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasPreviousPage",
+                                        "visible": true,
+                                    },
 
-                                                  "startCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "startCursor",
-                                                      "updates": ["append", "prepend"],
-                                                      "nullable": true,
-                                                  },
-                                              },
-                                          },
+                                    "startCursor": {
+                                        "type": "String",
+                                        "keyRaw": "startCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "filters": {
-                                  "after": {
-                                      "kind": "Variable",
-                                      "value": "after"
-                                  },
-                                  "before": {
-                                      "kind": "Variable",
-                                      "value": "before"
-                                  },
-                                  "first": {
-                                      "kind": "Variable",
-                                      "value": "first"
-                                  },
-                                  "last": {
-                                      "kind": "Variable",
-                                      "value": "last"
-                                  },
-                              },
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-                  "dedupe": {
-                      "cancel": "last",
-                      "match": "Variables"
-                  },
+export default artifact
 
-                  "input": {
-                      "fields": {
-                          "after": "String",
-                          "before": "String",
-                          "first": "Int",
-                          "last": "Int",
-                      },
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
 
-                      "types": {},
+export type TestQuery$result = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
 
-                      "defaults": {
-                          "first": 10,
-                      },
+export type TestQuery$input = null | undefined;
 
-                      "runtimeScalars": {},
-                  },
+export type TestQuery$artifact = typeof artifact
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
-
-              "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
-
-          `),
+"HoudiniHash=58423b5d7c85036fe6b8e96a929e3186b2273e9abeb27af5a149c9b08e5399c8"`),
 				},
 			},
 			{
@@ -476,219 +500,282 @@ func TestListArtifacts(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212",
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47",
 
-                  "refetch": {
-                      "path": ["usersByCursor"],
-                      "method": "cursor",
-                      "pageSize": 10,
-                      "embedded": false,
-                      "targetType": "Query",
-                      "paginated": true,
-                      "direction": "both",
-                      "mode": "Infinite"
-                  },
+    "refetch": {
+        "path": ["usersByCursor"],
+        "method": "cursor",
+        "pageSize": 10,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "Infinite"
+    },
 
-                  "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
-                  usersByCursor(after: $after, before: $before, first: $first, last: $last) {
-                      edges {
-                          node {
-                              firstName
-                              __typename
-                              id
-                          }
-                          __typename
-                          cursor
-                      }
-                      __typename
-                      pageInfo {
-                          hasNextPage
-                          hasPreviousPage
-                          startCursor
-                          endCursor
-                      }
-                  }
-              }
-              ` + "`" + `,
+    "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
+    usersByCursor(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+            node {
+                firstName
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+    usersByCursor(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+            node {
+                firstName
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "usersByCursor": {
-                              "type": "UserConnection",
-                              "keyRaw": "usersByCursor::paginated",
+    "selection": {
+        "fields": {
+            "usersByCursor": {
+                "type": "UserConnection",
+                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)",
 
-                              "directives": [{
-                                  "name": "paginate",
-                                  "arguments": {
-                                      "name": {
-                                          "kind": "StringValue",
-                                          "value": "All_Users"
-                                      }
-                                  }
-                              }],
+                "directives": [{
+                    "name": "paginate",
+                    "arguments": {
+                        "name": {
+                            "kind": "StringValue",
+                            "value": "All_Users"
+                        }
+                    }
+                }],
 
-                              "list": {
-                                  "name": "All_Users",
-                                  "connection": true,
-                                  "type": "User"
-                              },
+                "list": {
+                    "name": "All_Users",
+                    "connection": true,
+                    "type": "User"
+                },
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "edges": {
-                                          "type": "UserEdge",
-                                          "keyRaw": "edges",
-                                          "updates": ["append", "prepend"],
+                        "edges": {
+                            "type": "UserEdge",
+                            "keyRaw": "edges",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "cursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "cursor",
-                                                  },
+                                    "cursor": {
+                                        "type": "String",
+                                        "keyRaw": "cursor",
+                                        "visible": true,
+                                    },
 
-                                                  "node": {
-                                                      "type": "User",
-                                                      "keyRaw": "node",
-                                                      "nullable": true,
+                                    "node": {
+                                        "type": "User",
+                                        "keyRaw": "node",
+                                        "nullable": true,
 
-                                                      "selection": {
-                                                          "fields": {
-                                                              "__typename": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "__typename",
-                                                              },
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
 
-                                                              "firstName": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "firstName",
-                                                                  "visible": true,
-                                                              },
+                                                "firstName": {
+                                                    "type": "String",
+                                                    "keyRaw": "firstName",
+                                                    "visible": true,
+                                                },
 
-                                                              "id": {
-                                                                  "type": "ID",
-                                                                  "keyRaw": "id",
-                                                              },
-                                                          },
-                                                      },
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                },
+                                            },
+                                        },
 
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
+                            "visible": true,
+                        },
 
-                                      "pageInfo": {
-                                          "type": "PageInfo",
-                                          "keyRaw": "pageInfo",
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "endCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "endCursor",
-                                                      "updates": ["append", "prepend"],
-                                                      "nullable": true,
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "endCursor": {
+                                        "type": "String",
+                                        "keyRaw": "endCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "hasNextPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasNextPage",
-                                                      "updates": ["append", "prepend"],
-                                                  },
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "visible": true,
+                                    },
 
-                                                  "hasPreviousPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasPreviousPage",
-                                                      "updates": ["append", "prepend"],
-                                                  },
+                                    "hasPreviousPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasPreviousPage",
+                                        "visible": true,
+                                    },
 
-                                                  "startCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "startCursor",
-                                                      "updates": ["append", "prepend"],
-                                                      "nullable": true,
-                                                  },
-                                              },
-                                          },
+                                    "startCursor": {
+                                        "type": "String",
+                                        "keyRaw": "startCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "filters": {
-                                  "after": {
-                                      "kind": "Variable",
-                                      "value": "after"
-                                  },
-                                  "before": {
-                                      "kind": "Variable",
-                                      "value": "before"
-                                  },
-                                  "first": {
-                                      "kind": "Variable",
-                                      "value": "first"
-                                  },
-                                  "last": {
-                                      "kind": "Variable",
-                                      "value": "last"
-                                  },
-                              },
-                              "visible": true,
-                          },
-                      },
-                  },
+                "filters": {
+                    "after": {
+                        "kind": "Variable",
+                        "value": "after"
+                    },
+                    "before": {
+                        "kind": "Variable",
+                        "value": "before"
+                    },
+                    "first": {
+                        "kind": "Variable",
+                        "value": "first"
+                    },
+                    "last": {
+                        "kind": "Variable",
+                        "value": "last"
+                    },
+                },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "dedupe": {
-                      "cancel": "last",
-                      "match": "Variables"
-                  },
+    "dedupe": {
+        "cancel": "last",
+        "match": "Variables"
+    },
 
-                  "input": {
-                      "fields": {
-                          "after": "String",
-                          "before": "String",
-                          "first": "Int",
-                          "last": "Int",
-                      },
+    "input": {
+        "fields": {
+            "after": "String",
+            "before": "String",
+            "first": "Int",
+            "last": "Int",
+        },
 
-                      "types": {},
+        "types": {},
 
-                      "defaults": {
-                          "first": 10,
-                      },
+        "defaults": {
+            "first": 10,
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
+export default artifact
 
-          `),
+export type TestQuery = {
+	readonly "input": TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
+
+export type TestQuery$input = {
+	after?: string | null;
+	before?: string | null;
+	first?: number | null;
+	last?: number | null;
+};
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47"`),
 				},
 			},
 			{
@@ -706,223 +793,286 @@ func TestListArtifacts(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212",
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47",
 
-                  "refetch": {
-                      "path": ["usersByCursor"],
-                      "method": "cursor",
-                      "pageSize": 10,
-                      "embedded": false,
-                      "targetType": "Query",
-                      "paginated": true,
-                      "direction": "both",
-                      "mode": "SinglePage"
-                  },
+    "refetch": {
+        "path": ["usersByCursor"],
+        "method": "cursor",
+        "pageSize": 10,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "SinglePage"
+    },
 
-                  "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
-                  usersByCursor(after: $after, before: $before, first: $first, last: $last) {
-                      edges {
-                          node {
-                              firstName
-                              __typename
-                              id
-                          }
-                          __typename
-                          cursor
-                      }
-                      __typename
-                      pageInfo {
-                          hasNextPage
-                          hasPreviousPage
-                          startCursor
-                          endCursor
-                      }
-                  }
-              }
-              ` + "`" + `,
+    "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
+    usersByCursor(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+            node {
+                firstName
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+    usersByCursor(after: $after, before: $before, first: $first, last: $last) {
+        edges {
+            node {
+                firstName
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "usersByCursor": {
-                              "type": "UserConnection",
-                              "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
+    "selection": {
+        "fields": {
+            "usersByCursor": {
+                "type": "UserConnection",
+                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)",
 
-                              "directives": [{
-                                  "name": "paginate",
-                                  "arguments": {
-                                      "name": {
-                                          "kind": "StringValue",
-                                          "value": "All_Users"
-                                      },
-                                      "mode": {
-                                          "kind": "StringValue",
-                                          "value": "SinglePage"
-                                      }
-                                  }
-                              }],
+                "directives": [{
+                    "name": "paginate",
+                    "arguments": {
+                        "name": {
+                            "kind": "StringValue",
+                            "value": "All_Users"
+                        },
+                        "mode": {
+                            "kind": "StringValue",
+                            "value": "SinglePage"
+                        }
+                    }
+                }],
 
-                              "list": {
-                                  "name": "All_Users",
-                                  "connection": true,
-                                  "type": "User"
-                              },
+                "list": {
+                    "name": "All_Users",
+                    "connection": true,
+                    "type": "User"
+                },
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "edges": {
-                                          "type": "UserEdge",
-                                          "keyRaw": "edges",
-                                          "updates": ["append", "prepend"],
+                        "edges": {
+                            "type": "UserEdge",
+                            "keyRaw": "edges",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "cursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "cursor",
-                                                  },
+                                    "cursor": {
+                                        "type": "String",
+                                        "keyRaw": "cursor",
+                                        "visible": true,
+                                    },
 
-                                                  "node": {
-                                                      "type": "User",
-                                                      "keyRaw": "node",
-                                                      "nullable": true,
+                                    "node": {
+                                        "type": "User",
+                                        "keyRaw": "node",
+                                        "nullable": true,
 
-                                                      "selection": {
-                                                          "fields": {
-                                                              "__typename": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "__typename",
-                                                              },
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
 
-                                                              "firstName": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "firstName",
-                                                                  "visible": true,
-                                                              },
+                                                "firstName": {
+                                                    "type": "String",
+                                                    "keyRaw": "firstName",
+                                                    "visible": true,
+                                                },
 
-                                                              "id": {
-                                                                  "type": "ID",
-                                                                  "keyRaw": "id",
-                                                              },
-                                                          },
-                                                      },
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                },
+                                            },
+                                        },
 
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
+                            "visible": true,
+                        },
 
-                                      "pageInfo": {
-                                          "type": "PageInfo",
-                                          "keyRaw": "pageInfo",
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "endCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "endCursor",
-                                                      "updates": ["append", "prepend"],
-                                                      "nullable": true,
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "endCursor": {
+                                        "type": "String",
+                                        "keyRaw": "endCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "hasNextPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasNextPage",
-                                                      "updates": ["append", "prepend"],
-                                                  },
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "visible": true,
+                                    },
 
-                                                  "hasPreviousPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasPreviousPage",
-                                                      "updates": ["append", "prepend"],
-                                                  },
+                                    "hasPreviousPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasPreviousPage",
+                                        "visible": true,
+                                    },
 
-                                                  "startCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "startCursor",
-                                                      "updates": ["append", "prepend"],
-                                                      "nullable": true,
-                                                  },
-                                              },
-                                          },
+                                    "startCursor": {
+                                        "type": "String",
+                                        "keyRaw": "startCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "filters": {
-                                  "after": {
-                                      "kind": "Variable",
-                                      "value": "after"
-                                  },
-                                  "before": {
-                                      "kind": "Variable",
-                                      "value": "before"
-                                  },
-                                  "first": {
-                                      "kind": "Variable",
-                                      "value": "first"
-                                  },
-                                  "last": {
-                                      "kind": "Variable",
-                                      "value": "last"
-                                  },
-                              },
-                              "visible": true,
-                          },
-                      },
-                  },
+                "filters": {
+                    "after": {
+                        "kind": "Variable",
+                        "value": "after"
+                    },
+                    "before": {
+                        "kind": "Variable",
+                        "value": "before"
+                    },
+                    "first": {
+                        "kind": "Variable",
+                        "value": "first"
+                    },
+                    "last": {
+                        "kind": "Variable",
+                        "value": "last"
+                    },
+                },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
+    "pluginData": {},
 
-                  "dedupe": {
-                      "cancel": "last",
-                      "match": "Variables"
-                  },
+    "dedupe": {
+        "cancel": "last",
+        "match": "Variables"
+    },
 
-                  "input": {
-                      "fields": {
-                          "after": "String",
-                          "before": "String",
-                          "first": "Int",
-                          "last": "Int",
-                      },
+    "input": {
+        "fields": {
+            "after": "String",
+            "before": "String",
+            "first": "Int",
+            "last": "Int",
+        },
 
-                      "types": {},
+        "types": {},
 
-                      "defaults": {
-                          "first": 10,
-                      },
+        "defaults": {
+            "first": 10,
+        },
 
-                      "runtimeScalars": {},
-                  },
+        "runtimeScalars": {},
+    },
 
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"
+export default artifact
 
-          `),
+export type TestQuery = {
+	readonly "input": TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly firstName: string;
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
+
+export type TestQuery$input = {
+	after?: string | null;
+	before?: string | null;
+	first?: number | null;
+	last?: number | null;
+};
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47"`),
 				},
 			},
 			{
@@ -969,244 +1119,271 @@ func TestListArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"AnimalQuery": tests.Dedent(`
-              export default {
-                  "name": "AnimalQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40",
-                  "raw": ` + "`" + `fragment AnimalList on AnimalConnection {
-                  edges {
-                      node {
-                          id
-                          ...AnimalProps
-                          __typename
-                      }
-                      __typename
-                  }
-                  __typename
-              }
+					"AnimalQuery": tests.Dedent(`const artifact = {
+    "name": "AnimalQuery",
+    "kind": "HoudiniQuery",
+    "hash": "4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40",
+    "raw": ` + "`" + `fragment AnimalList on AnimalConnection {
+    edges {
+        node {
+            id
+            ...AnimalProps
+            __typename
+        }
+        __typename
+    }
+    __typename
+}
 
-              fragment AnimalProps on Animal {
-                  name
-                  __typename
-                  id
-              }
+fragment AnimalProps on Animal {
+    name
+    __typename
+    id
+}
 
-              query AnimalQuery {
-                  animals {
-                      pageInfo {
-                          hasPreviousPage
-                          hasNextPage
-                          startCursor
-                          endCursor
-                          __typename
-                      }
-                      ...MonkeyList
-                      __typename
-                  }
-              }
+query AnimalQuery {
+    animals {
+        pageInfo {
+            hasPreviousPage
+            hasNextPage
+            startCursor
+            endCursor
+            __typename
+        }
+        ...MonkeyList
+        __typename
+    }
+}
 
-              fragment MonkeyList on MonkeyConnection {
-                  edges {
-                      node {
-                          hasBanana
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-                  ...AnimalList
-                  __typename
-              }
-              ` + "`" + `,
+fragment MonkeyList on MonkeyConnection {
+    edges {
+        node {
+            hasBanana
+            __typename
+            id
+        }
+        __typename
+    }
+    ...AnimalList
+    __typename
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "animals": {
-                              "type": "AnimalConnection",
-                              "keyRaw": "animals",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "animals": {
+                "type": "AnimalConnection",
+                "keyRaw": "animals",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "pageInfo": {
-                                          "type": "PageInfo",
-                                          "keyRaw": "pageInfo",
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "endCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "endCursor",
-                                                      "nullable": true,
-                                                      "visible": true,
-                                                  },
+                                    "endCursor": {
+                                        "type": "String",
+                                        "keyRaw": "endCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "hasNextPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasNextPage",
-                                                      "visible": true,
-                                                  },
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "visible": true,
+                                    },
 
-                                                  "hasPreviousPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasPreviousPage",
-                                                      "visible": true,
-                                                  },
+                                    "hasPreviousPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasPreviousPage",
+                                        "visible": true,
+                                    },
 
-                                                  "startCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "startCursor",
-                                                      "nullable": true,
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                    "startCursor": {
+                                        "type": "String",
+                                        "keyRaw": "startCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "MonkeyConnection": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "edges": {
-                                                  "type": "MonkeyEdge",
-                                                  "keyRaw": "edges",
+                            "visible": true,
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "MonkeyConnection": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                },
+                                "edges": {
+                                    "type": "MonkeyEdge",
+                                    "keyRaw": "edges",
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                          },
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
 
-                                                          "node": {
-                                                              "type": "Monkey",
-                                                              "keyRaw": "node",
-                                                              "nullable": true,
+                                            "node": {
+                                                "type": "Monkey",
+                                                "keyRaw": "node",
+                                                "nullable": true,
 
-                                                              "selection": {
-                                                                  "fields": {
-                                                                      "__typename": {
-                                                                          "type": "String",
-                                                                          "keyRaw": "__typename",
-                                                                      },
+                                                "selection": {
+                                                    "fields": {
+                                                        "__typename": {
+                                                            "type": "String",
+                                                            "keyRaw": "__typename",
+                                                        },
 
-                                                                      "hasBanana": {
-                                                                          "type": "Boolean",
-                                                                          "keyRaw": "hasBanana",
-                                                                      },
+                                                        "hasBanana": {
+                                                            "type": "Boolean",
+                                                            "keyRaw": "hasBanana",
+                                                            "visible": true,
+                                                        },
 
-                                                                      "id": {
-                                                                          "type": "ID",
-                                                                          "keyRaw": "id",
-                                                                      },
+                                                        "id": {
+                                                            "type": "ID",
+                                                            "keyRaw": "id",
+                                                        },
 
-                                                                      "name": {
-                                                                          "type": "String",
-                                                                          "keyRaw": "name",
-                                                                      },
-                                                                  },
+                                                        "name": {
+                                                            "type": "String",
+                                                            "keyRaw": "name",
+                                                            "visible": true,
+                                                        },
+                                                    },
 
-                                                                  "fragments": {
-                                                                      "AnimalProps": {
-                                                                          "arguments": {}
-                                                                      },
-                                                                  },
-                                                              },
+                                                    "fragments": {
+                                                        "AnimalProps": {
+                                                            "arguments": {}
+                                                        },
+                                                    },
+                                                },
 
-                                                          },
-                                                      },
-                                                  },
+                                                "visible": true,
+                                            },
+                                        },
+                                    },
 
-                                              },
-                                              "pageInfo": {
-                                                  "type": "PageInfo",
-                                                  "keyRaw": "pageInfo",
+                                    "visible": true,
+                                },
+                                "pageInfo": {
+                                    "type": "PageInfo",
+                                    "keyRaw": "pageInfo",
 
-                                                  "selection": {
-                                                      "fields": {
-                                                          "__typename": {
-                                                              "type": "String",
-                                                              "keyRaw": "__typename",
-                                                          },
+                                    "selection": {
+                                        "fields": {
+                                            "__typename": {
+                                                "type": "String",
+                                                "keyRaw": "__typename",
+                                            },
 
-                                                          "endCursor": {
-                                                              "type": "String",
-                                                              "keyRaw": "endCursor",
-                                                              "nullable": true,
-                                                              "visible": true,
-                                                          },
+                                            "endCursor": {
+                                                "type": "String",
+                                                "keyRaw": "endCursor",
+                                                "nullable": true,
+                                                "visible": true,
+                                            },
 
-                                                          "hasNextPage": {
-                                                              "type": "Boolean",
-                                                              "keyRaw": "hasNextPage",
-                                                              "visible": true,
-                                                          },
+                                            "hasNextPage": {
+                                                "type": "Boolean",
+                                                "keyRaw": "hasNextPage",
+                                                "visible": true,
+                                            },
 
-                                                          "hasPreviousPage": {
-                                                              "type": "Boolean",
-                                                              "keyRaw": "hasPreviousPage",
-                                                              "visible": true,
-                                                          },
+                                            "hasPreviousPage": {
+                                                "type": "Boolean",
+                                                "keyRaw": "hasPreviousPage",
+                                                "visible": true,
+                                            },
 
-                                                          "startCursor": {
-                                                              "type": "String",
-                                                              "keyRaw": "startCursor",
-                                                              "nullable": true,
-                                                              "visible": true,
-                                                          },
-                                                      },
-                                                  },
+                                            "startCursor": {
+                                                "type": "String",
+                                                "keyRaw": "startCursor",
+                                                "nullable": true,
+                                                "visible": true,
+                                            },
+                                        },
+                                    },
 
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                                      "typeMap": {},
-                                  },
+                        "typeMap": {},
+                    },
 
-                                  "fragments": {
-                                      "AnimalList": {
-                                          "arguments": {}
-                                      },
-                                      "MonkeyList": {
-                                          "arguments": {}
-                                      },
-                                  },
-                              },
+                    "fragments": {
+                        "AnimalList": {
+                            "arguments": {}
+                        },
+                        "MonkeyList": {
+                            "arguments": {}
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40"
-          `),
+export default artifact
+
+export type AnimalQuery = {
+	readonly "input"?: AnimalQuery$input;
+	readonly "result": AnimalQuery$result | undefined;
+};
+
+export type AnimalQuery$result = {
+	readonly animals: {
+		readonly pageInfo: {
+			readonly hasPreviousPage: boolean;
+			readonly hasNextPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+		readonly " $fragments": {
+			MonkeyList: {};
+		};
+	} | null;
+};
+
+export type AnimalQuery$input = null | undefined;
+
+export type AnimalQuery$artifact = typeof artifact
+
+"HoudiniHash=4f37a478d045b157f6b5a17228a3e63b13351e87346407203c9620b7f3ed5e40"`),
 				},
 			},
 			{
@@ -1240,148 +1417,170 @@ func TestListArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"AnimalsOverview": tests.Dedent(`
-              export default {
-                  "name": "AnimalsOverview",
-                  "kind": "HoudiniQuery",
-                  "hash": "dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35",
-                  "raw": ` + "`" + `query AnimalsOverview {
-                  animals {
-                      ...AnimalsOverviewList
-                      __typename
-                  }
-              }
+					"AnimalsOverview": tests.Dedent(`const artifact = {
+    "name": "AnimalsOverview",
+    "kind": "HoudiniQuery",
+    "hash": "dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35",
+    "raw": ` + "`" + `query AnimalsOverview {
+    animals {
+        ...AnimalsOverviewList
+        __typename
+    }
+}
 
-              fragment AnimalsOverviewList on AnimalConnection {
-                  edges {
-                      node {
-                          ... on Monkey {
-                              ...MonkeyFragment
-                              __typename
-                              id
-                          }
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-                  __typename
-              }
+fragment AnimalsOverviewList on AnimalConnection {
+    edges {
+        node {
+            ... on Monkey {
+                ...MonkeyFragment
+                __typename
+                id
+            }
+            __typename
+            id
+        }
+        __typename
+    }
+    __typename
+}
 
-              fragment MonkeyFragment on Monkey {
-                  id
-                  name
-                  hasBanana
-                  __typename
-              }
-              ` + "`" + `,
+fragment MonkeyFragment on Monkey {
+    id
+    name
+    hasBanana
+    __typename
+}
+` + "`" + `,
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "animals": {
-                              "type": "AnimalConnection",
-                              "keyRaw": "animals",
-                              "nullable": true,
+    "selection": {
+        "fields": {
+            "animals": {
+                "type": "AnimalConnection",
+                "keyRaw": "animals",
+                "nullable": true,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "edges": {
-                                          "type": "AnimalEdge",
-                                          "keyRaw": "edges",
+                        "edges": {
+                            "type": "AnimalEdge",
+                            "keyRaw": "edges",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "node": {
-                                                      "type": "Animal",
-                                                      "keyRaw": "node",
-                                                      "nullable": true,
+                                    "node": {
+                                        "type": "Animal",
+                                        "keyRaw": "node",
+                                        "nullable": true,
 
-                                                      "selection": {
-                                                          "fields": {
-                                                              "__typename": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "__typename",
-                                                              },
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
 
-                                                              "id": {
-                                                                  "type": "ID",
-                                                                  "keyRaw": "id",
-                                                              },
-                                                          },
-                                                          "abstractFields": {
-                                                              "fields": {
-                                                                  "Monkey": {
-                                                                      "__typename": {
-                                                                          "type": "String",
-                                                                          "keyRaw": "__typename",
-                                                                      },
-                                                                      "hasBanana": {
-                                                                          "type": "Boolean",
-                                                                          "keyRaw": "hasBanana",
-                                                                      },
-                                                                      "id": {
-                                                                          "type": "ID",
-                                                                          "keyRaw": "id",
-                                                                      },
-                                                                      "name": {
-                                                                          "type": "String",
-                                                                          "keyRaw": "name",
-                                                                      },
-                                                                  },
-                                                              },
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                },
+                                            },
+                                            "abstractFields": {
+                                                "fields": {
+                                                    "Monkey": {
+                                                        "__typename": {
+                                                            "type": "String",
+                                                            "keyRaw": "__typename",
+                                                        },
+                                                        "hasBanana": {
+                                                            "type": "Boolean",
+                                                            "keyRaw": "hasBanana",
+                                                            "visible": true,
+                                                        },
+                                                        "id": {
+                                                            "type": "ID",
+                                                            "keyRaw": "id",
+                                                            "visible": true,
+                                                        },
+                                                        "name": {
+                                                            "type": "String",
+                                                            "keyRaw": "name",
+                                                            "visible": true,
+                                                        },
+                                                    },
+                                                },
 
-                                                              "typeMap": {},
-                                                          },
+                                                "typeMap": {},
+                                            },
 
-                                                          "fragments": {
-                                                              "MonkeyFragment": {
-                                                                  "arguments": {}
-                                                              },
-                                                          },
-                                                      },
+                                            "fragments": {
+                                                "MonkeyFragment": {
+                                                    "arguments": {}
+                                                },
+                                            },
+                                        },
 
-                                                      "abstract": true,
-                                                  },
-                                              },
-                                          },
+                                        "abstract": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "abstract": true,
-                                      },
-                                  },
+                            "abstract": true,
+                            "visible": true,
+                        },
+                    },
 
-                                  "fragments": {
-                                      "AnimalsOverviewList": {
-                                          "arguments": {}
-                                      },
-                                  },
-                              },
+                    "fragments": {
+                        "AnimalsOverviewList": {
+                            "arguments": {}
+                        },
+                    },
+                },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
 
-              "HoudiniHash=dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35"
-        `),
+export default artifact
+
+export type AnimalsOverview = {
+	readonly "input"?: AnimalsOverview$input;
+	readonly "result": AnimalsOverview$result | undefined;
+};
+
+export type AnimalsOverview$result = {
+	readonly animals: {
+		readonly " $fragments": {
+			AnimalsOverviewList: {};
+		};
+	} | null;
+};
+
+export type AnimalsOverview$input = null | undefined;
+
+export type AnimalsOverview$artifact = typeof artifact
+
+"HoudiniHash=dde990d4e5db6c676245f47bcc5403e1fcfcfda20e171402deb31e1ee0b50c35"`),
 				},
 			},
 			{
@@ -1405,117 +1604,177 @@ func TestListArtifacts(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"Entities": tests.Dedent(`
-              export default {
-                  "name": "Entities",
-                  "kind": "HoudiniQuery",
-                  "hash": "0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da",
-                  "raw": ` + "`" + `query Entities {
-                  entities {
-                      ... on User {
-                          name
-                          __typename
-                          id
-                      }
-                      ... on Cat {
-                          name
-                          __typename
-                          id
-                      }
-                      __typename
-                      id
-                  }
-              }
-              ` + "`" + `,
+					"Entities": tests.Dedent(`const artifact = {
+    "name": "Entities",
+    "kind": "HoudiniQuery",
+    "hash": "21b46676839171e4a6ba14e17952b7f5c45220dbc77307e100185cc60c82e907",
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "refetch": {
+        "path": ["entities"],
+        "method": "offset",
+        "pageSize": 0,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "Infinite"
+    },
 
-                  "selection": {
-                      "fields": {
-                          "entities": {
-                              "type": "Entity",
-                              "keyRaw": "entities",
+    "raw": ` + "`" + `query Entities {
+    entities {
+        ... on User {
+            name
+            __typename
+            id
+        }
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+        id
+    }
+    entities {
+        ... on User {
+            name
+            __typename
+            id
+        }
+        ... on Cat {
+            name
+            __typename
+            id
+        }
+        __typename
+        id
+    }
+}
+` + "`" + `,
 
-                              "directives": [{
-                                  "name": "list",
-                                  "arguments": {
-                                      "name": {
-                                          "kind": "StringValue",
-                                          "value": "list_entities"
-                                      }
-                                  }
-                              }],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                              "list": {
-                                  "name": "list_entities",
-                                  "connection": false,
-                                  "type": "Entity"
-                              },
+    "selection": {
+        "fields": {
+            "entities": {
+                "type": "Entity",
+                "keyRaw": "entities",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "directives": [{
+                    "name": "list",
+                    "arguments": {
+                        "name": {
+                            "kind": "StringValue",
+                            "value": "list_entities"
+                        }
+                    }
+                }],
 
-                                      "id": {
-                                          "type": "ID",
-                                          "keyRaw": "id",
-                                      },
-                                  },
-                                  "abstractFields": {
-                                      "fields": {
-                                          "Cat": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                          "User": {
-                                              "__typename": {
-                                                  "type": "String",
-                                                  "keyRaw": "__typename",
-                                              },
-                                              "id": {
-                                                  "type": "ID",
-                                                  "keyRaw": "id",
-                                              },
-                                              "name": {
-                                                  "type": "String",
-                                                  "keyRaw": "name",
-                                                  "visible": true,
-                                              },
-                                          },
-                                      },
+                "list": {
+                    "name": "list_entities",
+                    "connection": false,
+                    "type": "Entity"
+                },
 
-                                      "typeMap": {},
-                                  },
-                              },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                              "abstract": true,
-                              "visible": true,
-                          },
-                      },
-                  },
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                        },
+                    },
+                    "abstractFields": {
+                        "fields": {
+                            "Cat": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                            "User": {
+                                "__typename": {
+                                    "type": "String",
+                                    "keyRaw": "__typename",
+                                    "visible": true,
+                                },
+                                "id": {
+                                    "type": "ID",
+                                    "keyRaw": "id",
+                                    "visible": true,
+                                },
+                                "name": {
+                                    "type": "String",
+                                    "keyRaw": "name",
+                                    "visible": true,
+                                },
+                            },
+                        },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+                        "typeMap": {},
+                    },
+                },
 
-              "HoudiniHash=0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da"
-            `),
+                "abstract": true,
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type Entities = {
+	readonly "input"?: Entities$input;
+	readonly "result": Entities$result | undefined;
+};
+
+export type Entities$result = {
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "User";
+	})))[];
+	readonly entities: ({} & (({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly name: string;
+		readonly id: string;
+		readonly __typename: "User";
+	})))[];
+};
+
+export type Entities$input = null | undefined;
+
+export type Entities$artifact = typeof artifact
+
+"HoudiniHash=21b46676839171e4a6ba14e17952b7f5c45220dbc77307e100185cc60c82e907"`),
 				},
 			},
 			{
@@ -1536,171 +1795,252 @@ func TestListArtifacts(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"TestQuery": tests.Dedent(`
-              export default {
-                  "name": "TestQuery",
-                  "kind": "HoudiniQuery",
-                  "hash": "efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b",
-                  "raw": ` + "`" + `query TestQuery {
-                  usersByCursor {
-                      edges {
-                          node {
-                              ...UserTest
-                              __typename
-                              id
-                          }
-                          __typename
-                          cursor
-                      }
-                      __typename
-                      pageInfo {
-                          hasNextPage
-                          hasPreviousPage
-                          startCursor
-                          endCursor
-                      }
-                  }
-              }
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "f230a15c406742ef87833c141d0e4eaf58011602d9eac75c964ccf1da135bf08",
 
-              fragment UserTest on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+    "refetch": {
+        "path": ["usersByCursor"],
+        "method": "cursor",
+        "pageSize": 0,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "Infinite"
+    },
 
-                  "rootType": "Query",
-                  "stripVariables": [],
+    "raw": ` + "`" + `query TestQuery {
+    usersByCursor {
+        edges {
+            node {
+                ...UserTest
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+    usersByCursor {
+        edges {
+            node {
+                ...UserTest
+                __typename
+                id
+            }
+            __typename
+            cursor
+        }
+        __typename
+        pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+        }
+    }
+}
 
-                  "selection": {
-                      "fields": {
-                          "usersByCursor": {
-                              "type": "UserConnection",
-                              "keyRaw": "usersByCursor",
+fragment UserTest on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                              "directives": [{
-                                  "name": "list",
-                                  "arguments": {
-                                      "name": {
-                                          "kind": "StringValue",
-                                          "value": "All_Users"
-                                      }
-                                  }
-                              }],
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
 
-                              "list": {
-                                  "name": "All_Users",
-                                  "connection": true,
-                                  "type": "User"
-                              },
+    "selection": {
+        "fields": {
+            "usersByCursor": {
+                "type": "UserConnection",
+                "keyRaw": "usersByCursor",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "directives": [{
+                    "name": "list",
+                    "arguments": {
+                        "name": {
+                            "kind": "StringValue",
+                            "value": "All_Users"
+                        }
+                    }
+                }],
 
-                                      "edges": {
-                                          "type": "UserEdge",
-                                          "keyRaw": "edges",
+                "list": {
+                    "name": "All_Users",
+                    "connection": true,
+                    "type": "User"
+                },
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                                  "cursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "cursor",
-                                                  },
+                        "edges": {
+                            "type": "UserEdge",
+                            "keyRaw": "edges",
 
-                                                  "node": {
-                                                      "type": "User",
-                                                      "keyRaw": "node",
-                                                      "nullable": true,
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                      "selection": {
-                                                          "fields": {
-                                                              "__typename": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "__typename",
-                                                              },
+                                    "cursor": {
+                                        "type": "String",
+                                        "keyRaw": "cursor",
+                                        "visible": true,
+                                    },
 
-                                                              "firstName": {
-                                                                  "type": "String",
-                                                                  "keyRaw": "firstName",
-                                                              },
+                                    "node": {
+                                        "type": "User",
+                                        "keyRaw": "node",
+                                        "nullable": true,
 
-                                                              "id": {
-                                                                  "type": "ID",
-                                                                  "keyRaw": "id",
-                                                              },
-                                                          },
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
 
-                                                          "fragments": {
-                                                              "UserTest": {
-                                                                  "arguments": {}
-                                                              },
-                                                          },
-                                                      },
+                                                "firstName": {
+                                                    "type": "String",
+                                                    "keyRaw": "firstName",
+                                                    "visible": true,
+                                                },
 
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                                "id": {
+                                                    "type": "ID",
+                                                    "keyRaw": "id",
+                                                },
+                                            },
 
-                                          "visible": true,
-                                      },
+                                            "fragments": {
+                                                "UserTest": {
+                                                    "arguments": {}
+                                                },
+                                            },
+                                        },
 
-                                      "pageInfo": {
-                                          "type": "PageInfo",
-                                          "keyRaw": "pageInfo",
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "selection": {
-                                              "fields": {
-                                                  "endCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "endCursor",
-                                                      "nullable": true,
-                                                  },
+                            "visible": true,
+                        },
 
-                                                  "hasNextPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasNextPage",
-                                                  },
+                        "pageInfo": {
+                            "type": "PageInfo",
+                            "keyRaw": "pageInfo",
 
-                                                  "hasPreviousPage": {
-                                                      "type": "Boolean",
-                                                      "keyRaw": "hasPreviousPage",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "endCursor": {
+                                        "type": "String",
+                                        "keyRaw": "endCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "startCursor": {
-                                                      "type": "String",
-                                                      "keyRaw": "startCursor",
-                                                      "nullable": true,
-                                                  },
-                                              },
-                                          },
+                                    "hasNextPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasNextPage",
+                                        "visible": true,
+                                    },
 
-                                      },
-                                  },
-                              },
+                                    "hasPreviousPage": {
+                                        "type": "Boolean",
+                                        "keyRaw": "hasPreviousPage",
+                                        "visible": true,
+                                    },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                                    "startCursor": {
+                                        "type": "String",
+                                        "keyRaw": "startCursor",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                  "pluginData": {},
-                  "policy": "CacheOrNetwork",
-                  "partial": false
-              } as const
+                            "visible": true,
+                        },
+                    },
+                },
 
-              "HoudiniHash=efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b"
-            `),
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type TestQuery = {
+	readonly "input"?: TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly " $fragments": {
+					UserTest: {};
+				};
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+	readonly usersByCursor: {
+		readonly edges: ({
+			readonly node: {
+				readonly " $fragments": {
+					UserTest: {};
+				};
+			} | null;
+			readonly cursor: string;
+		})[];
+		readonly pageInfo: {
+			readonly hasNextPage: boolean;
+			readonly hasPreviousPage: boolean;
+			readonly startCursor: string | null;
+			readonly endCursor: string | null;
+		};
+	};
+};
+
+export type TestQuery$input = null | undefined;
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=f230a15c406742ef87833c141d0e4eaf58011602d9eac75c964ccf1da135bf08"`),
 				},
 			},
 		},

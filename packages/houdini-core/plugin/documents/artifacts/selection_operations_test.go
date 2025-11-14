@@ -50,79 +50,103 @@ func TestArtifactOperationsGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"B": tests.Dedent(`
-              export default {
-                  "name": "B",
-                  "kind": "HoudiniMutation",
-                  "hash": "9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6",
-                  "raw": ` + "`" + `mutation B {
-                  addFriend {
-                      friend {
-                          firstName
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"B": tests.Dedent(`const artifact = {
+    "name": "B",
+    "kind": "HoudiniMutation",
+    "hash": "9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6",
+    "raw": ` + "`" + `mutation B {
+    addFriend {
+        friend {
+            firstName
+            __typename
+            id
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                      "visible": true,
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
-                                          },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6"
+export default artifact
 
-          `),
+export type B = {
+	readonly "input"?: B$input;
+	readonly "result": B$result;
+};
+
+export type B$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly firstName: string;
+		};
+	};
+};
+
+export type B$input = null | undefined;
+
+export type B$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly firstName?: string;
+		};
+	};
+};
+
+export type B$artifact = typeof artifact
+
+"HoudiniHash=9ce380e593f0ad23179092018fff6667f3249e9fc261be13c40a7291c1f151c6"`),
 				},
 			},
 			{
@@ -143,96 +167,123 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last"
-                                          }],
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
 			{
@@ -254,108 +305,136 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert_kVR6H
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370",
+    "raw": ` + "`" + `mutation A() {
+    addFriend {
+        friend {
+            ...All_Users_insert_kVR6H
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert_kVR6H on User {
-                  firstName
-                  __typename
-                  id
-                  field(filter: "Hello World")
-              }
-              ` + "`" + `,
+fragment All_Users_insert_kVR6H on User {
+    firstName
+    __typename
+    id
+    field(filter: "Hello World")
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last"
-                                          }],
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "field": {
-                                                      "type": "String",
-                                                      "keyRaw": "field(filter: \"Hello World\")",
-                                                      "nullable": true,
-                                                  },
+                                    "field": {
+                                        "type": "String",
+                                        "keyRaw": "field(filter: \"Hello World\")",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {
-                                                          "filter": {
-                                                              "kind": "StringValue",
-                                                              "value": "Hello World"
-                                                          },
-                                                      }
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {
+                                            "filter": {
+                                                "kind": "StringValue",
+                                                "value": "Hello World"
+                                            },
+                                        }
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert_kVR6H?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370"`),
 				},
 			},
 			{
@@ -376,102 +455,129 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last",
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
 
-                                              "when": {
-                                                  "must": {
-                                                      "stringValue": "foo",
-                                                  },
-                                              },
-                                          }],
+                                "when": {
+                                    "must": {
+                                        "stringValue": "foo",
+                                    },
+                                },
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
 			{
@@ -492,102 +598,129 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last",
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
 
-                                              "when": {
-                                                  "must_not": {
-                                                      "stringValue": "foo",
-                                                  },
-                                              },
-                                          }],
+                                "when": {
+                                    "must_not": {
+                                        "stringValue": "foo",
+                                    },
+                                },
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
 			{
@@ -608,105 +741,132 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last",
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
 
-                                              "when": {
-                                                  "must": {
-                                                      "stringValue": "foo",
-                                                  },
-                                                  "must_not": {
-                                                      "a": "foo",
-                                                  },
-                                              },
-                                          }],
+                                "when": {
+                                    "must": {
+                                        "stringValue": "foo",
+                                    },
+                                    "must_not": {
+                                        "a": "foo",
+                                    },
+                                },
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
 			{
@@ -728,109 +888,137 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert_kVR6H
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370",
+    "raw": ` + "`" + `mutation A() {
+    addFriend {
+        friend {
+            ...All_Users_insert_kVR6H
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert_kVR6H on User {
-                  firstName
-                  __typename
-                  id
-                  field(filter: "Hello World")
-              }
-              ` + "`" + `,
+fragment All_Users_insert_kVR6H on User {
+    firstName
+    __typename
+    id
+    field(filter: "Hello World")
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last",
-                                              "target": "all"
-                                          }],
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
+                                "target": "all"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "field": {
-                                                      "type": "String",
-                                                      "keyRaw": "field(filter: \"Hello World\")",
-                                                      "nullable": true,
-                                                  },
+                                    "field": {
+                                        "type": "String",
+                                        "keyRaw": "field(filter: \"Hello World\")",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {
-                                                          "filter": {
-                                                              "kind": "StringValue",
-                                                              "value": "Hello World"
-                                                          },
-                                                      }
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {
+                                            "filter": {
+                                                "kind": "StringValue",
+                                                "value": "Hello World"
+                                            },
+                                        }
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=478267e6079162675775c31eaffa1e1108c883b24f7b3ff81f1caed9ad415cd6"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert_kVR6H?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=5c4e7db84da4cc870dab20430a5f4a1895573dbbbd3f7568caee055770ad0370"`),
 				},
 			},
 			{
@@ -846,80 +1034,105 @@ func TestArtifactOperationsGeneration(t *testing.T) {
           }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          id
-                          __typename
-                      }
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            id
+            __typename
+        }
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
 
-                                                      "directives": [{
-                                                          "name": "optimisticKey",
-                                                          "arguments": {}
-                                                      }],
+                                        "directives": [{
+                                            "name": "optimisticKey",
+                                            "arguments": {}
+                                        }],
 
-                                                      "optimisticKey": true,
-                                                      "visible": true,
-                                                  },
-                                              },
-                                          },
+                                        "optimisticKey": true,
+                                        "visible": true,
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-                  "optimisticKeys": true
-              } as const
+    "pluginData": {},
+    "optimisticKeys": true
+} as const
 
-              "HoudiniHash=8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32"
-		`),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly id: string;
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly id?: string;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=8a080e59ca9f1fbf5e83ed5f778594c5fb2271fc6f48291ca27c18d0b1583c32"`),
 				},
 			},
 			{
@@ -940,96 +1153,124 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last",
-                                              "target": "all"
-                                          }],
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
+                                "target": "all"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
-   		    `),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
 			{
@@ -1050,89 +1291,121 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_remove
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_remove
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_remove on User {
-                  id
-                  __typename
-              }
-              ` + "`" + `,
+fragment All_Users_remove on User {
+    id
+    __typename
+}
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+fragment All_Users_remove on User {
+    id
+    __typename
+}
+` + "`" + `,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                          "operations": [{
-                                              "action": "remove",
-                                              "list": "All_Users",
-                                              "target": "all"
-                                          }],
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "operations": [{
+                                "action": "remove",
+                                "list": "All_Users",
+                                "target": "all"
+                            }],
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                              "fragments": {
-                                                  "All_Users_remove": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                                "fragments": {
+                                    "All_Users_remove": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                  "pluginData": {},
-              } as const
+                "visible": true,
+            },
+        },
+    },
 
-              "HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"
-   		    `),
+    "pluginData": {},
+} as const
+
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_remove: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_remove?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1"`),
 				},
 			},
 			{
@@ -1153,96 +1426,124 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_toggle
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_toggle
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_toggle on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_toggle on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "toggle",
-                                              "list": "All_Users",
-                                              "position": "first",
-                                              "target": "all"
-                                          }],
+                            "operations": [{
+                                "action": "toggle",
+                                "list": "All_Users",
+                                "position": "first",
+                                "target": "all"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_toggle": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_toggle": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
-   		    `),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_toggle: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_toggle?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"`),
 				},
 			},
 			{
@@ -1264,108 +1565,137 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "2a2d7cbe16d4430cd3c817bc3f5ea605fadb3a84bf2574a15413322cc513da88",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_toggle_kVR6H
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "14c8b84f85cf39c1e786506a09bbeaa617139aa22c6723b595eaf0b7b29ca441",
+    "raw": ` + "`" + `mutation A() {
+    addFriend {
+        friend {
+            ...All_Users_toggle_kVR6H
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_toggle_kVR6H on User {
-                  firstName
-                  __typename
-                  id
-                  field(filter: "Hello World")
-              }
-              ` + "`" + `,
+fragment All_Users_toggle_kVR6H on User {
+    firstName
+    __typename
+    id
+    field(filter: "Hello World")
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "toggle",
-                                              "list": "All_Users",
-                                              "position": "first",
-                                              "target": "all"
-                                          }],
+                            "operations": [{
+                                "action": "toggle",
+                                "list": "All_Users",
+                                "position": "first",
+                                "target": "all"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "field": {
-                                                      "type": "String",
-                                                      "keyRaw": "field(filter: \"Hello World\")",
-                                                      "nullable": true,
-                                                  },
+                                    "field": {
+                                        "type": "String",
+                                        "keyRaw": "field(filter: \"Hello World\")",
+                                        "nullable": true,
+                                        "visible": true,
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_toggle": {
-                                                      "arguments": {
-                                                          "filter": {
-                                                              "kind": "StringValue",
-                                                              "value": "Hello World"
-                                                          },
-                                                      }
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_toggle": {
+                                        "arguments": {
+                                            "filter": {
+                                                "kind": "StringValue",
+                                                "value": "Hello World"
+                                            },
+                                        }
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=2a2d7cbe16d4430cd3c817bc3f5ea605fadb3a84bf2574a15413322cc513da88"
-   		    `),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_toggle: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_toggle_kVR6H?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=14c8b84f85cf39c1e786506a09bbeaa617139aa22c6723b595eaf0b7b29ca441"`),
 				},
 			},
 			{
@@ -1389,96 +1719,124 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 					config.DefaultListTarget = "all"
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_toggle
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_toggle
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_toggle on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_toggle on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "toggle",
-                                              "list": "All_Users",
-                                              "position": "first",
-                                              "target": "all"
-                                          }],
+                            "operations": [{
+                                "action": "toggle",
+                                "list": "All_Users",
+                                "position": "first",
+                                "target": "all"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_toggle": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_toggle": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
-   		    `),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_toggle: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_toggle?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"`),
 				},
 			},
 			{
@@ -1502,95 +1860,123 @@ func TestArtifactOperationsGeneration(t *testing.T) {
 					config.DefaultListPosition = "last"
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_toggle
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_toggle
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_toggle on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_toggle on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "toggle",
-                                              "list": "All_Users",
-                                              "position": "last"
-                                          }],
+                            "operations": [{
+                                "action": "toggle",
+                                "list": "All_Users",
+                                "position": "last"
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_toggle": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_toggle": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"
-   		    `),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_toggle: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_toggle?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=716a789bd735c599d781df5adeb1fd159af7b32d1dc72f4ad425ed5354c126b8"`),
 				},
 			},
 			{
@@ -1611,88 +1997,120 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_remove
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_remove
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_remove on User {
-                  id
-                  __typename
-              }
-              ` + "`" + `,
+fragment All_Users_remove on User {
+    id
+    __typename
+}
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+fragment All_Users_remove on User {
+    id
+    __typename
+}
+` + "`" + `,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                          "operations": [{
-                                              "action": "remove",
-                                              "list": "All_Users"
-                                          }],
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "operations": [{
+                                "action": "remove",
+                                "list": "All_Users"
+                            }],
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                              "fragments": {
-                                                  "All_Users_remove": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                                "fragments": {
+                                    "All_Users_remove": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                  "pluginData": {},
-              } as const
+                "visible": true,
+            },
+        },
+    },
 
-              "HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"
-   		    `),
+    "pluginData": {},
+} as const
+
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_remove: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_remove?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1"`),
 				},
 			},
 			{
@@ -1711,65 +2129,86 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
-                  "raw": ` + "`" + `mutation A {
-                  deleteUser(id: "1234") {
-                      userID
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
+    "raw": ` + "`" + `mutation A {
+    deleteUser(id: "1234") {
+        userID
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "deleteUser": {
-                              "type": "DeleteUserOutput",
-                              "keyRaw": "deleteUser(id: \"1234\")",
+    "selection": {
+        "fields": {
+            "deleteUser": {
+                "type": "DeleteUserOutput",
+                "keyRaw": "deleteUser(id: \"1234\")",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "userID": {
-                                          "type": "ID",
-                                          "keyRaw": "userID",
-                                          "nullable": true,
+                        "userID": {
+                            "type": "ID",
+                            "keyRaw": "userID",
+                            "nullable": true,
 
-                                          "directives": [{
-                                              "name": "User_delete",
-                                              "arguments": {}
-                                          }],
+                            "directives": [{
+                                "name": "User_delete",
+                                "arguments": {}
+                            }],
 
 
-                                          "operations": [{
-                                              "action": "delete",
-                                              "type": "User"
-                                          }],
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "operations": [{
+                                "action": "delete",
+                                "type": "User"
+                            }],
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
-		`),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly deleteUser: {
+		readonly userID: string | null;
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly deleteUser?: {
+		readonly userID?: string | null;
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"`),
 				},
 			},
 			{
@@ -1788,79 +2227,100 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
-                  "raw": ` + "`" + `mutation A {
-                  deleteUser(id: "1234") {
-                      userID
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
+    "raw": ` + "`" + `mutation A {
+    deleteUser(id: "1234") {
+        userID
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "deleteUser": {
-                              "type": "DeleteUserOutput",
-                              "keyRaw": "deleteUser(id: \"1234\")",
+    "selection": {
+        "fields": {
+            "deleteUser": {
+                "type": "DeleteUserOutput",
+                "keyRaw": "deleteUser(id: \"1234\")",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "userID": {
-                                          "type": "ID",
-                                          "keyRaw": "userID",
-                                          "nullable": true,
+                        "userID": {
+                            "type": "ID",
+                            "keyRaw": "userID",
+                            "nullable": true,
 
-                                          "directives": [{
-                                              "name": "User_delete",
-                                              "arguments": {}
-                                          },{
-                                              "name": "when",
-                                              "arguments": {
-                                                  "stringValue": {
-                                                      "kind": "StringValue",
-                                                      "value": "foo"
-                                                  }
-                                              }
-                                          }],
+                            "directives": [{
+                                "name": "User_delete",
+                                "arguments": {}
+                            },{
+                                "name": "when",
+                                "arguments": {
+                                    "stringValue": {
+                                        "kind": "StringValue",
+                                        "value": "foo"
+                                    }
+                                }
+                            }],
 
 
-                                          "operations": [{
-                                              "action": "delete",
-                                              "type": "User",
+                            "operations": [{
+                                "action": "delete",
+                                "type": "User",
 
-                                              "when": {
-                                                  "must": {
-                                                      "stringValue": "foo",
-                                                  },
-                                              },
-                                          }],
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                                "when": {
+                                    "must": {
+                                        "stringValue": "foo",
+                                    },
+                                },
+                            }],
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
-		`),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly deleteUser: {
+		readonly userID: string | null;
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly deleteUser?: {
+		readonly userID?: string | null;
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"`),
 				},
 			},
 			{
@@ -1879,79 +2339,100 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
-                  "raw": ` + "`" + `mutation A {
-                  deleteUser(id: "1234") {
-                      userID
-                      __typename
-                  }
-              }
-              ` + "`" + `,
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2",
+    "raw": ` + "`" + `mutation A {
+    deleteUser(id: "1234") {
+        userID
+        __typename
+    }
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "deleteUser": {
-                              "type": "DeleteUserOutput",
-                              "keyRaw": "deleteUser(id: \"1234\")",
+    "selection": {
+        "fields": {
+            "deleteUser": {
+                "type": "DeleteUserOutput",
+                "keyRaw": "deleteUser(id: \"1234\")",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "userID": {
-                                          "type": "ID",
-                                          "keyRaw": "userID",
-                                          "nullable": true,
+                        "userID": {
+                            "type": "ID",
+                            "keyRaw": "userID",
+                            "nullable": true,
 
-                                          "directives": [{
-                                              "name": "User_delete",
-                                              "arguments": {}
-                                          },{
-                                              "name": "when_not",
-                                              "arguments": {
-                                                  "stringValue": {
-                                                      "kind": "StringValue",
-                                                      "value": "foo"
-                                                  }
-                                              }
-                                          }],
+                            "directives": [{
+                                "name": "User_delete",
+                                "arguments": {}
+                            },{
+                                "name": "when_not",
+                                "arguments": {
+                                    "stringValue": {
+                                        "kind": "StringValue",
+                                        "value": "foo"
+                                    }
+                                }
+                            }],
 
 
-                                          "operations": [{
-                                              "action": "delete",
-                                              "type": "User",
+                            "operations": [{
+                                "action": "delete",
+                                "type": "User",
 
-                                              "when": {
-                                                  "must_not": {
-                                                      "stringValue": "foo",
-                                                  },
-                                              },
-                                          }],
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                                "when": {
+                                    "must_not": {
+                                        "stringValue": "foo",
+                                    },
+                                },
+                            }],
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"
-		`),
+export default artifact
+
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly deleteUser: {
+		readonly userID: string | null;
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly deleteUser?: {
+		readonly userID?: string | null;
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=74a70a5832df8760e9a80f1b32360a58e5c6ecd48551606448ce2cd6bbae28c2"`),
 				},
 			},
 			{
@@ -1972,101 +2453,128 @@ func TestArtifactOperationsGeneration(t *testing.T) {
             }`,
 				},
 				Extra: map[string]any{
-					"A": tests.Dedent(`
-              export default {
-                  "name": "A",
-                  "kind": "HoudiniMutation",
-                  "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
-                  "raw": ` + "`" + `mutation A {
-                  addFriend {
-                      friend {
-                          ...All_Users_insert
-                          __typename
-                          id
-                      }
-                      __typename
-                  }
-              }
+					"A": tests.Dedent(`const artifact = {
+    "name": "A",
+    "kind": "HoudiniMutation",
+    "hash": "425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1",
+    "raw": ` + "`" + `mutation A {
+    addFriend {
+        friend {
+            ...All_Users_insert
+            __typename
+            id
+        }
+        __typename
+    }
+}
 
-              fragment All_Users_insert on User {
-                  firstName
-                  __typename
-                  id
-              }
-              ` + "`" + `,
+fragment All_Users_insert on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
 
-                  "rootType": "Mutation",
-                  "stripVariables": [],
+    "rootType": "Mutation",
+    "stripVariables": [] as Array<string>,
 
-                  "selection": {
-                      "fields": {
-                          "addFriend": {
-                              "type": "AddFriendOutput",
-                              "keyRaw": "addFriend",
+    "selection": {
+        "fields": {
+            "addFriend": {
+                "type": "AddFriendOutput",
+                "keyRaw": "addFriend",
 
-                              "selection": {
-                                  "fields": {
-                                      "__typename": {
-                                          "type": "String",
-                                          "keyRaw": "__typename",
-                                      },
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
 
-                                      "friend": {
-                                          "type": "User",
-                                          "keyRaw": "friend",
+                        "friend": {
+                            "type": "User",
+                            "keyRaw": "friend",
 
-                                          "operations": [{
-                                              "action": "insert",
-                                              "list": "All_Users",
-                                              "position": "last",
+                            "operations": [{
+                                "action": "insert",
+                                "list": "All_Users",
+                                "position": "last",
 
-                                              "parentID": {
-                                                  "kind": "StringValue",
-                                                  "value": "1234"
-                                              }
-                                          }],
+                                "parentID": {
+                                    "kind": "StringValue",
+                                    "value": "1234"
+                                }
+                            }],
 
-                                          "selection": {
-                                              "fields": {
-                                                  "__typename": {
-                                                      "type": "String",
-                                                      "keyRaw": "__typename",
-                                                  },
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
 
-                                                  "firstName": {
-                                                      "type": "String",
-                                                      "keyRaw": "firstName",
-                                                  },
+                                    "firstName": {
+                                        "type": "String",
+                                        "keyRaw": "firstName",
+                                        "visible": true,
+                                    },
 
-                                                  "id": {
-                                                      "type": "ID",
-                                                      "keyRaw": "id",
-                                                  },
-                                              },
+                                    "id": {
+                                        "type": "ID",
+                                        "keyRaw": "id",
+                                    },
+                                },
 
-                                              "fragments": {
-                                                  "All_Users_insert": {
-                                                      "arguments": {}
-                                                  },
-                                              },
-                                          },
+                                "fragments": {
+                                    "All_Users_insert": {
+                                        "arguments": {}
+                                    },
+                                },
+                            },
 
-                                          "visible": true,
-                                      },
-                                  },
-                              },
+                            "visible": true,
+                        },
+                    },
+                },
 
-                              "visible": true,
-                          },
-                      },
-                  },
+                "visible": true,
+            },
+        },
+    },
 
-                  "pluginData": {},
-              } as const
+    "pluginData": {},
+} as const
 
-              "HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"
+export default artifact
 
-          `),
+export type A = {
+	readonly "input"?: A$input;
+	readonly "result": A$result;
+};
+
+export type A$result = {
+	readonly addFriend: {
+		readonly friend: {
+			readonly " $fragments": {
+				All_Users_insert: {};
+			};
+		};
+	};
+};
+
+export type A$input = null | undefined;
+
+export type A$optimistic = {
+	readonly addFriend?: {
+		readonly friend?: {
+			readonly All_Users_insert?:  | null;
+		};
+	};
+};
+
+export type A$artifact = typeof artifact
+
+"HoudiniHash=425691bbfea3900b92488e1ab1c9d6ee50242cadb1de2336342766d9577656f1"`),
 				},
 			},
 		},

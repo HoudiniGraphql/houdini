@@ -229,7 +229,6 @@ func PreparePaginationDocuments(
 	}
 	defer insertSelection.Finalize()
 
-
 	insertSelectionRef, err := conn.Prepare(`
 		INSERT INTO selection_refs (document, child_id, parent_id, row, column, path_index, internal) VALUES ($document, $child_id, $parent_id, 0, 0, 0, $internal)
 	`)
@@ -1120,14 +1119,6 @@ func processFragmentPagination(
 		return 0, err
 	}
 
-	// This will be implemented in a future iteration
-	err = ctx.db.BindStatement(ctx.getPaginatedFieldAliasQuery, map[string]any{
-		"list_field": list.ListField,
-	})
-	if err != nil {
-		return 0, err
-	}
-
 	// use the field from the base paginated fragment for the pagination query
 	// the fragment variant will inherit the pagination metadata from the base fragment
 	listFieldForQuery := newPaginatedSelectionID
@@ -1155,7 +1146,7 @@ func processFragmentPagination(
 		"document":          queryDocumentID,
 		"connection":        list.Connection,
 		"list_field":        listFieldForQuery,
-		"paginate":          true,
+		"paginate":          paginateValue,
 		"node":              node,
 		"page_size":         pageSize,
 		"mode":              mode,

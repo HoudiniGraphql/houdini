@@ -19,9 +19,9 @@ func TestMergeSelections(t *testing.T) {
 		Schema: `
       type Query {
         friends: [User!]!
-        user: User!
+        user(name: String): User!
         node(id: ID!): Node
-      } 
+      }
 
       interface Node {
         id: ID!
@@ -123,10 +123,10 @@ func TestMergeSelections(t *testing.T) {
             }
           `,
 					`
-            fragment Foo on User { 
+            fragment Foo on User {
                 name
-                pets {
-                    ... on Cat { 
+                pets(name: "test") {
+                    ... on Cat {
                         id
                     }
                 }
@@ -139,7 +139,7 @@ func TestMergeSelections(t *testing.T) {
                 user(name: $name) {
                     id
                     name
-                    pets {
+                    pets(name: "test") {
                         ... on Cat {
                             id
                         }
@@ -159,10 +159,10 @@ func TestMergeSelections(t *testing.T) {
               user {
                 id
               }
-              user { 
+              user {
                 name
-                pets {
-                    ... on Cat { 
+                pets(name: "test") {
+                    ... on Cat {
                         id
                     }
                 }
@@ -176,7 +176,7 @@ func TestMergeSelections(t *testing.T) {
                 user {
                     id
                     name
-                    pets {
+                    pets(name: "test") {
                         ... on Cat {
                             id
                         }
@@ -194,7 +194,7 @@ func TestMergeSelections(t *testing.T) {
             query MyQuery {
               user {
                 id @deprecated(reason:"Test")
-                id @optimisticKey
+                id @deprecated(reason:"Another")
               }
             }
           `,
@@ -203,7 +203,7 @@ func TestMergeSelections(t *testing.T) {
 					"MyQuery": tests.Dedent(`
             query MyQuery {
                 user {
-                    id @deprecated(reason: "Test") @optimisticKey
+                    id @deprecated(reason: "Test") @deprecated(reason: "Another")
                 }
             }
           `),
@@ -282,10 +282,10 @@ func TestMergeSelections(t *testing.T) {
             }
           `,
 					`
-            fragment Foo on User { 
+            fragment Foo on User {
                 name
-                pets {
-                    ... on Cat { 
+                pets(name: "test") {
+                    ... on Cat {
                         id
                     }
                 }
@@ -300,7 +300,7 @@ func TestMergeSelections(t *testing.T) {
                           name
                           ... on User {
                               name
-                              pets {
+                              pets(name: "test") {
                                   ... on Cat {
                                       id
                                   }
@@ -320,8 +320,8 @@ func TestMergeSelections(t *testing.T) {
 				Input: []string{
 					`
             query MyQuery {
-              user { 
-                pets { 
+              user {
+                pets(name: "test") {
                   ...CatInfo
                 }
               }
@@ -337,7 +337,7 @@ func TestMergeSelections(t *testing.T) {
 					"MyQuery": tests.Dedent(`
             query MyQuery {
                 user {
-                    pets {
+                    pets(name: "test") {
                         ... on Cat {
                             id
                         }
@@ -357,7 +357,7 @@ func TestMergeSelections(t *testing.T) {
                 user {
                     id
                     name
-                    pets {
+                    pets(name: "test") {
                         ...CatInfo
                     }
                 }
@@ -391,7 +391,7 @@ func TestMergeSelections(t *testing.T) {
                   user {
                       id
                       name
-                      pets {
+                      pets(name: "test") {
                           ... on Cat {
                               id
                               name
@@ -430,11 +430,10 @@ func TestMergeSelections(t *testing.T) {
                 ... on Friend { 
                     name
                 }
-                ... on Pet { 
-                    name
-                    owner { 
-                        bestFriend { 
-                            name 
+                ... on Pet {
+                    owner {
+                        bestFriend {
+                            name
                         }
                     }
                 }
@@ -464,7 +463,6 @@ func TestMergeSelections(t *testing.T) {
                       }
                       ... on Pet {
                           id
-                          name
                           owner {
                               bestFriend {
                                   name
