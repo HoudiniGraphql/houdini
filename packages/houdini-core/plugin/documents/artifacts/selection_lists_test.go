@@ -130,7 +130,7 @@ func TestListArtifacts(t *testing.T) {
               const artifact = {
                   "name": "TestQuery",
                   "kind": "HoudiniQuery",
-                  "hash": "9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90",
+                  "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
 
                   "refetch": {
                       "path": ["users"],
@@ -265,7 +265,7 @@ func TestListArtifacts(t *testing.T) {
 
               export type TestQuery$artifact = typeof artifact
 
-              "HoudiniHash=9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90"
+              "HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"
 
           `),
 				},
@@ -288,7 +288,7 @@ func TestListArtifacts(t *testing.T) {
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "58423b5d7c85036fe6b8e96a929e3186b2273e9abeb27af5a149c9b08e5399c8",
+    "hash": "601c84fb968090be239b4de6aabf1493ddd5723c0a3ce6f21a4cef0588c74d7a",
 
     "refetch": {
         "path": ["usersByCursor"],
@@ -482,7 +482,7 @@ export type TestQuery$input = null | undefined;
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=58423b5d7c85036fe6b8e96a929e3186b2273e9abeb27af5a149c9b08e5399c8"`),
+"HoudiniHash=601c84fb968090be239b4de6aabf1493ddd5723c0a3ce6f21a4cef0588c74d7a"`),
 				},
 			},
 			{
@@ -503,7 +503,7 @@ export type TestQuery$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47",
+    "hash": "2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212",
 
     "refetch": {
         "path": ["usersByCursor"],
@@ -775,7 +775,7 @@ export type TestQuery$input = {
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47"`),
+"HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"`),
 				},
 			},
 			{
@@ -796,7 +796,7 @@ export type TestQuery$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47",
+    "hash": "2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212",
 
     "refetch": {
         "path": ["usersByCursor"],
@@ -1072,7 +1072,7 @@ export type TestQuery$input = {
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=19fc1f2ca636a9973a0c05d6fc7fc6ca47cb9fe0e60b4dd54da7a74421240a47"`),
+"HoudiniHash=2ab71008736af6ef21d3e5a414af57585acb8921743df58a4f258a88407fd212"`),
 				},
 			},
 			{

@@ -386,8 +386,18 @@ func collectDoc(
 						documents[documentName] = doc
 					}
 
-					// add the selection to the doc
-					doc.Selections = append(doc.Selections, selection)
+					// check if this selection is already in the document's root selections to avoid duplicates
+					selectionExists := false
+					for _, existingSelection := range doc.Selections {
+						if existingSelection == selection {
+							selectionExists = true
+							break
+						}
+					}
+					if !selectionExists {
+						// add the selection to the doc
+						doc.Selections = append(doc.Selections, selection)
+					}
 
 				} else {
 					// if we have a parent then we need to save it in the parent's children

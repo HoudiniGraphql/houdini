@@ -499,7 +499,7 @@ func PreparePaginationDocuments(
 		)
 
 		// save the list metadata
-		processedLists[documentName] = discoveredList{
+		processedLists[listKey] = discoveredList{
 			ID:               document,
 			RawDocument:      rawDocument,
 			DocumentName:     documentName,
