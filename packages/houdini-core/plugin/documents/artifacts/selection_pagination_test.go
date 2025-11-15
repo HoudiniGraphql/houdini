@@ -106,7 +106,7 @@ func TestPaginationArtifacts(t *testing.T) {
 					"PaginatedFragment": tests.Dedent(`const artifact = {
     "name": "PaginatedFragment",
     "kind": "HoudiniFragment",
-    "hash": "d1b7cb560e782cdf284110dff410ae0f08984d1ed2ef218217cb092016a6e1ba",
+    "hash": "984a385c590d094c53d7c6fb08bcabddd2f0cbfd0df69d49b3743fd0e046a66b",
 
     "refetch": {
         "path": ["friendsByCursor"],
@@ -120,23 +120,6 @@ func TestPaginationArtifacts(t *testing.T) {
     },
 
     "raw": ` + "`" + `fragment PaginatedFragment on User {
-    friendsByCursor(filter: "hello", first: 10) {
-        edges {
-            node {
-                id
-                __typename
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
     friendsByCursor(filter: "hello", first: 10) {
         edges {
             node {
@@ -312,25 +295,11 @@ export type PaginatedFragment$data = {
 			readonly endCursor: string | null;
 		};
 	} | null;
-	readonly friendsByCursor: {
-		readonly edges: ({
-			readonly node: {
-				readonly id: string;
-			} | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	} | null;
 };
 
 export type PaginatedFragment$artifact = typeof artifact
 
-"HoudiniHash=d1b7cb560e782cdf284110dff410ae0f08984d1ed2ef218217cb092016a6e1ba"`),
+"HoudiniHash=984a385c590d094c53d7c6fb08bcabddd2f0cbfd0df69d49b3743fd0e046a66b"`),
 				},
 			},
 			{
@@ -353,7 +322,7 @@ export type PaginatedFragment$artifact = typeof artifact
 					"PaginatedFragment": tests.Dedent(`const artifact = {
     "name": "PaginatedFragment",
     "kind": "HoudiniFragment",
-    "hash": "d1b7cb560e782cdf284110dff410ae0f08984d1ed2ef218217cb092016a6e1ba",
+    "hash": "984a385c590d094c53d7c6fb08bcabddd2f0cbfd0df69d49b3743fd0e046a66b",
 
     "refetch": {
         "path": ["friendsByCursor"],
@@ -367,23 +336,6 @@ export type PaginatedFragment$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `fragment PaginatedFragment on User {
-    friendsByCursor(filter: "hello", first: 10) {
-        edges {
-            node {
-                id
-                __typename
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
     friendsByCursor(filter: "hello", first: 10) {
         edges {
             node {
@@ -564,25 +516,11 @@ export type PaginatedFragment$data = {
 			readonly endCursor: string | null;
 		};
 	} | null;
-	readonly friendsByCursor: {
-		readonly edges: ({
-			readonly node: {
-				readonly id: string;
-			} | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	} | null;
 };
 
 export type PaginatedFragment$artifact = typeof artifact
 
-"HoudiniHash=d1b7cb560e782cdf284110dff410ae0f08984d1ed2ef218217cb092016a6e1ba"`),
+"HoudiniHash=984a385c590d094c53d7c6fb08bcabddd2f0cbfd0df69d49b3743fd0e046a66b"`),
 				},
 			},
 			{
@@ -601,7 +539,7 @@ export type PaginatedFragment$artifact = typeof artifact
 					"PaginatedFragment": tests.Dedent(`const artifact = {
     "name": "PaginatedFragment",
     "kind": "HoudiniFragment",
-    "hash": "6640968eacc925d9968f70670ab594a703338dd215c76a1be0d586a32d0617ae",
+    "hash": "3da994a95a263e64c158d256500bc9339f871692f1943d6f4c1e45aeecbeea2d",
 
     "refetch": {
         "path": ["friendsByOffset"],
@@ -615,10 +553,6 @@ export type PaginatedFragment$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `fragment PaginatedFragment on User {
-    friendsByOffset(filter: "hello", limit: 10) {
-        id
-        __typename
-    }
     friendsByOffset(filter: "hello", limit: 10) {
         id
         __typename
@@ -694,14 +628,11 @@ export type PaginatedFragment$data = {
 	readonly friendsByOffset: ({
 		readonly id: string;
 	})[];
-	readonly friendsByOffset: ({
-		readonly id: string;
-	})[];
 };
 
 export type PaginatedFragment$artifact = typeof artifact
 
-"HoudiniHash=6640968eacc925d9968f70670ab594a703338dd215c76a1be0d586a32d0617ae"`),
+"HoudiniHash=3da994a95a263e64c158d256500bc9339f871692f1943d6f4c1e45aeecbeea2d"`),
 				},
 			},
 			{
@@ -1078,7 +1009,7 @@ export type ScalarPagination$artifact = typeof artifact
 					"PaginatedFragment": tests.Dedent(`const artifact = {
     "name": "PaginatedFragment",
     "kind": "HoudiniFragment",
-    "hash": "6ebd43c0ee06544a861072461b5078148c45dcba598043e1ac7aca3e88219c97",
+    "hash": "284c586ae2cb137877c64127e51f7278ece65613b171ea54d035e759b271f035",
 
     "refetch": {
         "path": ["friendsByCursor"],
@@ -1092,33 +1023,6 @@ export type ScalarPagination$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `fragment PaginatedFragment on User {
-    friendsByCursor(filter: "hello", first: 10) {
-        edges {
-            node {
-                friendsByCursor {
-                    edges {
-                        node {
-                            id
-                            __typename
-                        }
-                        __typename
-                    }
-                    __typename
-                }
-                __typename
-                id
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
     friendsByCursor(filter: "hello", first: 10) {
         edges {
             node {
@@ -1496,26 +1400,6 @@ export type PaginatedFragment$data = {
 			readonly endCursor: string | null;
 		};
 	} | null;
-	readonly friendsByCursor: {
-		readonly edges: ({
-			readonly node: {
-				readonly friendsByCursor: {
-					readonly edges: ({
-						readonly node: {
-							readonly id: string;
-						} | null;
-					})[];
-				} | null;
-			} | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	} | null;
 	readonly friends: {
 		readonly edges: ({
 			readonly node: {
@@ -1533,7 +1417,7 @@ export type PaginatedFragment$data = {
 
 export type PaginatedFragment$artifact = typeof artifact
 
-"HoudiniHash=6ebd43c0ee06544a861072461b5078148c45dcba598043e1ac7aca3e88219c97"`),
+"HoudiniHash=284c586ae2cb137877c64127e51f7278ece65613b171ea54d035e759b271f035"`),
 				},
 			},
 			{
@@ -1558,7 +1442,7 @@ export type PaginatedFragment$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "6809880b6654e17b05aea900f72c1597fe69e0ffd519502c3b74592b7ccd6922",
+    "hash": "0d0fa55060035d4eb6ae7de938bdcfe8703aecff0becc0a479b6e29ffa999e4b",
 
     "refetch": {
         "path": ["entitiesByCursor"],
@@ -1572,27 +1456,6 @@ export type PaginatedFragment$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
-    entitiesByCursor(after: $after, before: $before, first: $first, last: $last) {
-        edges {
-            node {
-                ... on User {
-                    firstName
-                    __typename
-                    id
-                }
-                __typename
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
     entitiesByCursor(after: $after, before: $before, first: $first, last: $last) {
         edges {
             node {
@@ -1684,7 +1547,6 @@ export type PaginatedFragment$artifact = typeof artifact
                                                         "__typename": {
                                                             "type": "String",
                                                             "keyRaw": "__typename",
-                                                            "visible": true,
                                                         },
                                                         "firstName": {
                                                             "type": "String",
@@ -1827,24 +1689,6 @@ export type TestQuery$result = {
 			readonly endCursor: string | null;
 		};
 	};
-	readonly entitiesByCursor: {
-		readonly edges: ({
-			readonly node: {} & (({
-		readonly firstName: string;
-		readonly id: string;
-		readonly __typename: "User";
-	}) | ({
-		readonly __typename: "non-exhaustive; don't match this";
-	})) | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	};
 };
 
 export type TestQuery$input = {
@@ -1856,7 +1700,7 @@ export type TestQuery$input = {
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=6809880b6654e17b05aea900f72c1597fe69e0ffd519502c3b74592b7ccd6922"`),
+"HoudiniHash=0d0fa55060035d4eb6ae7de938bdcfe8703aecff0becc0a479b6e29ffa999e4b"`),
 				},
 			},
 		},

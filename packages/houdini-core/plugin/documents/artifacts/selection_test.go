@@ -1333,7 +1333,7 @@ export type Friends$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90",
+    "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
 
     "refetch": {
         "path": ["users"],
@@ -1347,11 +1347,6 @@ export type Friends$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query TestQuery($value: String!) {
-    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
-        firstName
-        __typename
-        id
-    }
     users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
         firstName
         __typename
@@ -1457,9 +1452,6 @@ export type TestQuery$result = {
 	readonly users: ({
 		readonly firstName: string;
 	})[];
-	readonly users: ({
-		readonly firstName: string;
-	})[];
 };
 
 export type TestQuery$input = {
@@ -1468,7 +1460,7 @@ export type TestQuery$input = {
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=9b191621ddf7c2b84bd9c5baec398babf4aa90abf08176c3f98aa7d4fd802a90"`),
+"HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"`),
 				},
 			},
 			{

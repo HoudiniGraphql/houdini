@@ -149,11 +149,6 @@ func TestListArtifacts(t *testing.T) {
         __typename
         id
     }
-    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
-        firstName
-        __typename
-        id
-    }
 }
 ` + "`" + `,
 
@@ -251,9 +246,6 @@ func TestListArtifacts(t *testing.T) {
               };
 
               export type TestQuery$result = {
-              	readonly users: ({
-              		readonly firstName: string;
-              	})[];
               	readonly users: ({
               		readonly firstName: string;
               	})[];
@@ -535,24 +527,6 @@ export type TestQuery$artifact = typeof artifact
             endCursor
         }
     }
-    usersByCursor(after: $after, before: $before, first: $first, last: $last) {
-        edges {
-            node {
-                firstName
-                __typename
-                id
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
 }
 ` + "`" + `,
 
@@ -750,20 +724,6 @@ export type TestQuery$result = {
 			readonly endCursor: string | null;
 		};
 	};
-	readonly usersByCursor: {
-		readonly edges: ({
-			readonly node: {
-				readonly firstName: string;
-			} | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	};
 };
 
 export type TestQuery$input = {
@@ -810,24 +770,6 @@ export type TestQuery$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query TestQuery($after: String, $before: String, $first: Int = 10, $last: Int) {
-    usersByCursor(after: $after, before: $before, first: $first, last: $last) {
-        edges {
-            node {
-                firstName
-                __typename
-                id
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
     usersByCursor(after: $after, before: $before, first: $first, last: $last) {
         edges {
             node {
@@ -1033,20 +975,6 @@ export type TestQuery = {
 };
 
 export type TestQuery$result = {
-	readonly usersByCursor: {
-		readonly edges: ({
-			readonly node: {
-				readonly firstName: string;
-			} | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	};
 	readonly usersByCursor: {
 		readonly edges: ({
 			readonly node: {
@@ -1607,7 +1535,7 @@ export type AnimalsOverview$artifact = typeof artifact
 					"Entities": tests.Dedent(`const artifact = {
     "name": "Entities",
     "kind": "HoudiniQuery",
-    "hash": "21b46676839171e4a6ba14e17952b7f5c45220dbc77307e100185cc60c82e907",
+    "hash": "0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da",
 
     "refetch": {
         "path": ["entities"],
@@ -1621,20 +1549,6 @@ export type AnimalsOverview$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query Entities {
-    entities {
-        ... on User {
-            name
-            __typename
-            id
-        }
-        ... on Cat {
-            name
-            __typename
-            id
-        }
-        __typename
-        id
-    }
     entities {
         ... on User {
             name
@@ -1695,12 +1609,10 @@ export type AnimalsOverview$artifact = typeof artifact
                                 "__typename": {
                                     "type": "String",
                                     "keyRaw": "__typename",
-                                    "visible": true,
                                 },
                                 "id": {
                                     "type": "ID",
                                     "keyRaw": "id",
-                                    "visible": true,
                                 },
                                 "name": {
                                     "type": "String",
@@ -1712,12 +1624,10 @@ export type AnimalsOverview$artifact = typeof artifact
                                 "__typename": {
                                     "type": "String",
                                     "keyRaw": "__typename",
-                                    "visible": true,
                                 },
                                 "id": {
                                     "type": "ID",
                                     "keyRaw": "id",
-                                    "visible": true,
                                 },
                                 "name": {
                                     "type": "String",
@@ -1759,22 +1669,13 @@ export type Entities$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	})))[];
-	readonly entities: ({} & (({
-		readonly name: string;
-		readonly id: string;
-		readonly __typename: "Cat";
-	}) | ({
-		readonly name: string;
-		readonly id: string;
-		readonly __typename: "User";
-	})))[];
 };
 
 export type Entities$input = null | undefined;
 
 export type Entities$artifact = typeof artifact
 
-"HoudiniHash=21b46676839171e4a6ba14e17952b7f5c45220dbc77307e100185cc60c82e907"`),
+"HoudiniHash=0780776e735ef956acb43484910401ac645b29582b83432084ee8717a48d01da"`),
 				},
 			},
 			{
@@ -1798,7 +1699,7 @@ export type Entities$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "f230a15c406742ef87833c141d0e4eaf58011602d9eac75c964ccf1da135bf08",
+    "hash": "efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b",
 
     "refetch": {
         "path": ["usersByCursor"],
@@ -1812,24 +1713,6 @@ export type Entities$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query TestQuery {
-    usersByCursor {
-        edges {
-            node {
-                ...UserTest
-                __typename
-                id
-            }
-            __typename
-            cursor
-        }
-        __typename
-        pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-        }
-    }
     usersByCursor {
         edges {
             node {
@@ -2018,29 +1901,13 @@ export type TestQuery$result = {
 			readonly endCursor: string | null;
 		};
 	};
-	readonly usersByCursor: {
-		readonly edges: ({
-			readonly node: {
-				readonly " $fragments": {
-					UserTest: {};
-				};
-			} | null;
-			readonly cursor: string;
-		})[];
-		readonly pageInfo: {
-			readonly hasNextPage: boolean;
-			readonly hasPreviousPage: boolean;
-			readonly startCursor: string | null;
-			readonly endCursor: string | null;
-		};
-	};
 };
 
 export type TestQuery$input = null | undefined;
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=f230a15c406742ef87833c141d0e4eaf58011602d9eac75c964ccf1da135bf08"`),
+"HoudiniHash=efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b"`),
 				},
 			},
 		},
