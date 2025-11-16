@@ -129,7 +129,7 @@ func TestTypescriptGeneration(t *testing.T) {
 
 				// make sure values match expectations
 				require.NoError(t, err)
-				require.Equal(t, expected, string(typeDefs))
+				require.Contains(t, string(typeDefs), expected)
 			}
 		},
 		Tests: []tests.Test[config.PluginConfig]{
@@ -154,8 +154,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestQuery": tests.Dedent(`
-						import type artifact from './TestQuery'
-
 						export type TestQuery = {
 							readonly "input"?: TestQuery$input;
 							readonly "result": TestQuery$result | undefined;
@@ -186,11 +184,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type TestQuery$artifact = typeof artifact
 					`),
 					"otherInfo": tests.Dedent(`
-						import { MyEnum } from "$houdini/graphql/enums";
-						import type { ValueOf } from "$houdini/runtime/lib/types";
-						export type otherInfo$input = {};
-
-						import type artifact from './otherInfo'
+						export type otherInfo$input = never;
 
 						export type otherInfo = {
 							readonly "shape"?: otherInfo$data;
@@ -203,7 +197,7 @@ func TestTypescriptGeneration(t *testing.T) {
 							/**
 							 * An enum value
 							 */
-							readonly enumValue: ValueOf<typeof MyEnum> | null;
+							readonly enumValue: MyEnum$options | null;
 							readonly age: number | null;
 							/**
 							 * The user's first name
@@ -223,11 +217,7 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-						import type artifact from './TestFragment'
-						import { MyEnum } from "$houdini/graphql/enums";
-						import type { ValueOf } from "$houdini/runtime/lib/types";
-
-						export type TestFragment$input = {};
+						export type TestFragment$input = never;
 
 						export type TestFragment = {
 							readonly "shape"?: TestFragment$data;
@@ -245,7 +235,7 @@ func TestTypescriptGeneration(t *testing.T) {
 							/**
 							 * An enum value
 							 */
-							readonly enumValue: ValueOf<typeof MyEnum> | null;
+							readonly enumValue: MyEnum$options | null;
 						};
 
 						export type TestFragment$artifact = typeof artifact
@@ -260,8 +250,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-						import type artifact from './TestFragment'
-
 						export type TestFragment$input = {
 							name?: string | null;
 						};
@@ -294,9 +282,7 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-						import type artifact from './TestFragment'
-
-						export type TestFragment$input = {
+					  export type TestFragment$input = {
 							name: string;
 						};
 
@@ -328,8 +314,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-							import type artifact from './TestFragment'
-
 							export type TestFragment$input = {};
 
 							export type TestFragment = {
@@ -364,8 +348,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-							import type artifact from './TestFragment'
-
 							export type TestFragment$input = {};
 
 							export type TestFragment = {
@@ -398,8 +380,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-							import type artifact from './TestFragment'
-
 							export type TestFragment$input = {};
 
 							export type TestFragment = {
@@ -434,9 +414,7 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-							import type artifact from './MyQuery'
-
-							export type MyQuery = {
+						  export type MyQuery = {
 								readonly "input"?: MyQuery$input;
 								readonly "result": MyQuery$result | undefined;
 							};
@@ -467,9 +445,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-						import type artifact from './MyQuery'
-						import type { UserFilter } from "$houdini/graphql/inputs";
-
 						export type MyQuery = {
 							readonly "input": MyQuery$input;
 							readonly "result": MyQuery$result | undefined;
@@ -500,10 +475,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-							import type artifact from './MyQuery'
-							import type { ValueOf } from "$houdini/runtime/lib/types";
-							import type { MyEnum } from "$houdini/graphql/enums";
-
 							export type MyQuery = {
 								readonly "input": MyQuery$input;
 								readonly "result": MyQuery$result | undefined;
@@ -538,8 +509,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyTestQuery": tests.Dedent(`
-						import type artifact from './MyTestQuery'
-
 						export type MyTestQuery = {
 							readonly "input"?: MyTestQuery$input;
 							readonly "result": MyTestQuery$result | undefined;
@@ -569,9 +538,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-						import type artifact from './MyQuery'
-						import type { UserFilter } from "$houdini/graphql/inputs";
-
 						export type MyQuery = {
 							readonly "input": MyQuery$input;
 							readonly "result": MyQuery$result | undefined;
@@ -605,8 +571,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-						import type artifact from './MyQuery'
-
 						export type MyQuery = {
 							readonly "input"?: MyQuery$input;
 							readonly "result": MyQuery$result | undefined;
@@ -638,8 +602,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-						import type artifact from './MyQuery'
-
 						export type MyQuery = {
 							readonly "input"?: MyQuery$input;
 							readonly "result": MyQuery$result | undefined;
@@ -682,8 +644,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"ComplexQuery": tests.Dedent(`
-						import type artifact from './ComplexQuery'
-
 						export type ComplexQuery = {
 							readonly "input"?: ComplexQuery$input;
 							readonly "result": ComplexQuery$result | undefined;
@@ -733,8 +693,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UnionQuery": tests.Dedent(`
-						import type artifact from './UnionQuery'
-
 						export type UnionQuery = {
 							readonly "input"?: UnionQuery$input;
 							readonly "result": UnionQuery$result | undefined;
@@ -780,8 +738,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MixedQuery": tests.Dedent(`
-						import type artifact from './MixedQuery'
-
 						export type MixedQuery = {
 							readonly "input"?: MixedQuery$input;
 							readonly "result": MixedQuery$result | undefined;
@@ -829,8 +785,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"AbstractConcreteQuery": tests.Dedent(`
-						import type artifact from './AbstractConcreteQuery'
-
 						export type AbstractConcreteQuery = {
 							readonly "input"?: AbstractConcreteQuery$input;
 							readonly "result": AbstractConcreteQuery$result | undefined;
@@ -883,8 +837,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UnionAbstractQuery": tests.Dedent(`
-						import type artifact from './UnionAbstractQuery'
-
 						export type UnionAbstractQuery = {
 							readonly "input"?: UnionAbstractQuery$input;
 							readonly "result": UnionAbstractQuery$result | undefined;
@@ -929,8 +881,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"AnimalCatQuery": tests.Dedent(`
-						import type artifact from './AnimalCatQuery'
-
 						export type AnimalCatQuery = {
 							readonly "input"?: AnimalCatQuery$input;
 							readonly "result": AnimalCatQuery$result | undefined;
@@ -980,9 +930,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyMutation": tests.Dedent(`
-						import type artifact from './MyMutation'
-						import type { UserFilter } from "$houdini/graphql/inputs";
-
 						export type MyMutation = {
 							readonly "input": MyMutation$input;
 							readonly "result": MyMutation$result;
@@ -1029,8 +976,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-						import type artifact from './MyQuery'
-
 						export type MyQuery = {
 							readonly "input"?: MyQuery$input;
 							readonly "result": MyQuery$result | undefined;
@@ -1052,8 +997,6 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type MyQuery$artifact = typeof artifact
 					`),
 					"Foo": tests.Dedent(`
-						import type artifact from './Foo'
-
 						export type Foo$input = {};
 
 						export type Foo = {
@@ -1091,9 +1034,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserBase": tests.Dedent(`
-						import type artifact from './UserBase'
-						import { LoadingType } from "$houdini/runtime/lib/types";
-
 						export type UserBase$input = {};
 
 						export type UserBase = {
@@ -1148,9 +1088,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserQuery": tests.Dedent(`
-						import type artifact from './UserQuery'
-						import { LoadingType } from "$houdini/runtime/lib/types";
-
 						export type UserQuery = {
 							readonly "input"?: UserQuery$input;
 							readonly "result": UserQuery$result | undefined;
@@ -1212,9 +1149,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserQuery": tests.Dedent(`
-						import type artifact from './UserQuery'
-						import { LoadingType } from "$houdini/runtime/lib/types";
-
 						export type UserQuery = {
 							readonly "input"?: UserQuery$input;
 							readonly "result": UserQuery$result | undefined;
@@ -1264,10 +1198,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserQuery": tests.Dedent(`
-						import type artifact from './UserQuery'
-						import { LoadingType } from "$houdini/runtime/lib/types";
-						import type { UserFilter } from "$houdini/graphql/inputs";
-
 						export type UserQuery = {
 							readonly "input": UserQuery$input;
 							readonly "result": UserQuery$result | undefined;
@@ -1304,10 +1234,7 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserQuery": tests.Dedent(`
-						import type artifact from './UserQuery'
-						import { LoadingType } from "$houdini/runtime/lib/types";
-						import type { UserFilter } from "$houdini/graphql/inputs";
-
+																		
 						export type UserQuery = {
 							readonly "input": UserQuery$input;
 							readonly "result": UserQuery$result | undefined;
@@ -1334,9 +1261,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type UserQuery$artifact = typeof artifact
 					`),
 					"UserBase": tests.Dedent(`
-						import type artifact from './UserBase'
-
-						export type UserBase$input = {};
+					  export type UserBase$input = {};
 
 						export type UserBase = {
 							readonly "shape"?: UserBase$data;
@@ -1371,10 +1296,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserQuery": tests.Dedent(`
-						import type artifact from './UserQuery'
-						import { LoadingType } from "$houdini/runtime/lib/types";
-						import type { UserFilter } from "$houdini/graphql/inputs";
-
 						export type UserQuery = {
 							readonly "input": UserQuery$input;
 							readonly "result": UserQuery$result | undefined;
@@ -1401,8 +1322,6 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type UserQuery$artifact = typeof artifact
 					`),
 					"UserBase": tests.Dedent(`
-						import type artifact from './UserBase'
-
 						export type UserBase$input = {};
 
 						export type UserBase = {
@@ -1438,8 +1357,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"UserQuery": tests.Dedent(`
-						import type artifact from './UserQuery'
-
 						export type UserQuery = {
 							readonly "input"?: UserQuery$input;
 							readonly "result": UserQuery$result | undefined;

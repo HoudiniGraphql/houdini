@@ -110,7 +110,8 @@ func TestLoadingArtifacts(t *testing.T) {
           `,
 				},
 				Extra: map[string]any{
-					"MonkeyListQuery": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"MonkeyListQuery": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "MonkeyListQuery",
     "kind": "HoudiniQuery",
@@ -317,7 +318,8 @@ export type MonkeyListQuery$input = null | undefined;
 
 export type MonkeyListQuery$artifact = typeof artifact
 
-"HoudiniHash=ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2"`),
+"HoudiniHash=ece6ef3e8361e90d01206d34ba36afbeed2fb1903e3946aaa65790ffa7f1d0a2"`,
+					),
 				},
 			},
 			{
@@ -336,7 +338,8 @@ export type MonkeyListQuery$artifact = typeof artifact
           }`,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"Query": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -549,7 +552,8 @@ export type Query$input = null | undefined;
 
 export type Query$artifact = typeof artifact
 
-"HoudiniHash=a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841"`),
+"HoudiniHash=a7e16dc3a8fe4cc7a47a16444f1809cbc0865be2d997ae28e4e2e2539e890841"`,
+					),
 				},
 			},
 			{
@@ -570,7 +574,8 @@ export type Query$artifact = typeof artifact
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"Query": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -725,7 +730,8 @@ export type Query$input = null | undefined;
 
 export type Query$artifact = typeof artifact
 
-"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`),
+"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`,
+					),
 				},
 			},
 			{
@@ -748,7 +754,8 @@ export type Query$artifact = typeof artifact
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"Query": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -873,7 +880,8 @@ export type Query$input = null | undefined;
 
 export type Query$artifact = typeof artifact
 
-"HoudiniHash=5ba953f37cfa2e0ce515c4c22ce9c6e3206fc05adc5c96fbc7a3184691d672f1"`),
+"HoudiniHash=5ba953f37cfa2e0ce515c4c22ce9c6e3206fc05adc5c96fbc7a3184691d672f1"`,
+					),
 				},
 			},
 			{
@@ -894,7 +902,8 @@ export type Query$artifact = typeof artifact
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"Query": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1042,7 +1051,8 @@ export type Query$input = null | undefined;
 
 export type Query$artifact = typeof artifact
 
-"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`),
+"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`,
+					),
 				},
 			},
 			{
@@ -1061,7 +1071,8 @@ export type Query$artifact = typeof artifact
           }`,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"Query": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1204,7 +1215,8 @@ export type Query$input = null | undefined;
 
 export type Query$artifact = typeof artifact
 
-"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`),
+"HoudiniHash=75a077637efd548c3e2b73c0d6ba3a6b0adbf92d3661c3907253b00c250d594a"`,
+					),
 				},
 			},
 			{
@@ -1231,7 +1243,8 @@ export type Query$artifact = typeof artifact
           `,
 				},
 				Extra: map[string]any{
-					"Query": tests.Dedent(`import type { LoadingType } from "$houdini/runtime/lib/types";
+					"Query": tests.Dedent(
+						`import type { LoadingType } from "$houdini/runtime/lib/types";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1431,15 +1444,25 @@ export type Query$result = {
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
-	readonly entities: LoadingType[];
-	readonly entities: LoadingType[];
+	readonly entities: ({} & (({
+		readonly name: LoadingType;
+		readonly id: LoadingType;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: LoadingType;
+		readonly id: LoadingType;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
 };
 
 export type Query$input = null | undefined;
 
 export type Query$artifact = typeof artifact
 
-"HoudiniHash=8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877"`),
+"HoudiniHash=8a12a21168a8db7431b74a680bdce400f24aa9c577674893fddbf89c6d0a7877"`,
+					),
 				},
 			},
 		},

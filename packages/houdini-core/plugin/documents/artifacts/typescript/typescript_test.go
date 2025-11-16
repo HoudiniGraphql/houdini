@@ -254,14 +254,14 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "ENUM",
 			typeName:      "Status",
 			typeModifiers: "",
-			expected:      "ValueOf<typeof Status> | null",
+			expected:      "Status$options | null",
 		},
 		{
 			name:          "non-null enum",
 			kind:          "ENUM",
 			typeName:      "UserRole",
 			typeModifiers: "!",
-			expected:      "ValueOf<typeof UserRole>",
+			expected:      "UserRole$options",
 		},
 
 		// Input types
@@ -311,7 +311,7 @@ func TestConvertToTypeScriptType(t *testing.T) {
 			kind:          "ENUM",
 			typeName:      "Color",
 			typeModifiers: "]!",
-			expected:      "(ValueOf<typeof Color> | null)[]",
+			expected:      "(Color$options | null)[]",
 		},
 
 		// Array types with input types
