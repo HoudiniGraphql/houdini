@@ -43,6 +43,6 @@ func (c ProjectConfig) ArtifactPath(name string) string {
 func (c ProjectConfig) ArtifactTypePath(name string) string {
 	return filepath.Join(
 		c.ArtifactDirectory(),
-		name+".d.ts",
+		name+".ts",
 	)
 }

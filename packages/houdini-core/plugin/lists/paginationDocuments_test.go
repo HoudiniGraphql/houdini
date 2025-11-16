@@ -145,7 +145,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				Pass: true,
 				Input: []string{
 					`
-						query AllUsers($first: Int) {
+						query AllUsers($first: Int!) {
 							userConnection(first: $first) @paginate {
 								edges {
 									node {
@@ -158,7 +158,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				},
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
-						query AllUsers($first: Int, $after: String, $before: String, $last: Int) @dedupe(match: Variables) {
+						query AllUsers($first: Int!, $after: String, $before: String, $last: Int) @dedupe(match: Variables) {
 							userConnection(first: $first, after: $after,  last: $last, before: $before) @paginate {
 								edges {
 									node {
@@ -166,8 +166,8 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 										__typename
 										id
 									}
-									cursor
 									__typename
+									cursor
 								}
 								__typename
 								pageInfo {
@@ -430,6 +430,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`),
 					tests.ExpectedDoc(`
 						fragment AllUsers_paginated_c9Zhk on Query {
+							__typename
 							userConnection(first: $first, after: $after, last: $last, before: $before) @paginate {
 								edges {
 									node {
@@ -437,17 +438,19 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 										__typename
 										id
 									}
-									__typename
 									cursor
+									__typename
 								}
-								__typename
 								pageInfo {
 									hasNextPage
 									hasPreviousPage
 									startCursor
 									endCursor
+									__typename
 								}
+								__typename
 							}
+							id
 						}
 					`).WithVariables(
 						tests.ExpectedOperationVariable{
@@ -500,33 +503,57 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						fragment Friends_paginated_c9Zhk  on User {
-              id
               __typename
-							friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+              friends(first: $first, after: $after, last: $last, before: $before) @paginate {
 								edges {
 									node {
 										firstName
 										__typename
 										id
 									}
-									__typename
 									cursor
+									__typename
 								}
-								__typename
 								pageInfo {
 									hasNextPage
 									hasPreviousPage
 									startCursor
 									endCursor
+									__typename
 								}
+								__typename
 							}
+							id
 						}
-					`),
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
 					tests.ExpectedDoc(
 						fmt.Sprintf(`
 							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
 								node(id: $id) {
 									...Friends_paginated_c9Zhk @with(first: $first, after: $after, before: $before, last: $last)
+									__typename
+									id
 								}
 							}
 						`,
@@ -555,20 +582,36 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						fragment Believers_paginated_1uyQEt on Legend {
+							title
+							__typename
+							id
 							believers(limit: $limit, offset: $offset) @paginate {
 								firstName
 								__typename
 								id
 							}
-              __typename
-              title
 						}
-					`),
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "limit",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "offset",
+							Type: "Int",
+						},
+					),
 					tests.ExpectedDoc(
 						fmt.Sprintf(`
 							query %s($limit: Int = 10, $offset: Int, $title: String!) @dedupe(match: Variables) {
 								legend(title: $title) {
 									...Believers_paginated_1uyQEt @with(limit: $limit, offset: $offset)
+									__typename
+									title
 								}
 							}
 						`,
@@ -620,6 +663,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 					`),
 					tests.ExpectedDoc(`
 						fragment AllUsers_paginated_c9Zhk on Query {
+							__typename
 							userConnection(first: $first, after: $after, last: $last, before: $before) @paginate {
 								edges {
 									node {
@@ -627,19 +671,42 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 										__typename
 										id
 									}
-									__typename
 									cursor
+									__typename
 								}
-								__typename
 								pageInfo {
 									hasNextPage
 									hasPreviousPage
 									startCursor
 									endCursor
+									__typename
 								}
+								__typename
 							}
+							id
 						}
-					`),
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
 					tests.ExpectedDoc(
 						fmt.Sprintf(`
 							query %s($first: Int = 10, $after: String, $before: String, $last: Int ) {
@@ -669,8 +736,6 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						fragment UserFriends_paginated_SAvn1 on User {
-							id
-							__typename
 							friends(first: $first, after: $after, last: $last, before: $before, snapshot: $snapshot) @paginate {
 								edges {
 									node {
@@ -678,24 +743,55 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 										__typename
 										id
 									}
-									__typename
 									cursor
+									__typename
 								}
-								__typename
 								pageInfo {
 									hasNextPage
 									hasPreviousPage
 									startCursor
 									endCursor
+									__typename
 								}
+								__typename
 							}
+							__typename
+							id
 						}
-					`),
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "2",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "snapshot",
+							Type: "String",
+							TypeModifiers: "!",
+						},
+					),
 					tests.ExpectedDoc(
 						fmt.Sprintf(`
 							query %s($first: Int = 2, $after: String, $before: String, $last: Int, $id: ID!, $snapshot: String!) @dedupe(match: Variables) {
 								node(id: $id) {
 									...UserFriends_paginated_SAvn1 @with(first: $first, after: $after, before: $before, last: $last, snapshot: $snapshot)
+									__typename
+									id
 								}
 							}
 						`,
