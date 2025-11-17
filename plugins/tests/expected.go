@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -160,12 +159,17 @@ func ValidateExpectedDocuments[PluginConfig any](
 				// Build and compare the selection tree.
 				actualTree := buildSelectionTree(t, db, int64(actual.ID))
 				if err := compareExpected(t, expDoc.Selections, actualTree); err != nil {
-					e, _ := json.MarshalIndent(expDoc.Selections, "", "  ")
-					a, _ := json.MarshalIndent(actualTree, "", "  ")
 					t.Errorf(
 						"selection tree mismatch for document %s: \n%s ",
 						expDoc.Name,
-						printColumns(string(e), string(a)),
+						printExpectedSelectionDiff(
+							ExpectedSelection{
+								Children: expDoc.Selections,
+							},
+							ExpectedSelection{
+								Children: actualTree,
+							},
+						),
 					)
 				}
 

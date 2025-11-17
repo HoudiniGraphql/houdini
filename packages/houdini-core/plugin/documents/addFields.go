@@ -185,28 +185,21 @@ func AddDocumentFields[PluginConfig any](
 	// any connection-based discovered lists need to have page information added
 	// so start at the node of the connection and get the surrounding field data
 	connectionWalk, err := conn.Prepare(`
-		SELECT
-				dl.list_field,
-				sr.parent_id AS edges_field,
-				dl.document,
-				dl.edge_type,
-				dl.connection_type,
-				dl.node_type,
-				d.name AS document_name
-		FROM discovered_lists AS dl
-		JOIN (
-				-- Deduplicate the noisy table on the minimal columns
-				SELECT DISTINCT child_id, parent_id
-				FROM selection_refs
-		) AS sr
-			ON sr.child_id = dl.node
-		JOIN documents AS d
-			ON d.id = dl.document
-		JOIN raw_documents AS rd
-			ON rd.id = d.raw_document
-		WHERE dl.connection = 1
-			AND (rd.current_task = $task_id OR $task_id IS NULL)
-			AND (d.processed = 0 OR d.processed IS NULL)
+		SELECT DISTINCT
+			list_field,
+			selection_refs.parent_id as edges_field,
+			discovered_lists.document,
+      edge_type,
+      connection_type,
+      node_type,
+			documents.name as document_name
+		FROM discovered_lists
+			JOIN selection_refs ON selection_refs.child_id = discovered_lists.node
+			JOIN documents ON documents.id = discovered_lists.document
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+		WHERE connection = true
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+			AND (documents.processed = false OR documents.processed IS NULL)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))

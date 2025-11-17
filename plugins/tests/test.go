@@ -470,9 +470,9 @@ type ExpectedSelection struct {
 	Children   []ExpectedSelection
 }
 
-func printColumns(columnA string, columnB string) string {
-	expectedLines := strings.Split(columnA, "\n")
-	foundLines := strings.Split(columnB, "\n")
+func printExpectedSelectionDiff(selA ExpectedSelection, selB ExpectedSelection) string {
+	expectedLines := strings.Split(PrintExpectedSelection(selA), "\n")
+	foundLines := strings.Split(PrintExpectedSelection(selB), "\n")
 
 	// Use tabwriter to align the columns
 	var buf bytes.Buffer
@@ -535,4 +535,304 @@ func Dedent(input string) string {
 		}
 	}
 	return strings.TrimSpace(strings.Join(lines, "\n"))
+}
+
+// PrintExpectedDocument returns the GraphQL string representation
+// of the given ExpectedDocument.
+func PrintExpectedDocument(doc *ExpectedDocument) string {
+	var buf bytes.Buffer
+
+	// Operation vs fragment
+	if strings.EqualFold(doc.Kind, "fragment") {
+		// fragment MyFragment on TypeCond @dir { ... }
+		fmt.Fprintf(&buf, "fragment %s", doc.Name)
+		if doc.TypeCondition != nil && *doc.TypeCondition != "" {
+			fmt.Fprintf(&buf, " on %s", *doc.TypeCondition)
+		}
+		writeDirectives(&buf, doc.Directives)
+		buf.WriteString(" {\n")
+		writeSelectionSet(&buf, doc.Selections, 1)
+		buf.WriteString("}\n")
+		return buf.String()
+	}
+
+	// query/mutation/subscription
+	if doc.Kind != "" {
+		buf.WriteString(doc.Kind)
+	} else {
+		// default to "query" if kind is empty
+		buf.WriteString("query")
+	}
+
+	if doc.Name != "" {
+		buf.WriteByte(' ')
+		buf.WriteString(doc.Name)
+	}
+
+	// Variables: ($var: Type = default)
+	if len(doc.Variables) > 0 {
+		buf.WriteByte('(')
+		for i, v := range doc.Variables {
+			if i > 0 {
+				buf.WriteString(", ")
+			}
+			buf.WriteByte('$')
+			buf.WriteString(v.Name)
+			buf.WriteString(": ")
+
+			// NOTE: TypeModifiers’ encoding is domain-specific.
+			// Here we just append it around the type in a simple way.
+			// Adjust this if your modifiers are stored differently.
+			if v.TypeModifiers != "" {
+				// e.g., "[%s!]!" style might already be encoded, but if not,
+				// you can switch to a custom formatter.
+				buf.WriteString(v.TypeModifiers)
+			}
+			buf.WriteString(v.Type)
+
+			if v.DefaultValue != nil {
+				buf.WriteString(" = ")
+				buf.WriteString(printArgumentValue(v.DefaultValue))
+			}
+		}
+		buf.WriteByte(')')
+	}
+
+	// Operation-level directives
+	writeDirectives(&buf, doc.Directives)
+
+	buf.WriteString(" {\n")
+	writeSelectionSet(&buf, doc.Selections, 1)
+	buf.WriteString("}\n")
+
+	return buf.String()
+}
+
+func writeSelectionSet(buf *bytes.Buffer, selections []ExpectedSelection, indent int) {
+	for _, sel := range selections {
+		writeIndent(buf, indent)
+
+		switch strings.ToLower(sel.Kind) {
+		case "field", "":
+			// alias: fieldName
+			if sel.Alias != nil && *sel.Alias != "" && *sel.Alias != sel.FieldName {
+				fmt.Fprintf(buf, "%s: %s", *sel.Alias, sel.FieldName)
+			} else {
+				buf.WriteString(sel.FieldName)
+			}
+
+			// arguments
+			writeArguments(buf, sel.Arguments)
+
+			// directives
+			writeDirectives(buf, sel.Directives)
+
+			// children
+			if len(sel.Children) > 0 {
+				buf.WriteString(" {\n")
+				writeSelectionSet(buf, sel.Children, indent+1)
+				writeIndent(buf, indent)
+				buf.WriteString("}")
+			}
+			buf.WriteString("\n")
+
+		case "fragment": // fragment spread
+			// FieldName is assumed to be the fragment name
+			fmt.Fprintf(buf, "...%s", sel.FieldName)
+			writeDirectives(buf, sel.Directives)
+			buf.WriteString("\n")
+
+		case "inline_fragment":
+			// Here we assume FieldName holds the type condition
+			fmt.Fprintf(buf, "... on %s", sel.FieldName)
+			writeDirectives(buf, sel.Directives)
+			if len(sel.Children) > 0 {
+				buf.WriteString(" {\n")
+				writeSelectionSet(buf, sel.Children, indent+1)
+				writeIndent(buf, indent)
+				buf.WriteString("}")
+			}
+			buf.WriteString("\n")
+
+		default:
+			// Fallback: treat unknown kinds as plain fields
+			buf.WriteString(sel.FieldName)
+			writeArguments(buf, sel.Arguments)
+			writeDirectives(buf, sel.Directives)
+			if len(sel.Children) > 0 {
+				buf.WriteString(" {\n")
+				writeSelectionSet(buf, sel.Children, indent+1)
+				writeIndent(buf, indent)
+				buf.WriteString("}")
+			}
+			buf.WriteString("\n")
+		}
+	}
+}
+
+func writeArguments(buf *bytes.Buffer, args []ExpectedArgument) {
+	if len(args) == 0 {
+		return
+	}
+	buf.WriteByte('(')
+	for i, arg := range args {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(arg.Name)
+		buf.WriteString(": ")
+		if arg.Value != nil {
+			buf.WriteString(printArgumentValue(arg.Value))
+		} else {
+			buf.WriteString("null")
+		}
+	}
+	buf.WriteByte(')')
+}
+
+func writeDirectiveArguments(buf *bytes.Buffer, args []ExpectedDirectiveArgument) {
+	if len(args) == 0 {
+		return
+	}
+	buf.WriteByte('(')
+	for i, arg := range args {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(arg.Name)
+		buf.WriteString(": ")
+		if arg.Value != nil {
+			buf.WriteString(printArgumentValue(arg.Value))
+		} else {
+			buf.WriteString("null")
+		}
+	}
+	buf.WriteByte(')')
+}
+
+func writeDirectives(buf *bytes.Buffer, directives []ExpectedDirective) {
+	for _, d := range directives {
+		buf.WriteByte(' ')
+		buf.WriteByte('@')
+		buf.WriteString(d.Name)
+		writeDirectiveArguments(buf, d.Arguments)
+	}
+}
+
+func printArgumentValue(v *ExpectedArgumentValue) string {
+	if v == nil {
+		return "null"
+	}
+
+	switch strings.ToLower(v.Kind) {
+	case "variable":
+		// Assume Raw is the variable name without $
+		return "$" + v.Raw
+
+	case "list":
+		var parts []string
+		for _, child := range v.Children {
+			if child.Value != nil {
+				parts = append(parts, printArgumentValue(child.Value))
+			} else {
+				parts = append(parts, "null")
+			}
+		}
+		return "[" + strings.Join(parts, ", ") + "]"
+
+	case "object":
+		var parts []string
+		for _, child := range v.Children {
+			valStr := "null"
+			if child.Value != nil {
+				valStr = printArgumentValue(child.Value)
+			}
+			parts = append(parts, fmt.Sprintf("%s: %s", child.Name, valStr))
+		}
+		return "{ " + strings.Join(parts, ", ") + " }"
+
+	default:
+		// Scalars/enums/etc: assume Raw already contains valid GraphQL literal
+		// (e.g., "123", "\"string\"", "ENUM_VALUE", "true", "null")
+		return v.Raw
+	}
+}
+
+func writeIndent(buf *bytes.Buffer, indent int) {
+	for i := 0; i < indent; i++ {
+		buf.WriteString("  ")
+	}
+}
+
+func PrintExpectedSelection(sel ExpectedSelection) string {
+	var buf bytes.Buffer
+	writeSingleSelection(&buf, sel, 0)
+	return buf.String()
+}
+
+func writeSingleSelection(buf *bytes.Buffer, sel ExpectedSelection, indent int) {
+	writeIndent(buf, indent)
+
+	kind := strings.ToLower(sel.Kind)
+
+	switch kind {
+	case "field", "":
+		// alias: fieldName
+		if sel.Alias != nil && *sel.Alias != "" && *sel.Alias != sel.FieldName {
+			fmt.Fprintf(buf, "%s: %s", *sel.Alias, sel.FieldName)
+		} else {
+			buf.WriteString(sel.FieldName)
+		}
+
+		// arguments
+		writeArguments(buf, sel.Arguments)
+
+		// directives
+		writeDirectives(buf, sel.Directives)
+
+		// children
+		if len(sel.Children) > 0 {
+			buf.WriteString(" {\n")
+			for _, child := range sel.Children {
+				writeSingleSelection(buf, child, indent+1)
+			}
+			writeIndent(buf, indent)
+			buf.WriteString("}")
+		}
+		buf.WriteString("\n")
+
+	case "fragment": // fragment spread
+		fmt.Fprintf(buf, "...%s", sel.FieldName)
+		writeDirectives(buf, sel.Directives)
+		buf.WriteString("\n")
+
+	case "inline_fragment":
+		// FieldName holds the type condition
+		fmt.Fprintf(buf, "... on %s", sel.FieldName)
+		writeDirectives(buf, sel.Directives)
+		if len(sel.Children) > 0 {
+			buf.WriteString(" {\n")
+			for _, child := range sel.Children {
+				writeSingleSelection(buf, child, indent+1)
+			}
+			writeIndent(buf, indent)
+			buf.WriteString("}")
+		}
+		buf.WriteString("\n")
+
+	default:
+		// fallback to field-like printing
+		buf.WriteString(sel.FieldName)
+		writeArguments(buf, sel.Arguments)
+		writeDirectives(buf, sel.Directives)
+		if len(sel.Children) > 0 {
+			buf.WriteString(" {\n")
+			for _, child := range sel.Children {
+				writeSingleSelection(buf, child, indent+1)
+			}
+			writeIndent(buf, indent)
+			buf.WriteString("}")
+		}
+		buf.WriteString("\n")
+	}
 }
