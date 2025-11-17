@@ -963,7 +963,14 @@ func processFragmentPagination(
 		for _, appliedArg := range list.Arguments {
 			if appliedArg.Argument == arg.Name {
 				if appliedArg.Kind != "Variable" {
-					defaultValue = appliedArg.Value
+					err = ctx.db.ExecStatement(ctx.copyArgumentValue, map[string]any{
+						"id":       appliedArg.Value,
+						"document": queryDocumentID,
+					})
+					if err != nil {
+						return 0, err
+					}
+					defaultValue = ctx.conn.LastInsertRowID()
 				}
 				break
 			}

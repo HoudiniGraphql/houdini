@@ -79,7 +79,7 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 	}
 	docs := make(chan docWithScope, 100)
 
-	// TODO: serialize this a bit better
+	// TODO: parallelize this a bit better
 	for range 1 {
 		wg.Add(1)
 		go func() {
@@ -246,17 +246,8 @@ func processDocument[PluginConfig any](
 	// now we have to walk through the document and replace any fragment spreads that have @with
 	//
 	// NOTE: We create a fresh statement here instead of using the prepared statement from
-	// statements.WithSpreadsInDocument to avoid SQLite parameter retention issues.
-	//
-	// This query is extremely complex (multiple JOINs, GROUP BY, JSON aggregations) and
-	// SQLite's query planner can retain internal state when parameters are cleared and
-	// rebound. The systemic parameter clearing fix works for simpler queries, but this
-	// query's complexity causes the planner to cache execution plans based on NULL values
-	// from parameter clearing, leading to incorrect results on subsequent executions.
-	//
-	// Fresh statements ensure each execution starts with a completely clean slate,
-	// avoiding any query planner state retention issues. This is the only query in the
-	// codebase complex enough to require this approach.
+	// statements.WithSpreadsInDocument to avoid SQLite parameter retention issues that I couldn't
+	// relaibly resolve.
 	withSearch, err := conn.Prepare(`
 	    SELECT
 	      parent_doc.name as document,
@@ -400,8 +391,7 @@ func processDocument[PluginConfig any](
 		}
 
 		// check if we've already processed this fragment to avoid duplicates
-		// use database-based check instead of in-memory map to handle multiple transform runs,
-		// multiple processes, and server restarts where in-memory state would be lost
+		// use database-based check instead of in-memory map to handle multiple transform runs
 		fragmentMutex.Lock()
 
 		// check if a document with this name already exists in the database
@@ -563,7 +553,15 @@ func cloneDocument[PluginConfig any](
 			"type_modifiers": arg.TypeModifiers,
 		}
 		if arg.DefaultValue != 0 {
-			variable["default_value"] = arg.DefaultValue
+			err = db.ExecStatement(statements.CopyArgumentValue, map[string]any{
+				"id":       arg.DefaultValue,
+				"document": documentID,
+			})
+			if err != nil {
+				return 0, nil, err
+			}
+
+			variable["default_value"] = conn.LastInsertRowID()
 		}
 		err = db.ExecStatement(statements.InsertDocumentVariable, variable)
 		if err != nil {
@@ -1076,6 +1074,7 @@ type transformStatements[PluginConfig any] struct {
 	UpdateArgumentValue                *sqlite.Stmt
 	UpdateSelectionArgument            *sqlite.Stmt
 	CopySelectionsNoArgs               *sqlite.Stmt
+	CopyArgumentValue                  *sqlite.Stmt
 	InsertFragment                     *sqlite.Stmt
 	InsertDocumentVariable             *sqlite.Stmt
 	DocumentArgumentValueSearch        *sqlite.Stmt
@@ -1591,6 +1590,14 @@ func prepareTransformStatements[PluginConfig any](
 	if err != nil {
 		return nil, err
 	}
+	copyArgumentValue, err := conn.Prepare(`
+    INSERT INTO argument_values (kind, raw, row, column, expected_type, document)
+    SELECT kind, raw, row, column, expected_type, $document
+    FROM argument_values where id = $id
+  `)
+	if err != nil {
+		return nil, err
+	}
 
 	return &transformStatements[PluginConfig]{
 		WithSpreadsInDocument:              withSpreadsInDocument,
@@ -1601,6 +1608,7 @@ func prepareTransformStatements[PluginConfig any](
 		SelectionArgumentVariableSearch:    selectionArgVariables,
 		UpdateSelectionArgument:            updateSelectionArgument,
 		CopySelectionsNoArgs:               copySelectionsNoArgs,
+		CopyArgumentValue:                  copyArgumentValue,
 		InsertFragment:                     insertFragment,
 		DocumentArgumentValueSearch:        documentArgumentValueSearch,
 		DirectiveArgumentSearch:            directiveArgVariables,
@@ -1644,6 +1652,7 @@ func (s *transformStatements[PluginConfig]) Finalize() {
 	s.DirectiveArgumentSearch.Finalize()
 	s.UpdateDirectiveArgument.Finalize()
 	s.NoSelectionArgsDirectiveArgsSearch.Finalize()
+	s.CopyArgumentValue.Finalize()
 }
 
 func (s *transformStatements[PluginConfig]) ReplaceVariables(
