@@ -272,7 +272,8 @@ func processDocument[PluginConfig any](
 	              'default_value', document_variables."default_value",
 	              'raw', document_variable_default_values."raw",
               	'type', document_variables."type",
-              	'type_modifiers', document_variables."type_modifiers"
+              	'type_modifiers', document_variables."type_modifiers",
+              	'kind', document_variable_default_values."kind"
 	            )
 	          )
 	      END as doc_variables,
@@ -552,7 +553,7 @@ func cloneDocument[PluginConfig any](
 			"type":           arg.Type,
 			"type_modifiers": arg.TypeModifiers,
 		}
-		if arg.DefaultValue != 0 {
+		if arg.DefaultValue != 0 && arg.Kind != "Variable" {
 			err = db.ExecStatement(statements.CopyArgumentValue, map[string]any{
 				"id":       arg.DefaultValue,
 				"document": documentID,
@@ -1740,4 +1741,5 @@ type DocArg struct {
 	TypeModifiers string `json:"type_modifiers"`
 	DefaultValue  int64  `json:"default_value"`
 	Raw           string `json:"raw"`
+	Kind          string `json:"kind"`
 }
