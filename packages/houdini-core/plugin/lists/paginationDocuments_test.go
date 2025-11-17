@@ -519,7 +519,6 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 									hasPreviousPage
 									startCursor
 									endCursor
-									__typename
 								}
 								__typename
 							}
@@ -780,8 +779,8 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 							Type: "String",
 						},
 						tests.ExpectedOperationVariable{
-							Name: "snapshot",
-							Type: "String",
+							Name:          "snapshot",
+							Type:          "String",
 							TypeModifiers: "!",
 						},
 					),

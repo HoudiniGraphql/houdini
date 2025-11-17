@@ -1150,6 +1150,28 @@ func processFragmentPagination(
 		"node_type":         nodeType,
 		"edge_type":         edgeType,
 		"connection_type":   connectionType,
+		"document":          paginatedFragmentID,
+		"connection":        list.Connection,
+		"list_field":        listFieldForQuery,
+		"paginate":          paginateValue,
+		"node":              node,
+		"page_size":         pageSize,
+		"mode":              mode,
+		"embedded":          false,
+		"target_type":       targetType,
+		"supports_forward":  list.SupportsForward,
+		"supports_backward": list.SupportsBackward,
+		"cursor_type":       list.CursorType,
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	err = ctx.db.ExecStatement(ctx.insertDiscoveredLists, map[string]any{
+		"name":              "",
+		"node_type":         nodeType,
+		"edge_type":         edgeType,
+		"connection_type":   connectionType,
 		"document":          queryDocumentID,
 		"connection":        list.Connection,
 		"list_field":        listFieldForQuery,
@@ -1157,8 +1179,8 @@ func processFragmentPagination(
 		"node":              node,
 		"page_size":         pageSize,
 		"mode":              mode,
-		"embedded":          false,      // pagination queries are not embedded
-		"target_type":       targetType, // smart target type selection for fragment pagination
+		"embedded":          false,
+		"target_type":       targetType,
 		"supports_forward":  list.SupportsForward,
 		"supports_backward": list.SupportsBackward,
 		"cursor_type":       list.CursorType,

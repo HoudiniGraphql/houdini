@@ -186,19 +186,27 @@ func AddDocumentFields[PluginConfig any](
 	// so start at the node of the connection and get the surrounding field data
 	connectionWalk, err := conn.Prepare(`
 		SELECT
-			list_field,
-			selection_refs.parent_id as edges_field,
-			discovered_lists.document,
-      edge_type,
-      connection_type,
-      node_type
-		FROM discovered_lists
-			JOIN selection_refs ON selection_refs.child_id = discovered_lists.node
-			JOIN documents ON documents.id = discovered_lists.document
-			JOIN raw_documents ON raw_documents.id = documents.raw_document
-		WHERE connection = true
-			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-			AND (documents.processed = false OR documents.processed IS NULL)
+				dl.list_field,
+				sr.parent_id AS edges_field,
+				dl.document,
+				dl.edge_type,
+				dl.connection_type,
+				dl.node_type,
+				d.name AS document_name
+		FROM discovered_lists AS dl
+		JOIN (
+				-- Deduplicate the noisy table on the minimal columns
+				SELECT DISTINCT child_id, parent_id
+				FROM selection_refs
+		) AS sr
+			ON sr.child_id = dl.node
+		JOIN documents AS d
+			ON d.id = dl.document
+		JOIN raw_documents AS rd
+			ON rd.id = d.raw_document
+		WHERE dl.connection = 1
+			AND (rd.current_task = $task_id OR $task_id IS NULL)
+			AND (d.processed = 0 OR d.processed IS NULL)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -213,7 +221,7 @@ func AddDocumentFields[PluginConfig any](
 	// we don't need to duplicate the actual page info selection multiple times so track which docs have it
 	documentsWithPageInfo := make(map[int64]bool)
 	// track which edge fields already have cursor selections to avoid duplicates
-	edgesWithCursor := make(map[int64]bool)
+	edgesWithCursor := make(map[int64]int64)
 	// track which list fields already have pageInfo selections added to avoid duplicates
 	pageInfoAddedLists := make(map[int64]bool)
 
@@ -299,7 +307,7 @@ func AddDocumentFields[PluginConfig any](
 		}
 
 		// only add cursor selection if we haven't added it for this edges field yet
-		if !edgesWithCursor[edgesField] {
+		if edgesWithCursor[edgesField] == 0 {
 			// next we need to add a selection for the cursor on the edges field
 			err = db.ExecStatement(insertSelection, map[string]any{
 				"field_name": "cursor",
@@ -312,21 +320,22 @@ func AddDocumentFields[PluginConfig any](
 				return
 			}
 
-			// and link it up to the edges field
-			err = db.ExecStatement(insertSelectionRef, map[string]any{
-				"parent_id":  edgesField,
-				"child_id":   conn.LastInsertRowID(),
-				"document":   docID,
-				"row":        0,
-				"column":     0,
-				"path_index": 0,
-				"internal":   false,
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			edgesWithCursor[edgesField] = true
+			edgesWithCursor[edgesField] = conn.LastInsertRowID()
+		}
+
+		// and link it up to the edges field
+		err = db.ExecStatement(insertSelectionRef, map[string]any{
+			"parent_id":  edgesField,
+			"child_id":   edgesWithCursor[edgesField],
+			"document":   docID,
+			"row":        0,
+			"column":     0,
+			"path_index": 0,
+			"internal":   false,
+		})
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
 		}
 	})
 	if err != nil {
