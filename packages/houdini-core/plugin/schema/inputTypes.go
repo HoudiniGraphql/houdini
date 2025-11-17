@@ -128,7 +128,7 @@ func generateInputTypeDefinitions(
 			if i > 0 {
 				finalContent.WriteString(", ")
 			}
-			finalContent.WriteString(enumName)
+			finalContent.WriteString(enumName + "$options")
 		}
 		finalContent.WriteString(" } from './enums.js';\n\n")
 	}

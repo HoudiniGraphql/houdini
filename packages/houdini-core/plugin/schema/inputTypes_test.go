@@ -70,7 +70,7 @@ func TestInputTypeDefinitions(t *testing.T) {
 			targetPath := filepath.Join(config.DefinitionsDirectory(), "inputs.ts")
 
 			expected := tests.Dedent(`
-				import { MyEnum, Priority, Status } from './enums.js';
+				import { MyEnum$options, Priority$options, Status$options } from './enums.js';
 
 				type ValueOf<T> = T[keyof T];
 
@@ -89,13 +89,13 @@ func TestInputTypeDefinitions(t *testing.T) {
 				};
 
 				export type TaskFilter = {
-				    backupStatus?: ValueOf<typeof Status> | null | undefined;
-				    priority?: ValueOf<typeof Priority> | null | undefined;
-				    status?: ValueOf<typeof Status> | null | undefined;
+				    backupStatus?: Status$options | null | undefined;
+				    priority?: Priority$options | null | undefined;
+				    status?: Status$options | null | undefined;
 				};
 
 				export type UserFilter = {
-				    enum?: ValueOf<typeof MyEnum> | null | undefined;
+				    enum?: MyEnum$options | null | undefined;
 				    listRequired: (string)[];
 				    middle?: NestedUserFilter | null | undefined;
 				    nullList?: (string | null)[] | null | undefined;

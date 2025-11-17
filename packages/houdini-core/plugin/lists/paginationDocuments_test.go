@@ -446,11 +446,9 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 									hasPreviousPage
 									startCursor
 									endCursor
-									__typename
 								}
 								__typename
 							}
-							id
 						}
 					`).WithVariables(
 						tests.ExpectedOperationVariable{
@@ -583,7 +581,6 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						fragment Believers_paginated_1uyQEt on Legend {
 							title
 							__typename
-							id
 							believers(limit: $limit, offset: $offset) @paginate {
 								firstName
 								__typename
@@ -678,11 +675,9 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 									hasPreviousPage
 									startCursor
 									endCursor
-									__typename
 								}
 								__typename
 							}
-							id
 						}
 					`).WithVariables(
 						tests.ExpectedOperationVariable{
@@ -750,7 +745,6 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 									hasPreviousPage
 									startCursor
 									endCursor
-									__typename
 								}
 								__typename
 							}
