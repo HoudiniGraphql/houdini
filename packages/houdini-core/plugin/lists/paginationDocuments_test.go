@@ -656,6 +656,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 									endCursor
 								}
 							}
+							__typename
 						}
 					`),
 					tests.ExpectedDoc(`
