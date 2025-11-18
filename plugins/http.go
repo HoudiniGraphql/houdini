@@ -310,7 +310,7 @@ func handleAfterLoad[PluginConfig any](
 			}
 
 			// copy the plugin runtime to the runtime directory
-			_, err = RecursiveCopy(ctx, runtimeSource, targetPath, transform)
+			_, err = RecursiveCopy(ctx, afero.NewOsFs(), runtimeSource, targetPath, transform)
 			if err != nil {
 				return err
 			}

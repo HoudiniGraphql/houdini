@@ -87,6 +87,35 @@ func TestGenerateStores(t *testing.T) {
 			config, err := plugin.DB.ProjectConfig(ctx)
 			require.NoError(t, err)
 
+			// Create the core runtime files that UpdateIndexFiles expects to read
+			projectRuntimePath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "runtime")
+			err = plugin.Fs.MkdirAll(projectRuntimePath, 0755)
+			require.NoError(t, err)
+
+			// Create the core runtime index file that UpdateIndexFiles expects
+			coreIndexContent := `export function graphql<_Payload, _Result = _Payload>(str: string): _Result;
+export * from './stores'
+export * from './client'
+export * from './fragments'
+export * from './session'
+export * from './adapter'
+export * from './types'
+`
+			err = afero.WriteFile(plugin.Fs, filepath.Join(projectRuntimePath, "index.ts"), []byte(coreIndexContent), 0644)
+			require.NoError(t, err)
+
+			// Create the plugin runtime source files that CopyPluginRuntime expects to copy
+			runtimeSourcePath := filepath.Join("packages", "houdini-svelte", "runtime")
+			err = plugin.Fs.MkdirAll(runtimeSourcePath, 0755)
+			require.NoError(t, err)
+
+			// Create plugin-specific runtime files
+			pluginIndexContent := `export * from './stores'
+export * from './client'
+`
+			err = afero.WriteFile(plugin.Fs, filepath.Join(runtimeSourcePath, "index.ts"), []byte(pluginIndexContent), 0644)
+			require.NoError(t, err)
+
 			// Use the proper runtime generation function that includes runtime copying
 			ctx = plugins.ContextWithPluginDir(ctx, "packages/houdini-svelte")
 			_, err = plugins.CopyPluginRuntime(ctx, plugin, plugin.Fs)
