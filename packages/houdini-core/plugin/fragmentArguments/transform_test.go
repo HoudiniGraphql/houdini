@@ -67,7 +67,11 @@ func TestFragmentArgumentTransform(t *testing.T) {
               id
               __typename
             }
-          `),
+          `).WithVariables(tests.ExpectedOperationVariable{
+						Name:          "name",
+						Type:          "String",
+						TypeModifiers: "!",
+					}),
 				},
 			},
 			{
@@ -406,7 +410,7 @@ func TestFragmentArgumentTransform_multipleRuns(t *testing.T) {
 		},
 		Tests: []tests.Test[config.PluginConfig]{
 			{
-				Name: "Threads query arguments onto fragment",
+				Name: "Multiple runs",
 				Pass: true,
 				Input: []string{
 					`

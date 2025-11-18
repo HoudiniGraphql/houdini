@@ -522,6 +522,16 @@ func generateInterfaceUnionType(
 	readonly bool,
 	collectedDocs *collected.Documents,
 ) string {
+	return generateInterfaceUnionTypeWithLoading(ctx, selection, readonly, false, collectedDocs)
+}
+
+func generateInterfaceUnionTypeWithLoading(
+	ctx DocumentContext,
+	selection *collected.Selection,
+	readonly bool,
+	isLoadingState bool,
+	collectedDocs *collected.Documents,
+) string {
 	readonlyPrefix := ""
 	if readonly {
 		readonlyPrefix = "readonly "
@@ -611,63 +621,68 @@ func generateInterfaceUnionType(
 
 					var fieldType string
 
-					// Check if this field has children (nested object type)
-					if len(fragmentChild.Children) > 0 {
-						// Check if this field has inline fragments (interface/union type)
-						hasInlineFragments := false
-						for _, child := range fragmentChild.Children {
-							if child.Kind == "inline_fragment" {
-								hasInlineFragments = true
-								break
+					if isLoadingState {
+						// In loading state, all fields become LoadingType
+						fieldType = "LoadingType"
+					} else {
+						// Check if this field has children (nested object type)
+						if len(fragmentChild.Children) > 0 {
+							// Check if this field has inline fragments (interface/union type)
+							hasInlineFragments := false
+							for _, child := range fragmentChild.Children {
+								if child.Kind == "inline_fragment" {
+									hasInlineFragments = true
+									break
+								}
 							}
-						}
 
-						if hasInlineFragments {
-							// Interface/Union type - generate union with discriminators
-							unionType := generateInterfaceUnionType(
-								ctx,
-								fragmentChild,
-								readonly,
-								collectedDocs,
-							)
-
-							// Apply type modifiers (lists, nullability) to the union type
-							modifiers := ""
-							if fragmentChild.TypeModifiers != nil {
-								modifiers = *fragmentChild.TypeModifiers
-							}
-							fieldType = ApplyTypeModifiers(
-								unionType,
-								modifiers,
-								false,
-							) // Output type
-						} else {
-							// Regular nested object type
-							childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs)
-							if childErr != nil {
-								// Fallback to simple type conversion on error
-								fieldType = convertLeafType(
+							if hasInlineFragments {
+								// Interface/Union type - generate union with discriminators
+								unionType := generateInterfaceUnionType(
 									ctx,
-									fragmentChild.FieldType,
-									fragmentChild.TypeModifiers,
+									fragmentChild,
+									readonly,
 									collectedDocs,
 								)
-							} else {
-								// Apply type modifiers (lists, nullability) using the proper function
+
+								// Apply type modifiers (lists, nullability) to the union type
 								modifiers := ""
 								if fragmentChild.TypeModifiers != nil {
 									modifiers = *fragmentChild.TypeModifiers
 								}
-								fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
+								fieldType = ApplyTypeModifiers(
+									unionType,
+									modifiers,
+									false,
+								) // Output type
+							} else {
+								// Regular nested object type
+								childType, childErr := generateSelectionType(ctx, fragmentChild.Children, readonly, 2, fragmentChild.FieldType, collectedDocs)
+								if childErr != nil {
+									// Fallback to simple type conversion on error
+									fieldType = convertLeafType(
+										ctx,
+										fragmentChild.FieldType,
+										fragmentChild.TypeModifiers,
+										collectedDocs,
+									)
+								} else {
+									// Apply type modifiers (lists, nullability) using the proper function
+									modifiers := ""
+									if fragmentChild.TypeModifiers != nil {
+										modifiers = *fragmentChild.TypeModifiers
+									}
+									fieldType = ApplyTypeModifiers(childType, modifiers, false) // Output type
+								}
 							}
+						} else {
+							fieldType = convertLeafType(
+								ctx,
+								fragmentChild.FieldType,
+								fragmentChild.TypeModifiers,
+								collectedDocs,
+							)
 						}
-					} else {
-						fieldType = convertLeafType(
-							ctx,
-							fragmentChild.FieldType,
-							fragmentChild.TypeModifiers,
-							collectedDocs,
-						)
 					}
 
 					fields = append(
@@ -722,9 +737,13 @@ func generateInterfaceUnionType(
 	}
 
 	// Create the union type
-	unionType := fmt.Sprintf("{} & (%s)", strings.Join(unionParts, " | "))
-
-	return unionType
+	if isLoadingState {
+		unionType := fmt.Sprintf("({} & (%s))", strings.Join(unionParts, " | "))
+		return unionType
+	} else {
+		unionType := fmt.Sprintf("{} & (%s)", strings.Join(unionParts, " | "))
+		return unionType
+	}
 }
 
 func hasAnyLoadingDirectives(selections []*collected.Selection) bool {
@@ -952,13 +971,14 @@ func generateLoadingStateType(
 
 		// Check if this field has @loading directive
 		hasLoading := forceLoading
+		cascadeLoading := forceLoading // Document-level loading acts like cascade on everything
 		for _, directive := range selection.Directives {
 			if directive.Name == graphql.LoadingDirective {
 				hasLoading = true
 
 				for _, arg := range directive.Arguments {
 					if arg.Name == "cascade" && arg.Value.Raw == "true" {
-						forceLoading = true
+						cascadeLoading = true
 					}
 				}
 
@@ -976,7 +996,7 @@ func generateLoadingStateType(
 				for _, child := range selection.Children {
 					if child.Kind == "fragment" {
 						// Check if this fragment has @loading or if global loading is enabled
-						childHasLoading := forceLoading // Global loading treats all fragments as having @loading
+						childHasLoading := cascadeLoading // Cascade loading treats all fragments as having @loading
 						if !childHasLoading {
 							for _, directive := range child.Directives {
 								if directive.Name == graphql.LoadingDirective {
@@ -1008,7 +1028,7 @@ func generateLoadingStateType(
 						selection.Children,
 						indentLevel+1,
 						selection.FieldType,
-						forceLoading,
+						cascadeLoading,
 						collectedDocs,
 					)
 					if childErr != nil {
@@ -1022,20 +1042,47 @@ func generateLoadingStateType(
 						fieldType = fmt.Sprintf("%s[]", fieldType)
 					}
 
-				} else if hasAnyLoadingDirectives(selection.Children) {
-					// Field with @loading directive that has children with loading - generate nested loading structure
-					childType, childErr := generateLoadingStateType(
-						ctx,
-						selection.Children,
-						indentLevel+1,
-						selection.FieldType,
-						forceLoading,
-						collectedDocs,
-					)
-					if childErr != nil {
-						return "", childErr
+				} else if hasAnyLoadingDirectives(selection.Children) || cascadeLoading {
+					// Check if this field has inline fragments (interface/union type)
+					hasInlineFragments := false
+					for _, child := range selection.Children {
+						if child.Kind == "inline_fragment" {
+							hasInlineFragments = true
+							break
+						}
 					}
-					fieldType = childType
+
+					if hasInlineFragments && cascadeLoading {
+						// Interface/Union type with cascade - generate union with loading states
+						unionType := generateInterfaceUnionTypeWithLoading(
+							ctx,
+							selection,
+							true, // readonly
+							true, // isLoadingState
+							collectedDocs,
+						)
+
+						// Apply array syntax if this is a list type
+						if selection.TypeModifiers != nil && strings.Contains(*selection.TypeModifiers, "]") {
+							fieldType = fmt.Sprintf("%s[]", unionType)
+						} else {
+							fieldType = unionType
+						}
+					} else {
+						// Field with @loading directive that has children with loading - generate nested loading structure
+						childType, childErr := generateLoadingStateType(
+							ctx,
+							selection.Children,
+							indentLevel+1,
+							selection.FieldType,
+							cascadeLoading,
+							collectedDocs,
+						)
+						if childErr != nil {
+							return "", childErr
+						}
+						fieldType = childType
+					}
 				} else {
 					// Field with @loading directive (leaf or no loading children) - becomes LoadingType
 					fieldType = "LoadingType"

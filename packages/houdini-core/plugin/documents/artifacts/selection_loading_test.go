@@ -1208,7 +1208,17 @@ export type Query$result = {
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
-	readonly entities: LoadingType[];
+	readonly entities: ({} & (({
+		readonly name: LoadingType;
+		readonly id: LoadingType;
+		readonly __typename: "Cat";
+	}) | ({
+		readonly firstName: LoadingType;
+		readonly id: LoadingType;
+		readonly __typename: "User";
+	}) | ({
+		readonly __typename: "non-exhaustive; don't match this";
+	})))[];
 };
 
 export type Query$input = null | undefined;
