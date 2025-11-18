@@ -961,7 +961,7 @@ func validatePaginateArgs(
 				LEFT JOIN documents d ON d.id = refs.document
 				LEFT JOIN raw_documents rd ON rd.id = d.raw_document
 				LEFT JOIN selection_directives	ON selection_directives.selection_id = s.id AND selection_directives.directive IN ($paginate_directive, $list_directive)
-				LEFT JOIN selection_directive_arguments	ON selection_directive_arguments.parent = selection_directives.id AND selection_directive_arguments.name = $paginate
+				LEFT JOIN selection_directive_arguments	ON selection_directive_arguments.parent = selection_directives.id AND selection_directive_arguments.name = $mode
 				LEFT JOIN argument_values	ON argument_values.id = selection_directive_arguments.value
 				LEFT JOIN selection_arguments sa	ON sa.selection_id = s.id AND (refs.document IS NULL OR sa.document = refs.document)
 				LEFT JOIN argument_values sa_values	ON sa_values.id = sa.value
@@ -979,6 +979,7 @@ func validatePaginateArgs(
 	err = db.BindStatement(usageQuery, map[string]any{
 		"paginate_directive": graphql.PaginationDirective,
 		"list_directive":     graphql.ListDirective,
+		"mode":               "mode",
 	})
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -1028,23 +1029,21 @@ func validatePaginateArgs(
 		appliedArgs := usageQuery.GetText("appliedArgs")
 		paginateMode := usageQuery.GetText("paginateMode")
 		fieldArgDefs := usageQuery.GetText("fieldArgDefs")
-		listName := usageQuery.GetText("listName")
+		listName := usageQuery.GetText("discovered_list_name")
 		directive := usageQuery.GetText("directive")
 		typeModifiers := usageQuery.GetText("type_modifiers")
 		listID := usageQuery.GetInt64("discovered_list_id")
 		cursorType := usageQuery.GetText("cursor_type")
 
-		// Ensure that the list name is unique across files
-		if previousFP, ok := seenNames[listName]; listName != "" && ok {
-			if previousFP != filepath {
-				errs.Append(&plugins.Error{
-					Message: fmt.Sprintf("List %q is defined more than once", listName),
-					Kind:    plugins.ErrorKindValidation,
-					Locations: []*plugins.ErrorLocation{
-						{Filepath: filepath, Line: row, Column: column},
-					},
-				})
-			}
+		// Ensure that the list name is unique
+		if _, ok := seenNames[listName]; listName != "" && ok {
+			errs.Append(&plugins.Error{
+				Message: fmt.Sprintf("List %q is defined more than once", listName),
+				Kind:    plugins.ErrorKindValidation,
+				Locations: []*plugins.ErrorLocation{
+					{Filepath: filepath, Line: row, Column: column},
+				},
+			})
 
 			// we're done processing this entry
 			return
@@ -1092,7 +1091,7 @@ func validatePaginateArgs(
 
 		// validate based on supported pagination mode.
 		if cursorPagination {
-			if !forwardApplied && !backwardsApplied {
+			if !forwardApplied && !backwardsApplied && paginateMode != "SinglePage" {
 				errs.Append(&plugins.Error{
 					Message: fmt.Sprintf(
 						"Field %q in document %q with cursor-based pagination must have either a 'first' or a 'last' argument",

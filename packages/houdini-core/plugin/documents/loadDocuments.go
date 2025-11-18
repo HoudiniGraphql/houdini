@@ -396,6 +396,34 @@ func LoadPendingQuery(
 		}
 		operationID := conn.LastInsertRowID()
 
+		// check for duplicate variables before inserting
+		seenVariables := make(map[string]*ast.VariableDefinition)
+		for _, variable := range operation.VariableDefinitions {
+			if existing, exists := seenVariables[variable.Variable]; exists {
+				return &plugins.Error{
+					Message: fmt.Sprintf(
+						"Variable '$%s' is defined more than once in document '%s'",
+						variable.Variable,
+						operation.Name,
+					),
+					Kind: plugins.ErrorKindValidation,
+					Locations: []*plugins.ErrorLocation{
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + existing.Position.Line,
+							Column:   query.ColumnOffset + existing.Position.Column,
+						},
+						{
+							Filepath: query.Filepath,
+							Line:     query.RowOffset + variable.Position.Line,
+							Column:   query.ColumnOffset + variable.Position.Column,
+						},
+					},
+				}
+			}
+			seenVariables[variable.Variable] = variable
+		}
+
 		// insert any variable definitions.
 		for _, variable := range operation.VariableDefinitions {
 			// parse the type of the variable.
@@ -759,6 +787,33 @@ func LoadPendingQuery(
 
 			// we might need to register arguments on fragment by looking for the @arguments directive
 			if directive.Name == graphql.ArgumentsDirective {
+				// check for duplicate fragment arguments before processing
+				seenFragmentArgs := make(map[string]*ast.Argument)
+				for _, arg := range directive.Arguments {
+					if existing, exists := seenFragmentArgs[arg.Name]; exists {
+						return &plugins.Error{
+							Message: fmt.Sprintf(
+								"Fragment argument '%s' is defined more than once",
+								arg.Name,
+							),
+							Kind: plugins.ErrorKindValidation,
+							Locations: []*plugins.ErrorLocation{
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + existing.Position.Line,
+									Column:   query.ColumnOffset + existing.Position.Column,
+								},
+								{
+									Filepath: query.Filepath,
+									Line:     query.RowOffset + arg.Position.Line,
+									Column:   query.ColumnOffset + arg.Position.Column,
+								},
+							},
+						}
+					}
+					seenFragmentArgs[arg.Name] = arg
+				}
+
 				// we need to find the arguments directive and then add the arguments to the database
 				for _, arg := range directive.Arguments {
 					// the argument needs to be an object type
