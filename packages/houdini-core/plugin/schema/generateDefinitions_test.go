@@ -156,11 +156,11 @@ enum PaginateMode {
     id
 }
 
-fragment Friends_toggle on User {
+fragment Friends_remove on User {
     id
 }
 
-fragment Friends_remove on User {
+fragment Friends_toggle on User {
     id
 }
 
@@ -190,11 +190,11 @@ fragment Friends_remove on User {
     id
 }
 
-fragment Friends_toggle on User {
+fragment Friends_remove on User {
     id
 }
 
-fragment Friends_remove on User {
+fragment Friends_toggle on User {
     id
 }
 
@@ -203,12 +203,12 @@ fragment theList_insert on CustomIdType {
     bar
 }
 
-fragment theList_toggle on CustomIdType {
+fragment theList_remove on CustomIdType {
     foo
     bar
 }
 
-fragment theList_remove on CustomIdType {
+fragment theList_toggle on CustomIdType {
     foo
     bar
 }

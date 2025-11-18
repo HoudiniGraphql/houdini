@@ -253,11 +253,18 @@ func generateDocumentsFile(
 	var documentString strings.Builder
 
 	err := db.StepQuery(ctx, `
-		SELECT d.printed
-		FROM discovered_lists dl
-		JOIN documents d ON dl.document = d.id
+		SELECT DISTINCT d.printed
+		FROM documents d
 		WHERE d.kind = 'fragment'
-		ORDER BY dl.name, d.rowid
+		  AND d.internal = true
+		  AND d.visible = false
+		  AND EXISTS (
+		    SELECT 1 FROM discovered_lists dl
+		    WHERE d.name = dl.name || '_insert'
+		       OR d.name = dl.name || '_toggle'
+		       OR d.name = dl.name || '_remove'
+		  )
+		ORDER BY d.name
 	`, nil, func(stmt *sqlite.Stmt) {
 		printed := stmt.ColumnText(0)
 		// remove __typename from the printed document, maybe there is a better way to do this
