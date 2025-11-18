@@ -8,7 +8,6 @@
       fragment UserListItem on User {
         id
         name
-        avatarURL
         enumValue
       }
     `)
@@ -17,7 +16,6 @@
 
 {#if $data}
   <li>
-  {$data.avatarURL}
     {$data.name} - {$data.enumValue}
   </li>
 {/if}

@@ -62,7 +62,7 @@ func AddDocumentFields[PluginConfig any](
       JOIN raw_documents rd ON d.raw_document = rd.id
       AND (
         t.operation IS NULL
-        OR (documents.kind = 'fragment' AND sr.parent_id IS NULL AND documents.internal = true)
+        OR (documents.kind = 'fragment' AND sr.parent_id IS NULL)
       )
       AND (rd.current_task = $task_id OR $task_id IS NULL)
       AND (d.processed = false OR d.processed IS NULL)
@@ -150,8 +150,6 @@ func AddDocumentFields[PluginConfig any](
 		if !keysToInsert.ColumnIsNull(2) {
 			selectionID = keysToInsert.ColumnInt64(2)
 		}
-
-
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{

@@ -408,6 +408,7 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						fragment AllUsers on Query {
+							__typename
 							userConnection(first: 10) @paginate {
 								edges {
 									node {
