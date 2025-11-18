@@ -1,6 +1,8 @@
-import type { PaginateModes, } from 'houdini'
-export type { ConfigFile, PaginateModes, } from 'houdini'
+import type { PaginateModes } from 'houdini'
+
 import type { CacheTypeDef } from '../generated'
+
+export type { ConfigFile, PaginateModes } from 'houdini'
 
 type ValuesOf<Target> = Target[keyof Target]
 
@@ -11,7 +13,6 @@ export const DedupeMatchMode = {
 } as const
 
 export type DedupeMatchModes = ValuesOf<typeof DedupeMatchMode>
-
 
 export * from '../router/types'
 
@@ -177,7 +178,14 @@ export type GraphQLObject = { [key: string]: GraphQLValue }
 
 export type GraphQLDefaultScalar = string | number | boolean
 
-export type GraphQLValue = GraphQLDefaultScalar | CacheTypeDef['scalars'] | Symbol | null | GraphQLObject | GraphQLValue[] | undefined
+export type GraphQLValue =
+	| GraphQLDefaultScalar
+	| CacheTypeDef['scalars']
+	| Symbol
+	| null
+	| GraphQLObject
+	| GraphQLValue[]
+	| undefined
 
 export type GraphQLVariables = { [key: string]: any } | null
 

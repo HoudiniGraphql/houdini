@@ -8,7 +8,7 @@ type Identifier = recast.types.namedTypes.Identifier
 const AST = recast.types.builders
 
 export default async function GraphQLTagProcessor(config: Config, page: SvelteTransformPage) {
-  let replaced = false
+	let replaced = false
 	// all graphql documents need to be turned into a reference to the appropriate store
 	await find_graphql(config, page.script, {
 		dependency: page.watch_file,
@@ -22,13 +22,13 @@ export default async function GraphQLTagProcessor(config: Config, page: SvelteTr
 			// we're going to turn the graphql tag into a reference to the document's
 			// store
 			node.replaceWith(AST.newExpression(id, []))
-      replaced = true
+			replaced = true
 		},
 	})
 
-  // if (replaced) {
-  //   console.log(page.filepath + '\n' + recast.print(page.script).code)
-  // }
+	// if (replaced) {
+	//   console.log(page.filepath + '\n' + recast.print(page.script).code)
+	// }
 }
 
 function store_import({
@@ -41,11 +41,8 @@ function store_import({
 	const { ids, added } = ensure_imports({
 		script: page.script,
 		sourceModule: `$houdini/plugins/houdini-svelte/stores/${artifact.name}`,
-		import: [ `${artifact.name}Store`],
+		import: [`${artifact.name}Store`],
 	})
 
 	return { id: ids[0], added }
 }
-
-
-

@@ -1,7 +1,7 @@
+import type { Config } from '../lib/config.js'
 import { format_error } from '../lib/error.js'
 import { codegen_setup, init_db, run_pipeline } from '../lib/index.js'
 import { get_config } from '../lib/project.js'
-import type { Config } from '../lib/config.js'
 import pull_schema from './pullSchema.js'
 
 export async function generate(
@@ -19,7 +19,7 @@ export async function generate(
 		headers: [],
 		verbose: false,
 		preserveDatabase: false,
-	},
+	}
 ) {
 	// make sure there is always a mode
 	const mode = args.mode ?? 'development'
@@ -39,12 +39,7 @@ export async function generate(
 		const [db, dbFilepath] = await init_db(config, args.preserveDatabase)
 
 		// initialize the codegen pipe
-		const { trigger_hook, close } = await codegen_setup(
-			config,
-			mode,
-			db,
-			dbFilepath,
-		)
+		const { trigger_hook, close } = await codegen_setup(config, mode, db, dbFilepath)
 
 		// Function to handle graceful shutdown
 		on_close = async () => {

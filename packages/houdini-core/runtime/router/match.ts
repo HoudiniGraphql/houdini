@@ -1,6 +1,5 @@
-import type { GraphQLVariables } from '../lib/types'
-
 import { parseScalar, type ConfigFile } from '../lib'
+import type { GraphQLVariables } from '../lib/types'
 import type { RouterManifest, RouterPageManifest } from './types'
 
 /**

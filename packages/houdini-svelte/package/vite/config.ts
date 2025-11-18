@@ -1,5 +1,5 @@
-import { Config } from "houdini"
-import type { HoudiniSvelteConfig } from "houdini-svelte"
+import { Config } from 'houdini'
+import type { HoudiniSvelteConfig } from 'houdini-svelte'
 
 export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 	const cfg = config.pluginConfig<HoudiniSvelteConfig>('houdini-svelte')
@@ -9,7 +9,7 @@ export function plugin_config(config: Config): Required<HoudiniSvelteConfig> {
 		defaultRouteBlocking: false,
 		static: false,
 		forceRunesMode: false,
-    framework: 'kit',
+		framework: 'kit',
 		...cfg,
 		customStores: {
 			query: '../runtime/stores/query.QueryStore',

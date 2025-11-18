@@ -1,14 +1,14 @@
+import { path } from 'houdini'
 import { VitePluginContext } from 'houdini/vite'
 import { PluginOption } from 'vite'
-import { path } from 'houdini'
 
 import transform_file from './transform/index.js'
 
 export default function (ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-svelte',
-    enforce: 'pre',
-    async transform(code: string, filepath: string) {
+		enforce: 'pre',
+		async transform(code: string, filepath: string) {
 			// everything internal to houdini should assume posix paths
 			filepath = path.posixify(filepath)
 
@@ -28,18 +28,16 @@ export default function (ctx: VitePluginContext): PluginOption {
 				filepath = path.join(process.cwd(), filepath)
 			}
 
-      // apply the transforms
-      const result = await transform_file('kit', {
-        config: ctx.config,
-        content: code,
-        filepath,
+			// apply the transforms
+			const result = await transform_file('kit', {
+				config: ctx.config,
+				content: code,
+				filepath,
 				watch_file: this.addWatchFile.bind(this),
 				map: this.getCombinedSourcemap(),
-      })
+			})
 
-      return result
-    }
+			return result
+		},
 	}
 }
-
-

@@ -17,7 +17,7 @@ program
 	.option('-o, --output [outputPath]', 'persist queries to a queryMap file')
 	.option(
 		'-h, --headers <headers...>',
-		'headers to use when pulling your schema. Should be passed as KEY=VALUE',
+		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.option('-v, --verbose', 'verbose error messages')
 	.action(generate)
@@ -30,12 +30,9 @@ program
 	.description('initialize a new houdini project')
 	.option(
 		'-h, --headers <headers...>',
-		'header to use when pulling your schema. Should be passed as KEY=VALUE',
+		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
-	.option(
-		'-y, --yes',
-		'dont prompt for input. uses default values or empty strings',
-	)
+	.option('-y, --yes', 'dont prompt for input. uses default values or empty strings')
 	.action(init)
 
 // register the pull schema command
@@ -43,13 +40,10 @@ program
 	.command('pull-schema')
 	.usage('[options]')
 	.description('pull the latest schema from your api')
-	.option(
-		'-o, --output [outputPath]',
-		'the destination for the schema contents',
-	)
+	.option('-o, --output [outputPath]', 'the destination for the schema contents')
 	.option(
 		'-h, --headers <headers...>',
-		'headers to use when pulling your schema. Should be passed as KEY=VALUE',
+		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.action(pullSchema)
 

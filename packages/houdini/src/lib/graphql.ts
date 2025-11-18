@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+
 import type { Config } from './config.js'
 
 export enum TypeWrapper {
@@ -11,7 +12,7 @@ export function unwrapType(
 	config: Config,
 	type: any,
 	wrappers: TypeWrapper[] = [],
-	convertRuntimeScalars?: boolean,
+	convertRuntimeScalars?: boolean
 ): { type: graphql.GraphQLNamedType; wrappers: TypeWrapper[] } {
 	// if we are looking at a non null type
 	if (type.kind === 'NonNullType') {
@@ -35,13 +36,8 @@ export function unwrapType(
 	}
 
 	// if we got this far and the type is a runtime scalar, we need to use the underlying type
-	if (
-		convertRuntimeScalars &&
-		config.config_file.runtimeScalars?.[type.name.value]
-	) {
-		type = config.schema.getType(
-			config.config_file.runtimeScalars?.[type.name.value].type,
-		)
+	if (convertRuntimeScalars && config.config_file.runtimeScalars?.[type.name.value]) {
+		type = config.schema.getType(config.config_file.runtimeScalars?.[type.name.value].type)
 	}
 
 	// get the named type

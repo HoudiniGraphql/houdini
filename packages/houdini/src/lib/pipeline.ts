@@ -9,7 +9,7 @@ export type Transform<_TransformType> =
 export async function runPipeline<_TransformType>(
 	config: Config,
 	pipeline: Transform<_TransformType>[],
-	target: _TransformType,
+	target: _TransformType
 ) {
 	for (const transform of pipeline) {
 		await transform?.(config, target)

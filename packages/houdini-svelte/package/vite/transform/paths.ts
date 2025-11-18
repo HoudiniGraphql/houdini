@@ -1,7 +1,6 @@
 import type { Config } from 'houdini'
 import { path } from 'houdini'
 
-
 export function route_data_path(config: Config, filename: string) {
 	// replace the .svelte with .js
 	return resolve_relative(config, filename).replace('.svelte', '.js')
@@ -38,6 +37,3 @@ export function resolve_relative(config: Config, filename: string) {
 
 	return filename
 }
-
-
-

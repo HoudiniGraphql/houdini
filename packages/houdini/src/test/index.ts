@@ -1,11 +1,8 @@
+import * as graphql from 'graphql'
 import type { ConfigFile } from 'houdini'
 import { Config } from 'houdini'
-import * as graphql from 'graphql'
 
-export function testConfigFile({
-	plugins,
-	...config
-}: Partial<ConfigFile> = {}): ConfigFile {
+export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		scalars: {
 			DateTime: {

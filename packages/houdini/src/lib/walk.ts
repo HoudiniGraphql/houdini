@@ -7,6 +7,7 @@ import type { BaseNode } from 'estree-walker'
 import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
 
+import type { Config } from './config.js'
 import type { CompiledDocumentKind } from './types.js'
 import {
 	CompiledFragmentKind,
@@ -15,7 +16,6 @@ import {
 	CompiledSubscriptionKind,
 	Script,
 } from './types.js'
-import type { Config } from './config.js'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
@@ -33,10 +33,7 @@ export type EmbeddedGraphqlDocument = {
 
 type GraphqlTagWalker = {
 	skipGraphqlType?: boolean
-	where?: (
-		tag: graphql.DocumentNode,
-		ast: { node: BaseNode; parent: BaseNode },
-	) => boolean
+	where?: (tag: graphql.DocumentNode, ast: { node: BaseNode; parent: BaseNode }) => boolean
 	dependency?: (fp: string) => void
 	tag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
 }
@@ -45,7 +42,7 @@ type GraphqlTagWalker = {
 export async function find_graphql(
 	config: Config,
 	parsedScript: Script,
-	walker: GraphqlTagWalker,
+	walker: GraphqlTagWalker
 ): Promise<void> {
 	await asyncWalk(parsedScript, {
 		async enter(node, parent) {
@@ -97,15 +94,10 @@ export async function find_graphql(
 				} else {
 					return
 				}
-			} else if (
-				node.type === 'TSPropertySignature' &&
-				!walker.skipGraphqlType
-			) {
+			} else if (node.type === 'TSPropertySignature' && !walker.skipGraphqlType) {
 				const signature = node as TSPropertySignatureKind
 				// we only care about properties whose type is the graphql template
-				if (
-					signature.typeAnnotation?.typeAnnotation?.type !== 'TSTypeReference'
-				) {
+				if (signature.typeAnnotation?.typeAnnotation?.type !== 'TSTypeReference') {
 					return
 				}
 
@@ -184,14 +176,12 @@ export async function find_graphql(
 					(selection) =>
 						selection.kind === 'InlineFragment' &&
 						selection.directives?.find(
-							(directive) => directive.name.value === 'componentField',
-						),
+							(directive) => directive.name.value === 'componentField'
+						)
 				)
 
 				if (name) {
-					definitions = [
-						{ parsed: definitions[0].parsed, raw: definitions[0].raw },
-					]
+					definitions = [{ parsed: definitions[0].parsed, raw: definitions[0].raw }]
 				}
 			}
 
@@ -240,7 +230,7 @@ type ExtractedDefinition = {
 }
 
 export function extractDefinition(
-	document: graphql.DocumentNode,
+	document: graphql.DocumentNode
 ): graphql.ExecutableDefinitionNode {
 	// make sure there's only one definition
 	if (document.definitions.length !== 1) {
@@ -251,13 +241,8 @@ export function extractDefinition(
 	const definition = document.definitions[0]
 
 	// make sure that it's an operation definition or a fragment definition
-	if (
-		definition.kind !== 'OperationDefinition' &&
-		definition.kind !== 'FragmentDefinition'
-	) {
-		throw new Error(
-			'Encountered document without a fragment or operation definition',
-		)
+	if (definition.kind !== 'OperationDefinition' && definition.kind !== 'FragmentDefinition') {
+		throw new Error('Encountered document without a fragment or operation definition')
 	}
 
 	return definition

@@ -1,4 +1,4 @@
-import type { Script, TransformPage  } from 'houdini'
+import type { Script, TransformPage } from 'houdini'
 
 export type SvelteTransformPage = TransformPage & {
 	framework: Framework

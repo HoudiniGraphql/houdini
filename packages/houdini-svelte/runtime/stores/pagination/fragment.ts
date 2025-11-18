@@ -1,3 +1,8 @@
+import type { DocumentStore } from '$houdini/runtime/client'
+import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
+import { siteURL } from '$houdini/runtime/lib/constants'
+import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
+import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import type {
 	FragmentArtifact,
 	GraphQLObject,
@@ -6,14 +11,9 @@ import type {
 	PageInfo,
 	CursorHandlers,
 	GraphQLVariables,
-    fragmentKey,
+	fragmentKey,
 } from '$houdini/runtime/lib/types'
 import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
-import type { DocumentStore } from '$houdini/runtime/client'
-import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
-import { siteURL } from '$houdini/runtime/lib/constants'
-import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
@@ -78,13 +78,11 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType ext
 // both cursor paginated stores add a page info to their subscribe
 export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
-  _ReferenceType extends {},
+	_ReferenceType extends {},
 	_Input extends GraphQLVariables
 > extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
-	get(
-		initialValue: _Data | { [fragmentKey]: _ReferenceType } | null
-	) {
+	get(initialValue: _Data | { [fragmentKey]: _ReferenceType } | null) {
 		const base = new FragmentStore<_Data, {}, _Input>({
 			artifact: this.artifact,
 			storeName: this.name,
@@ -183,7 +181,7 @@ export class FragmentStoreCursor<
 
 export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
-  _ReferenceType extends {},
+	_ReferenceType extends {},
 	_Input extends GraphQLVariables
 > extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
 	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {

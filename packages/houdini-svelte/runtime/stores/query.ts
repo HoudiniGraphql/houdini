@@ -1,3 +1,6 @@
+import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
+import { getCurrentConfig } from '$houdini/runtime/lib/config'
+import * as log from '$houdini/runtime/lib/log'
 import type {
 	CachePolicies,
 	GraphQLVariables,
@@ -8,12 +11,9 @@ import type {
 } from '$houdini/runtime/lib/types'
 import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
 import type { LoadEvent } from '@sveltejs/kit'
-import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
-import { getCurrentConfig } from '$houdini/runtime/lib/config'
-import * as log from '$houdini/runtime/lib/log'
+import type { HoudiniSvelteConfig } from 'houdini-svelte'
 import { get } from 'svelte/store'
 
-import type { HoudiniSvelteConfig } from 'houdini-svelte'
 import { clientStarted, isBrowser } from '../adapter'
 import { initClient } from '../client'
 import { getSession } from '../session'
@@ -196,7 +196,7 @@ This will result in duplicate queries. If you are trying to ensure there is alwa
 
 // the parameters we will be passed from the generator
 export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
-	artifact: _Artifact 
+	artifact: _Artifact
 	storeName: string
 	variables: boolean
 }

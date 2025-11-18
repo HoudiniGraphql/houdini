@@ -7,12 +7,12 @@ export function stry(value: any, indent?: number): string {
 		if (value === null || value === undefined) {
 			return String(value)
 		}
-		
+
 		// If indent is provided, use it for pretty printing
 		if (typeof indent === 'number') {
 			return JSON.stringify(value, null, indent)
 		}
-		
+
 		// Default to compact JSON
 		return JSON.stringify(value)
 	} catch (error) {

@@ -5,8 +5,8 @@ import { testConfig } from 'houdini/test'
 import { plugin_config } from '../config.js'
 import { parseSvelte } from '../parse.js'
 import type { Framework } from '../types.js'
-import {  route_data_path } from './paths.js'
 import runTransforms from './index.js'
+import { route_data_path } from './paths.js'
 
 const schema = `
 	type User {
@@ -22,7 +22,6 @@ const schema = `
 		addUser: User
 	}
 `
-
 
 export async function route_test({
 	component = '',
@@ -171,5 +170,5 @@ export async function test_transform_js(filepath: string, content: string) {
 	})
 
 	// return both
-	return (parseJS(result.code)) ?? null
+	return parseJS(result.code) ?? null
 }

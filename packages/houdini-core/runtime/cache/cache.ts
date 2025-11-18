@@ -1,5 +1,6 @@
-import { computeKey, PendingValue } from '../lib'
 import type { ConfigFile } from 'houdini'
+
+import { computeKey, PendingValue } from '../lib'
 import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { flatten } from '../lib/flatten'
@@ -589,9 +590,9 @@ class CacheInternal {
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
-        // exclude any objects that might have been pull in the generated runtime
-        // if we got this far, we know that the value is not a scalar, custom or otherwise
-        value = value as GraphQLObject
+				// exclude any objects that might have been pull in the generated runtime
+				// if we got this far, we know that the value is not a scalar, custom or otherwise
+				value = value as GraphQLObject
 
 				// the previous value is a string holding the id of the object to link to
 

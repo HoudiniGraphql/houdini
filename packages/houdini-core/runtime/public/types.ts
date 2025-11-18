@@ -28,8 +28,8 @@ export type CacheTypeDef = {
 	// entries in the tuple are graphql tag, query shape, query input
 	queries: [any, any, any][]
 
-  // a union of valid runtime types (default scalars | config types)
-  scalars: any
+	// a union of valid runtime types (default scalars | config types)
+	scalars: any
 }
 
 export type ValidTypes<Def extends CacheTypeDef> = keyof Def['types']

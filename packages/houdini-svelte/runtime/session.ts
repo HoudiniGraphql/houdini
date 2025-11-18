@@ -1,4 +1,5 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
+
 import { isBrowser } from './adapter'
 
 const sessionKeyName = '__houdini__session__'

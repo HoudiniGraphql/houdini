@@ -1,7 +1,7 @@
-import { beforeEach, expect, test } from 'vitest'
-
 import { sleep } from 'houdini'
 import { testConfigFile } from 'houdini/test'
+import { beforeEach, expect, test } from 'vitest'
+
 import { Cache } from '../../cache/cache'
 import { setMockConfig } from '../../lib/config'
 import { ArtifactKind, type QueryResult, type GraphQLObject } from '../../lib/types'

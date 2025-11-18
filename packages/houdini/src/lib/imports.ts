@@ -1,5 +1,6 @@
-import type { TransformPage, Script } from './types'
 import * as recast from 'recast'
+
+import type { TransformPage, Script } from './types'
 
 const AST = recast.types.builders
 
@@ -38,8 +39,7 @@ export function ensure_imports({
 		// look for an import from the source module
 		const has_import = script.body.find(
 			(statement) =>
-				statement.type === 'ImportDeclaration' &&
-				statement.source.value === sourceModule,
+				statement.type === 'ImportDeclaration' && statement.source.value === sourceModule
 		)
 		if (!has_import) {
 			script.body.unshift({
@@ -52,9 +52,7 @@ export function ensure_imports({
 		return { ids: [], added: has_import ? 0 : 1 }
 	}
 
-	const idList = (Array.isArray(importID) ? importID : [importID]).map((id) =>
-		AST.identifier(id),
-	)
+	const idList = (Array.isArray(importID) ? importID : [importID]).map((id) => AST.identifier(id))
 
 	// figure out the list of things to import
 	const toImport = idList.filter(
@@ -71,9 +69,9 @@ export function ensure_imports({
 							(importSpecifier.type === 'ImportDefaultSpecifier' &&
 								importSpecifier.local?.type === 'Identifier' &&
 								importSpecifier.local.name === identifier.name &&
-								importSpecifier.local.name === identifier.name),
-					),
-			),
+								importSpecifier.local.name === identifier.name)
+					)
+			)
 	)
 
 	// add the import if it doesn't exist, add it
@@ -84,10 +82,7 @@ export function ensure_imports({
 			specifiers: toImport.map((identifier, i) =>
 				!Array.isArray(importID)
 					? AST.importDefaultSpecifier(identifier)
-					: AST.importSpecifier(
-							identifier,
-							as?.[i] ? AST.identifier(as[i]) : identifier,
-						),
+					: AST.importSpecifier(identifier, as?.[i] ? AST.identifier(as[i]) : identifier)
 			),
 			importKind,
 		})

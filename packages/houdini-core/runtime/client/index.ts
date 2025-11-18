@@ -19,7 +19,7 @@ import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
 export { DocumentStore } from './documentStore.js'
-export type { ClientPlugin, SendParams} from './documentStore.js'
+export type { ClientPlugin, SendParams } from './documentStore.js'
 export { fetch, mutation, query, subscription } from './plugins'
 
 export type HoudiniClientConstructorArgs = {
@@ -33,7 +33,7 @@ export type HoudiniClientConstructorArgs = {
 export type ObserveParams<
 	_Data extends GraphQLObject,
 	_Artifact extends DocumentArtifact = DocumentArtifact,
-	_Input extends GraphQLVariables| undefined = GraphQLVariables
+	_Input extends GraphQLVariables | undefined = GraphQLVariables
 > = {
 	artifact: _Artifact
 	enableCache?: boolean

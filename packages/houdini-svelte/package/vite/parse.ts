@@ -1,7 +1,7 @@
 import type { CallExpressionKind } from 'ast-types/lib/gen/kinds'
 import { walk } from 'estree-walker'
 import type { Config, Maybe, Script } from 'houdini'
-import { find_graphql} from 'houdini'
+import { find_graphql } from 'houdini'
 import { parseJS } from 'houdini'
 import * as svelte from 'svelte/compiler'
 
@@ -124,7 +124,7 @@ export async function parseSvelte(
 	if (forceRunes) {
 		usesRunes = true
 	} else {
-    // @ts-expect-error: estree-walker types are wrong
+		// @ts-expect-error: estree-walker types are wrong
 		walk(scriptParsed, {
 			enter(node) {
 				if (node.type === 'CallExpression') {

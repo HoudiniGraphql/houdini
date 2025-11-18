@@ -47,7 +47,7 @@ export class SubscriptionStore<
 		return derived(
 			[{ subscribe: super.subscribe.bind(this) }, this.fetchingStore],
 			([$parent, $fetching]) => ({
-        // @ts-ignore
+				// @ts-ignore
 				...$parent,
 				fetching: $fetching,
 			})

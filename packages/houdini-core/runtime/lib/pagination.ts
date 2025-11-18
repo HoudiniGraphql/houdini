@@ -12,7 +12,10 @@ import type {
 	FetchParams,
 } from './types'
 
-export function cursorHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables | null | undefined>({
+export function cursorHandlers<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables | null | undefined
+>({
 	artifact,
 	fetchUpdate: parentFetchUpdate,
 	fetch: parentFetch,
@@ -238,7 +241,10 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 	}
 }
 
-export function offsetHandlers<_Data extends GraphQLObject, _Input extends GraphQLVariables | null | undefined>({
+export function offsetHandlers<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables | null | undefined
+>({
 	artifact,
 	storeName,
 	getState,

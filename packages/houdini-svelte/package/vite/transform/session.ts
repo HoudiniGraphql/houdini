@@ -2,8 +2,8 @@ import { walk } from 'estree-walker'
 import { find_exported_fn, find_insert_index, ensure_imports, Config } from 'houdini'
 import * as recast from 'recast'
 
-import { is_root_layout_script, is_root_layout_server } from './paths.js'
 import type { SvelteTransformPage } from '../types.js'
+import { is_root_layout_script, is_root_layout_server } from './paths.js'
 
 const AST = recast.types.builders
 
@@ -73,14 +73,14 @@ function add_load_return(
 
 		// now we need to walk through the body and replace any returns with one
 		// that has the additional information mixed in
-    // @ts-ignore
+		// @ts-ignore
 		return walk(body, {
 			enter(node) {
 				if (node.type === 'ReturnStatement') {
 					// replace the return statement with a new one that includes the returned value
 					const returnedValue = (node as ReturnStatement).argument
 					this.replace(
-            // @ts-ignore
+						// @ts-ignore
 						AST.returnStatement(
 							AST.objectExpression([
 								...properties(event_id),

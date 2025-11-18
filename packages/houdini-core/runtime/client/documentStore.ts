@@ -1,7 +1,8 @@
+import type { ConfigFile } from 'houdini'
+
 import type { HoudiniClient } from '.'
 import type { Cache } from '../cache/cache'
 import type { Layer } from '../cache/storage'
-import type { ConfigFile } from 'houdini'
 import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { marshalInputs } from '../lib/scalars'
@@ -426,10 +427,10 @@ export class DocumentStore<
 
 				// if we got _something_ back it's a promise so we need to make
 				// sure something is listening for error
-        if (result) {
-          result?.catch((err) => {
-            this.#step('error', { ...ctx, index: index - 1 }, err)
-          })
+				if (result) {
+					result?.catch((err) => {
+						this.#step('error', { ...ctx, index: index - 1 }, err)
+					})
 				}
 			} catch (err) {
 				// if an exception was thrown it was a synchronous hook so catch the exception

@@ -12,11 +12,7 @@ export function deepMerge<T>(filepath: string, ...targets: T[]): T {
 			})
 		}
 
-		return deepMerge(
-			filepath,
-			targets[0],
-			deepMerge(filepath, ...targets.slice(1)),
-		)
+		return deepMerge(filepath, targets[0], deepMerge(filepath, ...targets.slice(1)))
 	} catch (e) {
 		throw new HoudiniError({
 			filepath,

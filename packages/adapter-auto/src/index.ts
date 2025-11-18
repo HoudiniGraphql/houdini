@@ -1,9 +1,9 @@
 import type { Adapter } from 'houdini'
 import { resolve } from 'import-meta-resolve'
 import { execSync } from 'node:child_process'
-import { pathToFileURL } from 'node:url'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 const adapters = [
 	{
@@ -85,7 +85,7 @@ async function loadAdapter({ module }: { module: string }): Promise<Adapter> {
 
 		console.log(`Successfully installed ${module}!`)
 		console.warn(
-			`If you plan on staying in this environment, consider adding ${module} to your project so you don't have to install it every time you build your application.`,
+			`If you plan on staying in this environment, consider adding ${module} to your project so you don't have to install it every time you build your application.`
 		)
 
 		// we should be able to import it now
@@ -93,7 +93,7 @@ async function loadAdapter({ module }: { module: string }): Promise<Adapter> {
 	} catch (err) {
 		throw new Error(
 			`Could not install package ${module}. Please install it manually or maybe consider replacing houdini-adapter-auto with ${module}.` +
-				`\n${(err as Error).message}`,
+				`\n${(err as Error).message}`
 		)
 	}
 }
@@ -105,9 +105,7 @@ async function importFromCwd(name: string) {
 	return (await import(url)).default
 }
 
-async function detectTools(
-	cwd: string = process.cwd(),
-): Promise<DetectedTools> {
+async function detectTools(cwd: string = process.cwd()): Promise<DetectedTools> {
 	let typescript = false
 	try {
 		await fs.stat(path.join(cwd, 'tsconfig.json'))
@@ -151,16 +149,11 @@ type DetectedTools = {
 	package_manager: 'npm' | 'yarn' | 'pnpm'
 } & DetectedFromPackageTools
 
-async function detectFromPackageJSON(
-	cwd: string,
-): Promise<DetectedFromPackageTools> {
+async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTools> {
 	// if there's no package.json then there's nothing we can detect
 	let packageJSON: Record<string, any>
 	try {
-		const packageJSONFile = await fs.readFile(
-			path.join(cwd, 'package.json'),
-			'utf-8',
-		)
+		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'), 'utf-8')
 		if (packageJSONFile) {
 			packageJSON = JSON.parse(packageJSONFile)
 		} else {
@@ -168,15 +161,14 @@ async function detectFromPackageJSON(
 		}
 	} catch {
 		throw new Error(
-			'❌ houdini init must target an existing node project (with a package.json)',
+			'❌ houdini init must target an existing node project (with a package.json)'
 		)
 	}
 
 	// grab the dev dependencies
 	const { devDependencies, dependencies } = packageJSON
 
-	const hasDependency = (dep: string) =>
-		Boolean(devDependencies?.[dep] || dependencies?.[dep])
+	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
 
 	let frameworkInfo: HoudiniFrameworkInfo = { framework: 'svelte' }
 	if (hasDependency('@sveltejs/kit')) {

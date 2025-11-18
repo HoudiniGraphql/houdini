@@ -4,12 +4,12 @@ import { runPipeline, formatErrors } from 'houdini'
 import * as recast from 'recast'
 import type { SourceMapInput } from 'rollup'
 
+import { plugin_config } from '../config.js'
 import { parseSvelte } from '../parse.js'
+import type { SvelteTransformPage, Framework } from '../types.js'
 import init from './init.js'
 import session from './session.js'
 import tags from './tags.js'
-import { plugin_config } from '../config.js'
-import type { SvelteTransformPage, Framework } from '../types.js'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
@@ -22,8 +22,8 @@ export default async function apply_transforms(
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
-	let script: Script 
-  let position: { start: number; end: number } | null = null
+	let script: Script
+	let position: { start: number; end: number } | null = null
 	let useRunes = false
 
 	try {
@@ -71,7 +71,7 @@ export default async function apply_transforms(
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: page.filepath.endsWith('.svelte')
 			? replace_tag_content(page.content, position!.start, position!.end, code)
-      : code,
+			: code,
 		map,
 	}
 }

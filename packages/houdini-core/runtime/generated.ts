@@ -2,5 +2,5 @@ export type CacheTypeDef = {
 	types: {}
 	lists: {}
 	queries: []
-  scalars: boolean | number | string | Date
+	scalars: boolean | number | string | Date
 }

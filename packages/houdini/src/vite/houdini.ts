@@ -1,5 +1,5 @@
-import type { Plugin as VitePlugin, UserConfig } from 'vite'
 import path from 'node:path'
+import type { Plugin as VitePlugin, UserConfig } from 'vite'
 
 import type { VitePluginContext } from '.'
 
@@ -12,7 +12,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		async config(userConfig) {
 			const runtimeDir = path.join(
 				ctx.config.root_dir,
-				ctx.config.config_file.runtimeDir ?? '.houdini',
+				ctx.config.config_file.runtimeDir ?? '.houdini'
 			)
 			// add the necessary values for the houdini imports to resolve
 			return {

@@ -20,17 +20,15 @@ export function parseJS(str: string, config?: Partial<ParserOptions>): Script {
 		sourceType: 'module',
 	}
 	// @ts-expect-error: babel doesn't perfectly match recast's types (the comments don't line up)
-	return parseJavascript(
-		str || '',
-		config ? deepMerge('', defaultConfig, config) : defaultConfig,
-	).program
+	return parseJavascript(str || '', config ? deepMerge('', defaultConfig, config) : defaultConfig)
+		.program
 }
 
 type PrintOptions = Options & { pretty?: boolean }
 
 export async function printJS(
 	script: Script,
-	options?: PrintOptions,
+	options?: PrintOptions
 ): Promise<{ code: string; map?: any }> {
 	if (options?.pretty) {
 		return prettyPrint(script, options)
