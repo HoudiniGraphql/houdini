@@ -1201,12 +1201,21 @@ func determineTypeKind(
 	typeName string,
 	collectedDocs *collected.Documents,
 ) string {
+	// First check collected documents for enum values (for performance)
 	if _, isEnum := collectedDocs.EnumValues[typeName]; isEnum {
 		return "ENUM"
 	}
 
 	// Check if it's a scalar type (built-in or custom)
 	if isScalarType(projectConfig, typeName) {
+		return "SCALAR"
+	}
+
+	// For TypeScript generation, we need to check if this is an enum type
+	// even if it wasn't collected in the documents (e.g., field types vs argument types)
+	// Check built-in GraphQL scalars first to avoid database lookup
+	switch typeName {
+	case "String", "ID", "Int", "Float", "Boolean":
 		return "SCALAR"
 	}
 

@@ -1116,6 +1116,22 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 
           UNION ALL
 
+          -- ─── base case 3: enum values for types used as field types in selections ───
+          SELECT
+            ev.parent,                   -- parent_type
+            ev.value    AS field_name,   -- field_name (enum value)
+            NULL        AS field_type,   -- enums don't have nested fields
+            NULL        AS type_modifiers,
+            'enum'      AS kind,
+            '|' || ev.parent || '|'      AS visited_types
+          FROM selections s
+          JOIN selection_refs sr ON sr.child_id = s.id
+          JOIN type_fields tf ON s.type = tf.id
+          JOIN enum_values ev ON tf.type = ev.parent
+          WHERE sr.document in %s
+
+          UNION ALL
+
           -- ─── recursive step: for each discovered input‐object type, pull its fields ───
           SELECT
             tf.parent,
@@ -1142,7 +1158,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         type_modifiers,
         kind
       FROM argumentTypes
-  `, whereIn, whereIn))
+  `, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}

@@ -282,7 +282,7 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-					  export type TestFragment$input = {
+						export type TestFragment$input = {
 							name: string;
 						};
 
@@ -314,30 +314,30 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"TestFragment": tests.Dedent(`
-							export type TestFragment$input = {};
+						export type TestFragment$input = never;
 
-							export type TestFragment = {
-								readonly "shape"?: TestFragment$data;
-								readonly " $fragments": {
-									"TestFragment": any;
-								};
+						export type TestFragment = {
+							readonly "shape"?: TestFragment$data;
+							readonly " $fragments": {
+								"TestFragment": any;
 							};
+						};
 
-							export type TestFragment$data = {
+						export type TestFragment$data = {
+							/**
+							 * The user's first name
+							 */
+							readonly firstName: string;
+							readonly parent: {
 								/**
 								 * The user's first name
 								 */
 								readonly firstName: string;
-								readonly parent: {
-									/**
-									 * The user's first name
-									 */
-									readonly firstName: string;
-								} | null;
-							};
+							} | null;
+						};
 
-							export type TestFragment$artifact = typeof artifact
-						`),
+						export type TestFragment$artifact = typeof artifact
+					`),
 				},
 			},
 
@@ -381,30 +381,30 @@ func TestTypescriptGeneration(t *testing.T) {
 				Pass: true,
 				Extra: map[string]any{
 					"MyQuery": tests.Dedent(`
-							export type MyQuery = {
-								readonly "input": MyQuery$input;
-								readonly "result": MyQuery$result | undefined;
-							};
+						export type MyQuery = {
+							readonly "input": MyQuery$input;
+							readonly "result": MyQuery$result | undefined;
+						};
 
-							export type MyQuery$result = {
+						export type MyQuery$result = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
 								/**
-								 * Get a user.
+								 * The user's first name
 								 */
-								readonly user: {
-									/**
-									 * The user's first name
-									 */
-									readonly firstName: string;
-								} | null;
-							};
+								readonly firstName: string;
+							} | null;
+						};
 
-							export type MyQuery$input = {
-								id: string;
-								enum?: ValueOf<typeof MyEnum> | null;
-							};
+						export type MyQuery$input = {
+							id: string;
+							enum?: MyEnum$options | null;
+						};
 
-							export type MyQuery$artifact = typeof artifact
-						`),
+						export type MyQuery$artifact = typeof artifact
+					`),
 				},
 			},
 			{
@@ -903,7 +903,7 @@ func TestTypescriptGeneration(t *testing.T) {
 						export type MyQuery$artifact = typeof artifact
 					`),
 					"Foo": tests.Dedent(`
-						export type Foo$input = {};
+						export type Foo$input = never;
 
 						export type Foo = {
 							readonly "shape"?: Foo$data;
