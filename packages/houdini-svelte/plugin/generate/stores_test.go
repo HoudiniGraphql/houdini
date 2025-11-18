@@ -116,10 +116,11 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestMutation1": tests.Dedent(`
-						import artifact, { TestMutation1$result, TestMutation1$input } from '$houdini/artifacts/TestMutation1.js'
+						import artifact from '$houdini/artifacts/TestMutation1.js'
+						import type { TestMutation1$result, TestMutation1$input, TestMutation1$optimistic } from '$houdini/artifacts/TestMutation1.js'
 						import { MutationStore } from '$houdini/plugins/houdini-svelte/runtime/stores/mutation.js'
 
-						export class TestMutation1Store extends MutationStore<TestMutation1$result, TestMutation1$input> {
+						export class TestMutation1Store extends MutationStore<TestMutation1$result, TestMutation1$input, TestMutation1$optimistic> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -137,11 +138,11 @@ func TestGenerateStores(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"TestSubscription1": tests.Dedent(`
-						import artifact, { TestSubscription11$result, TestSubscription11$input }from '$houdini/artifacts/TestSubscription1.js'
-						import type { TestSubscription1$input, $TestSubscription1$result } from '$houdini/artifacts/TestSubscription1.js'
+						import artifact from '$houdini/artifacts/TestSubscription1.js'
+						import type { TestSubscription1$result, TestSubscription1$input }from '$houdini/artifacts/TestSubscription1.js'
 						import { SubscriptionStore } from '$houdini/plugins/houdini-svelte/runtime/stores/subscription.js'
 
-						export class TestSubscription1Store extends SubscriptionStore<TestSubscription1$result, $TestSubscription1$input> {
+						export class TestSubscription1Store extends SubscriptionStore<TestSubscription1$result, TestSubscription1$input> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -168,7 +169,6 @@ func TestGenerateStores(t *testing.T) {
 						        super({
 						            artifact,
 						            storeName: "TestFragmentStore",
-						            variables: false,
 						        })
 						    }
 						}
@@ -220,7 +220,7 @@ func TestGenerateStores(t *testing.T) {
 						import artifact from '$houdini/artifacts/TestQuery.js'
 						import type { TestQuery$result, TestQuery$input } from '$houdini/artifacts/TestQuery.js'
 
-						export class TestQueryStore<TestQuery$result, TestQuery$input> extends QueryStore<TestQuery$result, TestQuery$input> {
+						export class TestQueryStore extends QueryStore<TestQuery$result, TestQuery$input> {
 						    constructor() {
 						        super({
 						            artifact,
@@ -430,7 +430,6 @@ func TestGenerateStores(t *testing.T) {
 							        super({
 							            artifact,
 							            storeName: "TestFragmentStore",
-							            variables: false,
 							        })
 							    }
 							}
