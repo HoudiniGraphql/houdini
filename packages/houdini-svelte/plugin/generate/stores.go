@@ -176,12 +176,6 @@ func GenerateStores(
 	}
 
 	if string(currentValue) != indexContent {
-		// fmt.Println(
-		// 	"changed value\n----------",
-		// 	string(currentValue),
-		// 	"\n----------\n",
-		// 	indexContent,
-		// )
 		err = afero.WriteFile(fs, indexFilePath, []byte(indexContent), 0644)
 		if err != nil {
 			return nil, err

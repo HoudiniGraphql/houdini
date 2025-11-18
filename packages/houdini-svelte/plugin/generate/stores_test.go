@@ -8,11 +8,14 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin"
 	"code.houdinigraphql.com/packages/houdini-svelte/plugin/config"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 )
+
+
 
 func TestGenerateStores(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniSvelte]{
@@ -84,8 +87,9 @@ func TestGenerateStores(t *testing.T) {
 			config, err := plugin.DB.ProjectConfig(ctx)
 			require.NoError(t, err)
 
-			// run the document generator first
-			_, err = plugin.GenerateRuntime(ctx)
+			// Use the proper runtime generation function that includes runtime copying
+			ctx = plugins.ContextWithPluginDir(ctx, "packages/houdini-svelte")
+			_, err = plugins.CopyPluginRuntime(ctx, plugin, plugin.Fs)
 			require.NoError(t, err)
 
 			// the goal now is to look at the generated store files and make sure
