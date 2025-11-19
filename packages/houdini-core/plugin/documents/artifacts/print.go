@@ -289,20 +289,31 @@ func printSelection(
 	var resultBuilder strings.Builder
 
 	// Deduplicate fields to prevent duplicate output in GraphQL
-	// This is necessary because lists.InsertOperationDocuments and documents.AddDocumentFields
-	// can add the same fields to different documents that get merged during collection
+	// This serves as a safety net for cases where collection-level deduplication
+	// doesn't catch all duplicates due to timing or processing order differences.
+	// The collection phase handles most duplicates correctly, but this ensures
+	// clean GraphQL output regardless of any edge cases.
 	seenFields := make(map[string]*collected.Selection)
 	deduplicatedSelections := []*collected.Selection{}
 
 	for _, selection := range selections {
 		if selection.Kind == "field" {
-			// Create a unique key for field deduplication
+			// Create a unique key for field deduplication that includes arguments
 			key := selection.FieldName
 			if selection.Alias != nil && *selection.Alias != selection.FieldName {
 				key = *selection.Alias + ":" + selection.FieldName
 			}
 
-			// If we've seen this field before, skip it
+			// Include arguments in the key to distinguish fields with different arguments
+			if len(selection.Arguments) > 0 {
+				argStr := ""
+				for _, arg := range selection.Arguments {
+					argStr += arg.Name + ":" + arg.Value.Raw + ";"
+				}
+				key += "(" + argStr + ")"
+			}
+
+			// If we've seen this exact field before (same name, alias, and arguments), skip it
 			if existing, exists := seenFields[key]; exists {
 				// Merge any children from the duplicate into the existing selection
 				if len(selection.Children) > 0 {

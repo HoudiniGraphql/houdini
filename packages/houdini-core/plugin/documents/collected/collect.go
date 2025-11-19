@@ -16,6 +16,37 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
+// directivesEqual compares two directives for equality based on name and arguments
+func directivesEqual(a, b *Directive) bool {
+	if a.Name != b.Name || a.Internal != b.Internal {
+		return false
+	}
+
+	if len(a.Arguments) != len(b.Arguments) {
+		return false
+	}
+
+	// Compare arguments - they should be in the same order since they come from the database
+	for i, argA := range a.Arguments {
+		argB := b.Arguments[i]
+		if argA.Name != argB.Name {
+			return false
+		}
+
+		// Compare ValueIDs if both are present
+		if argA.ValueID != nil && argB.ValueID != nil {
+			if *argA.ValueID != *argB.ValueID {
+				return false
+			}
+		} else if argA.ValueID != argB.ValueID {
+			// One is nil, the other is not
+			return false
+		}
+	}
+
+	return true
+}
+
 // CollectDocuments takes a document ID and grabs its full selection set along with the selection sets of
 // all referenced fragments
 func CollectDocuments(
@@ -278,6 +309,69 @@ func collectDoc(
 						Internal:      internal,
 						Visible:       !internal, // Internal fields are not visible by default
 					}
+					// Load directives for the new selection BEFORE duplicate detection
+					if !statements.Search.IsNull("directives") {
+						directives := statements.Search.GetText("directives")
+
+						dirs := []*Directive{}
+						if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
+							errs.Append(plugins.WrapError(err))
+							return
+						}
+
+						// hold onto the valueID. we'll fill in the value later
+						for _, dir := range dirs {
+							for _, arg := range dir.Arguments {
+								if arg.ValueID != nil {
+									argumentValues[*arg.ValueID] = nil
+									argumentsWithValues = append(argumentsWithValues, arg)
+								}
+							}
+						}
+
+						selection.Directives = dirs
+					}
+				} else {
+					// Selection already exists, but we may need to merge directives from this database row
+					if !statements.Search.IsNull("directives") {
+						directives := statements.Search.GetText("directives")
+
+						dirs := []*Directive{}
+						if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
+							errs.Append(plugins.WrapError(err))
+							return
+						}
+
+						// hold onto the valueID. we'll fill in the value later
+						for _, dir := range dirs {
+							for _, arg := range dir.Arguments {
+								if arg.ValueID != nil {
+									argumentValues[*arg.ValueID] = nil
+									argumentsWithValues = append(argumentsWithValues, arg)
+								}
+							}
+						}
+
+						// Merge directives from this database row into the existing selection
+						// but avoid duplicates by comparing name and arguments
+						if len(dirs) > 0 {
+							for _, newDir := range dirs {
+								isDuplicate := false
+								for _, existingDir := range selection.Directives {
+									if directivesEqual(existingDir, newDir) {
+										isDuplicate = true
+										break
+									}
+								}
+								if !isDuplicate {
+									selection.Directives = append(selection.Directives, newDir)
+								}
+							}
+						}
+					}
+				}
+
+				if !exists {
 					if fragmentRef != "" {
 						selection.FragmentRef = &fragmentRef
 
@@ -388,15 +482,38 @@ func collectDoc(
 
 					// check if this selection is already in the document's root selections to avoid duplicates
 					selectionExists := false
-					for _, existingSelection := range doc.Selections {
-						if existingSelection == selection {
+					duplicateType := ""
+					var existingSelection *Selection
+					for _, existing := range doc.Selections {
+						if existing == selection {
 							selectionExists = true
+							duplicateType = "pointer"
+							existingSelection = existing
+							break
+						}
+						// Also check for field-level duplicates (same field name and kind)
+						if existing.Kind == "field" && selection.Kind == "field" &&
+							existing.FieldName == selection.FieldName &&
+							((existing.Alias == nil && selection.Alias == nil) ||
+								(existing.Alias != nil && selection.Alias != nil && *existing.Alias == *selection.Alias)) {
+							selectionExists = true
+							duplicateType = "field"
+							existingSelection = existing
+
 							break
 						}
 					}
 					if !selectionExists {
 						// add the selection to the doc
 						doc.Selections = append(doc.Selections, selection)
+
+					} else {
+						// If this is a field-level duplicate, we need to redirect future children
+						// to the existing selection instead of the duplicate
+						if duplicateType == "field" {
+							selections[selectionID] = existingSelection
+							// Directives are now merged earlier in the process when selections are created
+						}
 					}
 
 				} else {
@@ -414,9 +531,36 @@ func collectDoc(
 								childExists = true
 								break
 							}
+							// Also check for field-level duplicates
+							if existingChild.Kind == "field" && selection.Kind == "field" &&
+								existingChild.FieldName == selection.FieldName &&
+								((existingChild.Alias == nil && selection.Alias == nil) ||
+									(existingChild.Alias != nil && selection.Alias != nil && *existingChild.Alias == *selection.Alias)) {
+								childExists = true
+								// Merge directives from the duplicate selection into the existing child
+								// This is necessary because the duplicate selection has different selection ID
+								// but represents the same logical field, but avoid duplicates
+								if len(selection.Directives) > 0 {
+									for _, newDir := range selection.Directives {
+										isDuplicate := false
+										for _, existingDir := range existingChild.Directives {
+											if directivesEqual(existingDir, newDir) {
+												isDuplicate = true
+												break
+											}
+										}
+										if !isDuplicate {
+											existingChild.Directives = append(existingChild.Directives, newDir)
+										}
+									}
+								}
+								break
+							}
 						}
 						if !childExists {
 							parent.Children = append(parent.Children, selection)
+						} else {
+							// Directives are now merged earlier in the process when selections are created
 						}
 					} else {
 						if _, ok := missingParents[parentID]; !ok {
@@ -464,28 +608,7 @@ func collectDoc(
 					selection.Arguments = args
 				}
 
-				// directives get treated the same as arguments
-				if !statements.Search.IsNull("directives") {
-					directives := statements.Search.GetText("directives")
-
-					dirs := []*Directive{}
-					if err := json.Unmarshal([]byte(directives), &dirs); err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-
-					// hold onto the valueID. we'll fill in the value later
-					for _, dir := range dirs {
-						for _, arg := range dir.Arguments {
-							if arg.ValueID != nil {
-								argumentValues[*arg.ValueID] = nil
-								argumentsWithValues = append(argumentsWithValues, arg)
-							}
-						}
-					}
-
-					selection.Directives = dirs
-				}
+				// Directives are now loaded earlier in the process, before duplicate detection
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -506,9 +629,20 @@ func collectDoc(
 							childExists = true
 							break
 						}
+						// Also check for field-level duplicates
+						if existingChild.Kind == "field" && selection.Kind == "field" &&
+							existingChild.FieldName == selection.FieldName &&
+							((existingChild.Alias == nil && selection.Alias == nil) ||
+								(existingChild.Alias != nil && selection.Alias != nil && *existingChild.Alias == *selection.Alias)) {
+							childExists = true
+
+							break
+						}
 					}
 					if !childExists {
 						parent.Children = append(parent.Children, selection)
+					} else {
+						// Directives are now merged earlier in the process when selections are created
 					}
 				}
 			}

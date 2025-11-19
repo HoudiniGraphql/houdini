@@ -531,6 +531,9 @@ func InsertOperationDocuments(
 
 			fragmentID := conn.LastInsertRowID()
 
+			log.Printf("DEBUG lists.InsertOperationDocuments: Created fragment %d with name '%s%s' for type '%s', depends on doc '%s'",
+				fragmentID, listName, graphql.ListOperationSuffixRemove, typeName, documentName)
+
 			// insert the document dependency
 			err = db.ExecStatement(insertDocumentDependency, map[string]any{
 				"document":   fragmentID,
