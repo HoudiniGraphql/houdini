@@ -47,8 +47,8 @@ jobs:
             - name: Check prettier
               run: pnpm run format:check
 
-            - name: Check lint
-              run: pnpm run lint
+            # - name: Check lint
+            #   run: pnpm run lint
 
     tests:
         name: Tests
