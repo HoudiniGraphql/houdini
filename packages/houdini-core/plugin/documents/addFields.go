@@ -3,7 +3,6 @@ package documents
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -188,20 +187,12 @@ func AddDocumentFields[PluginConfig any](
 		return commit(plugins.WrapError(err))
 	}
 
-	log.Printf("DEBUG addFields: Total unique keys to insert: %d", len(allKeys))
-
 	// Now process the deduplicated keys
-	insertCount := 0
 	for _, key := range allKeys {
-		insertCount++
-
 		var selectionID any
 		if key.selectionID != nil {
 			selectionID = *key.selectionID
 		}
-
-		log.Printf("DEBUG addFields: Inserting field #%d: %s on %s (doc: %d, selection: %v)",
-			insertCount, key.field, key.parentType, key.docID, selectionID)
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
@@ -234,8 +225,6 @@ func AddDocumentFields[PluginConfig any](
 	if errs.Len() > 0 {
 		return errs
 	}
-
-	log.Printf("DEBUG addFields: Successfully inserted %d fields", insertCount)
 
 	// any connection-based discovered lists need to have page information added
 	// so start at the node of the connection and get the surrounding field data

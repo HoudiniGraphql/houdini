@@ -601,6 +601,7 @@ func InsertOperationDocuments(
 
 				// insert the selection ref
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
+					"parent_id":  nil,
 					"child_id":   conn.LastInsertRowID(),
 					"document":   fragmentID,
 					"row":        0,
