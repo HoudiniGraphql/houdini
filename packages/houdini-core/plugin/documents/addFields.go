@@ -93,8 +93,6 @@ func AddDocumentFields[PluginConfig any](
     ),
     existing AS (
       -- keys already present on that object in that document
-      -- This includes fields with any parent_id (including NULL) to catch duplicates
-      -- from different sources like lists.InsertOperationDocuments
       SELECT DISTINCT
         COALESCE(sr.parent_id, -1) AS object_selection_id,
         sr.document  AS doc_id,
@@ -102,18 +100,6 @@ func AddDocumentFields[PluginConfig any](
       FROM selection_refs sr
       JOIN selections s ON s.id = sr.child_id
       WHERE s.kind = 'field'
-
-      UNION
-
-      -- Also check for fields with NULL parent_id that might be duplicates
-      -- of fields we want to add to specific parents
-      SELECT DISTINCT
-        -1 AS object_selection_id,
-        sr.document AS doc_id,
-        s.alias AS key_name
-      FROM selection_refs sr
-      JOIN selections s ON s.id = sr.child_id
-      WHERE s.kind = 'field' AND sr.parent_id IS NULL
     ),
     candidates AS (
       -- Keep only keys that (a) exist in type_fields OR are __typename,
@@ -123,17 +109,9 @@ func AddDocumentFields[PluginConfig any](
       LEFT JOIN type_fields tf
         ON tf.parent = ku.parent_type AND tf.name = ku.key_name
       LEFT JOIN existing e
-        ON (
-          -- Exact match on parent and field
-          (COALESCE(e.object_selection_id, -1) = COALESCE(ku.object_selection_id, -1)
-           AND e.doc_id = ku.doc_id
-           AND e.key_name = ku.key_name)
-          OR
-          -- Also match if the field exists with NULL parent (from lists.InsertOperationDocuments)
-          (e.object_selection_id = -1
-           AND e.doc_id = ku.doc_id
-           AND e.key_name = ku.key_name)
-        )
+        ON COALESCE(e.object_selection_id, -1) = COALESCE(ku.object_selection_id, -1)
+       AND e.doc_id = ku.doc_id
+       AND e.key_name = ku.key_name
       WHERE (ku.key_name = '__typename' OR tf.id IS NOT NULL)
         AND e.key_name IS NULL
     )
@@ -188,6 +166,11 @@ func AddDocumentFields[PluginConfig any](
 
 		log.Printf("DEBUG addFields: Inserting field #%d: %s.%s on doc %d with parent_id %s",
 			fieldCount, parentType, field, docID, selectionIDStr)
+
+		// Debug: Check if this field might be a duplicate of what lists.InsertOperationDocuments added
+		if (field == "__typename" || field == "id") && parentType == "User" {
+			log.Printf("DEBUG addFields: This is a potential duplicate field (%s.%s) - lists.InsertOperationDocuments may have added this to a fragment", parentType, field)
+		}
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
