@@ -1,5 +1,3 @@
-import fs from 'node:fs/promises'
-import type { DatabaseSync } from 'node:sqlite'
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
 import type { VitePluginContext } from '.'
@@ -22,7 +20,6 @@ import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } fro
  */
 
 export let compiler: CompilerProxy
-const VIRTUAL_PREFIX = '\0houdini:artifact:'
 
 export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window

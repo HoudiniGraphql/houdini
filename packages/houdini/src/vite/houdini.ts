@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { Plugin as VitePlugin, UserConfig } from 'vite'
+import type { Plugin as VitePlugin } from 'vite'
 
 import type { VitePluginContext } from '.'
 
