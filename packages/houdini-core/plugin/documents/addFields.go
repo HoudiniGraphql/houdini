@@ -3,7 +3,6 @@ package documents
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -141,44 +140,6 @@ func AddDocumentFields[PluginConfig any](
 
 	errs := &plugins.ErrorList{}
 
-	// Debug: Show document relationships
-	debugDocsStmt, err := conn.Prepare(`
-		SELECT d.id, d.name, d.kind, d.type_condition,
-		       dd.depends_on,
-		       dep_doc.name as depends_on_name
-		FROM documents d
-		LEFT JOIN document_dependencies dd ON dd.document = d.id
-		LEFT JOIN documents dep_doc ON dep_doc.id = dd.depends_on
-		ORDER BY d.id
-	`)
-	if err == nil {
-		log.Printf("DEBUG addFields: Document relationships:")
-		err = db.StepStatement(ctx, debugDocsStmt, func() {
-			docID := debugDocsStmt.ColumnInt64(0)
-			name := debugDocsStmt.ColumnText(1)
-			kind := debugDocsStmt.ColumnText(2)
-			typeCondition := ""
-			if !debugDocsStmt.ColumnIsNull(3) {
-				typeCondition = debugDocsStmt.ColumnText(3)
-			}
-			dependsOn := ""
-			if !debugDocsStmt.ColumnIsNull(4) {
-				dependsOn = fmt.Sprintf(" -> %d", debugDocsStmt.ColumnInt64(4))
-			}
-			dependsOnName := ""
-			if !debugDocsStmt.ColumnIsNull(5) {
-				dependsOnName = fmt.Sprintf(" (%s)", debugDocsStmt.ColumnText(5))
-			}
-			log.Printf("DEBUG addFields:   Doc %d: %s (%s, type: %s)%s%s",
-				docID, name, kind, typeCondition, dependsOn, dependsOnName)
-		})
-		debugDocsStmt.Finalize()
-	}
-
-	// Debug: Count total fields to be inserted
-	fieldCount := 0
-	debugFields := []string{}
-
 	// every row of the above query is a selection that needs to be inserted
 	err = db.StepStatement(ctx, keysToInsert, func() {
 		field := keysToInsert.ColumnText(0)
@@ -190,21 +151,7 @@ func AddDocumentFields[PluginConfig any](
 			selectionID = keysToInsert.ColumnInt64(2)
 		}
 
-		// Debug logging
-		fieldCount++
-		selectionIDStr := "NULL"
-		if selectionID != nil {
-			selectionIDStr = fmt.Sprintf("%v", selectionID)
-		}
-		debugFields = append(debugFields, fmt.Sprintf("%s.%s (doc:%d, parent:%s)", parentType, field, docID, selectionIDStr))
 
-		log.Printf("DEBUG addFields: Inserting field #%d: %s.%s on doc %d with parent_id %s",
-			fieldCount, parentType, field, docID, selectionIDStr)
-
-		// Debug: Check if this field might be a duplicate of what lists.InsertOperationDocuments added
-		if (field == "__typename" || field == "id") && parentType == "User" {
-			log.Printf("DEBUG addFields: This is a potential duplicate field (%s.%s) - lists.InsertOperationDocuments may have added this to a fragment", parentType, field)
-		}
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
@@ -237,11 +184,7 @@ func AddDocumentFields[PluginConfig any](
 		return commit(plugins.WrapError(err))
 	}
 
-	// Debug: Log summary
-	log.Printf("DEBUG addFields: Successfully processed %d fields", fieldCount)
-	if fieldCount > 0 {
-		log.Printf("DEBUG addFields: Fields added: %v", debugFields)
-	}
+
 
 	if errs.Len() > 0 {
 		return errs

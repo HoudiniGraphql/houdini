@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"context"
-	"log"
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/componentFields"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents"
@@ -14,21 +13,18 @@ func (p *HoudiniCore) AfterValidate(ctx context.Context) error {
 	// now that we've validated the documents we can start to process them
 
 	// first, we need to add the list operation documents
-	log.Printf("DEBUG afterValidate: STEP 1 - Running lists.InsertOperationDocuments")
 	err := lists.InsertOperationDocuments(ctx, p.DB)
 	if err != nil {
 		return err
 	}
 
 	// next, we can prepare the pagination documents
-	log.Printf("DEBUG afterValidate: STEP 2 - Running lists.PreparePaginationDocuments")
 	err = lists.PreparePaginationDocuments(ctx, p.DB)
 	if err != nil {
 		return err
 	}
 
 	// finally, add the necessary fields to ALL documents (including newly created ones)
-	log.Printf("DEBUG afterValidate: STEP 3 - Running documents.AddDocumentFields")
 	err = documents.AddDocumentFields(ctx, p.DB)
 	if err != nil {
 		return err

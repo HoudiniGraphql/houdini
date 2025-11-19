@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -531,9 +530,6 @@ func InsertOperationDocuments(
 
 			fragmentID := conn.LastInsertRowID()
 
-			log.Printf("DEBUG lists.InsertOperationDocuments: Created fragment %d with name '%s%s' for type '%s', depends on doc '%s'",
-				fragmentID, listName, graphql.ListOperationSuffixRemove, typeName, documentName)
-
 			// insert the document dependency
 			err = db.ExecStatement(insertDocumentDependency, map[string]any{
 				"document":   fragmentID,
@@ -547,12 +543,7 @@ func InsertOperationDocuments(
 			// now we need a selection for each key and a ref that links it up to the parent
 			allKeys := append(keys, "__typename")
 
-			log.Printf("DEBUG lists.InsertOperationDocuments: Adding %d fields to fragment %d (type: %s): %v",
-				len(allKeys), fragmentID, typeName, allKeys)
-
-			for i, key := range allKeys {
-				log.Printf("DEBUG lists.InsertOperationDocuments: Inserting field #%d: %s.%s on fragment %d with parent_id=NULL",
-					i+1, typeName, key, fragmentID)
+			for _, key := range allKeys {
 
 				// insert the selection row
 				err = db.ExecStatement(insertSelection, map[string]any{
