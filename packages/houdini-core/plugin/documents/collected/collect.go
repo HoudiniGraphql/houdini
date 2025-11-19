@@ -16,7 +16,7 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
-// directivesEqual compares two directives for equality based on name and arguments
+// directivesEqual compares two directives for equality based on name, internal flag, and arguments
 func directivesEqual(a, b *Directive) bool {
 	if a.Name != b.Name || a.Internal != b.Internal {
 		return false
@@ -26,7 +26,7 @@ func directivesEqual(a, b *Directive) bool {
 		return false
 	}
 
-	// Compare arguments - they should be in the same order since they come from the database
+	// Compare arguments by ValueID if available, otherwise by name
 	for i, argA := range a.Arguments {
 		argB := b.Arguments[i]
 		if argA.Name != argB.Name {
@@ -481,37 +481,15 @@ func collectDoc(
 
 					// check if this selection is already in the document's root selections to avoid duplicates
 					selectionExists := false
-					duplicateType := ""
-					var existingSelection *Selection
-					for _, existing := range doc.Selections {
-						if existing == selection {
+					for _, existingSelection := range doc.Selections {
+						if existingSelection == selection {
 							selectionExists = true
-							duplicateType = "pointer"
-							existingSelection = existing
-							break
-						}
-						// Also check for field-level duplicates (same field name and kind)
-						if existing.Kind == "field" && selection.Kind == "field" &&
-							existing.FieldName == selection.FieldName &&
-							((existing.Alias == nil && selection.Alias == nil) ||
-								(existing.Alias != nil && selection.Alias != nil && *existing.Alias == *selection.Alias)) {
-							selectionExists = true
-							duplicateType = "field"
-							existingSelection = existing
-
 							break
 						}
 					}
 					if !selectionExists {
 						// add the selection to the doc
 						doc.Selections = append(doc.Selections, selection)
-
-					} else {
-						// If this is a field-level duplicate, we need to redirect future children
-						// to the existing selection instead of the duplicate
-						if duplicateType == "field" {
-							selections[selectionID] = existingSelection
-						}
 					}
 
 				} else {
@@ -527,29 +505,6 @@ func collectDoc(
 						for _, existingChild := range parent.Children {
 							if existingChild == selection {
 								childExists = true
-								break
-							}
-							// Also check for field-level duplicates
-							if existingChild.Kind == "field" && selection.Kind == "field" &&
-								existingChild.FieldName == selection.FieldName &&
-								((existingChild.Alias == nil && selection.Alias == nil) ||
-									(existingChild.Alias != nil && selection.Alias != nil && *existingChild.Alias == *selection.Alias)) {
-								childExists = true
-								// Merge directives from the duplicate selection into the existing child
-								if len(selection.Directives) > 0 {
-									for _, newDir := range selection.Directives {
-										isDuplicate := false
-										for _, existingDir := range existingChild.Directives {
-											if directivesEqual(existingDir, newDir) {
-												isDuplicate = true
-												break
-											}
-										}
-										if !isDuplicate {
-											existingChild.Directives = append(existingChild.Directives, newDir)
-										}
-									}
-								}
 								break
 							}
 						}
@@ -621,15 +576,6 @@ func collectDoc(
 					for _, existingChild := range parent.Children {
 						if existingChild == selection {
 							childExists = true
-							break
-						}
-						// Also check for field-level duplicates
-						if existingChild.Kind == "field" && selection.Kind == "field" &&
-							existingChild.FieldName == selection.FieldName &&
-							((existingChild.Alias == nil && selection.Alias == nil) ||
-								(existingChild.Alias != nil && selection.Alias != nil && *existingChild.Alias == *selection.Alias)) {
-							childExists = true
-
 							break
 						}
 					}

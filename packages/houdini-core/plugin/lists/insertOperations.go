@@ -444,7 +444,6 @@ func InsertOperationDocuments(
 		return err
 	}
 
-
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
 		SELECT
@@ -544,7 +543,6 @@ func InsertOperationDocuments(
 			allKeys := append(keys, "__typename")
 
 			for _, key := range allKeys {
-
 				// insert the selection row
 				err = db.ExecStatement(insertSelection, map[string]any{
 					"field_name": key,

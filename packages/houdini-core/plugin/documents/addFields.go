@@ -92,8 +92,8 @@ func AddDocumentFields[PluginConfig any](
     ),
     existing AS (
       -- keys already present on that object in that document
-      SELECT DISTINCT
-        COALESCE(sr.parent_id, -1) AS object_selection_id,
+      SELECT
+        sr.parent_id AS object_selection_id,
         sr.document  AS doc_id,
         s.alias      AS key_name
       FROM selection_refs sr
@@ -151,8 +151,6 @@ func AddDocumentFields[PluginConfig any](
 			selectionID = keysToInsert.ColumnInt64(2)
 		}
 
-
-
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
 			"field_name": field,
@@ -183,8 +181,6 @@ func AddDocumentFields[PluginConfig any](
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
-
-
 
 	if errs.Len() > 0 {
 		return errs
