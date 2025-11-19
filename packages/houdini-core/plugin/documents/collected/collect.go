@@ -1160,6 +1160,7 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
         type_modifiers,
         kind
       FROM argumentTypes
+      ORDER BY parent_type, field_name, kind
   `, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
