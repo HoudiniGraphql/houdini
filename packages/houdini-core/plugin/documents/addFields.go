@@ -3,6 +3,7 @@ package documents
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -162,6 +163,10 @@ func AddDocumentFields[PluginConfig any](
 
 	errs := &plugins.ErrorList{}
 
+	// Debug: Count total fields to be inserted
+	fieldCount := 0
+	debugFields := []string{}
+
 	// every row of the above query is a selection that needs to be inserted
 	err = db.StepStatement(ctx, keysToInsert, func() {
 		field := keysToInsert.ColumnText(0)
@@ -172,6 +177,17 @@ func AddDocumentFields[PluginConfig any](
 		if !keysToInsert.ColumnIsNull(2) {
 			selectionID = keysToInsert.ColumnInt64(2)
 		}
+
+		// Debug logging
+		fieldCount++
+		selectionIDStr := "NULL"
+		if selectionID != nil {
+			selectionIDStr = fmt.Sprintf("%v", selectionID)
+		}
+		debugFields = append(debugFields, fmt.Sprintf("%s.%s (doc:%d, parent:%s)", parentType, field, docID, selectionIDStr))
+
+		log.Printf("DEBUG addFields: Inserting field #%d: %s.%s on doc %d with parent_id %s",
+			fieldCount, parentType, field, docID, selectionIDStr)
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
@@ -203,6 +219,13 @@ func AddDocumentFields[PluginConfig any](
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
+
+	// Debug: Log summary
+	log.Printf("DEBUG addFields: Successfully processed %d fields", fieldCount)
+	if fieldCount > 0 {
+		log.Printf("DEBUG addFields: Fields added: %v", debugFields)
+	}
+
 	if errs.Len() > 0 {
 		return errs
 	}

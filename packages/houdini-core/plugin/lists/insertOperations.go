@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -543,7 +544,13 @@ func InsertOperationDocuments(
 			// now we need a selection for each key and a ref that links it up to the parent
 			allKeys := append(keys, "__typename")
 
-			for _, key := range allKeys {
+			log.Printf("DEBUG lists.InsertOperationDocuments: Adding %d fields to fragment %d (type: %s): %v",
+				len(allKeys), fragmentID, typeName, allKeys)
+
+			for i, key := range allKeys {
+				log.Printf("DEBUG lists.InsertOperationDocuments: Inserting field #%d: %s.%s on fragment %d with parent_id=NULL",
+					i+1, typeName, key, fragmentID)
+
 				// insert the selection row
 				err = db.ExecStatement(insertSelection, map[string]any{
 					"field_name": key,
