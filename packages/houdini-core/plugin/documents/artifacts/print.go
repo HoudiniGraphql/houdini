@@ -287,33 +287,7 @@ func printSelection(
 ) string {
 	indent := strings.Repeat("    ", level)
 	var resultBuilder strings.Builder
-
-	// Deduplicate fields to prevent duplicate output in GraphQL
-	seenFields := make(map[string]*collected.Selection)
-	deduplicatedSelections := []*collected.Selection{}
-
 	for _, selection := range selections {
-		if selection.Kind == "field" {
-			// Create a unique key for field deduplication
-			key := selection.FieldName
-			if selection.Alias != nil && *selection.Alias != selection.FieldName {
-				key = *selection.Alias + ":" + selection.FieldName
-			}
-
-			// If we've seen this field before, skip it
-			if existing, exists := seenFields[key]; exists {
-				// Merge any children from the duplicate into the existing selection
-				if len(selection.Children) > 0 {
-					existing.Children = append(existing.Children, selection.Children...)
-				}
-				continue
-			}
-			seenFields[key] = selection
-		}
-		deduplicatedSelections = append(deduplicatedSelections, selection)
-	}
-
-	for _, selection := range deduplicatedSelections {
 		// before we print children and directives we need
 		// to handle the specific selection type
 		switch selection.Kind {
