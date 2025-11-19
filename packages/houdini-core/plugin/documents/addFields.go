@@ -92,13 +92,27 @@ func AddDocumentFields[PluginConfig any](
     ),
     existing AS (
       -- keys already present on that object in that document
-      SELECT
-        sr.parent_id AS object_selection_id,
+      -- This includes fields with any parent_id (including NULL) to catch duplicates
+      -- from different sources like lists.InsertOperationDocuments
+      SELECT DISTINCT
+        COALESCE(sr.parent_id, -1) AS object_selection_id,
         sr.document  AS doc_id,
         s.alias      AS key_name
       FROM selection_refs sr
       JOIN selections s ON s.id = sr.child_id
       WHERE s.kind = 'field'
+
+      UNION
+
+      -- Also check for fields with NULL parent_id that might be duplicates
+      -- of fields we want to add to specific parents
+      SELECT DISTINCT
+        -1 AS object_selection_id,
+        sr.document AS doc_id,
+        s.alias AS key_name
+      FROM selection_refs sr
+      JOIN selections s ON s.id = sr.child_id
+      WHERE s.kind = 'field' AND sr.parent_id IS NULL
     ),
     candidates AS (
       -- Keep only keys that (a) exist in type_fields OR are __typename,
@@ -108,9 +122,17 @@ func AddDocumentFields[PluginConfig any](
       LEFT JOIN type_fields tf
         ON tf.parent = ku.parent_type AND tf.name = ku.key_name
       LEFT JOIN existing e
-        ON COALESCE(e.object_selection_id, -1) = COALESCE(ku.object_selection_id, -1)
-       AND e.doc_id = ku.doc_id
-       AND e.key_name = ku.key_name
+        ON (
+          -- Exact match on parent and field
+          (COALESCE(e.object_selection_id, -1) = COALESCE(ku.object_selection_id, -1)
+           AND e.doc_id = ku.doc_id
+           AND e.key_name = ku.key_name)
+          OR
+          -- Also match if the field exists with NULL parent (from lists.InsertOperationDocuments)
+          (e.object_selection_id = -1
+           AND e.doc_id = ku.doc_id
+           AND e.key_name = ku.key_name)
+        )
       WHERE (ku.key_name = '__typename' OR tf.id IS NOT NULL)
         AND e.key_name IS NULL
     )
