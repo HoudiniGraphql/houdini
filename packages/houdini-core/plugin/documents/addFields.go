@@ -210,13 +210,14 @@ func AddDocumentFields[PluginConfig any](
 	}
 	defer connectionWalk.Finalize()
 
-	// if we have any connection-based discovered lists then we can just add page-info selections
-	// create separate pageInfo selections for each document to avoid race conditions
+	// if we have any connection-based discovered lists then we can just add a single page-info selection
+	// to add to the field for every match
+	var pageInfoSelection int64
 	pageInfoFields := []int64{}
 	pageInfoFieldsCreated := false
 
-	// track pageInfo selections per document to avoid duplicates
-	pageInfoSelections := make(map[int64]int64) // docID -> pageInfoSelectionID
+	// track which documents have had pageInfo subfields linked to avoid race conditions
+	documentsWithPageInfo := make(map[int64]bool)
 	// track which edge fields already have cursor selections to avoid duplicates
 	edgesWithCursor := make(map[int64]int64)
 	// track which list fields already have pageInfo selections added to avoid duplicates
@@ -229,10 +230,9 @@ func AddDocumentFields[PluginConfig any](
 		connectionType := connectionWalk.GetText("connection_type")
 		edgeType := connectionWalk.GetText("edge_type")
 
-		// get or create a pageInfo selection for this document
-		pageInfoSelection, exists := pageInfoSelections[docID]
-		if !exists {
-			// insert the selection for pageInfo for this specific document
+		// if we haven't generate a page info selection, do it now
+		if pageInfoSelection == 0 {
+			// insert the selection for pageInfo
 			err := db.ExecStatement(insertSelection, map[string]any{
 				"field_name": "pageInfo",
 				"alias":      "pageInfo",
@@ -244,7 +244,6 @@ func AddDocumentFields[PluginConfig any](
 				return
 			}
 			pageInfoSelection = conn.LastInsertRowID()
-			pageInfoSelections[docID] = pageInfoSelection
 
 			// create pageInfo subfields once (shared across all documents)
 			if !pageInfoFieldsCreated {
@@ -265,8 +264,11 @@ func AddDocumentFields[PluginConfig any](
 				}
 				pageInfoFieldsCreated = true
 			}
+		}
 
-			// link up the page fields to the info selection for this document
+		// link up the page fields to the info selection for each document that needs it
+		if !documentsWithPageInfo[docID] {
+			// link up the page fields to the info selection within the context of the matching document
 			for _, field := range pageInfoFields {
 				err := db.ExecStatement(insertSelectionRef, map[string]any{
 					"parent_id":  pageInfoSelection,
@@ -282,6 +284,7 @@ func AddDocumentFields[PluginConfig any](
 					return
 				}
 			}
+			documentsWithPageInfo[docID] = true
 		}
 
 		// by now we can assume that we have a pageInfo selection along with selections for each field

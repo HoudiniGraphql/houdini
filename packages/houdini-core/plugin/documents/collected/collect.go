@@ -531,10 +531,16 @@ func collectDoc(
 
 					parent, ok := selections[parentID]
 					if ok {
-						// check if this child is already in the parent's children to avoid duplicates
+						// Ensure we're using the canonical parent selection
+						// In case this parent has been redirected to another selection
+						canonicalParent := parent
+						for canonicalParent != selections[parentID] {
+							canonicalParent = selections[parentID]
+						}
+						// check if this child is already in the canonical parent's children to avoid duplicates
 						childExists := false
 						var existingChild *Selection
-						for _, existing := range parent.Children {
+						for _, existing := range canonicalParent.Children {
 							if existing == selection {
 								childExists = true
 								existingChild = existing
@@ -566,7 +572,7 @@ func collectDoc(
 							}
 						}
 						if !childExists {
-							parent.Children = append(parent.Children, selection)
+							canonicalParent.Children = append(canonicalParent.Children, selection)
 						} else if existingChild != nil {
 							// Redirect future references to the existing child
 							selections[selectionID] = existingChild
@@ -1528,6 +1534,8 @@ func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.S
 	// we're done
 	return stmt, nil
 }
+
+
 
 type collectResult struct {
 	Documents     []*Document
