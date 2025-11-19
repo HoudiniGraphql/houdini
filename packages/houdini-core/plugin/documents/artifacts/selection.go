@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -511,6 +512,19 @@ func getDocumentData(
 
 	// compute hash based on the complete printed content (including dependencies)
 	d.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(d.Printed)))
+
+	// Debug: Log hash calculation for specific test case
+	if name == "PaginatedFragment" {
+		log.Printf("DEBUG artifact: PaginatedFragment hash calculation")
+		log.Printf("DEBUG artifact: Content length: %d", len(d.Printed))
+		log.Printf("DEBUG artifact: Hash: %s", d.Hash)
+		// Log first 200 chars of content to see what's different
+		content := d.Printed
+		if len(content) > 200 {
+			content = content[:200] + "..."
+		}
+		log.Printf("DEBUG artifact: Content start: %s", content)
+	}
 
 	// get refetch data from collected document if available
 	if collectedDoc := docs.Selections[name]; collectedDoc != nil {

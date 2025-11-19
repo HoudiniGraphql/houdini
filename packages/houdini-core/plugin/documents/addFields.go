@@ -3,6 +3,7 @@ package documents
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"zombiezen.com/go/sqlite/sqlitex"
 
@@ -140,7 +141,24 @@ func AddDocumentFields[PluginConfig any](
 
 	errs := &plugins.ErrorList{}
 
+	// Debug: Count total keys to be inserted
+	keyCount := 0
+	err = db.StepStatement(ctx, keysToInsert, func() {
+		keyCount++
+	})
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	log.Printf("DEBUG addFields: Total keys to insert: %d", keyCount)
+
+	// Reset the statement for actual processing
+	err = keysToInsert.Reset()
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+
 	// every row of the above query is a selection that needs to be inserted
+	insertCount := 0
 	err = db.StepStatement(ctx, keysToInsert, func() {
 		field := keysToInsert.ColumnText(0)
 		parentType := keysToInsert.ColumnText(1)
@@ -150,6 +168,10 @@ func AddDocumentFields[PluginConfig any](
 		if !keysToInsert.ColumnIsNull(2) {
 			selectionID = keysToInsert.ColumnInt64(2)
 		}
+
+		insertCount++
+		log.Printf("DEBUG addFields: Inserting field #%d: %s on %s (doc: %d, selection: %v)",
+			insertCount, field, parentType, docID, selectionID)
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
@@ -184,6 +206,8 @@ func AddDocumentFields[PluginConfig any](
 	if errs.Len() > 0 {
 		return errs
 	}
+
+	log.Printf("DEBUG addFields: Successfully inserted %d fields", insertCount)
 
 	// any connection-based discovered lists need to have page information added
 	// so start at the node of the connection and get the surrounding field data
