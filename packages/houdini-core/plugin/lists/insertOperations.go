@@ -443,6 +443,36 @@ func InsertOperationDocuments(
 	if err != nil {
 		return err
 	}
+	// First, get all the parent selection information we'll need in a single query
+	// This avoids nested queries by gathering all inline fragment parent IDs upfront
+	parentSelectionsStmt, err := conn.Prepare(`
+		SELECT
+			sr.document,
+			s.field_name as type_name,
+			s.id as parent_selection_id
+		FROM selections s
+		JOIN selection_refs sr ON sr.child_id = s.id
+		WHERE s.kind = 'inline_fragment'
+	`)
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+	defer parentSelectionsStmt.Finalize()
+
+	// Build a map of document+type_name -> parent_selection_id
+	parentSelectionMap := make(map[string]int64)
+	err = db.StepStatement(ctx, parentSelectionsStmt, func() {
+		documentID := parentSelectionsStmt.ColumnInt64(0)
+		typeName := parentSelectionsStmt.ColumnText(1)
+		parentSelectionID := parentSelectionsStmt.ColumnInt64(2)
+
+		key := fmt.Sprintf("%d:%s", documentID, typeName)
+		parentSelectionMap[key] = parentSelectionID
+	})
+	if err != nil {
+		return commit(plugins.WrapError(err))
+	}
+
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
 		SELECT
@@ -541,6 +571,13 @@ func InsertOperationDocuments(
 			// now we need a selection for each key and a ref that links it up to the parent
 			allKeys := append(keys, "__typename")
 
+			// Look up the parent selection ID from our pre-built map
+			var parentID any
+			key := fmt.Sprintf("%d:%s", fragmentID, typeName)
+			if parentSelectionID, exists := parentSelectionMap[key]; exists {
+				parentID = parentSelectionID
+			}
+
 			for _, key := range allKeys {
 				// insert the selection row
 				err = db.ExecStatement(insertSelection, map[string]any{
@@ -554,8 +591,9 @@ func InsertOperationDocuments(
 					return
 				}
 
-				// insert the selection ref
+				// insert the selection ref with the correct parent_id
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
+					"parent_id":  parentID,
 					"child_id":   conn.LastInsertRowID(),
 					"document":   fragmentID,
 					"row":        0,
