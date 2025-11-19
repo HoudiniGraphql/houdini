@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"maps"
 	"runtime"
 	"sort"
@@ -718,8 +717,6 @@ func collectDoc(
 			// up next, lets look up the input types
 			inputTypes := map[string]map[string]string{}
 			enumValues := map[string][]string{}
-			enumCount := 0
-			inputCount := 0
 			err = db.StepStatement(ctx, statements.InputTypes, func() {
 				typeName := statements.InputTypes.GetText("parent_type")
 				fieldType := statements.InputTypes.GetText("field_type")
@@ -729,7 +726,6 @@ func collectDoc(
 				// depending on the kind we have to treat the result different
 				switch kind {
 				case "input":
-					inputCount++
 					// the row could designate an input field
 
 					// if this is the first time we've seen this type we need to initialize the map
@@ -741,13 +737,10 @@ func collectDoc(
 					inputTypes[typeName][fieldName] = fieldType
 
 				case "enum":
-					enumCount++
-					log.Printf("DEBUG collect: Found enum value %s.%s (field_type: %s)", typeName, fieldName, fieldType)
 					// the row could also mean an enum value
 					enumValues[typeName] = append(enumValues[typeName], fieldName)
 				}
 			})
-			log.Printf("DEBUG collect: Processed %d input fields and %d enum values", inputCount, enumCount)
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
 			}

@@ -199,18 +199,6 @@ func InsertOperationDocuments(
 	}
 	defer insertSelectionRef.Finalize()
 
-	// Prepare statement to check for existing fields (used in deduplication)
-	checkExisting, err := conn.Prepare(`
-		SELECT COUNT(*) as count
-		FROM selection_refs sr
-		JOIN selections s ON s.id = sr.child_id
-		WHERE sr.document = $document AND s.kind = 'field' AND s.alias = $alias
-	`)
-	if err != nil {
-		return commit(plugins.WrapError(err))
-	}
-	defer checkExisting.Finalize()
-
 	// now we can step through each discovered list and insert the necessary documents
 	errs := &plugins.ErrorList{}
 	searchLists, err := conn.Prepare(`
@@ -457,7 +445,7 @@ func InsertOperationDocuments(
 	}
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
-		SELECT DISTINCT
+		SELECT
 			dl.id,
 			dl.name,
 			dl.node_type,
@@ -553,40 +541,7 @@ func InsertOperationDocuments(
 			// now we need a selection for each key and a ref that links it up to the parent
 			allKeys := append(keys, "__typename")
 
-			// Get existing keys for this document in one query
-			existingKeys := make(map[string]bool)
-			getExistingStmt, err := conn.Prepare(`
-				SELECT s.alias
-				FROM selection_refs sr
-				JOIN selections s ON s.id = sr.child_id
-				WHERE sr.document = $document AND s.kind = 'field'
-			`)
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			defer getExistingStmt.Finalize()
-
-			err = db.BindStatement(getExistingStmt, map[string]any{"document": fragmentID})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-
-			err = db.StepStatement(ctx, getExistingStmt, func() {
-				existingKeys[getExistingStmt.GetText("alias")] = true
-			})
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-
 			for _, key := range allKeys {
-				// Skip if key already exists
-				if existingKeys[key] {
-					continue
-				}
-
 				// insert the selection row
 				err = db.ExecStatement(insertSelection, map[string]any{
 					"field_name": key,
@@ -601,7 +556,6 @@ func InsertOperationDocuments(
 
 				// insert the selection ref
 				err = db.ExecStatement(insertSelectionRef, map[string]any{
-					"parent_id":  nil,
 					"child_id":   conn.LastInsertRowID(),
 					"document":   fragmentID,
 					"row":        0,

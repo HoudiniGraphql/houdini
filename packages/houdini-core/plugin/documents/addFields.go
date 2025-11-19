@@ -114,7 +114,7 @@ func AddDocumentFields[PluginConfig any](
       WHERE (ku.key_name = '__typename' OR tf.id IS NOT NULL)
         AND e.key_name IS NULL
     )
-    SELECT DISTINCT key_name, parent_type, object_selection_id, doc_id
+    SELECT key_name, parent_type, object_selection_id, doc_id
     FROM candidates
     `)
 	if err != nil {
@@ -140,77 +140,34 @@ func AddDocumentFields[PluginConfig any](
 
 	errs := &plugins.ErrorList{}
 
-	// Collect all keys first to deduplicate them in Go code
-	// This is more reliable than SQL DISTINCT across different SQLite versions
-	type keyToInsert struct {
-		field      string
-		parentType string
-		docID      int64
-		selectionID *int64
-	}
-
-	var allKeys []keyToInsert
-	seenKeys := make(map[string]bool)
-
+	// every row of the above query is a selection that needs to be inserted
 	err = db.StepStatement(ctx, keysToInsert, func() {
 		field := keysToInsert.ColumnText(0)
 		parentType := keysToInsert.ColumnText(1)
 		docID := keysToInsert.ColumnInt64(3)
 
-		var selectionID *int64
-		if !keysToInsert.ColumnIsNull(2) {
-			id := keysToInsert.ColumnInt64(2)
-			selectionID = &id
-		}
-
-		// Create a unique key for deduplication
-		var selectionIDStr string
-		if selectionID != nil {
-			selectionIDStr = fmt.Sprintf("%d", *selectionID)
-		} else {
-			selectionIDStr = "nil"
-		}
-		uniqueKey := fmt.Sprintf("%s|%s|%d|%s", field, parentType, docID, selectionIDStr)
-
-		// Only add if we haven't seen this exact combination before
-		if !seenKeys[uniqueKey] {
-			seenKeys[uniqueKey] = true
-			allKeys = append(allKeys, keyToInsert{
-				field:       field,
-				parentType:  parentType,
-				docID:       docID,
-				selectionID: selectionID,
-			})
-		}
-	})
-	if err != nil {
-		return commit(plugins.WrapError(err))
-	}
-
-	// Now process the deduplicated keys
-	for _, key := range allKeys {
 		var selectionID any
-		if key.selectionID != nil {
-			selectionID = *key.selectionID
+		if !keysToInsert.ColumnIsNull(2) {
+			selectionID = keysToInsert.ColumnInt64(2)
 		}
 
 		// insert the selection
 		err := db.ExecStatement(insertSelection, map[string]any{
-			"field_name": key.field,
-			"alias":      key.field,
+			"field_name": field,
+			"alias":      field,
 			"kind":       "field",
-			"type":       fmt.Sprintf("%s.%s", key.parentType, key.field),
+			"type":       fmt.Sprintf("%s.%s", parentType, field),
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
-			continue
+			return
 		}
 
 		// and now we need to create the selection ref
 		err = db.ExecStatement(insertSelectionRef, map[string]any{
 			"parent_id":  selectionID,
 			"child_id":   conn.LastInsertRowID(),
-			"document":   key.docID,
+			"document":   docID,
 			"row":        0,
 			"column":     0,
 			"path_index": 0,
@@ -218,10 +175,12 @@ func AddDocumentFields[PluginConfig any](
 		})
 		if err != nil {
 			errs.Append(plugins.WrapError(err))
-			continue
+			return
 		}
+	})
+	if err != nil {
+		return commit(plugins.WrapError(err))
 	}
-
 	if errs.Len() > 0 {
 		return errs
 	}
