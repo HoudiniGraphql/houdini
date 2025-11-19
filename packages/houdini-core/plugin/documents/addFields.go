@@ -115,7 +115,7 @@ func AddDocumentFields[PluginConfig any](
       WHERE (ku.key_name = '__typename' OR tf.id IS NOT NULL)
         AND e.key_name IS NULL
     )
-    SELECT key_name, parent_type, object_selection_id, doc_id
+    SELECT DISTINCT key_name, parent_type, object_selection_id, doc_id
     FROM candidates
     `)
 	if err != nil {

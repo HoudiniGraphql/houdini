@@ -445,7 +445,7 @@ func InsertOperationDocuments(
 	}
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
-		SELECT
+		SELECT DISTINCT
 			dl.id,
 			dl.name,
 			dl.node_type,

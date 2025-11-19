@@ -492,3 +492,90 @@ func TestAddFields_multipleInvocation(t *testing.T) {
 		},
 	})
 }
+
+func TestAddFields_NoDuplicateRaceCondition(t *testing.T) {
+	// This test specifically checks for the race condition that was causing
+	// duplicate __typename fields to be generated in CI environments.
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			type Query {
+				user: User
+			}
+
+			type User {
+				id: ID!
+				firstName: String!
+			}
+		`,
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			// Run the field addition process multiple times to test for race conditions
+			for i := 0; i < 5; i++ {
+				err := plugin.AfterExtract(context.Background())
+				if err != nil {
+					require.False(t, test.Pass, err.Error())
+					return
+				}
+
+				err = plugin.AfterValidate(context.Background())
+				if err != nil {
+					require.False(t, test.Pass, err.Error())
+					return
+				}
+
+				err = documents.AddDocumentFields(context.Background(), plugin.DB)
+				if err != nil {
+					require.False(t, test.Pass, err.Error())
+					return
+				}
+			}
+
+			// Verify no duplicate fields were created
+			tests.ValidateExpectedDocuments(t, plugin.DB, test.Expected)
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "No duplicate __typename fields after multiple runs",
+				Pass: true,
+				Input: []string{
+					`
+						query TestQuery {
+							user {
+								firstName
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					{
+						Name: "TestQuery",
+						Kind: "query",
+						Selections: []tests.ExpectedSelection{
+							{
+								FieldName: "user",
+								Alias:     tests.StrPtr("user"),
+								Kind:      "field",
+								Children: []tests.ExpectedSelection{
+									{
+										FieldName: "firstName",
+										Alias:     tests.StrPtr("firstName"),
+										Kind:      "field",
+									},
+									{
+										FieldName: "__typename",
+										Alias:     tests.StrPtr("__typename"),
+										Kind:      "field",
+									},
+									{
+										FieldName: "id",
+										Alias:     tests.StrPtr("id"),
+										Kind:      "field",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+}
