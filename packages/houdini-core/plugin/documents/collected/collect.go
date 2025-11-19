@@ -309,7 +309,7 @@ func collectDoc(
 						Internal:      internal,
 						Visible:       !internal, // Internal fields are not visible by default
 					}
-					// Load directives for the new selection BEFORE duplicate detection
+					// Load directives for the new selection
 					if !statements.Search.IsNull("directives") {
 						directives := statements.Search.GetText("directives")
 
@@ -332,7 +332,7 @@ func collectDoc(
 						selection.Directives = dirs
 					}
 				} else {
-					// Selection already exists, but we may need to merge directives from this database row
+					// Selection already exists, merge any additional directives
 					if !statements.Search.IsNull("directives") {
 						directives := statements.Search.GetText("directives")
 
@@ -352,8 +352,7 @@ func collectDoc(
 							}
 						}
 
-						// Merge directives from this database row into the existing selection
-						// but avoid duplicates by comparing name and arguments
+						// Merge directives, avoiding duplicates
 						if len(dirs) > 0 {
 							for _, newDir := range dirs {
 								isDuplicate := false
@@ -512,7 +511,6 @@ func collectDoc(
 						// to the existing selection instead of the duplicate
 						if duplicateType == "field" {
 							selections[selectionID] = existingSelection
-							// Directives are now merged earlier in the process when selections are created
 						}
 					}
 
@@ -538,8 +536,6 @@ func collectDoc(
 									(existingChild.Alias != nil && selection.Alias != nil && *existingChild.Alias == *selection.Alias)) {
 								childExists = true
 								// Merge directives from the duplicate selection into the existing child
-								// This is necessary because the duplicate selection has different selection ID
-								// but represents the same logical field, but avoid duplicates
 								if len(selection.Directives) > 0 {
 									for _, newDir := range selection.Directives {
 										isDuplicate := false
@@ -559,8 +555,6 @@ func collectDoc(
 						}
 						if !childExists {
 							parent.Children = append(parent.Children, selection)
-						} else {
-							// Directives are now merged earlier in the process when selections are created
 						}
 					} else {
 						if _, ok := missingParents[parentID]; !ok {
@@ -608,7 +602,7 @@ func collectDoc(
 					selection.Arguments = args
 				}
 
-				// Directives are now loaded earlier in the process, before duplicate detection
+
 			})
 			if err != nil {
 				errs.Append(plugins.WrapError(err))
@@ -641,8 +635,6 @@ func collectDoc(
 					}
 					if !childExists {
 						parent.Children = append(parent.Children, selection)
-					} else {
-						// Directives are now merged earlier in the process when selections are created
 					}
 				}
 			}
