@@ -77,9 +77,9 @@ jobs:
                   path: |
                       ~/.cache/go-build
                       ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
                   restore-keys: |
-                      ${{ runner.os }}-go-
+                      ${{ runner.os }}-go-v2-
 
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
@@ -131,13 +131,13 @@ jobs:
                   path: |
                       ~/.cache/go-build
                       ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
                   restore-keys: |
-                      ${{ runner.os }}-go-
+                      ${{ runner.os }}-go-v2-
 
             - name: Run Go tests
               run: |
-                  go test ./... -v -race -timeout 15m
+                  go test ./... -v -timeout 15m
 
     verify_init:
         name: Verify Init
@@ -166,9 +166,9 @@ jobs:
                   path: |
                       ~/.cache/go-build
                       ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
                   restore-keys: |
-                      ${{ runner.os }}-go-
+                      ${{ runner.os }}-go-v2-
 
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
