@@ -62,5 +62,3 @@ func CopyPluginRuntime[PluginConfig any](
 	// nothing went wrong
 	return paths, nil
 }
-
-

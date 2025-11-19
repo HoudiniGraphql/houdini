@@ -483,8 +483,6 @@ func InsertOperationDocuments(
 		rawDocument := statementWithKeys.GetText("raw_document")
 		documentName := statementWithKeys.GetText("document_name")
 
-
-
 		keys := []string{}
 		if keysStr != "" {
 			err = json.Unmarshal([]byte(keysStr), &keys)
@@ -495,8 +493,6 @@ func InsertOperationDocuments(
 		} else {
 			keys = projectConfig.DefaultKeys
 		}
-
-
 
 		if ok := insertedDirectives[typeName]; !ok {
 			// we need to insert a delete directive for each type that has a list

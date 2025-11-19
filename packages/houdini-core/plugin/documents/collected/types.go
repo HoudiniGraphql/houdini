@@ -54,14 +54,14 @@ type List struct {
 
 // DocumentRefetch represents pagination metadata collected during document traversal
 type DocumentRefetch struct {
-	Path            []string // field path to the paginated selection
-	Method          string   // "cursor" or "offset"
-	PageSize        int
-	Mode            string
-	TargetType      string
-	Embedded        bool
-	Paginated       bool
-	Direction       string // "forward", "backward", or "both"
+	Path       []string // field path to the paginated selection
+	Method     string   // "cursor" or "offset"
+	PageSize   int
+	Mode       string
+	TargetType string
+	Embedded   bool
+	Paginated  bool
+	Direction  string // "forward", "backward", or "both"
 }
 
 // OperationVariable represents a variable in a GraphQL operation

@@ -847,7 +847,7 @@ func processFragmentPagination(
 		err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
 			"document": queryDocumentID,
 			"child_id": fragmentSpreadID,
-			"internal": true,
+			"internal": false,
 		})
 		if err != nil {
 			return 0, err
@@ -868,7 +868,7 @@ func processFragmentPagination(
 		err = ctx.db.ExecStatement(ctx.insertSelectionRef, map[string]any{
 			"document": queryDocumentID,
 			"child_id": resolveSelectionID,
-			"internal": true,
+			"internal": false,
 		})
 		if err != nil {
 			return 0, err

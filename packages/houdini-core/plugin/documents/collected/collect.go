@@ -309,6 +309,7 @@ func collectDoc(
 						Internal:      internal,
 						Visible:       !internal, // Internal fields are not visible by default
 					}
+
 					// Load directives for the new selection
 					if !statements.Search.IsNull("directives") {
 						directives := statements.Search.GetText("directives")
@@ -458,6 +459,7 @@ func collectDoc(
 					}
 					// If this reference is internal but the existing selection is not,
 					// keep the existing non-internal status (user-requested takes precedence)
+
 				}
 
 				// if there is no parent then we have a root selection
@@ -614,7 +616,6 @@ func collectDoc(
 
 					selection.Arguments = args
 				}
-
 
 			})
 			if err != nil {

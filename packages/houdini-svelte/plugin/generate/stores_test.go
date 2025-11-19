@@ -15,8 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
-
 func TestGenerateStores(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniSvelte]{
 		Plugin: tests.Plugin[config.PluginConfig]{

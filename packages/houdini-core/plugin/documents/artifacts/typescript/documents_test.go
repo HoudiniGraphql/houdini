@@ -341,8 +341,6 @@ func TestTypescriptGeneration(t *testing.T) {
 				},
 			},
 
-
-
 			{
 				Name: "query with root list",
 				Input: []string{
@@ -923,12 +921,6 @@ func TestTypescriptGeneration(t *testing.T) {
 					`),
 				},
 			},
-
-
-
-
-
-
 
 			{
 				Name: "explicit __typename field",
