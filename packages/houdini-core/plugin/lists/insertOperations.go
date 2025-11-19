@@ -446,11 +446,12 @@ func InsertOperationDocuments(
 	// we'll insert delete directive and remove fragment driven by a separate query
 	statementWithKeys, err := conn.Prepare(`
 		SELECT
+			dl.id,
 			dl.name,
 			dl.node_type,
-			MIN(tc.keys)                  AS keys,         
+			MIN(tc.keys)                  AS keys,
 			rd.id                         AS raw_document,
-			MIN(op_doc.name)              AS document_name 
+			MIN(op_doc.name)              AS document_name
 		FROM discovered_lists dl
 		JOIN documents doc        ON dl.document     = doc.id
 		JOIN raw_documents rd     ON doc.raw_document = rd.id
@@ -461,7 +462,7 @@ func InsertOperationDocuments(
 			AND (rd.current_task = $task_id OR $task_id IS NULL)
 			AND (doc.processed = false OR doc.processed IS NULL)
 		GROUP BY
-			dl.id, dl.name, dl.node_type, rd.id
+			dl.name, dl.node_type, rd.id
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -481,6 +482,8 @@ func InsertOperationDocuments(
 		rawDocument := statementWithKeys.GetText("raw_document")
 		documentName := statementWithKeys.GetText("document_name")
 
+
+
 		keys := []string{}
 		if keysStr != "" {
 			err = json.Unmarshal([]byte(keysStr), &keys)
@@ -491,6 +494,8 @@ func InsertOperationDocuments(
 		} else {
 			keys = projectConfig.DefaultKeys
 		}
+
+
 
 		if ok := insertedDirectives[typeName]; !ok {
 			// we need to insert a delete directive for each type that has a list
@@ -534,7 +539,9 @@ func InsertOperationDocuments(
 			}
 
 			// now we need a selection for each key and a ref that links it up to the parent
-			for _, key := range append(keys, "__typename") {
+			allKeys := append(keys, "__typename")
+
+			for _, key := range allKeys {
 				// insert the selection row
 				err = db.ExecStatement(insertSelection, map[string]any{
 					"field_name": key,

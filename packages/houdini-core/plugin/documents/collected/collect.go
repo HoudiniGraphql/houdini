@@ -1114,9 +1114,9 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
             ON av.expected_type = ev.parent
           WHERE av."document" in %s
 
-          UNION ALL
+          UNION
 
-          -- ─── base case 3: enum values for types used as field types in selections ───
+          -- ─── base case 2b: enum values for types used as field types in selections ───
           SELECT
             ev.parent,                   -- parent_type
             ev.value    AS field_name,   -- field_name (enum value)
@@ -1129,6 +1129,8 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
           JOIN type_fields tf ON s.type = tf.id
           JOIN enum_values ev ON tf.type = ev.parent
           WHERE sr.document in %s
+
+
 
           UNION ALL
 

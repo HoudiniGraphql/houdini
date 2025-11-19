@@ -1294,7 +1294,7 @@ export type A$artifact = typeof artifact
 					"A": tests.Dedent(`const artifact = {
     "name": "A",
     "kind": "HoudiniMutation",
-    "hash": "43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1",
+    "hash": "5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e",
     "raw": ` + "`" + `mutation A {
     addFriend {
         friend {
@@ -1304,11 +1304,6 @@ export type A$artifact = typeof artifact
         }
         __typename
     }
-}
-
-fragment All_Users_remove on User {
-    id
-    __typename
 }
 
 fragment All_Users_remove on User {
@@ -1405,7 +1400,7 @@ export type A$optimistic = {
 
 export type A$artifact = typeof artifact
 
-"HoudiniHash=43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1"`),
+"HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"`),
 				},
 			},
 			{
@@ -2000,7 +1995,7 @@ export type A$artifact = typeof artifact
 					"A": tests.Dedent(`const artifact = {
     "name": "A",
     "kind": "HoudiniMutation",
-    "hash": "43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1",
+    "hash": "5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e",
     "raw": ` + "`" + `mutation A {
     addFriend {
         friend {
@@ -2010,11 +2005,6 @@ export type A$artifact = typeof artifact
         }
         __typename
     }
-}
-
-fragment All_Users_remove on User {
-    id
-    __typename
 }
 
 fragment All_Users_remove on User {
@@ -2110,7 +2100,7 @@ export type A$optimistic = {
 
 export type A$artifact = typeof artifact
 
-"HoudiniHash=43130e3512c9fc4645c45039009b72bcab7b2b5d6c76e661cf605b2bf3cb9fe1"`),
+"HoudiniHash=5b4c90b131ad3fa0c82375c8a3ead0b8f6a2f62c87e60af202ea0989beb3e71e"`),
 				},
 			},
 			{

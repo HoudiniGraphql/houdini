@@ -1211,14 +1211,6 @@ func determineTypeKind(
 		return "SCALAR"
 	}
 
-	// For TypeScript generation, we need to check if this is an enum type
-	// even if it wasn't collected in the documents (e.g., field types vs argument types)
-	// Check built-in GraphQL scalars first to avoid database lookup
-	switch typeName {
-	case "String", "ID", "Int", "Float", "Boolean":
-		return "SCALAR"
-	}
-
 	// Default to INPUT for unknown types
 	return "INPUT"
 }

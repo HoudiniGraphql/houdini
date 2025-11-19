@@ -315,8 +315,8 @@ func TestAddFields(t *testing.T) {
 				Pass: true,
 				Input: []string{`
 					query Friends {
-						user { 
-							bestFriend { 
+						user {
+							bestFriend {
 								firstName
 							}
 						}
@@ -325,14 +325,83 @@ func TestAddFields(t *testing.T) {
 				Expected: []tests.ExpectedDocument{
 					tests.ExpectedDoc(`
 						query Friends {
-							user { 
+							user {
 								__typename
 								id
-								bestFriend { 
+								bestFriend {
 									firstName
 									__typename
 									id
 								}
+							}
+						}
+					`),
+				},
+			},
+			{
+				Name: "doesn't add duplicate fields when id is already selected",
+				Pass: true,
+				Input: []string{`
+					query Friends {
+						user {
+							id
+							firstName
+						}
+					}
+				`},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query Friends {
+							user {
+								id
+								firstName
+								__typename
+							}
+						}
+					`),
+				},
+			},
+			{
+				Name: "doesn't add duplicate __typename when already selected",
+				Pass: true,
+				Input: []string{`
+					query Friends {
+						user {
+							__typename
+							firstName
+						}
+					}
+				`},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query Friends {
+							user {
+								__typename
+								firstName
+								id
+							}
+						}
+					`),
+				},
+			},
+			{
+				Name: "doesn't add duplicate custom keys when already selected",
+				Pass: true,
+				Input: []string{`
+					query Friends {
+						ghost {
+							aka
+							name
+						}
+					}
+				`},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						query Friends {
+							ghost {
+								aka
+								name
+								__typename
 							}
 						}
 					`),
