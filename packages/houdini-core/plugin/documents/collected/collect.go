@@ -481,15 +481,44 @@ func collectDoc(
 
 					// check if this selection is already in the document's root selections to avoid duplicates
 					selectionExists := false
-					for _, existingSelection := range doc.Selections {
-						if existingSelection == selection {
+					var existingSelection *Selection
+					for _, existing := range doc.Selections {
+						if existing == selection {
 							selectionExists = true
+							existingSelection = existing
+							break
+						}
+						// Also check for field-level duplicates (same field name and alias)
+						if existing.Kind == "field" && selection.Kind == "field" &&
+							existing.FieldName == selection.FieldName &&
+							((existing.Alias == nil && selection.Alias == nil) ||
+								(existing.Alias != nil && selection.Alias != nil && *existing.Alias == *selection.Alias)) {
+							selectionExists = true
+							existingSelection = existing
+							// Merge directives from the duplicate into the existing selection
+							if len(selection.Directives) > 0 {
+								for _, newDir := range selection.Directives {
+									isDuplicate := false
+									for _, existingDir := range existing.Directives {
+										if directivesEqual(existingDir, newDir) {
+											isDuplicate = true
+											break
+										}
+									}
+									if !isDuplicate {
+										existing.Directives = append(existing.Directives, newDir)
+									}
+								}
+							}
 							break
 						}
 					}
 					if !selectionExists {
 						// add the selection to the doc
 						doc.Selections = append(doc.Selections, selection)
+					} else if existingSelection != nil {
+						// Redirect future references to the existing selection
+						selections[selectionID] = existingSelection
 					}
 
 				} else {
@@ -502,14 +531,43 @@ func collectDoc(
 					if ok {
 						// check if this child is already in the parent's children to avoid duplicates
 						childExists := false
-						for _, existingChild := range parent.Children {
-							if existingChild == selection {
+						var existingChild *Selection
+						for _, existing := range parent.Children {
+							if existing == selection {
 								childExists = true
+								existingChild = existing
+								break
+							}
+							// Also check for field-level duplicates (same field name and alias)
+							if existing.Kind == "field" && selection.Kind == "field" &&
+								existing.FieldName == selection.FieldName &&
+								((existing.Alias == nil && selection.Alias == nil) ||
+									(existing.Alias != nil && selection.Alias != nil && *existing.Alias == *selection.Alias)) {
+								childExists = true
+								existingChild = existing
+								// Merge directives from the duplicate into the existing child
+								if len(selection.Directives) > 0 {
+									for _, newDir := range selection.Directives {
+										isDuplicate := false
+										for _, existingDir := range existing.Directives {
+											if directivesEqual(existingDir, newDir) {
+												isDuplicate = true
+												break
+											}
+										}
+										if !isDuplicate {
+											existing.Directives = append(existing.Directives, newDir)
+										}
+									}
+								}
 								break
 							}
 						}
 						if !childExists {
 							parent.Children = append(parent.Children, selection)
+						} else if existingChild != nil {
+							// Redirect future references to the existing child
+							selections[selectionID] = existingChild
 						}
 					} else {
 						if _, ok := missingParents[parentID]; !ok {
@@ -576,6 +634,29 @@ func collectDoc(
 					for _, existingChild := range parent.Children {
 						if existingChild == selection {
 							childExists = true
+							break
+						}
+						// Also check for field-level duplicates (same field name and alias)
+						if existingChild.Kind == "field" && selection.Kind == "field" &&
+							existingChild.FieldName == selection.FieldName &&
+							((existingChild.Alias == nil && selection.Alias == nil) ||
+								(existingChild.Alias != nil && selection.Alias != nil && *existingChild.Alias == *selection.Alias)) {
+							childExists = true
+							// Merge directives from the duplicate into the existing child
+							if len(selection.Directives) > 0 {
+								for _, newDir := range selection.Directives {
+									isDuplicate := false
+									for _, existingDir := range existingChild.Directives {
+										if directivesEqual(existingDir, newDir) {
+											isDuplicate = true
+											break
+										}
+									}
+									if !isDuplicate {
+										existingChild.Directives = append(existingChild.Directives, newDir)
+									}
+								}
+							}
 							break
 						}
 					}
