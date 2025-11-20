@@ -716,6 +716,10 @@ export class Config {
 		return `_delete`
 	}
 
+	get upsertFragmentSuffix() {
+		return `_upsert`
+	}
+
 	get loadingDirective() {
 		return `loading`
 	}
@@ -804,8 +808,16 @@ export class Config {
 		return name.endsWith(this.toggleFragmentSuffix)
 	}
 
+	isUpsertFragment(name: string) {
+		return name.endsWith(this.upsertFragmentSuffix)
+	}
+
 	listRemoveFragment(name: string): string {
 		return name + this.removeFragmentSuffix
+	}
+
+	listUpsertFragment(name: string): string {
+		return name + this.upsertFragmentSuffix
 	}
 
 	isInternalEnum(node: graphql.EnumTypeDefinitionNode): boolean {
@@ -955,7 +967,8 @@ export class Config {
 		return (
 			name.endsWith(this.insertFragmentSuffix) ||
 			name.endsWith(this.removeFragmentSuffix) ||
-			name.endsWith(this.toggleFragmentSuffix)
+			name.endsWith(this.toggleFragmentSuffix) ||
+			name.endsWith(this.upsertFragmentSuffix)
 		)
 	}
 
@@ -968,7 +981,7 @@ export class Config {
 	}
 
 	// return 'insert' for All_Users_insert
-	listOperationFromFragment(fragmentName: string): 'insert' | 'remove' | 'toggle' {
+	listOperationFromFragment(fragmentName: string): 'insert' | 'remove' | 'toggle' | 'upsert' {
 		// check the name against the fragment patterns
 		if (this.isInsertFragment(fragmentName)) {
 			return 'insert'
@@ -976,6 +989,8 @@ export class Config {
 			return 'remove'
 		} else if (this.isToggleFragment(fragmentName)) {
 			return 'toggle'
+		} else if (this.isUpsertFragment(fragmentName)) {
+			return 'upsert'
 		}
 
 		throw new Error('Could not determine list operation from fragment name: ' + fragmentName)

@@ -236,6 +236,10 @@ test('list operations are included', async function () {
 			fragment Friends_remove on User {
 			  id
 			}
+
+			fragment Friends_upsert on User {
+			  id
+			}
 		`)
 })
 
@@ -363,6 +367,10 @@ test('list operations are included but delete directive should not be in when we
 			  id
 			}
 
+			fragment Friends_upsert on User {
+			  id
+			}
+
 			fragment theList_insert on CustomIdType {
 			  foo
 			  bar
@@ -374,6 +382,11 @@ test('list operations are included but delete directive should not be in when we
 			}
 
 			fragment theList_remove on CustomIdType {
+			  foo
+			  bar
+			}
+
+			fragment theList_upsert on CustomIdType {
 			  foo
 			  bar
 			}

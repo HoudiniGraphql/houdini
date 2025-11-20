@@ -963,6 +963,30 @@ class CacheInternal {
 
 						this.cache.delete(targetID, layer)
 					}
+
+					// upsert to a list
+					else if (
+						operation.action === 'upsert' &&
+						target instanceof Object &&
+						fieldSelection &&
+						operation.list
+					) {
+						this.cache
+							.list(
+								operation.list,
+								parentID,
+								operation.target === 'all',
+								processedOperations
+							)
+							.when(operation.when)
+							.upsert({
+								selection: fieldSelection,
+								data: target,
+								variables,
+								where: operation.position || 'last',
+								layer,
+							})
+					}
 				}
 
 				if (operation.list) {

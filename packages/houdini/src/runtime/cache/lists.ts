@@ -520,6 +520,54 @@ export class List {
 		}
 	}
 
+	upsert({
+		selection,
+		data,
+		variables = {},
+		layer,
+		where,
+	}: {
+		selection: SubscriptionSelection
+		data: {}
+		variables?: {}
+		layer?: Layer
+		where: 'first' | 'last'
+	}) {
+		// Check if item exists in list
+		const targetListId = this.cache._internal_unstable.id(this.listType(data), data)
+		if (!targetListId) {
+			return
+		}
+
+		let value = this.cache._internal_unstable.storage.get(this.recordID, this.key).value as
+			| NestedList
+			| string
+
+		let entries: string[] = []
+
+		if (!this.connection) {
+			entries = flatten(value as NestedList)
+		} else {
+			entries = this.cache._internal_unstable.storage.get(value as string, 'edges')
+				.value as string[]
+		}
+
+		const itemExists = entries.includes(targetListId)
+		if (!itemExists) {
+			this.addToList(selection, data, variables, where, layer)
+			return
+		}
+
+		this.cache.write({
+			selection: selection,
+			data: data,
+			variables,
+			parent: targetListId,
+			applyUpdates: [],
+			layer: layer?.id,
+		})
+	}
+
 	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
@@ -584,6 +632,10 @@ export class ListCollection {
 
 	toggleElement(...args: Parameters<List['toggleElement']>) {
 		this.lists.forEach((list) => list.toggleElement(...args))
+	}
+
+	upsert(...args: Parameters<List['upsert']>) {
+		this.lists.forEach((list) => list.upsert(...args))
 	}
 
 	when(when?: ListWhen): ListCollection {

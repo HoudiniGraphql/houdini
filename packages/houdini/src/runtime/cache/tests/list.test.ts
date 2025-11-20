@@ -5618,3 +5618,1041 @@ test("two operations referencing the same list don't commit twice", function () 
 		],
 	})
 })
+
+test('upsert in list - adds new item when not exists', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert an element that doesn't exist yet (should add it)
+	cache.list('All_Users').upsert({
+		selection: {
+			fields: {
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+			},
+		},
+		data: {
+			id: '3',
+			firstName: 'mary',
+		},
+		where: 'last',
+	})
+
+	// make sure we got the new value appended
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+			],
+		},
+	})
+})
+
+test('upsert in list - updates existing item', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with two objects
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert an element that already exists (should update it)
+	cache.list('All_Users', '1').upsert({
+		selection: {
+			fields: {
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+			},
+		},
+		data: {
+			id: '3',
+			firstName: 'mary-updated',
+		},
+		where: 'last',
+	})
+
+	const result = cache.read({
+		selection,
+	})
+
+	// make sure the existing item was updated, not added again
+	expect(result.data).toEqual({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+				{
+					firstName: 'mary-updated',
+					id: '3',
+				},
+			],
+		},
+	})
+})
+
+test('upsert in list - prepend position when item does not exist', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert an element that doesn't exist with 'first' position (should prepend it)
+	cache.list('All_Users').upsert({
+		selection: {
+			fields: {
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+			},
+		},
+		data: {
+			id: '3',
+			firstName: 'mary',
+		},
+		where: 'first',
+	})
+
+	// make sure we got the new value prepended
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+})
+
+test('upsert in connection - adds new item when not exists', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										visible: true,
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													visible: true,
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert an element into the connection that doesn't exist yet
+	cache.list('All_Users').upsert({
+		selection: {
+			fields: {
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+			},
+		},
+		data: {
+			id: '3',
+			firstName: 'mary',
+		},
+		where: 'last',
+	})
+
+	const result = cache.read({
+		selection,
+	})
+
+	// make sure we got the new value
+	expect(result.data).toEqual({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
+test('upsert in connection - updates existing item', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: true,
+								type: 'User',
+							},
+							selection: {
+								fields: {
+									edges: {
+										type: 'UserEdge',
+										visible: true,
+										keyRaw: 'edges',
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													visible: true,
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with two objects
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert an element that already exists (should update it)
+	cache.list('All_Users').upsert({
+		selection: {
+			fields: {
+				id: { visible: true, type: 'ID', keyRaw: 'id' },
+				firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+			},
+		},
+		data: {
+			id: '3',
+			firstName: 'mary-updated',
+		},
+		where: 'last',
+	})
+
+	const result = cache.read({
+		selection,
+	})
+
+	// make sure the existing item was updated, not added again
+	expect(result.data).toEqual({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'mary-updated',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
+test('upsert with list filters - applies when condition', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'String',
+									value: 'bar',
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert with a matching filter condition
+	cache
+		.list('All_Users')
+		.when({ must: { foo: 'bar' } })
+		.upsert({
+			selection: {
+				fields: {
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+				},
+			},
+			data: {
+				id: '3',
+				firstName: 'mary',
+			},
+			where: 'last',
+		})
+
+	const result = cache.read({
+		selection,
+	})
+
+	// make sure we got the new value
+	expect(result.data).toEqual({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+			],
+		},
+	})
+})
+
+test('upsert with list filters - skips when condition not met', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								foo: {
+									kind: 'String',
+									value: 'bar',
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// upsert with a non-matching filter condition
+	cache
+		.list('All_Users')
+		.when({ must: { foo: 'baz' } })
+		.upsert({
+			selection: {
+				fields: {
+					id: { visible: true, type: 'ID', keyRaw: 'id' },
+					firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+				},
+			},
+			data: {
+				id: '3',
+				firstName: 'mary',
+			},
+			where: 'last',
+		})
+
+	// make sure we did NOT get called (filter condition not met)
+	expect(set).not.toHaveBeenCalled()
+})
+
+test('upsert operation in cache write', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will upsert to
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									visible: true,
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// write some data with an upsert operation
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'upsert',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								visible: true,
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			newUser: {
+				id: '2',
+				firstName: 'jane',
+			},
+		},
+	})
+
+	// make sure we added to the list
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:2'])
+
+	// write again with updated data for the same user
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'upsert',
+							list: 'All_Users',
+						},
+					],
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								visible: true,
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			newUser: {
+				id: '2',
+				firstName: 'jane-updated',
+			},
+		},
+	})
+
+	// make sure we still only have one item in the list
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:2'])
+
+	// verify the item was updated, not duplicated
+	const result = cache.read({
+		selection: {
+			fields: {
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								visible: true,
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	expect(result.data).toEqual({
+		friends: [
+			{
+				id: '2',
+				firstName: 'jane-updated',
+			},
+		],
+	})
+})

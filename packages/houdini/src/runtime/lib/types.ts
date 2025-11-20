@@ -173,7 +173,7 @@ export const DataSource = {
 export type DataSources = ValuesOf<typeof DataSource>
 
 export type MutationOperation = {
-	action: 'insert' | 'remove' | 'delete' | 'toggle'
+	action: 'insert' | 'remove' | 'delete' | 'toggle' | 'upsert'
 	list?: string
 	type?: string
 	parentID?: {

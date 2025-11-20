@@ -106,6 +106,24 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		}
 	}
 
+	upsert(where: 'first' | 'last', ...records: ListType<Def, ListName>[]) {
+		if (!this.#collection) {
+			return
+		}
+
+		const { selection, data } = this.#listOperationPayload(records)
+
+		for (const entry of data) {
+			if (entry) {
+				this.#collection.upsert({
+					selection,
+					data: entry,
+					where: where || 'last',
+				})
+			}
+		}
+	}
+
 	*[Symbol.iterator]() {
 		for (const entry of this.#collection ?? []) {
 			yield entry

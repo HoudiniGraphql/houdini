@@ -287,6 +287,24 @@ export default async function addListFragments(
 								},
 							},
 						},
+						// add a fragment to upsert into the specific list
+						{
+							name: {
+								value: config.listUpsertFragment(name),
+								kind: graphql.Kind.NAME,
+							},
+							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							// in order to insert an item into this list, it must
+							// have the same selection as the field
+							selectionSet: fragmentSelection,
+							typeCondition: {
+								kind: graphql.Kind.NAMED_TYPE,
+								name: {
+									kind: graphql.Kind.NAME,
+									value: type.name,
+								},
+							},
+						},
 					]
 				}
 			) as graphql.DefinitionNode[]

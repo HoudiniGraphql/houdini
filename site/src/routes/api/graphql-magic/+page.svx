@@ -16,6 +16,7 @@ A field marked with `@list` or by passing a name to `@paginate` can use the foll
 - `[ListName]_insert`: insert the reference into the list
 - `[ListName]_remove`: remove the reference from the list
 - `[ListName]_toggle`: if the reference is already in the list, remove it; otherwise, add it to the list
+- `[ListName]_upsert`: insert if not in list, otherwise update the existing item in place
 
 Some things worth mentioning:
 

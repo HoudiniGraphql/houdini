@@ -675,6 +675,12 @@ test('list with Custom Ids & an extra field', async function () {
 		  foo
 		  bar
 		}
+
+		fragment theList_upsert on CustomIdType {
+		  foo
+		  dummy
+		  bar
+		}
 	`
 	)
 })
