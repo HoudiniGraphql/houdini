@@ -1,7 +1,4 @@
 import type { ConfigFile } from 'houdini'
-
-import { getCurrentConfig } from './config'
-import { getFieldsForType } from './selection'
 import {
 	fragmentKey,
 	type FragmentArtifact,
@@ -9,7 +6,10 @@ import {
 	type QueryArtifact,
 	type SubscriptionArtifact,
 	type SubscriptionSelection,
-} from './types'
+} from 'houdini/runtime/types'
+
+import { getCurrentConfig } from './config'
+import { getFieldsForType } from './selection'
 
 export function marshalSelection({
 	selection,
@@ -141,44 +141,3 @@ export function isScalar(config: ConfigFile, type: string) {
 		.includes(type)
 }
 
-export function parseScalar(
-	config: ConfigFile,
-	type: string,
-	value?: string
-): string | number | boolean | undefined {
-	if (typeof value === 'undefined') {
-		return undefined
-	}
-
-	if (type === 'Boolean') {
-		return value === 'true'
-	}
-	if (type === 'ID') {
-		return value
-	}
-	if (type === 'String') {
-		return value
-	}
-	if (type === 'Int') {
-		const result = parseInt(value, 10)
-		if (Number.isNaN(result)) {
-			return undefined
-		}
-		return result
-	}
-	if (type === 'Float') {
-		const result = parseFloat(value)
-		if (Number.isNaN(result)) {
-			return undefined
-		}
-		return result
-	}
-
-	// if we have a special parse function, use it
-	if (config.scalars?.[type]?.marshal) {
-		return config.scalars[type]?.marshal!(value)
-	}
-
-	// we dont recognize the type, just use the string value
-	return value
-}

@@ -1,4 +1,4 @@
-import type { SubscriptionSelection } from './types'
+import type { SubscriptionSelection } from 'houdini/runtime/types'
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,

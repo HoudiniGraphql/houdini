@@ -1,8 +1,8 @@
 import { beforeEach, expect, test, vi } from 'vitest'
+import { Cache } from 'houdini/runtime/cache'
 
-import { testConfigFile } from '../../../test'
-import { Cache } from '../../cache/cache'
-import { setMockConfig } from '../../lib/config'
+import { testConfigFile } from '../../test'
+import { setMockConfig } from '../lib/config'
 import { query } from './query'
 import { createStore, fakeFetch } from './test'
 

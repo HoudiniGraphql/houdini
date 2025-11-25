@@ -1,11 +1,12 @@
-import cacheRef from '../cache'
-import type { Cache } from '../cache/cache'
-import { getCurrentConfig, localApiEndpoint } from '../lib'
-import { flatten } from '../lib/flatten'
-import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from '../lib/types'
-import type { ClientHooks, ClientPlugin } from './documentStore'
-import { DocumentStore } from './documentStore'
-import type { FetchParamFn, ThrowOnErrorOperations, ThrowOnErrorParams } from './plugins'
+import { HoudiniClient as BaseClient } from 'houdini/runtime/client'
+import type { ClientHooks, ClientPlugin } from 'houdini/runtime/documentStore'
+import type {  NestedList } from 'houdini/runtime/types'
+import type { Cache } from 'houdini/runtime/cache'
+
+import cacheRef from './cache'
+import { getCurrentConfig, localApiEndpoint } from './lib'
+import { flatten } from './lib/flatten'
+import type { FetchParamFn, ThrowOnErrorParams } from './plugins'
 import {
 	fetch as fetchPlugin,
 	fetchParams as fetchParamsPlugin,
@@ -14,13 +15,13 @@ import {
 	query as queryPlugin,
 	throwOnError as throwOnErrorPlugin,
 	optimisticKeys,
+    cachePolicy,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
 // export the plugin constructors
-export { DocumentStore } from './documentStore.js'
-export type { ClientPlugin, SendParams } from './documentStore.js'
 export { fetch, mutation, query, subscription } from './plugins'
+export { DocumentStore, type ClientPlugin, type SendParams } from 'houdini/runtime/documentStore'
 
 export type HoudiniClientConstructorArgs = {
 	url?: string
@@ -28,34 +29,10 @@ export type HoudiniClientConstructorArgs = {
 	plugins?: NestedList<ClientPlugin>
 	pipeline?: NestedList<ClientPlugin>
 	throwOnError?: ThrowOnErrorParams
+  cache?: Cache
 }
 
-export type ObserveParams<
-	_Data extends GraphQLObject,
-	_Artifact extends DocumentArtifact = DocumentArtifact,
-	_Input extends GraphQLVariables | undefined = GraphQLVariables
-> = {
-	artifact: _Artifact
-	enableCache?: boolean
-	cache?: Cache
-	initialValue?: _Data | null
-	initialVariables?: _Input
-	fetching?: boolean
-}
-
-export class HoudiniClient {
-	// the URL of the api
-	url: string
-
-	// expose operations settings
-	readonly throwOnError_operations: ThrowOnErrorOperations[]
-
-	private cache: Cache | null = null
-	private throwOnError: ThrowOnErrorParams | undefined
-	private fetchParams: FetchParamFn | undefined
-	private pipeline: NestedList<ClientPlugin> | undefined
-	private extraPlugins: NestedList<ClientPlugin> | undefined
-
+export class HoudiniClient extends BaseClient {
 	proxies: Record<
 		string,
 		(operation: {
@@ -69,10 +46,8 @@ export class HoudiniClient {
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
 
-	// we need the ability to link the client up with an external cache
-	setCache(cache: Cache) {
-		this.cache = cache
-	}
+  cache: Cache | null = null
+
 
 	constructor({
 		url,
@@ -80,6 +55,7 @@ export class HoudiniClient {
 		plugins,
 		pipeline,
 		throwOnError,
+    cache,
 	}: HoudiniClientConstructorArgs = {}) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
@@ -88,42 +64,50 @@ export class HoudiniClient {
 			)
 		}
 
-		this.throwOnError_operations = throwOnError?.operations ?? []
-
 		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 
-		// if there is no url provided then assume we are using the internal local api
-		this.url =
-			url ??
-			(globalThis.window ? '' : `http://localhost:${serverPort}`) +
-				localApiEndpoint(getCurrentConfig())
-		this.throwOnError = throwOnError
-		this.fetchParams = fetchParams
-		this.pipeline = pipeline
-		this.extraPlugins = plugins
-	}
-
-	get plugins(): ClientPlugin[] {
-		return flatten(
+    super({
+      url: url ?? (globalThis.window ? '' : `https://localhost:${serverPort}`) +
+				localApiEndpoint(getCurrentConfig()),
+      plugins: flatten(
 			([] as NestedList<ClientPlugin>).concat(
+      // cache policy needs to always come first so that it can be the first network to fire
+			cachePolicy({
+				cache,
+				enabled: enableCache,
+				setFetching: (fetching, data) => {
+					this.update((state) => {
+						const newState = { ...state, fetching }
+
+						// when we set the fetching state to true, we should also generate the appropriate
+						// loading state for the document
+						if (fetching && data) {
+							newState.data = data
+						}
+
+						return newState
+					})
+				},
+			})() as ClientHooks,
+
 				// if they specified a throw behavior
-				this.throwOnError ? [throwOnErrorPlugin(this.throwOnError)] : [],
-				fetchParamsPlugin(this.fetchParams),
+				throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
+				fetchParamsPlugin(fetchParams),
 				// if the user wants to specify the entire pipeline, let them do so
-				this.pipeline ??
+				pipeline ??
 					// the user doesn't have a specific pipeline so we should just add their desired plugins
 					// to the standard set
 					(
 						[
-							optimisticKeys(this.cache ?? cacheRef),
+							optimisticKeys(cache ?? cacheRef),
 							// make sure that documents always work
-							queryPlugin(this.cache ?? cacheRef),
-							mutationPlugin(this.cache ?? cacheRef),
-							fragmentPlugin(this.cache ?? cacheRef),
+							queryPlugin(cache ?? cacheRef),
+							mutationPlugin(cache ?? cacheRef),
+							fragmentPlugin(cache ?? cacheRef),
 						] as NestedList<ClientPlugin>
 					).concat(
 						// add the specified middlewares
-						this.extraPlugins ?? [],
+						plugins ?? [],
 						// and any middlewares we got from plugins
 						pluginsFromPlugins,
 						// if they provided a fetch function, use it as the body for the fetch middleware
@@ -131,21 +115,10 @@ export class HoudiniClient {
 					)
 			)
 		)
-	}
 
-	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables | undefined>({
-		enableCache = true,
-		fetching = false,
-		...rest
-	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<_Data, _Input> {
-		return new DocumentStore<_Data, _Input>({
-			client: this,
-			plugins: createPluginHooks(this.plugins),
-			fetching,
-			enableCache,
-			cache: this.cache ?? undefined,
-			...rest,
-		})
+    })
+
+    this.cache = cache ?? null
 	}
 
 	registerProxy(

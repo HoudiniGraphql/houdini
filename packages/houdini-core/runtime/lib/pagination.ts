@@ -1,7 +1,5 @@
-import type { SendParams } from '../client/documentStore'
-import { deepEquals } from './deepEquals'
-import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy, DataSource } from './types'
+import type { SendParams } from 'houdini/runtime/client/documentStore'
+import { CachePolicy, DataSource } from 'houdini/runtime/types'
 import type {
 	CursorHandlers,
 	FetchFn,
@@ -10,7 +8,10 @@ import type {
 	QueryArtifact,
 	QueryResult,
 	FetchParams,
-} from './types'
+} from 'houdini/runtime/types'
+
+import { deepEquals } from './deepEquals'
+import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 
 export function cursorHandlers<
 	_Data extends GraphQLObject,

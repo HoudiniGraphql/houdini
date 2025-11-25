@@ -1,10 +1,10 @@
 import { sleep } from 'houdini'
 import { testConfigFile } from 'houdini/test'
+import { ArtifactKind, type QueryResult, type GraphQLObject } from 'houdini/runtime/types'
 import { beforeEach, expect, test } from 'vitest'
+import { Cache } from 'houdini/runtime/cache'
 
-import { Cache } from '../../cache/cache'
-import { setMockConfig } from '../../lib/config'
-import { ArtifactKind, type QueryResult, type GraphQLObject } from '../../lib/types'
+import { setMockConfig } from '../lib/config'
 import { mutation } from './mutation'
 import { optimisticKeys } from './optimisticKeys'
 import { createStore, fakeFetch } from './test'

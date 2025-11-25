@@ -1,6 +1,6 @@
-import type { ArtifactKinds, QueryResult } from '../../lib'
-import { ArtifactKind } from '../../lib'
-import type { ClientPlugin, ClientPluginContext } from '../documentStore'
+import type { ArtifactKinds, QueryResult } from 'houdini/runtime/types'
+import { ArtifactKind } from 'houdini/runtime/types'
+import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 
 export type ThrowOnErrorOperations = 'all' | 'query' | 'mutation' | 'subscription'
 

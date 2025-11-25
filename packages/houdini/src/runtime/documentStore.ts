@@ -1,12 +1,12 @@
 import type { ConfigFile } from 'houdini'
 
 import type { HoudiniClient } from '.'
-import type { Cache } from '../cache/cache'
-import type { Layer } from '../cache/storage'
+import type { Cache } from './cache'
+import type { Layer } from './cache/storage'
 import { getCurrentConfig } from '../lib/config'
-import { deepEquals } from '../lib/deepEquals'
-import { marshalInputs } from '../lib/scalars'
-import { Writable } from '../lib/store'
+import { deepEquals } from './lib/deepEquals'
+import { marshalInputs } from './lib/scalars'
+import { Writable } from './lib/store'
 import type {
 	DocumentArtifact,
 	QueryResult,
@@ -15,9 +15,8 @@ import type {
 	SubscriptionSpec,
 	CachePolicies,
 	GraphQLVariables,
-} from '../lib/types'
-import { ArtifactKind, DedupeMatchMode } from '../lib/types'
-import { cachePolicy } from './plugins'
+} from './types'
+import { ArtifactKind, DedupeMatchMode } from './types'
 
 // the list of states to step in what direction
 const steps = {
@@ -27,12 +26,15 @@ const steps = {
 
 let inflightRequests: Record<
 	string,
-	{ variables: Record<string, any> | null | undefined; controller: AbortController }
+	{
+		variables: Record<string, any> | null | undefined
+		controller: AbortController
+	}
 > = {}
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | undefined
+	_Input extends GraphQLVariables | undefined,
 > extends Writable<QueryResult<_Data, _Input>> {
 	readonly artifact: DocumentArtifact
 	#client: HoudiniClient | null
@@ -55,7 +57,8 @@ export class DocumentStore<
 
 	controllerKey(variables: any) {
 		const usedVariables =
-			'dedupe' in this.artifact && this.artifact.dedupe?.match !== DedupeMatchMode.Variables
+			'dedupe' in this.artifact &&
+			this.artifact.dedupe?.match !== DedupeMatchMode.Variables
 				? {}
 				: variables
 		return `${this.artifact.name}@${stableStringify(usedVariables)}`
@@ -64,17 +67,13 @@ export class DocumentStore<
 	constructor({
 		artifact,
 		plugins,
-		pipeline,
 		client,
-		cache,
-		enableCache = true,
 		initialValue,
 		initialVariables,
 		fetching,
 	}: {
 		artifact: DocumentArtifact
 		plugins?: ClientHooks[]
-		pipeline?: ClientHooks[]
 		client: HoudiniClient | null
 		cache?: Cache
 		enableCache?: boolean
@@ -111,27 +110,7 @@ export class DocumentStore<
 		this.#lastVariables = null
 		this.#configFile = getCurrentConfig()
 
-		this.#plugins = pipeline ?? [
-			// cache policy needs to always come first so that it can be the first network to fire
-			cachePolicy({
-				cache,
-				enabled: enableCache,
-				setFetching: (fetching, data) => {
-					this.update((state) => {
-						const newState = { ...state, fetching }
-
-						// when we set the fetching state to true, we should also generate the appropriate
-						// loading state for the document
-						if (fetching && data) {
-							newState.data = data
-						}
-
-						return newState
-					})
-				},
-			})() as ClientHooks,
-			...(plugins ?? []),
-		]
+		this.#plugins = plugins!
 	}
 
 	// used by the client to send a new set of variables to the pipeline
@@ -211,30 +190,32 @@ export class DocumentStore<
 		context = context.apply(draft, false)
 
 		// walk through the plugins to get the first result
-		const promise = new Promise<QueryResult<_Data, _Input>>((resolve, reject) => {
-			// the initial state of the iterator
-			const state: IteratorState = {
-				setup,
-				currentStep: 0,
-				index: 0,
-				silenceEcho,
-				promise: {
-					resolved: false,
-					resolve,
-					reject,
-					then: (...args) => promise.then(...args),
-				},
-				// patch the context with new variables
-				context,
-			}
+		const promise = new Promise<QueryResult<_Data, _Input>>(
+			(resolve, reject) => {
+				// the initial state of the iterator
+				const state: IteratorState = {
+					setup,
+					currentStep: 0,
+					index: 0,
+					silenceEcho,
+					promise: {
+						resolved: false,
+						resolve,
+						reject,
+						then: (...args) => promise.then(...args),
+					},
+					// patch the context with new variables
+					context,
+				}
 
-			if (this.pendingPromise === null) {
-				this.pendingPromise = state.promise
-			}
+				if (this.pendingPromise === null) {
+					this.pendingPromise = state.promise
+				}
 
-			// start walking down the chain
-			this.#step('forward', state)
-		})
+				// start walking down the chain
+				this.#step('forward', state)
+			},
+		)
 
 		// fire off the chain
 		const response = await promise
@@ -253,15 +234,22 @@ export class DocumentStore<
 	}
 
 	getFetch(
-		getSession: () => App.Session | null | undefined
-	): (input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response> {
+		getSession: () => App.Session | null | undefined,
+	): (
+		input: RequestInfo | URL,
+		init?: RequestInit | undefined,
+	) => Promise<Response> {
 		return async (input, init) => {
 			// we need to check if we have a registered proxy for the request before we pass it
 			// onto the global fetch
 
 			// in order to handle the proxy request we need 3 things:
 			let url: string = ''
-			let queries: { query: string; variables: GraphQLObject; operationName: string }[] = []
+			let queries: {
+				query: string
+				variables: GraphQLObject
+				operationName: string
+			}[] = []
 
 			if (typeof input === 'string') {
 				url = input.startsWith('http') ? new URL(input).pathname : input
@@ -298,12 +286,14 @@ export class DocumentStore<
 						this.#client?.proxies[url]({
 							...q,
 							session: getSession(),
-						})
-					)
+						}),
+					),
 				)
 
 				// build up the response
-				return new Response(JSON.stringify(result.length === 1 ? result[0] : result))
+				return new Response(
+					JSON.stringify(result.length === 1 ? result[0] : result),
+				)
 			}
 
 			// we don't have a proxy so just use the default fetch
@@ -314,9 +304,14 @@ export class DocumentStore<
 	#step(direction: 'error', ctx: IteratorState, value: unknown): void
 	#step(direction: 'backwards', ctx: IteratorState, value: QueryResult): void
 	#step(direction: 'forward', ctx: IteratorState, value?: never): void
-	#step(direction: keyof typeof steps | 'error', ctx: IteratorState, value?: any): void {
+	#step(
+		direction: keyof typeof steps | 'error',
+		ctx: IteratorState,
+		value?: any,
+	): void {
 		// grab the current step
-		const hook = direction === 'error' ? 'catch' : steps[direction][ctx.currentStep]
+		const hook =
+			direction === 'error' ? 'catch' : steps[direction][ctx.currentStep]
 
 		// figure out which direction we want to go (starting from the specified index)
 		let valid = (i: number) => i <= this.#plugins.length
@@ -352,10 +347,10 @@ export class DocumentStore<
 					// the next index depends on the direction we're going now
 					const nextIndex = ['forward', 'error'].includes(direction)
 						? // if we're going forward, add one
-						  index + 1
+							index + 1
 						: // if we're moving backwards but called next, we
-						  // we need to invoke the same hook
-						  index
+							// we need to invoke the same hook
+							index
 
 					// if we are resolving the pipe and fire next, we need to start
 					// from the first phase
@@ -368,7 +363,10 @@ export class DocumentStore<
 						...ctx,
 						index: nextIndex,
 						currentStep: nextStep,
-						context: ctx.context.apply(newContext, variablesRefChanged(newContext)),
+						context: ctx.context.apply(
+							newContext,
+							variablesRefChanged(newContext),
+						),
 					})
 				},
 				resolve: (newContext, value) => {
@@ -376,10 +374,10 @@ export class DocumentStore<
 					const nextIndex =
 						direction === 'backwards'
 							? // if we're going backwards, subtract one
-							  index - 1
+								index - 1
 							: // if we're moving forwards but then call resolve
-							  // we need to visit the same hook
-							  index
+								// we need to visit the same hook
+								index
 
 					// move on
 					this.#step(
@@ -387,9 +385,12 @@ export class DocumentStore<
 						{
 							...ctx,
 							index: nextIndex,
-							context: ctx.context.apply(newContext, variablesRefChanged(newContext)),
+							context: ctx.context.apply(
+								newContext,
+								variablesRefChanged(newContext),
+							),
 						},
-						value
+						value,
 					)
 				},
 			} as ClientPluginEnterHandlers
@@ -456,7 +457,7 @@ export class DocumentStore<
 						currentStep: 0,
 						index: this.#plugins.length,
 					},
-					this.state
+					this.state,
 				)
 			}
 
@@ -471,7 +472,7 @@ export class DocumentStore<
 
 			// we're at the end of the chain in the last phase. something is wrong.
 			throw new Error(
-				'Called next() on last possible plugin. Your chain is missing a plugin that calls resolve().'
+				'Called next() on last possible plugin. Your chain is missing a plugin that calls resolve().',
 			)
 		}
 
@@ -498,7 +499,7 @@ export class DocumentStore<
 					currentStep: ctx.currentStep - 1,
 					index: this.#plugins.length - 1,
 				},
-				value!
+				value!,
 			)
 		}
 
@@ -568,7 +569,10 @@ class ClientPluginContextWrapper {
 		}
 	}
 
-	applyVariables(source: ClientPluginContext, values: Partial<ClientPluginContext>) {
+	applyVariables(
+		source: ClientPluginContext,
+		values: Partial<ClientPluginContext>,
+	) {
 		const artifact = source.artifact
 
 		// build up the new context
@@ -633,7 +637,10 @@ class ClientPluginContextWrapper {
 	}
 
 	// apply applies the draft value in a new context
-	apply(values: ClientPluginContext, newVariables: boolean): ClientPluginContextWrapper {
+	apply(
+		values: ClientPluginContext,
+		newVariables: boolean,
+	): ClientPluginContextWrapper {
 		// if we have a different set of variables
 		if (newVariables) {
 			values = this.applyVariables(this.#context, values)
@@ -648,15 +655,17 @@ class ClientPluginContextWrapper {
 	}
 }
 
-function marshalVariables<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
-	ctx: ClientPluginContext
-) {
+function marshalVariables<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables,
+>(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.marshaled ?? {}
 }
 
-function variablesChanged<_Data extends GraphQLObject, _Input extends GraphQLVariables>(
-	ctx: ClientPluginContext
-) {
+function variablesChanged<
+	_Data extends GraphQLObject,
+	_Input extends GraphQLVariables,
+>(ctx: ClientPluginContext) {
 	return ctx.stuff.inputs?.changed
 }
 
@@ -674,7 +683,10 @@ type IteratorState = {
 	}
 }
 
-export type ClientPlugin = () => ClientHooks | null | (ClientHooks | ClientPlugin | null)[]
+export type ClientPlugin = () =>
+	| ClientHooks
+	| null
+	| (ClientHooks | ClientPlugin | null)[]
 
 export type ClientHooks = {
 	start?: ClientPluginEnterPhase
@@ -683,7 +695,10 @@ export type ClientHooks = {
 	afterNetwork?: ClientPluginExitPhase
 	end?: ClientPluginExitPhase
 	cleanup?(ctx: ClientPluginContext): void | Promise<void>
-	catch?(ctx: ClientPluginContext, args: ClientPluginErrorHandlers): void | Promise<void>
+	catch?(
+		ctx: ClientPluginContext,
+		args: ClientPluginErrorHandlers,
+	): void | Promise<void>
 }
 
 export type Fetch = typeof globalThis.fetch
@@ -716,10 +731,11 @@ export type ClientPluginContext = {
 
 type ClientPluginPhase<Handlers> = (
 	ctx: ClientPluginContext,
-	handlers: Handlers
+	handlers: Handlers,
 ) => void | Promise<void>
 
-export type ClientPluginEnterPhase = ClientPluginPhase<ClientPluginEnterHandlers>
+export type ClientPluginEnterPhase =
+	ClientPluginPhase<ClientPluginEnterHandlers>
 export type ClientPluginExitPhase = ClientPluginPhase<ClientPluginExitHandlers>
 
 export type ClientPluginEnterHandlers = {
@@ -742,7 +758,10 @@ export type ClientPluginEnterHandlers = {
 }
 
 /** Exit handlers are the same as enter handlers but don't need to resolve with a specific value */
-export type ClientPluginExitHandlers = Omit<ClientPluginEnterHandlers, 'resolve'> & {
+export type ClientPluginExitHandlers = Omit<
+	ClientPluginEnterHandlers,
+	'resolve'
+> & {
 	resolve: (ctx: ClientPluginContext, data?: QueryResult) => void
 	value: QueryResult
 }

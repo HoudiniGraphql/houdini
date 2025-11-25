@@ -1,7 +1,5 @@
 import type { PaginateModes } from 'houdini'
 
-import type { CacheTypeDef } from '../generated'
-
 export type { ConfigFile, PaginateModes } from 'houdini'
 
 type ValuesOf<Target> = Target[keyof Target]
@@ -259,7 +257,10 @@ export type FetchQueryResult<_Data> = {
 	source: DataSources | null
 }
 
-export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undefined> = {
+export type QueryResult<
+	_Data = GraphQLObject,
+	_Input = GraphQLVariables | undefined,
+> = {
 	data: _Data | null
 	errors: { message: string }[] | null
 	fetching: boolean
@@ -278,7 +279,11 @@ export type RequestPayload<GraphQLObject = any> = {
 		| null
 }
 
-export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
+export type NestedList<_Result = string> = (
+	| _Result
+	| null
+	| NestedList<_Result>
+)[]
 
 export type ValueOf<Parent> = Parent[keyof Parent]
 
@@ -316,7 +321,7 @@ export type FetchParams<_Input> = {
 }
 
 export type FetchFn<_Data extends GraphQLObject, _Input = any> = (
-	params?: FetchParams<_Input>
+	params?: FetchParams<_Input>,
 ) => Promise<QueryResult<_Data, _Input>>
 
 export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
@@ -332,7 +337,9 @@ export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 		fetch?: typeof globalThis.fetch
 		metadata?: {}
 	}) => Promise<QueryResult<_Data, _Input>>
-	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+	fetch(
+		args?: FetchParams<_Input> | undefined,
+	): Promise<QueryResult<_Data, _Input>>
 }
 
 export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
@@ -342,7 +349,9 @@ export type OffsetHandlers<_Data extends GraphQLObject, _Input> = {
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
 	}) => Promise<void>
-	fetch(args?: FetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+	fetch(
+		args?: FetchParams<_Input> | undefined,
+	): Promise<QueryResult<_Data, _Input>>
 }
 
 export type PageInfo = {
@@ -424,3 +433,10 @@ export const CachePolicy = {
 } as const
 
 export type CachePolicies = ValuesOf<typeof CachePolicy>
+
+export type CacheTypeDef = {
+	types: {}
+	lists: {}
+	queries: []
+	scalars: boolean | number | string | Date
+}

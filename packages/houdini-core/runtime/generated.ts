@@ -1,6 +1,4 @@
-export type CacheTypeDef = {
-	types: {}
-	lists: {}
-	queries: []
-	scalars: boolean | number | string | Date
-}
+export type { CacheTypeDef } from 'houdini/runtime/types'
+
+
+

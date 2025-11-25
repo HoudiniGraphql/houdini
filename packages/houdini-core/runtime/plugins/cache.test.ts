@@ -1,9 +1,9 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 
-import { testConfigFile } from '../../../test'
-import { Cache } from '../../cache/cache'
-import { CachePolicy, PendingValue } from '../../lib'
-import { setMockConfig } from '../../lib/config'
+import { testConfigFile } from '../../test'
+import { Cache } from '../cache/cache'
+import { CachePolicy, PendingValue } from '../lib'
+import { setMockConfig } from '../lib/config'
 import { cachePolicy } from './cache'
 import { createStore, fakeFetch } from './test'
 

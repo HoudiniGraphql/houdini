@@ -1,11 +1,13 @@
-import { parseScalar, type ConfigFile } from '../lib'
-import type { GraphQLVariables } from '../lib/types'
+import type { ConfigFile } from '../lib'
 import type { RouterManifest, RouterPageManifest } from './types'
 
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file
  */
 const param_pattern = /^(\[)?(\.\.\.)?(\w+)(?:=(\w+))?(\])?$/
+
+type GraphQLVariables = Record<string, string | number | boolean | null> | null
+type ValueOf<T> = T extends Record<string, infer U> ? U : never
 
 export type RouteParam = {
 	name: string
@@ -24,20 +26,20 @@ export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: true
+	allowNull: true,
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull?: false
+	allowNull?: false,
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: boolean = true
-): [RouterPageManifest<_ComponentType>, GraphQLVariables] {
+	allowNull: boolean = true,
+): [RouterPageManifest<_ComponentType> | null, GraphQLVariables] {
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
 	let matchVariables: GraphQLVariables = null
@@ -60,7 +62,7 @@ export function find_match<_ComponentType>(
 	}
 
 	// we might have to marshal the variables
-	let variables: GraphQLVariables = {
+	const variables: GraphQLVariables = {
 		...matchVariables,
 	}
 	// each of the matched documents might tell us how to handle a subset of the
@@ -69,12 +71,15 @@ export function find_match<_ComponentType>(
 	for (const document of Object.values(match?.documents ?? {})) {
 		for (const [variable, { type }] of Object.entries(document.variables)) {
 			if (matchVariables?.[variable]) {
-				variables[variable] = parseScalar(config, type, matchVariables[variable])
+				variables[variable] = parseScalar(
+					config,
+					type,
+					matchVariables[variable] as string,
+				) as ValueOf<GraphQLVariables>
 			}
 		}
 	}
 
-	// @ts-ignore
 	return [match, variables]
 }
 
@@ -125,7 +130,7 @@ export function parse_page_pattern(id: string) {
 									if (i % 2) {
 										if (content.startsWith('x+')) {
 											return escape(
-												String.fromCharCode(parseInt(content.slice(2), 16))
+												String.fromCharCode(parseInt(content.slice(2), 16)),
 											)
 										}
 
@@ -135,15 +140,15 @@ export function parse_page_pattern(id: string) {
 													...content
 														.slice(2)
 														.split('-')
-														.map((code) => parseInt(code, 16))
-												)
+														.map((code) => parseInt(code, 16)),
+												),
 											)
 										}
 
 										const match = param_pattern.exec(content)
 										if (!match) {
 											throw new Error(
-												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`
+												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`,
 											)
 										}
 
@@ -162,8 +167,8 @@ export function parse_page_pattern(id: string) {
 										return is_rest
 											? '(.*?)'
 											: is_optional
-											? '([^/]*)?'
-											: '([^/]+?)'
+												? '([^/]*)?'
+												: '([^/]+?)'
 									}
 
 									return escape(content)
@@ -172,8 +177,8 @@ export function parse_page_pattern(id: string) {
 
 							return '/' + result
 						})
-						.join('')}/?$`
-			  )
+						.join('')}/?$`,
+				)
 
 	return { pattern, params, page_id: id }
 }
@@ -240,6 +245,48 @@ function escape(str: string) {
 			// escape characters that have special meaning in regex
 			.replace(/[.*+?^${}()|\\]/g, '\\$&')
 	)
+}
+
+export function parseScalar(
+	config: ConfigFile,
+	type: string,
+	value?: string,
+): string | number | boolean | undefined {
+	if (typeof value === 'undefined') {
+		return undefined
+	}
+
+	if (type === 'Boolean') {
+		return value === 'true'
+	}
+	if (type === 'ID') {
+		return value
+	}
+	if (type === 'String') {
+		return value
+	}
+	if (type === 'Int') {
+		const result = parseInt(value, 10)
+		if (Number.isNaN(result)) {
+			return undefined
+		}
+		return result
+	}
+	if (type === 'Float') {
+		const result = parseFloat(value)
+		if (Number.isNaN(result)) {
+			return undefined
+		}
+		return result
+	}
+
+	// if we have a special parse function, use it
+	if (config.scalars?.[type]?.marshal) {
+		return config.scalars[type]?.marshal!(value)
+	}
+
+	// we dont recognize the type, just use the string value
+	return value
 }
 
 /**

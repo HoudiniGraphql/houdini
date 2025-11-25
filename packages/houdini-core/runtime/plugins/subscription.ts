@@ -1,7 +1,8 @@
-import { deepEquals } from '../../lib/deepEquals'
-import { ArtifactKind, DataSource } from '../../lib/types'
-import type { ClientPluginContext } from '../documentStore'
-import { documentPlugin } from '../utils'
+import { ArtifactKind, DataSource } from 'houdini/runtime/types'
+import type { ClientPluginContext } from 'houdini/runtime/documentStore'
+
+import { deepEquals } from '../lib/deepEquals'
+import { documentPlugin } from './utils'
 
 export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {

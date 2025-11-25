@@ -1,7 +1,8 @@
-import cache from '../../cache'
-import { Cache } from '../../cache/cache'
-import { ArtifactKind, CachePolicy, DataSource, type GraphQLObject } from '../../lib/types'
-import type { ClientPlugin } from '../documentStore'
+import { ArtifactKind, CachePolicy, DataSource, type GraphQLObject } from 'houdini/runtime/types'
+import type { ClientPlugin } from 'houdini/runtime/documentStore'
+import { Cache } from 'houdini/runtime/cache'
+
+import cache from '../cache'
 
 const serverSide = typeof globalThis.window === 'undefined'
 

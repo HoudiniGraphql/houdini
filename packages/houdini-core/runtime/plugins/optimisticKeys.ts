@@ -1,14 +1,15 @@
-import type { Cache } from '../../cache/cache'
-import configFile from '../../imports/config'
-import { computeID, getFieldsForType, keyFieldsForType, marshalSelection } from '../../lib'
 import type {
 	GraphQLObject,
 	NestedList,
 	GraphQLValue,
 	SubscriptionSelection,
-} from '../../lib/types'
-import { ArtifactKind } from '../../lib/types'
-import type { ClientPlugin } from '../documentStore'
+} from 'houdini/runtime/types'
+import { ArtifactKind } from 'houdini/runtime/types'
+import type { ClientPlugin } from 'houdini/runtime/documentStore'
+
+import type { Cache } from '../cache/cache'
+import configFile from '../imports/config'
+import { computeID, getFieldsForType, keyFieldsForType, marshalSelection } from '../lib'
 
 // This plugin is responsible for coordinating requests that have optimistic keys.
 // When a mutation contains optimistically generated keys as inputs, we need to block

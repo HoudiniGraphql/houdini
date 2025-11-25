@@ -1,7 +1,8 @@
-import type { Cache } from '../../cache/cache'
-import { deepEquals } from '../../lib/deepEquals'
-import { type SubscriptionSpec, ArtifactKind, DataSource } from '../../lib/types'
-import { documentPlugin } from '../utils'
+import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
+import type { Cache } from 'houdini/runtime/cache'
+
+import { deepEquals } from '../lib/deepEquals'
+import { documentPlugin } from './utils'
 
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates
 // there are no network requests that get sent. send() always returns the initial value

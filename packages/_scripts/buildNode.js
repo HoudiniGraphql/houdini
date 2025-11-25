@@ -73,6 +73,10 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}/index.js`,
 			}
+      package_json.exports[`./*`] = {
+				types: `./build/${dirname}/*`,
+				import: `./build/${dirname}/index.js`,
+			}
 			package_json.types = `./build/${dirname}/index.d.ts`
 			package_json.typesVersions['*']['.'] = [`./build/${dirname}/index.d.ts`]
 		}
@@ -99,6 +103,10 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 			package_json.exports['./' + dirname] = {
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}/index.js`,
+			}
+			package_json.exports['./' + dirname + "/*"] = {
+				types: `./build/${dirname}/*`,
+				import: `./build/${dirname}/*`,
 			}
 			package_json.typesVersions['*'][dirname] = [`./build/${dirname}/index.d.ts`]
 		}
