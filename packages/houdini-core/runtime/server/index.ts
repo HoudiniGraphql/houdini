@@ -1,6 +1,6 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { ServerAdapterRequestHandler } from '@whatwg-node/server'
-import { YogaServer, type YogaServerOptions, type YogaInitialContext } from 'graphql-yoga'
+import { YogaServer, type YogaInitialContext } from 'graphql-yoga'
 import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
 
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]

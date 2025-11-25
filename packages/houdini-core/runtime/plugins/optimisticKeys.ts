@@ -1,3 +1,4 @@
+import type { ClientPlugin } from 'houdini/runtime/documentStore'
 import type {
 	GraphQLObject,
 	NestedList,
@@ -5,7 +6,6 @@ import type {
 	SubscriptionSelection,
 } from 'houdini/runtime/types'
 import { ArtifactKind } from 'houdini/runtime/types'
-import type { ClientPlugin } from 'houdini/runtime/documentStore'
 
 import type { Cache } from '../cache/cache'
 import configFile from '../imports/config'

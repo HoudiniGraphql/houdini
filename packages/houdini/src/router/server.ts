@@ -1,7 +1,7 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { GraphQLSchema } from 'graphql'
+import type { HoudiniClient } from 'houdini/runtime/client'
 
-import type { HoudiniClient } from '../client'
 import { localApiSessionKeys, getCurrentConfig } from '../lib/config'
 import { Server } from '../server'
 import { serialize as encodeCookie } from './cookies'

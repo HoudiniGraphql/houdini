@@ -26,19 +26,19 @@ export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: true,
+	allowNull: true
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull?: false,
+	allowNull?: false
 ): [RouterPageManifest<_ComponentType>, GraphQLVariables]
 export function find_match<_ComponentType>(
 	config: ConfigFile,
 	manifest: RouterManifest<_ComponentType>,
 	current: string,
-	allowNull: boolean = true,
+	allowNull: boolean = true
 ): [RouterPageManifest<_ComponentType> | null, GraphQLVariables] {
 	// find the matching path (if it exists)
 	let match: RouterPageManifest<_ComponentType> | null = null
@@ -74,7 +74,7 @@ export function find_match<_ComponentType>(
 				variables[variable] = parseScalar(
 					config,
 					type,
-					matchVariables[variable] as string,
+					matchVariables[variable] as string
 				) as ValueOf<GraphQLVariables>
 			}
 		}
@@ -130,7 +130,7 @@ export function parse_page_pattern(id: string) {
 									if (i % 2) {
 										if (content.startsWith('x+')) {
 											return escape(
-												String.fromCharCode(parseInt(content.slice(2), 16)),
+												String.fromCharCode(parseInt(content.slice(2), 16))
 											)
 										}
 
@@ -140,15 +140,15 @@ export function parse_page_pattern(id: string) {
 													...content
 														.slice(2)
 														.split('-')
-														.map((code) => parseInt(code, 16)),
-												),
+														.map((code) => parseInt(code, 16))
+												)
 											)
 										}
 
 										const match = param_pattern.exec(content)
 										if (!match) {
 											throw new Error(
-												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`,
+												`Invalid param: ${content}. Params and matcher names can only have underscores and alphanumeric characters.`
 											)
 										}
 
@@ -167,8 +167,8 @@ export function parse_page_pattern(id: string) {
 										return is_rest
 											? '(.*?)'
 											: is_optional
-												? '([^/]*)?'
-												: '([^/]+?)'
+											? '([^/]*)?'
+											: '([^/]+?)'
 									}
 
 									return escape(content)
@@ -177,8 +177,8 @@ export function parse_page_pattern(id: string) {
 
 							return '/' + result
 						})
-						.join('')}/?$`,
-				)
+						.join('')}/?$`
+			  )
 
 	return { pattern, params, page_id: id }
 }
@@ -250,7 +250,7 @@ function escape(str: string) {
 export function parseScalar(
 	config: ConfigFile,
 	type: string,
-	value?: string,
+	value?: string
 ): string | number | boolean | undefined {
 	if (typeof value === 'undefined') {
 		return undefined

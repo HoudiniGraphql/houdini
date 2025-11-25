@@ -1,7 +1,7 @@
+import type { Cache } from 'houdini/runtime/cache'
 import { HoudiniClient as BaseClient } from 'houdini/runtime/client'
 import type { ClientHooks, ClientPlugin } from 'houdini/runtime/documentStore'
-import type {  NestedList } from 'houdini/runtime/types'
-import type { Cache } from 'houdini/runtime/cache'
+import type { NestedList } from 'houdini/runtime/types'
 
 import cacheRef from './cache'
 import { getCurrentConfig, localApiEndpoint } from './lib'
@@ -15,7 +15,7 @@ import {
 	query as queryPlugin,
 	throwOnError as throwOnErrorPlugin,
 	optimisticKeys,
-    cachePolicy,
+	cachePolicy,
 } from './plugins'
 import pluginsFromPlugins from './plugins/injectedPlugins'
 
@@ -29,7 +29,7 @@ export type HoudiniClientConstructorArgs = {
 	plugins?: NestedList<ClientPlugin>
 	pipeline?: NestedList<ClientPlugin>
 	throwOnError?: ThrowOnErrorParams
-  cache?: Cache
+	cache?: Cache
 }
 
 export class HoudiniClient extends BaseClient {
@@ -46,8 +46,7 @@ export class HoudiniClient extends BaseClient {
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
 
-  cache: Cache | null = null
-
+	cache: Cache | null = null
 
 	constructor({
 		url,
@@ -55,7 +54,7 @@ export class HoudiniClient extends BaseClient {
 		plugins,
 		pipeline,
 		throwOnError,
-    cache,
+		cache,
 	}: HoudiniClientConstructorArgs = {}) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
@@ -66,59 +65,60 @@ export class HoudiniClient extends BaseClient {
 
 		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 
-    super({
-      url: url ?? (globalThis.window ? '' : `https://localhost:${serverPort}`) +
-				localApiEndpoint(getCurrentConfig()),
-      plugins: flatten(
-			([] as NestedList<ClientPlugin>).concat(
-      // cache policy needs to always come first so that it can be the first network to fire
-			cachePolicy({
-				cache,
-				enabled: enableCache,
-				setFetching: (fetching, data) => {
-					this.update((state) => {
-						const newState = { ...state, fetching }
+		super({
+			url:
+				url ??
+				(globalThis.window ? '' : `https://localhost:${serverPort}`) +
+					localApiEndpoint(getCurrentConfig()),
+			plugins: flatten(
+				([] as NestedList<ClientPlugin>).concat(
+					// cache policy needs to always come first so that it can be the first network to fire
+					cachePolicy({
+						cache,
+						enabled: enableCache,
+						setFetching: (fetching, data) => {
+							this.update((state) => {
+								const newState = { ...state, fetching }
 
-						// when we set the fetching state to true, we should also generate the appropriate
-						// loading state for the document
-						if (fetching && data) {
-							newState.data = data
-						}
+								// when we set the fetching state to true, we should also generate the appropriate
+								// loading state for the document
+								if (fetching && data) {
+									newState.data = data
+								}
 
-						return newState
-					})
-				},
-			})() as ClientHooks,
+								return newState
+							})
+						},
+					})() as ClientHooks,
 
-				// if they specified a throw behavior
-				throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
-				fetchParamsPlugin(fetchParams),
-				// if the user wants to specify the entire pipeline, let them do so
-				pipeline ??
-					// the user doesn't have a specific pipeline so we should just add their desired plugins
-					// to the standard set
-					(
-						[
-							optimisticKeys(cache ?? cacheRef),
-							// make sure that documents always work
-							queryPlugin(cache ?? cacheRef),
-							mutationPlugin(cache ?? cacheRef),
-							fragmentPlugin(cache ?? cacheRef),
-						] as NestedList<ClientPlugin>
-					).concat(
-						// add the specified middlewares
-						plugins ?? [],
-						// and any middlewares we got from plugins
-						pluginsFromPlugins,
-						// if they provided a fetch function, use it as the body for the fetch middleware
-						fetchPlugin()
-					)
-			)
-		)
+					// if they specified a throw behavior
+					throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
+					fetchParamsPlugin(fetchParams),
+					// if the user wants to specify the entire pipeline, let them do so
+					pipeline ??
+						// the user doesn't have a specific pipeline so we should just add their desired plugins
+						// to the standard set
+						(
+							[
+								optimisticKeys(cache ?? cacheRef),
+								// make sure that documents always work
+								queryPlugin(cache ?? cacheRef),
+								mutationPlugin(cache ?? cacheRef),
+								fragmentPlugin(cache ?? cacheRef),
+							] as NestedList<ClientPlugin>
+						).concat(
+							// add the specified middlewares
+							plugins ?? [],
+							// and any middlewares we got from plugins
+							pluginsFromPlugins,
+							// if they provided a fetch function, use it as the body for the fetch middleware
+							fetchPlugin()
+						)
+				)
+			),
+		})
 
-    })
-
-    this.cache = cache ?? null
+		this.cache = cache ?? null
 	}
 
 	registerProxy(

@@ -1,5 +1,5 @@
-import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
 import type { Cache } from 'houdini/runtime/cache'
+import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
 
 import { deepEquals } from '../lib/deepEquals'
 import { documentPlugin } from './utils'

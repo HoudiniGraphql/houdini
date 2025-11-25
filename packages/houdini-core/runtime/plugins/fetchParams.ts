@@ -1,5 +1,5 @@
-import type { DocumentArtifact } from 'houdini/runtime/types'
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
+import type { DocumentArtifact } from 'houdini/runtime/types'
 
 export type FetchParamFn = (ctx: FetchParamsInput) => Required<ClientPluginContext>['fetchParams']
 

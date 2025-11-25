@@ -1,8 +1,13 @@
-import { vi } from 'vitest'
-
-import type { DocumentArtifact, GraphQLObject, QueryResult, ArtifactKind, DataSource } from 'houdini/runtime/types'
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 import { DocumentStore } from 'houdini/runtime/documentStore'
+import type {
+	DocumentArtifact,
+	GraphQLObject,
+	QueryResult,
+	ArtifactKind,
+	DataSource,
+} from 'houdini/runtime/types'
+import { vi } from 'vitest'
 
 import { createPluginHooks, HoudiniClient, type HoudiniClientConstructorArgs } from '..'
 

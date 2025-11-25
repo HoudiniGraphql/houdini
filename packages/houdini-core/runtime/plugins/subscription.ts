@@ -1,5 +1,5 @@
-import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 import type { ClientPluginContext } from 'houdini/runtime/documentStore'
+import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 
 import { deepEquals } from '../lib/deepEquals'
 import { documentPlugin } from './utils'

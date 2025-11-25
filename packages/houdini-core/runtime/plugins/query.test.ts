@@ -1,5 +1,5 @@
-import { beforeEach, expect, test, vi } from 'vitest'
 import { Cache } from 'houdini/runtime/cache'
+import { beforeEach, expect, test, vi } from 'vitest'
 
 import { testConfigFile } from '../../test'
 import { setMockConfig } from '../lib/config'
