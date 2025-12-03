@@ -1,14 +1,14 @@
 import path from 'node:path'
+import { load_manifest } from 'houdini/router/manifest'
 import type {
 	Plugin as VitePlugin,
 	ConfigEnv as ViteEnv,
 	ResolvedConfig,
 } from 'vite'
+import * as routerConventions from 'houdini/router/conventions'
+import { fs } from 'houdini'
 
 import type { VitePluginContext } from '.'
-import * as routerConventions from '../lib/conventions'
-import * as fs from '../lib/fs'
-import { load_manifest } from 'houdini/router/manifest'
 
 let viteEnv: ViteEnv
 let viteConfig: ResolvedConfig

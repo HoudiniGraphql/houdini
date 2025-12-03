@@ -40,6 +40,7 @@ export class HoudiniClient {
 
 	protected cache: Cache | null = null
 	protected plugins: Array<ClientPlugin> = []
+	protected config: ConfigFile
 
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
@@ -64,6 +65,7 @@ export class HoudiniClient {
 				localApiEndpoint(config())
 
 		this.plugins = flatten(plugins)
+		this.config = config()
 	}
 
 	proxies: Record<
@@ -104,6 +106,7 @@ export class HoudiniClient {
 			plugins: createPluginHooks(this.plugins),
 			fetching,
 			enableCache,
+			config: this.config,
 			...rest,
 		})
 	}

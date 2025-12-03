@@ -29,7 +29,7 @@ export function getFieldsForType(
 		if (mappedType) {
 			targetSelection = selection.abstractFields.fields[mappedType]!
 		} else if (selection.abstractFields.fields[__typename]) {
-			targetSelection = selection.abstractFields.fields[__typename]
+			targetSelection = selection.abstractFields.fields[__typename]!
 		}
 	}
 

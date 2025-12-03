@@ -2,10 +2,10 @@ import type { Cache } from 'houdini/runtime/cache'
 import { HoudiniClient as BaseClient } from 'houdini/runtime/client'
 import type { ClientHooks, ClientPlugin } from 'houdini/runtime/documentStore'
 import type { NestedList } from 'houdini/runtime/types'
+import { flatten } from 'houdini/runtime/flatten'
 
 import cacheRef from './cache'
 import { getCurrentConfig, localApiEndpoint } from './config'
-import { flatten } from './lib/flatten'
 import type { FetchParamFn, ThrowOnErrorParams } from './plugins'
 import {
 	fetch as fetchPlugin,

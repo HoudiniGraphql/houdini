@@ -27,6 +27,10 @@ export function adapter_config_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'config.js')
 }
 
+export function router_build_directory(config: Config) {
+	return path.join(base_dir(config), 'dist')
+}
+
 export function vite_render_path(config: Config, base?: string) {
 	return path.join(units_dir(config, base), 'render', 'vite.js')
 }
