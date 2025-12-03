@@ -2,10 +2,12 @@ package plugins
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -41,10 +43,11 @@ func pluginWebsocketHooks[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) 
 	hooks = append(hooks, "Config")
 	registerWSHandler("Config", handleConfig(plugin))
 
-	// --- AfterLoad is triggered for StaticRuntime OR AfterLoad
+	// --- AfterLoad is triggered for StaticRuntime OR AfterLoad OR DefaultConfig
 	_, isStaticRuntime := plugin.(StaticRuntime)
 	_, isAfterLoad := plugin.(AfterLoad)
-	if isStaticRuntime || isAfterLoad {
+	_, hasDefaultConfig := plugin.(DefaultConfig[PluginConfig])
+	if isStaticRuntime || isAfterLoad || hasDefaultConfig {
 		hooks = append(hooks, "AfterLoad")
 		registerWSHandler("AfterLoad", handleAfterLoad(plugin))
 	}
@@ -116,6 +119,12 @@ func pluginWebsocketHooks[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) 
 	if _, ok := plugin.(Environment); ok {
 		hooks = append(hooks, "Environment")
 		registerWSHandler("Environment", handleEnvironment(plugin))
+	}
+
+	// --- IndexFile
+	if _, ok := plugin.(IndexFile); ok {
+		hooks = append(hooks, "IndexFile")
+		registerWSHandler("IndexFile", handleIndexFile(plugin))
 	}
 
 	return hooks
@@ -245,6 +254,32 @@ func handleAfterLoad[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
 ) func(ctx context.Context, payload map[string]any) (any, error) {
 	return func(ctx context.Context, payload map[string]any) (any, error) {
+		// if the plugin specifies default configuration values we should load that
+		// before anything else
+		if defaultConfig, ok := plugin.(DefaultConfig[PluginConfig]); ok {
+			config, err := defaultConfig.DefaultConfig(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			marshaled, err := json.Marshal(config)
+			if err != nil {
+				return nil, err
+			}
+
+			// now that we have the updated values we need to persist them to the database
+			updateConfig := `
+				UPDATE plugins SET config = $config WHERE name = $name
+			`
+			err = plugin.Database().ExecQuery(ctx, updateConfig, map[string]any{
+				"config": string(marshaled),
+				"name":   plugin.Name(),
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		// if the plugin defines a runtime to include
 		if staticRuntime, ok := plugin.(StaticRuntime); ok {
 			config, err := plugin.Database().ProjectConfig(ctx)
@@ -260,10 +295,10 @@ func handleAfterLoad[PluginConfig any](
 			runtimeSource := path.Join(PluginDirFromContext(ctx), runtimePath)
 			targetPath := config.PluginStaticRuntimeDirectory(plugin.Name())
 
-			// the plugin could have defined a transform for the runtime
+			// the plugin could have defined a transform for the static runtime
 			transform := func(ctx context.Context, source string, content string) (string, error) { return content, nil }
-			if transformer, ok := plugin.(TransformRuntime); ok {
-				transform = transformer.TransformRuntime
+			if transformer, ok := plugin.(TransformStaticRuntime); ok {
+				transform = transformer.TransformStaticRuntime
 			}
 
 			// copy the plugin runtime to the runtime directory
@@ -341,7 +376,10 @@ func handleConfig[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
 ) func(ctx context.Context, payload map[string]any) (any, error) {
 	return func(ctx context.Context, payload map[string]any) (any, error) {
-		// Config hook doesn't return anything, it just exists
+		// if the plugin implements DefaultConfig, call it to get default values
+		if defaultConfig, ok := plugin.(DefaultConfig[PluginConfig]); ok {
+			return defaultConfig.DefaultConfig(ctx)
+		}
 		return nil, nil
 	}
 }
@@ -383,6 +421,40 @@ func handleExtractDocuments[PluginConfig any](
 			return nil, extract.ExtractDocuments(ctx, input)
 		}
 		return nil, fmt.Errorf("extractDocuments hook not implemented")
+	}
+}
+
+func handleIndexFile[PluginConfig any](
+	plugin HoudiniPlugin[PluginConfig],
+) func(ctx context.Context, payload map[string]any) (any, error) {
+	return func(ctx context.Context, payload map[string]any) (any, error) {
+		config, err := plugin.Database().ProjectConfig(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		updater := plugin.(IndexFile)
+
+		targetPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
+
+		content, err := updater.IndexFile(ctx, targetPath)
+		if err != nil {
+			return nil, err
+		}
+
+		existingContent, err := afero.ReadFile(afero.NewOsFs(), targetPath)
+		if err != nil {
+			return nil, err
+		}
+
+		newContent := string(existingContent) + "\n" + content
+
+		err = afero.WriteFile(afero.NewOsFs(), targetPath, []byte(newContent), 0644)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
 	}
 }
 
