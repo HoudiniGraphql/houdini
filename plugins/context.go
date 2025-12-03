@@ -10,6 +10,10 @@ type taskIDCtxKey struct{}
 
 type pluginDirCtxKey struct{}
 
+type wsConnCtxKey struct{}
+
+type wsMessageIDCtxKey struct{}
+
 func ContextWithTaskID(ctx context.Context, taskID string) context.Context {
 	if taskID == "" {
 		return ctx
@@ -35,34 +39,20 @@ func PluginDirFromContext(ctx context.Context) string {
 }
 
 func ContextWithWSConn(ctx context.Context, conn *websocket.Conn) context.Context {
-	return context.WithValue(ctx, "wsConn", conn)
+	return context.WithValue(ctx, wsConnCtxKey{}, conn)
 }
 
-// example of how to use the WSConnFromContext function
-//if conn := WSConnFromContext(ctx); conn != nil {
-// 	conn.WriteJSON(WebSocketResponse{
-// 		ID:    ctx.Value("wsMessageID").(string),
-// 		Type:  "1error",
-// 		Error: "TEST: This is a simulated non-fatal error during generation",
-// 	})
-// }
-// helper to get the conn from context,
+// WSConnFromContext retrieves the WebSocket connection from context.
 func WSConnFromContext(ctx context.Context) *websocket.Conn {
-	conn := ctx.Value("wsConn")
-	if conn == nil {
-		return nil
-	}
-	return conn.(*websocket.Conn)
+	conn, _ := ctx.Value(wsConnCtxKey{}).(*websocket.Conn)
+	return conn
 }
 
 func ContextWithWSMessageID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, "wsMessageID", id)
+	return context.WithValue(ctx, wsMessageIDCtxKey{}, id)
 }
 
 func WSMessageIDFromContext(ctx context.Context) string {
-	id := ctx.Value("wsMessageID")
-	if id == nil {
-		return ""
-	}
-	return id.(string)
+	id, _ := ctx.Value(wsMessageIDCtxKey{}).(string)
+	return id
 }

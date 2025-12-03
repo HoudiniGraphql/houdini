@@ -1,5 +1,4 @@
 import { type ChildProcess, spawn } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
 import { WebSocket } from 'ws'
@@ -225,12 +224,14 @@ export async function codegen_setup(
 	}
 
 	const wsConnections = new Map<string, WebSocket>()
+	let messageCounter = 0
 	const pendingRequests = new Map<
 		string,
 		{
 			resolve: (value: any) => void
 			reject: (reason: any) => void
 			timeout: NodeJS.Timeout
+			hook: string
 		}
 	>()
 
@@ -242,7 +243,7 @@ export async function codegen_setup(
 
 		return new Promise((resolve, reject) => {
 			// get a new connection
-			const wsUrl = `ws://localhost:${port}/ws`
+			const wsUrl = `ws://localhost:${port}/`
 			const ws = new WebSocket(wsUrl)
 
 			ws.on('open', () => {
@@ -276,7 +277,7 @@ export async function codegen_setup(
 									: [response.error]
 
 								errors.forEach((error) => {
-									format_hook_error(config.root_dir, error, name)
+									format_hook_error(config.root_dir, error, name, pending.hook)
 								})
 
 								pending.reject(new Error(`Failed to call ${name}`))
@@ -296,7 +297,7 @@ export async function codegen_setup(
 				}
 			})
 
-			ws.on('error', (err) => {
+			ws.on('error', (err: Error) => {
 				console.error(`WebSocket error for ${name}:`, err)
 				wsConnections.delete(name)
 				reject(new Error(`WebSocket error for ${name}: ${err}`))
@@ -304,7 +305,7 @@ export async function codegen_setup(
 
 			ws.on('close', () => {
 				// Remove from pool so next request creates new connection
-				// requestsd will eventually timeout and be rejected, we can agressively remove them but it's not a big deal
+				// requests will eventually timeout and be rejected, we can agressively remove them but it's not a big deal
 				wsConnections.delete(name)
 			})
 		})
@@ -321,13 +322,13 @@ export async function codegen_setup(
 		const ws = await getOrCreateWS(name, port)
 
 		return new Promise((resolve, reject) => {
-			const messageId = `${hook}-${Date.now()}-${randomUUID()}`
+			const messageId = String(++messageCounter)
 
 			const timeout = setTimeout(() => {
 				pendingRequests.delete(messageId)
 				reject(new Error(`WebSocket request timeout for ${name}/${hook}`))
 			}, 30000)
-			pendingRequests.set(messageId, { resolve, reject, timeout })
+			pendingRequests.set(messageId, { resolve, reject, timeout, hook })
 
 			const message = {
 				id: messageId,

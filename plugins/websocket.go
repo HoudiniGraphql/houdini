@@ -8,8 +8,8 @@ import (
 	"path"
 	"sync"
 
-	"code.houdinigraphql.com/packages/houdini-core/config"
 	"github.com/gorilla/websocket"
+	"github.com/spf13/afero"
 )
 
 type WebSocketMessage struct {
@@ -34,7 +34,7 @@ var (
 	wsMutex    = sync.Mutex{}
 )
 
-func pluginWebsocketHooks(plugin HoudiniPlugin[config.PluginConfig]) []string {
+func pluginWebsocketHooks[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) []string {
 	hooks := []string{}
 
 	// --- Config
@@ -161,13 +161,6 @@ func handleGenerateRuntime[PluginConfig any](
 	plugin HoudiniPlugin[PluginConfig],
 ) func(ctx context.Context, payload map[string]any) (any, error) {
 	return func(ctx context.Context, payload map[string]any) (any, error) {
-		// if conn := WSConnFromContext(ctx); conn != nil {
-		// 	conn.WriteJSON(WebSocketResponse{
-		// 		ID:    ctx.Value("wsMessageID").(string),
-		// 		Type:  "1error",
-		// 		Error: "TEST: This is a simulated non-fatal error during generation",
-		// 	})
-		// }
 		paths := []string{}
 
 		if generate, ok := plugin.(GenerateRuntime); ok {
@@ -201,7 +194,7 @@ func handleGenerateRuntime[PluginConfig any](
 			}
 
 			// copy the plugin runtime to the runtime directory
-			updated, err := RecursiveCopy(ctx, runtimePath, targetPath, transform)
+			updated, err := RecursiveCopy(ctx, afero.NewOsFs(), runtimePath, targetPath, transform)
 			if err != nil {
 				return nil, err
 			}
@@ -274,7 +267,7 @@ func handleAfterLoad[PluginConfig any](
 			}
 
 			// copy the plugin runtime to the runtime directory
-			_, err = RecursiveCopy(ctx, runtimeSource, targetPath, transform)
+			_, err = RecursiveCopy(ctx, afero.NewOsFs(), runtimeSource, targetPath, transform)
 			if err != nil {
 				return nil, err
 			}

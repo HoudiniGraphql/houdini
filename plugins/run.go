@@ -73,7 +73,7 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		WriteBufferSize: 1024,
 	}
 	// register WebSocket handler
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// upgrade to websocket
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
