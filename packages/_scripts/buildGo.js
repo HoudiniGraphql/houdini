@@ -3,7 +3,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { buildPackage, build, copyRuntimeFiles } from './buildNode.js'
+import { buildPackage, copyRuntimeFiles } from './buildNode.js'
 
 // if a package needs to be published as a go script then we need to :
 // - compile the project for every supported os and architecture into a separate directory

@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import { pathToFileURL } from 'node:url'
 
 import { Config, type ConfigFile } from './config.js'
-import { houdini_root, local_api_dir } from './conventions.js'
+import { houdini_root, local_api_dir } from 'houdini/router/conventions'
 import { HoudiniError } from './error.js'
 import * as fs from './fs.js'
 import * as path from './path.js'
@@ -97,7 +97,9 @@ export async function get_config({
 		}
 
 		const root_dir = path.dirname(
-			config_file.projectDir ? path.join(process.cwd(), config_file.projectDir) : config_path
+			config_file.projectDir
+				? path.join(process.cwd(), config_file.projectDir)
+				: config_path,
 		)
 
 		// if there is a local schema then we need to ignore the schema check
@@ -153,7 +155,7 @@ export async function get_config({
 				name,
 				config,
 				...(await plugin_path(name, config_path)),
-			}))
+			})),
 		)
 
 		// we're done and have a valid config
@@ -177,7 +179,9 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 	try {
 		imported = await import(/* @vite-ignore */ importPath)
 	} catch (e: any) {
-		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
+		throw new Error(
+			`Could not load config file at file://${configPath}.\n${e.message}`,
+		)
 	}
 
 	// if this is wrapped in a default, use it
@@ -188,7 +192,9 @@ async function read_config_file(configPath: string): Promise<ConfigFile> {
 	}
 }
 
-async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSchema> {
+async function load_schema_file(
+	schemaPath: string,
+): Promise<graphql.GraphQLSchema> {
 	// if the schema is not a relative path, the config file is out of date
 	if (path.isAbsolute(schemaPath)) {
 		// compute the new value for schema
@@ -197,7 +203,7 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 		// build up an error with no stack trace so the message isn't so noisy
 		const error = new Error(
 			`Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change ` +
-				`its value to "./${relPath}".`
+				`its value to "./${relPath}".`,
 		)
 		error.stack = ''
 
@@ -212,7 +218,9 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
-				sourceFiles.map(async (filepath: string) => (await fs.readFile(filepath))!)
+				sourceFiles.map(
+					async (filepath: string) => (await fs.readFile(filepath))!,
+				),
 			),
 		})
 	}
@@ -247,7 +255,10 @@ async function load_schema_file(schemaPath: string): Promise<graphql.GraphQLSche
 
 export function internal_routes(config: Config): string[] {
 	const routes = [local_api_dir(config)]
-	if (config.config_file.router?.auth && 'redirect' in config.config_file.router.auth) {
+	if (
+		config.config_file.router?.auth &&
+		'redirect' in config.config_file.router.auth
+	) {
 		routes.push(config.config_file.router.auth.redirect)
 	}
 
@@ -256,11 +267,13 @@ export function internal_routes(config: Config): string[] {
 
 export async function load_local_schema(
 	config: ConfigFile,
-	schema_path: string
+	schema_path: string,
 ): Promise<graphql.GraphQLSchema> {
 	// import the schema we just built
 	try {
-		const { default: schema } = await import(pathToFileURL(schema_path).toString())
+		const { default: schema } = await import(
+			pathToFileURL(schema_path).toString()
+		)
 
 		// now that we have the schema, let's write it to disk so the core plugin
 		// can import it

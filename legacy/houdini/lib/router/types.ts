@@ -1,4 +1,5 @@
-import type { ProjectManifest, routerConventions } from '.'
+import type {conventions as  routerConventions}  from 'houdini/router'
+import type { ProjectManifest } from '.'
 import type { Config } from '../../lib/config'
 
 export type Adapter = ((args: {

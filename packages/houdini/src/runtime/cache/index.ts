@@ -1,10 +1,11 @@
 import type { ConfigFile } from 'houdini'
 
-import { computeKey, PendingValue } from '../lib'
-import { computeID, defaultConfigValues, keyFieldsForType, getCurrentConfig } from '../lib/config'
-import { deepEquals } from '../lib/deepEquals'
-import { flatten } from '../lib/flatten'
-import { getFieldsForType } from '../lib/selection'
+import { computeKey } from '../key'
+import { PendingValue } from '../types'
+import { computeID, defaultConfigValues, keyFieldsForType } from '../config'
+import { deepEquals } from '../deepEquals'
+import { flatten } from '../flatten'
+import { getFieldsForType } from '../selection'
 import type {
 	GraphQLObject,
 	GraphQLValue,
@@ -13,8 +14,8 @@ import type {
 	SubscriptionSpec,
 	ValueMap,
 	ValueNode,
-} from '../lib/types'
-import { fragmentKey } from '../lib/types'
+} from '../types'
+import { fragmentKey } from '../types'
 import { GarbageCollector } from './gc'
 import type { ListCollection } from './lists'
 import { ListManager } from './lists'
@@ -92,7 +93,8 @@ export class Cache {
 
 	// reconstruct an object with the fields/relations specified by a selection
 	read(...args: Parameters<CacheInternal['getSelection']>) {
-		const { data, partial, stale, hasData } = this._internal_unstable.getSelection(...args)
+		const { data, partial, stale, hasData } =
+			this._internal_unstable.getSelection(...args)
 
 		if (!hasData) {
 			return { data: null, partial: false, stale: false }
@@ -127,7 +129,7 @@ export class Cache {
 			spec.parentID || rootID,
 			spec.selection,
 			[spec],
-			variables
+			variables,
 		)
 	}
 
@@ -136,14 +138,19 @@ export class Cache {
 		name: string,
 		parentID?: string,
 		allLists?: boolean,
-		skipMatches?: Set<string>
+		skipMatches?: Set<string>,
 	): ListCollection {
-		const handler = this._internal_unstable.lists.get(name, parentID, allLists, skipMatches)
+		const handler = this._internal_unstable.lists.get(
+			name,
+			parentID,
+			allLists,
+			skipMatches,
+		)
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
 					parentID ? ' under parent ' + parentID : ''
-				}. ` + 'Is it possible that the query is not mounted?'
+				}. ` + 'Is it possible that the query is not mounted?',
 			)
 		}
 
@@ -160,7 +167,7 @@ export class Cache {
 	// remove the record from the cache's store and unsubscribe from it
 	delete(id: string, layer?: Layer) {
 		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
-			Boolean
+			Boolean,
 		) as string[]
 
 		for (const recordID of recordIDs) {
@@ -190,7 +197,7 @@ export class Cache {
 			this._internal_unstable.staleManager.markTypeFieldStale(
 				options.type,
 				options.field,
-				options.when
+				options.when,
 			)
 		}
 	}
@@ -242,7 +249,11 @@ export class Cache {
 		for (const target of [layer.fields, layer.links]) {
 			for (const [id, fields] of Object.entries(target)) {
 				allFields.push(
-					...Object.entries(fields).map(([field, value]) => ({ id, field, value }))
+					...Object.entries(fields).map(([field, value]) => ({
+						id,
+						field,
+						value,
+					})),
 				)
 			}
 		}
@@ -251,7 +262,10 @@ export class Cache {
 		const displayFields: DisplaySummary[] = []
 		for (const pair of allFields) {
 			// look up the current value
-			const { displayLayers } = this._internal_unstable.storage.get(pair.id, pair.field)
+			const { displayLayers } = this._internal_unstable.storage.get(
+				pair.id,
+				pair.field,
+			)
 
 			// if the target layer is not the display layer, ignore the field (no need to notify anyone)
 			if (!displayLayers.includes(layerID)) {
@@ -272,7 +286,7 @@ export class Cache {
 				displayFields.push(
 					...this._internal_unstable.subscriptions
 						.activeFields(id)
-						.map((field) => ({ id, field }))
+						.map((field) => ({ id, field })),
 				)
 			}
 
@@ -300,7 +314,9 @@ export class Cache {
 			// if the value changed then we need to notify the subscribers
 			if (notify) {
 				toNotify.push(
-					...this._internal_unstable.subscriptions.get(id, field).map((sub) => sub[0])
+					...this._internal_unstable.subscriptions
+						.get(id, field)
+						.map((sub) => sub[0]),
 				)
 			}
 		}
@@ -348,7 +364,7 @@ export class Cache {
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
 						ignoreMasking: false,
-					}).data
+					}).data,
 				)
 			}
 		}
@@ -390,7 +406,9 @@ class CacheInternal {
 		disabled: boolean
 		config?: ConfigFile
 		componentCache?: Record<string, any>
-		createComponent: undefined | ((component: any, props: Record<string, any>) => any)
+		createComponent:
+			| undefined
+			| ((component: any, props: Record<string, any>) => any)
 	}) {
 		this.storage = storage
 		this.subscriptions = subscriptions
@@ -414,7 +432,7 @@ class CacheInternal {
 	}
 
 	get config(): ConfigFile {
-		return this._config ?? getCurrentConfig()
+		return this._config ?? {}
 	}
 
 	setConfig(config: ConfigFile) {
@@ -456,7 +474,7 @@ class CacheInternal {
 		let targetSelection = getFieldsForType(
 			selection,
 			data['__typename'] as string | undefined,
-			false
+			false,
 		)
 
 		// data is an object with fields that we need to write to the store
@@ -492,7 +510,10 @@ class CacheInternal {
 			const specs = currentSubscribers.map((sub) => sub[0])
 
 			// look up the previous value
-			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
+			const { value: previousValue, displayLayers } = this.storage.get(
+				parent,
+				key,
+			)
 
 			// if the layer we are updating is the top most layer for the field
 			// then its value is "live". It is providing the current value and
@@ -577,7 +598,9 @@ class CacheInternal {
 					continue
 				}
 
-				const previousLinks = flatten<string>([previousValue as string | string[]])
+				const previousLinks = flatten<string>([
+					previousValue as string | string[],
+				])
 
 				for (const link of previousLinks) {
 					this.subscriptions.remove(link, fieldSelection, specs, variables)
@@ -601,7 +624,7 @@ class CacheInternal {
 					// make sure we have a __typename field
 					if (!value.__typename) {
 						throw new Error(
-							'Encountered interface type without __typename in the payload'
+							'Encountered interface type without __typename in the payload',
 						)
 					}
 				}
@@ -624,7 +647,12 @@ class CacheInternal {
 					// we need to clear the subscriptions in the previous link
 					// and add them to the new link
 					if (previousValue && typeof previousValue === 'string') {
-						this.subscriptions.remove(previousValue, fieldSelection, specs, variables)
+						this.subscriptions.remove(
+							previousValue,
+							fieldSelection,
+							specs,
+							variables,
+						)
 					}
 
 					// copy the subscribers to the new value
@@ -724,7 +752,10 @@ class CacheInternal {
 				if (applyUpdates && updates) {
 					// if we are updating the edges field, we might need to do a little more than just
 					// append/prepend to the field value. we might need to wrap the values in extra references
-					const filterIDs = (keep: (string | null)[], insert: (string | null)[]) => {
+					const filterIDs = (
+						keep: (string | null)[],
+						insert: (string | null)[],
+					) => {
 						const existingIDs = new Set<string>()
 						for (const id of keep) {
 							if (!id) {
@@ -775,7 +806,7 @@ class CacheInternal {
 						// if we have to prepend it, do so
 						if (update === 'prepend') {
 							linkedIDs = newIDs.concat(
-								filterIDs(newIDs, oldIDs) as (string | null)[]
+								filterIDs(newIDs, oldIDs) as (string | null)[],
 							)
 							if (layer?.optimistic) {
 								action = () => {
@@ -816,7 +847,8 @@ class CacheInternal {
 				// or we got content for a new list which could already be known. If we just look at
 				// whether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
-				const contentChanged = !deepEquals(linkedIDs, oldIDs) || previousValue === null
+				const contentChanged =
+					!deepEquals(linkedIDs, oldIDs) || previousValue === null
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
@@ -899,7 +931,7 @@ class CacheInternal {
 								operation.list,
 								parentID,
 								operation.target === 'all',
-								processedOperations
+								processedOperations,
 							)
 							.when(operation.when)
 							.addToList(
@@ -907,7 +939,7 @@ class CacheInternal {
 								target,
 								variables,
 								operation.position || 'last',
-								layer
+								layer,
 							)
 					}
 
@@ -923,7 +955,7 @@ class CacheInternal {
 								operation.list,
 								parentID,
 								operation.target === 'all',
-								processedOperations
+								processedOperations,
 							)
 							.when(operation.when)
 							.toggleElement({
@@ -947,7 +979,7 @@ class CacheInternal {
 								operation.list,
 								parentID,
 								operation.target === 'all',
-								processedOperations
+								processedOperations,
 							)
 							.when(operation.when)
 							.remove(target, variables, layer)
@@ -963,7 +995,7 @@ class CacheInternal {
 						toNotify.push(
 							...this.subscriptions
 								.getAll(targetID)
-								.filter((sub) => sub[0].parentID !== targetID)
+								.filter((sub) => sub[0].parentID !== targetID),
 						)
 
 						this.cache.delete(targetID, layer)
@@ -975,7 +1007,7 @@ class CacheInternal {
 					const matchingLists = this.cache.list(
 						operation.list,
 						parentID,
-						operation.target === 'all'
+						operation.target === 'all',
 					)
 					for (const list of matchingLists.lists) {
 						processedOperations.add(list.fieldRef)
@@ -1033,7 +1065,7 @@ class CacheInternal {
 								parent,
 								variables: evaluateVariables(value.arguments, variables ?? {}),
 							},
-						])
+						]),
 				),
 			}
 		}
@@ -1053,7 +1085,11 @@ class CacheInternal {
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(selection, typename, !!generateLoading)
+		let targetSelection = getFieldsForType(
+			selection,
+			typename,
+			!!generateLoading,
+		)
 
 		// look at every field in the parentFields
 		for (const [
@@ -1083,7 +1119,9 @@ class CacheInternal {
 			})
 			if (includeDirective) {
 				// if the `if` argument evaluates to false, skip the field
-				if (!evaluateVariables(includeDirective.arguments, variables ?? {})['if']) {
+				if (
+					!evaluateVariables(includeDirective.arguments, variables ?? {})['if']
+				) {
 					continue
 				}
 			}
@@ -1117,7 +1155,7 @@ class CacheInternal {
 						component,
 						variables,
 						parent,
-				  })
+					})
 
 			// look up the value in our store
 			let { value } = this.storage.get(parent, key, defaultValue)
@@ -1177,7 +1215,10 @@ class CacheInternal {
 			// the !generateLoading here makes sure that we treat loading undefined and normal undefined differently
 			// we force all loading values to be undefined a few lines above so we never overwrite
 			// the pending value here.
-			else if ((!generateLoading && typeof value === 'undefined') || value === null) {
+			else if (
+				(!generateLoading && typeof value === 'undefined') ||
+				value === null
+			) {
 				// set the value to null
 				fieldTarget[attributeName] = null
 
@@ -1196,7 +1237,7 @@ class CacheInternal {
 					// if value is an array of scalars, we need to unmarshal every single item individually.
 					if (Array.isArray(value)) {
 						fieldTarget[attributeName] = value.map(
-							(v) => fnUnmarshal(v) as GraphQLValue
+							(v) => fnUnmarshal(v) as GraphQLValue,
 						)
 					} else {
 						fieldTarget[attributeName] = fnUnmarshal(value) as GraphQLValue
@@ -1278,9 +1319,9 @@ class CacheInternal {
 			if (generateLoading && fieldLoading?.list) {
 				fieldTarget[attributeName] = wrapInLists(
 					Array.from<GraphQLValue>({ length: fieldLoading.list.count }).fill(
-						fieldTarget[attributeName]
+						fieldTarget[attributeName],
 					),
-					fieldLoading.list.depth - 1
+					fieldLoading.list.depth - 1,
 				)
 			}
 
@@ -1530,7 +1571,9 @@ class CacheInternal {
 				innerType = typename
 				// make sure we have a __typename field if we have an abstract value
 			} else if (abstract) {
-				throw new Error('Encountered interface type without __typename in the payload')
+				throw new Error(
+					'Encountered interface type without __typename in the payload',
+				)
 			}
 
 			// if this isn't an embedded reference, use the entry's id in the link list
@@ -1576,7 +1619,10 @@ class CacheInternal {
 
 export function evaluateVariables(variables: ValueMap, args: GraphQLObject) {
 	return Object.fromEntries(
-		Object.entries(variables).map(([key, value]) => [key, variableValue(value, args)])
+		Object.entries(variables).map(([key, value]) => [
+			key,
+			variableValue(value, args),
+		]),
 	)
 }
 
@@ -1587,7 +1633,10 @@ function wrapInLists<T>(target: T, count: number = 0): T | NestedList<T> {
 	return wrapInLists([target], count - 1)
 }
 
-export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLValue {
+export function variableValue(
+	value: ValueNode,
+	args: GraphQLObject,
+): GraphQLValue {
 	if (value.kind === 'StringValue') {
 		return value.value
 	}
@@ -1619,7 +1668,7 @@ export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLVal
 				...obj,
 				[field.name.value]: variableValue(field.value, args),
 			}),
-			{}
+			{},
 		)
 	}
 }
@@ -1644,7 +1693,9 @@ export function defaultComponentField({
 	parent,
 }: {
 	cache: Cache
-	component: Required<Required<SubscriptionSelection>['fields'][string]>['component']
+	component: Required<
+		Required<SubscriptionSelection>['fields'][string]
+	>['component']
 	loading?: boolean
 	variables: Record<string, GraphQLValue> | undefined | null
 	parent: string

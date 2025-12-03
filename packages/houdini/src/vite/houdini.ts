@@ -1,9 +1,14 @@
 import path from 'node:path'
-import type { Plugin as VitePlugin, ConfigEnv as ViteEnv, ResolvedConfig } from 'vite'
+import type {
+	Plugin as VitePlugin,
+	ConfigEnv as ViteEnv,
+	ResolvedConfig,
+} from 'vite'
 
 import type { VitePluginContext } from '.'
-import { routerConventions, fs } from '../lib/index.js'
-import { load_manifest } from '../lib/router/manifest.js'
+import * as routerConventions from '../lib/conventions'
+import * as fs from '../lib/fs'
+import { load_manifest } from 'houdini/router/manifest'
 
 let viteEnv: ViteEnv
 let viteConfig: ResolvedConfig
@@ -31,7 +36,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 
 			const runtimeDir = path.join(
 				ctx.config.root_dir,
-				ctx.config.config_file.runtimeDir ?? '.houdini'
+				ctx.config.config_file.runtimeDir ?? '.houdini',
 			)
 			// add the necessary values for the houdini imports to resolve
 			return {
@@ -59,7 +64,11 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		async buildStart(args) {
 			console.log('build start')
 			// check if the adapter has a pre hook
-			if (ctx.adapter?.pre && viteEnv.command === 'build' && !is_secondary_build()) {
+			if (
+				ctx.adapter?.pre &&
+				viteEnv.command === 'build' &&
+				!is_secondary_build()
+			) {
 				await ctx.adapter.pre({
 					config: ctx.config,
 					conventions: routerConventions,
@@ -70,7 +79,11 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (!devServer && !is_secondary_build() && !process.env.HOUDINI_SKIP_GENERATE) {
+			if (
+				!devServer &&
+				!is_secondary_build() &&
+				!process.env.HOUDINI_SKIP_GENERATE
+			) {
 				// run the codegen
 				// await generate(config)
 				console.log('generating...')
@@ -112,7 +125,10 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			// before we load the adapter we want to do some manual prep on the directories
 			// pull the ssr directory out of assets (if applicable)
 			if (!ctx.adapter?.disableServer) {
-				await fs.recursiveCopy(path.join(sourceDir, 'ssr'), path.join(outDir, 'ssr'))
+				await fs.recursiveCopy(
+					path.join(sourceDir, 'ssr'),
+					path.join(outDir, 'ssr'),
+				)
 				await fs.rmdir(path.join(sourceDir, 'ssr'))
 			}
 			// copy the asset directory into the build directory

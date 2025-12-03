@@ -8,18 +8,17 @@ import {
 	type SubscriptionSelection,
 } from 'houdini/runtime/types'
 
-import { getCurrentConfig } from './config'
 import { getFieldsForType } from './selection'
 
 export function marshalSelection({
 	selection,
 	data,
+	config,
 }: {
 	selection: SubscriptionSelection
 	data: any
+	config: ConfigFile
 }): {} | null | undefined {
-	const config = getCurrentConfig()
-
 	if (data === null || typeof data === 'undefined') {
 		return data
 	}
@@ -27,10 +26,14 @@ export function marshalSelection({
 	// if we are looking at a list
 	if (Array.isArray(data)) {
 		// unmarshal every entry in the list
-		return data.map((val) => marshalSelection({ selection, data: val }))
+		return data.map((val) => marshalSelection({ selection, data: val, config }))
 	}
 
-	const targetSelection = getFieldsForType(selection, data['__typename'] as string, false)
+	const targetSelection = getFieldsForType(
+		selection,
+		data['__typename'] as string,
+		false,
+	)
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
@@ -50,7 +53,7 @@ export function marshalSelection({
 
 			// if there is a sub selection, walk down the selection
 			if (selection) {
-				return [fieldName, marshalSelection({ selection, data: value })]
+				return [fieldName, marshalSelection({ selection, data: value, config })]
 			}
 
 			// is the type something that requires marshaling
@@ -58,7 +61,7 @@ export function marshalSelection({
 				const marshalFn = config!.scalars[type].marshal
 				if (!marshalFn) {
 					throw new Error(
-						`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`
+						`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`,
 					)
 				}
 				if (Array.isArray(value)) {
@@ -70,7 +73,7 @@ export function marshalSelection({
 			// if the type doesn't require marshaling and isn't a referenced type
 			// then the type is a scalar that doesn't require marshaling
 			return [fieldName, value]
-		})
+		}),
 	)
 }
 
@@ -80,7 +83,11 @@ export function marshalInputs<T>({
 	config,
 	rootType = '@root',
 }: {
-	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact | FragmentArtifact
+	artifact:
+		| QueryArtifact
+		| MutationArtifact
+		| SubscriptionArtifact
+		| FragmentArtifact
 	input: unknown
 	rootType?: string
 	config: ConfigFile
@@ -95,11 +102,16 @@ export function marshalInputs<T>({
 	}
 
 	// the object containing the relevant fields
-	const fields = rootType === '@root' ? artifact.input.fields : artifact.input.types[rootType]
+	const fields =
+		rootType === '@root'
+			? artifact.input.fields
+			: artifact.input.types[rootType]
 
 	// if we are looking at a list
 	if (Array.isArray(input)) {
-		return input.map((val) => marshalInputs({ artifact, input: val, rootType, config }))
+		return input.map((val) =>
+			marshalInputs({ artifact, input: val, rootType, config }),
+		)
 	}
 
 	// we're looking at an object, build it up from the current input
@@ -129,8 +141,11 @@ export function marshalInputs<T>({
 			}
 
 			// we ran into an object type that should be referenced by the artifact
-			return [fieldName, marshalInputs({ artifact, input: value, rootType: type, config })]
-		})
+			return [
+				fieldName,
+				marshalInputs({ artifact, input: value, rootType: type, config }),
+			]
+		}),
 	)
 }
 

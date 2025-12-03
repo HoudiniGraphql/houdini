@@ -1,5 +1,5 @@
-import { computeKey } from '../lib'
-import type { Cache } from './cache'
+import { computeKey } from '../key.js'
+import type { Cache } from './index.js'
 
 export class StaleManager {
 	cache: Cache

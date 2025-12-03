@@ -80,10 +80,6 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 			package_json.types = `./build/${dirname}/index.d.ts`
 			package_json.typesVersions['*']['.'] = [`./build/${dirname}/index.d.ts`]
 		}
-		// runtimes can't be bundled and should be copied as raw .ts files
-		else if (dirname === 'runtime') {
-			await copyRuntimeFiles({ outDir, source: dir })
-		}
 		// cmd can now be unbundled since we fixed all import paths
 		else if (dirname === 'cmd') {
 			package_json.bin = './build/cmd/index.js'

@@ -1,16 +1,17 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import { parseJS, type TypeWrapper, unwrapType } from '..'
-import type { ProjectManifest, PageManifest, QueryManifest } from '../../../src/runtime/lib/types'
-import { path, fs, type Config, parse_page_pattern } from '../../lib'
+import { parseJS, type TypeWrapper, unwrapType } from 'houdini'
+import type { ProjectManifest, PageManifest, QueryManifest } from 'houdini'
+import { parse_page_pattern } from 'houdini/router/match'
+import { path, fs, type Config } from 'houdini'
 import {
 	read_layoutQuery,
 	read_layoutView,
 	read_pageView,
 	read_pageQuery,
 	page_id,
-} from '../conventions'
+} from './conventions'
 
 export type { ProjectManifest, PageManifest, QueryManifest }
 
@@ -26,7 +27,7 @@ export async function load_manifest(args: {
 	const manifest = await walk_routes({
 		config: args.config,
 		url: '/',
-		filepath: args.config.routesDir,
+		filepath: args.config.routes_dir,
 		project: {
 			component_fields: {},
 			pages: {},
@@ -46,14 +47,16 @@ export async function load_manifest(args: {
 	if (args.includeArtifacts) {
 		try {
 			// look at the artifact directory for every artifact
-			for (const artifactPath of await fs.readdir(args.config.artifactDirectory)) {
+			for (const artifactPath of await fs.readdir(args.config.artifact_dir)) {
 				// only consider the js files
 				if (!artifactPath.endsWith('.js') || artifactPath === 'index.js') {
 					continue
 				}
 
 				// push the artifact path without the extension
-				manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
+				manifest.artifacts.push(
+					artifactPath.substring(0, artifactPath.length - 3),
+				)
 			}
 		} catch {}
 	}
@@ -67,8 +70,12 @@ export async function load_manifest(args: {
 	try {
 		await fs.stat(args.config.localApiDir)
 		// look at the contents of the directory
-		for (const child of await fs.readdir(args.config.localApiDir, { withFileTypes: true })) {
-			const name = child.isDirectory() ? child.name : path.parse(child.name).name
+		for (const child of await fs.readdir(args.config.localApiDir, {
+			withFileTypes: true,
+		})) {
+			const name = child.isDirectory()
+				? child.name
+				: path.parse(child.name).name
 
 			if (name === '+schema') {
 				manifest.local_schema = true
@@ -178,7 +185,9 @@ async function walk_routes(args: {
 			type: 'page',
 			contents: pageViewContents,
 			layouts: newLayouts,
-			queries: pageQuery ? [...newLayoutQueries, pageQuery.name] : newLayoutQueries,
+			queries: pageQuery
+				? [...newLayoutQueries, pageQuery.name]
+				: newLayoutQueries,
 			config: args.config,
 			variables,
 		})
@@ -199,7 +208,7 @@ async function walk_routes(args: {
 				layouts: newLayouts,
 				variables,
 			})
-		})
+		}),
 	)
 
 	return args.project
@@ -216,11 +225,14 @@ async function add_view(args: {
 	config: Config
 	variables: Record<string, { type: string; wrappers: TypeWrapper[] }>
 }) {
-	const target = args.type === 'page' ? args.project.pages : args.project.layouts
+	const target =
+		args.type === 'page' ? args.project.pages : args.project.layouts
 	const queries = await extractQueries(args.contents)
 
 	// look for any queries that we are asking for that aren't available
-	const missing_queries = queries.filter((query) => !args.queries.includes(query))
+	const missing_queries = queries.filter(
+		(query) => !args.queries.includes(query),
+	)
 	if (missing_queries.length > 0) {
 		throw {
 			message: `Unknown queries in ${args.path}: ${missing_queries.join(', ')}`,
@@ -234,13 +246,13 @@ async function add_view(args: {
 		queries,
 		url: args.url,
 		layouts: args.layouts,
-		path: path.relative(args.config.projectRoot, args.path),
+		path: path.relative(args.config.root_dir, args.path),
 		query_options: args.queries,
 		params: Object.fromEntries(
 			parse_page_pattern(args.url).params.map((param) => [
 				param.name,
 				args.variables[param.name] ?? null,
-			])
+			]),
 		),
 	}
 
@@ -261,7 +273,7 @@ async function add_query(args: {
 	// look for the query definition
 	const query = parsed.definitions.find(
 		(def): def is graphql.OperationDefinitionNode =>
-			def.kind === 'OperationDefinition' && def.operation === 'query'
+			def.kind === 'OperationDefinition' && def.operation === 'query',
 	)
 	if (!query?.name) {
 		throw new Error('No query found')
@@ -270,7 +282,7 @@ async function add_query(args: {
 	let loading = false
 	await graphql.visit(parsed, {
 		Directive(node) {
-			if (node.name.value === args.config.loadingDirective) {
+			if (node.name.value === 'loading') {
 				loading = true
 			}
 		},
@@ -279,18 +291,26 @@ async function add_query(args: {
 	// add this queries variables to the bag
 	const queryVariables = Object.fromEntries(
 		query.variableDefinitions?.map((variable) => {
-			const { type, wrappers } = unwrapType(args.config, variable.type, [], true)
+			const { type, wrappers } = unwrapType(
+				args.config,
+				variable.type,
+				[],
+				true,
+			)
 			return [
 				variable.variable.name.value,
 				{ wrappers: wrappers as string[], type: type.name },
 			]
-		}) ?? []
+		}) ?? [],
 	)
 	Object.assign(args.variables, queryVariables)
 
-	const target = args.type === 'page' ? args.project.page_queries : args.project.layout_queries
+	const target =
+		args.type === 'page'
+			? args.project.page_queries
+			: args.project.layout_queries
 	target[page_id(args.url)] = {
-		path: path.relative(args.config.routesDir, args.path),
+		path: path.relative(args.config.routes_dir, args.path),
 		name: query.name.value,
 		url: args.url,
 		loading,

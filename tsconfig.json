@@ -22,11 +22,10 @@
 		"paths": {
 			"$houdini": ["../houdini/package"],
 			"houdini": ["../houdini/src/lib"],
+			"houdini/*": ["../houdini/src/*"],
 			"houdini/vite": ["../houdini/src/vite"],
 			"houdini/test": ["../houdini/src/test"],
-			"houdini/*": ["../houdini/src/lib/*"],
 			"houdini-core/*": ["../houdini-core/*"],
-			"$houdini/*": ["../houdini/package/*"],
 			"$houdini/runtime/*": ["../houdini-core/runtime/*"],
 			"houdini-svelte/*": ["../houdini-svelte/package/lib/*"],
 			"houdini-svelte": ["../houdini-svelte/package/lib"]

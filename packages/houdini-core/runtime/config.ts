@@ -1,7 +1,7 @@
 import type { ConfigFile } from 'houdini'
 
-import config from '../imports/config'
-import pluginConfigs from '../imports/pluginConfig'
+import config from './imports/config'
+import pluginConfigs from './imports/pluginConfig'
 
 let mockConfig: ConfigFile | null = null
 
@@ -54,9 +54,6 @@ export function localApiEndpoint(configFile: ConfigFile) {
 	return configFile.router?.apiEndpoint ?? '/_api'
 }
 
-export function localApiSessionKeys(configFile: ConfigFile) {
-	return configFile.router?.auth?.sessionKeys ?? []
-}
 
 export function getCurrentConfig(): ConfigFile {
 	const mockConfig = getMockConfig()

@@ -4,7 +4,7 @@ import type { ClientHooks, ClientPlugin } from 'houdini/runtime/documentStore'
 import type { NestedList } from 'houdini/runtime/types'
 
 import cacheRef from './cache'
-import { getCurrentConfig, localApiEndpoint } from './lib'
+import { getCurrentConfig, localApiEndpoint } from './config'
 import { flatten } from './lib/flatten'
 import type { FetchParamFn, ThrowOnErrorParams } from './plugins'
 import {
@@ -33,20 +33,9 @@ export type HoudiniClientConstructorArgs = {
 }
 
 export class HoudiniClient extends BaseClient {
-	proxies: Record<
-		string,
-		(operation: {
-			query: string
-			variables: any
-			operationName: string
-			session: App.Session | null | undefined
-		}) => Promise<any>
-	> = {}
 
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
-
-	cache: Cache | null = null
 
 	constructor({
 		url,
@@ -66,6 +55,7 @@ export class HoudiniClient extends BaseClient {
 		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 
 		super({
+      config: getCurrentConfig,
 			url:
 				url ??
 				(globalThis.window ? '' : `https://localhost:${serverPort}`) +
@@ -89,7 +79,7 @@ export class HoudiniClient extends BaseClient {
 								return newState
 							})
 						},
-					})() as ClientHooks,
+					})(),
 
 					// if they specified a throw behavior
 					throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
@@ -118,19 +108,6 @@ export class HoudiniClient extends BaseClient {
 			),
 		})
 
-		this.cache = cache ?? null
-	}
-
-	registerProxy(
-		url: string,
-		handler: (operation: {
-			query: string
-			variables: any
-			operationName: string
-			session: App.Session | null | undefined
-		}) => Promise<any>
-	) {
-		this.proxies[url] = handler
 	}
 }
 

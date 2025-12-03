@@ -1,16 +1,22 @@
 import type { ConfigFile } from 'houdini'
+import type { Cache } from 'houdini/runtime/cache'
 
-import type { ClientHooks, ClientPlugin } from './documentStore'
-import { DocumentStore } from './documentStore'
-import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from './types'
+import type { ClientHooks, ClientPlugin } from './documentStore.js'
+import { DocumentStore } from './documentStore.js'
+import type {
+	DocumentArtifact,
+	GraphQLVariables,
+	GraphQLObject,
+	NestedList,
+} from './types'
 
 // export the plugin constructors
 export { DocumentStore } from './documentStore.js'
 export type { ClientPlugin, SendParams } from './documentStore.js'
 
 export type HoudiniClientConstructorArgs = {
-	url?: string
 	config: () => ConfigFile
+	url?: string
 	plugins?: NestedList<ClientPlugin>
 	pipeline?: NestedList<ClientPlugin>
 }
@@ -18,7 +24,7 @@ export type HoudiniClientConstructorArgs = {
 export type ObserveParams<
 	_Data extends GraphQLObject,
 	_Artifact extends DocumentArtifact = DocumentArtifact,
-	_Input extends GraphQLVariables | undefined = GraphQLVariables
+	_Input extends GraphQLVariables | undefined = GraphQLVariables,
 > = {
 	artifact: _Artifact
 	enableCache?: boolean
@@ -32,8 +38,8 @@ export class HoudiniClient {
 	// the URL of the api
 	url: string
 
-	private cache: Cache | null = null
-	private plugins: Array<ClientPlugin> = []
+	protected cache: Cache | null = null
+	protected plugins: Array<ClientPlugin> = []
 
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
@@ -41,12 +47,12 @@ export class HoudiniClient {
 	constructor(
 		{ url, plugins, pipeline, config }: HoudiniClientConstructorArgs = {
 			config: () => ({}),
-		}
+		},
 	) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
 			throw new Error(
-				'A client cannot be given a pipeline and a list of plugins at the same time.'
+				'A client cannot be given a pipeline and a list of plugins at the same time.',
 			)
 		}
 
@@ -54,22 +60,50 @@ export class HoudiniClient {
 		const serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
 		this.url =
 			url ??
-			(globalThis.window ? '' : `http://localhost:${serverPort}`) + localApiEndpoint(config())
+			(globalThis.window ? '' : `http://localhost:${serverPort}`) +
+				localApiEndpoint(config())
 
 		this.plugins = flatten(plugins)
 	}
 
-	observe<_Data extends GraphQLObject, _Input extends GraphQLVariables | undefined>({
+	proxies: Record<
+		string,
+		(operation: {
+			query: string
+			variables: any
+			operationName: string
+			session: App.Session | null | undefined
+		}) => Promise<any>
+	> = {}
+
+	registerProxy(
+		url: string,
+		handler: (operation: {
+			query: string
+			variables: any
+			operationName: string
+			session: App.Session | null | undefined
+		}) => Promise<any>,
+	) {
+		this.proxies[url] = handler
+	}
+
+	observe<
+		_Data extends GraphQLObject,
+		_Input extends GraphQLVariables | undefined,
+	>({
 		enableCache = true,
 		fetching = false,
 		...rest
-	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<_Data, _Input> {
+	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<
+		_Data,
+		_Input
+	> {
 		return new DocumentStore<_Data, _Input>({
 			client: this,
 			plugins: createPluginHooks(this.plugins),
 			fetching,
 			enableCache,
-			cache: this.cache ?? undefined,
 			...rest,
 		})
 	}
@@ -139,6 +173,5 @@ function flatten<T>(source?: NestedList<T>): T[] {
 }
 
 function localApiEndpoint(configFile: ConfigFile) {
-	// @ts-ignore
 	return configFile.router?.apiEndpoint ?? '/_api'
 }

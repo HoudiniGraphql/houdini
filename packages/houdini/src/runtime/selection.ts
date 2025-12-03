@@ -1,15 +1,17 @@
-import type { SubscriptionSelection } from 'houdini/runtime/types'
+import type { SubscriptionSelection } from './types'
 
 export function getFieldsForType(
 	selection: SubscriptionSelection,
 	__typename: string | undefined | null,
-	loading: boolean
+	loading: boolean,
 ): Required<SubscriptionSelection>['fields'] {
 	// if we are loading, then we either have loading types or we return the base fields
 	if (loading) {
 		if (selection.loadingTypes && selection.loadingTypes.length > 0) {
 			return deepMerge(
-				...selection.loadingTypes.map((type) => selection.abstractFields?.fields[type])
+				...selection.loadingTypes.map(
+					(type) => selection.abstractFields?.fields[type],
+				),
 			)
 		}
 
@@ -27,7 +29,7 @@ export function getFieldsForType(
 		if (mappedType) {
 			targetSelection = selection.abstractFields.fields[mappedType]!
 		} else if (selection.abstractFields.fields[__typename]) {
-			targetSelection = selection.abstractFields.fields[__typename]!
+			targetSelection = selection.abstractFields.fields[__typename]
 		}
 	}
 
@@ -47,7 +49,10 @@ function deepMerge(...objects: (Record<string, any> | undefined)[]) {
 				const val = obj[prop]
 
 				if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-					mergedObj[prop] = deepMerge((mergedObj[prop] as Record<string, any>) || {}, val)
+					mergedObj[prop] = deepMerge(
+						(mergedObj[prop] as Record<string, any>) || {},
+						val,
+					)
 				} else {
 					mergedObj[prop] = val
 				}

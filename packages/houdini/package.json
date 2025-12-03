@@ -91,6 +91,14 @@
             "types": "./build/router/*",
             "import": "./build/router/*"
         },
+        "./runtime": {
+            "types": "./build/runtime/index.d.ts",
+            "import": "./build/runtime/index.js"
+        },
+        "./runtime/*": {
+            "types": "./build/runtime/*",
+            "import": "./build/runtime/*"
+        },
         "./test": {
             "types": "./build/test/index.d.ts",
             "import": "./build/test/index.js"
@@ -118,6 +126,9 @@
             ],
             "router": [
                 "./build/router/index.d.ts"
+            ],
+            "runtime": [
+                "./build/runtime/index.d.ts"
             ],
             "test": [
                 "./build/test/index.d.ts"
