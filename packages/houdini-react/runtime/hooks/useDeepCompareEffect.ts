@@ -1,4 +1,4 @@
-import { deepEquals } from '$houdini/runtime/lib/deepEquals'
+import { deepEquals } from 'houdini/runtime'
 import * as React from 'react'
 
 // This file is largely a copy and paste from Kent C. Dodd's use-deep-compare-effect (appropriate license at the bottom).

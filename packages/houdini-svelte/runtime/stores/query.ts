@@ -1,5 +1,5 @@
 import type { FetchContext } from 'houdini/runtime'
-import { getCurrentConfig } from '$houdini'
+import { getCurrentConfig } from '$houdini/runtime/config'
 import * as log from 'houdini/runtime'
 import type {
 	CachePolicies,
@@ -24,6 +24,7 @@ import type {
 	RequestEventFetchParams,
 } from '../types'
 import { BaseStore } from './base'
+import { HoudiniClient } from '$houdini/runtime/client'
 
 export class QueryStore<
 	_Data extends GraphQLObject,
@@ -58,7 +59,7 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const client = await initClient()
+		const client = await initClient() as HoudiniClient
 
 		this.setup(false)
 

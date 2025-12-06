@@ -1,10 +1,10 @@
-import type { DocumentStore, SendParams } from '$houdini/runtime/client'
+import type { DocumentStore, SendParams } from 'houdini/runtime/client'
 import type {
 	DocumentArtifact,
 	GraphQLVariables,
 	QueryResult,
 	GraphQLObject,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 
 import { useSession } from '../routing/Router'
 import useDeepCompareEffect from './useDeepCompareEffect'

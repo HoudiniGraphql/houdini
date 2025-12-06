@@ -5,7 +5,7 @@ import type {
 	QueryResult,
 	GraphQLVariables,
 } from 'houdini/runtime'
-import { getCurrentConfig } from '$houdini'
+import { getCurrentConfig } from '$houdini/runtime'
 import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
@@ -57,7 +57,7 @@ export class BaseStore<
 			return this.#observer
 		}
 
-		this.#observer = getClient().observe<_Data, _Input>(this.#params)
+		this.#observer = getClient().observe<_Data, _Input>(this.#params)!
 
 		return this.#observer
 	}

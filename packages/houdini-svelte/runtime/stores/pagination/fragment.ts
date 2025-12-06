@@ -1,5 +1,5 @@
 import type { DocumentStore } from '$houdini/runtime/client'
-import { getCurrentConfig } from '$houdini'
+import { getCurrentConfig } from '$houdini/runtime'
 import { keyFieldsForType } from 'houdini/runtime'
 import { siteURL } from 'houdini/runtime'
 import { extractPageInfo } from 'houdini/runtime'

@@ -2,7 +2,7 @@ import type {
 	SubscriptionArtifact,
 	GraphQLObject,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 
 import { useSubscriptionHandle } from './useSubscriptionHandle'
 

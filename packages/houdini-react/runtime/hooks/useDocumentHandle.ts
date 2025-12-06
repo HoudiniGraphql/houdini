@@ -1,7 +1,7 @@
-import type { DocumentStore } from '$houdini/runtime/client'
-import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
-import { ArtifactKind } from '$houdini/runtime/lib/types'
+import type { DocumentStore } from 'houdini/runtime/client'
+import { extractPageInfo } from 'houdini/runtime'
+import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
+import { ArtifactKind } from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	GraphQLVariables,
@@ -12,7 +12,7 @@ import type {
 	QueryResult,
 	DocumentArtifact,
 	QueryArtifact,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 import React from 'react'
 
 import { useClient, useLocation, useSession } from '../routing/Router'

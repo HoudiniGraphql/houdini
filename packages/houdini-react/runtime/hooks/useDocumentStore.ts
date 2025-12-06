@@ -1,10 +1,10 @@
-import type { DocumentStore, ObserveParams } from '$houdini/runtime/client'
+import type { DocumentStore, ObserveParams } from 'houdini/runtime/client'
 import type {
 	DocumentArtifact,
 	GraphQLVariables,
 	QueryResult,
 	GraphQLObject,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 import * as React from 'react'
 
 import { useClient } from '../routing'

@@ -1,5 +1,5 @@
 import cache from '$houdini/runtime/cache'
-import { getCurrentConfig } from '$houdini'
+import { getCurrentConfig } from '$houdini/runtime/config'
 import { marshalInputs } from 'houdini/runtime'
 import type {
 	GraphQLObject,
@@ -51,7 +51,7 @@ export class FragmentStore<
 			isBrowser
 		) {
 			console.warn(
-				`⚠️ Parent does not contain the information for this fragment. Something is wrong.
+				`! Parent does not contain the information for this fragment. Something is wrong.
 Please ensure that you have passed a record that has ${this.artifact.name} mixed into it.`
 			)
 		}
