@@ -47,7 +47,6 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 		const filteredRuntimeFiles = runtimeFiles.filter((path) => !path.endsWith('test.ts'))
 
 		if (filteredRuntimeFiles.length > 0) {
-			console.log('🔍 Verifying runtime directory types...')
 			verifyTypes(filteredRuntimeFiles, {
 				...tsConfig.compilerOptions,
 				moduleResolution: ModuleResolutionKind.NodeJs,
