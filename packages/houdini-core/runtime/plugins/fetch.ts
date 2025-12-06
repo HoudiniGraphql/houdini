@@ -1,6 +1,6 @@
 import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
 import { ArtifactKind, DataSource } from 'houdini/runtime/types'
-import type { RequestPayload } from 'houdini/runtime/types'
+import type { RequestPayload, FetchContext } from 'houdini/runtime/types'
 
 export const fetch = (target?: RequestHandler | string): ClientPlugin => {
 	return () => {
@@ -109,11 +109,7 @@ const defaultFetch = (
 	}
 }
 
-export type FetchContext = {
-	fetch: typeof globalThis.fetch
-	metadata?: App.Metadata | null
-	session: App.Session | null
-}
+
 
 /**
  * ## Tip 👇

@@ -1,8 +1,8 @@
 import type { Cache } from 'houdini/runtime/cache'
 
-import { marshalSelection } from '../lib/scalars'
-import type { SubscriptionSpec } from '../lib/types'
-import { ArtifactKind } from '../lib/types'
+import { marshalSelection } from 'houdini/runtime'
+import type { SubscriptionSpec } from 'houdini/runtime'
+import { ArtifactKind } from 'houdini/runtime'
 import { documentPlugin } from './utils'
 
 export const mutation = (cache: Cache) =>
@@ -32,6 +32,7 @@ export const mutation = (cache: Cache) =>
 						data: (await marshalSelection({
 							selection: ctx.artifact.selection,
 							data: optimisticResponse,
+							config: ctx.config,
 						}))!,
 						variables: marshalVariables(ctx),
 						layer: layerOptimistic.id,

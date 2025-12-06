@@ -1,10 +1,10 @@
-import type { ArtifactKinds } from '../../../lib/types'
+import type { ArtifactKinds } from 'houdini/runtime'
 import type {
 	ClientPlugin,
 	ClientPluginExitPhase,
 	ClientPluginEnterPhase,
 	ClientHooks,
-} from '../../documentStore'
+} from 'houdini/runtime/documentStore'
 
 export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): ClientPlugin => {
 	return () => {

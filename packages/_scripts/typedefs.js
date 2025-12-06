@@ -52,6 +52,7 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 				...tsConfig.compilerOptions,
 				moduleResolution: ModuleResolutionKind.NodeJs,
 				noEmit: true, // Only verify, don't emit
+				emitDeclarationOnly: false, // Disable declaration-only mode when using noEmit
 				project: path.join(process.cwd(), '..', '..'),
 				baseUrl: process.cwd(),
 				lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],

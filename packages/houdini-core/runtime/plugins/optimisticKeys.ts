@@ -7,9 +7,9 @@ import type {
 } from 'houdini/runtime/types'
 import { ArtifactKind } from 'houdini/runtime/types'
 
-import type { Cache } from '../cache/cache'
+import type { Cache } from 'houdini/runtime/cache'
 import configFile from '../imports/config'
-import { computeID, getFieldsForType, keyFieldsForType, marshalSelection } from '../lib'
+import { computeID, getFieldsForType, keyFieldsForType, marshalSelection } from 'houdini/runtime'
 
 // This plugin is responsible for coordinating requests that have optimistic keys.
 // When a mutation contains optimistically generated keys as inputs, we need to block
@@ -205,6 +205,7 @@ function addKeysToResponse(args: {
 							},
 						},
 					},
+					config: configFile,
 				}) as { marshaled: string }
 
 				// use the marshaled value as the key

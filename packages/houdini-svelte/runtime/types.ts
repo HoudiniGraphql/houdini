@@ -8,7 +8,7 @@ import type {
 	PageInfo,
 	HoudiniFetchContext,
 	FetchParams,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import type { Readable } from 'svelte/store'
 

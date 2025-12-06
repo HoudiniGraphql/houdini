@@ -135,6 +135,12 @@ export type HoudiniFetchContext = {
 	variables: () => {}
 }
 
+export type FetchContext = {
+	fetch: typeof globalThis.fetch
+	metadata?: App.Metadata | null
+	session: App.Session | null
+}
+
 type Filter = { [key: string]: string | boolean | number }
 
 export type ListWhen = {

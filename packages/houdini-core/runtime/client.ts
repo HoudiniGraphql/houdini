@@ -1,7 +1,7 @@
 import type { Cache } from 'houdini/runtime/cache'
-import { HoudiniClient as BaseClient } from 'houdini/runtime/client'
-import type { ClientHooks, ClientPlugin } from 'houdini/runtime/documentStore'
-import type { NestedList } from 'houdini/runtime/types'
+import { HoudiniClient as BaseClient, type ObserveParams } from 'houdini/runtime/client'
+import { DocumentStore, type ClientHooks, type ClientPlugin } from 'houdini/runtime/documentStore'
+import type { NestedList, DocumentArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime/types'
 import { flatten } from 'houdini/runtime/flatten'
 
 import cacheRef from './cache'
@@ -37,6 +37,13 @@ export class HoudiniClient extends BaseClient {
 	// this is modified by page entries when they load in order to register the components source
 	componentCache: Record<string, any> = {}
 
+	// store cache configuration for use in document stores
+	private _cache?: Cache
+	private _enableCache: boolean = false
+
+	// store throwOnError operations for access by stores
+	throwOnError_operations: string[] = []
+
 	constructor({
 		url,
 		fetchParams,
@@ -62,25 +69,6 @@ export class HoudiniClient extends BaseClient {
 					localApiEndpoint(getCurrentConfig()),
 			plugins: flatten(
 				([] as NestedList<ClientPlugin>).concat(
-					// cache policy needs to always come first so that it can be the first network to fire
-					cachePolicy({
-						cache,
-						enabled: enableCache,
-						setFetching: (fetching, data) => {
-							this.update((state) => {
-								const newState = { ...state, fetching }
-
-								// when we set the fetching state to true, we should also generate the appropriate
-								// loading state for the document
-								if (fetching && data) {
-									newState.data = data
-								}
-
-								return newState
-							})
-						},
-					})(),
-
 					// if they specified a throw behavior
 					throwOnError ? [throwOnErrorPlugin(throwOnError)] : [],
 					fetchParamsPlugin(fetchParams),
@@ -108,6 +96,82 @@ export class HoudiniClient extends BaseClient {
 			),
 		})
 
+	// Set cache properties after super call
+	this._cache = cache
+	this._enableCache = !!cache
+
+	// Set throwOnError operations for access by stores
+	this.throwOnError_operations = throwOnError?.operations ?? []
+}
+
+	// Override observe to properly handle cachePolicy plugin
+	observe<
+		_Data extends GraphQLObject,
+		_Input extends GraphQLVariables | undefined,
+	>({
+		enableCache = true,
+		fetching = false,
+		...rest
+	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<
+		_Data,
+		_Input
+	> {
+		// Create plugins with cachePolicy if cache is enabled
+		const plugins: ClientPlugin[] = []
+
+		// Add cachePolicy first if cache is enabled
+		if (this._enableCache && enableCache) {
+			// We need to create a placeholder for the setFetching callback
+			// that will be set after the store is created
+			let storeRef: DocumentStore<_Data, _Input> | null = null
+
+			plugins.push(cachePolicy({
+				cache: this._cache,
+				enabled: true,
+				setFetching: (fetching, data) => {
+					if (storeRef) {
+						storeRef.update((state) => {
+							const newState = { ...state, fetching }
+
+							// when we set the fetching state to true, we should also generate the appropriate
+							// loading state for the document
+							if (fetching && data) {
+								newState.data = data
+							}
+
+							return newState
+						})
+					}
+				},
+			}))
+
+			// Create the document store with the plugins
+			const clientPlugins = (this.plugins as ClientPlugin[]).filter((p): p is ClientPlugin => p !== null && typeof p === 'function')
+			const store = new DocumentStore<_Data, _Input>({
+				client: this,
+				plugins: createPluginHooks([...plugins, ...clientPlugins]),
+				fetching,
+				enableCache,
+				config: this.config,
+				...rest,
+			})
+
+			// Set the store reference for the setFetching callback
+			storeRef = store
+
+			return store
+		} else {
+			// No cache, use the base implementation
+			const clientPlugins = (this.plugins as ClientPlugin[]).filter((p): p is ClientPlugin => p !== null && typeof p === 'function')
+			return new DocumentStore<_Data, _Input>({
+				client: this,
+				plugins: createPluginHooks(clientPlugins),
+				fetching,
+				enableCache,
+				config: this.config,
+				...rest,
+			})
+		}
 	}
 }
 

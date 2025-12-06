@@ -3,7 +3,7 @@ import type {
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 import type { RequestEvent } from '@sveltejs/kit'
 
 import { initClient } from '../client'

@@ -1,6 +1,6 @@
-import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
-import { getCurrentConfig } from '$houdini/runtime/lib/config'
-import * as log from '$houdini/runtime/lib/log'
+import type { FetchContext } from 'houdini/runtime'
+import { getCurrentConfig } from '$houdini'
+import * as log from 'houdini/runtime'
 import type {
 	CachePolicies,
 	GraphQLVariables,
@@ -8,8 +8,8 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
-} from '$houdini/runtime/lib/types'
-import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
+import { ArtifactKind, CachePolicy, CompiledQueryKind } from 'houdini/runtime'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { HoudiniSvelteConfig } from 'houdini-svelte'
 import { get } from 'svelte/store'

@@ -1,13 +1,13 @@
 import cache from '$houdini/runtime/cache'
-import { getCurrentConfig } from '$houdini/runtime/lib/config'
-import { marshalInputs } from '$houdini/runtime/lib/scalars'
+import { getCurrentConfig } from '$houdini'
+import { marshalInputs } from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	FragmentArtifact,
 	HoudiniFetchContext,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
-import { CompiledFragmentKind, fragmentKey } from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
+import { CompiledFragmentKind, fragmentKey } from 'houdini/runtime'
 import { derived } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
