@@ -1,7 +1,7 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
-import * as conventions from 'houdini/router/conventions.js'
+import * as conventions from '../router/conventions.js'
 
 import type { Config } from './config.js'
 import { create_schema, write_config } from './database.js'

@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import { pathToFileURL } from 'node:url'
 
 import { Config, type ConfigFile } from './config.js'
-import { houdini_root, local_api_dir } from 'houdini/router/conventions'
+import { houdini_root, local_api_dir } from '../router/conventions.js'
 import { HoudiniError } from './error.js'
 import * as fs from './fs.js'
 import * as path from './path.js'

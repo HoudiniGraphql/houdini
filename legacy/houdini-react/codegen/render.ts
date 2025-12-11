@@ -50,6 +50,8 @@ import client from '../../../../../+client'
 import App from "./App"
 import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
 
+import config from '../../../../../houdini.config.js'
+
 export const on_render =
 	({ assetPrefix, pipe, production, documentPremable }) =>
 	async ({
@@ -120,6 +122,7 @@ export function createServerAdapter(options) {
 		production: true,
 		manifest: router_manifest,
 		on_render: on_render(options),
+		config_file: config,
 		...options,
 	})
 }
@@ -128,6 +131,7 @@ export function createServerAdapter(options) {
 	// and a file that adapters can import to get the local configuration
 	let adapter_config = `
 		import { createServerAdapter as createAdapter } from './server'
+		import config_file from '../../../../../../houdini.config'
 
 		// add local imports for every component field
 		${componentFields
@@ -165,6 +169,7 @@ export function createServerAdapter(options) {
 				yoga,
 				componentCache,
 				graphqlEndpoint: endpoint,
+				config_file,
 				...options,
 			})
 		}

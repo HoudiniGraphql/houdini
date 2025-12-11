@@ -1,5 +1,6 @@
-import { type Config } from 'houdini'
-import { fs, path } from 'houdini'
+import { type Config } from '../lib/config.js'
+import * as fs from '../lib/fs.js'
+import * as path from '../lib/path.js'
 
 /** The location of the project's router */
 export function router_path(config: Config) {

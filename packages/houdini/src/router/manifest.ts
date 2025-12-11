@@ -1,17 +1,20 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import { parseJS, type TypeWrapper, unwrapType } from 'houdini'
-import type { ProjectManifest, PageManifest, QueryManifest } from 'houdini'
-import { parse_page_pattern } from 'houdini/router/match'
-import { path, fs, type Config } from 'houdini'
+import { parseJS } from '../lib/parse.js'
+import { type TypeWrapper, unwrapType } from '../lib/graphql.js'
+import type { ProjectManifest, PageManifest, QueryManifest } from '../lib/types.js'
+import { parse_page_pattern } from './match.js'
+import * as path from '../lib/path.js'
+import * as fs from '../lib/fs.js'
+import type { Config } from '../lib/config.js'
 import {
 	read_layoutQuery,
 	read_layoutView,
 	read_pageView,
 	read_pageQuery,
 	page_id,
-} from './conventions'
+} from './conventions.js'
 
 export type { ProjectManifest, PageManifest, QueryManifest }
 

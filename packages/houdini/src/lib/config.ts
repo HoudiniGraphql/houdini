@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import type { GraphQLSchema } from 'graphql'
 import minimatch from 'minimatch'
-import { plugin_dir } from 'houdini/router/conventions.js'
+import { plugin_dir } from '../router/conventions.js'
 
 import * as path from './path.js'
 import type { PluginMeta } from './project.js'

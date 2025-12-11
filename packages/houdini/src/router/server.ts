@@ -3,7 +3,7 @@ import type { ServerAdapterRequestHandler } from '@whatwg-node/server'
 import { YogaServer, type YogaInitialContext } from 'graphql-yoga'
 import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
 import type { GraphQLSchema } from 'graphql'
-import type { HoudiniClient } from 'houdini/runtime/client'
+import type { HoudiniClient } from '../runtime/client.js'
 
 import { serialize as encodeCookie } from './cookies'
 import { find_match } from './match'
@@ -13,7 +13,7 @@ import type {
 	RouterPageManifest,
 	YogaServerOptions,
 } from './types'
-import type { ConfigFile } from 'houdini'
+import type { ConfigFile } from '../lib/config.js'
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
@@ -24,7 +24,7 @@ export function _serverHandler<ComponentType = unknown>({
 	graphqlEndpoint,
 	on_render,
 	componentCache,
-	get_config,
+	config_file,
 }: {
 	schema?: GraphQLSchema | null
 	server?: Server<any, any>
@@ -41,9 +41,8 @@ export function _serverHandler<ComponentType = unknown>({
 		session: App.Session
 		componentCache: Record<string, any>
 	}) => Response | Promise<Response | undefined> | undefined
-	get_config: () => ConfigFile
+	config_file: ConfigFile
 } & Omit<YogaServerOptions, 'schema'>) {
-	const config_file = get_config()
 	const session_keys = localApiSessionKeys(config_file)
 
 	if (schema && !server) {

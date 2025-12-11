@@ -77,8 +77,7 @@
         },
         ".": {
             "types": "./build/lib/index.d.ts",
-            "import": "./build/lib/index.js",
-            "require": "./build/lib/index.js"
+            "import": "./build/lib/index.js"
         },
         "./*": {
             "types": "./build/lib/*",

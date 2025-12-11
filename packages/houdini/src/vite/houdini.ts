@@ -1,12 +1,10 @@
 import path from 'node:path'
-import { load_manifest } from 'houdini/router/manifest'
 import type {
 	Plugin as VitePlugin,
 	ConfigEnv as ViteEnv,
 	ResolvedConfig,
 } from 'vite'
-import * as routerConventions from 'houdini/router/conventions'
-import { fs } from 'houdini'
+import * as fs from '../lib/fs.js'
 
 import type { VitePluginContext } from '.'
 
@@ -69,6 +67,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 				viteEnv.command === 'build' &&
 				!is_secondary_build()
 			) {
+				const routerConventions = await import('../router/conventions.js')
 				await ctx.adapter.pre({
 					config: ctx.config,
 					conventions: routerConventions,
@@ -101,6 +100,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			}
 
 			// dry
+			const routerConventions = await import('../router/conventions.js')
 			const outDir = routerConventions.router_build_directory(ctx.config)
 			const sourceDir = viteConfig.build.outDir
 
@@ -117,6 +117,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			await fs.mkdirp(outDir)
 
 			// load the project manifest
+			const { load_manifest } = await import('../router/manifest.js')
 			const manifest = await load_manifest({
 				config: ctx.config,
 				includeArtifacts: true,

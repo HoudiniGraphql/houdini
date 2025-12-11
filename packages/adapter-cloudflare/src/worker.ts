@@ -1,12 +1,10 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
 import { createServerAdapter } from 'houdini/adapter'
-import { getCurrentConfig } from '$houdini'
 
 // create the production server adapter
 const server_adapter = createServerAdapter({
 	production: true,
 	assetPrefix: '/assets',
-	get_config: getCurrentConfig,
 })
 
 const handlers: ExportedHandler = {
