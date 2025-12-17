@@ -56,7 +56,6 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 				baseUrl: process.cwd(),
 				lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
 			})
-			console.log('✅ Runtime directory type verification completed')
 		}
 	} catch (e) {
 		// Runtime directory doesn't exist, skip it

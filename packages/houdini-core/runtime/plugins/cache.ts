@@ -139,7 +139,7 @@ export const cachePolicy =
 
 					const targetCache =
 						serverSide && serverSideFallback
-							? new Cache({ disabled: false })
+							? new Cache({ disabled: false, ...ctx.config })
 							: localCache
 
 					let layer

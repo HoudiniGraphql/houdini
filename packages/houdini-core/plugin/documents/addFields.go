@@ -203,7 +203,6 @@ func AddDocumentFields[PluginConfig any](
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 		WHERE connection = true
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-			AND (documents.processed = false OR documents.processed IS NULL)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
@@ -221,7 +220,8 @@ func AddDocumentFields[PluginConfig any](
 	// track which edge fields already have cursor selections to avoid duplicates
 	edgesWithCursor := make(map[int64]int64)
 	// track which list fields already have pageInfo selections added to avoid duplicates
-	pageInfoAddedLists := make(map[int64]bool)
+	// Use a composite key of (listField, docID) to ensure pageInfo is added per document
+	pageInfoAddedLists := make(map[string]bool)
 
 	err = db.StepStatement(ctx, connectionWalk, func() {
 		listField := connectionWalk.ColumnInt64(0)
@@ -289,8 +289,9 @@ func AddDocumentFields[PluginConfig any](
 
 		// by now we can assume that we have a pageInfo selection along with selections for each field
 
-		// only add the pageInfo selection to the list field if we haven't done it yet
-		if !pageInfoAddedLists[listField] {
+		// only add the pageInfo selection to the list field if we haven't done it yet for this document
+		listFieldDocKey := fmt.Sprintf("%d_%d", listField, docID)
+		if !pageInfoAddedLists[listFieldDocKey] {
 			// and add the pageInfo selection to the edges field
 			err = db.ExecStatement(insertSelectionRef, map[string]any{
 				"parent_id":  listField,
@@ -305,7 +306,7 @@ func AddDocumentFields[PluginConfig any](
 				errs.Append(plugins.WrapError(err))
 				return
 			}
-			pageInfoAddedLists[listField] = true
+			pageInfoAddedLists[listFieldDocKey] = true
 		}
 
 		// only add cursor selection if we haven't added it for this edges field yet
