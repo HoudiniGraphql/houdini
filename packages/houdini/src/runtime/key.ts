@@ -1,17 +1,9 @@
-export const computeKey = ({
-	field,
-	args,
-}: {
-	field: string
-	args?: { [key: string]: any }
-}) => {
+export const computeKey = ({ field, args }: { field: string; args?: { [key: string]: any } }) => {
 	const keys = Object.keys(args ?? {})
 	keys.sort()
 
 	return args && keys.length > 0
-		? `${field}(${keys
-				.map((key) => `${key}: ${stringify(args[key])}`)
-				.join(', ')})`
+		? `${field}(${keys.map((key) => `${key}: ${stringify(args[key])}`).join(', ')})`
 		: field
 }
 

@@ -1,6 +1,6 @@
-import { defaultComponentField, type Cache } from 'houdini/runtime/cache'
 import { getFieldsForType } from 'houdini/runtime'
 import type { DocumentArtifact, GraphQLObject, GraphQLValue } from 'houdini/runtime'
+import { defaultComponentField, type Cache } from 'houdini/runtime/cache'
 
 export function injectComponents({
 	cache,
@@ -24,7 +24,7 @@ export function injectComponents({
 	if (typeof data !== 'object') {
 		return
 	}
-  data = data as GraphQLObject
+	data = data as GraphQLObject
 
 	// if the value is an array we need to instantiate each item
 	if (Array.isArray(data)) {
@@ -41,7 +41,7 @@ export function injectComponents({
 	}
 
 	// if the object has a subselection we need to walk down
-	const typename = '__typename' in data ? data['__typename'] as string : ""
+	const typename = '__typename' in data ? (data['__typename'] as string) : ''
 	const fields = getFieldsForType(selection, typename, false)
 	if (!fields) {
 		return

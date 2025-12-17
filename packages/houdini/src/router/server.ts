@@ -1,19 +1,15 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { ServerAdapterRequestHandler } from '@whatwg-node/server'
+import type { GraphQLSchema } from 'graphql'
 import { YogaServer, type YogaInitialContext } from 'graphql-yoga'
 import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
-import type { GraphQLSchema } from 'graphql'
-import type { HoudiniClient } from '../runtime/client.js'
 
+import type { ConfigFile } from '../lib/config.js'
+import type { HoudiniClient } from '../runtime/client.js'
 import { serialize as encodeCookie } from './cookies'
 import { find_match } from './match'
 import { get_session, handle_request, session_cookie_name } from './session'
-import type {
-	RouterManifest,
-	RouterPageManifest,
-	YogaServerOptions,
-} from './types'
-import type { ConfigFile } from '../lib/config.js'
+import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,
@@ -57,8 +53,7 @@ export function _serverHandler<ComponentType = unknown>({
 		requestHandler = server.init({
 			schema: schema,
 			endpoint: graphqlEndpoint,
-			getSession: (request: Request) =>
-				get_session(request.headers, session_keys),
+			getSession: (request: Request) => get_session(request.headers, session_keys),
 		})
 	}
 
@@ -67,38 +62,31 @@ export function _serverHandler<ComponentType = unknown>({
 	// if we have a local schema then requests to this endpoint should resolve locally using the yoga instance so we
 	// inherit any context values
 	if (requestHandler) {
-		client.registerProxy(
-			graphqlEndpoint,
-			async ({ query, variables, session }) => {
-				const response = await requestHandler!(
-					new Request(`http://localhost/${graphqlEndpoint}`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Cookie: encodeCookie(
-								session_cookie_name,
-								JSON.stringify(session ?? {}),
-								{
-									httpOnly: true,
-								},
-							),
-						},
-						body: JSON.stringify({
-							query,
-							variables,
+		client.registerProxy(graphqlEndpoint, async ({ query, variables, session }) => {
+			const response = await requestHandler!(
+				new Request(`http://localhost/${graphqlEndpoint}`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Cookie: encodeCookie(session_cookie_name, JSON.stringify(session ?? {}), {
+							httpOnly: true,
 						}),
+					},
+					body: JSON.stringify({
+						query,
+						variables,
 					}),
-				)
-				return await response.json()
-			},
-		)
+				})
+			)
+			return await response.json()
+		})
 	}
 
 	return async (request: Request, ...extraContext: Array<any>) => {
 		if (!manifest) {
 			return new Response(
 				"Adapter did not provide the project's manifest. Please open an issue on github.",
-				{ status: 500 },
+				{ status: 500 }
 			)
 		}
 
@@ -143,7 +131,7 @@ export function _serverHandler<ComponentType = unknown>({
 }
 
 export const serverAdapterFactory = (
-	args: Parameters<typeof _serverHandler>[0],
+	args: Parameters<typeof _serverHandler>[0]
 ): ReturnType<typeof createServerAdapter> => {
 	return createServerAdapter(_serverHandler(args))
 }
@@ -159,7 +147,7 @@ type ConstructorParams = Omit<YogaParams, 'schema' | 'graphqlEndpoint'>
 
 export class Server<
 	ServerContext extends Record<string, any>,
-	UserContext extends Record<string, any>,
+	UserContext extends Record<string, any>
 > {
 	opts: ConstructorParams | null
 
@@ -186,8 +174,8 @@ export class Server<
 				const userContext = !this.opts
 					? {}
 					: typeof this.opts.context === 'function'
-						? await this.opts.context(ctx)
-						: this.opts.context || {}
+					? await this.opts.context(ctx)
+					: this.opts.context || {}
 				const sessionContext = (await getSession(ctx.request)) || {}
 				return {
 					...userContext,
@@ -196,10 +184,7 @@ export class Server<
 			},
 		})
 
-		return createServerAdapter<
-			ServerContext,
-			Server<ServerContext, UserContext>
-		>(this, {
+		return createServerAdapter<ServerContext, Server<ServerContext, UserContext>>(this, {
 			fetchAPI: this._yoga!.fetchAPI,
 			plugins: this._yoga!['plugins'],
 		})
@@ -207,7 +192,7 @@ export class Server<
 
 	handle: ServerAdapterRequestHandler<ServerContext> = (
 		request: Request,
-		serverContext: ServerContext,
+		serverContext: ServerContext
 	) => {
 		return this._yoga!.handle(request, serverContext)
 	}

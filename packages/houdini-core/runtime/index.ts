@@ -1,5 +1,6 @@
-import _cache from './cache'
 import type { Cache as InternalCache } from 'houdini/runtime/cache'
+
+import _cache from './cache'
 import type { CacheTypeDef } from './generated'
 import { Cache } from './public'
 

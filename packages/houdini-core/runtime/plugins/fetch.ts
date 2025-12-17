@@ -109,8 +109,6 @@ const defaultFetch = (
 	}
 }
 
-
-
 /**
  * ## Tip 👇
  *

@@ -37,9 +37,7 @@ export class GarbageCollector {
 		for (const [id, fieldMap] of this.lifetimes.entries()) {
 			for (const [field, lifetime] of fieldMap.entries()) {
 				// if there is an active subscriber for the field move on
-				if (
-					this.cache._internal_unstable.subscriptions.get(id, field).length > 0
-				) {
+				if (this.cache._internal_unstable.subscriptions.get(id, field).length > 0) {
 					continue
 				}
 

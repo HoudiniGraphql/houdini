@@ -1,8 +1,8 @@
-import type { Cache } from 'houdini/runtime/cache'
-
 import { marshalSelection } from 'houdini/runtime'
 import type { SubscriptionSpec } from 'houdini/runtime'
 import { ArtifactKind } from 'houdini/runtime'
+import type { Cache } from 'houdini/runtime/cache'
+
 import { documentPlugin } from './utils'
 
 export const mutation = (cache: Cache) =>

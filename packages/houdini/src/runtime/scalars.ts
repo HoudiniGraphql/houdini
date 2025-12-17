@@ -1,4 +1,6 @@
 import type { ConfigFile } from 'houdini'
+
+import { getFieldsForType } from './selection'
 import {
 	fragmentKey,
 	type FragmentArtifact,
@@ -7,8 +9,6 @@ import {
 	type SubscriptionArtifact,
 	type SubscriptionSelection,
 } from './types'
-
-import { getFieldsForType } from './selection'
 
 export function marshalSelection({
 	selection,
@@ -29,11 +29,7 @@ export function marshalSelection({
 		return data.map((val) => marshalSelection({ selection, data: val, config }))
 	}
 
-	const targetSelection = getFieldsForType(
-		selection,
-		data['__typename'] as string,
-		false,
-	)
+	const targetSelection = getFieldsForType(selection, data['__typename'] as string, false)
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(
@@ -61,7 +57,7 @@ export function marshalSelection({
 				const marshalFn = config!.scalars[type].marshal
 				if (!marshalFn) {
 					throw new Error(
-						`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`,
+						`Scalar type ${type} is missing a \`marshal\` function. See https://houdinigraphql.com/api/config#custom-scalars for help on configuring custom scalars.`
 					)
 				}
 				if (Array.isArray(value)) {
@@ -73,7 +69,7 @@ export function marshalSelection({
 			// if the type doesn't require marshaling and isn't a referenced type
 			// then the type is a scalar that doesn't require marshaling
 			return [fieldName, value]
-		}),
+		})
 	)
 }
 
@@ -83,11 +79,7 @@ export function marshalInputs({
 	config,
 	rootType = '@root',
 }: {
-	artifact:
-		| QueryArtifact
-		| MutationArtifact
-		| SubscriptionArtifact
-		| FragmentArtifact
+	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact | FragmentArtifact
 	input: unknown
 	rootType?: string
 	config: ConfigFile
@@ -102,16 +94,11 @@ export function marshalInputs({
 	}
 
 	// the object containing the relevant fields
-	const fields =
-		rootType === '@root'
-			? artifact.input.fields
-			: artifact.input.types[rootType]
+	const fields = rootType === '@root' ? artifact.input.fields : artifact.input.types[rootType]
 
 	// if we are looking at a list
 	if (Array.isArray(input)) {
-		return input.map((val) =>
-			marshalInputs({ artifact, input: val, rootType, config }),
-		)
+		return input.map((val) => marshalInputs({ artifact, input: val, rootType, config }))
 	}
 
 	// we're looking at an object, build it up from the current input
@@ -141,11 +128,8 @@ export function marshalInputs({
 			}
 
 			// we ran into an object type that should be referenced by the artifact
-			return [
-				fieldName,
-				marshalInputs({ artifact, input: value, rootType: type, config }),
-			]
-		}),
+			return [fieldName, marshalInputs({ artifact, input: value, rootType: type, config })]
+		})
 	)
 }
 

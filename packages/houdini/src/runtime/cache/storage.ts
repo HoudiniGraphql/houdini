@@ -42,12 +42,7 @@ export class InMemoryStorage {
 		return layer
 	}
 
-	insert(
-		id: string,
-		field: string,
-		location: OperationLocations,
-		target: string,
-	) {
+	insert(id: string, field: string, location: OperationLocations, target: string) {
 		return this.topLayer.insert(id, field, location, target)
 	}
 
@@ -82,7 +77,7 @@ export class InMemoryStorage {
 	get(
 		targetID: string,
 		field: string,
-		defaultValue?: any,
+		defaultValue?: any
 	): {
 		value: GraphQLField
 		kind: 'link' | 'scalar' | 'unknown'
@@ -102,9 +97,7 @@ export class InMemoryStorage {
 
 		// the record might be known by multiple ids and we  need to look at every layer
 		// in the correct order
-		const recordIDs = [this.idMaps[targetID], targetID].filter(
-			Boolean,
-		) as string[]
+		const recordIDs = [this.idMaps[targetID], targetID].filter(Boolean) as string[]
 
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
@@ -311,11 +304,9 @@ export class InMemoryStorage {
 				Object.entries(this.topLayer.fields).map(([id, fieldMap]) => [
 					id,
 					Object.fromEntries(
-						Object.entries(fieldMap).filter(
-							([_, value]) => typeof value !== 'function',
-						),
+						Object.entries(fieldMap).filter(([_, value]) => typeof value !== 'function')
 					),
-				]),
+				])
 			),
 			links: this.topLayer.links,
 		})
@@ -327,7 +318,7 @@ export class InMemoryStorage {
 			fields: EntityFieldMap
 			links: LinkMap
 		},
-		layer?: Layer,
+		layer?: Layer
 	) {
 		if (!args) {
 			return
@@ -397,11 +388,7 @@ export class Layer {
 		return this.id
 	}
 
-	writeLink(
-		id: string,
-		field: string,
-		value: null | string | NestedList,
-	): LayerID {
+	writeLink(id: string, field: string, value: null | string | NestedList): LayerID {
 		// if any of the values in this link are flagged to be deleted, undelete it
 		const valueList = Array.isArray(value) ? value : [value]
 		for (const value of flatten(valueList)) {
@@ -416,17 +403,14 @@ export class Layer {
 				// undo the delete
 				this.operations[value] = {
 					...this.operations[value],
-					undoDeletesInList: [
-						...(this.operations[id]?.undoDeletesInList || []),
-						field,
-					],
+					undoDeletesInList: [...(this.operations[id]?.undoDeletesInList || []), field],
 				}
 
 				// the value could have been removed specifically from the list
 			} else if (value && fieldOperations?.length > 0) {
 				// if we have a field operation to remove the list, undo the operation
 				this.operations[id].fields[field] = fieldOperations.filter(
-					(op) => op.kind !== 'remove' || op.id !== value,
+					(op) => op.kind !== 'remove' || op.id !== value
 				)
 			}
 		}
@@ -543,12 +527,8 @@ export class Layer {
 			const fields: OperationMap['fieldName']['fields'] = {}
 
 			// merge the two operation maps
-			for (const opMap of [layer.operations[id], this.operations[id]].filter(
-				Boolean,
-			)) {
-				for (const [fieldName, operations] of Object.entries(
-					opMap.fields || {},
-				)) {
+			for (const opMap of [layer.operations[id], this.operations[id]].filter(Boolean)) {
+				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
 					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
 				}
 			}
@@ -596,11 +576,7 @@ export class Layer {
 		})
 	}
 
-	private addFieldOperation(
-		id: string,
-		field: string,
-		operation: ListOperation,
-	) {
+	private addFieldOperation(id: string, field: string, operation: ListOperation) {
 		this.operations = {
 			...this.operations,
 			[id]: {
@@ -650,21 +626,15 @@ type DeleteOperation = {
 
 type ListOperation = InsertOperation | RemoveOperation
 
-function isDeleteOperation(
-	value: GraphQLField | Operation,
-): value is DeleteOperation {
+function isDeleteOperation(value: GraphQLField | Operation): value is DeleteOperation {
 	return !!value && (value as Operation).kind === OperationKind.delete
 }
 
-function isInsertOperation(
-	value: GraphQLField | Operation,
-): value is InsertOperation {
+function isInsertOperation(value: GraphQLField | Operation): value is InsertOperation {
 	return !!value && (value as Operation).kind === OperationKind.insert
 }
 
-function isRemoveOperation(
-	value: GraphQLField | Operation,
-): value is RemoveOperation {
+function isRemoveOperation(value: GraphQLField | Operation): value is RemoveOperation {
 	return !!value && (value as Operation).kind === OperationKind.remove
 }
 

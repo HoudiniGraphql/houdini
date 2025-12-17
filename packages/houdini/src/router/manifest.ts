@@ -1,13 +1,12 @@
 import * as t from '@babel/types'
 import * as graphql from 'graphql'
 
-import { parseJS } from '../lib/parse.js'
-import { type TypeWrapper, unwrapType } from '../lib/graphql.js'
-import type { ProjectManifest, PageManifest, QueryManifest } from '../lib/types.js'
-import { parse_page_pattern } from './match.js'
-import * as path from '../lib/path.js'
-import * as fs from '../lib/fs.js'
 import type { Config } from '../lib/config.js'
+import * as fs from '../lib/fs.js'
+import { type TypeWrapper, unwrapType } from '../lib/graphql.js'
+import { parseJS } from '../lib/parse.js'
+import * as path from '../lib/path.js'
+import type { ProjectManifest, PageManifest, QueryManifest } from '../lib/types.js'
 import {
 	read_layoutQuery,
 	read_layoutView,
@@ -15,6 +14,7 @@ import {
 	read_pageQuery,
 	page_id,
 } from './conventions.js'
+import { parse_page_pattern } from './match.js'
 
 export type { ProjectManifest, PageManifest, QueryManifest }
 
@@ -57,9 +57,7 @@ export async function load_manifest(args: {
 				}
 
 				// push the artifact path without the extension
-				manifest.artifacts.push(
-					artifactPath.substring(0, artifactPath.length - 3),
-				)
+				manifest.artifacts.push(artifactPath.substring(0, artifactPath.length - 3))
 			}
 		} catch {}
 	}
@@ -76,9 +74,7 @@ export async function load_manifest(args: {
 		for (const child of await fs.readdir(args.config.localApiDir, {
 			withFileTypes: true,
 		})) {
-			const name = child.isDirectory()
-				? child.name
-				: path.parse(child.name).name
+			const name = child.isDirectory() ? child.name : path.parse(child.name).name
 
 			if (name === '+schema') {
 				manifest.local_schema = true
@@ -188,9 +184,7 @@ async function walk_routes(args: {
 			type: 'page',
 			contents: pageViewContents,
 			layouts: newLayouts,
-			queries: pageQuery
-				? [...newLayoutQueries, pageQuery.name]
-				: newLayoutQueries,
+			queries: pageQuery ? [...newLayoutQueries, pageQuery.name] : newLayoutQueries,
 			config: args.config,
 			variables,
 		})
@@ -211,7 +205,7 @@ async function walk_routes(args: {
 				layouts: newLayouts,
 				variables,
 			})
-		}),
+		})
 	)
 
 	return args.project
@@ -228,14 +222,11 @@ async function add_view(args: {
 	config: Config
 	variables: Record<string, { type: string; wrappers: TypeWrapper[] }>
 }) {
-	const target =
-		args.type === 'page' ? args.project.pages : args.project.layouts
+	const target = args.type === 'page' ? args.project.pages : args.project.layouts
 	const queries = await extractQueries(args.contents)
 
 	// look for any queries that we are asking for that aren't available
-	const missing_queries = queries.filter(
-		(query) => !args.queries.includes(query),
-	)
+	const missing_queries = queries.filter((query) => !args.queries.includes(query))
 	if (missing_queries.length > 0) {
 		throw {
 			message: `Unknown queries in ${args.path}: ${missing_queries.join(', ')}`,
@@ -255,7 +246,7 @@ async function add_view(args: {
 			parse_page_pattern(args.url).params.map((param) => [
 				param.name,
 				args.variables[param.name] ?? null,
-			]),
+			])
 		),
 	}
 
@@ -276,7 +267,7 @@ async function add_query(args: {
 	// look for the query definition
 	const query = parsed.definitions.find(
 		(def): def is graphql.OperationDefinitionNode =>
-			def.kind === 'OperationDefinition' && def.operation === 'query',
+			def.kind === 'OperationDefinition' && def.operation === 'query'
 	)
 	if (!query?.name) {
 		throw new Error('No query found')
@@ -294,24 +285,16 @@ async function add_query(args: {
 	// add this queries variables to the bag
 	const queryVariables = Object.fromEntries(
 		query.variableDefinitions?.map((variable) => {
-			const { type, wrappers } = unwrapType(
-				args.config,
-				variable.type,
-				[],
-				true,
-			)
+			const { type, wrappers } = unwrapType(args.config, variable.type, [], true)
 			return [
 				variable.variable.name.value,
 				{ wrappers: wrappers as string[], type: type.name },
 			]
-		}) ?? [],
+		}) ?? []
 	)
 	Object.assign(args.variables, queryVariables)
 
-	const target =
-		args.type === 'page'
-			? args.project.page_queries
-			: args.project.layout_queries
+	const target = args.type === 'page' ? args.project.page_queries : args.project.layout_queries
 	target[page_id(args.url)] = {
 		path: path.relative(args.config.routes_dir, args.path),
 		name: query.name.value,

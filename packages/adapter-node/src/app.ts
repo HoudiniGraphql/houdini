@@ -1,10 +1,6 @@
 import { createServerAdapter } from 'houdini/adapter'
 import * as fs from 'node:fs'
-import {
-	createServer,
-	type IncomingMessage,
-	type ServerResponse,
-} from 'node:http'
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -38,12 +34,9 @@ function handleAssets(
 	req: IncomingMessage,
 	res: ServerResponse<IncomingMessage> & {
 		req: IncomingMessage
-	},
+	}
 ) {
-	let filePath = path.join(
-		__dirname,
-		req.url === '/' ? 'index.html' : (req.url ?? '/'),
-	)
+	let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url ?? '/')
 	let extname = path.extname(filePath)
 	let contentType = 'text/html'
 

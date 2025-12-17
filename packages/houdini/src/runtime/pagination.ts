@@ -1,4 +1,6 @@
+import { deepEquals } from './deepEquals'
 import type { SendParams } from './documentStore'
+import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
 import { CachePolicy, DataSource } from './types'
 import type {
 	CursorHandlers,
@@ -10,12 +12,9 @@ import type {
 	FetchParams,
 } from './types'
 
-import { deepEquals } from './deepEquals'
-import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-
 export function cursorHandlers<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined,
+	_Input extends GraphQLVariables | null | undefined
 >({
 	artifact,
 	fetchUpdate: parentFetchUpdate,
@@ -29,10 +28,7 @@ export function cursorHandlers<
 	getVariables: () => NonNullable<_Input>
 	getSession: () => Promise<App.Session>
 	fetch: FetchFn<_Data, _Input>
-	fetchUpdate: (
-		arg: SendParams,
-		updates: string[],
-	) => ReturnType<FetchFn<_Data, _Input>>
+	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
 }): CursorHandlers<_Data, _Input> {
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -73,7 +69,7 @@ export function cursorHandlers<
 				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
 				session: await getSession(),
 			},
-			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append'],
+			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
 		)
 	}
 
@@ -171,9 +167,7 @@ export function cursorHandlers<
 				where: 'start',
 			})
 		},
-		async fetch(
-			args?: FetchParams<_Input>,
-		): Promise<QueryResult<_Data, _Input>> {
+		async fetch(args?: FetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = args ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
@@ -183,10 +177,7 @@ export function cursorHandlers<
 
 			// we need to find the connection object holding the current page info
 			try {
-				var currentPageInfo = extractPageInfo(
-					getState(),
-					artifact.refetch!.path,
-				)
+				var currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
 			} catch {
 				// if there was any issue getting the page info, just fetch like normal
 				return await parentFetch(args)
@@ -252,7 +243,7 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 
 export function offsetHandlers<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined,
+	_Input extends GraphQLVariables | null | undefined
 >({
 	artifact,
 	storeName,
@@ -331,9 +322,7 @@ export function offsetHandlers<
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
 			currentOffset = offset + pageSize
 		},
-		async fetch(
-			params: FetchParams<_Input> = {},
-		): Promise<QueryResult<_Data, _Input>> {
+		async fetch(params: FetchParams<_Input> = {}): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params
 
 			// if the input is different than the query variables then we just do everything like normal

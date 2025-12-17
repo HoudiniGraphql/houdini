@@ -1,6 +1,6 @@
 import type { Cache as _Cache } from 'houdini/runtime/cache'
-import type { QueryArtifact } from 'houdini/runtime/types'
 import { marshalInputs } from 'houdini/runtime/scalars'
+import type { QueryArtifact } from 'houdini/runtime/types'
 
 import { getCurrentConfig } from '../config'
 import { ListCollection } from './list'

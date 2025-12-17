@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import type { GraphQLSchema } from 'graphql'
 import minimatch from 'minimatch'
-import { plugin_dir } from '../router/conventions.js'
 
+import { plugin_dir } from '../router/conventions.js'
 import * as path from './path.js'
 import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
@@ -218,10 +218,7 @@ export type WatchSchemaConfig = {
 	 * logic you need
 	 */
 	headers?:
-		| Record<
-				string,
-				string | ((env: Record<string, string | undefined>) => string)
-		  >
+		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
 }
 
@@ -271,9 +268,7 @@ export class Config {
 	}
 
 	schema_path() {
-		return (
-			this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
-		)
+		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 	}
 
 	get localApiDir() {
@@ -329,7 +324,7 @@ export class Config {
 
 	includeFile(
 		filepath: string,
-		{ root = this.root_dir }: { root?: string; ignore_plugins?: boolean } = {},
+		{ root = this.root_dir }: { root?: string; ignore_plugins?: boolean } = {}
 	) {
 		const parsed = path.parse(filepath)
 		filepath = `${parsed.dir}/${parsed.name}${parsed.ext.split('?')[0]}`
@@ -338,9 +333,7 @@ export class Config {
 		// if the filepath doesn't match the include we're done
 		if (
 			!included &&
-			!this.include.some((pattern) =>
-				minimatch(filepath, path.join(root, pattern)),
-			)
+			!this.include.some((pattern) => minimatch(filepath, path.join(root, pattern)))
 		) {
 			return false
 		}
@@ -364,9 +357,7 @@ export class Config {
 		// if the configured exclude does not allow this file, we're done
 		if (
 			this.exclude.length > 0 &&
-			this.exclude.some((pattern) =>
-				minimatch(filepath, path.join(root, pattern)),
-			)
+			this.exclude.some((pattern) => minimatch(filepath, path.join(root, pattern)))
 		) {
 			return true
 		}
@@ -397,7 +388,7 @@ export class Config {
 
 					return [key, headerValue]
 				})
-				.filter(([key]) => key),
+				.filter(([key]) => key)
 		)
 
 		// we're done
@@ -406,7 +397,7 @@ export class Config {
 
 	process_env_values(
 		env: Record<string, string | undefined>,
-		value: string | ((env: any) => string),
+		value: string | ((env: any) => string)
 	) {
 		let headerValue: string | undefined
 		if (typeof value === 'function') {
@@ -421,11 +412,7 @@ export class Config {
 	}
 
 	get artifact_dir() {
-		return path.join(
-			this.root_dir,
-			this.config_file.runtimeDir || '.houdini',
-			'artifacts',
-		)
+		return path.join(this.root_dir, this.config_file.runtimeDir || '.houdini', 'artifacts')
 	}
 
 	get routes_dir() {
@@ -447,15 +434,13 @@ export class Config {
 function documentName(document: graphql.DocumentNode) {
 	// if there is an operation in the document
 	const operation = document.definitions.find(
-		({ kind }) => graphql.Kind.OPERATION_DEFINITION,
+		({ kind }) => graphql.Kind.OPERATION_DEFINITION
 	) as graphql.OperationDefinitionNode | null
 	if (operation) {
 		// if the operation does not have a name
 		if (!operation.name) {
 			// we can't give them a file
-			throw new Error(
-				'encountered operation with no name: ' + graphql.print(document),
-			)
+			throw new Error('encountered operation with no name: ' + graphql.print(document))
 		}
 
 		// use the operation name for the artifact
@@ -464,7 +449,7 @@ function documentName(document: graphql.DocumentNode) {
 
 	// look for a fragment definition
 	const fragmentDefinitions = document.definitions.filter(
-		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION,
+		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
 	) as graphql.FragmentDefinitionNode[]
 	if (fragmentDefinitions.length) {
 		// join all of the fragment definitions into one
@@ -472,7 +457,5 @@ function documentName(document: graphql.DocumentNode) {
 	}
 
 	// we don't know how to generate a name for this document
-	throw new Error(
-		'Could not generate artifact name for document: ' + graphql.print(document),
-	)
+	throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
 }

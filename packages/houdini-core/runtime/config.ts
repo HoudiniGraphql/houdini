@@ -54,7 +54,6 @@ export function localApiEndpoint(configFile: ConfigFile) {
 	return configFile.router?.apiEndpoint ?? '/_api'
 }
 
-
 export function getCurrentConfig(): ConfigFile {
 	const mockConfig = getMockConfig()
 	if (mockConfig) {

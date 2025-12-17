@@ -1,7 +1,7 @@
+import { deepEquals } from 'houdini/runtime'
 import type { Cache } from 'houdini/runtime/cache'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
 
-import { deepEquals } from 'houdini/runtime'
 import { documentPlugin } from './utils'
 
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates

@@ -1,4 +1,3 @@
-import type { DocumentStore } from 'houdini/runtime/client'
 import { extractPageInfo } from 'houdini/runtime'
 import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
 import { ArtifactKind } from 'houdini/runtime'
@@ -13,6 +12,7 @@ import type {
 	DocumentArtifact,
 	QueryArtifact,
 } from 'houdini/runtime'
+import type { DocumentStore } from 'houdini/runtime/client'
 import React from 'react'
 
 import { useClient, useLocation, useSession } from '../routing/Router'

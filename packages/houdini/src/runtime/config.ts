@@ -22,11 +22,7 @@ export function keyFieldsForType(configFile: ConfigFile, type: string) {
 	return withDefault.types?.[type]?.keys || withDefault.defaultKeys!
 }
 
-export function computeID(
-	configFile: ConfigFile,
-	type: string,
-	data: any,
-): string {
+export function computeID(configFile: ConfigFile, type: string, data: any): string {
 	const fields = keyFieldsForType(configFile, type)
 	let id = ''
 
