@@ -1,5 +1,5 @@
 import type { ConfigFile } from 'houdini'
-import type { Cache } from 'houdini/runtime/cache'
+import type { Cache } from './cache'
 
 import type { ClientHooks, ClientPlugin } from './documentStore.js'
 import { DocumentStore } from './documentStore.js'
@@ -101,6 +101,7 @@ export class HoudiniClient {
 		_Data,
 		_Input
 	> {
+		console.log(this.config)
 		return new DocumentStore<_Data, _Input>({
 			client: this,
 			plugins: createPluginHooks(this.plugins),

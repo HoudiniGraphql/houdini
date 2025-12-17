@@ -1,10 +1,10 @@
-import type { Cache } from 'houdini/runtime/cache'
+import type { Cache } from './index'
 import type {
 	GraphQLValue,
 	SubscriptionSelection,
 	SubscriptionSpec,
 	NestedList,
-} from 'houdini/runtime/types'
+} from '../types'
 
 import { flatten } from '../flatten'
 import { getFieldsForType } from '../selection'

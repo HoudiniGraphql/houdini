@@ -1,8 +1,9 @@
 import type { Cache } from 'houdini/runtime/cache'
 import { HoudiniClient as BaseClient, type ObserveParams } from 'houdini/runtime/client'
-import { DocumentStore, type ClientHooks, type ClientPlugin } from 'houdini/runtime/documentStore'
+import { DocumentStore, type ClientPlugin } from 'houdini/runtime/documentStore'
 import type { NestedList, DocumentArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime/types'
 import { flatten } from 'houdini/runtime/flatten'
+import { createPluginHooks } from 'houdini/runtime/client'
 
 import cacheRef from './cache'
 import { getCurrentConfig, localApiEndpoint } from './config'
@@ -50,7 +51,7 @@ export class HoudiniClient extends BaseClient {
 		plugins,
 		pipeline,
 		throwOnError,
-		cache,
+		cache = cacheRef,
 	}: HoudiniClientConstructorArgs = {}) {
 		// if we were given plugins and pipeline there's an error
 		if (plugins && pipeline) {
@@ -175,42 +176,3 @@ export class HoudiniClient extends BaseClient {
 	}
 }
 
-// createPluginHooks instantiates the client plugins
-export function createPluginHooks(plugins: ClientPlugin[]): ClientHooks[] {
-	return plugins.reduce((hooks, plugin) => {
-		if (typeof plugin !== 'function') {
-			throw new Error("Encountered client plugin that's not a function")
-		}
-
-		// invoke the plugin
-		const result = plugin()
-
-		// ignore null results
-		if (!result) {
-			return hooks
-		}
-
-		// if we just have a single value, we're done
-		if (!Array.isArray(result)) {
-			return hooks.concat(result)
-		}
-
-		// add every value to the list
-		for (const value of result) {
-			// ignore any nulls
-			if (!value) {
-				continue
-			}
-
-			// if the result is a plugin, walk down
-			if (typeof value === 'function') {
-				return hooks.concat(createPluginHooks([value]))
-			}
-
-			// we know that value is a hook
-			hooks.push(value)
-		}
-
-		return hooks
-	}, [] as ClientHooks[])
-}

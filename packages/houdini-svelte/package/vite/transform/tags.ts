@@ -25,10 +25,6 @@ export default async function GraphQLTagProcessor(config: Config, page: SvelteTr
 			replaced = true
 		},
 	})
-
-	// if (replaced) {
-	//   console.log(page.filepath + '\n' + recast.print(page.script).code)
-	// }
 }
 
 function store_import({

@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // we need to make sure we have executables for houdini
 try {
+  // Remove existing bin file (might be a pnpm wrapper script)
+  await fs.rm('node_modules/.bin/houdini', { force: true });
+
   await fs.symlink(
     path.resolve(__dirname, '../../packages/houdini/build/cmd/index.js'),
     'node_modules/.bin/houdini',

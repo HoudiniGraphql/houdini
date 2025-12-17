@@ -6,7 +6,7 @@ import {
 	type QueryArtifact,
 	type SubscriptionArtifact,
 	type SubscriptionSelection,
-} from 'houdini/runtime/types'
+} from './types'
 
 import { getFieldsForType } from './selection'
 
@@ -77,7 +77,7 @@ export function marshalSelection({
 	)
 }
 
-export function marshalInputs<T>({
+export function marshalInputs({
 	artifact,
 	input,
 	config,

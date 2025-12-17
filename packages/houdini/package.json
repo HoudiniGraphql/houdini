@@ -114,6 +114,46 @@
         "./vite/*": {
             "types": "./build/vite/*",
             "import": "./build/vite/*"
+        },
+        "./lib": {
+            "types": "./build/lib/index.d.ts",
+            "import": "./build/lib/index.js"
+        },
+        "./cmd": {
+            "types": "./build/cmd/index.d.ts",
+            "import": "./build/cmd/index.js"
+        },
+        "./runtime/cache": {
+            "types": "./build/runtime/cache/index.d.ts",
+            "import": "./build/runtime/cache/index.js"
+        },
+        "./lib/router": {
+            "types": "./build/lib/router/index.d.ts",
+            "import": "./build/lib/router/index.js"
+        },
+        "./runtime/types": {
+            "types": "./build/runtime/types.d.ts",
+            "import": "./build/runtime/types.js"
+        },
+        "./runtime/constants": {
+            "types": "./build/runtime/constants.d.ts",
+            "import": "./build/runtime/constants.js"
+        },
+        "./runtime/config": {
+            "types": "./build/runtime/config.d.ts",
+            "import": "./build/runtime/config.js"
+        },
+        "./lib/types": {
+            "types": "./build/lib/types.d.ts",
+            "import": "./build/lib/types.js"
+        },
+        "./lib/constants": {
+            "types": "./build/lib/constants.d.ts",
+            "import": "./build/lib/constants.js"
+        },
+        "./lib/config": {
+            "types": "./build/lib/config.d.ts",
+            "import": "./build/lib/config.js"
         }
     },
     "typesVersions": {
@@ -138,6 +178,6 @@
             ]
         }
     },
-    "bin": "./build/cmd/index.js",
+    "bin": "./cmd/index.js",
     "types": "./build/lib/index.d.ts"
 }

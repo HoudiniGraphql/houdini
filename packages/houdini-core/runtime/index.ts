@@ -3,6 +3,8 @@ import type { Cache as InternalCache } from 'houdini/runtime/cache'
 import type { CacheTypeDef } from './generated'
 import { Cache } from './public'
 
+export { CachePolicy, PendingValue } from 'houdini/runtime'
+
 export * from './client'
 export { getCurrentConfig } from './config'
 

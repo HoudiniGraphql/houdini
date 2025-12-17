@@ -1,7 +1,13 @@
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
 import type { VitePluginContext } from '.'
-import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
+import {
+	codegen_setup,
+	get_config,
+	path,
+	run_pipeline,
+	type CompilerProxy,
+} from '../lib/index.js'
 
 /**
  * Houdini Vite HMR Plugin
@@ -62,13 +68,15 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 						!filepath.includes(
 							path.join(
 								hmr.server.config.root,
-								ctx.config.config_file.runtimeDir ?? '.houdini'
-							)
+								ctx.config.config_file.runtimeDir ?? '.houdini',
+							),
 						) &&
 						(filepath.endsWith('.gql') || content.includes('$houdini'))
 					) {
 						filepaths.push(filepath)
-						relativePaths.push(filepath.substring(hmr.server.config.root.length + 1))
+						relativePaths.push(
+							filepath.substring(hmr.server.config.root.length + 1),
+						)
 					}
 				}
 				if (filepaths.length === 0) {
@@ -84,7 +92,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					.prepare(
 						`
             DELETE from raw_documents WHERE filepath IN (${placeholders})
-        `
+        `,
 					)
 					.run(...relativePaths)
 
@@ -98,7 +106,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
           WHERE s.fragment_ref IS NOT NULL
             AND s.kind = 'fragment'                              -- only fragment spreads
             AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
-          `
+          `,
 					)
 					.run()
 
@@ -115,7 +123,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
             )
             DELETE FROM selections
             WHERE id IN (SELECT id FROM orphan_selections)
-          `
+          `,
 					)
 					.run()
 
@@ -131,7 +139,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
               UPDATE raw_documents 
                 SET current_task = ? 
               WHERE filepath IN (${placeholders})
-            `
+            `,
 					)
 					.run(task_id, ...relativePaths)
 
@@ -210,7 +218,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
             UPDATE raw_documents
             SET current_task = $task_id
             WHERE id IN (SELECT raw_id FROM targets);
-          `
+          `,
 					)
 					.run({ task_id: task_id })
 
@@ -222,14 +230,14 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 				// the return value of each generate invocation is the list of modules that were updated
 				const updated_modules = Object.values(
-					results.GenerateDocuments || {}
+					results.GenerateDocuments || {},
 				).flat() as Array<string>
-
-				console.log({ updated_modules })
 
 				// and finally we can remove the task id association
 				ctx.db
-					.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`)
+					.prepare(
+						`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`,
+					)
 					.run(task_id)
 
 				// invalidate all of the modules we generated
@@ -246,7 +254,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 type BatchCallback = (
 	filesWithContent: Record<string, string>,
-	batchId: string
+	batchId: string,
 ) => void | Promise<void>
 
 export function createDebounceHmr(debounceMs: number = 50) {
@@ -288,15 +296,17 @@ export function createDebounceHmr(debounceMs: number = 50) {
 				// Read all files in parallel
 				const filesWithContent: Record<string, string> = {}
 				await Promise.all(
-					Array.from(filesToProcess.entries()).map(async ([filepath, readFn]) => {
-						try {
-							const content = await readFn()
-							filesWithContent[filepath] = content
-						} catch (error) {
-							// Store empty string or rethrow based on your needs
-							filesWithContent[filepath] = ''
-						}
-					})
+					Array.from(filesToProcess.entries()).map(
+						async ([filepath, readFn]) => {
+							try {
+								const content = await readFn()
+								filesWithContent[filepath] = content
+							} catch (error) {
+								// Store empty string or rethrow based on your needs
+								filesWithContent[filepath] = ''
+							}
+						},
+					),
 				)
 
 				try {
@@ -318,7 +328,7 @@ export function createDebounceHmr(debounceMs: number = 50) {
 							} catch (error) {
 								nextFilesWithContent[filepath] = ''
 							}
-						}
+						},
 					)
 
 					await Promise.all(nextReadPromises)

@@ -1,4 +1,4 @@
-import type { GraphQLObject, PageInfo } from 'houdini/runtime/types'
+import type { GraphQLObject, PageInfo } from './types'
 
 import { siteURL } from './constants'
 

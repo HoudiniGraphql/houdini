@@ -180,7 +180,7 @@ export class DocumentStore<
 		// start off with the initial context
 		let context = new ClientPluginContextWrapper({
 			abortController,
-			config: this.#configFile!,
+			config: this.#configFile,
 			name: this.artifact.name,
 			text: this.artifact.raw,
 			hash: this.artifact.hash,

@@ -1,5 +1,5 @@
 import type { SendParams } from './documentStore'
-import { CachePolicy, DataSource } from 'houdini/runtime/types'
+import { CachePolicy, DataSource } from './types'
 import type {
 	CursorHandlers,
 	FetchFn,
@@ -8,7 +8,7 @@ import type {
 	QueryArtifact,
 	QueryResult,
 	FetchParams,
-} from 'houdini/runtime/types'
+} from './types'
 
 import { deepEquals } from './deepEquals'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
