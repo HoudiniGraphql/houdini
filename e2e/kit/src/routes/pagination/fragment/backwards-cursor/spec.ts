@@ -23,7 +23,7 @@ test.describe('backwards cursor paginatedFragment', () => {
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await goto(page, routes.Pagination_query_backwards_cursor);
+    await goto(page, routes.Pagination_fragment_backwards_cursor);
 
     const data = [
       'Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood',

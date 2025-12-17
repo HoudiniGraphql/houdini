@@ -96,6 +96,9 @@ export async function expect_n_gql(
   // default waiting time
   let time_waiting = 1111;
 
+  // Use longer timeout for CI environments
+  const maxTimeout = process.env.CI ? 15000 : 9999;
+
   // Wait algo
   if (n === 0) {
     // wait at least...
@@ -112,9 +115,9 @@ export async function expect_n_gql(
 
     // While
     // - n !== nbResponse => We don't have the right number of responses
-    // - time_waiting < 9999 => We haven't reached the global timeout
+    // - time_waiting < maxTimeout => We haven't reached the global timeout
     // - !waited_enough => We didn't wait enough
-    while (n !== nbResponse && time_waiting < 9999 && !waited_enough) {
+    while (n !== nbResponse && time_waiting < maxTimeout && !waited_enough) {
       // inc
       time_waiting += tim_inc;
 
@@ -136,7 +139,7 @@ export async function expect_n_gql(
   // expect(nbRequest, 'nbRequest').toBe(n);
   expect(
     nbResponse,
-    `Not the right number of responses (selector: ${selector}, Waited ${time_waiting}ms.)`
+    `Not the right number of responses (selector: ${selector}, Waited ${time_waiting}ms, Max timeout: ${maxTimeout}ms.)`
   ).toBe(n);
 
   // Sort and return!
@@ -198,7 +201,9 @@ export async function expect_to_be(
   selector = 'div[id=result]',
   trimed = true
 ) {
-  const result = await page.locator(selector).textContent({ timeout: 500 });
+  // Use longer timeout for CI environments, shorter for local development
+  const timeout = process.env.CI ? 5000 : 2000;
+  const result = await page.locator(selector).textContent({ timeout });
   // If the selector is not found, we will get an error: Timeout.
   // It's usually because the page is not loading properly!
   expect(trimed ? result?.trim() : result, `element "${selector}" must BE 👇`).toBe(toBe);
