@@ -18,7 +18,7 @@ export default defineConfig({
   reporter: reporters,
   webServer: {
     command: 'npm run build && npm run preview-e2e',
-    port: 4173,
+    port: 3007,
     timeout: 120 * 1000
   }
 });
