@@ -9,7 +9,7 @@ export async function load(event: LoadEvent) {
 
 graphql(`
   query TestMutationUpdateUsersList {
-    usersList(limit: 5, snapshot: "update-user-mutation") {
+    usersList(limit: 5, snapshot: "mutation-update") {
       id
       name
       ...UserInfo
