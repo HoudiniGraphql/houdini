@@ -32,7 +32,7 @@
     "houdini": "node ensureLinks.js && houdini",
     "build": "vite build",
     "preview": "vite preview --port 3007",
-    "preview-e2e": "concurrently \"pnpm run previewWeb\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\""
+    "preview-e2e": "concurrently \"pnpm run preview\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\""
   },
   "devDependencies": {
     "@playwright/test": "1.48.0",
