@@ -39,7 +39,7 @@ func TestPluginIndexGeneration(t *testing.T) {
 
 			require.Equal(
 				t,
-				`export * from "../runtime/client/plugins/index.js"`,
+				`export * from "../runtime/plugins/index.js"`,
 				string(indexContent),
 			)
 		},
