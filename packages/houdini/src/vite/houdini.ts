@@ -5,12 +5,17 @@ import type {
 	ResolvedConfig,
 } from 'vite'
 import * as fs from '../lib/fs.js'
+import type { CompilerProxy } from '../lib/index.js'
 
 import type { VitePluginContext } from '.'
+import { codegen_setup } from '../lib/codegen.js'
 
 let viteEnv: ViteEnv
 let viteConfig: ResolvedConfig
 let devServer = false
+
+export let compiler: CompilerProxy
+let alreadyBuilt = false
 
 export function houdini(ctx: VitePluginContext): VitePlugin {
 	return {
@@ -19,7 +24,6 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		enforce: 'pre',
 
 		async configureServer() {
-			console.log('configure server')
 			devServer = true
 		},
 
@@ -60,7 +64,11 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
-			console.log('build start')
+			// and a proxy to talk to the compiler
+			if (!compiler) {
+				compiler = await codegen_setup(ctx.config, 'dev', ctx.db, ctx.db_file)
+			}
+
 			// check if the adapter has a pre hook
 			if (
 				ctx.adapter?.pre &&
@@ -81,11 +89,20 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			if (
 				!devServer &&
 				!is_secondary_build() &&
-				!process.env.HOUDINI_SKIP_GENERATE
+				!process.env.HOUDINI_SKIP_GENERATE &&
+				!alreadyBuilt
 			) {
 				// run the codegen
-				// await generate(config)
-				console.log('generating...')
+				await compiler.run_pipeline({
+					// the pipeline through schema is run as part of codegen_setup
+					after: 'Schema',
+				})
+
+				// make sure we don't build twice
+				alreadyBuilt = true
+
+				console.log('closing')
+				await compiler.close()
 			}
 		},
 

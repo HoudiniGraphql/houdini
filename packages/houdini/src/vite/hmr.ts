@@ -49,7 +49,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 			// before we do anyting we neeed to make sure everything has run
 			try {
-				await run_pipeline(compiler.trigger_hook, {
+				await compiler.run_pipeline({
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
 				})

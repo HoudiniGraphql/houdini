@@ -84,6 +84,9 @@ export type CompilerProxy = {
 		opts?: { parallel_safe?: boolean; payload?: {}; task_id?: string },
 	) => Promise<Record<string, any> | null>
 	database_path: string
+	run_pipeline: (
+		options: RunPipelineOptions,
+	) => Promise<Record<PipelineHook, Record<string, any>>>
 }
 
 // codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
@@ -318,6 +321,8 @@ export async function codegen_setup(
 	return {
 		database_path: db_file,
 		trigger_hook,
+		run_pipeline: (options: RunPipelineOptions) =>
+			run_pipeline(trigger_hook, options),
 		close: async () => {
 			// Close our connection to the database
 			try {
