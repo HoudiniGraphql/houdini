@@ -65,7 +65,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		// when the build starts, we need to make sure to generate
 		async buildStart(args) {
 			// and a proxy to talk to the compiler
-			if (!compiler) {
+			if (!compiler && !devServer) {
 				compiler = await codegen_setup(ctx.config, 'dev', ctx.db, ctx.db_file)
 			}
 
@@ -101,7 +101,6 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 				// make sure we don't build twice
 				alreadyBuilt = true
 
-				console.log('closing')
 				await compiler.close()
 			}
 		},
