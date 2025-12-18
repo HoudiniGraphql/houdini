@@ -7,19 +7,19 @@ test.describe('Mutation Update Page', () => {
     await goto(page, routes.Stores_Mutation_Update);
 
     const data = [
-      'mutation-update:1 - Bruce Willis',
-      'mutation-update:2 - Samuel Jackson',
-      'mutation-update:3 - Morgan Freeman',
-      'mutation-update:4 - Tom Hanks',
-      'mutation-update:5 - Will Smith'
+      'update-user-mutation:1 - Bruce Willis',
+      'update-user-mutation:2 - Samuel Jackson',
+      'update-user-mutation:3 - Morgan Freeman',
+      'update-user-mutation:4 - Tom Hanks',
+      'update-user-mutation:5 - Will Smith'
     ];
 
     const dataUpdated = [
-      'mutation-update:1 - Bruce Willis',
-      'mutation-update:2 - Samuel Jackson',
-      'mutation-update:3 - Morgan Freeman',
-      'mutation-update:4 - Tom Hanks',
-      'mutation-update:5 - tmp name update'
+      'update-user-mutation:1 - Bruce Willis',
+      'update-user-mutation:2 - Samuel Jackson',
+      'update-user-mutation:3 - Morgan Freeman',
+      'update-user-mutation:4 - Tom Hanks',
+      'update-user-mutation:5 - tmp name update'
     ];
 
     // 1 Right data
@@ -40,7 +40,7 @@ test.describe('Mutation Update Page', () => {
     // The mutation has a 1000ms delay, so we need to wait for the cache and UI to update
     await page.waitForFunction(() => {
       const listItems = document.querySelectorAll('li');
-      return listItems[4]?.textContent?.trim() === 'mutation-update:5 - tmp name update';
+      return listItems[4]?.textContent?.trim() === 'update-user-mutation:5 - tmp name update';
     }, { timeout: 5000 });
 
     li = page.locator('li');
@@ -55,7 +55,7 @@ test.describe('Mutation Update Page', () => {
     // Wait for the reverted content to appear in the UI
     await page.waitForFunction(() => {
       const listItems = document.querySelectorAll('li');
-      return listItems[4]?.textContent?.trim() === 'mutation-update:5 - Will Smith';
+      return listItems[4]?.textContent?.trim() === 'update-user-mutation:5 - Will Smith';
     }, { timeout: 5000 });
 
     li = page.locator('li');
