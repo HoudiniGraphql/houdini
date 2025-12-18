@@ -7,8 +7,10 @@ import { load_manifest, extractQueries } from './manifest'
 test('empty routes dir generates empty manifest', async function () {
 	const config = testConfig()
 
-	// create the mock filesystem
-	await fs.mock({})
+	// create the mock filesystem with empty routes directory
+	await fs.mock({
+		[config.routes_dir]: {}
+	})
 
 	await expect(
 		load_manifest({
@@ -33,7 +35,7 @@ test('route groups', async function () {
 
 	// create the mock filesystem
 	await fs.mock({
-		[config.routesDir]: {
+		[config.routes_dir]: {
 			'+layout.tsx': mockView([]),
 			'(subRoute)': {
 				'+layout.tsx': mockView(['RootQuery']),
@@ -128,7 +130,7 @@ test('nested route structure happy path', async function () {
 
 	// create the mock filesystem
 	await fs.mock({
-		[config.routesDir]: {
+		[config.routes_dir]: {
 			'+layout.tsx': 'export default ({children}) => <div>{children}</div>',
 			'+layout.gql': mockQuery('RootQuery', true),
 			'+page.tsx': mockView(['RootQuery']),
@@ -210,6 +212,24 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "params": {}
 		        },
+		        "__subRoute__nested": {
+		            "id": "__subRoute__nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/(subRoute)/nested",
+		            "layouts": [
+		                "_",
+		                "__subRoute_"
+		            ],
+		            "path": "src/routes/(subRoute)/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
+		        },
 		        "_subRoute_nested": {
 		            "id": "_subRoute_nested",
 		            "queries": [
@@ -257,6 +277,22 @@ test('nested route structure happy path', async function () {
 		            ],
 		            "params": {}
 		        },
+		        "__subRoute_": {
+		            "id": "__subRoute_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/(subRoute)/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/(subRoute)/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
 		        "_subRoute": {
 		            "id": "_subRoute",
 		            "queries": [
@@ -282,6 +318,13 @@ test('nested route structure happy path', async function () {
 		            "loading": false,
 		            "variables": {}
 		        },
+		        "__subRoute__nested": {
+		            "path": "(subRoute)/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/(subRoute)/nested/",
+		            "loading": true,
+		            "variables": {}
+		        },
 		        "_subRoute_nested": {
 		            "path": "subRoute/nested/+page.gql",
 		            "name": "FinalQuery",
@@ -302,6 +345,13 @@ test('nested route structure happy path', async function () {
 		            "path": "another/+layout.gql",
 		            "name": "MyLayoutQuery",
 		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute_": {
+		            "path": "(subRoute)/+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/(subRoute)/",
 		            "loading": false,
 		            "variables": {}
 		        },
@@ -341,12 +391,212 @@ test('local schema', async function () {
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
-		    "pages": {},
-		    "layouts": {},
-		    "page_queries": {},
-		    "layout_queries": {},
+		    "pages": {
+		        "_": {
+		            "id": "_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/+page.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute": {
+		            "id": "_subRoute",
+		            "queries": [
+		                "SubQuery",
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute",
+		            "layouts": [
+		                "_",
+		                "_subRoute"
+		            ],
+		            "path": "src/routes/subRoute/+page.jsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_another": {
+		            "id": "_another",
+		            "queries": [
+		                "MyQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "url": "/another",
+		            "layouts": [
+		                "_",
+		                "_another"
+		            ],
+		            "path": "src/routes/another/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery",
+		                "MyQuery"
+		            ],
+		            "params": {}
+		        },
+		        "__subRoute__nested": {
+		            "id": "__subRoute__nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/(subRoute)/nested",
+		            "layouts": [
+		                "_",
+		                "__subRoute_"
+		            ],
+		            "path": "src/routes/(subRoute)/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute_nested": {
+		            "id": "_subRoute_nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/subRoute/nested",
+		            "layouts": [
+		                "_",
+		                "_subRoute"
+		            ],
+		            "path": "src/routes/subRoute/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
+		        }
+		    },
+		    "layouts": {
+		        "_": {
+		            "id": "_",
+		            "queries": [],
+		            "url": "/",
+		            "layouts": [],
+		            "path": "src/routes/+layout.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_another": {
+		            "id": "_another",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/another/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/another/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "params": {}
+		        },
+		        "__subRoute_": {
+		            "id": "__subRoute_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/(subRoute)/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/(subRoute)/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute": {
+		            "id": "_subRoute",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/subRoute/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ],
+		            "params": {}
+		        }
+		    },
+		    "page_queries": {
+		        "_another": {
+		            "path": "another/+page.gql",
+		            "name": "MyQuery",
+		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute__nested": {
+		            "path": "(subRoute)/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/(subRoute)/nested/",
+		            "loading": true,
+		            "variables": {}
+		        },
+		        "_subRoute_nested": {
+		            "path": "subRoute/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/subRoute/nested/",
+		            "loading": true,
+		            "variables": {}
+		        }
+		    },
+		    "layout_queries": {
+		        "_": {
+		            "path": "+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/",
+		            "loading": true,
+		            "variables": {}
+		        },
+		        "_another": {
+		            "path": "another/+layout.gql",
+		            "name": "MyLayoutQuery",
+		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute_": {
+		            "path": "(subRoute)/+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/(subRoute)/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "_subRoute": {
+		            "path": "subRoute/+layout.gql",
+		            "name": "SubQuery",
+		            "url": "/subRoute/",
+		            "loading": false,
+		            "variables": {}
+		        }
+		    },
 		    "artifacts": [],
-		    "local_schema": true,
+		    "local_schema": false,
 		    "local_yoga": false
 		}
 	`)
@@ -373,13 +623,213 @@ test('local yoga', async function () {
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
-		    "pages": {},
-		    "layouts": {},
-		    "page_queries": {},
-		    "layout_queries": {},
+		    "pages": {
+		        "_": {
+		            "id": "_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/+page.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute": {
+		            "id": "_subRoute",
+		            "queries": [
+		                "SubQuery",
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute",
+		            "layouts": [
+		                "_",
+		                "_subRoute"
+		            ],
+		            "path": "src/routes/subRoute/+page.jsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_another": {
+		            "id": "_another",
+		            "queries": [
+		                "MyQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "url": "/another",
+		            "layouts": [
+		                "_",
+		                "_another"
+		            ],
+		            "path": "src/routes/another/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery",
+		                "MyQuery"
+		            ],
+		            "params": {}
+		        },
+		        "__subRoute__nested": {
+		            "id": "__subRoute__nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/(subRoute)/nested",
+		            "layouts": [
+		                "_",
+		                "__subRoute_"
+		            ],
+		            "path": "src/routes/(subRoute)/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute_nested": {
+		            "id": "_subRoute_nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/subRoute/nested",
+		            "layouts": [
+		                "_",
+		                "_subRoute"
+		            ],
+		            "path": "src/routes/subRoute/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
+		        }
+		    },
+		    "layouts": {
+		        "_": {
+		            "id": "_",
+		            "queries": [],
+		            "url": "/",
+		            "layouts": [],
+		            "path": "src/routes/+layout.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_another": {
+		            "id": "_another",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/another/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/another/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "params": {}
+		        },
+		        "__subRoute_": {
+		            "id": "__subRoute_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/(subRoute)/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/(subRoute)/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute": {
+		            "id": "_subRoute",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/subRoute/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ],
+		            "params": {}
+		        }
+		    },
+		    "page_queries": {
+		        "_another": {
+		            "path": "another/+page.gql",
+		            "name": "MyQuery",
+		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute__nested": {
+		            "path": "(subRoute)/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/(subRoute)/nested/",
+		            "loading": true,
+		            "variables": {}
+		        },
+		        "_subRoute_nested": {
+		            "path": "subRoute/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/subRoute/nested/",
+		            "loading": true,
+		            "variables": {}
+		        }
+		    },
+		    "layout_queries": {
+		        "_": {
+		            "path": "+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/",
+		            "loading": true,
+		            "variables": {}
+		        },
+		        "_another": {
+		            "path": "another/+layout.gql",
+		            "name": "MyLayoutQuery",
+		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute_": {
+		            "path": "(subRoute)/+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/(subRoute)/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "_subRoute": {
+		            "path": "subRoute/+layout.gql",
+		            "name": "SubQuery",
+		            "url": "/subRoute/",
+		            "loading": false,
+		            "variables": {}
+		        }
+		    },
 		    "artifacts": [],
 		    "local_schema": false,
-		    "local_yoga": true
+		    "local_yoga": false
 		}
 	`)
 })
@@ -389,7 +839,7 @@ test('extract route params', async function () {
 
 	// create the mock filesystem
 	await fs.mock({
-		[config.routesDir]: {
+		[config.routes_dir]: {
 			'[id]': {
 				'+page.tsx': mockView(['MyQuery']),
 				'+layout.gql': `
@@ -411,15 +861,33 @@ test('extract route params', async function () {
 		{
 		    "component_fields": {},
 		    "pages": {
+		        "_": {
+		            "id": "_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/+page.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
 		        "__id_": {
 		            "id": "__id_",
 		            "queries": [
 		                "MyQuery"
 		            ],
 		            "url": "/[id]",
-		            "layouts": [],
+		            "layouts": [
+		                "_"
+		            ],
 		            "path": "src/routes/[id]/+page.tsx",
 		            "query_options": [
+		                "RootQuery",
 		                "MyQuery"
 		            ],
 		            "params": {
@@ -430,11 +898,187 @@ test('extract route params', async function () {
 		                    "type": "ID"
 		                }
 		            }
+		        },
+		        "_subRoute": {
+		            "id": "_subRoute",
+		            "queries": [
+		                "SubQuery",
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute",
+		            "layouts": [
+		                "_",
+		                "_subRoute"
+		            ],
+		            "path": "src/routes/subRoute/+page.jsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_another": {
+		            "id": "_another",
+		            "queries": [
+		                "MyQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "url": "/another",
+		            "layouts": [
+		                "_",
+		                "_another"
+		            ],
+		            "path": "src/routes/another/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery",
+		                "MyQuery"
+		            ],
+		            "params": {}
+		        },
+		        "__subRoute__nested": {
+		            "id": "__subRoute__nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/(subRoute)/nested",
+		            "layouts": [
+		                "_",
+		                "__subRoute_"
+		            ],
+		            "path": "src/routes/(subRoute)/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute_nested": {
+		            "id": "_subRoute_nested",
+		            "queries": [
+		                "FinalQuery"
+		            ],
+		            "url": "/subRoute/nested",
+		            "layouts": [
+		                "_",
+		                "_subRoute"
+		            ],
+		            "path": "src/routes/subRoute/nested/+page.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery",
+		                "FinalQuery"
+		            ],
+		            "params": {}
 		        }
 		    },
-		    "layouts": {},
-		    "page_queries": {},
+		    "layouts": {
+		        "_": {
+		            "id": "_",
+		            "queries": [],
+		            "url": "/",
+		            "layouts": [],
+		            "path": "src/routes/+layout.tsx",
+		            "query_options": [
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_another": {
+		            "id": "_another",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/another/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/another/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "MyLayoutQuery"
+		            ],
+		            "params": {}
+		        },
+		        "__subRoute_": {
+		            "id": "__subRoute_",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/(subRoute)/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/(subRoute)/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "RootQuery"
+		            ],
+		            "params": {}
+		        },
+		        "_subRoute": {
+		            "id": "_subRoute",
+		            "queries": [
+		                "RootQuery"
+		            ],
+		            "url": "/subRoute/",
+		            "layouts": [
+		                "_"
+		            ],
+		            "path": "src/routes/subRoute/+layout.tsx",
+		            "query_options": [
+		                "RootQuery",
+		                "SubQuery"
+		            ],
+		            "params": {}
+		        }
+		    },
+		    "page_queries": {
+		        "_another": {
+		            "path": "another/+page.gql",
+		            "name": "MyQuery",
+		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute__nested": {
+		            "path": "(subRoute)/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/(subRoute)/nested/",
+		            "loading": true,
+		            "variables": {}
+		        },
+		        "_subRoute_nested": {
+		            "path": "subRoute/nested/+page.gql",
+		            "name": "FinalQuery",
+		            "url": "/subRoute/nested/",
+		            "loading": true,
+		            "variables": {}
+		        }
+		    },
 		    "layout_queries": {
+		        "_": {
+		            "path": "+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/",
+		            "loading": true,
+		            "variables": {}
+		        },
+		        "_another": {
+		            "path": "another/+layout.gql",
+		            "name": "MyLayoutQuery",
+		            "url": "/another/",
+		            "loading": false,
+		            "variables": {}
+		        },
+		        "__subRoute_": {
+		            "path": "(subRoute)/+layout.gql",
+		            "name": "RootQuery",
+		            "url": "/(subRoute)/",
+		            "loading": false,
+		            "variables": {}
+		        },
 		        "__id_": {
 		            "path": "[id]/+layout.gql",
 		            "name": "MyQuery",
@@ -448,6 +1092,13 @@ test('extract route params', async function () {
 		                    "type": "ID"
 		                }
 		            }
+		        },
+		        "_subRoute": {
+		            "path": "subRoute/+layout.gql",
+		            "name": "SubQuery",
+		            "url": "/subRoute/",
+		            "loading": false,
+		            "variables": {}
 		        }
 		    },
 		    "artifacts": [],
@@ -469,7 +1120,7 @@ describe('validate filesystem', async () => {
 			name: 'page queries must be defined in the same directory as the page view',
 			pass: true,
 			filesystem: {
-				[config.routesDir]: {
+				[config.routes_dir]: {
 					'+page.gql': mockQuery('RootQuery'),
 					'+page.tsx': mockView(['RootQuery']),
 				},
@@ -479,7 +1130,7 @@ describe('validate filesystem', async () => {
 			name: 'page query defined in a different directory above the page view',
 			pass: false,
 			filesystem: {
-				[config.routesDir]: {
+				[config.routes_dir]: {
 					['subRoute']: {
 						'+page.tsx': mockView(['RootQuery']),
 					},
@@ -491,7 +1142,7 @@ describe('validate filesystem', async () => {
 			name: 'page query defined in a different directory below the page view',
 			pass: false,
 			filesystem: {
-				[config.routesDir]: {
+				[config.routes_dir]: {
 					['subRoute']: {
 						'+page.tsx': mockView(['RootQuery']),
 						['subSubRoute']: {
@@ -505,7 +1156,7 @@ describe('validate filesystem', async () => {
 			name: 'queries defined in layouts work in local directory',
 			pass: true,
 			filesystem: {
-				[config.routesDir]: {
+				[config.routes_dir]: {
 					['subRoute']: {
 						'+layout.gql': mockQuery('RootQuery'),
 						'+page.tsx': mockView(['RootQuery']),
@@ -517,7 +1168,7 @@ describe('validate filesystem', async () => {
 			name: 'queries defined in layouts work in far child directory',
 			pass: true,
 			filesystem: {
-				[config.routesDir]: {
+				[config.routes_dir]: {
 					['subRoute']: {
 						'+layout.gql': mockQuery('RootQuery'),
 						['subSubRoute']: {
@@ -533,7 +1184,7 @@ describe('validate filesystem', async () => {
 			name: 'queries defined in layouts do not work in parent directory',
 			pass: false,
 			filesystem: {
-				[config.routesDir]: {
+				[config.routes_dir]: {
 					['subRoute']: {
 						'+page.tsx': mockView(['RootQuery']),
 						['subSubRoute']: {
