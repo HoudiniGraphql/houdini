@@ -1,8 +1,8 @@
 import { test, expect, vi } from 'vitest'
 
 import { testConfigFile } from '../../../test'
-import { RefetchUpdateMode, type SubscriptionSelection } from '../../lib'
-import { Cache } from '../cache'
+import { RefetchUpdateMode, type SubscriptionSelection } from '../../types'
+import { Cache } from '../index'
 
 const config = testConfigFile()
 

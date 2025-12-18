@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
-import { fs } from '../../lib'
-import { testConfig, clearMock } from '../../test'
+import { fs } from '../lib'
+import { testConfig, clearMock } from '../test'
 import { load_manifest, extractQueries } from './manifest'
 
 test('empty routes dir generates empty manifest', async function () {
@@ -13,7 +13,7 @@ test('empty routes dir generates empty manifest', async function () {
 	await expect(
 		load_manifest({
 			config,
-		})
+		}),
 	).resolves.to.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -49,7 +49,7 @@ test('route groups', async function () {
 	expect(
 		await load_manifest({
 			config,
-		})
+		}),
 	).toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -153,7 +153,7 @@ test('nested route structure happy path', async function () {
 	await expect(
 		load_manifest({
 			config,
-		})
+		}),
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -337,7 +337,7 @@ test('local schema', async function () {
 	await expect(
 		load_manifest({
 			config,
-		})
+		}),
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -369,7 +369,7 @@ test('local yoga', async function () {
 	await expect(
 		load_manifest({
 			config,
-		})
+		}),
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -406,7 +406,7 @@ test('extract route params', async function () {
 	await expect(
 		load_manifest({
 			config,
-		})
+		}),
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},

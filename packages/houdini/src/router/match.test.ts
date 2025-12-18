@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { testConfigFile } from '../../test'
+import { testConfigFile } from '../test'
 import { exec, find_match, parse_page_pattern } from './match'
 import type { RouterManifest } from './types'
 

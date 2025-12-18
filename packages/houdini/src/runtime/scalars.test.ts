@@ -1,8 +1,9 @@
 import { test, expect, describe, beforeEach } from 'vitest'
 
-import { testConfigFile } from '../../test'
+import { parseScalar } from '../router/match'
+import { testConfigFile } from '../test'
 import { defaultConfigValues, setMockConfig } from './config'
-import { marshalInputs, marshalSelection, parseScalar } from './scalars'
+import { marshalInputs, marshalSelection } from './scalars'
 import type { QueryArtifact, SubscriptionSelection } from './types'
 import { ArtifactKind } from './types'
 

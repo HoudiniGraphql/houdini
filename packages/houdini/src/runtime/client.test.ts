@@ -1,6 +1,6 @@
 import { expect, vi, test } from 'vitest'
 
-import { DataSource } from '../lib'
+import { DataSource } from './types'
 import type { ClientPlugin } from './documentStore'
 import { createStore } from './documentStore.test'
 

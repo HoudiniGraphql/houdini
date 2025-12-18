@@ -2,9 +2,10 @@ import { sleep } from 'houdini'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { createPluginHooks, HoudiniClient } from '.'
-import { setMockConfig } from '../lib/config'
+import { setMockConfig, getCurrentConfig } from './config'
 import type { GraphQLObject } from '../lib/types'
-import { ArtifactKind, DataSource } from '../lib/types'
+import { ArtifactKind } from '../lib/types'
+import { DataSource } from './types'
 import type { ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
 
@@ -1168,11 +1169,12 @@ export function createStore(
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
+		config: getCurrentConfig,
 	})
 
 	return new DocumentStore({
 		client,
-		pipeline: createPluginHooks(plugins),
+		plugins: createPluginHooks(plugins),
 		artifact: {
 			kind: ArtifactKind.Query,
 			stripVariables: [],
@@ -1195,6 +1197,7 @@ export function createStore(
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: undefined,
 		fetching,
+		config: getCurrentConfig(),
 	})
 }
 
@@ -1204,11 +1207,12 @@ export function createFragmentStore(
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
+		config: getCurrentConfig,
 	})
 
 	return new DocumentStore({
 		client,
-		pipeline: createPluginHooks(plugins),
+		plugins: createPluginHooks(plugins),
 		artifact: {
 			stripVariables: [],
 			kind: ArtifactKind.Fragment,
@@ -1231,6 +1235,7 @@ export function createFragmentStore(
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: undefined,
 		fetching,
+		config: getCurrentConfig(),
 	})
 }
 
@@ -1239,11 +1244,12 @@ function createStoreMutation(
 ): DocumentStore<GraphQLObject, Record<string, any>> {
 	const client = new HoudiniClient({
 		url: 'URL',
+		config: getCurrentConfig,
 	})
 
 	return new DocumentStore({
 		client,
-		pipeline: createPluginHooks(plugins),
+		plugins: createPluginHooks(plugins),
 		artifact: {
 			kind: ArtifactKind.Mutation,
 			stripVariables: [],
@@ -1256,5 +1262,6 @@ function createStoreMutation(
 		},
 		// turn off the cache since we aren't pushing actual graphql documents through by default
 		cache: undefined,
+		config: getCurrentConfig(),
 	})
 }

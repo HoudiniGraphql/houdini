@@ -1,5 +1,6 @@
 import type { ConfigFile } from 'houdini'
 
+import { getCurrentConfig } from './config'
 import { getFieldsForType } from './selection'
 import {
 	fragmentKey,
@@ -13,11 +14,11 @@ import {
 export function marshalSelection({
 	selection,
 	data,
-	config,
+	config = getCurrentConfig(),
 }: {
 	selection: SubscriptionSelection
 	data: any
-	config: ConfigFile
+	config?: ConfigFile
 }): {} | null | undefined {
 	if (data === null || typeof data === 'undefined') {
 		return data
@@ -76,13 +77,13 @@ export function marshalSelection({
 export function marshalInputs({
 	artifact,
 	input,
-	config,
+	config = getCurrentConfig(),
 	rootType = '@root',
 }: {
 	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact | FragmentArtifact
 	input: unknown
 	rootType?: string
-	config: ConfigFile
+	config?: ConfigFile
 }): {} | null | undefined {
 	if (input === null || typeof input === 'undefined') {
 		return input
@@ -139,3 +140,5 @@ export function isScalar(config: ConfigFile, type: string) {
 		.concat(Object.keys(config.scalars || {}))
 		.includes(type)
 }
+
+
