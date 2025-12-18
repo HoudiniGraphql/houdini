@@ -140,5 +140,3 @@ export function isScalar(config: ConfigFile, type: string) {
 		.concat(Object.keys(config.scalars || {}))
 		.includes(type)
 }
-
-

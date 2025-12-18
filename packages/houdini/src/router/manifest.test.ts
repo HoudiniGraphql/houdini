@@ -9,13 +9,13 @@ test('empty routes dir generates empty manifest', async function () {
 
 	// create the mock filesystem with empty routes directory
 	await fs.mock({
-		[config.routes_dir]: {}
+		[config.routes_dir]: {},
 	})
 
 	await expect(
 		load_manifest({
 			config,
-		}),
+		})
 	).resolves.to.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -51,7 +51,7 @@ test('route groups', async function () {
 	expect(
 		await load_manifest({
 			config,
-		}),
+		})
 	).toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -155,7 +155,7 @@ test('nested route structure happy path', async function () {
 	await expect(
 		load_manifest({
 			config,
-		}),
+		})
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -387,7 +387,7 @@ test('local schema', async function () {
 	await expect(
 		load_manifest({
 			config,
-		}),
+		})
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -619,7 +619,7 @@ test('local yoga', async function () {
 	await expect(
 		load_manifest({
 			config,
-		}),
+		})
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},
@@ -856,7 +856,7 @@ test('extract route params', async function () {
 	await expect(
 		load_manifest({
 			config,
-		}),
+		})
 	).resolves.toMatchInlineSnapshot(`
 		{
 		    "component_fields": {},

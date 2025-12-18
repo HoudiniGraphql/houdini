@@ -67,7 +67,7 @@ describe('evaluateKey', function () {
 				.parse(`{ ${row.expected} }`)
 				.definitions.find<graphql.OperationDefinitionNode>(
 					(def): def is graphql.OperationDefinitionNode =>
-						def.kind === 'OperationDefinition' && def.operation === 'query',
+						def.kind === 'OperationDefinition' && def.operation === 'query'
 				)!.selectionSet.selections[0] as graphql.FieldNode
 
 			// make sure we matched expectations

@@ -2,12 +2,12 @@ import { sleep } from 'houdini'
 import { test, expect, vi, beforeEach } from 'vitest'
 
 import { createPluginHooks, HoudiniClient } from '.'
-import { setMockConfig, getCurrentConfig } from './config'
 import type { GraphQLObject } from '../lib/types'
 import { ArtifactKind } from '../lib/types'
-import { DataSource } from './types'
+import { setMockConfig, getCurrentConfig } from './config'
 import type { ClientPlugin } from './documentStore'
 import { DocumentStore } from './documentStore'
+import { DataSource } from './types'
 
 beforeEach(() => {
 	setMockConfig({
