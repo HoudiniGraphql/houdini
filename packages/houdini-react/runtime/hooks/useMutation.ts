@@ -3,7 +3,7 @@ import type {
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 
 import { useSession } from '../routing/Router'
 import { useDocumentStore } from './useDocumentStore'

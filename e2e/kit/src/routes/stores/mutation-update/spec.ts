@@ -36,6 +36,13 @@ test.describe('Mutation Update Page', () => {
     // 2.1 One request should happen
     await expect_1_gql(page, 'button[id="mutate"]');
 
+    // Wait for the specific updated content to appear in the UI
+    // The mutation has a 1000ms delay, so we need to wait for the cache and UI to update
+    await page.waitForFunction(() => {
+      const listItems = document.querySelectorAll('li');
+      return listItems[4]?.textContent?.trim() === 'update-user-mutation:5 - tmp name update';
+    }, { timeout: 5000 });
+
     li = page.locator('li');
     for (let i = 0; i < count; ++i) {
       const text = await li.nth(i).textContent();
@@ -44,6 +51,13 @@ test.describe('Mutation Update Page', () => {
 
     // 3 Revert data
     await expect_1_gql(page, 'button[id="revert"]');
+
+    // Wait for the reverted content to appear in the UI
+    await page.waitForFunction(() => {
+      const listItems = document.querySelectorAll('li');
+      return listItems[4]?.textContent?.trim() === 'update-user-mutation:5 - Will Smith';
+    }, { timeout: 5000 });
+
     li = page.locator('li');
     for (let i = 0; i < count; ++i) {
       const text = await li.nth(i).textContent();

@@ -2,7 +2,7 @@ import * as graphql from 'graphql'
 import type { GraphQLSchema } from 'graphql'
 import minimatch from 'minimatch'
 
-import { plugin_dir } from './conventions.js'
+import { plugin_dir } from '../router/conventions.js'
 import * as path from './path.js'
 import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
@@ -271,6 +271,10 @@ export class Config {
 		return this.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
 	}
 
+	get localApiDir() {
+		return path.join(this.root_dir, 'src', 'api')
+	}
+
 	async api_url() {
 		const apiURL = this.config_file.watchSchema?.url
 		if (!apiURL) {
@@ -409,6 +413,10 @@ export class Config {
 
 	get artifact_dir() {
 		return path.join(this.root_dir, this.config_file.runtimeDir || '.houdini', 'artifacts')
+	}
+
+	get routes_dir() {
+		return path.join(this.root_dir, 'src', 'routes')
 	}
 
 	// the location of the artifact generated corresponding to the provided documents

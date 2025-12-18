@@ -41,6 +41,26 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 		lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
 	})
 
+	// Also verify runtime directory types (no emit)
+	try {
+		const runtimeFiles = await glob('./runtime/**/*.ts*', { nodir: true })
+		const filteredRuntimeFiles = runtimeFiles.filter((path) => !path.endsWith('test.ts'))
+
+		if (filteredRuntimeFiles.length > 0) {
+			verifyTypes(filteredRuntimeFiles, {
+				...tsConfig.compilerOptions,
+				moduleResolution: ModuleResolutionKind.NodeJs,
+				noEmit: true, // Only verify, don't emit
+				emitDeclarationOnly: false, // Disable declaration-only mode when using noEmit
+				project: path.join(process.cwd(), '..', '..'),
+				baseUrl: process.cwd(),
+				lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
+			})
+		}
+	} catch (e) {
+		// Runtime directory doesn't exist, skip it
+	}
+
 	// if we generated typedefs for a plugin, it referenced houdini and needs to be pulled out
 	let nested_typedefs = false
 	let plugin_dir = path.resolve('.', 'build', package_json.name, 'src')
@@ -213,6 +233,31 @@ function compile(fileNames, options) {
 	let emitResult = program.emit()
 
 	let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)
+
+	allDiagnostics.forEach((diagnostic) => {
+		if (diagnostic.file) {
+			let { line, character } = ts.getLineAndCharacterOfPosition(
+				diagnostic.file,
+				diagnostic.start ?? 0
+			)
+			let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
+			console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`)
+		} else {
+			console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+		}
+	})
+
+	if (allDiagnostics.length > 0) {
+		process.exit(1)
+	}
+}
+
+/** @type { function(string[], import('typescript').CompilerOptions): void } */
+function verifyTypes(fileNames, options) {
+	let program = ts.createProgram(fileNames, options)
+
+	// Only get pre-emit diagnostics for type checking (no emit)
+	let allDiagnostics = ts.getPreEmitDiagnostics(program)
 
 	allDiagnostics.forEach((diagnostic) => {
 		if (diagnostic.file) {

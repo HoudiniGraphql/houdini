@@ -134,7 +134,7 @@ export class Config {
 		// validate the log level value
 		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevels)) {
 			console.warn(
-				`⚠️ Invalid log level provided. Valid values are: ${JSON.stringify(
+				`! Invalid log level provided. Valid values are: ${JSON.stringify(
 					Object.values(LogLevel)
 				)}`
 			)
@@ -371,9 +371,6 @@ export class Config {
 		return path.join(this.projectRoot, 'src')
 	}
 
-	get localApiDir() {
-		return path.join(this.sourceDir, 'api')
-	}
 
 	get localSchemaPath() {
 		return path.join(this.localApiDir, '+schema')
@@ -1159,7 +1156,7 @@ export async function getConfig({
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
 				if (fs.glob.hasMagic(_config.schemaPath)) {
 					console.log(
-						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
+						`!  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
 	This will prevent your schema from being pulled.`
 					)
 				}
@@ -1180,7 +1177,7 @@ export async function getConfig({
 				try {
 					_config.schema = await loadSchemaFile(_config.schemaPath)
 				} catch (e) {
-					console.error(`⚠️  Your schema file could not be loaded: ${e}`)
+					console.error(`!  Your schema file could not be loaded: ${e}`)
 				}
 			}
 		}

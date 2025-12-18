@@ -5,14 +5,17 @@ import { fileURLToPath } from 'node:url'
 // to the dist directory
 const adapter: Adapter = async ({ adapterPath, outDir }) => {
 	// read the contents of the worker file
-	let workerContents = (await fs.readFile(
+	let workerContents = await fs.readFile(
 		fileURLToPath(new URL('./worker.js', import.meta.url).href)
-	))!
+	)
+	if (!workerContents) {
+		throw new Error('Failed to read worker.js file for Cloudflare adapter')
+	}
 
 	// make sure that the adapter module imports from the correct path
 	workerContents = workerContents.replaceAll('houdini/adapter', adapterPath)
 
-	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents!)
+	await fs.writeFile(path.join(outDir, '_worker.js'), workerContents)
 }
 
 export default adapter

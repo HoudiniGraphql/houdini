@@ -3,8 +3,8 @@ import type {
 	QueryResult,
 	SubscriptionArtifact,
 	GraphQLObject,
-} from '$houdini/runtime/lib/types'
-import { CompiledSubscriptionKind } from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
+import { CompiledSubscriptionKind } from 'houdini/runtime'
 import { derived, writable, type Subscriber, type Writable } from 'svelte/store'
 
 import { initClient } from '../client'

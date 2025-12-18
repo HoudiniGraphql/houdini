@@ -1,6 +1,12 @@
 import * as graphql from 'graphql'
 import type { ConfigFile } from 'houdini'
 import { Config } from 'houdini'
+import { vol } from 'memfs'
+
+export function clearMock() {
+	// Clear the mock filesystem volume
+	vol.reset()
+}
 
 export function testConfigFile({ plugins, ...config }: Partial<ConfigFile> = {}): ConfigFile {
 	return {

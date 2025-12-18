@@ -1,10 +1,11 @@
-import { DocumentStore, type ObserveParams } from '$houdini/runtime/client'
+import { getCurrentConfig } from '$houdini/runtime'
 import type {
 	GraphQLObject,
 	DocumentArtifact,
 	QueryResult,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
+import { DocumentStore, type ObserveParams } from 'houdini/runtime/client'
 import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
@@ -44,6 +45,7 @@ export class BaseStore<
 			client: null,
 			fetching: params.fetching,
 			initialValue: params.initialValue,
+			config: getCurrentConfig(),
 		})
 
 		this.#params = params
@@ -55,7 +57,7 @@ export class BaseStore<
 			return this.#observer
 		}
 
-		this.#observer = getClient().observe<_Data, _Input>(this.#params)
+		this.#observer = getClient().observe<_Data, _Input>(this.#params)!
 
 		return this.#observer
 	}

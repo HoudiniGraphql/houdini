@@ -1,4 +1,4 @@
-import type { serverAdapterFactory as createAdapter } from 'houdini-core/runtime/router/server'
+import type { serverAdapterFactory as createAdapter } from '../router/server'
 
 export const endpoint: string = ''
 
@@ -12,5 +12,6 @@ export let createServerAdapter: (
 		| 'graphqlEndpoint'
 		| 'componentCache'
 		| 'client'
-	>
+		| 'config_file'
+	>,
 ) => ReturnType<typeof createAdapter>

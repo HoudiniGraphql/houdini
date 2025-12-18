@@ -1,3 +1,4 @@
+import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import type {
 	FetchQueryResult,
 	CompiledFragmentKind,
@@ -8,8 +9,7 @@ import type {
 	PageInfo,
 	HoudiniFetchContext,
 	FetchParams,
-} from '$houdini/runtime/lib/types'
-import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
+} from 'houdini/runtime'
 import type { Readable } from 'svelte/store'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }

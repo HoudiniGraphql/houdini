@@ -1,7 +1,7 @@
 // a suspense cache is an object that maintains a key-value store of
 // objects. If a value is missing when get() is called, a promise
 // is thrown that resolves when a value is passed to set()
-import { LRUCache } from '$houdini/runtime/lib/lru'
+import { LRUCache } from 'houdini/runtime'
 
 export function suspense_cache<T>(initialData?: Record<string, T>): SuspenseCache<T> {
 	const cache = new SuspenseCache<T>()

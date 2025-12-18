@@ -1,5 +1,3 @@
-import fs from 'node:fs/promises'
-import type { DatabaseSync } from 'node:sqlite'
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
 import type { VitePluginContext } from '.'
@@ -22,7 +20,6 @@ import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } fro
  */
 
 export let compiler: CompilerProxy
-const VIRTUAL_PREFIX = '\0houdini:artifact:'
 
 export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	const debounceHmr = createDebounceHmr(50) // 50ms debounce window
@@ -46,7 +43,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 			// before we do anyting we neeed to make sure everything has run
 			try {
-				await run_pipeline(compiler.trigger_hook, {
+				await compiler.run_pipeline({
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
 				})
@@ -227,8 +224,6 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				const updated_modules = Object.values(
 					results.GenerateDocuments || {}
 				).flat() as Array<string>
-
-				console.log({ updated_modules })
 
 				// and finally we can remove the task id association
 				ctx.db

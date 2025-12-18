@@ -29,9 +29,12 @@
     "generate:preserve": "pnpm houdini generate -r",
     "build:generate": "pnpm build: && pnpm houdini generate",
     "build:build": "pnpm build: && pnpm build",
+    "build:test": "pnpm build:build && pnpm test",
+    "build:tests": "pnpm build:build && pnpm test",
     "houdini": "node ensureLinks.js && houdini",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --port 3007",
+    "preview-e2e": "concurrently \"pnpm run preview\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\""
   },
   "devDependencies": {
     "@playwright/test": "1.48.0",

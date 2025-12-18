@@ -1,4 +1,4 @@
-import type { GraphQLVariables, GraphQLObject, QueryArtifact } from '$houdini/runtime/lib/types'
+import type { GraphQLVariables, GraphQLObject, QueryArtifact } from 'houdini/runtime'
 
 import type { UseQueryConfig } from './useQueryHandle'
 import { useQueryHandle } from './useQueryHandle'

@@ -1,0 +1,36 @@
+import type { ClientPlugin, ClientPluginContext } from 'houdini/runtime/documentStore'
+import type { DocumentArtifact } from 'houdini/runtime/types'
+
+export type FetchParamFn = (ctx: FetchParamsInput) => Required<ClientPluginContext>['fetchParams']
+
+export const fetchParams: (fn?: FetchParamFn) => ClientPlugin =
+	(fn = () => ({})) =>
+	() => ({
+		start(ctx, { next, marshalVariables }) {
+			next({
+				...ctx,
+				fetchParams: fn({
+					// most of the stuff comes straight from the context
+					config: ctx.config,
+					policy: ctx.policy,
+					metadata: ctx.metadata,
+					session: ctx.session,
+					stuff: ctx.stuff,
+					// a few fields are renamed or modified
+					document: ctx.artifact,
+					variables: marshalVariables(ctx),
+					text: ctx.text,
+					hash: ctx.hash,
+				}),
+			})
+		},
+	})
+
+export type FetchParamsInput = Pick<
+	ClientPluginContext,
+	'config' | 'policy' | 'variables' | 'metadata' | 'session' | 'stuff'
+> & {
+	text: string
+	hash: string
+	document: DocumentArtifact
+}

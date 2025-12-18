@@ -1,7 +1,7 @@
 import { type Adapter, fs, path } from 'houdini'
 import { fileURLToPath } from 'node:url'
 
-const adapter: Adapter = async ({ outDir, adapterPath }) => {
+const adapter: Adapter = async ({ outDir, adapterPath, config }) => {
 	// read the contents of the app file
 	let serverContents = (await fs.readFile(
 		fileURLToPath(new URL('./app.js', import.meta.url).href)

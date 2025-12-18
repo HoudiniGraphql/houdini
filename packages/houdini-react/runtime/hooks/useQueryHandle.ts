@@ -1,10 +1,5 @@
-import { createLRUCache } from '$houdini/runtime/lib/lru'
-import type {
-	GraphQLObject,
-	CachePolicies,
-	QueryArtifact,
-	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+import { createLRUCache } from 'houdini/runtime'
+import type { GraphQLObject, CachePolicies, QueryArtifact, GraphQLVariables } from 'houdini/runtime'
 import React from 'react'
 
 import { useClient } from '../routing'

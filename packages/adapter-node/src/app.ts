@@ -15,7 +15,7 @@ const serverAdapter = createServerAdapter({
 
 // wrap the server adapter in a node http server
 const nodeServer = createServer((req, res) => {
-	if (req.url && req.url.startsWith('/assets')) {
+	if (req.url?.startsWith('/assets')) {
 		return handleAssets(req, res)
 	}
 

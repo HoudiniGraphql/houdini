@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url'
 import type { PluginOption } from 'vite'
 
 import { connect_db, get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
+import { compiler } from './hmr'
 import { document_hmr } from './hmr.js'
 import { houdini } from './houdini.js'
 import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema.js'

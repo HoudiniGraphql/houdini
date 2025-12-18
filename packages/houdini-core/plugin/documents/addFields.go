@@ -203,25 +203,17 @@ func AddDocumentFields[PluginConfig any](
 			JOIN raw_documents ON raw_documents.id = documents.raw_document
 		WHERE connection = true
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-			AND (documents.processed = false OR documents.processed IS NULL)
 	`)
 	if err != nil {
 		return commit(plugins.WrapError(err))
 	}
 	defer connectionWalk.Finalize()
 
-	// if we have any connection-based discovered lists then we can just add a single page-info selection
-	// to add to the field for every match
-	var pageInfoSelection int64
-	pageInfoFields := []int64{}
-	pageInfoFieldsCreated := false
-
-	// track which documents have had pageInfo subfields linked to avoid race conditions
-	documentsWithPageInfo := make(map[int64]bool)
 	// track which edge fields already have cursor selections to avoid duplicates
 	edgesWithCursor := make(map[int64]int64)
 	// track which list fields already have pageInfo selections added to avoid duplicates
-	pageInfoAddedLists := make(map[int64]bool)
+	// Use a composite key of (listField, docID) to ensure pageInfo is added per document
+	pageInfoAddedLists := make(map[string]bool)
 
 	err = db.StepStatement(ctx, connectionWalk, func() {
 		listField := connectionWalk.ColumnInt64(0)
@@ -230,9 +222,10 @@ func AddDocumentFields[PluginConfig any](
 		connectionType := connectionWalk.GetText("connection_type")
 		edgeType := connectionWalk.GetText("edge_type")
 
-		// if we haven't generate a page info selection, do it now
-		if pageInfoSelection == 0 {
-			// insert the selection for pageInfo
+		// only add the pageInfo selection to the list field if we haven't done it yet for this document
+		listFieldDocKey := fmt.Sprintf("%d_%d", listField, docID)
+		if !pageInfoAddedLists[listFieldDocKey] {
+			// create a new pageInfo selection for this document
 			err := db.ExecStatement(insertSelection, map[string]any{
 				"field_name": "pageInfo",
 				"alias":      "pageInfo",
@@ -243,32 +236,26 @@ func AddDocumentFields[PluginConfig any](
 				errs.Append(plugins.WrapError(err))
 				return
 			}
-			pageInfoSelection = conn.LastInsertRowID()
+			pageInfoSelection := conn.LastInsertRowID()
 
-			// create pageInfo subfields once (shared across all documents)
-			if !pageInfoFieldsCreated {
-				// we need to add the fields to the pageInfo selection
-				for _, field := range []string{"hasNextPage", "hasPreviousPage", "startCursor", "endCursor"} {
-					err = db.ExecStatement(insertSelection, map[string]any{
-						"field_name": field,
-						"alias":      field,
-						"kind":       "field",
-						"type":       fmt.Sprintf("PageInfo.%s", field),
-					})
-					if err != nil {
-						errs.Append(plugins.WrapError(err))
-						return
-					}
-
-					pageInfoFields = append(pageInfoFields, conn.LastInsertRowID())
+			// create pageInfo subfields for this document
+			pageInfoFields := []int64{}
+			for _, field := range []string{"hasNextPage", "hasPreviousPage", "startCursor", "endCursor"} {
+				err = db.ExecStatement(insertSelection, map[string]any{
+					"field_name": field,
+					"alias":      field,
+					"kind":       "field",
+					"type":       fmt.Sprintf("PageInfo.%s", field),
+				})
+				if err != nil {
+					errs.Append(plugins.WrapError(err))
+					return
 				}
-				pageInfoFieldsCreated = true
-			}
-		}
 
-		// link up the page fields to the info selection for each document that needs it
-		if !documentsWithPageInfo[docID] {
-			// link up the page fields to the info selection within the context of the matching document
+				pageInfoFields = append(pageInfoFields, conn.LastInsertRowID())
+			}
+
+			// link up the page fields to the info selection for this document
 			for _, field := range pageInfoFields {
 				err := db.ExecStatement(insertSelectionRef, map[string]any{
 					"parent_id":  pageInfoSelection,
@@ -284,14 +271,8 @@ func AddDocumentFields[PluginConfig any](
 					return
 				}
 			}
-			documentsWithPageInfo[docID] = true
-		}
 
-		// by now we can assume that we have a pageInfo selection along with selections for each field
-
-		// only add the pageInfo selection to the list field if we haven't done it yet
-		if !pageInfoAddedLists[listField] {
-			// and add the pageInfo selection to the edges field
+			// add the pageInfo selection to the list field
 			err = db.ExecStatement(insertSelectionRef, map[string]any{
 				"parent_id":  listField,
 				"child_id":   pageInfoSelection,
@@ -305,7 +286,7 @@ func AddDocumentFields[PluginConfig any](
 				errs.Append(plugins.WrapError(err))
 				return
 			}
-			pageInfoAddedLists[listField] = true
+			pageInfoAddedLists[listFieldDocKey] = true
 		}
 
 		// only add cursor selection if we haven't added it for this edges field yet

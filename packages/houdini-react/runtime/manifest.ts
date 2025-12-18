@@ -1,4 +1,4 @@
-import type { RouterManifest } from '$houdini/runtime/lib/types'
+import type { RouterManifest } from 'houdini/runtime'
 
 // @ts-ignore: this file will get replaced by the build system
 const manifest: RouterManifest = {}

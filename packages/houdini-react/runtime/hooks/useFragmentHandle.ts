@@ -4,7 +4,7 @@ import type {
 	QueryArtifact,
 	fragmentKey,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
 
 import { useDocumentHandle, type DocumentHandle } from './useDocumentHandle'
 import { useDocumentStore } from './useDocumentStore'

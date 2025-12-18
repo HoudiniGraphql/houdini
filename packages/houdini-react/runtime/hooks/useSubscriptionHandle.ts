@@ -1,8 +1,4 @@
-import type {
-	SubscriptionArtifact,
-	GraphQLObject,
-	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
+import type { SubscriptionArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
 
 import { useDocumentSubscription } from './useDocumentSubscription'
 

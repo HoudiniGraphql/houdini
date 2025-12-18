@@ -574,8 +574,17 @@ func collectDoc(
 						if !childExists {
 							canonicalParent.Children = append(canonicalParent.Children, selection)
 						} else if existingChild != nil {
-							// Redirect future references to the existing child
+							// When redirecting to an existing child, we need to ensure that
+							// any future children of this selection are properly linked to the existing child
+							// This is important for shared selections like pageInfo across multiple documents
 							selections[selectionID] = existingChild
+
+							// Also ensure that the existing child maintains all necessary properties
+							// from the current selection (like visibility flags)
+							if !selection.Internal && existingChild.Internal {
+								existingChild.Internal = false
+								existingChild.Visible = true
+							}
 						}
 					} else {
 						if _, ok := missingParents[parentID]; !ok {

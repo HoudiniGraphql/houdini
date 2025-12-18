@@ -1,5 +1,6 @@
-import type { ListCollection as _Collection } from '../cache/lists'
-import type { GraphQLObject, SubscriptionSelection } from '../lib/types'
+import type { GraphQLObject, SubscriptionSelection } from 'houdini/runtime'
+import type { ListCollection as _Collection } from 'houdini/runtime/cache/lists'
+
 import type { Cache } from './cache'
 import { Record } from './record'
 import type { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'

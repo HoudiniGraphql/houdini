@@ -1,8 +1,9 @@
+import { getCurrentConfig } from '$houdini/runtime'
 import type { DocumentStore } from '$houdini/runtime/client'
-import { getCurrentConfig, keyFieldsForType } from '$houdini/runtime/lib/config'
-import { siteURL } from '$houdini/runtime/lib/constants'
-import { extractPageInfo } from '$houdini/runtime/lib/pageInfo'
-import { cursorHandlers, offsetHandlers } from '$houdini/runtime/lib/pagination'
+import { keyFieldsForType } from 'houdini/runtime'
+import { siteURL } from 'houdini/runtime'
+import { extractPageInfo } from 'houdini/runtime'
+import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
 import type {
 	FragmentArtifact,
 	GraphQLObject,
@@ -12,8 +13,8 @@ import type {
 	CursorHandlers,
 	GraphQLVariables,
 	fragmentKey,
-} from '$houdini/runtime/lib/types'
-import { CompiledFragmentKind } from '$houdini/runtime/lib/types'
+} from 'houdini/runtime'
+import { CompiledFragmentKind } from 'houdini/runtime'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 

@@ -1,5 +1,5 @@
-import type { GraphQLObject } from '$houdini/runtime/lib/types'
-import type { Cache } from '$houdini/runtime/cache/cache'
+import type { GraphQLObject } from 'houdini/runtime'
+import type { Cache } from 'houdini/runtime/cache'
 
 import client from './client'
 import manifest from './manifest'

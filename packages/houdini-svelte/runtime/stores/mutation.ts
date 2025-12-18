@@ -1,10 +1,10 @@
+import type { RequestEvent } from '@sveltejs/kit'
 import type {
 	MutationArtifact,
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from '$houdini/runtime/lib/types'
-import type { RequestEvent } from '@sveltejs/kit'
+} from 'houdini/runtime'
 
 import { initClient } from '../client'
 import { BaseStore } from './base'

@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // we need to make sure we have executables for houdini
 try {
+  // Remove existing bin file (might be a pnpm wrapper script)
+  await fs.rm('node_modules/.bin/houdini', { force: true });
+
   await fs.symlink(
     path.resolve(__dirname, '../../packages/houdini/build/cmd/index.js'),
     'node_modules/.bin/houdini',
@@ -18,6 +21,10 @@ await fs.chmod('node_modules/.bin/houdini', 0o755);
 
 // create symlinks for houdini plugins to point to their built directories
 const plugins = [
+  {
+    name: 'houdini',
+    path: path.resolve(__dirname, '../../packages/houdini/build')
+  },
   {
     name: 'houdini-svelte',
     path: path.resolve(__dirname, '../../packages/houdini-svelte/build/houdini-svelte')

@@ -1,13 +1,14 @@
-import { GraphQLObject, GraphQLVariables } from '$houdini/runtime/lib/types'
-import { QueryArtifact } from '$houdini/runtime/lib/types'
-import type { Cache } from '$houdini/runtime/cache/cache'
-import { DocumentStore, HoudiniClient } from '$houdini/runtime/client'
+import { GraphQLObject, GraphQLVariables } from 'houdini/runtime'
+import { QueryArtifact } from 'houdini/runtime'
+import type { Cache } from 'houdini/runtime/cache'
+import { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
+import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
-import { deepEquals } from '$houdini/runtime/lib/deepEquals'
-import { LRUCache } from '$houdini/runtime/lib/lru'
-import { marshalSelection, marshalInputs } from '$houdini/runtime/lib/scalars'
-import { find_match } from '$houdini/runtime/router/match'
-import type { RouterManifest, RouterPageManifest } from '$houdini/runtime/router/types'
+import { deepEquals } from 'houdini/runtime'
+import { LRUCache } from 'houdini/runtime'
+import { marshalSelection, marshalInputs } from 'houdini/runtime'
+import { find_match } from 'houdini/router/match'
+import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext } from 'react'
 
@@ -215,7 +216,7 @@ function usePageData({
 		}
 
 		// send the request
-		const observer = data_cache.has(artifact.name)
+		const observer: DocumentStore<GraphQLObject, GraphQLVariables> = data_cache.has(artifact.name)
 			? data_cache.get(artifact.name)!
 			: client.observe({ artifact, cache })
 
@@ -252,6 +253,7 @@ function usePageData({
 									marshalSelection({
 										selection: observer.artifact.selection,
 										data: observer.state.data,
+										config: getCurrentConfig(),
 									})
 								)}
 

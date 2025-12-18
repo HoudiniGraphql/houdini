@@ -73,16 +73,16 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}/index.js`,
 			}
+      package_json.exports[`./*`] = {
+				types: `./build/${dirname}/*`,
+				import: `./build/${dirname}/index.js`,
+			}
 			package_json.types = `./build/${dirname}/index.d.ts`
 			package_json.typesVersions['*']['.'] = [`./build/${dirname}/index.d.ts`]
 		}
-		// runtimes can't be bundled and should be copied as raw .ts files
-		else if (dirname === 'runtime') {
-			await copyRuntimeFiles({ outDir, source: dir })
-		}
 		// cmd can now be unbundled since we fixed all import paths
 		else if (dirname === 'cmd') {
-			package_json.bin = './build/cmd/index.js'
+			package_json.bin = './cmd/index.js'
 			await build({ outDir, packages, source: dir, plugin, bundle: false, cmd: true })
 		}
 
@@ -100,9 +100,17 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				types: `./build/${dirname}/index.d.ts`,
 				import: `./build/${dirname}/index.js`,
 			}
+			package_json.exports['./' + dirname + "/*"] = {
+				types: `./build/${dirname}/*`,
+				import: `./build/${dirname}/*`,
+			}
 			package_json.typesVersions['*'][dirname] = [`./build/${dirname}/index.d.ts`]
 		}
 	}
+
+	// After processing all directories, scan for subdirectories with index.js files
+	// and add explicit exports for them to handle ES module directory resolution
+	await addSubdirectoryExports(package_json, outDir)
 
 	// Write to the package root (after processing all directories)
 	await fs.writeFile(
@@ -129,6 +137,9 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 			}
 		}
 	}
+
+	// Also add subdirectory exports to the build package.json
+	await addSubdirectoryExportsForBuild(buildPackageJson, outDir)
 
 	// Update other build-relative paths
 	if (buildPackageJson.bin && buildPackageJson.bin.startsWith('./build/')) {
@@ -277,4 +288,122 @@ export async function copyRuntimeFiles({ outDir, source }) {
 		JSON.stringify({ type: 'module' }),
 		'utf-8'
 	)
+}
+
+// Function to scan for subdirectories with index.js files and add explicit exports
+async function addSubdirectoryExports(packageJson, outDir) {
+	try {
+		// Find all index.js files in the build directory
+		const indexFiles = await glob(path.join(outDir, '**/index.js').replaceAll('\\', '/'), {
+			nodir: true,
+		})
+
+		for (const indexFile of indexFiles) {
+			// Get the relative path from the build directory
+			const relativePath = path.relative(outDir, path.dirname(indexFile))
+
+			// Skip the root index.js (already handled)
+			if (!relativePath) continue
+
+			// Convert path separators to forward slashes for export keys
+			const exportKey = './' + relativePath.replace(/\\/g, '/')
+
+			// Only add if not already present
+			if (!packageJson.exports[exportKey]) {
+				packageJson.exports[exportKey] = {
+					types: `./build/${relativePath}/index.d.ts`,
+					import: `./build/${relativePath}/index.js`,
+				}
+			}
+		}
+
+		// Also add explicit exports for commonly imported files to avoid wildcard issues
+		await addCommonFileExports(packageJson, outDir)
+	} catch (error) {
+		console.warn('Warning: Failed to scan for subdirectory exports:', error.message)
+	}
+}
+
+// Function to add explicit exports for commonly imported files
+async function addCommonFileExports(packageJson, outDir) {
+	const commonFiles = ['types.js', 'constants.js', 'config.js']
+
+	for (const dirname of ['runtime', 'lib']) {
+		for (const fileName of commonFiles) {
+			const filePath = path.join(outDir, dirname, fileName)
+			try {
+				await fs.access(filePath)
+				const baseName = path.basename(fileName, '.js')
+				const exportKey = `./${dirname}/${baseName}`
+
+				if (!packageJson.exports[exportKey]) {
+					packageJson.exports[exportKey] = {
+						types: `./build/${dirname}/${baseName}.d.ts`,
+						import: `./build/${dirname}/${baseName}.js`,
+					}
+				}
+			} catch {
+				// File doesn't exist, skip
+			}
+		}
+	}
+}
+
+// Function to add subdirectory exports for build package.json (with build-relative paths)
+async function addSubdirectoryExportsForBuild(packageJson, outDir) {
+	try {
+		// Find all index.js files in the build directory
+		const indexFiles = await glob(path.join(outDir, '**/index.js').replaceAll('\\', '/'), {
+			nodir: true,
+		})
+
+		for (const indexFile of indexFiles) {
+			// Get the relative path from the build directory
+			const relativePath = path.relative(outDir, path.dirname(indexFile))
+
+			// Skip the root index.js (already handled)
+			if (!relativePath) continue
+
+			// Convert path separators to forward slashes for export keys
+			const exportKey = './' + relativePath.replace(/\\/g, '/')
+
+			// Only add if not already present
+			if (!packageJson.exports[exportKey]) {
+				packageJson.exports[exportKey] = {
+					types: `./${relativePath}/index.d.ts`,
+					import: `./${relativePath}/index.js`,
+				}
+			}
+		}
+
+		// Also add explicit exports for commonly imported files to avoid wildcard issues
+		await addCommonFileExportsForBuild(packageJson, outDir)
+	} catch (error) {
+		console.warn('Warning: Failed to scan for subdirectory exports for build package.json:', error.message)
+	}
+}
+
+// Function to add explicit exports for commonly imported files (build version)
+async function addCommonFileExportsForBuild(packageJson, outDir) {
+	const commonFiles = ['types.js', 'constants.js', 'config.js']
+
+	for (const dirname of ['runtime', 'lib']) {
+		for (const fileName of commonFiles) {
+			const filePath = path.join(outDir, dirname, fileName)
+			try {
+				await fs.access(filePath)
+				const baseName = path.basename(fileName, '.js')
+				const exportKey = `./${dirname}/${baseName}`
+
+				if (!packageJson.exports[exportKey]) {
+					packageJson.exports[exportKey] = {
+						types: `./${dirname}/${baseName}.d.ts`,
+						import: `./${dirname}/${baseName}.js`,
+					}
+				}
+			} catch {
+				// File doesn't exist, skip
+			}
+		}
+	}
 }

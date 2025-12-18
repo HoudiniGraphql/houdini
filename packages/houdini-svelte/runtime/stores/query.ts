@@ -1,6 +1,9 @@
-import type { FetchContext } from '$houdini/runtime/client/plugins/fetch'
-import { getCurrentConfig } from '$houdini/runtime/lib/config'
-import * as log from '$houdini/runtime/lib/log'
+import { HoudiniClient } from '$houdini/runtime/client'
+import { getCurrentConfig } from '$houdini/runtime/config'
+import type { LoadEvent } from '@sveltejs/kit'
+import type { HoudiniSvelteConfig } from 'houdini-svelte'
+import type { FetchContext } from 'houdini/runtime'
+import * as log from 'houdini/runtime'
 import type {
 	CachePolicies,
 	GraphQLVariables,
@@ -8,10 +11,8 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
-} from '$houdini/runtime/lib/types'
-import { ArtifactKind, CachePolicy, CompiledQueryKind } from '$houdini/runtime/lib/types'
-import type { LoadEvent } from '@sveltejs/kit'
-import type { HoudiniSvelteConfig } from 'houdini-svelte'
+} from 'houdini/runtime'
+import { ArtifactKind, CachePolicy, CompiledQueryKind } from 'houdini/runtime'
 import { get } from 'svelte/store'
 
 import { clientStarted, isBrowser } from '../adapter'
@@ -58,7 +59,7 @@ export class QueryStore<
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const client = await initClient()
+		const client = (await initClient()) as HoudiniClient
 
 		this.setup(false)
 

@@ -1,7 +1,8 @@
-import { rootID } from '../cache/stuff'
-import { marshalInputs } from '../lib'
-import { keyFieldsForType } from '../lib/config'
-import type { FragmentArtifact, GraphQLObject } from '../lib/types'
+import { marshalInputs } from 'houdini/runtime'
+import { keyFieldsForType } from 'houdini/runtime'
+import type { FragmentArtifact, GraphQLObject } from 'houdini/runtime'
+import { rootID } from 'houdini/runtime/cache/stuff'
+
 import type { Cache } from './cache'
 import type {
 	ArgType,

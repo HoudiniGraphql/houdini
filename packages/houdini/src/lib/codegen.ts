@@ -3,9 +3,8 @@ import path from 'node:path'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
 import { WebSocket } from 'ws'
 
+import * as conventions from '../router/conventions.js'
 import type { Config } from './config.js'
-import { db_path, houdini_root } from './conventions.js'
-import type * as routerConventions from './conventions.js'
 import { create_schema, write_config } from './database.js'
 import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
@@ -22,7 +21,7 @@ export type PluginSpec = {
 
 export type Adapter = ((args: {
 	config: Config
-	conventions: typeof routerConventions
+	conventions: typeof conventions
 	sourceDir: string
 	publicBase: string
 	outDir: string
@@ -33,7 +32,7 @@ export type Adapter = ((args: {
 	disableServer?: boolean
 	pre?: (args: {
 		config: Config
-		conventions: typeof routerConventions
+		conventions: typeof conventions
 		sourceDir: string
 		publicBase: string
 		outDir: string
@@ -41,7 +40,7 @@ export type Adapter = ((args: {
 }
 
 export function connect_db(config: Config): [DatabaseSync, string] {
-	const filepath = db_path(config)
+	const filepath = conventions.db_path(config)
 	const db = new sqlite.DatabaseSync(filepath)
 	db.exec('PRAGMA journal_mode = WAL')
 	db.exec('PRAGMA synchronous = off')
@@ -58,7 +57,7 @@ export function connect_db(config: Config): [DatabaseSync, string] {
 }
 
 export async function init_db(config: Config, preserve: boolean): Promise<[DatabaseSync, string]> {
-	const db_file = db_path(config)
+	const db_file = conventions.db_path(config)
 
 	// we need to create a fresh database for orchestration
 	if (!preserve) {
@@ -82,6 +81,9 @@ export type CompilerProxy = {
 		opts?: { parallel_safe?: boolean; payload?: {}; task_id?: string }
 	) => Promise<Record<string, any> | null>
 	database_path: string
+	run_pipeline: (
+		options: RunPipelineOptions
+	) => Promise<Record<PipelineHook, Record<string, any>>>
 }
 
 // codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
@@ -93,7 +95,7 @@ export async function codegen_setup(
 	db_file: string
 ): Promise<CompilerProxy> {
 	// We need the root dir before we get to the exciting stuff
-	await fs.mkdirpSync(houdini_root(config))
+	await fs.mkdirpSync(conventions.houdini_root(config))
 
 	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
 
@@ -394,6 +396,7 @@ export async function codegen_setup(
 	return {
 		database_path: db_file,
 		trigger_hook,
+		run_pipeline: (options: RunPipelineOptions) => run_pipeline(trigger_hook, options),
 		close: async () => {
 			// close ws connections first, this will trigger plugin processes to exit gracefully
 			for (const [name, ws] of wsConnections.entries()) {

@@ -571,7 +571,7 @@ function configure(options) {
 		}
 	}
 
-	function stringify(value, replacer, space) {
+	function stringify(value, replacer?: any, space?: any) {
 		if (arguments.length > 1) {
 			let spacer = ''
 			if (typeof space === 'number') {

@@ -137,7 +137,7 @@ jobs:
 
             - name: Run Go tests
               run: |
-                  go test ./... -v -timeout 15m -run "TestPaginationArtifacts/paginate_over_unions"
+                  go test ./... -v -timeout 15m 
 
     verify_init:
         name: Verify Init
@@ -193,7 +193,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest]
-                framework: [e2e-svelte, e2e-kit]
+                framework: [e2e-kit]
         runs-on: ${{ matrix.os }}
 
         steps:

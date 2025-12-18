@@ -72,17 +72,89 @@
             "types": "./build/adapter/index.d.ts",
             "import": "./build/adapter/index.js"
         },
+        "./adapter/*": {
+            "types": "./build/adapter/*",
+            "import": "./build/adapter/*"
+        },
         ".": {
             "types": "./build/lib/index.d.ts",
             "import": "./build/lib/index.js"
+        },
+        "./*": {
+            "types": "./build/lib/*",
+            "import": "./build/lib/index.js"
+        },
+        "./router": {
+            "types": "./build/router/index.d.ts",
+            "import": "./build/router/index.js"
+        },
+        "./router/*": {
+            "types": "./build/router/*",
+            "import": "./build/router/*"
+        },
+        "./runtime": {
+            "types": "./build/runtime/index.d.ts",
+            "import": "./build/runtime/index.js"
+        },
+        "./runtime/*": {
+            "types": "./build/runtime/*",
+            "import": "./build/runtime/*"
         },
         "./test": {
             "types": "./build/test/index.d.ts",
             "import": "./build/test/index.js"
         },
+        "./test/*": {
+            "types": "./build/test/*",
+            "import": "./build/test/*"
+        },
         "./vite": {
             "types": "./build/vite/index.d.ts",
             "import": "./build/vite/index.js"
+        },
+        "./vite/*": {
+            "types": "./build/vite/*",
+            "import": "./build/vite/*"
+        },
+        "./lib": {
+            "types": "./build/lib/index.d.ts",
+            "import": "./build/lib/index.js"
+        },
+        "./cmd": {
+            "types": "./build/cmd/index.d.ts",
+            "import": "./build/cmd/index.js"
+        },
+        "./runtime/cache": {
+            "types": "./build/runtime/cache/index.d.ts",
+            "import": "./build/runtime/cache/index.js"
+        },
+        "./lib/router": {
+            "types": "./build/lib/router/index.d.ts",
+            "import": "./build/lib/router/index.js"
+        },
+        "./runtime/types": {
+            "types": "./build/runtime/types.d.ts",
+            "import": "./build/runtime/types.js"
+        },
+        "./runtime/constants": {
+            "types": "./build/runtime/constants.d.ts",
+            "import": "./build/runtime/constants.js"
+        },
+        "./runtime/config": {
+            "types": "./build/runtime/config.d.ts",
+            "import": "./build/runtime/config.js"
+        },
+        "./lib/types": {
+            "types": "./build/lib/types.d.ts",
+            "import": "./build/lib/types.js"
+        },
+        "./lib/constants": {
+            "types": "./build/lib/constants.d.ts",
+            "import": "./build/lib/constants.js"
+        },
+        "./lib/config": {
+            "types": "./build/lib/config.d.ts",
+            "import": "./build/lib/config.js"
         }
     },
     "typesVersions": {
@@ -93,6 +165,12 @@
             ".": [
                 "./build/lib/index.d.ts"
             ],
+            "router": [
+                "./build/router/index.d.ts"
+            ],
+            "runtime": [
+                "./build/runtime/index.d.ts"
+            ],
             "test": [
                 "./build/test/index.d.ts"
             ],
@@ -101,6 +179,6 @@
             ]
         }
     },
-    "bin": "./build/cmd/index.js",
+    "bin": "./cmd/index.js",
     "types": "./build/lib/index.d.ts"
 }
