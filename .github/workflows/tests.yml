@@ -146,6 +146,7 @@ jobs:
 
             # Restore built packages
             - uses: actions/cache/restore@v3
+              id: build-cache
               with:
                 path: |
                   packages/*/build/
@@ -154,6 +155,11 @@ jobs:
                 key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
                 restore-keys: |
                   build-${{ runner.os }}-
+
+            # Build packages if cache miss
+            - name: Build packages
+              if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
 
             - name: Run tests
               run: pnpm run tests
@@ -181,8 +187,6 @@ jobs:
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  path: houdini
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -210,24 +214,30 @@ jobs:
                 restore-keys: ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              run: cd houdini && pnpm install --frozen-lockfile --prefer-offline
+              run: pnpm install --frozen-lockfile --prefer-offline
 
             # Restore built packages
             - uses: actions/cache/restore@v3
+              id: build-cache
               with:
                 path: |
-                  houdini/packages/*/build/
-                  houdini/packages/*/package/
-                  houdini/.turbo/
+                  packages/*/build/
+                  packages/*/package/
+                  .turbo/
                 key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
                 restore-keys: |
                   build-${{ runner.os }}-
+
+            # Build packages if cache miss
+            - name: Build packages
+              if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
 
             - name: Create template project
               run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
 
             - name: Run init
-              run: cd project && node ../houdini/packages/houdini/build/cmd/index.js init -y
+              run: cd project && node ../packages/houdini/build/cmd/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
@@ -267,6 +277,7 @@ jobs:
 
             # Restore built packages
             - uses: actions/cache/restore@v3
+              id: build-cache
               with:
                 path: |
                   packages/*/build/
@@ -275,6 +286,11 @@ jobs:
                 key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
                 restore-keys: |
                   build-${{ runner.os }}-
+
+            # Build packages if cache miss
+            - name: Build packages
+              if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
 
             # Playwright setup
             - name: Get Playwright version
@@ -335,6 +351,7 @@ jobs:
 
             # Restore built packages
             - uses: actions/cache/restore@v3
+              id: build-cache
               with:
                 path: |
                   packages/*/build/
@@ -343,6 +360,11 @@ jobs:
                 key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
                 restore-keys: |
                   build-${{ runner.os }}-
+
+            # Build packages if cache miss
+            - name: Build packages
+              if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
 
             - name: Test Plugin Detection and Generation
               run: pnpm --filter ${{ matrix.framework }} compile:generate
@@ -385,6 +407,7 @@ jobs:
 
             # Restore built packages
             - uses: actions/cache/restore@v3
+              id: build-cache
               with:
                 path: |
                   packages/*/build/
@@ -393,6 +416,11 @@ jobs:
                 key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
                 restore-keys: |
                   build-${{ runner.os }}-
+
+            # Build packages if cache miss
+            - name: Build packages
+              if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
 
             - name: Build kit assets
               run: pnpm --filter e2e-kit run build
