@@ -6,7 +6,19 @@ import path from 'path'
 import ts from 'typescript'
 
 const { ModuleResolutionKind } = ts
-const tsConfig = JSON.parse(fsSync.readFileSync('../../tsconfig.json', 'utf-8'))
+
+// Parse TypeScript configuration properly
+const tsConfigPath = path.resolve('../../tsconfig.json')
+const tsConfigFile = ts.readConfigFile(tsConfigPath, ts.sys.readFile)
+if (tsConfigFile.error) {
+	throw new Error(`Error reading tsconfig.json: ${tsConfigFile.error.messageText}`)
+}
+
+const parsedTsConfig = ts.parseJsonConfigFileContent(
+	tsConfigFile.config,
+	ts.sys,
+	path.dirname(tsConfigPath)
+)
 
 // we'll generate the types for every file in the package in one go
 export default async function generate_typedefs({ plugin, goPackage }) {
@@ -33,7 +45,7 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 
 	// compile the types
 	compile(files, {
-		...tsConfig.compilerOptions,
+		...parsedTsConfig.options,
 		moduleResolution: ModuleResolutionKind.NodeJs,
 		outDir: 'build',
 		project: path.join(process.cwd(), '..', '..'),
