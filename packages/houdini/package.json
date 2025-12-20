@@ -26,6 +26,7 @@
         "@types/minimatch": "^5.1.2",
         "@types/node": "^22.13.1",
         "@types/ungap__structured-clone": "^0.3.0",
+        "@types/ws": "^8.18.1",
         "kleur": "^4.1.5",
         "prettier": "^2.8.3",
         "rollup": "^4.28.1",
@@ -116,21 +117,105 @@
             "types": "./build/vite/*",
             "import": "./build/vite/*"
         },
+        "./vite-esm": {
+            "types": "./build/vite-esm/index.d.ts",
+            "import": "./build/vite-esm/index.js"
+        },
+        "./vite-cjs": {
+            "types": "./build/vite-cjs/index.d.ts",
+            "import": "./build/vite-cjs/index.js"
+        },
+        "./runtime-esm": {
+            "types": "./build/runtime-esm/index.d.ts",
+            "import": "./build/runtime-esm/index.js"
+        },
+        "./runtime-cjs": {
+            "types": "./build/runtime-cjs/index.d.ts",
+            "import": "./build/runtime-cjs/index.js"
+        },
+        "./lib-esm": {
+            "types": "./build/lib-esm/index.d.ts",
+            "import": "./build/lib-esm/index.js"
+        },
+        "./lib-cjs": {
+            "types": "./build/lib-cjs/index.d.ts",
+            "import": "./build/lib-cjs/index.js"
+        },
         "./lib": {
             "types": "./build/lib/index.d.ts",
             "import": "./build/lib/index.js"
+        },
+        "./cmd-esm": {
+            "types": "./build/cmd-esm/index.d.ts",
+            "import": "./build/cmd-esm/index.js"
+        },
+        "./cmd-cjs": {
+            "types": "./build/cmd-cjs/index.d.ts",
+            "import": "./build/cmd-cjs/index.js"
         },
         "./cmd": {
             "types": "./build/cmd/index.d.ts",
             "import": "./build/cmd/index.js"
         },
+        "./adapter-esm": {
+            "types": "./build/adapter-esm/index.d.ts",
+            "import": "./build/adapter-esm/index.js"
+        },
+        "./adapter-cjs": {
+            "types": "./build/adapter-cjs/index.d.ts",
+            "import": "./build/adapter-cjs/index.js"
+        },
+        "./runtime-esm/public": {
+            "types": "./build/runtime-esm/public/index.d.ts",
+            "import": "./build/runtime-esm/public/index.js"
+        },
+        "./runtime-esm/lib": {
+            "types": "./build/runtime-esm/lib/index.d.ts",
+            "import": "./build/runtime-esm/lib/index.js"
+        },
+        "./runtime-esm/client": {
+            "types": "./build/runtime-esm/client/index.d.ts",
+            "import": "./build/runtime-esm/client/index.js"
+        },
+        "./runtime-esm/cache": {
+            "types": "./build/runtime-esm/cache/index.d.ts",
+            "import": "./build/runtime-esm/cache/index.js"
+        },
+        "./runtime-cjs/public": {
+            "types": "./build/runtime-cjs/public/index.d.ts",
+            "import": "./build/runtime-cjs/public/index.js"
+        },
+        "./runtime-cjs/lib": {
+            "types": "./build/runtime-cjs/lib/index.d.ts",
+            "import": "./build/runtime-cjs/lib/index.js"
+        },
+        "./runtime-cjs/client": {
+            "types": "./build/runtime-cjs/client/index.d.ts",
+            "import": "./build/runtime-cjs/client/index.js"
+        },
+        "./runtime-cjs/cache": {
+            "types": "./build/runtime-cjs/cache/index.d.ts",
+            "import": "./build/runtime-cjs/cache/index.js"
+        },
         "./runtime/cache": {
             "types": "./build/runtime/cache/index.d.ts",
             "import": "./build/runtime/cache/index.js"
         },
-        "./lib/router": {
-            "types": "./build/lib/router/index.d.ts",
-            "import": "./build/lib/router/index.js"
+        "./runtime-esm/client/utils": {
+            "types": "./build/runtime-esm/client/utils/index.d.ts",
+            "import": "./build/runtime-esm/client/utils/index.js"
+        },
+        "./runtime-esm/client/plugins": {
+            "types": "./build/runtime-esm/client/plugins/index.d.ts",
+            "import": "./build/runtime-esm/client/plugins/index.js"
+        },
+        "./runtime-cjs/client/utils": {
+            "types": "./build/runtime-cjs/client/utils/index.d.ts",
+            "import": "./build/runtime-cjs/client/utils/index.js"
+        },
+        "./runtime-cjs/client/plugins": {
+            "types": "./build/runtime-cjs/client/plugins/index.d.ts",
+            "import": "./build/runtime-cjs/client/plugins/index.js"
         },
         "./runtime/types": {
             "types": "./build/runtime/types.d.ts",
