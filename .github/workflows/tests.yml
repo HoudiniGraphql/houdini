@@ -61,7 +61,7 @@ jobs:
               run: pnpm run build
 
             - name: Upload build artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                 name: built-packages
                 path: |
@@ -139,7 +139,7 @@ jobs:
               run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                 name: built-packages
                 path: .
@@ -200,7 +200,7 @@ jobs:
               run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                 name: built-packages
                 path: .
@@ -248,7 +248,7 @@ jobs:
               run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                 name: built-packages
                 path: .
@@ -311,7 +311,7 @@ jobs:
               run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                 name: built-packages
                 path: .
@@ -356,7 +356,7 @@ jobs:
               run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                 name: built-packages
                 path: .
