@@ -111,7 +111,9 @@ export default async function () {
 	)
 
 	// now we need to create the root package
-	await fs.mkdir(path.join(buildDir, packageJSON.name))
+  try { 
+	  await fs.mkdir(path.join(buildDir, packageJSON.name))
+  } catch {}
 
 	// modify the package.json
 	packageJSON = {
