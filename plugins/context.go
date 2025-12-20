@@ -42,7 +42,15 @@ func ContextWithWSConn(ctx context.Context, conn *websocket.Conn) context.Contex
 	return context.WithValue(ctx, wsConnCtxKey{}, conn)
 }
 
-// WSConnFromContext retrieves the WebSocket connection from context.
+// WSConnFromContext helper to get the conn from context
+// Example:
+//  	if conn := WSConnFromContext(ctx); conn != nil {
+// 			conn.WriteJSON(WebSocketResponse{
+// 				ID:    ctx.Value("wsMessageID").(string),
+// 				Type:  "1error",
+// 				Error: "TEST: This is a simulated non-fatal error during generation",
+// 			})
+// 		}
 func WSConnFromContext(ctx context.Context) *websocket.Conn {
 	conn, _ := ctx.Value(wsConnCtxKey{}).(*websocket.Conn)
 	return conn
