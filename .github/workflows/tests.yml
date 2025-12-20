@@ -12,7 +12,6 @@ on:
         branches:
             - 'main'
 
-
 env:
   # Playwright uses this env var for the browser install path. See:
   # https://playwright.dev/docs/ci#directories-to-cache
@@ -20,15 +19,15 @@ env:
   PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
 
 jobs:
-    # Shared build job that builds packages once and uploads artifacts
-    build:
-        name: Build Packages
+    # Shared setup that installs deps and builds packages
+    setup:
+        name: Setup & Build
         runs-on: ubuntu-latest
+        outputs:
+            build-cache-hit: ${{ steps.build-cache.outputs.cache-hit }}
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -41,59 +40,48 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-v2-
-
             - uses: pnpm/action-setup@v4.1.0
               name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
             - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
             - uses: actions/cache@v3
-              name: Setup pnpm cache
+              id: pnpm-cache
               with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ runner.os }}-pnpm-store-
+                restore-keys: ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
               run: pnpm install
 
-            - name: Build packages
-              run: pnpm run build
-
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v6
+            # Cache built packages based on source code changes
+            - uses: actions/cache@v3
+              id: build-cache
               with:
-                name: built-packages
                 path: |
                   packages/*/build/
                   packages/*/package/
-                retention-days: 1
+                  .turbo/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
+                restore-keys: |
+                  build-${{ runner.os }}-
+
+            - name: Build packages
+              if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
 
     format:
-        name: Formatting
+        name: Format Check
         runs-on: ubuntu-latest
-
+        needs: setup
         steps:
             - name: Checkout source
-              uses: actions/checkout@master
-              with:
-                  ref: ${{ github.ref }}
+              uses: actions/checkout@v3
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -101,30 +89,32 @@ jobs:
                 node-version: 24.9.0
 
             - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
-            - name: Install dependencies
-              run: pnpm install
+            - name: Get pnpm store directory
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-            - name: Check prettier
+            - name: Restore pnpm cache
+              uses: actions/cache/restore@v3
+              with:
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile --prefer-offline
+
+            - name: Check formatting
               run: pnpm run format:check
 
-            # - name: Check lint
-            #   run: pnpm run lint
-
     tests:
-        name: Tests
+        name: Unit Tests
         runs-on: ubuntu-latest
-        needs: build
-
+        needs: setup
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -137,43 +127,43 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-v2-
-
             - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
-            - name: Install dependencies
-              run: pnpm install
+            - name: Get pnpm store directory
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
+            - uses: actions/cache@v3
               with:
-                name: built-packages
-                path: .
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: ${{ runner.os }}-pnpm-store-
 
-            - name: Tests
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile --prefer-offline
+
+            # Restore built packages
+            - uses: actions/cache/restore@v3
+              with:
+                path: |
+                  packages/*/build/
+                  packages/*/package/
+                  .turbo/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
+                restore-keys: |
+                  build-${{ runner.os }}-
+
+            - name: Run tests
               run: pnpm run tests
 
     go_tests:
         name: Go Tests
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
 
             - name: Set up Go
               uses: actions/setup-go@v4
@@ -181,29 +171,17 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-v2-
-
             - name: Run Go tests
-              run: |
-                  go test ./... -v -timeout 15m 
+              run: go test ./... -v -timeout 15m
 
     verify_init:
         name: Verify Init
         runs-on: ubuntu-latest
-        needs: build
+        needs: setup
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
               with:
-                  ref: ${{ github.ref }}
                   path: houdini
 
             - name: Install Node.js
@@ -217,30 +195,33 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-v2-
-
             - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
-            - name: Install dependencies
-              run: cd houdini && pnpm install
+            - name: Get pnpm store directory
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
+            - uses: actions/cache@v3
               with:
-                name: built-packages
-                path: houdini
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: cd houdini && pnpm install --frozen-lockfile --prefer-offline
+
+            # Restore built packages
+            - uses: actions/cache/restore@v3
+              with:
+                path: |
+                  houdini/packages/*/build/
+                  houdini/packages/*/package/
+                  houdini/.turbo/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
+                restore-keys: |
+                  build-${{ runner.os }}-
 
             - name: Create template project
               run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
@@ -250,18 +231,11 @@ jobs:
 
     e2e_tests:
         name: End-to-End Tests
-        strategy:
-            matrix:
-                os: [ubuntu-latest]
-                framework: [e2e-kit]
-        runs-on: ${{ matrix.os }}
-        needs: build
-
+        runs-on: ubuntu-latest
+        needs: setup
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -274,53 +248,37 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-
-
-            # pnpm
-
             - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
             - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
             - uses: actions/cache@v3
-              name: Setup pnpm cache
               with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ matrix.os }}-pnpm-store-
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
+            # Restore built packages
+            - uses: actions/cache/restore@v3
               with:
-                name: built-packages
-                path: .
+                path: |
+                  packages/*/build/
+                  packages/*/package/
+                  .turbo/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
+                restore-keys: |
+                  build-${{ runner.os }}-
 
-            # Playwright
-
-            # Use Playwright version as part of the cache key
-            # AFAIK this is a x-platform way to get your installed Playwright version.
-            # Be sure to be diligent in specifying ^, ~, or locked versions.
-            - run: |
-                echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
+            # Playwright setup
+            - name: Get Playwright version
+              run: echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
               id: playwright-version
 
             - uses: actions/cache@v3
@@ -329,33 +287,23 @@ jobs:
                 key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
-            - run: pnpm playwright install --with-deps
+            - name: Install Playwright
               if: steps.playwright-cache.outputs.cache-hit != 'true'
+              run: pnpm playwright install --with-deps
 
-            # Run tests
-
-            - name: End-to-End Tests (Svelte)
-              run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
-              if: matrix.framework != 'e2e-react'
-
-            - name: End-to-End Tests (React)
-              run: pnpm --filter ${{ matrix.framework }} tests
-              if: matrix.framework == 'e2e-react'
+            - name: Run E2E tests
+              run: pnpm run --filter e2e-kit build && pnpm --filter e2e-kit tests
 
     verify_generate:
         name: Verify Generate
+        runs-on: ubuntu-latest
+        needs: setup
         strategy:
             matrix:
-                os: [ubuntu-latest]
                 framework: [e2e-react, e2e-kit]
-        runs-on: ${{ matrix.os }}
-        needs: build
-
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -368,57 +316,44 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-
-
             - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
             - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
             - uses: actions/cache@v3
-              name: Setup pnpm cache
               with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ matrix.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ matrix.os }}-pnpm-store-
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
+            # Restore built packages
+            - uses: actions/cache/restore@v3
               with:
-                name: built-packages
-                path: .
+                path: |
+                  packages/*/build/
+                  packages/*/package/
+                  .turbo/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
+                restore-keys: |
+                  build-${{ runner.os }}-
 
             - name: Test Plugin Detection and Generation
               run: pnpm --filter ${{ matrix.framework }} compile:generate
 
-    e2e_sveltekit_linter:
-        name: End-to-End Linter
+    linter:
+        name: Linter & Type Check
         runs-on: ubuntu-latest
-        needs: build
-
+        needs: setup
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
-              with:
-                  ref: ${{ github.ref }}
 
             - name: Install Node.js
               uses: actions/setup-node@v3
@@ -431,48 +366,39 @@ jobs:
                   go-version: '1.23.2'
                   cache: true
 
-            - name: Cache Go modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-
-
             - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              id: pnpm-install
               with:
                 version: 10.12.1
 
             - name: Get pnpm store directory
-              id: pnpm-cache
-              run: |
-                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-            - uses: actions/cache@v3
-              name: Setup pnpm cache
-              with:
-                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: |
-                  ${{ runner.os }}-pnpm-store-
-            - name: Install dependencies
-              run: pnpm install
+              id: pnpm-cache-dir
+              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
+            - uses: actions/cache@v3
               with:
-                name: built-packages
-                path: .
+                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile --prefer-offline
+
+            # Restore built packages
+            - uses: actions/cache/restore@v3
+              with:
+                path: |
+                  packages/*/build/
+                  packages/*/package/
+                  .turbo/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
+                restore-keys: |
+                  build-${{ runner.os }}-
 
             - name: Build kit assets
               run: pnpm --filter e2e-kit run build
 
-            # needs to run after build & houdini generate
-            - name: End-to-End lint
+            - name: Run linter
               run: pnpm --filter e2e-kit run lint
 
-            - name: End-to-End check
+            - name: Run type check
               run: pnpm --filter e2e-kit run check
