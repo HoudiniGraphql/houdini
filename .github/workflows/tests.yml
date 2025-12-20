@@ -20,6 +20,71 @@ env:
   PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
 
 jobs:
+    # Shared build job that builds packages once and uploads artifacts
+    build:
+        name: Build Packages
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Install Node.js
+              uses: actions/setup-node@v3
+              with:
+                node-version: 24.9.0
+
+            - name: Set up Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version: '1.23.2'
+                  cache: true
+
+            - name: Cache Go modules
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.cache/go-build
+                      ~/go/pkg/mod
+                  key: ${{ runner.os }}-go-v2-${{ hashFiles('**/go.sum') }}
+                  restore-keys: |
+                      ${{ runner.os }}-go-v2-
+
+            - uses: pnpm/action-setup@v4.1.0
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 10.12.1
+
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Build packages
+              run: pnpm run build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v6
+              with:
+                name: built-packages
+                path: |
+                  packages/*/build/
+                  packages/*/package/
+                retention-days: 1
+
     format:
         name: Formatting
         runs-on: ubuntu-latest
@@ -53,6 +118,7 @@ jobs:
     tests:
         name: Tests
         runs-on: ubuntu-latest
+        needs: build
 
         steps:
             - name: Checkout source
@@ -87,24 +153,14 @@ jobs:
               with:
                 version: 10.12.1
 
-            # - name: Get pnpm store directory
-            #   id: pnpm-cache
-            #   run: |
-            #     echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-
-            # - uses: actions/cache@v3
-            #   name: Setup pnpm cache
-            #   with:
-            #     path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-            #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-            #     restore-keys: |
-            #       ${{ runner.os }}-pnpm-store-
-
             - name: Install dependencies
               run: pnpm install
 
-            - name: Build packages
-              run: pnpm run compile
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                name: built-packages
+                path: .
 
             - name: Tests
               run: pnpm run tests
@@ -142,6 +198,7 @@ jobs:
     verify_init:
         name: Verify Init
         runs-on: ubuntu-latest
+        needs: build
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
@@ -179,8 +236,11 @@ jobs:
             - name: Install dependencies
               run: cd houdini && pnpm install
 
-            - name: Build packages
-              run: cd houdini && pnpm run compile
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                name: built-packages
+                path: houdini
 
             - name: Create template project
               run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
@@ -195,6 +255,7 @@ jobs:
                 os: [ubuntu-latest]
                 framework: [e2e-kit]
         runs-on: ${{ matrix.os }}
+        needs: build
 
         steps:
             - name: Checkout source
@@ -247,6 +308,12 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                name: built-packages
+                path: .
+
             # Playwright
 
             # Use Playwright version as part of the cache key
@@ -267,9 +334,6 @@ jobs:
 
             # Run tests
 
-            - name: Build packages
-              run: pnpm run build
-
             - name: End-to-End Tests (Svelte)
               run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
               if: matrix.framework != 'e2e-react'
@@ -285,6 +349,7 @@ jobs:
                 os: [ubuntu-latest]
                 framework: [e2e-react, e2e-kit]
         runs-on: ${{ matrix.os }}
+        needs: build
 
         steps:
             - name: Checkout source
@@ -335,12 +400,19 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                name: built-packages
+                path: .
+
             - name: Test Plugin Detection and Generation
               run: pnpm --filter ${{ matrix.framework }} compile:generate
 
     e2e_sveltekit_linter:
         name: End-to-End Linter
         runs-on: ubuntu-latest
+        needs: build
 
         steps:
             - name: Checkout source
@@ -389,8 +461,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
-            - name: Build Package
-              run: pnpm run build
+            - name: Download build artifacts
+              uses: actions/download-artifact@v3
+              with:
+                name: built-packages
+                path: .
 
             - name: Build kit assets
               run: pnpm --filter e2e-kit run build
