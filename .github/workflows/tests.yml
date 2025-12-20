@@ -23,8 +23,6 @@ jobs:
     setup:
         name: Setup & Build
         runs-on: ubuntu-latest
-        outputs:
-            build-cache-hit: ${{ steps.build-cache.outputs.cache-hit }}
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
@@ -59,21 +57,17 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
-            # Cache built packages based on source code changes
-            - uses: actions/cache@v3
-              id: build-cache
+            - name: Build packages
+              run: pnpm run build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
               with:
+                name: built-packages
                 path: |
                   packages/*/build/
                   packages/*/package/
-                  .turbo/
-                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
-                restore-keys: |
-                  build-${{ runner.os }}-
-
-            - name: Build packages
-              if: steps.build-cache.outputs.cache-hit != 'true'
-              run: pnpm run build
+                retention-days: 1
 
     format:
         name: Format Check
@@ -144,22 +138,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            # Restore built packages
-            - uses: actions/cache/restore@v3
-              id: build-cache
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
               with:
-                path: |
-                  packages/*/build/
-                  packages/*/package/
-                  .turbo/
-                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
-                restore-keys: |
-                  build-${{ runner.os }}-
-
-            # Build packages if cache miss
-            - name: Build packages
-              if: steps.build-cache.outputs.cache-hit != 'true'
-              run: pnpm run build
+                name: built-packages
+                path: .
 
             - name: Run tests
               run: pnpm run tests
@@ -216,22 +199,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            # Restore built packages
-            - uses: actions/cache/restore@v3
-              id: build-cache
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
               with:
-                path: |
-                  packages/*/build/
-                  packages/*/package/
-                  .turbo/
-                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
-                restore-keys: |
-                  build-${{ runner.os }}-
-
-            # Build packages if cache miss
-            - name: Build packages
-              if: steps.build-cache.outputs.cache-hit != 'true'
-              run: pnpm run build
+                name: built-packages
+                path: .
 
             - name: Create template project
               run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
@@ -275,22 +247,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            # Restore built packages
-            - uses: actions/cache/restore@v3
-              id: build-cache
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
               with:
-                path: |
-                  packages/*/build/
-                  packages/*/package/
-                  .turbo/
-                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
-                restore-keys: |
-                  build-${{ runner.os }}-
-
-            # Build packages if cache miss
-            - name: Build packages
-              if: steps.build-cache.outputs.cache-hit != 'true'
-              run: pnpm run build
+                name: built-packages
+                path: .
 
             # Playwright setup
             - name: Get Playwright version
@@ -349,22 +310,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            # Restore built packages
-            - uses: actions/cache/restore@v3
-              id: build-cache
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
               with:
-                path: |
-                  packages/*/build/
-                  packages/*/package/
-                  .turbo/
-                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
-                restore-keys: |
-                  build-${{ runner.os }}-
-
-            # Build packages if cache miss
-            - name: Build packages
-              if: steps.build-cache.outputs.cache-hit != 'true'
-              run: pnpm run build
+                name: built-packages
+                path: .
 
             - name: Test Plugin Detection and Generation
               run: pnpm --filter ${{ matrix.framework }} compile:generate
@@ -405,22 +355,11 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile --prefer-offline
 
-            # Restore built packages
-            - uses: actions/cache/restore@v3
-              id: build-cache
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
               with:
-                path: |
-                  packages/*/build/
-                  packages/*/package/
-                  .turbo/
-                key: build-${{ runner.os }}-${{ hashFiles('packages/**/*.ts', 'packages/**/*.js', 'packages/**/*.json', 'turbo.json') }}
-                restore-keys: |
-                  build-${{ runner.os }}-
-
-            # Build packages if cache miss
-            - name: Build packages
-              if: steps.build-cache.outputs.cache-hit != 'true'
-              run: pnpm run build
+                name: built-packages
+                path: .
 
             - name: Build kit assets
               run: pnpm --filter e2e-kit run build
