@@ -252,10 +252,37 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                 name: built-packages
-                path: .
+                path: ./artifacts
+
+            - name: Copy build artifacts to packages
+              run: |
+                for pkg in ./artifacts/packages/*/; do
+                  pkg_name=$(basename "$pkg")
+                  echo "Copying artifacts for $pkg_name"
+                  if [ -d "$pkg/build" ]; then
+                    cp -r "$pkg/build" "./packages/$pkg_name/"
+                  fi
+                  if [ -d "$pkg/package" ]; then
+                    cp -r "$pkg/package" "./packages/$pkg_name/"
+                  fi
+                  if [ -f "$pkg/package.json" ]; then
+                    cp "$pkg/package.json" "./packages/$pkg_name/"
+                  fi
+                done
 
             - name: Relink workspace dependencies
               run: pnpm install
+
+            - name: Debug workspace dependencies
+              run: |
+                echo "=== Checking houdini package ==="
+                ls -la packages/houdini/
+                echo "=== Checking e2e-kit node_modules ==="
+                ls -la e2e/kit/node_modules/
+                echo "=== Checking houdini symlink ==="
+                ls -la e2e/kit/node_modules/houdini/
+                echo "=== Checking houdini build directory ==="
+                ls -la e2e/kit/node_modules/houdini/build/ || echo "Build directory not found"
 
             - name: Sync SvelteKit
               run: pnpm --filter e2e-kit exec svelte-kit sync
@@ -321,7 +348,23 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                 name: built-packages
-                path: .
+                path: ./artifacts
+
+            - name: Copy build artifacts to packages
+              run: |
+                for pkg in ./artifacts/packages/*/; do
+                  pkg_name=$(basename "$pkg")
+                  echo "Copying artifacts for $pkg_name"
+                  if [ -d "$pkg/build" ]; then
+                    cp -r "$pkg/build" "./packages/$pkg_name/"
+                  fi
+                  if [ -d "$pkg/package" ]; then
+                    cp -r "$pkg/package" "./packages/$pkg_name/"
+                  fi
+                  if [ -f "$pkg/package.json" ]; then
+                    cp "$pkg/package.json" "./packages/$pkg_name/"
+                  fi
+                done
 
             - name: Relink workspace dependencies
               run: pnpm install
@@ -369,7 +412,23 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                 name: built-packages
-                path: .
+                path: ./artifacts
+
+            - name: Copy build artifacts to packages
+              run: |
+                for pkg in ./artifacts/packages/*/; do
+                  pkg_name=$(basename "$pkg")
+                  echo "Copying artifacts for $pkg_name"
+                  if [ -d "$pkg/build" ]; then
+                    cp -r "$pkg/build" "./packages/$pkg_name/"
+                  fi
+                  if [ -d "$pkg/package" ]; then
+                    cp -r "$pkg/package" "./packages/$pkg_name/"
+                  fi
+                  if [ -f "$pkg/package.json" ]; then
+                    cp "$pkg/package.json" "./packages/$pkg_name/"
+                  fi
+                done
 
             - name: Relink workspace dependencies
               run: pnpm install
