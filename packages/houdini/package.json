@@ -16,6 +16,7 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
+        "build": "scripts build-node",
         "compile": "scripts build-node",
         "typedefs": "scripts typedefs"
     },
