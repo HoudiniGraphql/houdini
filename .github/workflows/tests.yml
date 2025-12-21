@@ -67,6 +67,7 @@ jobs:
                 path: |
                   packages/*/build/
                   packages/*/package/
+                  packages/*/package.json
                 retention-days: 1
 
     format:
@@ -254,7 +255,10 @@ jobs:
                 path: .
 
             - name: Relink workspace dependencies
-              run: pnpm install --frozen-lockfile
+              run: pnpm install
+
+            - name: Sync SvelteKit
+              run: pnpm --filter e2e-kit exec svelte-kit sync
 
             # Playwright setup
             - name: Get Playwright version
@@ -319,6 +323,9 @@ jobs:
                 name: built-packages
                 path: .
 
+            - name: Relink workspace dependencies
+              run: pnpm install
+
             - name: Test Plugin Detection and Generation
               run: pnpm --filter ${{ matrix.framework }} compile:generate
 
@@ -363,6 +370,9 @@ jobs:
               with:
                 name: built-packages
                 path: .
+
+            - name: Relink workspace dependencies
+              run: pnpm install
 
             - name: Build kit assets
               run: pnpm --filter e2e-kit run build
