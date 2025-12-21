@@ -60,6 +60,15 @@ jobs:
             - name: Build packages
               run: pnpm run build
 
+            - name: Debug build output
+              run: |
+                echo "=== Build output structure ==="
+                find packages -name "build" -type d
+                echo "=== Houdini build contents ==="
+                ls -la packages/houdini/build/ || echo "No houdini build directory"
+                echo "=== All packages structure ==="
+                ls -la packages/*/
+
             - name: Upload build artifacts
               uses: actions/upload-artifact@v6
               with:
@@ -254,18 +263,33 @@ jobs:
                 name: built-packages
                 path: ./artifacts
 
+            - name: Debug artifacts structure
+              run: |
+                echo "=== Artifacts directory structure ==="
+                find ./artifacts -type f | head -20
+                echo "=== Checking specific houdini artifacts ==="
+                ls -la ./artifacts/packages/houdini/ || echo "No houdini artifacts found"
+
             - name: Copy build artifacts to packages
               run: |
                 for pkg in ./artifacts/packages/*/; do
                   pkg_name=$(basename "$pkg")
                   echo "Copying artifacts for $pkg_name"
+                  echo "Source: $pkg"
+                  echo "Target: ./packages/$pkg_name/"
+                  ls -la "$pkg"
                   if [ -d "$pkg/build" ]; then
+                    echo "Copying build directory..."
                     cp -r "$pkg/build" "./packages/$pkg_name/"
+                  else
+                    echo "No build directory found in $pkg"
                   fi
                   if [ -d "$pkg/package" ]; then
+                    echo "Copying package directory..."
                     cp -r "$pkg/package" "./packages/$pkg_name/"
                   fi
                   if [ -f "$pkg/package.json" ]; then
+                    echo "Copying package.json..."
                     cp "$pkg/package.json" "./packages/$pkg_name/"
                   fi
                 done
