@@ -1,4 +1,5 @@
-import { GITHUB_TOKEN_TRIGGER_SPONSORS, WEBHOOK_PATH } from '$env/static/private'
+import { GITHUB_TOKEN_TRIGGER_SPONSORS } from '$env/static/private'
+import { WEBHOOK_PATH } from '$env/static/private'
 import { json } from '@sveltejs/kit'
 
 /** @type {import('@sveltejs/kit').Handle} */

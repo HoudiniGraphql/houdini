@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 	import { page, navigating } from '$app/stores'
 	import { Icon, SEO, SearchInput, SearchDialog, searching } from '~/components'
 	import { onMount } from 'svelte'

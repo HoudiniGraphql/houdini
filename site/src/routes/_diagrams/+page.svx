@@ -2,10 +2,10 @@
 title: Hello
 ---
 
-<script lang="ts">
+<script>
 	import mermaid from 'mermaid'
     import { onMount } from 'svelte'
-    import { colors } from './colors.ts'
+    import { colors } from './colors'
 
     onMount(() => {
         mermaid.initialize({ startOnLoad: true,

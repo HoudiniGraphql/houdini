@@ -1,10 +1,10 @@
-<script lang="ts">
+<script>
 	import { page } from '$app/stores'
 
 	export let title = 'Houdini'
 	export let description = 'The disappearing GraphQL client for SvelteKit'
 
-	const getTitle = (_title: string) => {
+	const getTitle = (_title) => {
 		if (_title.toLocaleLowerCase().startsWith('houdini')) {
 			return _title
 		}

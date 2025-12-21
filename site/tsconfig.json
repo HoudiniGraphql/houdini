@@ -18,7 +18,10 @@
 		"baseUrl": ".",
 		"allowJs": true,
 		"checkJs": true,
+		"verbatimModuleSyntax": true,
 		"paths": {
+			"$lib": ["./src/lib"],
+			"$lib/*": ["./src/lib/*"],
 			"~/*": ["src/*"]
 		}
 	},
