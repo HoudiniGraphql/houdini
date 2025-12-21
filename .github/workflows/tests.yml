@@ -66,6 +66,10 @@ jobs:
                 find packages -name "build" -type d
                 echo "=== Houdini build contents ==="
                 ls -la packages/houdini/build/ || echo "No houdini build directory"
+                echo "=== Houdini vite plugin ==="
+                ls -la packages/houdini/build/vite/ || echo "No vite directory"
+                echo "=== Vite index.js ==="
+                ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
                 echo "=== All packages structure ==="
                 ls -la packages/*/
 
@@ -269,20 +273,32 @@ jobs:
                 find packages -name "build" -type d || echo "No build directories found"
                 echo "=== Houdini package contents ==="
                 ls -la packages/houdini/ || echo "No houdini package found"
+                echo "=== Checking if houdini build exists ==="
+                ls -la packages/houdini/build/ || echo "No houdini build directory"
+                echo "=== Checking if vite plugin exists ==="
+                ls -la packages/houdini/build/vite/ || echo "No vite directory"
+                echo "=== Checking vite index.js ==="
+                ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
 
             - name: Relink workspace dependencies
               run: pnpm install
 
-            - name: Debug workspace dependencies
+            - name: Debug workspace dependencies after relink
               run: |
-                echo "=== Checking houdini package ==="
+                echo "=== Checking houdini package after relink ==="
                 ls -la packages/houdini/
+                echo "=== Checking if build directory exists after relink ==="
+                ls -la packages/houdini/build/ || echo "No build directory in packages/houdini"
                 echo "=== Checking e2e-kit node_modules ==="
-                ls -la e2e/kit/node_modules/
-                echo "=== Checking houdini symlink ==="
-                ls -la e2e/kit/node_modules/houdini/
-                echo "=== Checking houdini build directory ==="
-                ls -la e2e/kit/node_modules/houdini/build/ || echo "Build directory not found"
+                ls -la e2e/kit/node_modules/ | grep houdini
+                echo "=== Checking houdini symlink target ==="
+                readlink e2e/kit/node_modules/houdini || echo "No houdini symlink"
+                echo "=== Checking houdini symlink contents ==="
+                ls -la e2e/kit/node_modules/houdini/ || echo "Symlink broken"
+                echo "=== Checking houdini build directory via symlink ==="
+                ls -la e2e/kit/node_modules/houdini/build/ || echo "Build directory not found via symlink"
+                echo "=== Checking vite plugin via symlink ==="
+                ls -la e2e/kit/node_modules/houdini/build/vite/index.js || echo "Vite plugin not found via symlink"
 
             - name: Sync SvelteKit
               run: pnpm --filter e2e-kit exec svelte-kit sync
