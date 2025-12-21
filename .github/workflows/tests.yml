@@ -261,38 +261,14 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                 name: built-packages
-                path: ./artifacts
+                path: .
 
-            - name: Debug artifacts structure
+            - name: Debug downloaded artifacts
               run: |
-                echo "=== Artifacts directory structure ==="
-                find ./artifacts -type f | head -20
-                echo "=== Checking specific houdini artifacts ==="
-                ls -la ./artifacts/packages/houdini/ || echo "No houdini artifacts found"
-
-            - name: Copy build artifacts to packages
-              run: |
-                for pkg in ./artifacts/packages/*/; do
-                  pkg_name=$(basename "$pkg")
-                  echo "Copying artifacts for $pkg_name"
-                  echo "Source: $pkg"
-                  echo "Target: ./packages/$pkg_name/"
-                  ls -la "$pkg"
-                  if [ -d "$pkg/build" ]; then
-                    echo "Copying build directory..."
-                    cp -r "$pkg/build" "./packages/$pkg_name/"
-                  else
-                    echo "No build directory found in $pkg"
-                  fi
-                  if [ -d "$pkg/package" ]; then
-                    echo "Copying package directory..."
-                    cp -r "$pkg/package" "./packages/$pkg_name/"
-                  fi
-                  if [ -f "$pkg/package.json" ]; then
-                    echo "Copying package.json..."
-                    cp "$pkg/package.json" "./packages/$pkg_name/"
-                  fi
-                done
+                echo "=== Downloaded artifacts structure ==="
+                find packages -name "build" -type d || echo "No build directories found"
+                echo "=== Houdini package contents ==="
+                ls -la packages/houdini/ || echo "No houdini package found"
 
             - name: Relink workspace dependencies
               run: pnpm install
@@ -372,23 +348,7 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                 name: built-packages
-                path: ./artifacts
-
-            - name: Copy build artifacts to packages
-              run: |
-                for pkg in ./artifacts/packages/*/; do
-                  pkg_name=$(basename "$pkg")
-                  echo "Copying artifacts for $pkg_name"
-                  if [ -d "$pkg/build" ]; then
-                    cp -r "$pkg/build" "./packages/$pkg_name/"
-                  fi
-                  if [ -d "$pkg/package" ]; then
-                    cp -r "$pkg/package" "./packages/$pkg_name/"
-                  fi
-                  if [ -f "$pkg/package.json" ]; then
-                    cp "$pkg/package.json" "./packages/$pkg_name/"
-                  fi
-                done
+                path: .
 
             - name: Relink workspace dependencies
               run: pnpm install
@@ -436,23 +396,7 @@ jobs:
               uses: actions/download-artifact@v6
               with:
                 name: built-packages
-                path: ./artifacts
-
-            - name: Copy build artifacts to packages
-              run: |
-                for pkg in ./artifacts/packages/*/; do
-                  pkg_name=$(basename "$pkg")
-                  echo "Copying artifacts for $pkg_name"
-                  if [ -d "$pkg/build" ]; then
-                    cp -r "$pkg/build" "./packages/$pkg_name/"
-                  fi
-                  if [ -d "$pkg/package" ]; then
-                    cp -r "$pkg/package" "./packages/$pkg_name/"
-                  fi
-                  if [ -f "$pkg/package.json" ]; then
-                    cp "$pkg/package.json" "./packages/$pkg_name/"
-                  fi
-                done
+                path: .
 
             - name: Relink workspace dependencies
               run: pnpm install
