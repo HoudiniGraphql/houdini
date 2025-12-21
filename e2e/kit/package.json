@@ -29,7 +29,6 @@
     "generate:preserve": "pnpm houdini generate -r",
     "build:generate": "pnpm build: && pnpm houdini generate",
     "build:build": "pnpm build: && pnpm build",
-    "build:test": "pnpm build:build && pnpm test",
     "build:tests": "pnpm build:build && pnpm test",
     "houdini": "node ensureLinks.js && houdini",
     "build": "vite build",

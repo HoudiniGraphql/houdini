@@ -253,6 +253,9 @@ jobs:
                 name: built-packages
                 path: .
 
+            - name: Relink workspace dependencies
+              run: pnpm install --frozen-lockfile
+
             # Playwright setup
             - name: Get Playwright version
               run: echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
