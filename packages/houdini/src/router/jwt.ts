@@ -242,7 +242,11 @@ export async function encode(
 
 	// @ts-ignore
 	const key = await crypto.subtle.importKey(keyFormat, keyData, algorithm, false, ['sign'])
-	const signature = await crypto.subtle.sign(algorithm, key, _utf8ToUint8Array(partialToken))
+	const signature = await crypto.subtle.sign(
+		algorithm,
+		key,
+		_utf8ToUint8Array(partialToken) as BufferSource
+	)
 
 	return `${partialToken}.${base64UrlStringify(new Uint8Array(signature))}`
 }
@@ -321,8 +325,8 @@ export async function verify(
 	return await crypto.subtle.verify(
 		algorithm,
 		key,
-		base64UrlParse(tokenParts[2]),
-		_utf8ToUint8Array(`${tokenParts[0]}.${tokenParts[1]}`)
+		base64UrlParse(tokenParts[2]) as BufferSource,
+		_utf8ToUint8Array(`${tokenParts[0]}.${tokenParts[1]}`) as BufferSource
 	)
 }
 

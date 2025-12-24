@@ -5,16 +5,6 @@
 		"module": "es2020",
 		"lib": ["es2020", "DOM"],
 		"target": "es2020",
-		/**
-			svelte-preprocess cannot figure out whether you have a value or a type, so tell TypeScript
-			to enforce using \`import type\` instead of \`import\` for Types.
-		*/
-		"importsNotUsedAsValues": "error",
-		/**
-			TypeScript doesn't know about import usages in the template because it only sees the
-			script of a Svelte file. Therefore preserve all value imports. Requires TS 4.5 or higher.
-		*/
-		"preserveValueImports": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		/**
@@ -28,7 +18,10 @@
 		"baseUrl": ".",
 		"allowJs": true,
 		"checkJs": true,
+		"verbatimModuleSyntax": true,
 		"paths": {
+			"$lib": ["./src/lib"],
+			"$lib/*": ["./src/lib/*"],
 			"~/*": ["src/*"]
 		}
 	},

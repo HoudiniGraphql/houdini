@@ -29,7 +29,6 @@
     "generate:preserve": "pnpm houdini generate -r",
     "build:generate": "pnpm build: && pnpm houdini generate",
     "build:build": "pnpm build: && pnpm build",
-    "build:test": "pnpm build:build && pnpm test",
     "build:tests": "pnpm build:build && pnpm test",
     "houdini": "node ensureLinks.js && houdini",
     "build": "vite build",
@@ -58,7 +57,7 @@
     "svelte-eslint-parser": "^0.41.1",
     "svelte-preprocess": "^5.1.4",
     "tslib": "^2.3.1",
-    "typescript": "^5.0.0",
+		"typescript": "^5.9.3",
     "vite": "^6.0.3"
   },
   "dependencies": {
