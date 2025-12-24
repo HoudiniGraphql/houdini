@@ -221,6 +221,25 @@ jobs:
                 name: built-packages
                 path: .
 
+            - name: Move artifacts to correct location
+              run: |
+                if [ -d "./houdini" ]; then
+                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
+                  rm -rf ./houdini
+                fi
+                if [ -d "./houdini-core" ]; then
+                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
+                  rm -rf ./houdini-core
+                fi
+                if [ -d "./houdini-svelte" ]; then
+                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
+                  rm -rf ./houdini-svelte
+                fi
+                if [ -d "./houdini-react" ]; then
+                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
+                  rm -rf ./houdini-react
+                fi
+
             - name: Create template project
               run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
 
