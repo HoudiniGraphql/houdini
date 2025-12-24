@@ -60,7 +60,7 @@ jobs:
             - name: Build packages
               run: pnpm run build
 
-            - name: Debug build output
+            - name: Debug build output before upload
               run: |
                 echo "=== Build output structure ==="
                 find packages -name "build" -type d
@@ -72,16 +72,15 @@ jobs:
                 ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
                 echo "=== All packages structure ==="
                 ls -la packages/*/
+                echo "=== Files that will be uploaded ==="
+                find packages -path "packages/*/build/*" -o -path "packages/*/package/*" -o -name "package.json" | head -20
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v6
               with:
                 name: built-packages
                 path: |
-                  packages/houdini/build/
-                  packages/houdini-core/build/
-                  packages/houdini-svelte/build/
-                  packages/houdini-react/build/
+                  packages/*/build/
                   packages/*/package/
                   packages/*/package.json
                 retention-days: 1
@@ -270,17 +269,19 @@ jobs:
                 name: built-packages
                 path: .
 
-            - name: Debug downloaded artifacts
+            - name: Debug downloaded artifacts immediately
               run: |
+                echo "=== What was actually downloaded ==="
+                find . -name "*.js" -path "*/build/*" | grep -E "(houdini|vite)" | head -10
                 echo "=== Downloaded artifacts structure ==="
                 find packages -name "build" -type d || echo "No build directories found"
-                echo "=== Houdini package contents ==="
+                echo "=== Houdini package contents after download ==="
                 ls -la packages/houdini/ || echo "No houdini package found"
-                echo "=== Checking if houdini build exists ==="
+                echo "=== Checking if houdini build exists after download ==="
                 ls -la packages/houdini/build/ || echo "No houdini build directory"
-                echo "=== Checking if vite plugin exists ==="
+                echo "=== Checking if vite plugin exists after download ==="
                 ls -la packages/houdini/build/vite/ || echo "No vite directory"
-                echo "=== Checking vite index.js ==="
+                echo "=== Checking vite index.js after download ==="
                 ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
 
             - name: Relink workspace dependencies
