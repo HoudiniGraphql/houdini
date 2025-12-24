@@ -209,21 +209,6 @@ export async function codegen_setup(
 
 	console.timeEnd('Start Plugins')
 
-	const invoke_hook = async (
-		name: string,
-		hook: string,
-		payload: Record<string, any> = {},
-		task_id?: string
-	) => {
-		const plugin = plugin_specs.find((spec) => spec.name === name)
-		if (!plugin) {
-			throw new Error(`unknkown plugin: ${name}`)
-		}
-		const { port, directory } = plugin
-
-		// All hooks now use WebSocket
-		return await invoke_hook_websocket(name, hook, payload, task_id, port, directory)
-	}
 
 	const wsConnections = new Map<string, WebSocket>()
 	let messageCounter = 0
@@ -313,14 +298,17 @@ export async function codegen_setup(
 		})
 	}
 
-	const invoke_hook_websocket = async (
+	const invoke_hook = async (
 		name: string,
 		hook: string,
 		payload: Record<string, any> = {},
-		task_id: string | undefined,
-		port: number,
-		directory: string
+		task_id?: string
 	): Promise<any> => {
+		const plugin = plugin_specs.find((spec) => spec.name === name)
+		if (!plugin) {
+			throw new Error(`unknown plugin: ${name}`)
+		}
+		const { port, directory } = plugin
 		const ws = await getOrCreateWS(name, port)
 
 		return new Promise((resolve, reject) => {
