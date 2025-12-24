@@ -142,7 +142,10 @@ func invokeHookWebSocket(
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to plugin %s: %w", name, err)
 	}
-	defer conn.Close()
+	defer func() {
+		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		conn.Close()
+	}()
 
 	messageID := fmt.Sprintf("hook-%d", time.Now().UnixNano())
 	message := map[string]any{
