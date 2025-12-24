@@ -269,19 +269,37 @@ jobs:
                 name: built-packages
                 path: .
 
-            - name: Debug downloaded artifacts immediately
+            - name: Move artifacts to correct location
               run: |
-                echo "=== What was actually downloaded ==="
-                find . -name "*.js" -path "*/build/*" | grep -E "(houdini|vite)" | head -10
-                echo "=== Downloaded artifacts structure ==="
-                find packages -name "build" -type d || echo "No build directories found"
-                echo "=== Houdini package contents after download ==="
-                ls -la packages/houdini/ || echo "No houdini package found"
-                echo "=== Checking if houdini build exists after download ==="
+                echo "=== Moving artifacts from root to packages directory ==="
+                if [ -d "./houdini" ]; then
+                  echo "Moving ./houdini to ./packages/houdini"
+                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
+                  rm -rf ./houdini
+                fi
+                if [ -d "./houdini-core" ]; then
+                  echo "Moving ./houdini-core to ./packages/houdini-core"
+                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
+                  rm -rf ./houdini-core
+                fi
+                if [ -d "./houdini-svelte" ]; then
+                  echo "Moving ./houdini-svelte to ./packages/houdini-svelte"
+                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
+                  rm -rf ./houdini-svelte
+                fi
+                if [ -d "./houdini-react" ]; then
+                  echo "Moving ./houdini-react to ./packages/houdini-react"
+                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
+                  rm -rf ./houdini-react
+                fi
+
+            - name: Debug artifacts after move
+              run: |
+                echo "=== Checking houdini build after move ==="
                 ls -la packages/houdini/build/ || echo "No houdini build directory"
-                echo "=== Checking if vite plugin exists after download ==="
+                echo "=== Checking vite plugin after move ==="
                 ls -la packages/houdini/build/vite/ || echo "No vite directory"
-                echo "=== Checking vite index.js after download ==="
+                echo "=== Checking vite index.js after move ==="
                 ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
 
             - name: Relink workspace dependencies
@@ -370,6 +388,25 @@ jobs:
                 name: built-packages
                 path: .
 
+            - name: Move artifacts to correct location
+              run: |
+                if [ -d "./houdini" ]; then
+                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
+                  rm -rf ./houdini
+                fi
+                if [ -d "./houdini-core" ]; then
+                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
+                  rm -rf ./houdini-core
+                fi
+                if [ -d "./houdini-svelte" ]; then
+                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
+                  rm -rf ./houdini-svelte
+                fi
+                if [ -d "./houdini-react" ]; then
+                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
+                  rm -rf ./houdini-react
+                fi
+
             - name: Relink workspace dependencies
               run: pnpm install
 
@@ -417,6 +454,25 @@ jobs:
               with:
                 name: built-packages
                 path: .
+
+            - name: Move artifacts to correct location
+              run: |
+                if [ -d "./houdini" ]; then
+                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
+                  rm -rf ./houdini
+                fi
+                if [ -d "./houdini-core" ]; then
+                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
+                  rm -rf ./houdini-core
+                fi
+                if [ -d "./houdini-svelte" ]; then
+                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
+                  rm -rf ./houdini-svelte
+                fi
+                if [ -d "./houdini-react" ]; then
+                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
+                  rm -rf ./houdini-react
+                fi
 
             - name: Relink workspace dependencies
               run: pnpm install
