@@ -60,21 +60,6 @@ jobs:
             - name: Build packages
               run: pnpm run build
 
-            - name: Debug build output before upload
-              run: |
-                echo "=== Build output structure ==="
-                find packages -name "build" -type d
-                echo "=== Houdini build contents ==="
-                ls -la packages/houdini/build/ || echo "No houdini build directory"
-                echo "=== Houdini vite plugin ==="
-                ls -la packages/houdini/build/vite/ || echo "No vite directory"
-                echo "=== Vite index.js ==="
-                ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
-                echo "=== All packages structure ==="
-                ls -la packages/*/
-                echo "=== Files that will be uploaded ==="
-                find packages -path "packages/*/build/*" -o -path "packages/*/package/*" -o -name "package.json" | head -20
-
             - name: Upload build artifacts
               uses: actions/upload-artifact@v6
               with:
@@ -290,56 +275,25 @@ jobs:
 
             - name: Move artifacts to correct location
               run: |
-                echo "=== Moving artifacts from root to packages directory ==="
                 if [ -d "./houdini" ]; then
-                  echo "Moving ./houdini to ./packages/houdini"
                   cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
                   rm -rf ./houdini
                 fi
                 if [ -d "./houdini-core" ]; then
-                  echo "Moving ./houdini-core to ./packages/houdini-core"
                   cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
                   rm -rf ./houdini-core
                 fi
                 if [ -d "./houdini-svelte" ]; then
-                  echo "Moving ./houdini-svelte to ./packages/houdini-svelte"
                   cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
                   rm -rf ./houdini-svelte
                 fi
                 if [ -d "./houdini-react" ]; then
-                  echo "Moving ./houdini-react to ./packages/houdini-react"
                   cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
                   rm -rf ./houdini-react
                 fi
 
-            - name: Debug artifacts after move
-              run: |
-                echo "=== Checking houdini build after move ==="
-                ls -la packages/houdini/build/ || echo "No houdini build directory"
-                echo "=== Checking vite plugin after move ==="
-                ls -la packages/houdini/build/vite/ || echo "No vite directory"
-                echo "=== Checking vite index.js after move ==="
-                ls -la packages/houdini/build/vite/index.js || echo "No vite index.js"
-
             - name: Relink workspace dependencies
               run: pnpm install
-
-            - name: Debug workspace dependencies after relink
-              run: |
-                echo "=== Checking houdini package after relink ==="
-                ls -la packages/houdini/
-                echo "=== Checking if build directory exists after relink ==="
-                ls -la packages/houdini/build/ || echo "No build directory in packages/houdini"
-                echo "=== Checking e2e-kit node_modules ==="
-                ls -la e2e/kit/node_modules/ | grep houdini
-                echo "=== Checking houdini symlink target ==="
-                readlink e2e/kit/node_modules/houdini || echo "No houdini symlink"
-                echo "=== Checking houdini symlink contents ==="
-                ls -la e2e/kit/node_modules/houdini/ || echo "Symlink broken"
-                echo "=== Checking houdini build directory via symlink ==="
-                ls -la e2e/kit/node_modules/houdini/build/ || echo "Build directory not found via symlink"
-                echo "=== Checking vite plugin via symlink ==="
-                ls -la e2e/kit/node_modules/houdini/build/vite/index.js || echo "Vite plugin not found via symlink"
 
             - name: Sync SvelteKit
               run: pnpm --filter e2e-kit exec svelte-kit sync
