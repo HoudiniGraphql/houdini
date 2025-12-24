@@ -1,15 +1,13 @@
 package plugins
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"maps"
-	"net/http"
 	"sync"
+	"time"
 
+	"github.com/gorilla/websocket"
 	"zombiezen.com/go/sqlite"
 )
 
@@ -43,12 +41,6 @@ func TriggerHookSerial[PluginConfig any](
 		return map[string]any{}, nil
 	}
 
-	// marshal the payload once
-	marshaled, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-
 	errs := &ErrorList{}
 
 	for name, port := range pluginPorts {
@@ -56,25 +48,9 @@ func TriggerHookSerial[PluginConfig any](
 			continue
 		}
 
-		resp, err := http.Post(
-			fmt.Sprintf("http://localhost:%v/%s", port, hook),
-			"application/json",
-			bytes.NewBuffer(marshaled),
-		)
+		pluginResult, err := invokeHookWebSocket(ctx, name, port, hook, payload)
 		if err != nil {
 			errs.Append(WrapError(err))
-			continue
-		}
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			errs.Append(WrapError(err))
-			continue
-		}
-
-		var pluginResult map[string]any
-		if err := json.Unmarshal(body, &pluginResult); err != nil {
 			continue
 		}
 
@@ -120,12 +96,6 @@ func TriggerHookParallel[PluginConfig any](
 		return map[string]any{}, nil
 	}
 
-	// marshal the payload once
-	marshaled, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-
 	errs := &ErrorList{}
 	var wg sync.WaitGroup
 
@@ -138,25 +108,9 @@ func TriggerHookParallel[PluginConfig any](
 				return
 			}
 
-			resp, err := http.Post(
-				fmt.Sprintf("http://localhost:%v/%s", port, hook),
-				"application/json",
-				bytes.NewBuffer(marshaled),
-			)
+			pluginResult, err := invokeHookWebSocket(ctx, name, port, hook, payload)
 			if err != nil {
 				errs.Append(WrapError(err))
-				return
-			}
-			defer resp.Body.Close()
-
-			body, err := io.ReadAll(resp.Body)
-			if err != nil {
-				errs.Append(WrapError(err))
-				return
-			}
-
-			var pluginResult map[string]any
-			if err := json.Unmarshal(body, &pluginResult); err != nil {
 				return
 			}
 
@@ -174,4 +128,48 @@ func TriggerHookParallel[PluginConfig any](
 	}
 
 	return result, nil
+}
+
+func invokeHookWebSocket(
+	ctx context.Context,
+	name string,
+	port int64,
+	hook string,
+	payload map[string]any,
+) (map[string]any, error) {
+	wsURL := fmt.Sprintf("ws://localhost:%d/", port)
+	conn, _, err := websocket.DefaultDialer.DialContext(ctx, wsURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to plugin %s: %w", name, err)
+	}
+	defer conn.Close()
+
+	messageID := fmt.Sprintf("hook-%d", time.Now().UnixNano())
+	message := map[string]any{
+		"id":      messageID,
+		"type":    "request",
+		"hook":    hook,
+		"payload": payload,
+	}
+
+	if err := conn.WriteJSON(message); err != nil {
+		return nil, fmt.Errorf("failed to send message to plugin %s: %w", name, err)
+	}
+
+	var response struct {
+		ID     string         `json:"id"`
+		Type   string         `json:"type"`
+		Result map[string]any `json:"result"`
+		Error  any            `json:"error"`
+	}
+
+	if err := conn.ReadJSON(&response); err != nil {
+		return nil, fmt.Errorf("failed to read response from plugin %s: %w", name, err)
+	}
+
+	if response.Error != nil {
+		return nil, fmt.Errorf("plugin %s returned error: %v", name, response.Error)
+	}
+
+	return response.Result, nil
 }

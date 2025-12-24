@@ -209,7 +209,6 @@ export async function codegen_setup(
 
 	console.timeEnd('Start Plugins')
 
-
 	const wsConnections = new Map<string, WebSocket>()
 	let messageCounter = 0
 	const pendingRequests = new Map<
@@ -323,8 +322,8 @@ export async function codegen_setup(
 			const message = {
 				id: messageId,
 				type: 'request',
-				hook: hook,
-				payload: payload,
+				hook,
+				payload,
 				taskId: task_id,
 				pluginDirectory: directory,
 			}

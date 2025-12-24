@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"path"
 	"path/filepath"
 	"sync"
@@ -464,13 +463,12 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 	for {
 		var msg WebSocketMessage
 		if err := conn.ReadJSON(&msg); err != nil {
-			if !websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.
-				CloseAbnormalClosure) {
+			// only log if it's an unexpected close (not normal disconnect)
+			if !websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("WebSocket read error from %s: %v", conn.RemoteAddr(), err)
 			}
-			//  connection closed - orchestrator is gone, exit the plugin process
-			log.Printf("WebSocket connection closed, exiting plugin process")
-			os.Exit(0)
+			// return instead of os.Exit, plugin-to-plugin(TriggerHookParallel/TriggerHookSerial) closes the connection
+			return
 		}
 
 		wsMutex.Lock()
