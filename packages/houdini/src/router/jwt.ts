@@ -242,7 +242,11 @@ export async function encode(
 
 	// @ts-ignore
 	const key = await crypto.subtle.importKey(keyFormat, keyData, algorithm, false, ['sign'])
-	const signature = await crypto.subtle.sign(algorithm, key, _utf8ToUint8Array(partialToken) as BufferSource)
+	const signature = await crypto.subtle.sign(
+		algorithm,
+		key,
+		_utf8ToUint8Array(partialToken) as BufferSource
+	)
 
 	return `${partialToken}.${base64UrlStringify(new Uint8Array(signature))}`
 }
