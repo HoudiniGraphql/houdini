@@ -389,7 +389,8 @@ export async function codegen_setup(
 			for (const [name, ws] of wsConnections.entries()) {
 				try {
 					if (ws.readyState === WebSocket.OPEN) {
-						ws.close()
+						// 1001 (Going Away) signals to plugins they should exit
+						ws.close(1001, 'shutdown')
 					}
 				} catch (err) {
 					console.error(`Error closing WebSocket for ${name}:`, err)
