@@ -513,7 +513,9 @@ export async function run_pipeline(
 		const opts: any = { task_id }
 
 		// Set parallel_safe for hooks that support it
-		if (hook === 'Validate' || hook === 'GenerateDocuments' || hook === 'GenerateRuntime') {
+		// GenerateRuntime is NOT parallel_safe because houdini-svelte's
+		// UpdateIndexFiles needs to read index.ts that houdini-core creates
+		if (hook === 'Validate' || hook === 'GenerateDocuments') {
 			opts.parallel_safe = true
 		}
 
