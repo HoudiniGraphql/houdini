@@ -441,14 +441,14 @@ func handleIndexFile[PluginConfig any](
 			return nil, err
 		}
 
-		existingContent, err := afero.ReadFile(afero.NewOsFs(), targetPath)
+		existingContent, err := afero.ReadFile(plugin.Filesystem(), targetPath)
 		if err != nil {
 			return nil, err
 		}
 
 		newContent := string(existingContent) + "\n" + content
 
-		err = afero.WriteFile(afero.NewOsFs(), targetPath, []byte(newContent), 0644)
+		err = afero.WriteFile(plugin.Filesystem(), targetPath, []byte(newContent), 0644)
 		if err != nil {
 			return nil, err
 		}
