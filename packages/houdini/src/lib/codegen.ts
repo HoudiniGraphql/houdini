@@ -431,10 +431,12 @@ export async function codegen_setup(
 						} else {
 							// On Unix-like systems, send SIGINT to the process group
 							try {
-								// The child was spawned with detached: true so that it is its own process group.
+								// Check if process still exists (signal 0 doesn't kill, just checks)
+								process.kill(plugin.process.pid, 0)
+								// Process exists, kill the process group
 								process.kill(-plugin.process.pid, 'SIGINT')
-							} catch (err) {
-								console.error(`Error killing plugin ${plugin.name}:`, err)
+							} catch {
+								// Process already exited from WebSocket close - nothing to do
 							}
 						}
 					}

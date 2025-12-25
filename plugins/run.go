@@ -81,9 +81,6 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 			return
 		}
 		defer conn.Close()
-
-		// connection established
-		log.Printf("ws connection established from %s", r.RemoteAddr)
 		HandleWebSocketConnection(conn)
 	})
 
