@@ -25,7 +25,7 @@ export async function generate(
 	const mode = args.mode ?? 'development'
 
 	// until we've initialized the pipeline, there's nothing to do on close
-	let on_close = async() => {}
+	let on_close = async () => {}
 
 	// make sure we pull the schema if we specify
 	if (args.pullSchema) {
