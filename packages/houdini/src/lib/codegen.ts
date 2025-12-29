@@ -229,7 +229,7 @@ export async function codegen_setup(
 
 		return new Promise((resolve, reject) => {
 			// get a new connection
-			const wsUrl = `ws://localhost:${port}/`
+			const wsUrl = `ws://localhost:${port}/ws`
 			const ws = new WebSocket(wsUrl)
 
 			ws.on('open', () => {

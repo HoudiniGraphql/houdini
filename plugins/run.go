@@ -56,8 +56,8 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	db.ReloadPluginConfig(ctx)
 	db.ReloadProjectConfig(ctx)
 
-	// ws hooks handler
-	hooks := pluginWebsocketHooks(plugin)
+	hooks := pluginHTTPHooks(plugin)
+	pluginWebsocketHooks(plugin)
 
 	hooksStr, err := json.Marshal(hooks)
 	if err != nil {
@@ -72,12 +72,13 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
+
 	// register WebSocket handler
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		// upgrade to websocket
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("WebSocket upgrade failed: %v", err)
 			return
 		}
 		defer conn.Close()

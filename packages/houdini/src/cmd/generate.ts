@@ -25,7 +25,7 @@ export async function generate(
 	const mode = args.mode ?? 'development'
 
 	// until we've initialized the pipeline, there's nothing to do on close
-	let on_close = () => {}
+	let on_close = async() => {}
 
 	// make sure we pull the schema if we specify
 	if (args.pullSchema) {
@@ -44,7 +44,7 @@ export async function generate(
 		// Function to handle graceful shutdown
 		on_close = async () => {
 			try {
-				close()
+				await close()
 				process.exit(0)
 			} catch (error) {
 				process.exit(1)
@@ -59,7 +59,7 @@ export async function generate(
 		await run_pipeline(trigger_hook, { after: 'Schema' })
 
 		// we're done, close everything
-		on_close()
+		await on_close()
 	} catch (e) {
 		// if something goes wrong, format the error
 		format_error(e, function (error) {

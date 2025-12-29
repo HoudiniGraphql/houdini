@@ -1,13 +1,16 @@
 package plugins
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
+	"net/http"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"zombiezen.com/go/sqlite"
 )
 
@@ -48,7 +51,7 @@ func TriggerHookSerial[PluginConfig any](
 			continue
 		}
 
-		pluginResult, err := invokeHookWebSocket(ctx, name, port, hook, payload)
+		pluginResult, err := invokeHook(ctx, name, port, hook, payload)
 		if err != nil {
 			errs.Append(WrapError(err))
 			continue
@@ -108,7 +111,7 @@ func TriggerHookParallel[PluginConfig any](
 				return
 			}
 
-			pluginResult, err := invokeHookWebSocket(ctx, name, port, hook, payload)
+			pluginResult, err := invokeHook(ctx, name, port, hook, payload)
 			if err != nil {
 				errs.Append(WrapError(err))
 				return
@@ -130,49 +133,59 @@ func TriggerHookParallel[PluginConfig any](
 	return result, nil
 }
 
-func invokeHookWebSocket(
+func invokeHook(
 	ctx context.Context,
 	name string,
 	port int64,
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {
-	wsURL := fmt.Sprintf("ws://localhost:%d/", port)
-	conn, _, err := websocket.DefaultDialer.DialContext(ctx, wsURL, nil)
+	// hook url is just name of hook 
+	endpoint := "/" + strings.ToLower(hook)
+	url := fmt.Sprintf("http://localhost:%d%s", port, endpoint)
+
+	var body []byte
+	var err error
+
+	if payload != nil && len(payload) > 0 {
+		body, err = json.Marshal(payload)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal request for plugin %s: %w", name, err)
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to plugin %s: %w", name, err)
+		return nil, fmt.Errorf("failed to create request for plugin %s: %w", name, err)
 	}
-	defer func() {
-		conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-		conn.Close()
-	}()
+	req.Header.Set("Content-Type", "application/json")
 
-	messageID := fmt.Sprintf("hook-%d", time.Now().UnixNano())
-	message := map[string]any{
-		"id":      messageID,
-		"type":    "request",
-		"hook":    hook,
-		"payload": payload,
+	if taskID := TaskIDFromContext(ctx); taskID != nil {
+		req.Header.Set("X-Task-Id", *taskID)
+	}
+	if pluginDir := PluginDirFromContext(ctx); pluginDir != "" {
+		req.Header.Set("X-Plugin-Directory", pluginDir)
 	}
 
-	if err := conn.WriteJSON(message); err != nil {
-		return nil, fmt.Errorf("failed to send message to plugin %s: %w", name, err)
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to plugin %s: %w", name, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var errResp map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&errResp); err == nil {
+			return nil, fmt.Errorf("plugin %s returned error: %v", name, errResp)
+		}
+		return nil, fmt.Errorf("plugin %s returned status %d", name, resp.StatusCode)
 	}
 
-	var response struct {
-		ID     string         `json:"id"`
-		Type   string         `json:"type"`
-		Result map[string]any `json:"result"`
-		Error  any            `json:"error"`
+	var result map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return map[string]any{}, nil
 	}
 
-	if err := conn.ReadJSON(&response); err != nil {
-		return nil, fmt.Errorf("failed to read response from plugin %s: %w", name, err)
-	}
-
-	if response.Error != nil {
-		return nil, fmt.Errorf("plugin %s returned error: %v", name, response.Error)
-	}
-
-	return response.Result, nil
+	return result, nil
 }
