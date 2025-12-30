@@ -125,8 +125,69 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		WaitForShutdown()
 	}()
 
-	// wait for shutdown signal or server error
-	notified := false
+	// register plugin with database first
+	conn, err := db.Take(ctx)
+	if err != nil {
+		return err
+	}
+
+	// if the plugin requires a runtime then we should write that to the database too
+	var includeRuntime any
+	if includer, ok := plugin.(IncludeRuntime); ok {
+		includeRuntime, err = includer.IncludeRuntime(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	var configModule any
+	if configurer, ok := plugin.(Config); ok {
+		configModule, err = configurer.Config(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	var clientPlugins any
+	if clientProvider, ok := plugin.(ClientPlugins); ok {
+		pluginConfig, err := clientProvider.ClientPlugins(ctx)
+		if err != nil {
+			return err
+		}
+		stringified, err := json.Marshal(pluginConfig)
+		if err != nil {
+			return err
+		}
+		clientPlugins = string(stringified)
+	}
+
+	// insert the plugin metadata
+	err = sqlitex.ExecuteTransient(
+		conn,
+		`
+			INSERT INTO plugins (
+				name, hooks, port, plugin_order, include_runtime, config_module, client_plugins
+			) VALUES
+				(?, ?, ?, ?, ?, ?, ?)
+		`,
+		&sqlitex.ExecOptions{
+			Args: []any{
+				plugin.Name(),
+				string(hooksStr),
+				port,
+				plugin.Order(),
+				includeRuntime,
+				configModule,
+				clientPlugins,
+			},
+		},
+	)
+	db.Put(conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// wait for shutdown signal or server error (blocking select)
 	for {
 		select {
 		case <-sigChan:
@@ -144,74 +205,6 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 			return err
 		case <-ctx.Done():
 			return nil
-		default:
-			// only notify once
-			if notified {
-				continue
-			}
-			notified = true
-
-			// register plugin with database
-			conn, err := db.Take(ctx)
-			if err != nil {
-				return err
-			}
-
-			// if the plugin requires a runtime then we should write that to the database too
-			var includeRuntime any
-			if includer, ok := plugin.(IncludeRuntime); ok {
-				includeRuntime, err = includer.IncludeRuntime(ctx)
-				if err != nil {
-					return err
-				}
-			}
-
-			var configModule any
-			if configurer, ok := plugin.(Config); ok {
-				configModule, err = configurer.Config(ctx)
-				if err != nil {
-					return err
-				}
-			}
-
-			var clientPlugins any
-			if clientProvider, ok := plugin.(ClientPlugins); ok {
-				pluginConfig, err := clientProvider.ClientPlugins(ctx)
-				if err != nil {
-					return err
-				}
-				stringified, err := json.Marshal(pluginConfig)
-				if err != nil {
-					return err
-				}
-				clientPlugins = string(stringified)
-			}
-
-			// insert the plugin metadata
-			err = sqlitex.ExecuteTransient(
-				conn,
-				`
-					INSERT INTO plugins (
-						name, hooks, port, plugin_order, include_runtime, config_module, client_plugins
-					) VALUES
-						(?, ?, ?, ?, ?, ?, ?)
-				`,
-				&sqlitex.ExecOptions{
-					Args: []any{
-						plugin.Name(),
-						string(hooksStr),
-						port,
-						plugin.Order(),
-						includeRuntime,
-						configModule,
-						clientPlugins,
-					},
-				},
-			)
-			db.Put(conn)
-			if err != nil {
-				log.Fatal(err)
-			}
 		}
 	}
 }

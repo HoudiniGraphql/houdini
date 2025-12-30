@@ -10,6 +10,19 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 	return {
 		name: 'houdini-watch-remote-schema',
 		apply: 'serve',
+
+		// Cleanup when the plugin is closed
+		buildEnd() {
+			go = false
+		},
+
+		// Also cleanup when dev server is configured (for dev mode)
+		configureServer(server) {
+			server.httpServer?.once('close', () => {
+				go = false
+			})
+		},
+
 		async buildStart() {
 			const config = await getConfig(opts)
 			let nbPullError = 0
@@ -57,7 +70,7 @@ export function watch_remote_schema(opts: PluginConfig = {}): Plugin {
 					await sleep(timeToWait)
 
 					if (go) {
-						pull(more)
+						await pull(more)
 					}
 				}
 			}

@@ -72,6 +72,19 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 
 	return {
 		name: 'houdini-poll-remote-schema',
+
+		// Cleanup when the plugin is closed
+		buildEnd() {
+			go = false
+		},
+
+		// Also cleanup when dev server is configured (for dev mode)
+		configureServer(server) {
+			server.httpServer?.once('close', () => {
+				go = false
+			})
+		},
+
 		async buildStart() {
 			// load the relevant data from the project config
 			const config = await get_config()
@@ -118,10 +131,11 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 				if (more) {
 					const wait_time = Math.min(interval! + interval! * error_count, max_interval)
 					await sleep(wait_time)
-				}
 
-				if (go) {
-					pull(more)
+					// Only continue polling if the plugin is still active
+					if (go) {
+						await pull(more)
+					}
 				}
 			}
 

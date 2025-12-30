@@ -130,21 +130,9 @@
             "types": "./build/runtime/cache/index.d.ts",
             "import": "./build/runtime/cache/index.js"
         },
-        "./runtime-esm/client/utils": {
-            "types": "./build/runtime-esm/client/utils/index.d.ts",
-            "import": "./build/runtime-esm/client/utils/index.js"
-        },
-        "./runtime-esm/client/plugins": {
-            "types": "./build/runtime-esm/client/plugins/index.d.ts",
-            "import": "./build/runtime-esm/client/plugins/index.js"
-        },
-        "./runtime-cjs/client/utils": {
-            "types": "./build/runtime-cjs/client/utils/index.d.ts",
-            "import": "./build/runtime-cjs/client/utils/index.js"
-        },
-        "./runtime-cjs/client/plugins": {
-            "types": "./build/runtime-cjs/client/plugins/index.d.ts",
-            "import": "./build/runtime-cjs/client/plugins/index.js"
+        "./lib/router": {
+            "types": "./build/lib/router/index.d.ts",
+            "import": "./build/lib/router/index.js"
         },
         "./runtime/types": {
             "types": "./build/runtime/types.d.ts",
