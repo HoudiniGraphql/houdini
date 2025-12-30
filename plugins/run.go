@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -56,8 +57,18 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	db.ReloadPluginConfig(ctx)
 	db.ReloadProjectConfig(ctx)
 
-	hooks := pluginHTTPHooks(plugin)
-	pluginWebsocketHooks(plugin)
+	// register hooks for both HTTP and WebSocket together
+	httpRegistered := map[string]struct{}{}
+	hooks := registerPluginHooks(plugin, func(hookName string, handler HookHandler) {
+		// HTTP connection
+		path := "/" + strings.ToLower(hookName)
+		if _, ok := httpRegistered[path]; !ok {
+			http.Handle(path, wrapHandler(handler))
+			httpRegistered[path] = struct{}{}
+		}
+		// WebSocket connection
+		registerWSHandler(hookName, handler)
+	})
 
 	hooksStr, err := json.Marshal(hooks)
 	if err != nil {

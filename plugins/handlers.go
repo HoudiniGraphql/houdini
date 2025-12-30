@@ -5,11 +5,109 @@ import (
 	"encoding/json"
 	"path"
 	"path/filepath"
+	"sort"
 
 	"github.com/spf13/afero"
 )
 
 type HookHandler func(ctx context.Context, payload map[string]any) (any, error)
+
+type RegisterFunc func(hookName string, handler HookHandler)
+
+func registerPluginHooks[PluginConfig any](plugin HoudiniPlugin[PluginConfig], register RegisterFunc) []string {
+	hooks := []string{}
+
+	// --- Config
+	hooks = append(hooks, "Config")
+	register("Config", handleConfig(plugin))
+
+	// --- AfterLoad is triggered for StaticRuntime OR AfterLoad OR DefaultConfig
+	_, isStaticRuntime := plugin.(StaticRuntime)
+	_, isAfterLoad := plugin.(AfterLoad)
+	_, hasDefaultConfig := plugin.(DefaultConfig[PluginConfig])
+	if isStaticRuntime || isAfterLoad || hasDefaultConfig {
+		hooks = append(hooks, "AfterLoad")
+		register("AfterLoad", handleAfterLoad(plugin))
+	}
+
+	// --- Schema
+	if _, ok := plugin.(Schema); ok {
+		hooks = append(hooks, "Schema")
+		register("Schema", handleSchema(plugin))
+	}
+
+	// --- ExtractDocuments
+	if _, ok := plugin.(ExtractDocuments); ok {
+		hooks = append(hooks, "ExtractDocuments")
+		register("ExtractDocuments", handleExtractDocuments(plugin))
+	}
+
+	// --- AfterExtract
+	if _, ok := plugin.(AfterExtract); ok {
+		hooks = append(hooks, "AfterExtract")
+		register("AfterExtract", handleAfterExtract(plugin))
+	}
+
+	// --- BeforeValidate
+	if _, ok := plugin.(BeforeValidate); ok {
+		hooks = append(hooks, "BeforeValidate")
+		register("BeforeValidate", handleBeforeValidate(plugin))
+	}
+
+	// --- Validate
+	if _, ok := plugin.(Validate); ok {
+		hooks = append(hooks, "Validate")
+		register("Validate", handleValidate(plugin))
+	}
+
+	// --- AfterValidate
+	if _, ok := plugin.(AfterValidate); ok {
+		hooks = append(hooks, "AfterValidate")
+		register("AfterValidate", handleAfterValidate(plugin))
+	}
+
+	// --- BeforeGenerate
+	if _, ok := plugin.(BeforeGenerate); ok {
+		hooks = append(hooks, "BeforeGenerate")
+		register("BeforeGenerate", handleBeforeGenerate(plugin))
+	}
+
+	// --- GenerateDocuments
+	if _, ok := plugin.(GenerateDocuments); ok {
+		hooks = append(hooks, "GenerateDocuments")
+		register("GenerateDocuments", handleGenerateDocuments(plugin))
+	}
+
+	// --- GenerateRuntime is triggered for IncludeRuntime OR GenerateRuntime OR Config
+	_, isIncludeRuntime := plugin.(IncludeRuntime)
+	_, isGenerateRuntime := plugin.(GenerateRuntime)
+	_, isConfig := plugin.(Config)
+	if isIncludeRuntime || isGenerateRuntime || isConfig {
+		hooks = append(hooks, "GenerateRuntime")
+		register("GenerateRuntime", handleGenerateRuntime(plugin))
+	}
+
+	// --- AfterGenerate
+	if _, ok := plugin.(AfterGenerate); ok {
+		hooks = append(hooks, "AfterGenerate")
+		register("AfterGenerate", handleAfterGenerate(plugin))
+	}
+
+	// --- Environment
+	if _, ok := plugin.(Environment); ok {
+		hooks = append(hooks, "Environment")
+		register("Environment", handleEnvironment(plugin))
+	}
+
+	// --- IndexFile
+	if _, ok := plugin.(IndexFile); ok {
+		hooks = append(hooks, "IndexFile")
+		register("IndexFile", handleIndexFile(plugin))
+	}
+
+	sort.Strings(hooks)
+	return hooks
+}
 
 func handleConfig[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) HookHandler {
 	return func(ctx context.Context, payload map[string]any) (any, error) {
