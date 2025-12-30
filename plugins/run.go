@@ -120,6 +120,11 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		}
 	}()
 
+	// start a goroutine to wait for WebSocket shutdown
+	go func() {
+		WaitForShutdown()
+	}()
+
 	// wait for shutdown signal or server error
 	notified := false
 	for {

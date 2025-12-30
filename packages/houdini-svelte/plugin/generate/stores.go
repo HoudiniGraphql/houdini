@@ -184,8 +184,6 @@ func GenerateStores(
 		generatedFiles = append(generatedFiles, indexFilePath)
 	}
 
-	// fmt.Println("generated files in store gen", strings.Join(generatedFiles, ", "))
-
 	return generatedFiles, nil
 }
 

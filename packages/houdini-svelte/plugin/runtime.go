@@ -328,7 +328,6 @@ export function fragment(
 	// Read the existing file content
 	existingContent, err := afero.ReadFile(p.Fs, targetPath)
 	if err != nil {
-		fmt.Println("no existing content")
 		return nil, err
 	}
 

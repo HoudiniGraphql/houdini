@@ -3,9 +3,9 @@ package plugins
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -26,10 +26,14 @@ type WebSocketResponse struct {
 	Error  any    `json:"error,omitempty"`
 }
 
-// routing map for websocket handlers
+// routing map for websocket handlers and connection tracking
 var (
-	wsHandlers = make(map[string]func(*websocket.Conn, WebSocketMessage))
-	wsMutex    = sync.Mutex{}
+	wsHandlers      = make(map[string]func(*websocket.Conn, WebSocketMessage))
+	wsMutex         = sync.Mutex{}
+	activeConns     = make(map[*websocket.Conn]bool)
+	connMutex       = sync.Mutex{}
+	shutdownChannel = make(chan struct{})
+	shutdownOnce    = sync.Once{}
 )
 
 func registerWSHandler(hookName string, handler HookHandler) {
@@ -62,20 +66,37 @@ func registerWSHandler(hookName string, handler HookHandler) {
 			Type:   "response",
 			Result: result,
 		}
-		if writeErr := conn.WriteJSON(response); writeErr != nil {
-			log.Printf("Failed to write response: %s", writeErr.Error())
-		}
+		_ = conn.WriteJSON(response)
 	}
 }
 
 func HandleWebSocketConnection(conn *websocket.Conn) {
+	// Register this connection
+	connMutex.Lock()
+	activeConns[conn] = true
+	connMutex.Unlock()
+
+	// Ensure cleanup when connection ends
+	defer func() {
+		connMutex.Lock()
+		delete(activeConns, conn)
+		connCount := len(activeConns)
+		connMutex.Unlock()
+
+		// If this was the last connection, initiate shutdown
+		if connCount == 0 {
+			shutdownOnce.Do(func() {
+				close(shutdownChannel)
+			})
+		}
+	}()
+
 	// message loop
 	for {
 		var msg WebSocketMessage
 		if err := conn.ReadJSON(&msg); err != nil {
-			// Any WebSocket close means orchestrator shutdown (1001)
-			// Plugin-to-plugin calls use HTTP, so 1000 never happens here
-			os.Exit(0)
+			// Exit the message loop, defer will handle cleanup
+			return
 		}
 
 		wsMutex.Lock()
@@ -83,17 +104,15 @@ func HandleWebSocketConnection(conn *websocket.Conn) {
 		wsMutex.Unlock()
 
 		if exists {
-			go func() {
+			go func(msgCopy WebSocketMessage) {
 				defer func() {
 					if r := recover(); r != nil {
-						log.Printf("Handler panic for hook %s: %v", msg.Hook, r)
-						sendErrorResponse(conn, msg.ID, fmt.Errorf("handler panic: %v", r))
+						sendErrorResponse(conn, msgCopy.ID, fmt.Errorf("handler panic: %v", r))
 					}
 				}()
-				handler(conn, msg)
-			}()
+				handler(conn, msgCopy)
+			}(msg)
 		} else {
-			log.Printf("No handler for hook %s", msg.Hook)
 			sendErrorResponse(conn, msg.ID, fmt.Errorf("no handler for hook %s", msg.Hook))
 		}
 	}
@@ -121,4 +140,40 @@ func sendErrorResponse(conn *websocket.Conn, id string, err error) {
 		Error: map[string]string{"message": err.Error()},
 	}
 	conn.WriteJSON(response)
+}
+
+// WaitForShutdown blocks until all WebSocket connections are closed
+// This should be called from the main goroutine to wait for graceful shutdown
+func WaitForShutdown() {
+	<-shutdownChannel
+	os.Exit(0)
+}
+
+// GetActiveConnectionCount returns the number of active WebSocket connections
+// Useful for monitoring and testing
+func GetActiveConnectionCount() int {
+	connMutex.Lock()
+	defer connMutex.Unlock()
+	return len(activeConns)
+}
+
+// ForceShutdown closes all active WebSocket connections and exits
+// This should only be used in emergency situations
+func ForceShutdown() {
+	connMutex.Lock()
+	connections := make([]*websocket.Conn, 0, len(activeConns))
+	for conn := range activeConns {
+		connections = append(connections, conn)
+	}
+	connMutex.Unlock()
+
+	for _, conn := range connections {
+		conn.Close()
+	}
+
+	// Give a brief moment for cleanup, then exit
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		os.Exit(1)
+	}()
 }
