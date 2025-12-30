@@ -57,7 +57,7 @@
     "svelte-eslint-parser": "^0.41.1",
     "svelte-preprocess": "^5.1.4",
     "tslib": "^2.3.1",
-		"typescript": "^5.9.3",
+    "typescript": "^5.9.3",
     "vite": "^6.0.3"
   },
   "dependencies": {
