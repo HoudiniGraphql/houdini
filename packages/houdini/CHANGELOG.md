@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-go.2
+
+### Patch Changes
+
+-   [`6fe29007`](https://github.com/HoudiniGraphql/houdini/commit/6fe290071bf356ef71567ebcbf025b1802f5cb42) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - remove create-houdini as a dependency of houdini
+
 ## 2.0.0-go.1
 
 ### Patch Changes
