@@ -1,5 +1,14 @@
 # houdini
 
+## 2.0.0-go.4
+
+### Patch Changes
+
+-   [`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix shim paths
+
+-   Updated dependencies [[`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2)]:
+    -   houdini-core@2.0.0-go.3
+
 ## 2.0.0-go.3
 
 ### Patch Changes

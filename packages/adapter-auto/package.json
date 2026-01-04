@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-auto",
-    "version": "2.0.0-go.3",
+    "version": "2.0.0-go.4",
     "description": "An adapter for deploying your Houdini application according to the build environment ",
     "keywords": [
         "houdini",
