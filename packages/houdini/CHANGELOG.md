@@ -1,5 +1,12 @@
 # houdini
 
+## 2.0.0-go.6
+
+### Patch Changes
+
+-   Updated dependencies [[`d66db310`](https://github.com/HoudiniGraphql/houdini/commit/d66db31026f37c1e8b5f661b8fbc05173b618a0e)]:
+    -   houdini-core@2.0.0-go.5
+
 ## 2.0.0-go.5
 
 ### Patch Changes

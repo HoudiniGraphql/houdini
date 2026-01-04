@@ -1,5 +1,12 @@
 # houdini-adapter-node
 
+## 2.0.0-go.6
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.6
+
 ## 2.0.0-go.5
 
 ### Patch Changes
