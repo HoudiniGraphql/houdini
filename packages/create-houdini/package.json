@@ -1,6 +1,6 @@
 {
 	"name": "create-houdini",
-	"version": "2.0.0-go.0",
+	"version": "2.0.0-go.1",
 	"description": "A CLI for creating new Houdini projects",
 	"repository": {
 		"type": "git",

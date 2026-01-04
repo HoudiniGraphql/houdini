@@ -1,5 +1,16 @@
 # houdini
 
+## 2.0.0-go.3
+
+### Patch Changes
+
+-   [`043c4e29`](https://github.com/HoudiniGraphql/houdini/commit/043c4e29ce2c2f41b4a6750b191983e5d53a3540) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issue resolving houdini-core plugin when its not a direct dependency of a project
+
+-   [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
+
+-   Updated dependencies [[`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448)]:
+    -   houdini-core@2.0.0-go.2
+
 ## 2.0.0-go.2
 
 ### Patch Changes

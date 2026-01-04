@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-go.1
+
+### Patch Changes
+
+-   [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
+
 ## 2.0.0-go.0
 
 ### Major Changes
