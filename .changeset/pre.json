@@ -19,6 +19,7 @@
     "site": "0.0.1"
   },
   "changesets": [
+    "bright-trainers-sparkle",
     "strong-drinks-sing"
   ]
 }

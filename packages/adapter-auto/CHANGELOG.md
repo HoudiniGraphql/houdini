@@ -1,5 +1,12 @@
 # houdini-adapter-auto
 
+## 2.0.0-go.1
+
+### Patch Changes
+
+-   Updated dependencies [[`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06)]:
+    -   houdini@2.0.0-go.1
+
 ## 2.0.0-go.0
 
 ### Major Changes
