@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 2.0.0-go.5
+
+### Patch Changes
+
+-   [`7822a62e`](https://github.com/HoudiniGraphql/houdini/commit/7822a62e0421192000dbdf55a1c4379cdfe29358) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix files entry in published package
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.5
+
 ## 2.0.0-go.4
 
 ### Patch Changes

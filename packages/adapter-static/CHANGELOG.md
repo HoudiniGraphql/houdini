@@ -1,5 +1,12 @@
 # houdini-adapter-static
 
+## 2.0.0-go.5
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.5
+
 ## 2.0.0-go.4
 
 ### Patch Changes

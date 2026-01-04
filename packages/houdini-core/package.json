@@ -1,6 +1,6 @@
 {
     "name": "houdini-core",
-    "version": "2.0.0-go.3",
+    "version": "2.0.0-go.4",
     "description": "The core GraphQL client for Houdini",
     "keywords": [
         "graphql",
