@@ -1,5 +1,12 @@
 # houdini-adapter-cloudflare
 
+## 2.0.0-go.8
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.8
+
 ## 2.0.0-go.7
 
 ### Patch Changes

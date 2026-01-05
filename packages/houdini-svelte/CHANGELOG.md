@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 2.0.0-go.8
+
+### Patch Changes
+
+-   [`ae4cdfe4`](https://github.com/HoudiniGraphql/houdini/commit/ae4cdfe445503611ab56330fdc750f79a067ab8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix shim replacement for execution
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.8
+
 ## 2.0.0-go.7
 
 ### Patch Changes
