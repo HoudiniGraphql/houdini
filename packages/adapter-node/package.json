@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-node",
-    "version": "2.0.0-go.6",
+    "version": "2.0.0-go.7",
     "description": "The adapter for deploying your Houdini application as a standalone node server",
     "keywords": [
         "houdini",
