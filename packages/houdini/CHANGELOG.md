@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-go.9
+
+### Patch Changes
+
+-   [`d656515b`](https://github.com/HoudiniGraphql/houdini/commit/d656515bda5835d6e8a19b0e6eb8ecf5627fe34e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix bin path
+
 ## 2.0.0-go.8
 
 ### Patch Changes
