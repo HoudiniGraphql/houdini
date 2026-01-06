@@ -1,5 +1,14 @@
 # houdini-react
 
+## 2.0.0-go.12
+
+### Patch Changes
+
+-   [`c90c92b1`](https://github.com/HoudiniGraphql/houdini/commit/c90c92b1e5966b9756676abafc314b6b8e6439fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compatability issue with go binary shim sand pnpm
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.12
+
 ## 2.0.0-go.11
 
 ### Patch Changes

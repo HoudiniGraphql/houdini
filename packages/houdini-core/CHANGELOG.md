@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-go.8
+
+### Patch Changes
+
+-   [`c90c92b1`](https://github.com/HoudiniGraphql/houdini/commit/c90c92b1e5966b9756676abafc314b6b8e6439fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compatability issue with go binary shim sand pnpm
+
 ## 2.0.0-go.7
 
 ### Patch Changes
