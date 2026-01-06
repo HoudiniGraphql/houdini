@@ -1,5 +1,12 @@
 # houdini-adapter-static
 
+## 2.0.0-go.10
+
+### Patch Changes
+
+-   Updated dependencies [[`53fc6baa`](https://github.com/HoudiniGraphql/houdini/commit/53fc6baaa58d4022ae3495c1e0940b07e85d971c)]:
+    -   houdini@2.0.0-go.10
+
 ## 2.0.0-go.9
 
 ### Patch Changes

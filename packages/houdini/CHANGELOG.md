@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-go.10
+
+### Patch Changes
+
+-   [`53fc6baa`](https://github.com/HoudiniGraphql/houdini/commit/53fc6baaa58d4022ae3495c1e0940b07e85d971c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix dependency issue
+
 ## 2.0.0-go.9
 
 ### Patch Changes
