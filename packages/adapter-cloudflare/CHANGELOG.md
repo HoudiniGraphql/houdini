@@ -1,5 +1,12 @@
 # houdini-adapter-cloudflare
 
+## 2.0.0-go.13
+
+### Patch Changes
+
+-   Updated dependencies [[`62a0e62a`](https://github.com/HoudiniGraphql/houdini/commit/62a0e62a476d6183d50bda21ed939c8f267308f0)]:
+    -   houdini@2.0.0-go.13
+
 ## 2.0.0-go.12
 
 ### Patch Changes

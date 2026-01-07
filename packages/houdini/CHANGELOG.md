@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-go.13
+
+### Patch Changes
+
+-   [#1575](https://github.com/HoudiniGraphql/houdini/pull/1575) [`62a0e62a`](https://github.com/HoudiniGraphql/houdini/commit/62a0e62a476d6183d50bda21ed939c8f267308f0) Thanks [@github-actions](https://github.com/apps/github-actions)! - Bump vite version
+
 ## 2.0.0-go.12
 
 ### Patch Changes
