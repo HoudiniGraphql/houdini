@@ -164,7 +164,7 @@ export default {
 	watchSchema: {
 		url: '...',
 		headers: {
-			Authentication: 'env:AUTH_TOKEN'
+			Authorization: 'env:AUTH_TOKEN'
 		}
 	}
 }
