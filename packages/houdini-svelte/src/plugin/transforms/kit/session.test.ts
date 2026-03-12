@@ -386,3 +386,94 @@ test('value assignment for load function', async function () {
 		const houdini__intermediate__load__ = someFn;
 	`)
 })
+
+test('strips type annotation from load function param - function declaration', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.ts',
+		`
+			import type { RequestEvent } from '@sveltejs/kit';
+
+			export async function load(event: RequestEvent) {
+				return {
+					hello: "world",
+				}
+			}
+		`
+	)
+
+	// The event_id used in buildSessionObject() must NOT carry the
+	// TypeScript type annotation, otherwise recast emits
+	// `buildSessionObject(event: RequestEvent)` which is invalid JS.
+	expect(result).toMatchInlineSnapshot(`
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import type { RequestEvent } from "@sveltejs/kit";
+
+		export async function load(event: RequestEvent) {
+		    return {
+		        ...buildSessionObject(event),
+
+		        ...{
+		            hello: "world"
+		        }
+		    };
+		}
+	`)
+})
+
+test('strips type annotation from load param - const arrow with return type', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.ts',
+		`
+			import type { RequestEvent } from '@sveltejs/kit';
+
+			export const load = async (event: RequestEvent): Promise<{ isAdmin?: boolean }> => {
+				return { isAdmin: true }
+			}
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import type { RequestEvent } from "@sveltejs/kit";
+
+		export const load = async (event: RequestEvent): Promise<{
+		    isAdmin?: boolean;
+		}> => {
+		    return {
+		        ...buildSessionObject(event),
+
+		        ...{
+		            isAdmin: true
+		        }
+		    };
+		};
+	`)
+})
+
+test('strips type annotation from load param - const function expression', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.ts',
+		`
+			import type { RequestEvent } from '@sveltejs/kit';
+
+			export const load = function(event: RequestEvent) {
+				return { data: 42 }
+			}
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import { buildSessionObject } from "$houdini/plugins/houdini-svelte/runtime/session";
+		import type { RequestEvent } from "@sveltejs/kit";
+
+		export const load = function(event: RequestEvent) {
+		    return {
+		        ...buildSessionObject(event),
+
+		        ...{
+		            data: 42
+		        }
+		    };
+		};
+	`)
+})
