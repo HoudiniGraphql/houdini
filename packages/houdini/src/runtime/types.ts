@@ -12,7 +12,7 @@ export const DedupeMatchMode = {
 
 export type DedupeMatchModes = ValuesOf<typeof DedupeMatchMode>
 
-export * from '../router/types'
+export * from '../router/types.js'
 
 declare global {
 	namespace App {

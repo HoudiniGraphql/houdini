@@ -1,5 +1,5 @@
-import { siteURL } from './constants'
-import type { GraphQLObject, PageInfo } from './types'
+import { siteURL } from './constants.js'
+import type { GraphQLObject, PageInfo } from './types.js'
 
 export function nullPageInfo(): PageInfo {
 	return { startCursor: null, endCursor: null, hasNextPage: false, hasPreviousPage: false }

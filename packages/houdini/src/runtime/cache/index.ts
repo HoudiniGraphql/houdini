@@ -1,11 +1,11 @@
 import type { ConfigFile } from 'houdini'
 
-import { computeID, defaultConfigValues, keyFieldsForType } from '../config'
-import { deepEquals } from '../deepEquals'
-import { flatten } from '../flatten'
-import { computeKey } from '../key'
-import { getFieldsForType } from '../selection'
-import { PendingValue } from '../types'
+import { computeID, defaultConfigValues, keyFieldsForType } from '../config.js'
+import { deepEquals } from '../deepEquals.js'
+import { flatten } from '../flatten.js'
+import { computeKey } from '../key.js'
+import { getFieldsForType } from '../selection.js'
+import { PendingValue } from '../types.js'
 import type {
 	GraphQLObject,
 	GraphQLValue,
@@ -14,16 +14,16 @@ import type {
 	SubscriptionSpec,
 	ValueMap,
 	ValueNode,
-} from '../types'
-import { fragmentKey } from '../types'
-import { GarbageCollector } from './gc'
-import type { ListCollection } from './lists'
-import { ListManager } from './lists'
-import { StaleManager } from './staleManager'
-import type { Layer, LayerID } from './storage'
-import { InMemoryStorage } from './storage'
-import { evaluateKey, rootID } from './stuff'
-import { InMemorySubscriptions, type FieldSelection } from './subscription'
+} from '../types.js'
+import { fragmentKey } from '../types.js'
+import { GarbageCollector } from './gc.js'
+import type { ListCollection } from './lists.js'
+import { ListManager } from './lists.js'
+import { StaleManager } from './staleManager.js'
+import type { Layer, LayerID } from './storage.js'
+import { InMemoryStorage } from './storage.js'
+import { evaluateKey, rootID } from './stuff.js'
+import { InMemorySubscriptions, type FieldSelection } from './subscription.js'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into

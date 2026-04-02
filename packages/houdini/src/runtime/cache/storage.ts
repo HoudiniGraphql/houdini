@@ -1,5 +1,5 @@
-import { flatten } from '../flatten'
-import type { GraphQLValue } from '../types'
+import { flatten } from '../flatten.js'
+import type { GraphQLValue } from '../types.js'
 
 // NOTE: the current implementation of delete is slow. it should try to compare the
 // type of the id being deleted with the type contained in the linked list so that

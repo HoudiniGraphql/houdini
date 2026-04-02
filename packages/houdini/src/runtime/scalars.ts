@@ -1,7 +1,7 @@
 import type { ConfigFile } from 'houdini'
 
-import { getCurrentConfig } from './config'
-import { getFieldsForType } from './selection'
+import { getCurrentConfig } from './config.js'
+import { getFieldsForType } from './selection.js'
 import {
 	fragmentKey,
 	type FragmentArtifact,
@@ -9,7 +9,7 @@ import {
 	type QueryArtifact,
 	type SubscriptionArtifact,
 	type SubscriptionSelection,
-} from './types'
+} from './types.js'
 
 export function marshalSelection({
 	selection,

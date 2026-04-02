@@ -1,7 +1,7 @@
-import { deepEquals } from './deepEquals'
-import type { SendParams } from './documentStore'
-import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo'
-import { CachePolicy, DataSource } from './types'
+import { deepEquals } from './deepEquals.js'
+import type { SendParams } from './documentStore.js'
+import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo.js'
+import { CachePolicy, DataSource } from './types.js'
 import type {
 	CursorHandlers,
 	FetchFn,
@@ -10,7 +10,7 @@ import type {
 	QueryArtifact,
 	QueryResult,
 	FetchParams,
-} from './types'
+} from './types.js'
 
 export function cursorHandlers<
 	_Data extends GraphQLObject,

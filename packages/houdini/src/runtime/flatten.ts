@@ -1,4 +1,4 @@
-import type { NestedList } from './types'
+import type { NestedList } from './types.js'
 
 // flatten processes a deeply nested lists of lists
 export function flatten<T>(source?: NestedList<T>): T[] {

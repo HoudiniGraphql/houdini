@@ -40,24 +40,25 @@ export default async function kit_init(config: Config, page: SvelteTransformPage
 		)
 	)
 
-	// we need to track updates in the page store as the client-side session
-	const store_id = ensure_imports({
+	// we need to track updates in page data as the client-side session
+	const page_store = ensure_imports({
 		script: page.script,
-		sourceModule: '$app/stores',
+		sourceModule: '$app/state',
 		import: ['page'],
 	}).ids[0]
-
+  
+  // $effect dont get anyting in callback so we got to use store_page that is like page
 	page.script.body.push(
 		AST.expressionStatement(
-			AST.callExpression(AST.memberExpression(store_id, AST.identifier('subscribe')), [
+			AST.callExpression(AST.identifier('$effect'), [
 				AST.arrowFunctionExpression(
-					[AST.identifier('val')],
+					[],
 					AST.blockStatement([
 						AST.expressionStatement(
 							AST.callExpression(set_session, [
 								AST.callExpression(extract_session, [
 									AST.memberExpression(
-										AST.identifier('val'),
+										page_store,
 										AST.identifier('data')
 									),
 								]),

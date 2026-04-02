@@ -1,10 +1,10 @@
 import type { ConfigFile } from 'houdini'
 
 import type { HoudiniClient } from '.'
-import type { Layer } from './cache/storage'
-import { deepEquals } from './deepEquals'
-import { marshalInputs } from './scalars'
-import { Writable } from './store'
+import type { Layer } from './cache/storage.js'
+import { deepEquals } from './deepEquals.js'
+import { marshalInputs } from './scalars.js'
+import { Writable } from './store.js'
 import type {
 	DocumentArtifact,
 	QueryResult,
@@ -13,8 +13,8 @@ import type {
 	SubscriptionSpec,
 	CachePolicies,
 	GraphQLVariables,
-} from './types'
-import { ArtifactKind, DedupeMatchMode } from './types'
+} from './types.js'
+import { ArtifactKind, DedupeMatchMode } from './types.js'
 
 // the list of states to step in what direction
 const steps = {

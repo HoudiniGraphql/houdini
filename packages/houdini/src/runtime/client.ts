@@ -1,9 +1,9 @@
 import type { ConfigFile } from 'houdini'
 
-import type { Cache } from './cache'
+import type { Cache } from './cache/index.js'
 import type { ClientHooks, ClientPlugin } from './documentStore.js'
 import { DocumentStore } from './documentStore.js'
-import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from './types'
+import type { DocumentArtifact, GraphQLVariables, GraphQLObject, NestedList } from './types.js'
 
 // export the plugin constructors
 export { DocumentStore } from './documentStore.js'
