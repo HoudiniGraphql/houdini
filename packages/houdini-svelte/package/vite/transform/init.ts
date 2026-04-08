@@ -46,8 +46,8 @@ export default async function kit_init(config: Config, page: SvelteTransformPage
 		sourceModule: '$app/state',
 		import: ['page'],
 	}).ids[0]
-  
-  // $effect dont get anyting in callback so we got to use store_page that is like page
+
+	// $effect dont get anyting in callback so we got to use store_page that is like page
 	page.script.body.push(
 		AST.expressionStatement(
 			AST.callExpression(AST.identifier('$effect'), [
@@ -57,10 +57,7 @@ export default async function kit_init(config: Config, page: SvelteTransformPage
 						AST.expressionStatement(
 							AST.callExpression(set_session, [
 								AST.callExpression(extract_session, [
-									AST.memberExpression(
-										page_store,
-										AST.identifier('data')
-									),
+									AST.memberExpression(page_store, AST.identifier('data')),
 								]),
 							])
 						),

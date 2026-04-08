@@ -1,11 +1,12 @@
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
+
 import * as fs from './fs.js'
 import * as path from './path.js'
 
 export async function plugin_path(
 	plugin_name: string,
-	config_path: string,
+	config_path: string
 ): Promise<{ executable: string; directory: string }> {
 	try {
 		// check if we are in a PnP environment
@@ -29,9 +30,7 @@ export async function plugin_path(
 		const plugin_dir = find_module(plugin_name, config_path)
 
 		// load up the package json
-		const package_json_src = await fs.readFile(
-			path.join(plugin_dir, 'package.json'),
-		)
+		const package_json_src = await fs.readFile(path.join(plugin_dir, 'package.json'))
 		if (!package_json_src) {
 			throw new Error('There is no package.json.')
 		}
@@ -48,7 +47,7 @@ export async function plugin_path(
 		}
 	} catch (e) {
 		const err = new Error(
-			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`,
+			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`
 		)
 
 		throw err
@@ -85,10 +84,7 @@ function find_module(pkg: string, config_path: string): string {
  * Fallback module finding function that manually traverses node_modules directories.
  * Used when Node.js built-in module resolution fails for edge cases.
  */
-function find_module_walking_modules(
-	pkg: string = 'houdini',
-	currentLocation: string,
-) {
+function find_module_walking_modules(pkg: string = 'houdini', currentLocation: string) {
 	const pathEndingBy = ['node_modules', pkg]
 
 	// Build the first possible location
