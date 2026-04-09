@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.12
+
+### Patch Changes
+
+-   [#1578](https://github.com/HoudiniGraphql/houdini/pull/1578) [`2ec07f415edbe8011811cdac190481f81c606354`](https://github.com/HoudiniGraphql/houdini/commit/2ec07f415edbe8011811cdac190481f81c606354) Thanks [@vehm](https://github.com/vehm)! - Fixed authentication header from `Authentication` to `Authorization`
+
 ## 2.0.0-next.11
 
 ### Patch Changes

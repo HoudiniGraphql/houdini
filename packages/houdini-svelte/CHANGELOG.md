@@ -1,5 +1,14 @@
 # houdini-svelte
 
+## 3.0.0-next.14
+
+### Patch Changes
+
+-   [#1583](https://github.com/HoudiniGraphql/houdini/pull/1583) [`a052ef7cd4db4c2596830bb8fac676ba43ed8979`](https://github.com/HoudiniGraphql/houdini/commit/a052ef7cd4db4c2596830bb8fac676ba43ed8979) Thanks [@siddarthvader](https://github.com/siddarthvader)! - fix: allow server-side fetch without event for Svelte 5 async component queries
+
+-   Updated dependencies [[`2ec07f415edbe8011811cdac190481f81c606354`](https://github.com/HoudiniGraphql/houdini/commit/2ec07f415edbe8011811cdac190481f81c606354)]:
+    -   houdini@2.0.0-next.12
+
 ## 3.0.0-next.13
 
 ### Patch Changes
