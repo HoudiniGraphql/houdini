@@ -17,13 +17,13 @@
   let routesKvp = Object.keys(routes).map((key: string) => {
     return { key, value: (routes as Record<string, string>)[key] };
   });
+  let {data, children}:{data:LayoutData} = $props()
 
-  let {data}:{data:LayoutData} = $props()
   let info= $derived(data.LayoutSession)
 </script>
 
-<slot />
 
+{@render children?.()}
 <Test />
 
 <nav>
@@ -35,5 +35,5 @@
 </nav>
 
 <div id="layout-session">
-  {info?.data?.session}
+  {$info?.data?.session}
 </div>
