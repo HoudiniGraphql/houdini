@@ -31,7 +31,7 @@
     "build:build": "pnpm build: && pnpm build",
     "build:tests": "pnpm build:build && pnpm test",
     "houdini": "node ensureLinks.js && houdini",
-    "build": "vite build",
+    "build": "node ensureLinks.js && vite build",
     "preview": "vite preview --port 3007",
     "preview-e2e": "concurrently \"pnpm run preview\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\""
   },
