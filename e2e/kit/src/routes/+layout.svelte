@@ -18,8 +18,8 @@
     return { key, value: (routes as Record<string, string>)[key] };
   });
 
-  export let data: LayoutData
-  $: ({LayoutSession: info } = data)
+  let {data}:{data:LayoutData} = $props()
+  let info= $derived(data.LayoutSession)
 </script>
 
 <slot />
@@ -35,5 +35,5 @@
 </nav>
 
 <div id="layout-session">
-  {$info?.data?.session}
+  {info?.data?.session}
 </div>
