@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 2.0.0-go.14
+
+### Patch Changes
+
+-   [#1582](https://github.com/HoudiniGraphql/houdini/pull/1582) [`dfa4033b`](https://github.com/HoudiniGraphql/houdini/commit/dfa4033bf510d78d911952052b148b08895dc0f5) Thanks [@siddarthvader](https://github.com/siddarthvader)! - fix svelte 5 root layout sessio injection and using $effect to sync the houdini and app session
+
 ## 2.0.0-go.13
 
 ### Patch Changes
