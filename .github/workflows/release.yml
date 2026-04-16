@@ -1,39 +1,38 @@
 name: Release
 
-# keep the changelog up to date on every commit to main
+# Trigger releases on pushes to release branches
+# Supports both regular releases and prereleases based on .changeset/pre.json
 on:
     push:
         branches:
+            - houdini-2.0
             - main
 
 env:
     CI: true
 jobs:
     publish:
-        name: Publish
+        name: Publish Release Version
         runs-on: ubuntu-22.04
+        permissions:
+          id-token: write  
+          contents: write  
+          pull-requests: write
         steps:
-            - name: Creating .npmrc
-              run: |
-                  cat << EOF > "$HOME/.npmrc"
-                      email=$NPM_EMAIL
-                      name=$NPM_NAME
-                      //registry.npmjs.org/:_authToken=$NPM_TOKEN
-                  EOF
-              env:
-                  NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
-                  NPM_NAME: ${{ secrets.NPM_NAME }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
             - name: Checkout source
               uses: actions/checkout@master
               with:
                   ref: ${{ github.ref }}
 
             - name: Install Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
-                node-version: 24.x
+                node-version: 24
+                registry-url: 'https://registry.npmjs.org'
+                always-auth: true
+
+            - name: Update npm CLI
+              run: npm install -g npm@latest # Ensure npm 11.5.1 or later
 
             - uses: pnpm/action-setup@v2.0.1
               name: Install pnpm
@@ -52,13 +51,41 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Create Release Pull Request or Deploy
+            # Check if we're in prerelease mode
+            - name: Check prerelease mode
+              id: prerelease-check
+              run: |
+                  if [ -f ".changeset/pre.json" ]; then
+                    echo "✅ Prerelease mode detected (.changeset/pre.json exists)"
+                    echo "📝 Will use prerelease titles and skip snapshot releases"
+                    echo "is_prerelease=true" >> $GITHUB_OUTPUT
+                    echo "title=🚧 Prerelease Version Update" >> $GITHUB_OUTPUT
+                    echo "commit=🚧 v{VERSION}" >> $GITHUB_OUTPUT
+                  else
+                    echo "✅ Regular release mode detected (no .changeset/pre.json)"
+                    echo "📝 Will use regular titles and publish snapshot releases"
+                    echo "is_prerelease=false" >> $GITHUB_OUTPUT
+                    echo "title=📦 Release Version Update" >> $GITHUB_OUTPUT
+                    echo "commit=📦 v{VERSION}" >> $GITHUB_OUTPUT
+                  fi
+
+            # Regular changesets release workflow - creates PR or publishes when PR is merged
+            - name: Create Release Pull Request if necessary
+              id: changesets
               uses: changesets/action@v1
               with:
                   version: pnpm run version
-                  publish: pnpm run release
-                  title: '📦 Version Update'
-                  commit: '📦 v{VERSION}'
+                  title: ${{ steps.prerelease-check.outputs.title }}
+                  commit: ${{ steps.prerelease-check.outputs.commit }}
+                  createGithubReleases: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true 
+
+            - name: Publish Package
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              run: pnpm run release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true
+                  # OIDC token is automatically provided by GitHub Actions
