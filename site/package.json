@@ -18,7 +18,7 @@
 	},
 	"devDependencies": {
 		"@babel/parser": "^7.20.7",
-		"@playwright/test": "1.30.0",
+		"@playwright/test": "1.59.1",
 		"@sveltejs/kit": "1.9.3",
 		"@typescript-eslint/eslint-plugin": "^5.50.0",
 		"@typescript-eslint/parser": "^5.50.0",
