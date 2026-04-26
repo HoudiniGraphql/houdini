@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -41,7 +42,7 @@ func LoadDocuments(
 
 	// start a pool of workers to process the documents
 	wg, _ := errgroup.WithContext(ctx)
-	for range 1 {
+	for range runtime.NumCPU() {
 		wg.Go(func() error {
 			conn, err := db.Take(context.Background())
 			if err != nil {

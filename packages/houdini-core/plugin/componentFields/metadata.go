@@ -177,13 +177,13 @@ func WriteMetadata[PluginConfig any](
 	defer typesStmt.Finalize()
 
 	// Prepare a statement to check for conflicts in type_fields.
+	// Note: component_fields.document is a raw_documents.id FK, not a documents.id.
 	tfStmt, err := conn.Prepare(`
-    SELECT COUNT(*) 
-    FROM type_fields 
+    SELECT COUNT(*)
+    FROM type_fields
       LEFT JOIN component_fields ON type_fields.id = component_fields.type_field
-      LEFT JOIN documents on component_fields.document = documents.id
-      LEFT JOIN raw_documents on documents.raw_document = raw_documents.id
-    WHERE type_fields.id = ? AND (component_fields.id IS NULL OR filepath != ?)
+      LEFT JOIN raw_documents ON component_fields.document = raw_documents.id
+    WHERE type_fields.id = ? AND (component_fields.id IS NULL OR raw_documents.filepath != ?)
   `)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
