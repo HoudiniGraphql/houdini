@@ -386,65 +386,91 @@ CREATE TABLE IF NOT EXISTS document_dependencies (
 -- Indices
 -----------------------------------------------------------
 
+-- component_fields
 CREATE INDEX IF NOT EXISTS idx_component_fields_type_fields ON component_fields(type_field);
+
+-- discovered_lists
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_document ON discovered_lists(document);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_node ON discovered_lists(node);
 CREATE INDEX IF NOT EXISTS idx_discovered_lists_list_field ON discovered_lists(list_field);
-CREATE INDEX IF NOT EXISTS idx_discovered_lists_connection ON discovered_lists(connection);
-CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_value on document_directive_arguments(value);
-CREATE INDEX IF NOT EXISTS idx_type_field_arguments_id ON type_field_arguments(id);
-CREATE INDEX IF NOT EXISTS idx_type_fields_id ON type_fields(id);
+-- note: no index on discovered_lists(connection) — boolean column, ~2 distinct values
+
+-- types
 CREATE INDEX IF NOT EXISTS idx_types_kind_operation ON types(kind, operation);
+-- note: no index on types(name) — covered by PRIMARY KEY UNIQUE
+
+-- documents
 CREATE INDEX IF NOT EXISTS idx_documents_kind ON documents(kind);
 CREATE INDEX IF NOT EXISTS idx_documents_type_condition ON documents(type_condition);
-CREATE INDEX IF NOT EXISTS idx_raw_documents_current_task ON raw_documents(current_task);
 CREATE INDEX IF NOT EXISTS idx_documents_raw_document ON documents(raw_document);
+CREATE INDEX IF NOT EXISTS idx_documents_name_kind ON documents(name, kind);
+
+-- raw_documents
+CREATE INDEX IF NOT EXISTS idx_raw_documents_current_task ON raw_documents(current_task);
+
+-- selections
+CREATE INDEX IF NOT EXISTS idx_selections_type ON selections(type);
+CREATE INDEX IF NOT EXISTS idx_selections_alias ON selections(alias);
+CREATE INDEX IF NOT EXISTS idx_selections_field_name_kind ON selections(field_name, kind);
+
+-- selection_refs: composite covers document-only lookups, so no separate single-column index needed
 CREATE INDEX IF NOT EXISTS idx_selection_refs_parent_id ON selection_refs(parent_id);
 CREATE INDEX IF NOT EXISTS idx_selection_refs_child_id ON selection_refs(child_id);
-CREATE INDEX IF NOT EXISTS idx_selection_refs_document ON selection_refs(document);
--- Composite index for common query patterns in CollectDocuments
 CREATE INDEX IF NOT EXISTS idx_selection_refs_document_parent_id ON selection_refs(document, parent_id);
+
+-- selection_directives / selection_directive_arguments / selection_arguments
+CREATE INDEX IF NOT EXISTS idx_selection_directives_selection ON selection_directives(selection_id);
+CREATE INDEX IF NOT EXISTS idx_selection_directives_directive ON selection_directives(directive);
+CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
+-- note: no index on selection_directive_arguments(parent) alone — covered by (parent,name) composite
+CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_value ON selection_directive_arguments(value);
+CREATE INDEX IF NOT EXISTS idx_selection_arguments_selection ON selection_arguments(selection_id);
+CREATE INDEX IF NOT EXISTS idx_selection_arguments_value ON selection_arguments(value);
+
+-- type_fields / type_field_arguments
+-- note: no index on type_fields(id) or type_field_arguments(id) — covered by their TEXT PRIMARY KEYs
+CREATE INDEX IF NOT EXISTS idx_type_fields_parent ON type_fields(parent);
+CREATE INDEX IF NOT EXISTS idx_type_fields_name ON type_fields(name);
+CREATE INDEX IF NOT EXISTS idx_type_configs_name ON type_configs(name);
+
+-- possible_types
+-- note: no index on possible_types(type) — covered by PRIMARY KEY(type,member) leading column
+CREATE INDEX IF NOT EXISTS idx_possible_types_member ON possible_types(member);
+
+-- enum_values
+-- note: no index on enum_values(parent) or (parent,value) — both covered by UNIQUE(parent,value)
+
+-- document_directives / document_directive_arguments
+CREATE INDEX IF NOT EXISTS idx_document_directives_document ON document_directives(document);
+CREATE INDEX IF NOT EXISTS idx_document_directives_directive ON document_directives(directive);
+CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_parent_name ON document_directive_arguments(parent, name);
+-- note: no index on document_directive_arguments(parent) alone — covered by (parent,name) composite
+CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_value on document_directive_arguments(value);
+
+-- document_variables
+-- note: no index on document_variables(document,name) — covered by UNIQUE(document,name)
+CREATE INDEX IF NOT EXISTS idx_document_variables_document_id ON document_variables(document, id);
+CREATE INDEX IF NOT EXISTS idx_document_variables_document_type_modifiers_default ON document_variables(document, type_modifiers, default_value);
+
+-- document_variable_directives / document_variable_directive_arguments
 CREATE INDEX IF NOT EXISTS idx_document_variable_directives_parent ON document_variable_directives(parent);
 CREATE INDEX IF NOT EXISTS idx_document_variable_directives_directive ON document_variable_directives(directive);
 CREATE INDEX IF NOT EXISTS idx_document_variable_directive_arguments_parent ON document_variable_directive_arguments(parent);
-CREATE INDEX IF NOT EXISTS idx_selections_type ON selections(type);
-CREATE INDEX IF NOT EXISTS idx_document_directives_document ON document_directives(document);
-CREATE INDEX IF NOT EXISTS idx_document_directives_directive ON document_directives(directive);
-CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_parent ON document_directive_arguments(parent);
-CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_parent_name ON document_directive_arguments(parent, name);
-CREATE INDEX IF NOT EXISTS idx_type_fields_parent ON type_fields(parent);
-CREATE INDEX IF NOT EXISTS idx_selections_alias ON selections(alias);
-CREATE INDEX IF NOT EXISTS idx_selection_directives_selection ON selection_directives(selection_id);
-CREATE INDEX IF NOT EXISTS idx_selection_arguments_selection ON selection_arguments(selection_id);
-CREATE INDEX IF NOT EXISTS idx_selection_directive_args_parent ON selection_directive_arguments(parent);
-CREATE INDEX IF NOT EXISTS idx_possible_types_type ON possible_types(type);
-CREATE INDEX IF NOT EXISTS idx_possible_types_member ON possible_types(member);
-CREATE INDEX IF NOT EXISTS idx_enum_values_parent ON enum_values(parent);
-CREATE INDEX IF NOT EXISTS idx_type_fields_name ON type_fields(name);
-CREATE INDEX IF NOT EXISTS idx_type_configs_name ON type_configs(name);
-CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent ON argument_value_children(parent);
-CREATE INDEX IF NOT EXISTS idx_argument_values_kind_raw ON argument_values(kind, raw);
-CREATE INDEX IF NOT EXISTS idx_document_variables_document_name ON document_variables(document, name);
-CREATE INDEX IF NOT EXISTS idx_selection_arguments_value ON selection_arguments(value);
-CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
-CREATE INDEX IF NOT EXISTS idx_selection_directives_directive ON selection_directives(directive);
-CREATE INDEX IF NOT EXISTS idx_argument_values_document ON argument_values(document);
-CREATE INDEX IF NOT EXISTS idx_types_name ON types(name);
-CREATE INDEX IF NOT EXISTS idx_enum_values_parent_value ON enum_values(parent, value);
-CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_value ON selection_directive_arguments(value);
-CREATE INDEX IF NOT EXISTS idx_argument_value_children_value ON argument_value_children(value);
-CREATE INDEX IF NOT EXISTS idx_document_dependency_document on document_dependencies(document);
+
+-- document_dependencies
+-- note: no index on document_dependencies(document) — covered by UNIQUE(document,depends_on) leading column
 CREATE INDEX IF NOT EXISTS idx_document_dependency_depends_on on document_dependencies(depends_on);
--- Performance optimization: composite index for argument_values joins with documents
+
+-- argument_values: composite (document,id) covers document-only lookups
+-- note: no separate index on argument_values(document) alone
+CREATE INDEX IF NOT EXISTS idx_argument_values_kind_raw ON argument_values(kind, raw);
 CREATE INDEX IF NOT EXISTS idx_argument_values_document_id ON argument_values(document, id);
--- Additional performance optimizations for the recursive CTE query
-CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent_value ON argument_value_children(parent, value);
--- Complex query optimizations based on query analysis
-CREATE INDEX IF NOT EXISTS idx_selections_field_name_kind ON selections(field_name, kind);
-CREATE INDEX IF NOT EXISTS idx_documents_name_kind ON documents(name, kind);
-CREATE INDEX IF NOT EXISTS idx_document_variables_document_id ON document_variables(document, id);
 CREATE INDEX IF NOT EXISTS idx_argument_values_expected_type_document ON argument_values(expected_type, document);
-CREATE INDEX IF NOT EXISTS idx_document_variables_document_type_modifiers_default ON document_variables(document, type_modifiers, default_value);
+
+-- argument_value_children: composite (parent,value) covers parent-only lookups
+-- note: no separate index on argument_value_children(parent) alone
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent_value ON argument_value_children(parent, value);
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_value ON argument_value_children(value);
 `
 
 export async function write_config(

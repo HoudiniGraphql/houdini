@@ -80,6 +80,23 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 				// so let's just blow away any raw documents related to the changed files and then we'll call extract
 				const placeholders = relativePaths.map(() => '?').join(', ')
+
+				// Capture the document names for the changed files before we delete them.
+				// After extraction we'll compare to detect whether operations were added or
+				// removed. GenerateRuntime (stores, index.ts) only needs to re-run when the
+				// document set changes; for content-only edits we can skip it.
+				const prevDocNames = new Set<string>(
+					(
+						ctx.db
+							.prepare(
+								`SELECT d.name FROM documents d
+                 JOIN raw_documents rd ON d.raw_document = rd.id
+                 WHERE rd.filepath IN (${placeholders})`
+							)
+							.all(...relativePaths) as Array<{ name: string }>
+					).map((r) => r.name)
+				)
+
 				ctx.db
 					.prepare(
 						`
@@ -214,11 +231,37 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					)
 					.run({ task_id: task_id })
 
+				// Compare the document set after extraction to decide whether GenerateRuntime
+				// needs to run. If the user only edited existing operation bodies (no renames,
+				// no adds, no removes), stores and the plugin index are unchanged and we can
+				// stop the pipeline at GenerateDocuments.
+				const currDocNames = new Set<string>(
+					(
+						ctx.db
+							.prepare(
+								`SELECT d.name FROM documents d
+                 JOIN raw_documents rd ON d.raw_document = rd.id
+                 WHERE rd.filepath IN (${placeholders})`
+							)
+							.all(...relativePaths) as Array<{ name: string }>
+					).map((r) => r.name)
+				)
+				const documentSetChanged =
+					prevDocNames.size !== currDocNames.size ||
+					[...currDocNames].some((n) => !prevDocNames.has(n))
+
 				// the task now includes every document that we need to process
 				const results = await run_pipeline(compiler.trigger_hook, {
 					task_id,
 					after: 'AfterValidate',
+					...(documentSetChanged ? {} : { through: 'GenerateDocuments' }),
 				})
+
+				// AfterGenerate must always run — when we stop at GenerateDocuments it is
+				// excluded from run_pipeline's range, so fire it explicitly here.
+				if (!documentSetChanged) {
+					await compiler.trigger_hook('AfterGenerate', { task_id })
+				}
 
 				// the return value of each generate invocation is the list of modules that were updated
 				const updated_modules = Object.values(

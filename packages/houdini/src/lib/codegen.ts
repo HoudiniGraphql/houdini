@@ -521,6 +521,24 @@ export async function run_pipeline(
 			opts.parallel_safe = true
 		}
 
+		// GenerateDocuments and GenerateRuntime have no data dependency on each other —
+		// both read from the DB which is fully settled after AfterValidate. Run them
+		// concurrently when they appear consecutively in the active range.
+		if (
+			hook === 'GenerateDocuments' &&
+			i + 1 <= endIndex &&
+			PIPELINE_HOOKS[i + 1] === 'GenerateRuntime'
+		) {
+			const [gdResult, grResult] = await Promise.all([
+				trigger_hook('GenerateDocuments', { task_id, parallel_safe: true }),
+				trigger_hook('GenerateRuntime', { task_id }),
+			])
+			results['GenerateDocuments'] = gdResult
+			results['GenerateRuntime'] = grResult
+			i++ // GenerateRuntime already handled
+			continue
+		}
+
 		results[hook] = await trigger_hook(hook, opts)
 	}
 
