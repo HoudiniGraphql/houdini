@@ -3,4 +3,4 @@
 'houdini': patch
 ---
 
-Codegen pipeline now runs 4x faster
+Codegen pipeline now runs 5x faster
