@@ -415,6 +415,7 @@ CREATE INDEX IF NOT EXISTS idx_selections_field_name_kind ON selections(field_na
 
 -- selection_refs: composite covers document-only lookups, so no separate single-column index needed
 CREATE INDEX IF NOT EXISTS idx_selection_refs_parent_id ON selection_refs(parent_id);
+
 CREATE INDEX IF NOT EXISTS idx_selection_refs_child_id ON selection_refs(child_id);
 CREATE INDEX IF NOT EXISTS idx_selection_refs_document_parent_id ON selection_refs(document, parent_id);
 
@@ -424,6 +425,9 @@ CREATE INDEX IF NOT EXISTS idx_selection_directives_directive ON selection_direc
 CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_parent_name ON selection_directive_arguments(parent, name);
 -- note: no index on selection_directive_arguments(parent) alone — covered by (parent,name) composite
 CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_value ON selection_directive_arguments(value);
+-- document FK on selection_directive_arguments and selection_arguments: used in WHERE/JOIN in CollectDocuments
+CREATE INDEX IF NOT EXISTS idx_selection_directive_arguments_document ON selection_directive_arguments(document);
+CREATE INDEX IF NOT EXISTS idx_selection_arguments_document ON selection_arguments(document);
 CREATE INDEX IF NOT EXISTS idx_selection_arguments_selection ON selection_arguments(selection_id);
 CREATE INDEX IF NOT EXISTS idx_selection_arguments_value ON selection_arguments(value);
 
@@ -437,6 +441,10 @@ CREATE INDEX IF NOT EXISTS idx_type_configs_name ON type_configs(name);
 -- note: no index on possible_types(type) — covered by PRIMARY KEY(type,member) leading column
 CREATE INDEX IF NOT EXISTS idx_possible_types_member ON possible_types(member);
 
+-- type_fields: type and document FK columns have no implicit index
+CREATE INDEX IF NOT EXISTS idx_type_fields_type ON type_fields(type);
+CREATE INDEX IF NOT EXISTS idx_type_fields_document ON type_fields(document);
+
 -- enum_values
 -- note: no index on enum_values(parent) or (parent,value) — both covered by UNIQUE(parent,value)
 
@@ -449,6 +457,8 @@ CREATE INDEX IF NOT EXISTS idx_document_directive_arguments_value on document_di
 
 -- document_variables
 -- note: no index on document_variables(document,name) — covered by UNIQUE(document,name)
+-- default_value FK is used as a JOIN column in validate and fragmentArguments transforms
+CREATE INDEX IF NOT EXISTS idx_document_variables_default_value ON document_variables(default_value);
 CREATE INDEX IF NOT EXISTS idx_document_variables_document_id ON document_variables(document, id);
 CREATE INDEX IF NOT EXISTS idx_document_variables_document_type_modifiers_default ON document_variables(document, type_modifiers, default_value);
 
@@ -471,6 +481,8 @@ CREATE INDEX IF NOT EXISTS idx_argument_values_expected_type_document ON argumen
 -- note: no separate index on argument_value_children(parent) alone
 CREATE INDEX IF NOT EXISTS idx_argument_value_children_parent_value ON argument_value_children(parent, value);
 CREATE INDEX IF NOT EXISTS idx_argument_value_children_value ON argument_value_children(value);
+-- document FK: large table; index needed for efficient CASCADE DELETE from documents
+CREATE INDEX IF NOT EXISTS idx_argument_value_children_document ON argument_value_children(document);
 `
 
 export async function write_config(
