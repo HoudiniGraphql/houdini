@@ -131,9 +131,8 @@ func CollectDocuments(
 	resultCh := make(chan collectResult, len(docIDs))
 
 	// create a pool of worker goroutines to process the documents
-	// use single worker to avoid database contention
 	var wg sync.WaitGroup
-	for range 1 {
+	for range runtime.NumCPU() {
 		wg.Add(1)
 		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList, sortKeys)
 	}

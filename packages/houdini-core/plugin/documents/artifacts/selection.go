@@ -53,6 +53,11 @@ func writeSelectionDocument(
 	// compute the filepath to write the artifact to
 	artifactPath := projectConfig.ArtifactPath(name)
 
+	// skip the write if the content hasn't changed (common on incremental runs)
+	if existing, err := afero.ReadFile(fs, artifactPath); err == nil && string(existing) == artifact {
+		return "", nil
+	}
+
 	// write the file to disk
 	err = afero.WriteFile(fs, artifactPath, []byte(artifact), 0644)
 	if err != nil {

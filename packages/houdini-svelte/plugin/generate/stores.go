@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/spf13/afero"
 
@@ -34,7 +36,6 @@ func GenerateStores(
 	if err != nil {
 		return nil, err
 	}
-	defer db.Put(conn)
 
 	errs := &plugins.ErrorList{}
 
@@ -71,11 +72,10 @@ func GenerateStores(
 		ORDER BY d.name ASC
 	`)
 	if err != nil {
+		db.Put(conn)
 		return nil, err
 	}
-	defer stmt.Finalize()
 
-	var generatedFiles []string
 	storesDir := filepath.Join(projectConfig.PluginDirectory("houdini-svelte"), "stores")
 
 	// Make sure the stores directory exists
@@ -84,103 +84,111 @@ func GenerateStores(
 		return nil, fmt.Errorf("failed to create stores directory: %w", err)
 	}
 
-	var indexValue strings.Builder
-
-	// Execute the query and generate stores
+	// Collect all document rows first so we can release the DB connection before
+	// spawning workers (each worker needs its own connection for other queries).
+	type storeDoc struct {
+		name              string
+		kind              string
+		variablesRequired bool
+		refetchMethod     string
+	}
+	var docs []storeDoc
 	err = db.StepStatement(ctx, stmt, func() {
-		name := stmt.ColumnText(0)
-		kind := stmt.ColumnText(1)
-		variablesRequired := stmt.ColumnBool(2)
-		refetchMethod := stmt.ColumnText(3)
-
-		storeName := name + "Store"
-
-		fmt.Fprintf(&indexValue, "export * from './%s.js'\n", name)
-
-		var storeContent string
-		var err error
-
-		switch kind {
-		case "query":
-			storeContent, err = generateQueryStore(
-				pluginConfig,
-				name,
-				storeName,
-				variablesRequired,
-				refetchMethod,
-			)
-		case "mutation":
-			storeContent, err = generateMutationStore(pluginConfig, name, storeName)
-		case "subscription":
-			storeContent, err = generateSubscriptionStore(pluginConfig, name, storeName)
-		case "fragment":
-			storeContent, err = generateFragmentStore(
-				pluginConfig,
-				name,
-				storeName,
-				refetchMethod,
-				variablesRequired,
-			)
-		default:
-			errs.Append(plugins.WrapError(err))
-			return // Skip unknown kinds
-		}
-		if errs.Len() > 0 {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return
-		}
-		// Write the store file
-		storePath := filepath.Join(storesDir, name+".ts")
-
-		var currentValue []byte
-		if exists, err := afero.Exists(fs, storePath); err == nil && exists {
-			currentValue, err = afero.ReadFile(fs, storePath)
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-		}
-
-		if string(currentValue) != storeContent {
-			err = afero.WriteFile(fs, storePath, []byte(storeContent), 0644)
-			if err != nil {
-				return
-			}
-
-			generatedFiles = append(generatedFiles, storePath)
-		}
+		docs = append(docs, storeDoc{
+			name:              stmt.ColumnText(0),
+			kind:              stmt.ColumnText(1),
+			variablesRequired: stmt.ColumnBool(2),
+			refetchMethod:     stmt.ColumnText(3),
+		})
 	})
 	if err != nil {
 		return nil, err
+	}
+	// Release the connection before the parallel section.
+	stmt.Finalize()
+	db.Put(conn)
+
+	// Fan out: generate + write each store file in parallel.
+	type storeResult struct {
+		storePath string
+		changed   bool
+		err       error
+	}
+	resultCh := make(chan storeResult, len(docs))
+	docCh := make(chan storeDoc, len(docs))
+
+	var wg sync.WaitGroup
+	for range runtime.NumCPU() {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for doc := range docCh {
+				storeName := doc.name + "Store"
+				var content string
+				var genErr error
+				switch doc.kind {
+				case "query":
+					content, genErr = generateQueryStore(pluginConfig, doc.name, storeName, doc.variablesRequired, doc.refetchMethod)
+				case "mutation":
+					content, genErr = generateMutationStore(pluginConfig, doc.name, storeName)
+				case "subscription":
+					content, genErr = generateSubscriptionStore(pluginConfig, doc.name, storeName)
+				case "fragment":
+					content, genErr = generateFragmentStore(pluginConfig, doc.name, storeName, doc.refetchMethod, doc.variablesRequired)
+				default:
+					// unknown kind — skip without error
+					continue
+				}
+				if genErr != nil {
+					resultCh <- storeResult{err: genErr}
+					continue
+				}
+				storePath := filepath.Join(storesDir, doc.name+".ts")
+				if existing, readErr := afero.ReadFile(fs, storePath); readErr == nil && string(existing) == content {
+					resultCh <- storeResult{storePath: storePath, changed: false}
+					continue
+				}
+				if writeErr := afero.WriteFile(fs, storePath, []byte(content), 0644); writeErr != nil {
+					resultCh <- storeResult{err: writeErr}
+					continue
+				}
+				resultCh <- storeResult{storePath: storePath, changed: true}
+			}
+		}()
+	}
+
+	for _, doc := range docs {
+		docCh <- doc
+	}
+	close(docCh)
+	wg.Wait()
+	close(resultCh)
+
+	var generatedFiles []string
+	for res := range resultCh {
+		if res.err != nil {
+			errs.Append(plugins.WrapError(res.err))
+			continue
+		}
+		if res.changed {
+			generatedFiles = append(generatedFiles, res.storePath)
+		}
 	}
 	if errs.Len() > 0 {
 		return nil, errs
 	}
 
-	// we have everything we need to write the index file
+	// Build the index file from the ordered docs slice (query was ORDER BY name ASC).
+	var indexValue strings.Builder
+	for _, doc := range docs {
+		fmt.Fprintf(&indexValue, "export * from './%s.js'\n", doc.name)
+	}
 	indexFilePath := filepath.Join(storesDir, "index.ts")
 	indexContent := indexValue.String()
-
-	var currentValue []byte
-	if exists, err := afero.Exists(fs, indexFilePath); err == nil && exists {
-		currentValue, err = afero.ReadFile(fs, indexFilePath)
-		if err != nil {
-			errs.Append(plugins.WrapError(err))
-			return nil, err
+	if existing, readErr := afero.ReadFile(fs, indexFilePath); readErr != nil || string(existing) != indexContent {
+		if writeErr := afero.WriteFile(fs, indexFilePath, []byte(indexContent), 0644); writeErr != nil {
+			return nil, writeErr
 		}
-	}
-
-	if string(currentValue) != indexContent {
-		err = afero.WriteFile(fs, indexFilePath, []byte(indexContent), 0644)
-		if err != nil {
-			return nil, err
-		}
-
 		generatedFiles = append(generatedFiles, indexFilePath)
 	}
 

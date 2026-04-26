@@ -27,9 +27,29 @@ func (db *DatabasePool[PluginConfig]) SetPluginConfig(config PluginConfig) {
 	db._pluginConfig = &config
 }
 
+var connectionPragmas = []string{
+	"PRAGMA journal_mode = WAL",
+	"PRAGMA synchronous = off",
+	"PRAGMA cache_size = 10000",
+	"PRAGMA temp_store = memory",
+	"PRAGMA busy_timeout = 5000",
+	"PRAGMA foreign_key = ON",
+	"PRAGMA defer_foreign_keys = ON",
+}
+
+func prepareConn(conn *sqlite.Conn) error {
+	for _, pragma := range connectionPragmas {
+		if err := sqlitex.ExecuteTransient(conn, pragma, nil); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func NewPool[PluginConfig any]() (DatabasePool[PluginConfig], error) {
 	pool, err := sqlitex.NewPool(databasePath, sqlitex.PoolOptions{
-		Flags: sqlite.OpenWAL | sqlite.OpenReadWrite,
+		Flags:       sqlite.OpenWAL | sqlite.OpenReadWrite,
+		PrepareConn: prepareConn,
 	})
 	if err != nil {
 		return DatabasePool[PluginConfig]{}, err
@@ -107,30 +127,7 @@ func (db DatabasePool[PluginConfig]) BindStatement(stmt *sqlite.Stmt, args map[s
 
 // our wrapper over take needs to time out after 10 seconds
 func (db DatabasePool[PluginConfig]) Take(ctx context.Context) (*sqlite.Conn, error) {
-	conn, err := db.Pool.Take(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if !db.Test {
-		for _, pragma := range []string{
-			"PRAGMA journal_mode = WAL",
-			"PRAGMA synchronous = off",
-			"PRAGMA cache_size = 10000",
-			"PRAGMA temp_store = memory",
-			"PRAGMA busy_timeout = 5000",
-			"PRAGMA foreign_key = ON",
-			"PRAGMA defer_foreign_keys = ON",
-		} {
-			stmt, _, err := conn.PrepareTransient(pragma)
-			if err != nil {
-				return nil, err
-			}
-			db.ExecStatement(stmt, map[string]any{})
-		}
-	}
-
-	return conn, nil
+	return db.Pool.Take(ctx)
 }
 
 func (db DatabasePool[PluginConfig]) ExecQuery(

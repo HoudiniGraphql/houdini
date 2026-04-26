@@ -3,6 +3,7 @@ package artifacts
 import (
 	"context"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -54,7 +55,7 @@ func GenerateDocumentArtifacts(
 	}
 
 	// start consuming names off of the channel
-	for range 1 {
+	for range runtime.NumCPU() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
