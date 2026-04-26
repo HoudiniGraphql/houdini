@@ -299,30 +299,31 @@ export function createDebounceHmr(debounceMs: number = 50) {
 
 				try {
 					await callback(filesWithContent, currentBatchId.toString())
-				} catch {}
+				} catch (err) {
+					console.error('[houdini] HMR pipeline error:', err)
+				}
 
-				// Process any pending batch that accumulated
-				if (pendingBatch) {
+				// Drain any pending batches that accumulated while we were processing
+				while (pendingBatch) {
 					const { files: nextFiles, batchId: nextBatchId } = pendingBatch
 					pendingBatch = null
 
-					// Read files for pending batch
 					const nextFilesWithContent: Record<string, string> = {}
-					const nextReadPromises = Array.from(nextFiles.entries()).map(
-						async ([filepath, readFn]) => {
+					await Promise.all(
+						Array.from(nextFiles.entries()).map(async ([filepath, readFn]) => {
 							try {
-								const content = await readFn()
-								nextFilesWithContent[filepath] = content
-							} catch (error) {
+								nextFilesWithContent[filepath] = await readFn()
+							} catch {
 								nextFilesWithContent[filepath] = ''
 							}
-						}
+						})
 					)
 
-					await Promise.all(nextReadPromises)
 					try {
 						await callback(nextFilesWithContent, nextBatchId.toString())
-					} catch {}
+					} catch (err) {
+						console.error('[houdini] HMR pipeline error:', err)
+					}
 				}
 			} finally {
 				isProcessing = false
