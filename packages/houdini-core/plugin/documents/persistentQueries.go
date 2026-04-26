@@ -54,7 +54,7 @@ func GeneratePersistentQueries(
 	err = sqlitex.Execute(conn, `
 		SELECT d.id, d.name, d.kind, d.hash, d.printed
 		FROM documents d
-		WHERE  d.hash IS NOT NULL 
+		WHERE  d.hash IS NOT NULL
 			AND d.hash != ''
 			AND d.printed IS NOT NULL
 			AND d.printed != ''
@@ -92,57 +92,27 @@ func GeneratePersistentQueries(
 		return nil, plugins.WrapError(err)
 	}
 
-	// Batch query to get all fragment dependencies for all operations at once
-	operationFragmentDeps := make(map[string][]string)
-
-	// Create a list of operation IDs for the batch query
-	operationIDs := make([]string, 0, len(operations))
-	for _, op := range operations {
-		operationIDs = append(operationIDs, op.ID)
-	}
-
-	// Build the batch query with placeholders
-	placeholders := make([]string, len(operationIDs))
-	for i := range operationIDs {
-		placeholders[i] = "?"
-	}
-	whereIn := "(" + strings.Join(placeholders, ", ") + ")"
-
-	// Execute the batch query to get all fragment dependencies
-	batchQuery := `
-		WITH RECURSIVE fragment_deps AS (
-			-- Direct fragments used by operations
-			SELECT DISTINCT sr.document as operation_id, s.field_name as fragment_name
-			FROM selections s
-			JOIN selection_refs sr ON s.id = sr.child_id
-			WHERE sr.document IN ` + whereIn + ` AND s.kind = 'fragment'
-
-			UNION
-
-			-- Fragments used by other fragments (recursive)
-			SELECT DISTINCT fd.operation_id, s.field_name
-			FROM selections s
-			JOIN selection_refs sr ON s.id = sr.child_id
-			JOIN documents d ON sr.document = d.id
-			JOIN fragment_deps fd ON d.name = fd.fragment_name
-			WHERE s.kind = 'fragment' AND d.kind = 'fragment'
-		)
-		SELECT operation_id, fragment_name FROM fragment_deps
-		ORDER BY operation_id, fragment_name
-	`
-
-	// Convert operation IDs to interface{} for the query
-	args := make([]any, len(operationIDs))
-	for i, id := range operationIDs {
-		args[i] = id
-	}
-
-	err = sqlitex.Execute(conn, batchQuery, &sqlitex.ExecOptions{
-		Args: args,
+	// Load all fragment spreads for every document in one flat query, then do
+	// transitive closure in memory. This avoids a recursive UNION CTE with a
+	// large IN clause (400+ items), which SQLite executes slowly.
+	docToDirectFrags := make(map[string][]string) // doc_id/name → direct fragment spreads
+	err = sqlitex.Execute(conn, `
+		SELECT d.id, d.name, d.kind, s.field_name
+		FROM selections s
+		JOIN selection_refs sr ON s.id = sr.child_id
+		JOIN documents d ON sr.document = d.id
+		WHERE s.kind = 'fragment'
+	`, &sqlitex.ExecOptions{
 		ResultFunc: func(stmt *sqlite.Stmt) error {
-			operationID := stmt.ColumnText(0)
-			fragmentName := stmt.ColumnText(1)
-			operationFragmentDeps[operationID] = append(operationFragmentDeps[operationID], fragmentName)
+			docID := stmt.ColumnText(0)
+			docName := stmt.ColumnText(1)
+			kind := stmt.ColumnText(2)
+			fragName := stmt.ColumnText(3)
+			if kind == "fragment" {
+				docToDirectFrags[docName] = append(docToDirectFrags[docName], fragName)
+			} else {
+				docToDirectFrags[docID] = append(docToDirectFrags[docID], fragName)
+			}
 			return nil
 		},
 	})
@@ -150,19 +120,25 @@ func GeneratePersistentQueries(
 		return nil, plugins.WrapError(err)
 	}
 
-	// Now process each operation using the batched fragment dependencies
+	// For each operation, BFS the fragment dependency graph to find the transitive set.
 	for _, op := range operations {
-		fragmentNames := operationFragmentDeps[op.ID]
-
-		// Get the printed content for all required fragments
-		fragmentDefinitions := []string{}
-		for _, fragmentName := range fragmentNames {
-			// now we can use the named map
-			frag := fragments[fragmentName]
-			if frag == nil {
+		seen := make(map[string]bool)
+		queue := docToDirectFrags[op.ID]
+		for len(queue) > 0 {
+			name := queue[0]
+			queue = queue[1:]
+			if seen[name] {
 				continue
 			}
-			fragmentDefinitions = append(fragmentDefinitions, frag.Printed)
+			seen[name] = true
+			queue = append(queue, docToDirectFrags[name]...)
+		}
+
+		var fragmentDefinitions []string
+		for name := range seen {
+			if frag := fragments[name]; frag != nil {
+				fragmentDefinitions = append(fragmentDefinitions, frag.Printed)
+			}
 		}
 
 		completeGraphQL := op.Printed
@@ -171,10 +147,6 @@ func GeneratePersistentQueries(
 		}
 
 		queryMap[op.Hash] = completeGraphQL
-	}
-
-	if err != nil {
-		return nil, plugins.WrapError(err)
 	}
 
 	if len(queryMap) == 0 {

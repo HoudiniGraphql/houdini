@@ -206,7 +206,7 @@ func getDocumentsWithArguments(
 		       CASE WHEN dd.directive IS NOT NULL THEN 1 ELSE 0 END as has_arguments
 		FROM documents d
 		LEFT JOIN document_directives dd ON d.id = dd.document AND dd.directive = 'arguments'
-		WHERE d.visible = 1 
+		WHERE d.visible = 1
 		ORDER BY d.name
 	`, nil, func(stmt *sqlite.Stmt) {
 		doc := DocumentWithArgs{
@@ -260,34 +260,162 @@ func getInputNames(
 	return enumNames, err
 }
 
-type TypeInfo struct {
-	Name string
-	Kind string
+// cacheGenData holds all pre-fetched data needed for cache type def generation,
+// eliminating per-field and per-type database round-trips.
+type cacheGenData struct {
+	typesWithFields map[string]ConcreteTypeWithFields
+	fragmentsByType map[string][]string
+	typeKinds       map[string]string         // typeName → kind (all types, not just OBJECT/INTERFACE)
+	possibleTypes   map[string][]string        // abstract typeName → []member type names
+	fieldArguments  map[string][]FieldArgument // fieldID → []FieldArgument
+	keyFields       map[string][]InputField    // typeName → []InputField
 }
 
-func getTypeInfo(
+func prefetchCacheGenData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	typeName string,
-) (*TypeInfo, error) {
-	var typeInfo *TypeInfo
+	projectConfig plugins.ProjectConfig,
+) (cacheGenData, error) {
+	var data cacheGenData
+	var err error
 
-	err := db.StepQuery(ctx, `
-		SELECT name, kind
-		FROM types
-		WHERE name = $typeName
-	`, map[string]any{"typeName": typeName}, func(stmt *sqlite.Stmt) {
-		typeInfo = &TypeInfo{
-			Name: stmt.ColumnText(0),
-			Kind: stmt.ColumnText(1),
-		}
-	})
-
-	if typeInfo == nil {
-		return nil, fmt.Errorf("type not found: %s", typeName)
+	data.typesWithFields, err = getTypesWithFields(ctx, db)
+	if err != nil {
+		return data, err
 	}
 
-	return typeInfo, err
+	data.fragmentsByType, err = getFragmentsByType(ctx, db)
+	if err != nil {
+		return data, err
+	}
+
+	data.typeKinds, err = fetchAllTypeKinds(ctx, db)
+	if err != nil {
+		return data, err
+	}
+
+	data.possibleTypes, err = fetchAllPossibleTypes(ctx, db)
+	if err != nil {
+		return data, err
+	}
+
+	data.fieldArguments, err = fetchAllFieldArguments(ctx, db)
+	if err != nil {
+		return data, err
+	}
+
+	data.keyFields, err = buildKeyFieldsMap(ctx, db, projectConfig, data.typesWithFields)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
+}
+
+func fetchAllTypeKinds(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[string]string, error) {
+	kinds := make(map[string]string)
+	err := db.StepQuery(ctx, `SELECT name, kind FROM types`, nil, func(stmt *sqlite.Stmt) {
+		kinds[stmt.ColumnText(0)] = stmt.ColumnText(1)
+	})
+	return kinds, err
+}
+
+func fetchAllPossibleTypes(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[string][]string, error) {
+	result := make(map[string][]string)
+	err := db.StepQuery(ctx, `
+		SELECT type, member FROM possible_types ORDER BY type, member
+	`, nil, func(stmt *sqlite.Stmt) {
+		typeName := stmt.ColumnText(0)
+		member := stmt.ColumnText(1)
+		result[typeName] = append(result[typeName], member)
+	})
+	return result, err
+}
+
+func fetchAllFieldArguments(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (map[string][]FieldArgument, error) {
+	result := make(map[string][]FieldArgument)
+	err := db.StepQuery(ctx, `
+		SELECT tfa.field, tfa.name, tfa.type, tfa.type_modifiers, t.kind
+		FROM type_field_arguments tfa
+		JOIN types t ON tfa.type = t.name
+		ORDER BY tfa.field, tfa.name
+	`, nil, func(stmt *sqlite.Stmt) {
+		fieldID := stmt.ColumnText(0)
+		arg := FieldArgument{
+			Name: stmt.ColumnText(1),
+			Type: stmt.ColumnText(2),
+			Kind: stmt.ColumnText(4),
+		}
+		if stmt.ColumnType(3) == sqlite.TypeText {
+			arg.TypeModifiers = stmt.ColumnText(3)
+		}
+		result[fieldID] = append(result[fieldID], arg)
+	})
+	return result, err
+}
+
+// buildKeyFieldsMap builds a map of typeName → []InputField using already-fetched
+// type field data, so no additional per-type queries are needed.
+func buildKeyFieldsMap(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	projectConfig plugins.ProjectConfig,
+	typesWithFields map[string]ConcreteTypeWithFields,
+) (map[string][]InputField, error) {
+	// Fetch custom key overrides from type_configs in one query
+	typeConfigKeys := make(map[string][]string)
+	err := db.StepQuery(ctx, `SELECT name, keys FROM type_configs`, nil, func(stmt *sqlite.Stmt) {
+		var keys []string
+		json.Unmarshal([]byte(stmt.ColumnText(1)), &keys)
+		if len(keys) > 0 {
+			typeConfigKeys[stmt.ColumnText(0)] = keys
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Build a field lookup: typeName → fieldName → TypeField
+	fieldsByName := make(map[string]map[string]TypeField, len(typesWithFields))
+	for typeName, typeInfo := range typesWithFields {
+		byName := make(map[string]TypeField, len(typeInfo.Fields))
+		for _, f := range typeInfo.Fields {
+			byName[f.Name] = f
+		}
+		fieldsByName[typeName] = byName
+	}
+
+	// For each type, resolve its key fields from the already-fetched data
+	result := make(map[string][]InputField, len(typesWithFields))
+	for typeName := range typesWithFields {
+		keys, hasCustom := typeConfigKeys[typeName]
+		if !hasCustom {
+			keys = projectConfig.DefaultKeys
+		}
+
+		var keyFields []InputField
+		for _, key := range keys {
+			if f, ok := fieldsByName[typeName][key]; ok {
+				keyFields = append(keyFields, InputField{
+					Name:          f.Name,
+					Type:          f.Type,
+					TypeModifiers: f.TypeModifiers,
+				})
+			}
+		}
+		result[typeName] = keyFields
+	}
+
+	return result, nil
 }
 
 func generateCacheTypeDef(
@@ -297,10 +425,16 @@ func generateCacheTypeDef(
 ) (string, error) {
 	var content strings.Builder
 
+	// Pre-fetch all data needed by sub-generators in batch queries
+	data, err := prefetchCacheGenData(ctx, db, projectConfig)
+	if err != nil {
+		return "", err
+	}
+
 	content.WriteString("export declare type CacheTypeDef = {\n")
 
 	// Generate types section
-	typesSection, err := generateTypesSection(ctx, db, projectConfig)
+	typesSection, err := generateTypesSection(projectConfig, data)
 	if err != nil {
 		return "", err
 	}
@@ -340,27 +474,14 @@ func generateCacheTypeDef(
 }
 
 func generateTypesSection(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
 	projectConfig plugins.ProjectConfig,
+	data cacheGenData,
 ) (string, error) {
 	var content strings.Builder
 
-	// Get all concrete types with their fields in a single query
-	typesWithFields, err := getTypesWithFields(ctx, db)
-	if err != nil {
-		return "", err
-	}
-
-	// Get fragments grouped by type
-	fragmentsByType, err := getFragmentsByType(ctx, db)
-	if err != nil {
-		return "", err
-	}
-
 	// Sort types to ensure __ROOT__ comes first, then alphabetical
 	var sortedTypes []ConcreteTypeWithFields
-	for _, typeInfo := range typesWithFields {
+	for _, typeInfo := range data.typesWithFields {
 		sortedTypes = append(sortedTypes, typeInfo)
 	}
 
@@ -387,15 +508,15 @@ func generateTypesSection(
 
 		content.WriteString(fmt.Sprintf("\t\t\t%s: {\n", typeName))
 
-		// Generate idFields
-		idFields, err := generateIdFields(ctx, db, typeInfo.Name, projectConfig)
+		// Generate idFields from pre-fetched key field data
+		idFields, err := generateIdFieldsFromCache(typeInfo.Name, projectConfig, data.keyFields)
 		if err != nil {
 			return "", err
 		}
 		content.WriteString(fmt.Sprintf("\t\t\t\tidFields: %s;\n", idFields))
 
-		// Generate fields
-		fields, err := generateTypeFieldsFromData(ctx, projectConfig, db, typeInfo.Fields)
+		// Generate fields using pre-fetched data (no per-field DB calls)
+		fields, err := generateTypeFieldsFromData(projectConfig, data, typeInfo.Fields)
 		if err != nil {
 			return "", err
 		}
@@ -405,84 +526,7 @@ func generateTypesSection(
 
 		// Generate fragments
 		fragments := "[]"
-		if typeFragments, exists := fragmentsByType[typeInfo.Name]; exists {
-			fragments = fmt.Sprintf("[%s]", strings.Join(typeFragments, ", "))
-		}
-		content.WriteString(fmt.Sprintf("\t\t\t\tfragments: %s;\n", fragments))
-
-		content.WriteString("\t\t\t};\n")
-	}
-
-	return content.String(), nil
-}
-
-// generateTypesSectionWithKeyFields is an optimized version that uses pre-fetched key fields
-func generateTypesSectionWithKeyFields(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	projectConfig plugins.ProjectConfig,
-	allKeyFields map[string][]InputField,
-) (string, error) {
-	var content strings.Builder
-
-	// Get all concrete types with their fields in a single query
-	typesWithFields, err := getTypesWithFields(ctx, db)
-	if err != nil {
-		return "", err
-	}
-
-	// Get fragments grouped by type
-	fragmentsByType, err := getFragmentsByType(ctx, db)
-	if err != nil {
-		return "", err
-	}
-
-	// Sort types to ensure __ROOT__ comes first, then alphabetical
-	var sortedTypes []ConcreteTypeWithFields
-	for _, typeInfo := range typesWithFields {
-		sortedTypes = append(sortedTypes, typeInfo)
-	}
-
-	sort.Slice(sortedTypes, func(i, j int) bool {
-		iIsQuery := sortedTypes[i].Operation != nil && *sortedTypes[i].Operation == "query"
-		jIsQuery := sortedTypes[j].Operation != nil && *sortedTypes[j].Operation == "query"
-
-		if iIsQuery && !jIsQuery {
-			return true
-		}
-		if !iIsQuery && jIsQuery {
-			return false
-		}
-		return sortedTypes[i].Name < sortedTypes[j].Name
-	})
-
-	for _, typeInfo := range sortedTypes {
-		typeName := typeInfo.Name
-
-		// Use __ROOT__ for Query type
-		if typeInfo.Operation != nil && *typeInfo.Operation == "query" {
-			typeName = "__ROOT__"
-		}
-
-		content.WriteString(fmt.Sprintf("\t\t\t%s: {\n", typeName))
-
-		// Generate idFields using pre-fetched data
-		idFields, err := generateIdFieldsFromCache(typeInfo.Name, projectConfig, allKeyFields)
-		if err != nil {
-			return "", err
-		}
-		content.WriteString(fmt.Sprintf("\t\t\t\tidFields: %s;\n", idFields))
-
-		// Generate fields
-		fields, err := generateTypeFieldsFromData(ctx, projectConfig, db, typeInfo.Fields)
-		if err != nil {
-			return "", err
-		}
-		content.WriteString(fmt.Sprintf("\t\t\t\tfields: %s;\n", fields))
-
-		// Generate fragments
-		fragments := "[]"
-		if typeFragments, exists := fragmentsByType[typeInfo.Name]; exists {
+		if typeFragments, exists := data.fragmentsByType[typeInfo.Name]; exists {
 			fragments = fmt.Sprintf("[%s]", strings.Join(typeFragments, ", "))
 		}
 		content.WriteString(fmt.Sprintf("\t\t\t\tfragments: %s;\n", fragments))
@@ -555,181 +599,7 @@ func getTypesWithFields(
 	return typesWithFields, err
 }
 
-func generateIdFields(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	typeName string,
-	projectConfig plugins.ProjectConfig,
-) (string, error) {
-	// For __ROOT__ (Query type), return empty object
-	if typeName == "Query" {
-		return "{}", nil
-	}
-
-	// Get key fields for this type
-	keyFields, err := getKeyFields(ctx, db, typeName, projectConfig)
-	if err != nil {
-		return "", err
-	}
-
-	if len(keyFields) == 0 {
-		return "never", nil
-	}
-
-	var fields []string
-	for _, field := range keyFields {
-		tsType, err := typescript.ConvertToTypeScriptType(
-			projectConfig,
-			"",
-			field.Type,
-			field.TypeModifiers,
-			false, // isInput = false for cache key fields
-		)
-		if err != nil {
-			return "", err
-		}
-		// Remove nullability for ID fields
-		tsType = strings.ReplaceAll(tsType, " | null | undefined", "")
-		fields = append(fields, fmt.Sprintf("\n\t\t\t\t\t%s: %s;", field.Name, tsType))
-	}
-
-	return fmt.Sprintf("{%s\n\t\t\t\t}", strings.Join(fields, "")), nil
-}
-
-func getKeyFields(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	typeName string,
-	projectConfig plugins.ProjectConfig,
-) ([]InputField, error) {
-	var keyFields []InputField
-
-	// First try to get type-specific keys
-	var keys []string
-	err := db.StepQuery(ctx, `
-		SELECT keys
-		FROM type_configs
-		WHERE name = $typeName
-	`, map[string]any{"typeName": typeName}, func(stmt *sqlite.Stmt) {
-		keysJSON := stmt.ColumnText(0)
-		json.Unmarshal([]byte(keysJSON), &keys)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// If no type-specific keys, use default keys
-	if len(keys) == 0 {
-		keys = projectConfig.DefaultKeys
-	}
-
-	// Get field information for each key
-	for _, key := range keys {
-		err := db.StepQuery(ctx, `
-			SELECT name, type, type_modifiers
-			FROM type_fields
-			WHERE parent = $typeName AND name = $key AND internal = false
-		`, map[string]any{"typeName": typeName, "key": key}, func(stmt *sqlite.Stmt) {
-			field := InputField{
-				Name: stmt.ColumnText(0),
-				Type: stmt.ColumnText(1),
-			}
-			if stmt.ColumnType(2) == sqlite.TypeText {
-				field.TypeModifiers = stmt.ColumnText(2)
-			}
-			keyFields = append(keyFields, field)
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return keyFields, nil
-}
-
-// getAllKeyFields fetches all key fields for all types in a single batch query to avoid O(n²) behavior
-func getAllKeyFields(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	projectConfig plugins.ProjectConfig,
-) (map[string][]InputField, error) {
-	allKeyFields := make(map[string][]InputField)
-
-	// First, get all type configs with their keys
-	typeKeys := make(map[string][]string)
-	err := db.StepQuery(ctx, `
-		SELECT name, keys
-		FROM type_configs
-	`, nil, func(stmt *sqlite.Stmt) {
-		typeName := stmt.ColumnText(0)
-		keysJSON := stmt.ColumnText(1)
-		var keys []string
-		json.Unmarshal([]byte(keysJSON), &keys)
-		typeKeys[typeName] = keys
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Get all types that might need key fields
-	allTypes := make(map[string]bool)
-	err = db.StepQuery(ctx, `
-		SELECT DISTINCT parent
-		FROM type_fields
-		WHERE internal = false
-	`, nil, func(stmt *sqlite.Stmt) {
-		typeName := stmt.ColumnText(0)
-		allTypes[typeName] = true
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// For each type, determine its keys (either from type_configs or default)
-	typeToKeys := make(map[string][]string)
-	for typeName := range allTypes {
-		if keys, exists := typeKeys[typeName]; exists && len(keys) > 0 {
-			typeToKeys[typeName] = keys
-		} else {
-			typeToKeys[typeName] = projectConfig.DefaultKeys
-		}
-	}
-
-	// Now batch query all the key fields for all types
-	for typeName, keys := range typeToKeys {
-		if len(keys) == 0 {
-			continue
-		}
-
-		// Query each key field individually (simpler than building dynamic IN clause)
-		var keyFields []InputField
-		for _, key := range keys {
-			err := db.StepQuery(ctx, `
-				SELECT name, type, type_modifiers
-				FROM type_fields
-				WHERE parent = $typeName AND name = $key AND internal = false
-			`, map[string]any{"typeName": typeName, "key": key}, func(stmt *sqlite.Stmt) {
-				field := InputField{
-					Name: stmt.ColumnText(0),
-					Type: stmt.ColumnText(1),
-				}
-				if stmt.ColumnType(2) == sqlite.TypeText {
-					field.TypeModifiers = stmt.ColumnText(2)
-				}
-				keyFields = append(keyFields, field)
-			})
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		allKeyFields[typeName] = keyFields
-	}
-
-	return allKeyFields, nil
-}
-
-// generateIdFieldsFromCache generates idFields using pre-fetched key field data
+// generateIdFieldsFromCache generates idFields using pre-fetched key field data.
 func generateIdFieldsFromCache(
 	typeName string,
 	projectConfig plugins.ProjectConfig,
@@ -767,25 +637,19 @@ func generateIdFieldsFromCache(
 }
 
 func generateTypeFieldsFromData(
-	ctx context.Context,
 	projectConfig plugins.ProjectConfig,
-	db plugins.DatabasePool[config.PluginConfig],
+	data cacheGenData,
 	fields []TypeField,
 ) (string, error) {
 	var content strings.Builder
 
 	for _, field := range fields {
-		// Generate field type
-		fieldType, err := generateFieldType(ctx, projectConfig, db, field)
+		fieldType, err := generateFieldType(projectConfig, data, field)
 		if err != nil {
 			return "", err
 		}
 
-		// Generate field arguments
-		fieldArgs, err := generateFieldArguments(ctx, db, projectConfig, field.ID)
-		if err != nil {
-			return "", err
-		}
+		fieldArgs := generateFieldArgumentsFromCache(projectConfig, data.fieldArguments[field.ID])
 
 		content.WriteString(fmt.Sprintf("\t\t\t\t\t%s: {\n", field.Name))
 		content.WriteString(fmt.Sprintf("\t\t\t\t\t\ttype: %s;\n", fieldType))
@@ -804,88 +668,43 @@ type TypeField struct {
 }
 
 func generateFieldType(
-	ctx context.Context,
 	config plugins.ProjectConfig,
-	db plugins.DatabasePool[config.PluginConfig],
+	data cacheGenData,
 	field TypeField,
 ) (string, error) {
-	// Get the base type information
-	typeInfo, err := getTypeInfo(ctx, db, field.Type)
-	if err != nil {
-		return "", err
+	kind, ok := data.typeKinds[field.Type]
+	if !ok {
+		return "any", nil
 	}
 
 	var baseType string
-	switch typeInfo.Kind {
+	switch kind {
 	case "SCALAR":
-		baseType = typescript.ConvertScalarType(
-			config,
-			field.Type,
-			false,
-		) // isInput = false for cache field types
+		baseType = typescript.ConvertScalarType(config, field.Type, false)
 	case "ENUM":
 		baseType = fmt.Sprintf("%s$options", field.Type)
 	case "OBJECT":
 		baseType = fmt.Sprintf("Record<CacheTypeDef, \"%s\">", field.Type)
 	case "INTERFACE", "UNION":
-		// Get possible types for abstract types
-		possibleTypes, err := getPossibleTypes(ctx, db, field.Type)
-		if err != nil {
-			return "", err
-		}
+		members := data.possibleTypes[field.Type]
 		var recordTypes []string
-		for _, possibleType := range possibleTypes {
-			recordTypes = append(
-				recordTypes,
-				fmt.Sprintf("Record<CacheTypeDef, \"%s\">", possibleType),
-			)
+		for _, m := range members {
+			recordTypes = append(recordTypes, fmt.Sprintf("Record<CacheTypeDef, \"%s\">", m))
 		}
 		baseType = strings.Join(recordTypes, " | ")
 	default:
 		baseType = "any"
 	}
 
-	// Apply type modifiers
-	return typescript.ApplyTypeModifiers(
-		baseType,
-		field.TypeModifiers,
-		false,
-	), nil // Output type (cache field)
+	return typescript.ApplyTypeModifiers(baseType, field.TypeModifiers, false), nil
 }
 
-func getPossibleTypes(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	typeName string,
-) ([]string, error) {
-	var possibleTypes []string
-
-	err := db.StepQuery(ctx, `
-		SELECT member
-		FROM possible_types
-		WHERE type = $typeName
-		ORDER BY member
-	`, map[string]any{"typeName": typeName}, func(stmt *sqlite.Stmt) {
-		possibleTypes = append(possibleTypes, stmt.ColumnText(0))
-	})
-
-	return possibleTypes, err
-}
-
-func generateFieldArguments(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
+func generateFieldArgumentsFromCache(
 	projectConfig plugins.ProjectConfig,
-	fieldID string,
-) (string, error) {
-	// Get arguments for this field
-	args, err := getFieldArguments(ctx, db, fieldID)
-	if err != nil {
-		return "", err
-	}
-
+	args []FieldArgument,
+) string {
 	if len(args) == 0 {
-		return "never", nil
+		return "never"
 	}
 
 	var argStrings []string
@@ -895,10 +714,10 @@ func generateFieldArguments(
 			arg.Kind,
 			arg.Type,
 			arg.TypeModifiers,
-			true, // isInput = true for field arguments (these are inputs to GraphQL operations)
+			true,
 		)
 		if err != nil {
-			return "", err
+			continue
 		}
 
 		optional := ""
@@ -912,42 +731,7 @@ func generateFieldArguments(
 		)
 	}
 
-	return fmt.Sprintf("{%s\n\t\t\t\t\t\t}", strings.Join(argStrings, "")), nil
-}
-
-type FieldArgument struct {
-	Name          string
-	Type          string
-	Kind          string
-	TypeModifiers string
-}
-
-func getFieldArguments(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	fieldID string,
-) ([]FieldArgument, error) {
-	var args []FieldArgument
-
-	err := db.StepQuery(ctx, `
-		SELECT type_field_arguments.name, type, type_modifiers, types.kind
-		FROM type_field_arguments
-		JOIN types on type_field_arguments.type = types.name
-		WHERE field = $fieldID
-		ORDER BY type_field_arguments.name
-	`, map[string]any{"fieldID": fieldID}, func(stmt *sqlite.Stmt) {
-		arg := FieldArgument{
-			Name: stmt.ColumnText(0),
-			Type: stmt.ColumnText(1),
-			Kind: stmt.ColumnText(3),
-		}
-		if stmt.ColumnType(2) == sqlite.TypeText {
-			arg.TypeModifiers = stmt.ColumnText(2)
-		}
-		args = append(args, arg)
-	})
-
-	return args, err
+	return fmt.Sprintf("{%s\n\t\t\t\t\t\t}", strings.Join(argStrings, ""))
 }
 
 func getFragmentsByType(
@@ -1179,6 +963,11 @@ func generateQueriesSection(
 	return fmt.Sprintf("[%s]", strings.Join(queryTuples, ", ")), nil
 }
 
+type TypeInfo struct {
+	Name string
+	Kind string
+}
+
 type InputType struct {
 	Name string
 }
@@ -1186,5 +975,12 @@ type InputType struct {
 type InputField struct {
 	Name          string
 	Type          string
+	TypeModifiers string
+}
+
+type FieldArgument struct {
+	Name          string
+	Type          string
+	Kind          string
 	TypeModifiers string
 }

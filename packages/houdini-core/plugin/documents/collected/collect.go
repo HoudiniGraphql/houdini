@@ -1221,21 +1221,35 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	}
 
 	// we need a query that looks up every abstract type that's used in
-	// the set of documents
+	// the set of documents. Split into three UNION branches (no OR in JOIN) so
+	// SQLite can use indexes on each branch independently.
 	possibleTypes, err := conn.Prepare(fmt.Sprintf(`
-    SELECT DISTINCT possible_types."type", possible_types."member"
-    FROM possible_types
-      LEFT JOIN type_fields ON possible_types."type" = type_fields."type"
-      JOIN selections ON selections.type = type_fields.id
-        OR (selections.kind = 'inline_fragment'
-            AND (
-              selections.field_name = possible_types."member"
-              OR selections.field_name = possible_types."type"
-            )
-        )
-      JOIN selection_refs ON selection_refs.child_id = selections.id
-    WHERE selection_refs.document IN %s
-  `, whereIn))
+    -- Case 1: abstract type appears as the declared type of a field in the selection set
+    SELECT DISTINCT pt."type", pt."member"
+    FROM possible_types pt
+      JOIN type_fields tf ON pt."type" = tf."type"
+      JOIN selections s ON s.type = tf.id
+      JOIN selection_refs sr ON sr.child_id = s.id
+    WHERE sr.document IN %s
+
+    UNION
+
+    -- Case 2: inline fragment whose type condition matches a concrete member name
+    SELECT DISTINCT pt."type", pt."member"
+    FROM possible_types pt
+      JOIN selections s ON s.kind = 'inline_fragment' AND s.field_name = pt."member"
+      JOIN selection_refs sr ON sr.child_id = s.id
+    WHERE sr.document IN %s
+
+    UNION
+
+    -- Case 3: inline fragment whose type condition matches the abstract type itself
+    SELECT DISTINCT pt."type", pt."member"
+    FROM possible_types pt
+      JOIN selections s ON s.kind = 'inline_fragment' AND s.field_name = pt."type"
+      JOIN selection_refs sr ON sr.child_id = s.id
+    WHERE sr.document IN %s
+  `, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}
