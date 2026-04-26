@@ -122,6 +122,9 @@ func CollectDocuments(
 	// the batch size depends on how many there are. at the maximum, the batch size is nDocuments / nCpus
 	// but if that's above 500, then we should cap it at 500
 	batchSize := max(1, min(500, len(docIDs)/runtime.NumCPU()+1))
+	// round up to the nearest power of two so every batch produces the same SQL string, letting
+	// SQLite reuse the compiled plan across batches (different placeholder counts = different SQL = cache miss)
+	paddedBatchSize := nextPowerOfTwo(batchSize)
 
 	// create a channel to send batches of ids to process
 	batchCh := make(chan []int64, len(docIDs))
@@ -134,7 +137,7 @@ func CollectDocuments(
 	var wg sync.WaitGroup
 	for range runtime.NumCPU() {
 		wg.Add(1)
-		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList, sortKeys)
+		go collectDoc(ctx, db, &wg, batchCh, resultCh, errList, sortKeys, paddedBatchSize)
 	}
 
 	// partition the docIDs into batches and send them to the workers
@@ -197,6 +200,7 @@ func collectDoc(
 	resultCh chan<- collectResult,
 	errs *plugins.ErrorList,
 	sortKeys bool,
+	paddedBatchSize int,
 ) {
 	defer wg.Done()
 
@@ -208,16 +212,21 @@ func collectDoc(
 	}
 	defer db.Put(conn)
 
+	// Prepare statements once per worker with a fixed placeholder count. Every batch produces the
+	// same SQL string so SQLite reuses the compiled plan. StepStatement calls ClearBindings after
+	// each run, so unused slots stay NULL (which never matches real document IDs in an IN clause).
+	statements, err := prepareCollectStatements(conn, paddedBatchSize)
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+		return
+	}
+	defer statements.Finalize()
+
 	for batch := range docIDs {
 		// wrap each processing in a function so we have a defer context to avoid deadlocking the connection
 		func(ids []int64) {
-			// prepare the search statemetns
-			statements, err := prepareCollectStatements(conn, ids)
-			if err != nil {
-				errs.Append(plugins.WrapError(err))
-				return
-			}
-			defer statements.Finalize()
+			// bind this batch's IDs; unused placeholder slots remain NULL from the previous ClearBindings
+			bindCollectStatements(statements, ids)
 
 			// first we need to recreate the selection set for every document that we were given in the batch
 
@@ -932,11 +941,11 @@ type CollectStatements struct {
 	InputTypes         *sqlite.Stmt
 }
 
-func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatements, error) {
-	// we are going to produce a version of the document that looks up a batch of documents
-	// which means we need to produce enough ?'s to create a WHERE IN
-	placeholders := make([]string, len(docIDs))
-	for i := range docIDs {
+func prepareCollectStatements(conn *sqlite.Conn, count int) (*CollectStatements, error) {
+	// Build a fixed-size placeholder list. count is always a power of two so all batches
+	// for this worker share the same SQL string and SQLite reuses the compiled plan.
+	placeholders := make([]string, count)
+	for i := range count {
 		placeholders[i] = fmt.Sprintf("$document_%v", i)
 	}
 
@@ -1336,13 +1345,6 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 		return nil, err
 	}
 
-	// bind each document ID to the variables that were prepared
-	for _, stmt := range []*sqlite.Stmt{search, documentVariables, documentDirectives, possibleTypes, inputTypes} {
-		for i, id := range docIDs {
-			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
-		}
-	}
-
 	return &CollectStatements{
 		Search:             search,
 		DocumentVariables:  documentVariables,
@@ -1352,12 +1354,40 @@ func prepareCollectStatements(conn *sqlite.Conn, docIDs []int64) (*CollectStatem
 	}, nil
 }
 
+// bindCollectStatements binds docIDs to the prepared statements. Unused placeholder slots stay
+// NULL (safe in an IN clause — NULL never matches a real document ID). StepStatement calls
+// ClearBindings after each run, so callers only need to bind the slots they use.
+func bindCollectStatements(statements *CollectStatements, docIDs []int64) {
+	for _, stmt := range []*sqlite.Stmt{
+		statements.Search,
+		statements.DocumentVariables,
+		statements.DocumentDirectives,
+		statements.PossibleTypes,
+		statements.InputTypes,
+	} {
+		for i, id := range docIDs {
+			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
+		}
+	}
+}
+
 func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()
 	s.DocumentVariables.Finalize()
 	s.DocumentDirectives.Finalize()
 	s.PossibleTypes.Finalize()
 	s.InputTypes.Finalize()
+}
+
+func nextPowerOfTwo(n int) int {
+	if n <= 1 {
+		return 1
+	}
+	p := 1
+	for p < n {
+		p <<= 1
+	}
+	return p
 }
 
 // processArgumentValuesInBatches processes argument values in fixed-size batches
