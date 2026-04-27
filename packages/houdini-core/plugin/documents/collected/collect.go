@@ -226,7 +226,17 @@ func collectDoc(
 		// wrap each processing in a function so we have a defer context to avoid deadlocking the connection
 		func(ids []int64) {
 			// bind this batch's IDs; unused placeholder slots remain NULL from the previous ClearBindings
-			bindCollectStatements(statements, ids)
+			for _, stmt := range []*sqlite.Stmt{
+				statements.Search,
+				statements.DocumentVariables,
+				statements.DocumentDirectives,
+				statements.PossibleTypes,
+				statements.InputTypes,
+			} {
+				for i, id := range ids {
+					stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
+				}
+			}
 
 			// first we need to recreate the selection set for every document that we were given in the batch
 
@@ -1230,7 +1240,7 @@ func prepareCollectStatements(conn *sqlite.Conn, count int) (*CollectStatements,
 	}
 
 	// we need a query that looks up every abstract type that's used in
-	// the set of documents. Split into three UNION branches (no OR in JOIN) so
+	// the set of documents. Split into UNION branches (no OR in JOIN) so
 	// SQLite can use indexes on each branch independently.
 	possibleTypes, err := conn.Prepare(fmt.Sprintf(`
     -- Case 1: abstract type appears as the declared type of a field in the selection set
@@ -1258,7 +1268,29 @@ func prepareCollectStatements(conn *sqlite.Conn, count int) (*CollectStatements,
       JOIN selections s ON s.kind = 'inline_fragment' AND s.field_name = pt."type"
       JOIN selection_refs sr ON sr.child_id = s.id
     WHERE sr.document IN %s
-  `, whereIn, whereIn, whereIn))
+
+    UNION
+
+    -- Case 4: named fragment spread in the batch whose type condition is itself abstract
+    -- (needed so merge.go can recognise the fragment's TypeCondition as abstract when
+    -- it synthesises an inline fragment from the spread)
+    SELECT DISTINCT pt."type", pt."member"
+    FROM possible_types pt
+      JOIN documents d ON d.type_condition = pt."type"
+      JOIN selections s ON s.kind = 'fragment' AND s.field_name = d.name
+      JOIN selection_refs sr ON sr.child_id = s.id
+    WHERE sr.document IN %s
+
+    UNION
+
+    -- Case 5: named fragment spread in the batch whose type condition is a concrete member
+    SELECT DISTINCT pt."type", pt."member"
+    FROM possible_types pt
+      JOIN documents d ON d.type_condition = pt."member"
+      JOIN selections s ON s.kind = 'fragment' AND s.field_name = d.name
+      JOIN selection_refs sr ON sr.child_id = s.id
+    WHERE sr.document IN %s
+  `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {
 		return nil, err
 	}
@@ -1354,22 +1386,6 @@ func prepareCollectStatements(conn *sqlite.Conn, count int) (*CollectStatements,
 	}, nil
 }
 
-// bindCollectStatements binds docIDs to the prepared statements. Unused placeholder slots stay
-// NULL (safe in an IN clause — NULL never matches a real document ID). StepStatement calls
-// ClearBindings after each run, so callers only need to bind the slots they use.
-func bindCollectStatements(statements *CollectStatements, docIDs []int64) {
-	for _, stmt := range []*sqlite.Stmt{
-		statements.Search,
-		statements.DocumentVariables,
-		statements.DocumentDirectives,
-		statements.PossibleTypes,
-		statements.InputTypes,
-	} {
-		for i, id := range docIDs {
-			stmt.SetInt64(fmt.Sprintf("$document_%v", i), id)
-		}
-	}
-}
 
 func (s *CollectStatements) Finalize() {
 	s.Search.Finalize()

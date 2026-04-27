@@ -92,9 +92,10 @@ func GeneratePersistentQueries(
 		return nil, plugins.WrapError(err)
 	}
 
-	// Load all fragment spreads for every document in one flat query, then do
-	// transitive closure in memory. This avoids a recursive UNION CTE with a
-	// large IN clause (400+ items), which SQLite executes slowly.
+	// Load all fragment spreads for every document in one flat query, then
+	// walk the spread graph in memory to find every fragment each document
+	// depends on (directly or through other fragments). This avoids a recursive
+	// UNION CTE with a large IN clause (400+ items), which SQLite executes slowly.
 	docToDirectFrags := make(map[string][]string) // doc_id/name → direct fragment spreads
 	err = sqlitex.Execute(conn, `
 		SELECT d.id, d.name, d.kind, s.field_name
