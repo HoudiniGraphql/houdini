@@ -300,11 +300,9 @@ export function createDebounceHmr(debounceMs: number = 50) {
 					Array.from(filesToProcess.entries()).map(
 						async ([filepath, readFn]) => {
 							try {
-								const content = await readFn()
-								filesWithContent[filepath] = content
-							} catch (error) {
-								// Store empty string or rethrow based on your needs
-								filesWithContent[filepath] = ''
+								filesWithContent[filepath] = await readFn()
+							} catch {
+								// file disappeared between the HMR event and now — skip it
 							}
 						},
 					),
@@ -327,7 +325,7 @@ export function createDebounceHmr(debounceMs: number = 50) {
 							try {
 								nextFilesWithContent[filepath] = await readFn()
 							} catch {
-								nextFilesWithContent[filepath] = ''
+								// file disappeared between the HMR event and now — skip it
 							}
 						}),
 					)
