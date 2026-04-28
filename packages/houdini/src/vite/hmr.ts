@@ -1,7 +1,13 @@
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
 import type { VitePluginContext } from '.'
-import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
+import {
+	codegen_setup,
+	get_config,
+	path,
+	run_pipeline,
+	type CompilerProxy,
+} from '../lib/index.js'
 
 /**
  * Houdini Vite HMR Plugin
@@ -62,13 +68,15 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 						!filepath.includes(
 							path.join(
 								hmr.server.config.root,
-								ctx.config.config_file.runtimeDir ?? '.houdini'
-							)
+								ctx.config.config_file.runtimeDir ?? '.houdini',
+							),
 						) &&
 						(filepath.endsWith('.gql') || content.includes('$houdini'))
 					) {
 						filepaths.push(filepath)
-						relativePaths.push(filepath.substring(hmr.server.config.root.length + 1))
+						relativePaths.push(
+							filepath.substring(hmr.server.config.root.length + 1),
+						)
 					}
 				}
 				if (filepaths.length === 0) {
@@ -81,27 +89,11 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				// so let's just blow away any raw documents related to the changed files and then we'll call extract
 				const placeholders = relativePaths.map(() => '?').join(', ')
 
-				// Capture the document names for the changed files before we delete them.
-				// After extraction we'll compare to detect whether operations were added or
-				// removed. GenerateRuntime (stores, index.ts) only needs to re-run when the
-				// document set changes; for content-only edits we can skip it.
-				const prevDocNames = new Set<string>(
-					(
-						ctx.db
-							.prepare(
-								`SELECT d.name FROM documents d
-                 JOIN raw_documents rd ON d.raw_document = rd.id
-                 WHERE rd.filepath IN (${placeholders})`
-							)
-							.all(...relativePaths) as Array<{ name: string }>
-					).map((r) => r.name)
-				)
-
 				ctx.db
 					.prepare(
 						`
             DELETE from raw_documents WHERE filepath IN (${placeholders})
-        `
+        `,
 					)
 					.run(...relativePaths)
 
@@ -115,7 +107,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
           WHERE s.fragment_ref IS NOT NULL
             AND s.kind = 'fragment'                              -- only fragment spreads
             AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
-          `
+          `,
 					)
 					.run()
 
@@ -132,7 +124,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
             )
             DELETE FROM selections
             WHERE id IN (SELECT id FROM orphan_selections)
-          `
+          `,
 					)
 					.run()
 
@@ -148,7 +140,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
               UPDATE raw_documents 
                 SET current_task = ? 
               WHERE filepath IN (${placeholders})
-            `
+            `,
 					)
 					.run(task_id, ...relativePaths)
 
@@ -227,50 +219,26 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
             UPDATE raw_documents
             SET current_task = $task_id
             WHERE id IN (SELECT raw_id FROM targets);
-          `
+          `,
 					)
 					.run({ task_id: task_id })
-
-				// Compare the document set after extraction to decide whether GenerateRuntime
-				// needs to run. If the user only edited existing operation bodies (no renames,
-				// no adds, no removes), stores and the plugin index are unchanged and we can
-				// stop the pipeline at GenerateDocuments.
-				const currDocNames = new Set<string>(
-					(
-						ctx.db
-							.prepare(
-								`SELECT d.name FROM documents d
-                 JOIN raw_documents rd ON d.raw_document = rd.id
-                 WHERE rd.filepath IN (${placeholders})`
-							)
-							.all(...relativePaths) as Array<{ name: string }>
-					).map((r) => r.name)
-				)
-				const documentSetChanged =
-					prevDocNames.size !== currDocNames.size ||
-					[...currDocNames].some((n) => !prevDocNames.has(n))
 
 				// the task now includes every document that we need to process
 				const results = await run_pipeline(compiler.trigger_hook, {
 					task_id,
 					after: 'AfterValidate',
-					...(documentSetChanged ? {} : { through: 'GenerateDocuments' }),
 				})
-
-				// AfterGenerate must always run — when we stop at GenerateDocuments it is
-				// excluded from run_pipeline's range, so fire it explicitly here.
-				if (!documentSetChanged) {
-					await compiler.trigger_hook('AfterGenerate', { task_id })
-				}
 
 				// the return value of each generate invocation is the list of modules that were updated
 				const updated_modules = Object.values(
-					results.GenerateDocuments || {}
+					results.GenerateDocuments || {},
 				).flat() as Array<string>
 
 				// and finally we can remove the task id association
 				ctx.db
-					.prepare(`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`)
+					.prepare(
+						`UPDATE raw_documents SET current_task = NULL WHERE current_task = ?`,
+					)
 					.run(task_id)
 
 				// invalidate all of the modules we generated
@@ -287,7 +255,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 type BatchCallback = (
 	filesWithContent: Record<string, string>,
-	batchId: string
+	batchId: string,
 ) => void | Promise<void>
 
 export function createDebounceHmr(debounceMs: number = 50) {
@@ -329,15 +297,17 @@ export function createDebounceHmr(debounceMs: number = 50) {
 				// Read all files in parallel
 				const filesWithContent: Record<string, string> = {}
 				await Promise.all(
-					Array.from(filesToProcess.entries()).map(async ([filepath, readFn]) => {
-						try {
-							const content = await readFn()
-							filesWithContent[filepath] = content
-						} catch (error) {
-							// Store empty string or rethrow based on your needs
-							filesWithContent[filepath] = ''
-						}
-					})
+					Array.from(filesToProcess.entries()).map(
+						async ([filepath, readFn]) => {
+							try {
+								const content = await readFn()
+								filesWithContent[filepath] = content
+							} catch (error) {
+								// Store empty string or rethrow based on your needs
+								filesWithContent[filepath] = ''
+							}
+						},
+					),
 				)
 
 				try {
@@ -359,7 +329,7 @@ export function createDebounceHmr(debounceMs: number = 50) {
 							} catch {
 								nextFilesWithContent[filepath] = ''
 							}
-						})
+						}),
 					)
 
 					try {
