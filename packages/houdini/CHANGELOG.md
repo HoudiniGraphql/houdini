@@ -1,5 +1,16 @@
 # houdini
 
+## 2.0.0-go.14
+
+### Patch Changes
+
+-   [#1590](https://github.com/HoudiniGraphql/houdini/pull/1590) [`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Codegen pipeline now runs 5x faster
+
+-   [#1589](https://github.com/HoudiniGraphql/houdini/pull/1589) [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920) Thanks [@github-actions](https://github.com/apps/github-actions)! - treat argument value seeds as roots in recursive CTE traversal
+
+-   Updated dependencies [[`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f), [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920)]:
+    -   houdini-core@2.0.0-go.9
+
 ## 2.0.0-go.13
 
 ### Patch Changes

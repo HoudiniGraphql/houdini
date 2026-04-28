@@ -1,5 +1,12 @@
 # houdini-react
 
+## 2.0.0-go.14
+
+### Patch Changes
+
+-   Updated dependencies [[`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f), [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920)]:
+    -   houdini@2.0.0-go.14
+
 ## 2.0.0-go.13
 
 ### Patch Changes
