@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-go.10
+
+### Patch Changes
+
+-   [#1595](https://github.com/HoudiniGraphql/houdini/pull/1595) [`3157a458`](https://github.com/HoudiniGraphql/houdini/commit/3157a458206bb15264b5fa124d7656c2257267de) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Fix documents validation for schema that use custom operation types names for query/mutaiton/subscription
+
 ## 2.0.0-go.9
 
 ### Patch Changes

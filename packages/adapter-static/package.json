@@ -1,6 +1,6 @@
 {
     "name": "houdini-adapter-static",
-    "version": "2.0.0-go.14",
+    "version": "2.0.0-go.15",
     "description": "The adapter for deploying your Houdini application as a single-page application without a server component",
     "keywords": [
         "houdini",
