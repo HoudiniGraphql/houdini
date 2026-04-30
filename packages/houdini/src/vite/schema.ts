@@ -121,7 +121,8 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 						api_url!,
 						config.config_file.watchSchema?.timeout ?? 30000,
 						config.schema_path(),
-						await config.schema_pull_headers()
+						await config.schema_pull_headers(),
+						!(config.config_file.watchSchema?.writePolledSchema ?? true)
 					)
 					error_count = 0
 				} catch (e) {
