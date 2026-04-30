@@ -23,12 +23,14 @@ export class MutationStore<
 			metadata,
 			fetch,
 			event,
+			abortController,
 			...mutationConfig
 		}: {
 			// @ts-ignore
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
 			event?: RequestEvent
+			abortController?: AbortController
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<QueryResult<_Data, _Input>> {
 		await initClient()
@@ -44,6 +46,7 @@ export class MutationStore<
 			fetch: context.fetch,
 			metadata,
 			session: context.session,
+			abortController,
 			stuff: {
 				...mutationConfig,
 			},

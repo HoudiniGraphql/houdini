@@ -7,8 +7,7 @@
 'houdini-adapter-auto': major
 'houdini-adapter-node': major
 'houdini-core': major
-'scripts': major
 'houdini': major
 ---
 
-Implement new compiler architecture
+Rewrote entire codegen pipeline in golang
