@@ -30,9 +30,10 @@ export async function printJS(
 	script: Script,
 	options?: PrintOptions
 ): Promise<{ code: string; map?: any }> {
+	const defaultOptions: PrintOptions = { tabWidth: 4 }
 	if (options?.pretty) {
-		return prettyPrint(script, options)
+		return prettyPrint(script, options ? deepMerge('', defaultOptions, options) : defaultOptions)
 	} else {
-		return print(script, options)
+		return print(script, options ? deepMerge('', defaultOptions, options) : defaultOptions)
 	}
 }
