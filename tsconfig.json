@@ -2,8 +2,8 @@
 	"exclude": ["node_modules", "packages/*/build/**"],
 	"include": ["packages/**/*.ts", "packages/**/*.tsx", "houdini.d.ts"],
 	"compilerOptions": {
-		"moduleResolution": "node",
-		"module": "es2020",
+		"moduleResolution": "bundler",
+		"module": "preserve",
 		"lib": ["ES2021", "DOM", "ES2021.String"],
 		"target": "ESNext",
 		"isolatedModules": true,
@@ -15,20 +15,17 @@
 		"forceConsistentCasingInFileNames": true,
 		"allowJs": true,
 		"checkJs": true,
-		"strict": true,
-		"downlevelIteration": true,
 		"emitDeclarationOnly": true,
-		"baseUrl": "./packages/houdini",
 		"paths": {
-			"$houdini/runtime": ["../houdini-core/runtime"],
-			"$houdini/runtime/*": ["../houdini-core/runtime/*"],
-			"houdini": ["../houdini/src/lib"],
-			"houdini/*": ["../houdini/src/*"],
-			"houdini/vite": ["../houdini/src/vite"],
-			"houdini/test": ["../houdini/src/test"],
-			"houdini-core/*": ["../houdini-core/*"],
-			"houdini-svelte/*": ["../houdini-svelte/package/lib/*"],
-			"houdini-svelte": ["../houdini-svelte/package/lib"]
+			"$houdini/runtime": ["./packages/houdini-core/runtime"],
+			"$houdini/runtime/*": ["./packages/houdini-core/runtime/*"],
+			"houdini": ["./packages/houdini/src/lib"],
+			"houdini/*": ["./packages/houdini/src/*"],
+			"houdini/vite": ["./packages/houdini/src/vite"],
+			"houdini/test": ["./packages/houdini/src/test"],
+			"houdini-core/*": ["./packages/houdini-core/*"],
+			"houdini-svelte/*": ["./packages/houdini-svelte/package/lib/*"],
+			"houdini-svelte": ["./packages/houdini-svelte/package/lib"]
 		},
 		"jsx": "react-jsx"
 	}
