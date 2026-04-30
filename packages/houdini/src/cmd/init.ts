@@ -252,7 +252,10 @@ export async function init(
 	}
 
 	// Global files
-	await gitIgnore(targetPath)
+	await gitIgnore({
+		targetPath,
+		schemaPath: is_remote_endpoint ? schemaPath : undefined,
+	})
 	await graphqlRC(targetPath)
 	await viteConfig(targetPath, frameworkInfo, typescript)
 	await tjsConfig(targetPath, frameworkInfo)
@@ -457,12 +460,19 @@ export default config;
 /******************************/
 /*  Global files              */
 /******************************/
-async function gitIgnore(targetPath: string) {
+async function gitIgnore({ targetPath, schemaPath }: { targetPath: string; schemaPath?: string }) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
 
+	let newIgnores = ''
 	if (!existing.includes('\n.houdini\n')) {
-		await fs.writeFile(filepath, existing + '\n.houdini\n')
+		newIgnores += '.houdini\n'
+	}
+	if (schemaPath && !existing.includes(`\n${schemaPath}\n`)) {
+		newIgnores += `${schemaPath}\n`
+	}
+	if (newIgnores) {
+		await fs.writeFile(filepath, existing + '\n' + newIgnores)
 	}
 }
 

@@ -14,6 +14,7 @@ export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> 
 	metadata?: App.Metadata
 	fetch?: typeof globalThis.fetch
 	optimisticResponse?: _Optimistic
+	abortController?: AbortController
 }) => Promise<void>
 
 export function useMutation<
@@ -39,12 +40,14 @@ export function useMutation<
 		metadata,
 		fetch,
 		variables,
+		abortController,
 		...mutationConfig
 	}) => {
 		const result = await observer.send({
 			variables,
 			metadata,
 			session,
+			abortController,
 			stuff: {
 				...mutationConfig,
 			},
