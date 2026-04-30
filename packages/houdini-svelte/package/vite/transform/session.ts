@@ -178,7 +178,12 @@ function modify_load(
 		}
 		// if the first parameter of the function declaration is an identifier, we're in business
 		else if (load_fn.params[0]?.type === 'Identifier') {
-			event_id = load_fn.params[0]
+			// Create a clean identifier from just the name to strip any TypeScript
+			// type annotations (e.g., `event: RequestEvent`). Reusing the original
+			// AST node would cause recast to emit the annotation inside call
+			// expressions like `buildSessionObject(event: RequestEvent)`, which is
+			// syntactically invalid JavaScript and breaks esbuild.
+			event_id = AST.identifier(load_fn.params[0].name)
 		}
 		// the first parameter is not an identifier so it's almost certainly an object pattern pulling parameters out
 		else if (load_fn.params[0].type === 'ObjectPattern') {
