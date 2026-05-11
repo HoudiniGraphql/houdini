@@ -26,20 +26,19 @@ func writeSelectionDocument(
 	fs afero.Fs,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
+	projectConfig plugins.ProjectConfig,
 	docs *collected.Documents,
 	name string,
 	selection []*collected.Selection,
 	sortKeys bool,
 	typeRoots *typescript.RootTypeNames,
 ) (string, error) {
-	// load the project config
-	projectConfig, _ := db.ProjectConfig(ctx)
-
 	// generate the artifact content
 	artifact, err := GenerateSelectionDocument(
 		ctx,
 		db,
 		conn,
+		projectConfig,
 		docs,
 		name,
 		selection,
@@ -78,6 +77,7 @@ func GenerateSelectionDocument(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
 	conn *sqlite.Conn,
+	projectConfig plugins.ProjectConfig,
 	docs *collected.Documents,
 	name string,
 	selection []*collected.Selection,
@@ -123,9 +123,10 @@ func GenerateSelectionDocument(
 	}
 
 	// collect plugin data
-	pluginData, err := plugins.TriggerHookParallel(
+	pluginData, err := plugins.TriggerHookParallelWithConn(
 		ctx,
 		db,
+		conn,
 		"PluginData",
 		map[string]any{"document": name},
 	)
@@ -141,10 +142,6 @@ func GenerateSelectionDocument(
 	dedupe := ""
 
 	// we need to compute the cache policy for the document
-	projectConfig, err := db.ProjectConfig(ctx)
-	if err != nil {
-		return "", err
-	}
 	cachePolicy := projectConfig.DefaultCachePolicy
 	partial := projectConfig.DefaultPartial
 	for _, directive := range doc.Directives {
@@ -411,9 +408,7 @@ func GenerateSelectionDocument(
 
 	// compute the type definitions
 	typeDefs, imports, err := typescript.GenerateDocumentTypeDefs(
-		ctx,
-		db,
-		conn,
+		projectConfig,
 		rootTypes,
 		docs,
 		doc,
