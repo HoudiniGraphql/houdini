@@ -1,6 +1,6 @@
 import { path } from 'houdini'
-import { VitePluginContext } from 'houdini/vite'
-import { PluginOption } from 'vite'
+import type { VitePluginContext } from 'houdini/vite'
+import type { PluginOption } from 'vite'
 
 import transform_file from './transform/index.js'
 

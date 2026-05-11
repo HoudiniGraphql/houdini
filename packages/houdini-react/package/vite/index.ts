@@ -1,5 +1,5 @@
-import { VitePluginContext } from 'houdini/vite'
-import { PluginOption } from 'vite'
+import type { VitePluginContext } from 'houdini/vite'
+import type { PluginOption } from 'vite'
 
 export default function (ctx: VitePluginContext): PluginOption {
 	return {
