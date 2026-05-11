@@ -671,7 +671,10 @@ class CacheInternal {
 				// have already been added as part of a list operation. if that happens
 				// we will need to filter out ids that refer to these fake-edges which
 				// can be idenfitied as not having a cursor or node value
-				let oldIDs = [...(Array.isArray(previousValue) ? previousValue : [])] as (string | null)[]
+				let oldIDs = [...(Array.isArray(previousValue) ? previousValue : [])] as (
+					| string
+					| null
+				)[]
 
 				// if we are updating a list then we dont want to consider inserted values as coming from the cache
 				if (updates?.includes('append') || updates?.includes('prepend')) {

@@ -1,7 +1,11 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { ServerAdapterRequestHandler } from '@whatwg-node/server'
 import type { GraphQLSchema } from 'graphql'
-import { YogaServer, type YogaInitialContext, type YogaServerOptions as YogaConfig } from 'graphql-yoga'
+import {
+	YogaServer,
+	type YogaInitialContext,
+	type YogaServerOptions as YogaConfig,
+} from 'graphql-yoga'
 
 import type { ConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
