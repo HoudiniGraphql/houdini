@@ -62,18 +62,32 @@ export default async function apply_transforms(
 	}
 
 	// print the result
+	if (page.filepath.endsWith('.svelte')) {
+		const { code: scriptCode, map: rawMap } = await printJS(result.script)
+
+		// The script was extracted from inside the .svelte file, so its AST positions are
+		// 0-indexed relative to the script content, not the full file. Shift all generated-line
+		// numbers in the source map by the number of lines that precede the script tag so that
+		// the map correctly references positions inside the full .svelte file.
+		let map: SourceMapInput | undefined
+		if (rawMap) {
+			const linesBefore = page.content.slice(0, position!.start).split('\n').length - 1
+			const mapObj =
+				typeof (rawMap as any).toJSON === 'function' ? (rawMap as any).toJSON() : rawMap
+			map = { ...mapObj, mappings: ';'.repeat(linesBefore) + mapObj.mappings }
+		}
+
+		return {
+			code: replace_tag_content(page.content, position!.start, position!.end, scriptCode),
+			map,
+		}
+	}
+
 	const { code, map } = await printJS(result.script, {
 		// @ts-ignore
 		inputSourceMap: page.map,
 	})
-
-	return {
-		// if we're transforming a svelte file, we need to replace the script's inner contents
-		code: page.filepath.endsWith('.svelte')
-			? replace_tag_content(page.content, position!.start, position!.end, code)
-			: code,
-		map,
-	}
+	return { code, map }
 }
 
 function replace_tag_content(source: string, start: number, end: number, insert: string) {

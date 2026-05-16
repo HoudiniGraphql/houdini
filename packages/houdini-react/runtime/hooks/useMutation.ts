@@ -14,7 +14,8 @@ export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> 
 	metadata?: App.Metadata
 	fetch?: typeof globalThis.fetch
 	optimisticResponse?: _Optimistic
-}) => Promise<QueryResult<_Result, _Input>>
+	abortController?: AbortController
+}) => Promise<void>
 
 export function useMutation<
 	_Result extends GraphQLObject,
@@ -35,20 +36,35 @@ export function useMutation<
 	const [session] = useSession()
 
 	//  sending the mutation just means invoking the observer's send method
-	const mutate: MutationHandler<_Result, _Input, _Optimistic> = ({
+	const mutate: MutationHandler<_Result, _Input, _Optimistic> = async ({
 		metadata,
 		fetch,
 		variables,
+		abortController,
 		...mutationConfig
-	}) =>
-		observer.send({
+	}) => {
+		const result = await observer.send({
 			variables,
 			metadata,
 			session,
+			abortController,
 			stuff: {
 				...mutationConfig,
 			},
 		})
 
+		if (result.errors && result.errors.length > 0) {
+			const err = new RuntimeGraphQLError(
+				result.errors.map((error) => error.message).join('. ')
+			)
+			err.raw = result.errors
+			throw err
+		}
+	}
+
 	return [pending, mutate]
+}
+
+export class RuntimeGraphQLError extends Error {
+	raw: QueryResult['errors'] = []
 }

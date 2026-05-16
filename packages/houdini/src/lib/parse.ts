@@ -1,27 +1,31 @@
 import { parse as parseJavascript, type ParserOptions } from '@babel/parser'
 import type { Options } from 'recast'
-import { print, prettyPrint } from 'recast'
+import { parse as recastParse, print, prettyPrint } from 'recast'
 
 import { deepMerge } from './deepMerge.js'
 import type { Maybe, Script } from './types.js'
 
 export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 
-// we can't use the recast parser because it normalizes template strings which break the graphql function
-// overload definitions
+const defaultBabelConfig: ParserOptions = {
+	plugins: ['typescript', 'importAssertions', 'decorators-legacy', 'explicitResourceManagement'],
+	sourceType: 'module',
+}
+
 export function parseJS(str: string, config?: Partial<ParserOptions>): Script {
-	const defaultConfig: ParserOptions = {
-		plugins: [
-			'typescript',
-			'importAssertions',
-			'decorators-legacy',
-			'explicitResourceManagement',
-		],
-		sourceType: 'module',
-	}
-	// @ts-expect-error: babel doesn't perfectly match recast's types (the comments don't line up)
-	return parseJavascript(str || '', config ? deepMerge('', defaultConfig, config) : defaultConfig)
-		.program
+	const mergedConfig = config ? deepMerge('', defaultBabelConfig, config) : defaultBabelConfig
+	// Use recast.parse with babel as the custom parser so recast can track original node positions.
+	// This lets recast.print() preserve unchanged nodes verbatim and generate accurate source maps.
+	return (
+		recastParse(str || '', {
+			parser: {
+				// tokens: true is required so recast doesn't fall back to esprima's tokenizer,
+				// which can't handle TypeScript syntax.
+				parse: (src: string) =>
+					parseJavascript(src, { ...(mergedConfig as ParserOptions), tokens: true }),
+			},
+		}) as any
+	).program
 }
 
 type PrintOptions = Options & { pretty?: boolean }
@@ -30,9 +34,13 @@ export async function printJS(
 	script: Script,
 	options?: PrintOptions
 ): Promise<{ code: string; map?: any }> {
+	const defaultOptions: PrintOptions = { tabWidth: 4 }
 	if (options?.pretty) {
-		return prettyPrint(script, options)
+		return prettyPrint(
+			script,
+			options ? deepMerge('', defaultOptions, options) : defaultOptions
+		)
 	} else {
-		return print(script, options)
+		return print(script, options ? deepMerge('', defaultOptions, options) : defaultOptions)
 	}
 }
