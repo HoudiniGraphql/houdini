@@ -25,7 +25,7 @@ func GenerateDocumentArtifacts(
 	sortKeys bool,
 ) ([]string, error) {
 	// load the project config to look up the default masking
-	config, err := db.ProjectConfig(ctx)
+	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func GenerateDocumentArtifacts(
 	// we need to build up the filepaths we generate
 	filepaths := plugins.ThreadSafeSlice[string]{}
 
-	typeRoots, err := typescript.GetRootTypes(ctx, db)
+	typeRoots, err := typescript.GetRootTypes(ctx, db, conn)
 	if err != nil {
 		return nil, plugins.WrapError(err)
 	}
@@ -79,7 +79,7 @@ func GenerateDocumentArtifacts(
 					ctx,
 					collectedDefinitions,
 					name,
-					config.DefaultFragmentMasking,
+					projectConfig.DefaultFragmentMasking,
 					sortKeys,
 				)
 				if err != nil {
@@ -93,6 +93,7 @@ func GenerateDocumentArtifacts(
 					fs,
 					db,
 					conn,
+					projectConfig,
 					collectedDefinitions,
 					name,
 					selection,
@@ -139,7 +140,7 @@ func GenerateDocumentArtifacts(
 			// as the $houdini alias
 			strings.Replace(
 				fp,
-				filepath.Join(config.ProjectRoot, config.RuntimeDir),
+				filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir),
 				"$houdini",
 				1,
 			),

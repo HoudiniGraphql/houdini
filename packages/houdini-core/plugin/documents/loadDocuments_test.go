@@ -1697,6 +1697,89 @@ func TestAfterExtract_loadsExtractedQueries(t *testing.T) {
 	}
 }
 
+func TestAfterExtract_usesCustomRootMutationType(t *testing.T) {
+	schema := `
+		schema {
+			query: Query
+			mutation: RootMutation
+		}
+
+		type Query {
+			user: User
+		}
+
+		type RootMutation {
+			updateUser(id: ID, name: String): User
+		}
+
+		type User {
+			id: ID!
+			name: String
+		}
+	`
+	rawQuery := `
+		mutation UpdateUser($id: ID, $name: String) {
+			updateUser(id: $id, name: $name) {
+				id
+				name
+			}
+		}
+	`
+
+	db, err := plugins.NewTestPool[config.PluginConfig]()
+	require.Nil(t, err)
+	defer db.Close()
+
+	plugin := &plugin.HoudiniCore{}
+	plugin.SetFilesystem(afero.NewMemMapFs())
+
+	db.SetProjectConfig(plugins.ProjectConfig{
+		ProjectRoot: "/project",
+		SchemaPath:  "schema.graphql",
+	})
+	plugin.SetDatabase(db)
+
+	conn, err := db.Take(context.Background())
+	require.Nil(t, err)
+	defer db.Put(conn)
+
+	err = tests.WriteDatabaseSchema(conn)
+	require.Nil(t, err)
+
+	err = afero.WriteFile(plugin.Fs, filepath.Join("/project", "schema.graphql"), []byte(schema), 0644)
+	require.Nil(t, err)
+
+	err = plugin.Schema(context.Background())
+	require.Nil(t, err)
+
+	insertRaw, err := conn.Prepare(
+		"insert into raw_documents (content, filepath) values ($content, 'foo')",
+	)
+	require.Nil(t, err)
+	defer insertRaw.Finalize()
+	err = db.ExecStatement(insertRaw, map[string]any{"content": rawQuery})
+	require.Nil(t, err)
+
+	statements, err, finalize := documents.PrepareDocumentInsertStatements(conn)
+	require.Nil(t, err)
+	defer finalize()
+
+	typeCaches, err := documents.LoadTypeCache(context.Background(), db)
+
+	require.Nil(t, err)
+	require.Equal(t, "RootMutation", typeCaches.RootTypes.Mutation)
+
+	pendingErr := documents.LoadPendingQuery(
+		context.Background(),
+		db,
+		conn,
+		documents.PendingQuery{Query: rawQuery, ID: 1},
+		statements,
+		typeCaches,
+	)
+	require.Nil(t, pendingErr)
+}
+
 // testCase defines a test scenario.
 type testCase struct {
 	name                     string

@@ -1,5 +1,17 @@
 # houdini-core
 
+## 2.0.0-go.11
+
+### Patch Changes
+
+-   [#1597](https://github.com/HoudiniGraphql/houdini/pull/1597) [`7990ece2`](https://github.com/HoudiniGraphql/houdini/commit/7990ece2ed5d9a4b807ce2246b298f2777d0a6d9) Thanks [@siddarthvader](https://github.com/siddarthvader)! - generate artifacts pipeline deadlock condition resolve
+
+## 2.0.0-go.10
+
+### Patch Changes
+
+-   [#1595](https://github.com/HoudiniGraphql/houdini/pull/1595) [`3157a458`](https://github.com/HoudiniGraphql/houdini/commit/3157a458206bb15264b5fa124d7656c2257267de) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Fix documents validation for schema that use custom operation types names for query/mutaiton/subscription
+
 ## 2.0.0-go.9
 
 ### Patch Changes

@@ -562,11 +562,12 @@ func LoadPendingQuery(
 		}
 
 		// figure out the name of the root type for the operation.
-		operationType := "Query"
-		if operation.Operation == ast.Mutation {
-			operationType = "Mutation"
-		} else if operation.Operation == ast.Subscription {
-			operationType = "Subscription"
+		operationType := typeCache.RootTypes.Query
+		switch operation.Operation {
+		case ast.Mutation:
+			operationType = typeCache.RootTypes.Mutation
+		case ast.Subscription:
+			operationType = typeCache.RootTypes.Subscription
 		}
 
 		// walk the selection set for the operation.
@@ -1564,10 +1565,17 @@ type TypeWithModifiers struct {
 	Modifiers string
 }
 
+type RootTypeNames struct {
+	Query        string
+	Mutation     string
+	Subscription string
+}
+
 type TypeCache struct {
 	TypeFields         map[string]TypeWithModifiers
 	FieldArguments     map[string]TypeWithModifiers
 	DirectiveArguments map[string]TypeWithModifiers
+	RootTypes          RootTypeNames
 }
 
 func LoadTypeCache[PluginConfig any](
@@ -1580,16 +1588,47 @@ func LoadTypeCache[PluginConfig any](
 	}
 	defer db.Put(conn)
 
+	rootTypes := RootTypeNames{}
+
+	// Look up the actual operation & name from the types table
+	typeNamesQuery, err := conn.Prepare(`
+		SELECT name, operation
+		FROM types
+		WHERE operation IN ('query', 'mutation', 'subscription')
+	`)
+
+	if err != nil {
+		return TypeCache{}, err
+	}
+	defer typeNamesQuery.Finalize()
+	err = db.StepStatement(ctx, typeNamesQuery, func() {
+		name := typeNamesQuery.ColumnText(0)
+		operation := typeNamesQuery.ColumnText(1)
+
+		switch operation {
+		case "query":
+			rootTypes.Query = name
+		case "mutation":
+			rootTypes.Mutation = name
+		case "subscription":
+			rootTypes.Subscription = name
+		}
+	})
+	if err != nil {
+		return TypeCache{}, err
+	}
 	caches := TypeCache{
 		TypeFields:         map[string]TypeWithModifiers{},
 		FieldArguments:     map[string]TypeWithModifiers{},
 		DirectiveArguments: map[string]TypeWithModifiers{},
+		RootTypes:          rootTypes,
 	}
 
 	// we need to know the type and mofiifers for a given type field
 	typeFieldTypeQuery, err := conn.Prepare(`
 		SELECT type_fields.id, type_fields.type, type_fields.type_modifiers FROM type_fields
 	`)
+
 	if err != nil {
 		return TypeCache{}, err
 	}
