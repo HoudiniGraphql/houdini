@@ -1,5 +1,16 @@
 # houdini-adapter-static
 
+## 2.0.0-go.17
+
+### Major Changes
+
+-   [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+### Patch Changes
+
+-   Updated dependencies [[`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
+    -   houdini@2.0.0-go.17
+
 ## 2.0.0-go.16
 
 ### Patch Changes
