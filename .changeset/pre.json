@@ -29,6 +29,7 @@
     "large-countries-fetch",
     "mutation-error-handling",
     "session-transform-ts-annotations",
+    "stale-trainers-enjoy",
     "svelte-async-component-query",
     "write-polled-schema"
   ]

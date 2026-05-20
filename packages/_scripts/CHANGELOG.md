@@ -1,5 +1,11 @@
 # scripts
 
+## 2.0.0-go.2
+
+### Patch Changes
+
+-   [#1601](https://github.com/HoudiniGraphql/houdini/pull/1601) [`2c1979e4`](https://github.com/HoudiniGraphql/houdini/commit/2c1979e4428ba5ed17dd66b46109bc30c07b5638) Thanks [@siddarthvader](https://github.com/siddarthvader)! - fixed /runtime resolution for node esm
+
 ## 2.0.0-go.1
 
 ### Patch Changes
