@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-go.18
+
+### Patch Changes
+
+-   [#1603](https://github.com/HoudiniGraphql/houdini/pull/1603) [`86ed9d27`](https://github.com/HoudiniGraphql/houdini/commit/86ed9d279d11443df553e9d1d42ab930ba878393) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Fix runtime subpath exports for Node ESM.
+
 ## 2.0.0-go.17
 
 ### Major Changes

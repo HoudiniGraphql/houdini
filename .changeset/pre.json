@@ -28,6 +28,7 @@
     "graphql-peer-dep",
     "large-countries-fetch",
     "mutation-error-handling",
+    "nasty-tables-fix",
     "session-transform-ts-annotations",
     "stale-trainers-enjoy",
     "svelte-async-component-query",
