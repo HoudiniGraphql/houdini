@@ -1,5 +1,12 @@
 # houdini-svelte
 
+## 3.0.0-go.19
+
+### Patch Changes
+
+-   Updated dependencies [[`86ed9d27`](https://github.com/HoudiniGraphql/houdini/commit/86ed9d279d11443df553e9d1d42ab930ba878393)]:
+    -   houdini@2.0.0-go.18
+
 ## 3.0.0-go.18
 
 ### Major Changes
