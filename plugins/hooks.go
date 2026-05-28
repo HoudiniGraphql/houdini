@@ -20,6 +20,10 @@ func TriggerHookSerial[PluginConfig any](
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {
+	if transportMode == "stdio" {
+		return StdioInvoke(ctx, hook, payload, false)
+	}
+
 	// build up the result of invoking the hook on matching plugins
 	result := map[string]any{}
 
@@ -74,6 +78,10 @@ func TriggerHookParallel[PluginConfig any](
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {
+	if transportMode == "stdio" {
+		return StdioInvoke(ctx, hook, payload, true)
+	}
+
 	// build up the result of invoking the hook on matching plugins
 	result := map[string]any{}
 	var resultMu sync.Mutex // to protect concurrent writes
@@ -140,6 +148,10 @@ func TriggerHookParallelWithConn[PluginConfig any](
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {
+	if transportMode == "stdio" {
+		return StdioInvoke(ctx, hook, payload, true)
+	}
+
 	// build up the result of invoking the hook on matching plugins
 	result := map[string]any{}
 	var resultMu sync.Mutex // to protect concurrent writes

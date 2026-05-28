@@ -139,6 +139,13 @@ export type ConfigFile = {
 	runtimeDir?: string
 
 	/**
+	 * Transport used between the Node.js orchestrator and plugin processes.
+	 * 'stdio' routes all communication over stdin/stdout (required for WASI plugins).
+	 * @default 'websocket'
+	 */
+	pluginTransport?: 'websocket' | 'stdio'
+
+	/**
 	 * Configure the router
 	 */
 	router?: RouterConfig
