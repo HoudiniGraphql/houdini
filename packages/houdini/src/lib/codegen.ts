@@ -10,7 +10,9 @@ import { create_schema, write_config } from './database.js'
 import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
 import * as fs from './fs.js'
+import { Logger } from './logger.js'
 import type { ProjectManifest } from './types'
+import { LogLevel } from './types.js'
 
 export type PluginSpec = {
 	name: string
@@ -95,6 +97,8 @@ export async function codegen_setup(
 	db: DatabaseSync,
 	db_file: string
 ): Promise<CompilerProxy> {
+	const logger = new Logger(config.config_file.logLevel ?? LogLevel.Summary)
+
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(conventions.houdini_root(config))
 
@@ -331,7 +335,7 @@ export async function codegen_setup(
 	db.prepare('DELETE FROM plugins').run()
 
 	// start each plugin
-	console.time('Start Plugins')
+	logger.time('Start Plugins')
 	await Promise.all(
 		config.plugins.map(async (plugin) => {
 			let executable = plugin.executable
@@ -348,7 +352,7 @@ export async function codegen_setup(
 				args.push('--transport', 'stdio')
 			}
 
-			console.time(`Spawn ${plugin.name}`)
+			logger.time(`Spawn ${plugin.name}`)
 			const child = spawn(executable, args, {
 				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
 				// message protocol; stderr is always inherited so plugin logs reach the terminal
@@ -371,7 +375,7 @@ export async function codegen_setup(
 					? wait_for_plugin_stdio(plugin.name, child)
 					: wait_for_plugin(plugin.name))),
 			}
-			console.timeEnd(`Spawn ${plugin.name}`)
+			logger.timeEnd(`Spawn ${plugin.name}`, LogLevel.Verbose)
 		})
 	)
 
@@ -379,7 +383,7 @@ export async function codegen_setup(
 		plugin_specs.push(spec_results[plugin.name])
 	}
 
-	console.timeEnd('Start Plugins')
+	logger.timeEnd('Start Plugins', LogLevel.Summary)
 
 	const wsConnections = new Map<string, WebSocket>()
 	let messageCounter = 0
@@ -534,26 +538,30 @@ export async function codegen_setup(
 		} = {}
 	) => {
 		const timeName = hook + (task_id ? ` (${task_id})` : '')
-		console.time(timeName)
+		logger.time(timeName)
 		// look for all of the plugins that have registered for this hook
 		const plugins = plugin_specs.filter(({ hooks }) => hooks.has(hook))
 
 		const result: Record<string, any> = {}
 
-		// if the hook is parallel safe, we can run all of the plugins in parallel
-		if (parallel_safe) {
-			await Promise.all(
-				plugins.map(async (plugin) => {
-					result[plugin.name] = await invoke_hook(plugin.name, hook, payload, task_id)
-				})
-			)
-		} else {
-			// if the hook isn't parallel safe, we need to run the plugins in order
-			for (const { name } of plugins) {
-				result[name] = await invoke_hook(name, hook, payload, task_id)
+		try {
+			// if the hook is parallel safe, we can run all of the plugins in parallel
+			if (parallel_safe) {
+				await Promise.all(
+					plugins.map(async (plugin) => {
+						result[plugin.name] = await invoke_hook(plugin.name, hook, payload, task_id)
+					})
+				)
+			} else {
+				// if the hook isn't parallel safe, we need to run the plugins in order
+				for (const { name } of plugins) {
+					result[name] = await invoke_hook(name, hook, payload, task_id)
+				}
 			}
+		} finally {
+			// task-scoped hook calls are HMR partial runs — only show at full
+			logger.timeEnd(timeName, task_id ? LogLevel.Verbose : LogLevel.Summary)
 		}
-		console.timeEnd(timeName)
 
 		return result
 	}
@@ -562,7 +570,7 @@ export async function codegen_setup(
 	triggerHookRef.fn = trigger_hook
 
 	// write the current config values to the database
-	await write_config(db, config, invoke_hook, plugin_specs, mode)
+	await write_config(db, config, invoke_hook, plugin_specs, mode, logger)
 
 	// now we should load the config hook so other plugins can set their defaults
 	await trigger_hook('Config')

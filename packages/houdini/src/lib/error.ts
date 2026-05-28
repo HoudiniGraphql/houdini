@@ -114,7 +114,7 @@ export function format_hook_error(rootDir: string, error: HookError, plugin: str
 	if (error.detail) {
 		message += `\n${error.detail}`
 	}
-	console.log(message)
+	console.error(message)
 }
 
 export function format_codeblock(code: string[], lineNrStart: number): string {

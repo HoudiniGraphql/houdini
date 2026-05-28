@@ -218,8 +218,7 @@ export async function readdir(
 	try {
 		// @ts-ignore
 		return memfs.readdirSync(filepath, opts) as string[]
-	} catch (e) {
-		console.log(e)
+	} catch {
 		return []
 	}
 }

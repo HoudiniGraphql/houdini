@@ -43,10 +43,12 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 			// before we do anyting we neeed to make sure everything has run
 			try {
-				await compiler.run_pipeline({
+				const results = await compiler.run_pipeline({
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
 				})
+				const docCount = Object.values(results.GenerateDocuments ?? {}).flat().length
+				console.log(`🎩 Generated ${docCount} ${docCount === 1 ? 'document' : 'documents'}`)
 			} catch {}
 		},
 
@@ -74,6 +76,9 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				if (filepaths.length === 0) {
 					return
 				}
+
+				const fileCount = filepaths.length
+				console.log(`🎩 Detected ${fileCount} file ${fileCount === 1 ? 'change' : 'changes'}, re-running compiler`)
 
 				// ideally we would be able to check if the file's content has changed before we re-run but there could
 				// be abitrary extraction logic in a plugin that means we have to instead defer to them to extract documents

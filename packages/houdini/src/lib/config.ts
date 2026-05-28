@@ -100,10 +100,10 @@ export type ConfigFile = {
 	types?: TypeConfig
 
 	/**
-	 * Specifies the style of logging houdini will use when generating your file. One of “quiet”, “full”, “summary”, or “short-summary”.
+	 * Controls how much houdini logs during codegen. One of "quiet", "summary",
+	 * "short-summary", or "full". Defaults to "summary".
 	 */
-
-	logLevel?: string
+	logLevel?: import('./types.js').LogLevel
 
 	/**
 	 * A flag to specify the default fragment masking behavior.

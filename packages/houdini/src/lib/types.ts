@@ -3,6 +3,15 @@ import type { SourceMapInput } from 'rollup'
 
 import type { Config } from './config.js'
 
+export const LogLevel = {
+	Quiet: 'quiet',
+	Summary: 'summary',
+	PluginDetail: 'short-summary',
+	Verbose: 'full',
+} as const
+
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel]
+
 // the correct component tree for a given url
 export type ProjectManifest = {
 	/** All of the pages in the project */

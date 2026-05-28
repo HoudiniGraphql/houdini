@@ -110,7 +110,7 @@ async function load_vite_plugins(ctx: VitePluginContext): Promise<Array<PluginOp
 
 						pluginModule = await import(viteFileUrl)
 					} catch (resolveError) {
-						console.log(
+						console.warn(
 							'skipping plugin',
 							plugin.name,
 							'due to resolution error:',
