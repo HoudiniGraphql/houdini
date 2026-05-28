@@ -66,8 +66,9 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	// register hooks for both HTTP and WebSocket together
 	httpRegistered := map[string]struct{}{}
 	hooks := registerPluginHooks(plugin, func(hookName string, handler HookHandler) {
-		// HTTP connection
-		path := "/" + strings.ToLower(hookName)
+		// HTTP connection — lowercase only the first character so multi-word hooks
+		// like AfterLoad become /afterLoad, matching the Node SDK's fromWireName convention
+		path := "/" + strings.ToLower(hookName[:1]) + hookName[1:]
 		if _, ok := httpRegistered[path]; !ok {
 			http.Handle(path, wrapHandler(handler))
 			httpRegistered[path] = struct{}{}

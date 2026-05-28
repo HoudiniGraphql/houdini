@@ -8,6 +8,20 @@ export async function plugin_path(
 	plugin_name: string,
 	config_path: string
 ): Promise<{ executable: string; directory: string }> {
+	// local path: resolve relative to the config file, skip npm resolution entirely
+	if (
+		plugin_name.startsWith('./') ||
+		plugin_name.startsWith('../') ||
+		path.isAbsolute(plugin_name)
+	) {
+		let executable = path.resolve(path.dirname(config_path), plugin_name)
+		// if the path resolved to a directory, look for index.js inside it
+		if (fs.existsSync(executable) && fs.statSync(executable).isDirectory()) {
+			executable = path.join(executable, 'index.js')
+		}
+		return { executable, directory: path.dirname(executable) }
+	}
+
 	try {
 		// check if we are in a PnP environment
 		if (process.versions.pnp) {

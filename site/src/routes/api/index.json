@@ -11,6 +11,7 @@
 		"cache",
 		"client-plugins",
 		"codegen-plugins",
+		"codegen-plugins-legacy",
 		"config",
 		"vite-plugin",
 		"command-line"
