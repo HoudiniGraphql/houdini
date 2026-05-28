@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { Plugin as VitePlugin, ConfigEnv as ViteEnv, ResolvedConfig } from 'vite'
+import type { ResolvedConfig, ConfigEnv as ViteEnv, Plugin as VitePlugin } from 'vite'
 
 import type { VitePluginContext } from '.'
 import { codegen_setup } from '../lib/codegen.js'
@@ -37,16 +37,27 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 				ctx.config.config_file.runtimeDir ?? '.houdini'
 			)
 			// add the necessary values for the houdini imports to resolve
+			// In vite 8 the aliases can be an object or an array of objects,
+			// so we'll have to add our own aliases accordingly
+			const houdiniAliases = {
+				$houdini: runtimeDir,
+				'$houdini/*': path.join(runtimeDir, '*'),
+				'~': path.join(ctx.config.root_dir, 'src'),
+				'~/*': path.join(ctx.config.root_dir, 'src', '*'),
+			}
+
 			return {
 				resolve: {
 					...userConfig.resolve,
-					alias: {
-						...userConfig.resolve?.alias,
-						$houdini: runtimeDir,
-						'$houdini/*': path.join(runtimeDir, '*'),
-						'~': path.join(ctx.config.root_dir, 'src'),
-						'~/*': path.join(ctx.config.root_dir, 'src', '*'),
-					},
+					alias: Array.isArray(userConfig.resolve?.alias)
+						? [
+								...userConfig.resolve.alias,
+								...Object.entries(houdiniAliases).map(([find, replacement]) => ({
+									find,
+									replacement,
+								})),
+						  ]
+						: { ...userConfig.resolve?.alias, ...houdiniAliases },
 				},
 				server: {
 					...userConfig.server,
