@@ -67,14 +67,6 @@ export class QueryStore<
 		// make a shallow copy of the args so we don't mutate the arguments that the user hands us
 		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 
-		// if we aren't on the browser but there's no event there's a big mistake
-		if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
-			// prettier-ignore
-			log.error(contextError(this.storeName))
-
-			throw new Error('Error, check above logs for help.')
-		}
-
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
 		const isComponentFetch = !isLoadFetch
@@ -234,17 +226,7 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 		fetchFn = globalThis.fetch.bind(globalThis)
 	}
 
-	let session: any = undefined
-	// cannot re-use the variable from above
-	// we need to check for ourselves to satisfy typescript
-	if (params && 'event' in params && params.event) {
-		session = await getSession(params.event)
-	} else if (isBrowser) {
-		session = await getSession()
-	} else {
-		log.error(contextError(storeName))
-		throw new Error('Error, check above logs for help.')
-	}
+	const session = await getSession(params && 'event' in params ? params.event : undefined)
 
 	return {
 		context: {

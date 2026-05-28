@@ -220,6 +220,13 @@ export type WatchSchemaConfig = {
 	headers?:
 		| Record<string, string | ((env: Record<string, string | undefined>) => string)>
 		| ((env: Record<string, string | undefined>) => Record<string, string>)
+
+	/**
+	 * When set to false, the pulled schema will not be written to disk.
+	 * Useful when schemaPath is a glob pointing to multiple files.
+	 * Defaults to true.
+	 */
+	writePolledSchema?: boolean
 }
 
 export type ScalarSpec = {

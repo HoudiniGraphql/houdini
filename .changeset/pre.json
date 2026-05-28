@@ -19,24 +19,19 @@
     "site": "0.0.1"
   },
   "changesets": [
-    "bright-trainers-sparkle",
-    "curly-years-hammer",
+    "abort-controller",
+    "auth-header-fix",
+    "cloudflare-adapter-fix",
     "cyan-sheep-compare",
-    "eight-apricots-work",
-    "eighty-ways-switch",
-    "funny-ants-help",
-    "giant-houses-begin",
-    "healthy-cherries-greet",
-    "honest-turtles-play",
-    "moody-onions-chew",
-    "moody-pots-bow",
-    "nine-tables-roll",
-    "old-jobs-repeat",
-    "poor-pillows-learn",
-    "quiet-moles-guess",
-    "seven-sloths-joke",
-    "sharp-toes-cough",
-    "strong-drinks-sing",
-    "strong-flowers-watch"
+    "gitignore-schema-path",
+    "go-rewrite",
+    "graphql-peer-dep",
+    "large-countries-fetch",
+    "mutation-error-handling",
+    "nasty-tables-fix",
+    "session-transform-ts-annotations",
+    "stale-trainers-enjoy",
+    "svelte-async-component-query",
+    "write-polled-schema"
   ]
 }

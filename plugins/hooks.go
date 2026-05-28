@@ -133,6 +133,76 @@ func TriggerHookParallel[PluginConfig any](
 	return result, nil
 }
 
+func TriggerHookParallelWithConn[PluginConfig any](
+	ctx context.Context,
+	db DatabasePool[PluginConfig],
+	conn *sqlite.Conn,
+	hook string,
+	payload map[string]any,
+) (map[string]any, error) {
+	// build up the result of invoking the hook on matching plugins
+	result := map[string]any{}
+	var resultMu sync.Mutex // to protect concurrent writes
+
+	stmt, err := conn.Prepare(`
+    SELECT * FROM plugins
+    WHERE EXISTS (
+      SELECT 1
+      FROM json_each(plugins.hooks)
+      WHERE value = $hook
+    )
+  `)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Finalize()
+	stmt.SetText("$hook", hook)
+
+	pluginPorts := map[string]int64{}
+	err = db.StepStatement(ctx, stmt, func() {
+		pluginPorts[stmt.GetText("name")] = stmt.GetInt64("port")
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(pluginPorts) == 0 {
+		return map[string]any{}, nil
+	}
+
+	errs := &ErrorList{}
+	var wg sync.WaitGroup
+
+	for name, port := range pluginPorts {
+		wg.Add(1)
+
+		go func(name string, port int64) {
+			defer wg.Done()
+			if port == 0 {
+				return
+			}
+
+			pluginResult, err := invokeHook(ctx, name, port, hook, payload)
+			if err != nil {
+				errs.Append(WrapError(err))
+				return
+			}
+
+			// merge result safely
+			resultMu.Lock()
+			maps.Copy(result, map[string]any{name: pluginResult})
+			resultMu.Unlock()
+		}(name, port)
+	}
+
+	wg.Wait()
+
+	if errs.Len() > 0 {
+		return result, errs
+	}
+
+	return result, nil
+}
+
 func invokeHook(
 	ctx context.Context,
 	name string,
@@ -140,7 +210,7 @@ func invokeHook(
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {
-	// hook url is just name of hook 
+	// hook url is just name of hook
 	endpoint := "/" + strings.ToLower(hook)
 	url := fmt.Sprintf("http://localhost:%d%s", port, endpoint)
 

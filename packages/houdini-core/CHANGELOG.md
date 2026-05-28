@@ -1,5 +1,17 @@
 # houdini-core
 
+## 2.0.0-go.12
+
+### Major Changes
+
+-   [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+## 2.0.0-go.11
+
+### Patch Changes
+
+-   [#1597](https://github.com/HoudiniGraphql/houdini/pull/1597) [`7990ece2`](https://github.com/HoudiniGraphql/houdini/commit/7990ece2ed5d9a4b807ce2246b298f2777d0a6d9) Thanks [@siddarthvader](https://github.com/siddarthvader)! - generate artifacts pipeline deadlock condition resolve
+
 ## 2.0.0-go.10
 
 ### Patch Changes

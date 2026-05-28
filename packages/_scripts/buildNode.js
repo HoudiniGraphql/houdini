@@ -108,8 +108,8 @@ export async function buildPackage({ packageJSONPath, source, outDir, plugin, on
 				import: `./build/${dirname}/index.js`,
 			}
 			package_json.exports['./' + dirname + "/*"] = {
-				types: `./build/${dirname}/*`,
-				import: `./build/${dirname}/*`,
+				types: `./build/${dirname}/*.d.ts`,
+				import: `./build/${dirname}/*.js`,
 			}
 			package_json.typesVersions['*'][dirname] = [`./build/${dirname}/index.d.ts`]
 		}

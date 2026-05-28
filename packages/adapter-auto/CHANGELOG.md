@@ -1,5 +1,32 @@
 # houdini-adapter-auto
 
+## 2.0.0-go.18
+
+### Patch Changes
+
+-   Updated dependencies [[`86ed9d27`](https://github.com/HoudiniGraphql/houdini/commit/86ed9d279d11443df553e9d1d42ab930ba878393)]:
+    -   houdini@2.0.0-go.18
+
+## 2.0.0-go.17
+
+### Major Changes
+
+-   [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+### Patch Changes
+
+-   [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix cloudflare adapter to detect CLOUDFLARE_PAGES env var and output worker.js
+
+-   Updated dependencies [[`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
+    -   houdini@2.0.0-go.17
+
+## 2.0.0-go.16
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini@2.0.0-go.16
+
 ## 2.0.0-go.15
 
 ### Patch Changes

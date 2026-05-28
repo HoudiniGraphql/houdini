@@ -24,19 +24,11 @@ type DocumentContext struct {
 }
 
 func GenerateDocumentTypeDefs(
-	ctx context.Context,
-	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	projectConfig plugins.ProjectConfig,
 	rootTypes *RootTypeNames,
 	collectedDefinitions *collected.Documents,
 	doc *collected.Document,
 ) (string, []string, error) {
-	// Get project config
-	projectConfig, err := db.ProjectConfig(ctx)
-	if err != nil {
-		return "", nil, err
-	}
-
 	// Calculate root type name once per document
 	rootTypeName := getRootTypeName(doc, rootTypes)
 
@@ -1247,15 +1239,22 @@ type RootTypeNames struct {
 func GetRootTypes(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
+	conn *sqlite.Conn,
 ) (*RootTypeNames, error) {
 	rootTypes := &RootTypeNames{}
 
 	// Look up the actual root type names from the types table
-	err := db.StepQuery(ctx, `
+	stmt, err := conn.Prepare(`
 		SELECT name, operation
 		FROM types
 		WHERE operation IN ('query', 'mutation', 'subscription')
-	`, map[string]any{}, func(stmt *sqlite.Stmt) {
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Finalize()
+
+	err = db.StepStatement(ctx, stmt, func() {
 		typeName := stmt.ColumnText(0)
 		operation := stmt.ColumnText(1)
 
