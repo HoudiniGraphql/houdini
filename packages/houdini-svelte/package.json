@@ -1,6 +1,6 @@
 {
     "name": "houdini-svelte",
-    "version": "3.0.0-go.19",
+    "version": "3.0.0-go.20",
     "scripts": {
         "compile": "scripts build-go",
         "typedefs": "scripts typedefs --plugin --go-package"

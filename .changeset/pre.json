@@ -23,6 +23,7 @@
     "auth-header-fix",
     "cloudflare-adapter-fix",
     "cyan-sheep-compare",
+    "eleven-parents-rest",
     "gitignore-schema-path",
     "go-rewrite",
     "graphql-peer-dep",

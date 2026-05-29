@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-go.3
+
+### Minor Changes
+
+-   [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+
 ## 2.0.0-go.2
 
 ### Major Changes
