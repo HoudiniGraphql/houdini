@@ -19,7 +19,7 @@
         "access": "public"
     },
     "scripts": {
-        "build": "npx tsc src/* --allowJs --outDir build --module esnext --target esnext --allowSyntheticDefaultImports --declaration  || exit 0 ",
+        "build": "npx tsc src/* --allowJs --outDir build --module esnext --moduleResolution bundler --target esnext --allowSyntheticDefaultImports --declaration  || exit 0 ",
         "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
         "build:build": "pnpm build: && pnpm build"
     },
@@ -38,7 +38,7 @@
         "react-dom": "^19.0.0"
     },
     "peerDependencies": {
-        "vite": "^7.0.0"
+        "vite": "^8.0.0"
     },
     "files": [
         "build"

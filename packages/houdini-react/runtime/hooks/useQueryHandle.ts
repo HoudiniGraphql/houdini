@@ -128,7 +128,7 @@ export function useQueryHandle<
 				},
 			})
 			.then((value) => {
-				// @ts-expect-error
+				// @ts-ignore
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,

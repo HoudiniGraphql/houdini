@@ -1,8 +1,11 @@
 import { createServerAdapter } from '@whatwg-node/server'
 import type { ServerAdapterRequestHandler } from '@whatwg-node/server'
 import type { GraphQLSchema } from 'graphql'
-import { YogaServer, type YogaInitialContext } from 'graphql-yoga'
-import type { YogaSchemaDefinition } from 'graphql-yoga/typings/plugins/use-schema'
+import {
+	YogaServer,
+	type YogaInitialContext,
+	type YogaServerOptions as YogaConfig,
+} from 'graphql-yoga'
 
 import type { ConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
@@ -142,6 +145,7 @@ function localApiSessionKeys(configFile: ConfigFile) {
 	return configFile.router?.auth?.sessionKeys ?? []
 }
 type YogaParams = Required<ConstructorParameters<typeof YogaServer>>[0]
+type YogaSchemaDefinition<TContext> = NonNullable<YogaConfig<any, TContext>['schema']>
 
 type ConstructorParams = Omit<YogaParams, 'schema' | 'graphqlEndpoint'>
 

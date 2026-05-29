@@ -5,8 +5,6 @@ import { glob } from 'glob'
 import path from 'path'
 import ts from 'typescript'
 
-const { ModuleResolutionKind } = ts
-
 // Parse TypeScript configuration properly
 const tsConfigPath = path.resolve('../../tsconfig.json')
 const tsConfigFile = ts.readConfigFile(tsConfigPath, ts.sys.readFile)
@@ -46,10 +44,8 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 	// compile the types
 	compile(files, {
 		...parsedTsConfig.options,
-		moduleResolution: ModuleResolutionKind.NodeJs,
 		outDir: 'build',
 		project: path.join(process.cwd(), '..', '..'),
-		baseUrl: process.cwd(),
 		lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
 	})
 
@@ -60,12 +56,10 @@ export default async function generate_typedefs({ plugin, goPackage }) {
 
 		if (filteredRuntimeFiles.length > 0) {
 			verifyTypes(filteredRuntimeFiles, {
-				...tsConfig.compilerOptions,
-				moduleResolution: ModuleResolutionKind.NodeJs,
+				...parsedTsConfig.options,
 				noEmit: true, // Only verify, don't emit
 				emitDeclarationOnly: false, // Disable declaration-only mode when using noEmit
 				project: path.join(process.cwd(), '..', '..'),
-				baseUrl: process.cwd(),
 				lib: ['lib.es2021.d.ts', 'lib.dom.d.ts', 'lib.es2021.string.d.ts'],
 			})
 		}
