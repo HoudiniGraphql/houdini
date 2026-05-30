@@ -939,7 +939,7 @@ const artifact = {
                     "arguments": {
                         "count": {
                             "kind": "IntValue",
-                            "value": 5
+                            "value": "5"
                         }
                     }
                 }],

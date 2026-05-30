@@ -12,21 +12,14 @@ import {
 	type ProjectManifest,
 } from 'houdini'
 import path from 'node:path'
-import { loadEnv } from 'vite'
 
 import generate from './codegen'
 import { format_router_manifest } from './codegen/router'
-import { extractDocuments } from './extract'
-import { transformFile } from './transform'
-import vite_plugin from './vite'
 
 export let manifest: ProjectManifest
 
 export const hooks: Plugin = async () => ({
 	order: 'core',
-
-	// add the jsx extensions
-	extensions: ['.jsx', '.tsx'],
 
 	// always make sure our definition of the manifest is up to date before
 	// we generate anything
@@ -48,8 +41,6 @@ export const hooks: Plugin = async () => ({
 	clientPlugins: {
 		'$houdini/plugins/houdini-react/runtime/clientPlugin': null,
 	},
-
-	vite: vite_plugin,
 
 	// we need to add overloaded definitions for every hook that
 	// returns the appropriate type for each document
@@ -232,12 +223,6 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 	// transform the type definitions to have overloaded signatures for
 	// every document in the project
 
-	// we need to teach the codegen how to get graphql documents from jsx files
-	extractDocuments,
-
-	// convert the graphql template tags into references to their artifact
-	transformFile,
-
 	graphqlTagReturn({ config, document: doc, ensureImport: ensure_import }) {
 		// if we're supposed to generate a store then add an overloaded declaration
 		if (doc.generateStore) {
@@ -260,19 +245,7 @@ export function useFragmentHandle(reference: { readonly "${fragmentKey}": { ${do
 		})
 	},
 
-	async env({ config }) {
-		if (_env) {
-			return _env
-		}
-
-		// load the vite config
-		_env = loadEnv('dev', config.projectRoot || '.', '')
-
-		return _env
-	},
 })
-
-let _env: Record<string, string>
 
 function addOverload({
 	config,

@@ -33,7 +33,7 @@ export function useQueryHandle<
 	{ artifact }: { artifact: QueryArtifact },
 	variables: any = null,
 	config: UseQueryConfig = {}
-): DocumentHandle<_Artifact, _Data, _Input> {
+): any {
 	// figure out the identifier so we know what to look for
 	const identifier = queryIdentifier({ artifact, variables, config })
 

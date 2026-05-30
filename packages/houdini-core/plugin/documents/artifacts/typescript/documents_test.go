@@ -961,6 +961,34 @@ func TestTypescriptGeneration(t *testing.T) {
 					`),
 				},
 			},
+			{
+				// Fragment with a component field: the core generates the fragment
+				// reference in " $fragments" but NOT the React accessor — that is
+				// injected by houdini-react's InjectComponentFieldArtifactTypes.
+				Name: "component field leaves accessor injection to react plugin",
+				Input: []string{
+					`fragment UserAvatar on User @componentField(field: "Avatar", prop: "user") {
+						firstName
+					}`,
+					`query UseAvatar { user { Avatar } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					// Core generates the $fragments entry but no React accessor
+					"UseAvatar": tests.Dedent(`
+						export type UseAvatar$result = {
+							/**
+							 * Get a user.
+							 */
+							readonly user: {
+								readonly " $fragments": {
+									UserAvatar: {};
+								};
+							} | null;
+						};
+					`),
+				},
+			},
 		},
 	})
 }

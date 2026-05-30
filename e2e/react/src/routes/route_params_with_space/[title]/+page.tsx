@@ -9,7 +9,7 @@ export default function ({ RouteParamsWithSpace }: PageProps) {
 	return (
 		<div>
 			<div id="result">
-				{route.params.title}: {book?.title}
+				{route.params.title}:{book?.title}
 			</div>
 		</div>
 	)

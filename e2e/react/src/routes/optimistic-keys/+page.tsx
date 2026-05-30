@@ -51,7 +51,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 								addUser: {
 									avatarURL: 'optimistic value 1',
 									name: 'New User',
-								},
+								} as any,
 							},
 						})
 					}
@@ -71,28 +71,29 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 				</thead>
 				<tbody>
 					{OptimisticKeyTest?.usersConnection.edges.map((edge, i) => (
-						<tr key={edge.node.id}>
-							<td>{edge.node.id}</td>
-							<td>{edge.node.name}</td>
-							<td data-testid={i === 0 ? 'target' : ''}>{edge.node.avatarURL}</td>
+						<tr key={edge.node!.id}>
+							<td>{edge.node!.id}</td>
+							<td>{edge.node!.name}</td>
+							<td data-testid={i === 0 ? 'target' : ''}>{edge.node!.avatarURL}</td>
 							<td style={{ textAlign: 'right' }}>
 								<button
 									data-test-action={i === 0 ? 'update' : null}
 									onClick={async () => {
-										const { errors } = await update({
-											variables: {
-												id: edge.node.id,
-												avatarURL: 'final value',
-											},
-											optimisticResponse: {
-												updateUserByID: {
-													id: edge.node.id,
-													avatarURL: 'optimistic value 2',
+										try {
+											await update({
+												variables: {
+													id: edge.node!.id,
+													avatarURL: 'final value',
 												},
-											},
-										})
-										if (errors) {
-											setError(errors.map((e) => e.message).join(', '))
+												optimisticResponse: {
+													updateUserByID: {
+														id: edge.node!.id,
+														avatarURL: 'optimistic value 2',
+													},
+												},
+											})
+										} catch (e) {
+											setError(e instanceof Error ? e.message : String(e))
 										}
 									}}
 								>

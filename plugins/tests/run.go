@@ -24,6 +24,10 @@ type Table[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]] str
 	SetupTest     func(t *testing.T, plugin PluginType, test Test[PluginConfig])
 	PerformTest   func(t *testing.T, plugin PluginType, test Test[PluginConfig])
 	VerifyTest    func(t *testing.T, plugin PluginType, test Test[PluginConfig])
+	// SetupAlwaysPasses requires AfterExtract to succeed regardless of test.Pass.
+	// Use this when test.Pass controls only PerformTest behavior (e.g. manifest
+	// validation), not whether the pipeline setup itself is expected to fail.
+	SetupAlwaysPasses bool
 }
 
 type Plugin[PluginConfig any] struct {
@@ -38,6 +42,7 @@ type Test[PluginConfig any] struct {
 	Name          string
 	Pass          bool
 	Input         []string
+	Filepaths     []string // optional per-document filepaths, parallel to Input
 	Expected      []ExpectedDocument
 	Extra         map[string]any
 	ProjectConfig func(config *plugins.ProjectConfig)
@@ -222,7 +227,11 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			}
 			defer insertRaw.Finalize()
 			for i, doc := range test.Input {
-				if err := db.ExecStatement(insertRaw, map[string]any{"content": doc, "filepath": fmt.Sprintf("file-%v", i)}); err != nil {
+				fp := fmt.Sprintf("file-%v", i)
+				if i < len(test.Filepaths) {
+					fp = test.Filepaths[i]
+				}
+				if err := db.ExecStatement(insertRaw, map[string]any{"content": doc, "filepath": fp}); err != nil {
 					t.Fatalf("failed to insert raw document: %v", err)
 				}
 			}
@@ -302,10 +311,8 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			require.NoError(t, err)
 
 			// parse the raw documents into the documents table
-			// If the test expects to fail, parsing errors are acceptable
 			err = core.AfterExtract(context.Background())
-			if err != nil && test.Pass {
-				// Only fail if the test was supposed to pass
+			if err != nil && (table.SetupAlwaysPasses || test.Pass) {
 				require.NoError(t, err)
 			}
 
@@ -335,6 +342,10 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			pluginDB.SetProjectConfig(projectConfig)
 			plugin.SetDatabase(pluginDB)
 			plugin.SetFilesystem(fs)
+
+			if table.SetupTest != nil {
+				table.SetupTest(t, plugin, test)
+			}
 
 			table.PerformTest(t, plugin, test)
 		})

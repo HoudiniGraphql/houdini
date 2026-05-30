@@ -64,13 +64,14 @@ export class HoudiniClient extends BaseClient {
 			)
 		}
 
-		let serverPort = globalThis.process?.env?.HOUDINI_PORT ?? '5173'
+		let serverPort =
+			globalThis.process?.env?.HOUDINI_PORT ?? globalThis.process?.env?.PORT ?? '5173'
 
 		super({
 			config: getCurrentConfig,
 			url:
 				url ??
-				(globalThis.window ? '' : `https://localhost:${serverPort}`) +
+				(globalThis.window ? '' : `http://localhost:${serverPort}`) +
 					localApiEndpoint(getCurrentConfig()),
 			plugins: flatten(
 				([] as NestedList<ClientPlugin>).concat(
@@ -107,6 +108,10 @@ export class HoudiniClient extends BaseClient {
 
 		// Set throwOnError operations for access by stores
 		this.throwOnError_operations = throwOnError?.operations ?? []
+	}
+
+	setCache(cache: Cache) {
+		this._cache = cache
 	}
 
 	// Override observe to properly handle cachePolicy plugin

@@ -35,6 +35,8 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 		config,
 		db_file,
 		db,
+		// pick up adapter from config file if not provided in opts
+		adapter: opts?.adapter ?? (config.config_file as any).adapter,
 	}
 
 	return [
@@ -59,11 +61,12 @@ function close_db(ctx: VitePluginContext) {
 				} catch {}
 			})
 		},
-		buildEnd() {
-			try {
-				ctx.db.close()
-			} catch {}
-		},
+		// Note: we intentionally do NOT close ctx.db in buildEnd for production
+		// builds. Vite does not always await async buildStart hooks, so
+		// codegen_setup / wait_for_plugin may still be polling ctx.db when
+		// buildEnd fires. Closing it here breaks that polling and causes a
+		// 10-second registration timeout. The process exits shortly after a
+		// production build, cleaning up the connection automatically.
 	} as PluginOption
 }
 

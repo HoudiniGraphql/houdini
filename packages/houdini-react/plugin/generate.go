@@ -1,0 +1,809 @@
+package plugin
+
+import (
+	"context"
+	"fmt"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"github.com/spf13/afero"
+	"zombiezen.com/go/sqlite"
+)
+
+// ---- path helpers ----
+
+func unitsDir(pluginDir string) string   { return filepath.Join(pluginDir, "units") }
+func pagesDir(pluginDir string) string   { return filepath.Join(pluginDir, "units", "pages") }
+func layoutsDir(pluginDir string) string { return filepath.Join(pluginDir, "units", "layouts") }
+func fallbacksDir(pluginDir, which string) string {
+	return filepath.Join(pluginDir, "units", "fallbacks", which)
+}
+func entriesDir(pluginDir string) string { return filepath.Join(pluginDir, "units", "entries") }
+func renderDir(pluginDir string) string  { return filepath.Join(pluginDir, "units", "render") }
+
+// stripViewExt removes .tsx/.jsx from an import path.
+func stripViewExt(p string) string {
+	for _, ext := range []string{".tsx", ".jsx"} {
+		if strings.HasSuffix(p, ext) {
+			return p[:len(p)-len(ext)]
+		}
+	}
+	return p
+}
+
+// writeIfChanged writes content to path only when it differs from the existing file.
+func writeIfChanged(fs afero.Fs, path, content string) (bool, error) {
+	existing, _ := afero.ReadFile(fs, path)
+	if string(existing) == content {
+		return false, nil
+	}
+	if err := fs.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return false, err
+	}
+	return true, afero.WriteFile(fs, path, []byte(content), 0644)
+}
+
+// ---- unit file generation ----
+
+// generateUnitFile builds the JSX source for a document-wrapper component.
+// queries is the list of query names this component will call useQueryResult for.
+// paramKeys is the sorted list of URL route parameter names.
+func generateUnitFile(componentName, importPath string, queries, paramKeys []string) string {
+	var b strings.Builder
+
+	b.WriteString("import { useQueryResult, PageContextProvider } from '$houdini/plugins/houdini-react/runtime/routing'\n")
+	b.WriteString(fmt.Sprintf("import %s from '%s'\n\n", componentName, importPath))
+	b.WriteString("export default ({ children }) => {\n")
+
+	if len(queries) > 0 {
+		for _, q := range queries {
+			b.WriteString(fmt.Sprintf("\tconst [%s$data, %s$handle] = useQueryResult(%q)\n", q, q, q))
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\treturn (\n")
+
+	// PageContextProvider keys
+	var quotedKeys []string
+	for _, k := range paramKeys {
+		quotedKeys = append(quotedKeys, fmt.Sprintf("%q", k))
+	}
+	b.WriteString(fmt.Sprintf("\t\t<PageContextProvider keys={[%s]}>\n", strings.Join(quotedKeys, ", ")))
+
+	// Component open tag with props
+	var props []string
+	for _, q := range queries {
+		props = append(props, fmt.Sprintf("%s={%s$data}", q, q))
+		props = append(props, fmt.Sprintf("%s$handle={%s$handle}", q, q))
+	}
+	propsStr := ""
+	if len(props) > 0 {
+		propsStr = " " + strings.Join(props, " ")
+	}
+	b.WriteString(fmt.Sprintf("\t\t\t<%s%s>\n", componentName, propsStr))
+	b.WriteString("\t\t\t\t{children}\n")
+	b.WriteString(fmt.Sprintf("\t\t\t</%s>\n", componentName))
+	b.WriteString("\t\t</PageContextProvider>\n")
+	b.WriteString("\t)\n")
+	b.WriteString("}\n")
+
+	return b.String()
+}
+
+// GenerateDocumentWrappers generates per-page and per-layout JSX wrapper components
+// that call useQueryResult and pass data as props to the actual route components.
+func (p *HoudiniReact) GenerateDocumentWrappers(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := p.LoadManifest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDir := projectConfig.PluginDirectory(p.Name())
+	var changed []string
+
+	// Page units
+	for id, page := range manifest.Pages {
+		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, page.Path))
+		compRel := toSlash(mustRel(pagesDir(pluginDir), compAbs))
+		paramKeys := sortedKeys(page.Params)
+		content := generateUnitFile("Component_"+id, compRel, page.Queries, paramKeys)
+		path := filepath.Join(pagesDir(pluginDir), id+".jsx")
+		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, path)
+		}
+	}
+
+	// Layout units
+	for id, layout := range manifest.Layouts {
+		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, layout.Path))
+		compRel := toSlash(mustRel(layoutsDir(pluginDir), compAbs))
+		paramKeys := sortedKeys(layout.Params)
+		content := generateUnitFile("Component_"+id, compRel, layout.QueryOptions, paramKeys)
+		path := filepath.Join(layoutsDir(pluginDir), id+".jsx")
+		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, path)
+		}
+	}
+
+	return changed, nil
+}
+
+// ---- fallback generation ----
+
+func generateFallbackFile(componentRel string, loadingQueries, requiredQueries []string) string {
+	var b strings.Builder
+
+	b.WriteString("import { useRouterContext, useCache, useQueryResult } from '$houdini/plugins/houdini-react/runtime/routing/Router'\n")
+	b.WriteString(fmt.Sprintf("import Component from '%s'\n", componentRel))
+	b.WriteString("import { Suspense } from 'react'\n\n")
+
+	b.WriteString("export default ({ children }) => {\n")
+	b.WriteString("\tconst { artifact_cache } = useRouterContext()\n")
+	for _, q := range loadingQueries {
+		b.WriteString(fmt.Sprintf("\tconst %s_artifact = artifact_cache.get(%q)\n", q, q))
+	}
+	b.WriteString("\n\treturn (\n")
+	b.WriteString("\t\t<Suspense fallback={\n")
+
+	// required_queries object
+	var reqParts []string
+	for _, q := range requiredQueries {
+		reqParts = append(reqParts, fmt.Sprintf("%s: %s$data", q, q))
+	}
+	reqStr := "{}"
+	if len(reqParts) > 0 {
+		reqStr = "{ " + strings.Join(reqParts, ", ") + " }"
+	}
+
+	// loading_queries object
+	var loadParts []string
+	for _, q := range loadingQueries {
+		loadParts = append(loadParts, fmt.Sprintf("%s: %s_artifact", q, q))
+	}
+	loadStr := "{}"
+	if len(loadParts) > 0 {
+		loadStr = "{ " + strings.Join(loadParts, ", ") + " }"
+	}
+
+	b.WriteString(fmt.Sprintf("\t\t\t<Fallback required_queries={%s} loading_queries={%s} />\n", reqStr, loadStr))
+	b.WriteString("\t\t}>\n")
+	b.WriteString("\t\t\t{children}\n")
+	b.WriteString("\t\t</Suspense>\n")
+	b.WriteString("\t)\n")
+	b.WriteString("}\n\n")
+
+	b.WriteString("const Fallback = ({ required_queries, loading_queries }) => {\n")
+	b.WriteString("\tconst cache = useCache()\n")
+	b.WriteString("\tlet props = Object.entries(loading_queries).reduce((prev, [name, artifact]) => ({\n")
+	b.WriteString("\t\t...prev,\n")
+	b.WriteString("\t\t[name]: cache.read({ selection: artifact.selection, loading: true }).data\n")
+	b.WriteString("\t}), required_queries)\n")
+	b.WriteString("\treturn <Component {...props} />\n")
+	b.WriteString("}\n")
+
+	return b.String()
+}
+
+// GenerateFallbacks generates Suspense fallback components for routes with @loading queries.
+func (p *HoudiniReact) GenerateFallbacks(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := p.LoadManifest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDir := projectConfig.PluginDirectory(p.Name())
+	var changed []string
+
+	// Page fallbacks — one per page that has a @loading page query
+	for id, page := range manifest.Pages {
+		pq, ok := manifest.PageQueries[id]
+		if !ok || !pq.Loading {
+			continue
+		}
+		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, page.Path))
+		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "page"), compAbs))
+		content := generateFallbackFile(compRel, []string{pq.Name}, nil)
+		path := filepath.Join(fallbacksDir(pluginDir, "page"), id+".jsx")
+		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, path)
+		}
+	}
+
+	// Layout fallbacks — one per layout that has a @loading layout query
+	for id, layout := range manifest.Layouts {
+		lq, ok := manifest.LayoutQueries[id]
+		if !ok || !lq.Loading {
+			continue
+		}
+		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, layout.Path))
+		compRel := toSlash(mustRel(fallbacksDir(pluginDir, "layout"), compAbs))
+		content := generateFallbackFile(compRel, []string{lq.Name}, nil)
+		path := filepath.Join(fallbacksDir(pluginDir, "layout"), id+".jsx")
+		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, path)
+		}
+	}
+
+	return changed, nil
+}
+
+// ---- page entry generation ----
+
+// GeneratePageEntries generates per-page entry JSX components that compose the
+// full layout/fallback tree around each page.
+func (p *HoudiniReact) GeneratePageEntries(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := p.LoadManifest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDir := projectConfig.PluginDirectory(p.Name())
+	var changed []string
+
+	cfs, err := p.loadComponentFields(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for id, page := range manifest.Pages {
+		content := generatePageEntry(id, page, manifest, pluginDir, cfs)
+		path := filepath.Join(entriesDir(pluginDir), id+".jsx")
+		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, path)
+		}
+	}
+
+	return changed, nil
+}
+
+func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, pluginDir string, cfs []componentField) string {
+	var imports []string
+
+	// Import each layout unit
+	for _, layoutID := range page.Layouts {
+		imports = append(imports, fmt.Sprintf("import Layout_%s from '../layouts/%s.jsx'", layoutID, layoutID))
+	}
+
+	// Import page unit and client
+	imports = append(imports, fmt.Sprintf("import Page_%s from '../pages/%s.jsx'", id, id))
+	imports = append(imports, "import client from '$houdini/plugins/houdini-react/runtime/client'")
+
+	// Import page fallback if page has a loading query
+	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
+		imports = append(imports, fmt.Sprintf("import PageFallback_%s from '../fallbacks/page/%s.jsx'", id, id))
+	}
+
+	// Import layout fallbacks for layouts with loading queries
+	for _, layoutID := range page.Layouts {
+		if lq, ok := manifest.LayoutQueries[layoutID]; ok && lq.Loading {
+			imports = append(imports, fmt.Sprintf("import LayoutFallback_%s from '../fallbacks/layout/%s.jsx'", layoutID, layoutID))
+		}
+	}
+
+	// Side-effect imports for component field wrappers so Vite bundles them.
+	for _, cf := range cfs {
+		imports = append(imports, fmt.Sprintf("import '../componentFields/wrapper_%s'", cf.fragment))
+	}
+
+	// Build the ordered list of wrapper component names, outermost first.
+	// Process layouts outermost→innermost; inside each layout add fallback before layout.
+	var wrappers []string
+	for _, layoutID := range page.Layouts {
+		if lq, ok := manifest.LayoutQueries[layoutID]; ok && lq.Loading {
+			wrappers = append(wrappers, "LayoutFallback_"+layoutID)
+		}
+		wrappers = append(wrappers, "Layout_"+layoutID)
+	}
+	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
+		wrappers = append(wrappers, "PageFallback_"+id)
+	}
+
+	// Render the nested JSX with correct per-depth indentation (base = 2 tabs).
+	nestedContent := renderWrappedJSX(wrappers, "Page_"+id, 2)
+
+	var b strings.Builder
+	b.WriteString(strings.Join(imports, "\n"))
+	b.WriteString("\n\nexport default ({ url }) => {\n")
+	b.WriteString("\treturn (\n")
+	b.WriteString(nestedContent)
+	b.WriteString("\n\t)\n}\n")
+
+	return b.String()
+}
+
+// renderWrappedJSX renders a sequence of JSX wrappers (outermost first) around a leaf
+// component, incrementing indentation by one tab per nesting level.
+func renderWrappedJSX(wrappers []string, leaf string, baseDepth int) string {
+	var lines []string
+
+	for i, w := range wrappers {
+		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("<%s key={url}>", w))
+	}
+	lines = append(lines, strings.Repeat("\t", baseDepth+len(wrappers))+fmt.Sprintf("<%s />", leaf))
+	for i := len(wrappers) - 1; i >= 0; i-- {
+		lines = append(lines, strings.Repeat("\t", baseDepth+i)+fmt.Sprintf("</%s>", wrappers[i]))
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+// ---- render infrastructure ----
+
+// GenerateRenderInfrastructure generates three one-time SSR files:
+// App.jsx, server.js, and config.js (which varies by local schema/yoga).
+func (p *HoudiniReact) GenerateRenderInfrastructure(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := p.LoadManifest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cfs, err := p.loadComponentFields(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Read the API endpoint from router_config, defaulting to "/_api"
+	apiEndpoint := "/_api"
+	_ = p.DB.StepQuery(ctx, `SELECT api_endpoint FROM router_config LIMIT 1`, nil, func(q *sqlite.Stmt) {
+		if v := q.ColumnText(0); v != "" {
+			apiEndpoint = v
+		}
+	})
+
+	pluginDir := projectConfig.PluginDirectory(p.Name())
+	rDir := renderDir(pluginDir)
+	// 5 levels up from units/render/ reaches projectRoot
+	rootRel := toSlash(mustRel(rDir, projectConfig.ProjectRoot))
+
+	var changed []string
+
+	// App.jsx — always the same
+	appContent := fmt.Sprintf(`import { Router } from '$houdini/plugins/houdini-react/runtime'
+import React from 'react'
+
+import Shell from '%s/src/+index'
+
+export default (props) => (
+	<Shell>
+		<Router {...props} />
+	</Shell>
+)
+`, rootRel)
+
+	appPath := filepath.Join(rDir, "App.jsx")
+	if ok, err := writeIfChanged(p.Filesystem(), appPath, appContent); err != nil {
+		return nil, err
+	} else if ok {
+		changed = append(changed, appPath)
+	}
+
+	// server.js — mostly static
+	serverContent := fmt.Sprintf(`import { Cache } from 'houdini/runtime/cache'
+import { serverAdapterFactory, _serverHandler } from 'houdini/router/server'
+import { HoudiniClient } from 'houdini/runtime/client'
+import { renderToStream } from 'houdini-react/server'
+import React from 'react'
+
+import { router_cache } from '../../runtime/routing'
+// @ts-expect-error
+import client from '%s/src/+client'
+// @ts-expect-error
+import App from "./App"
+import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
+
+import config from '%s/houdini.config.js'
+
+export const on_render =
+	({ assetPrefix, pipe, production, documentPremable }) =>
+	async ({
+		url,
+		match,
+		session,
+		manifest,
+		componentCache,
+	}) => {
+		const cache = new Cache({
+			disabled: false,
+			...config,
+			componentCache,
+			createComponent: React.createElement
+		})
+
+		if (!match) {
+			return new Response('not found', { status: 404 })
+		}
+
+		// Wire the per-request cache into the client so that all observe() calls
+		// during this render write to (and read from) the same cache we serialize.
+		client.setCache(cache)
+
+		const {
+			readable,
+			injectToStream,
+			pipe: pipeTo,
+		} = await renderToStream(
+			React.createElement(App, {
+				initialURL: url,
+				cache: cache,
+				session: session,
+				assetPrefix: assetPrefix,
+				manifest: manifest,
+				...router_cache()
+			}),
+			{ webStream: production, userAgent: 'Vite' }
+		)
+
+		injectToStream(` + "`" + `
+		<script>
+			window.__houdini__initial__cache__ = ${cache.serialize()};
+			window.__houdini__initial__session__ = ${JSON.stringify(session)};
+		</script>
+
+		${documentPremable ?? ''}
+
+		<script type="module" src="${assetPrefix}/pages/${match.id}.${production ? 'js' : 'jsx'}" async=""></script>
+	` + "`" + `)
+
+		if (pipeTo && pipe) {
+			pipeTo(pipe)
+			return true
+		} else {
+			return new Response(readable)
+		}
+	}
+
+export function createServerAdapter(options) {
+	return serverAdapterFactory({
+		client,
+		production: true,
+		manifest: router_manifest,
+		on_render: on_render(options),
+		config_file: config,
+		...options,
+	})
+}
+`, rootRel, rootRel)
+
+	serverPath := filepath.Join(rDir, "server.js")
+	if ok, err := writeIfChanged(p.Filesystem(), serverPath, serverContent); err != nil {
+		return nil, err
+	} else if ok {
+		changed = append(changed, serverPath)
+	}
+
+	// config.js — varies by local_schema, local_yoga, and component fields
+	schemaLine := "const schema = null"
+	if manifest.LocalSchema {
+		schemaLine = fmt.Sprintf("import schema from '%s/src/api/+schema'", rootRel)
+	}
+	yogaLine := "const yoga = null"
+	if manifest.LocalYoga {
+		yogaLine = fmt.Sprintf("import yoga from '%s/src/api/+yoga'", rootRel)
+	}
+
+	// Component field wrapper imports (relative from render/ to componentFields/)
+	var cfImports []string
+	var cfCacheEntries []string
+	for _, cf := range cfs {
+		cfImports = append(cfImports, fmt.Sprintf("import %s from '../componentFields/wrapper_%s.jsx'", cf.fragment, cf.fragment))
+		cfCacheEntries = append(cfCacheEntries, fmt.Sprintf("\t%q: %s,", cf.typeName+"."+cf.field, cf.fragment))
+	}
+	cfImportBlock := ""
+	if len(cfImports) > 0 {
+		cfImportBlock = strings.Join(cfImports, "\n") + "\n\n"
+	}
+	cacheBody := ""
+	if len(cfCacheEntries) > 0 {
+		cacheBody = "\n" + strings.Join(cfCacheEntries, "\n") + "\n"
+	}
+
+	configContent := fmt.Sprintf(`import { createServerAdapter as createAdapter } from './server'
+import config_file from '%s/houdini.config'
+
+%s%s
+%s
+
+export const endpoint = "%s"
+
+export const componentCache = {%s}
+
+export function createServerAdapter(options) {
+	return createAdapter({
+		schema,
+		yoga,
+		componentCache,
+		graphqlEndpoint: endpoint,
+		config_file,
+		...options,
+	})
+}
+`, rootRel, cfImportBlock, schemaLine, yogaLine, apiEndpoint, cacheBody)
+
+	configPath := filepath.Join(rDir, "config.js")
+	if ok, err := writeIfChanged(p.Filesystem(), configPath, configContent); err != nil {
+		return nil, err
+	} else if ok {
+		changed = append(changed, configPath)
+	}
+
+	return changed, nil
+}
+
+// ---- type roots ----
+
+// GenerateTypeRoots generates a $types.d.ts file per route directory into the
+// .houdini/types/ tree. TypeScript's rootDirs setting (configured in GenerateTsConfig)
+// merges .houdini/types/ with the project root, so imports like `./$types` in route
+// files resolve to the generated declarations without polluting src/.
+func (p *HoudiniReact) GenerateTypeRoots(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := p.LoadManifest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
+	artifactDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
+	routesDir := filepath.Join(projectConfig.ProjectRoot, "src", "routes")
+
+	// Type root: .houdini/types/  (mirrors the project root via tsconfig rootDirs)
+	typeRootDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "types")
+
+	// Group pages and layouts by their route directory.
+	type routeEntry struct {
+		page   *PageManifest
+		layout *PageManifest
+	}
+	byDir := map[string]*routeEntry{}
+
+	for i := range manifest.Pages {
+		pg := manifest.Pages[i]
+		dir := filepath.Dir(filepath.Join(projectConfig.ProjectRoot, pg.Path))
+		rel := toSlash(mustRel(routesDir, dir))
+		if byDir[rel] == nil {
+			byDir[rel] = &routeEntry{}
+		}
+		cp := pg
+		byDir[rel].page = &cp
+	}
+	for i := range manifest.Layouts {
+		l := manifest.Layouts[i]
+		dir := filepath.Dir(filepath.Join(projectConfig.ProjectRoot, l.Path))
+		rel := toSlash(mustRel(routesDir, dir))
+		if byDir[rel] == nil {
+			byDir[rel] = &routeEntry{}
+		}
+		cp := l
+		byDir[rel].layout = &cp
+	}
+
+	var changed []string
+	for routeRel, entry := range byDir {
+		// Write to .houdini/types/src/routes/{rel}/$types.d.ts so TypeScript's
+		// rootDirs merge makes it visible alongside the actual source file.
+		targetDir := filepath.Join(typeRootDir, "src", "routes", filepath.FromSlash(routeRel))
+		targetFile := filepath.Join(targetDir, "$types.d.ts")
+
+		runtimeRel := toSlash(mustRel(targetDir, runtimeDir))
+		artifactRelDir := toSlash(mustRel(targetDir, artifactDir))
+
+		var pageQueries, layoutQueries []string
+		var params map[string]*ParamTypeInfo
+		if entry.page != nil {
+			pageQueries = entry.page.QueryOptions
+			params = entry.page.Params
+		}
+		if entry.layout != nil {
+			layoutQueries = entry.layout.QueryOptions
+			if params == nil {
+				params = entry.layout.Params
+			}
+		}
+
+		allQueries := uniqueStrings(append(pageQueries, layoutQueries...))
+
+		content := generateTypeRoot(runtimeRel, artifactRelDir, allQueries, pageQueries, layoutQueries, params)
+		if ok, err := writeIfChanged(p.Filesystem(), targetFile, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, targetFile)
+		}
+	}
+
+	return changed, nil
+}
+
+func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries, layoutQueries []string, params map[string]*ParamTypeInfo) string {
+	var b strings.Builder
+
+	b.WriteString(fmt.Sprintf("import { DocumentHandle, RouteProp } from '%s'\n", runtimeRel))
+	b.WriteString("import React from 'react'\n")
+	for _, q := range allQueries {
+		b.WriteString(fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '%s/%s'\n",
+			q, q, q, artifactRelDir, q))
+	}
+
+	paramsType := formatParamsType(params)
+
+	// PageProps
+	b.WriteString(fmt.Sprintf("\nexport type PageProps = {\n\tParams: %s,\n", paramsType))
+	for _, q := range pageQueries {
+		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
+		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
+	}
+	b.WriteString("}\n")
+
+	// LayoutProps
+	b.WriteString(fmt.Sprintf("\nexport type LayoutProps = {\n\tParams: %s,\n\tchildren: React.ReactNode,\n", paramsType))
+	for _, q := range layoutQueries {
+		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
+		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
+	}
+	b.WriteString("}\n")
+
+	return b.String()
+}
+
+func formatParamsType(params map[string]*ParamTypeInfo) string {
+	if len(params) == 0 {
+		return "{}"
+	}
+	keys := sortedKeys(params)
+	var parts []string
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf("%s: string", k))
+	}
+	return "{ " + strings.Join(parts, ", ") + " }"
+}
+
+// ---- component field helpers ----
+
+type componentField struct {
+	fragment string
+	typeName string
+	field    string
+	prop     string
+	filepath string // raw_documents.filepath — component or adjacent GQL file
+	content  string // raw GQL content, used for GraphQL<_Document> type
+}
+
+// loadComponentFields returns all component field records joined with their raw document.
+func (p *HoudiniReact) loadComponentFields(ctx context.Context) ([]componentField, error) {
+	var fields []componentField
+	err := p.DB.StepQuery(ctx, `
+		SELECT cf.fragment, cf.type, cf.field, cf.prop, rd.filepath, rd.content
+		FROM component_fields cf
+		JOIN raw_documents rd ON rd.id = cf.document
+		WHERE cf.fragment IS NOT NULL
+		ORDER BY cf.fragment ASC
+	`, nil, func(q *sqlite.Stmt) {
+		fields = append(fields, componentField{
+			fragment: q.ColumnText(0),
+			typeName: q.ColumnText(1),
+			field:    q.ColumnText(2),
+			prop:     q.ColumnText(3),
+			filepath: q.ColumnText(4),
+			content:  q.ColumnText(5),
+		})
+	})
+	return fields, err
+}
+
+// ---- component field wrappers ----
+
+// GenerateComponentFieldWrappers generates a JSX wrapper per component field that calls
+// useFragment and passes the result to the actual component, then registers it with
+// the client's component cache for SSR.
+func (p *HoudiniReact) GenerateComponentFieldWrappers(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cfDir := filepath.Join(projectConfig.PluginDirectory(p.Name()), "units", "componentFields")
+
+	rows, err := p.loadComponentFields(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var changed []string
+	for _, row := range rows {
+		wrapperPath := filepath.Join(cfDir, "wrapper_"+row.fragment+".jsx")
+
+		// Relative import from the wrapper to the component file (no extension).
+		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, row.filepath))
+		compRel := toSlash(mustRel(cfDir, compAbs))
+
+		componentName := row.typeName + row.field
+		content := generateComponentFieldWrapper(componentName, row.fragment, row.prop, compRel, row.typeName, row.field)
+		_ = row.content // content used elsewhere (GraphQL type)
+
+		if ok, err := writeIfChanged(p.Filesystem(), wrapperPath, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, wrapperPath)
+		}
+	}
+
+	return changed, nil
+}
+
+func generateComponentFieldWrapper(componentName, fragment, prop, compRel, typeName, field string) string {
+	var b strings.Builder
+
+	b.WriteString("import { useFragment } from '$houdini'\n")
+	b.WriteString("import client from '$houdini/plugins/houdini-react/runtime/client'\n")
+	b.WriteString(fmt.Sprintf("import Component from '%s'\n\n", compRel))
+	b.WriteString(fmt.Sprintf("import artifact from '$houdini/artifacts/%s'\n\n", fragment))
+
+	b.WriteString(fmt.Sprintf("const %s = ({ %s, ...props }) => {\n", componentName, prop))
+	b.WriteString(fmt.Sprintf("\tconst value = useFragment(%s, { artifact })\n", prop))
+	b.WriteString(fmt.Sprintf("\treturn <Component %s={value} {...props} />\n", prop))
+	b.WriteString("}\n\n")
+
+	b.WriteString("if (globalThis.window) {\n")
+	b.WriteString("\tlet window = globalThis.window\n\n")
+	b.WriteString("\tif (!window.__houdini__client__) {\n")
+	b.WriteString("\t\twindow.__houdini__client__ = client()\n")
+	b.WriteString("\t}\n\n")
+	b.WriteString(fmt.Sprintf("\twindow.__houdini__client__.componentCache[%q] = %s\n", typeName+"."+field, componentName))
+	b.WriteString("}\n\n")
+
+	b.WriteString(fmt.Sprintf("export default %s\n", componentName))
+
+	return b.String()
+}
+
+func uniqueStrings(ss []string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, s := range ss {
+		if !seen[s] {
+			seen[s] = true
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// sortedStringKeys returns sorted keys of a string-valued map.
+func sortedStringKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}

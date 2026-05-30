@@ -9,8 +9,9 @@ export default defineConfig({
 	testMatch: 'test.ts',
 
 	webServer: {
-		command: 'PORT=3008 npm run dev',
+		command: 'PORT=3008 node build/index.js',
 		port: 3008,
 		timeout: 120 * 1000,
+		reuseExistingServer: !process.env.CI,
 	},
 })

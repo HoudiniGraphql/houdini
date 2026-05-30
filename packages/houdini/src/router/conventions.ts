@@ -29,6 +29,11 @@ export function adapter_config_path(config: Config, base?: string) {
 }
 
 export function router_build_directory(config: Config) {
+	return path.join(config.root_dir, 'build')
+}
+
+/** Intermediate directory where the primary client build is assembled before deployment packaging */
+export function client_build_directory(config: Config) {
 	return path.join(base_dir(config), 'dist')
 }
 
