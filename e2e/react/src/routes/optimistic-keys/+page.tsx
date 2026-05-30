@@ -51,7 +51,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 								addUser: {
 									avatarURL: 'optimistic value 1',
 									name: 'New User',
-								},
+								} as any,
 							},
 						})
 					}
