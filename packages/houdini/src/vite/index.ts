@@ -77,6 +77,16 @@ async function load_vite_plugins(ctx: VitePluginContext): Promise<Array<PluginOp
 					let pluginModule: any
 
 					try {
+						// Local path plugins are codegen-only — they are never npm packages
+						// and never provide a Vite subpath, so skip them silently.
+						if (
+							plugin.name.startsWith('./') ||
+							plugin.name.startsWith('../') ||
+							path.isAbsolute(plugin.name)
+						) {
+							return null
+						}
+
 						// use createRequire to resolve from the project's context
 						// this is more resilient than manual path construction
 						const projectRequire = createRequire(
