@@ -3,7 +3,7 @@ import { graphql } from '$houdini';
 
 const store = graphql(`
     query OptimisticUserQuery {
-        user(id: "1", snapshot: "update-user-mutation") {
+        user(id: "1", snapshot: "stores-mutation") {
             name
         }
     }
