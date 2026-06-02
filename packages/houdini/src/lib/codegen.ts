@@ -1,5 +1,6 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import path from 'node:path'
+import { createInterface } from 'node:readline'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
 import { WebSocket } from 'ws'
 
@@ -97,11 +98,19 @@ export async function codegen_setup(
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(conventions.houdini_root(config))
 
+	const useStdio = config.config_file.pluginTransport === 'stdio'
+
 	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
 
 	// when plugins announce themselves, they provide a port
 	const plugin_specs: Array<PluginSpec> = []
 	const spec_results: Record<string, PluginSpec> = {}
+
+	// stdio transport state — populated for plugins spawned with --transport stdio
+	const stdioStdin = new Map<string, NodeJS.WritableStream>()
+	// invoke messages from Go need to call trigger_hook, which is defined later;
+	// we use a ref so the readline handlers close over a mutable binding
+	const triggerHookRef: { fn: CompilerProxy['trigger_hook'] | null } = { fn: null }
 
 	// we need a function that waits for a plugin to register itself
 	const wait_for_plugin = (name: string) =>
@@ -152,9 +161,6 @@ export async function codegen_setup(
 					} else {
 						resolver(spec)
 					}
-
-					// resolve the promise
-					resolver(spec)
 				}
 			}, 10)
 
@@ -169,6 +175,156 @@ export async function codegen_setup(
 				clearTimeout(timeout)
 				resolve(spec)
 			}
+		})
+
+	// wait_for_plugin_stdio reads the registration JSON line from stdout and sets
+	// up the permanent message handler for response/invoke messages.
+	const wait_for_plugin_stdio = (name: string, child: ChildProcess) =>
+		new Promise<PluginSpec>((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				reject(new Error(`Timeout waiting for plugin ${name} to register`))
+			}, 10000)
+
+			const rl = createInterface({ input: child.stdout! })
+			let registered = false
+
+			rl.on('line', (line) => {
+				try {
+					const msg = JSON.parse(line)
+
+					if (!registered) {
+						if (msg.type !== 'register') {
+							clearTimeout(timeout)
+							reject(new Error(`Plugin ${name} sent ${msg.type} before registering`))
+							return
+						}
+						registered = true
+						clearTimeout(timeout)
+
+						const spec: PluginSpec = {
+							name: msg.name ?? name,
+							port: 0,
+							hooks: new Set(msg.hooks ?? []),
+							order: msg.order as 'before' | 'after' | 'core',
+							directory: config.plugins.find((p) => p.name === name)?.directory || '',
+						}
+						spec_results[name] = spec
+
+						// Mirror what the plugin would write to the DB itself in WebSocket mode so
+						// that PluginConfig() reads succeed when hooks run.
+						db.prepare(
+							`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
+							 VALUES (?, ?, 0, ?, ?, ?, ?)`
+						).run(
+							spec.name,
+							JSON.stringify([...spec.hooks]),
+							spec.order,
+							msg.includeRuntime ?? null,
+							msg.configModule ?? null,
+							msg.clientPlugins ?? null
+						)
+						db.prepare('UPDATE plugins SET config = ? WHERE name = ?').run(
+							JSON.stringify(
+								config.plugins.find((p) => p.name === name)?.config ?? {}
+							),
+							spec.name
+						)
+
+						if (msg.configModule) {
+							import(msg.configModule)
+								.then((module) => {
+									if (module && typeof module.default === 'function') {
+										config.config_file = module.default(config.config_file)
+									}
+									resolve(spec)
+								})
+								.catch((err: Error) => {
+									reject(
+										new Error(
+											`Failed to load configModule for ${name}: ${err.message}`
+										)
+									)
+								})
+						} else {
+							resolve(spec)
+						}
+						return
+					}
+
+					// subsequent messages: response or invoke
+					if (msg.type === 'response') {
+						const pending = pendingRequests.get(msg.id)
+						if (!pending) return
+						clearTimeout(pending.timeout)
+						pendingRequests.delete(msg.id)
+
+						if (msg.error) {
+							const errors: HookError[] = Array.isArray(msg.error)
+								? msg.error
+								: [msg.error]
+							errors.forEach((error) =>
+								format_hook_error(config.root_dir, error, name, pending.hook)
+							)
+							pending.reject(new Error(`Failed to call ${name}`))
+						} else {
+							pending.resolve(msg.result)
+						}
+					} else if (msg.type === 'invoke') {
+						// Go plugin is asking Node.js to call other plugins on its behalf.
+						// triggerHookRef.fn is always set before any hook runs, but guard anyway.
+						if (!triggerHookRef.fn) {
+							const reply =
+								JSON.stringify({
+									id: msg.id,
+									type: 'invoke_result',
+									error: { message: 'orchestrator not ready' },
+								}) + '\n'
+							child.stdin!.write(reply)
+							return
+						}
+						triggerHookRef
+							.fn(msg.hook, {
+								parallel_safe: msg.parallel,
+								payload: msg.payload,
+								task_id: msg.taskId,
+							})
+							.then((result) => {
+								const reply =
+									JSON.stringify({ id: msg.id, type: 'invoke_result', result }) +
+									'\n'
+								child.stdin!.write(reply)
+							})
+							.catch((err: Error) => {
+								const reply =
+									JSON.stringify({
+										id: msg.id,
+										type: 'invoke_result',
+										error: { message: err.message },
+									}) + '\n'
+								child.stdin!.write(reply)
+							})
+					}
+				} catch (err: unknown) {
+					if (!registered) {
+						reject(err instanceof Error ? err : new Error(String(err)))
+					}
+				}
+			})
+
+			rl.on('close', () => {
+				if (!registered) {
+					clearTimeout(timeout)
+					reject(new Error(`Plugin ${name} stdout closed before registering`))
+				} else {
+					// reject only in-flight requests belonging to this plugin
+					for (const [id, pending] of pendingRequests.entries()) {
+						if (pending.plugin !== name) continue
+						clearTimeout(pending.timeout)
+						pendingRequests.delete(id)
+						pending.reject(new Error(`Plugin ${name} closed unexpectedly`))
+					}
+				}
+			})
 		})
 
 	// delete existing plugin metadata
@@ -188,16 +344,32 @@ export async function codegen_setup(
 				args.unshift(plugin.executable)
 			}
 
-			console.time(`Spawn ${plugin.name}`)
-			plugins[plugin.name] = {
-				// kick off the plugin process
-				process: spawn(executable, args, {
-					stdio: 'inherit',
-					detached: process.platform !== 'win32',
-				}),
+			if (useStdio) {
+				args.push('--transport', 'stdio')
+			}
 
-				// and wait for the plugin to report back its port
-				...(await wait_for_plugin(plugin.name)),
+			console.time(`Spawn ${plugin.name}`)
+			const child = spawn(executable, args, {
+				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
+				// message protocol; stderr is always inherited so plugin logs reach the terminal
+				stdio: useStdio ? ['pipe', 'pipe', 'inherit'] : ['inherit', 'inherit', 'inherit'],
+				detached: process.platform !== 'win32',
+			})
+
+			if (useStdio) {
+				stdioStdin.set(plugin.name, child.stdin!)
+				child.stdin!.on('error', (err: Error) => {
+					if ((err as NodeJS.ErrnoException).code !== 'EPIPE') {
+						console.error(`[${plugin.name}] stdin error:`, err.message)
+					}
+				})
+			}
+
+			plugins[plugin.name] = {
+				process: child,
+				...(await (useStdio
+					? wait_for_plugin_stdio(plugin.name, child)
+					: wait_for_plugin(plugin.name))),
 			}
 			console.timeEnd(`Spawn ${plugin.name}`)
 		})
@@ -218,6 +390,7 @@ export async function codegen_setup(
 			reject: (reason: any) => void
 			timeout: NodeJS.Timeout
 			hook: string
+			plugin: string
 		}
 	>()
 
@@ -308,27 +481,44 @@ export async function codegen_setup(
 			throw new Error(`unknown plugin: ${name}`)
 		}
 		const { port, directory } = plugin
-		const ws = await getOrCreateWS(name, port)
 
-		return new Promise((resolve, reject) => {
-			const messageId = String(++messageCounter)
+		const messageId = String(++messageCounter)
+		const message = {
+			id: messageId,
+			type: 'request',
+			hook,
+			payload,
+			taskId: task_id,
+			pluginDirectory: directory,
+		}
 
-			const timeout = setTimeout(() => {
-				pendingRequests.delete(messageId)
-				reject(new Error(`WebSocket request timeout for ${name}/${hook}`))
-			}, 30000)
-			pendingRequests.set(messageId, { resolve, reject, timeout, hook })
-
-			const message = {
-				id: messageId,
-				type: 'request',
-				hook,
-				payload,
-				taskId: task_id,
-				pluginDirectory: directory,
+		if (useStdio) {
+			// stdio transport: write newline-delimited JSON to the plugin's stdin
+			const stdin = stdioStdin.get(name)
+			if (!stdin) {
+				throw new Error(`No stdio channel for plugin ${name}`)
 			}
-			ws.send(JSON.stringify(message))
-		})
+			return new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					pendingRequests.delete(messageId)
+					reject(new Error(`Request timeout for ${name}/${hook}`))
+				}, 30000)
+				pendingRequests.set(messageId, { resolve, reject, timeout, hook, plugin: name })
+				stdin.write(JSON.stringify(message) + '\n')
+			})
+		} else {
+			// WebSocket transport: await the connection before registering the pending request
+			// so that a connection failure rejects immediately rather than timing out
+			const ws = await getOrCreateWS(name, port)
+			return new Promise((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					pendingRequests.delete(messageId)
+					reject(new Error(`WebSocket request timeout for ${name}/${hook}`))
+				}, 30000)
+				pendingRequests.set(messageId, { resolve, reject, timeout, hook, plugin: name })
+				ws.send(JSON.stringify(message))
+			})
+		}
 	}
 
 	const trigger_hook = async (
@@ -368,6 +558,9 @@ export async function codegen_setup(
 		return result
 	}
 
+	// expose trigger_hook to the stdio invoke handlers
+	triggerHookRef.fn = trigger_hook
+
 	// write the current config values to the database
 	await write_config(db, config, invoke_hook, plugin_specs, mode)
 
@@ -398,9 +591,18 @@ export async function codegen_setup(
 			}
 			wsConnections.clear()
 
-			// clear pending requests
-			for (const [, { timeout }] of pendingRequests.entries()) {
+			// signal stdio plugins to exit by closing their stdin
+			for (const [, stdin] of stdioStdin.entries()) {
+				try {
+					stdin.end()
+				} catch {}
+			}
+			stdioStdin.clear()
+
+			// reject and clear pending requests
+			for (const [, { timeout, reject }] of pendingRequests.entries()) {
 				clearTimeout(timeout)
+				reject(new Error('codegen closed'))
 			}
 			pendingRequests.clear()
 

@@ -19,12 +19,14 @@ import (
 )
 
 var (
-	configHost   string = ""
-	databasePath string = ""
+	configHost    string = ""
+	databasePath  string = ""
+	transportMode string = "websocket"
 )
 
 func ParseFlags() {
 	flag.StringVar(&databasePath, "database", "", "")
+	flag.StringVar(&transportMode, "transport", "websocket", "transport protocol: websocket or stdio")
 	flag.Parse()
 
 	// make sure a database path is provided
@@ -56,6 +58,10 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	// load both of the config values
 	db.ReloadPluginConfig(ctx)
 	db.ReloadProjectConfig(ctx)
+
+	if transportMode == "stdio" {
+		return runStdio(ctx, plugin)
+	}
 
 	// register hooks for both HTTP and WebSocket together
 	httpRegistered := map[string]struct{}{}
