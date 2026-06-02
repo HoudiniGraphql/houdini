@@ -228,6 +228,7 @@ jobs:
                   cp -r ./adapter-node/* ./packages/adapter-node/ || echo "Failed to copy adapter-node"
                   rm -rf ./adapter-node
                 fi
+                find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
 
             - name: Create template project
               run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
@@ -302,6 +303,7 @@ jobs:
                   cp -r ./adapter-node/* ./packages/adapter-node/ || echo "Failed to copy adapter-node"
                   rm -rf ./adapter-node
                 fi
+                find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
 
             - name: Relink workspace dependencies
               run: pnpm install
@@ -400,6 +402,7 @@ jobs:
                   cp -r ./adapter-node/* ./packages/adapter-node/ || echo "Failed to copy adapter-node"
                   rm -rf ./adapter-node
                 fi
+                find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
 
             - name: Relink workspace dependencies
               run: pnpm install
@@ -471,6 +474,7 @@ jobs:
                   cp -r ./adapter-node/* ./packages/adapter-node/ || echo "Failed to copy adapter-node"
                   rm -rf ./adapter-node
                 fi
+                find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
 
             - name: Relink workspace dependencies
               run: pnpm install
