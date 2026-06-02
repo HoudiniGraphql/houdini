@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { PluginError, runPlugin } from './index.js'
+import { plugin as runPlugin, PluginError } from './index.js'
 
 // ─── module mocks (hoisted) ───────────────────────────────────────────────────
 
