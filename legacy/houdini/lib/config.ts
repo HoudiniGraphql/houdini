@@ -132,7 +132,7 @@ export class Config {
 		}
 
 		// validate the log level value
-		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevels)) {
+		if (logLevel && typeof logLevel === 'string' && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevels)) {
 			console.warn(
 				`! Invalid log level provided. Valid values are: ${JSON.stringify(
 					Object.values(LogLevel)
@@ -158,7 +158,7 @@ export class Config {
 		this.defaultListTarget = defaultListTarget
 		this.defaultPaginateMode = defaultPaginateMode
 		this.definitionsFolder = definitionsPath
-		this.logLevel = ((logLevel as LogLevels) || LogLevel.Summary).toLowerCase() as LogLevels
+		this.logLevel = (typeof logLevel === 'string' ? logLevel : LogLevel.Summary) || LogLevel.Summary
 		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = watchSchema?.interval === undefined ? 2000 : watchSchema.interval

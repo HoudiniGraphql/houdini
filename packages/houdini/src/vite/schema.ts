@@ -60,7 +60,7 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 				// load the schema
 				await run_pipeline(compiler.trigger_hook, { start: 'Schema' })
 			} catch (e) {
-				console.log(e)
+				console.error(e)
 			}
 		},
 	}

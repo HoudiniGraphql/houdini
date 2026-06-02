@@ -96,7 +96,9 @@ export async function generate(
 		}
 
 		// kick off the codegen pipeline (the pipeline through Schema is run in codegen_setup)
-		await run_pipeline(trigger_hook, pipelineOptions)
+		const results = await run_pipeline(trigger_hook, pipelineOptions)
+		const docCount = Object.values(results.GenerateDocuments ?? {}).flat().length
+		console.log(`🎩 Generated ${docCount} ${docCount === 1 ? 'document' : 'documents'}`)
 
 		// we're done, close everything
 		await on_close()

@@ -1,3 +1,4 @@
+export * from './logger.js'
 export * from './project.js'
 export * from './codegen.js'
 export * as path from './path.js'

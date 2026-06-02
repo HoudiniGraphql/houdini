@@ -89,7 +89,6 @@ export class HoudiniClient {
 		fetching = false,
 		...rest
 	}: ObserveParams<_Data, DocumentArtifact, _Input>): DocumentStore<_Data, _Input> {
-		console.log(this.config)
 		return new DocumentStore<_Data, _Input>({
 			client: this,
 			plugins: createPluginHooks(this.plugins),

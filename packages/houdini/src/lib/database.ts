@@ -3,7 +3,9 @@ import type sqlite from 'node:sqlite'
 
 import type { PluginSpec } from './codegen.js'
 import type { Config } from './config.js'
+import { Logger } from './logger.js'
 import { default_config } from './project.js'
+import { LogLevel } from './types.js'
 
 export const create_schema = `
 CREATE TABLE IF NOT EXISTS plugins (
@@ -494,14 +496,15 @@ export async function write_config(
 		args: Record<string, any>
 	) => Promise<Record<string, any>>,
 	plugins: Array<PluginSpec>,
-	mode: string
+	mode: string,
+	logger: Logger = new Logger(LogLevel.Summary)
 ) {
 	// in order to know our configuration values, we need to load the current environment
 	// to do this we need to look at each plugin that supports the environment hook
 	// and invoke it
 	const env = {}
 
-	console.time('Environment')
+	logger.time('Environment')
 	// look at each plugin
 	await Promise.all(
 		plugins.map(async (plugin) => {
@@ -512,7 +515,7 @@ export async function write_config(
 			}
 		})
 	)
-	console.timeEnd('Environment')
+	logger.timeEnd('Environment', LogLevel.Summary)
 
 	// now that we have the environment, we can write our config values to the database
 	const config_file = {
@@ -575,7 +578,7 @@ export async function write_config(
 		config_file.defaultListTarget ?? null,
 		config_file.defaultPaginateMode ?? 'Infinite',
 		config_file.supressPaginationDeduplication ? 1 : 0,
-		config_file.logLevel ?? null,
+		config_file.logLevel?.toUpperCase().replace(/-/g, '_') ?? null,
 		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
 		JSON.stringify(config_file.defaultKeys ?? []),
 		config_file.persistedQueriesPath ?? path.join(config_file.runtimeDir!, 'queries.json'),
