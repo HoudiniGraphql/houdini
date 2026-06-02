@@ -83,8 +83,8 @@
             "import": "./build/adapter/index.js"
         },
         "./adapter/*": {
-            "types": "./build/adapter/*",
-            "import": "./build/adapter/*"
+            "types": "./build/adapter/*.d.ts",
+            "import": "./build/adapter/*.js"
         },
         "./cmd": {
             "types": "./build/cmd/index.d.ts",
@@ -106,21 +106,29 @@
             "types": "./build/lib/types.d.ts",
             "import": "./build/lib/types.js"
         },
+        "./node": {
+            "types": "./build/node/index.d.ts",
+            "import": "./build/node/index.js"
+        },
+        "./node/*": {
+            "types": "./build/node/*.d.ts",
+            "import": "./build/node/*.js"
+        },
         "./router": {
             "types": "./build/router/index.d.ts",
             "import": "./build/router/index.js"
         },
         "./router/*": {
-            "types": "./build/router/*",
-            "import": "./build/router/*"
+            "types": "./build/router/*.d.ts",
+            "import": "./build/router/*.js"
         },
         "./runtime": {
             "types": "./build/runtime/index.d.ts",
             "import": "./build/runtime/index.js"
         },
         "./runtime/*": {
-            "types": "./build/runtime/*",
-            "import": "./build/runtime/*"
+            "types": "./build/runtime/*.d.ts",
+            "import": "./build/runtime/*.js"
         },
         "./runtime/cache": {
             "types": "./build/runtime/cache/index.d.ts",
@@ -143,20 +151,16 @@
             "import": "./build/test/index.js"
         },
         "./test/*": {
-            "types": "./build/test/*",
-            "import": "./build/test/*"
-        },
-        "./node": {
-            "types": "./build/node/index.d.ts",
-            "import": "./build/node/index.js"
+            "types": "./build/test/*.d.ts",
+            "import": "./build/test/*.js"
         },
         "./vite": {
             "types": "./build/vite/index.d.ts",
             "import": "./build/vite/index.js"
         },
         "./vite/*": {
-            "types": "./build/vite/*",
-            "import": "./build/vite/*"
+            "types": "./build/vite/*.d.ts",
+            "import": "./build/vite/*.js"
         }
     },
     "typesVersions": {

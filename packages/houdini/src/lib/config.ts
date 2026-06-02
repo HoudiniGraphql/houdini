@@ -143,7 +143,7 @@ export type ConfigFile = {
 	 * 'stdio' routes all communication over stdin/stdout (required for WASI plugins).
 	 * @default 'websocket'
 	 */
-	pluginTransport?: 'websocket' | 'stdio'
+	pluginTransport?: 'websocket' | 'stdio' | `env:${string}`
 
 	/**
 	 * Configure the router

@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(__dirname, '..')
 
 plugin({
-	name: 'e2e-node-plugin',
+	name: 'e2e-kit-node-plugin',
 	order: 'after',
 	hooks: {
 		afterGenerate: () => {

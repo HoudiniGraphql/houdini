@@ -1,6 +1,6 @@
 import http from 'node:http'
 import { createInterface } from 'node:readline'
-import type { DatabaseSync } from 'node:sqlite'
+import sqlite, { type DatabaseSync } from 'node:sqlite'
 import { WebSocketServer } from 'ws'
 
 export type PipelineHook =
@@ -60,24 +60,24 @@ export class PluginError extends Error {
 	}
 }
 
-export function runPlugin(config: NodePluginConfig): void {
-	const { transport, database } = parseArgs()
+export function plugin(config: NodePluginConfig): void {
+	const { transport, database, pluginKey } = parseArgs()
 
 	if (transport === 'stdio') {
-		runStdio(config)
+		runStdio(config, pluginKey)
 	} else {
-		runWebSocket(config, database)
+		runWebSocket(config, database, pluginKey)
 	}
 }
 
 // ─── stdio transport ──────────────────────────────────────────────────────────
 
-function runStdio(config: NodePluginConfig): void {
+function runStdio(config: NodePluginConfig, pluginKey: string): void {
 	const { pending, invokeCounter, rl } = makeStdioChannel()
 
 	const reg: Record<string, any> = {
 		type: 'register',
-		name: config.name,
+		name: pluginKey || config.name,
 		hooks: hookKeys(config).map(toWireName),
 		order: config.order,
 	}
@@ -118,15 +118,12 @@ function runStdio(config: NodePluginConfig): void {
 
 // ─── WebSocket transport ──────────────────────────────────────────────────────
 
-function runWebSocket(config: NodePluginConfig, databasePath: string): void {
+function runWebSocket(config: NodePluginConfig, databasePath: string, pluginKey: string): void {
 	if (!databasePath) {
 		process.stderr.write('node plugin: --database path is required in websocket mode\n')
 		process.exit(1)
 	}
 
-	// node:sqlite is unflagged in Node 23.4+; Node 22 requires --experimental-sqlite
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	const sqlite = require('node:sqlite') as typeof import('node:sqlite')
 	const db = new sqlite.DatabaseSync(databasePath)
 	const wireHooks = hookKeys(config).map(toWireName)
 
@@ -216,27 +213,12 @@ function runWebSocket(config: NodePluginConfig, databasePath: string): void {
 	server.listen(0, () => {
 		const port = (server.address() as { port: number }).port
 
-		// Announce to the orchestrator via stdout. The port field lets the
-		// orchestrator (and Go plugins querying the DB) reach us via HTTP/WS.
-		const reg: Record<string, any> = {
-			type: 'register',
-			name: config.name,
-			hooks: wireHooks,
-			order: config.order,
-			port,
-		}
-		if (config.includeRuntime !== undefined) reg.includeRuntime = config.includeRuntime
-		if (config.configModule !== undefined) reg.configModule = config.configModule
-		if (config.clientPlugins !== undefined)
-			reg.clientPlugins = JSON.stringify(config.clientPlugins)
-		stdioWrite(reg)
-
-		// Also write to the DB so Go plugins that query it directly can find us
+		// Write to the DB so the orchestrator (and Go plugins) can find us.
 		db.prepare(
 			`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
 			 VALUES (?, ?, ?, ?, ?, ?, ?)`
 		).run(
-			config.name,
+			pluginKey || config.name,
 			JSON.stringify(wireHooks),
 			port,
 			config.order,
@@ -344,15 +326,17 @@ function hookKeys(config: NodePluginConfig): string[] {
 	)
 }
 
-function parseArgs(): { transport: string; database: string } {
+function parseArgs(): { transport: string; database: string; pluginKey: string } {
 	const argv = process.argv
 	let transport = 'websocket'
 	let database = ''
+	let pluginKey = ''
 	for (let i = 2; i < argv.length; i++) {
 		if (argv[i] === '--transport' && i + 1 < argv.length) transport = argv[++i]
 		else if (argv[i] === '--database' && i + 1 < argv.length) database = argv[++i]
+		else if (argv[i] === '--plugin-key' && i + 1 < argv.length) pluginKey = argv[++i]
 	}
-	return { transport, database }
+	return { transport, database, pluginKey }
 }
 
 function stdioWrite(obj: Record<string, any>): void {

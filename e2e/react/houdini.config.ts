@@ -34,6 +34,8 @@ const config: ConfigFile = {
 		'./plugins/node-plugin.mjs': {},
 	 },
 
+	pluginTransport: 'env:HOUDINI_PLUGIN_TRANSPORT',
+
 	router: {
 		auth: {
 			redirect: '/auth/token',

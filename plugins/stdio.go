@@ -155,7 +155,7 @@ func runStdio[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plugin
 
 	if err := writeStdio(StdioRegister{
 		Type:           "register",
-		Name:           plugin.Name(),
+		Name:           cmp(pluginKey, plugin.Name()),
 		Hooks:          hooks,
 		Order:          string(plugin.Order()),
 		IncludeRuntime: includeRuntime,

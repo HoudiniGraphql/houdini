@@ -91,6 +91,16 @@ export type CompilerProxy = {
 
 // codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
 // the config server along with each plugin
+// Converts a plugin config key to a safe DB registration name.
+// Named packages (e.g. 'houdini-svelte') pass through unchanged.
+// Local paths (e.g. './plugins/my.mjs') have '.' → '_' and '/' → '__'.
+export function plugin_db_key(name: string): string {
+	if (!name.startsWith('./') && !name.startsWith('../') && !path.isAbsolute(name)) {
+		return name
+	}
+	return name.replace(/\./g, '_').replace(/\//g, '__')
+}
+
 export async function codegen_setup(
 	config: Config,
 	mode: string,
@@ -102,7 +112,11 @@ export async function codegen_setup(
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(conventions.houdini_root(config))
 
-	const useStdio = config.config_file.pluginTransport === 'stdio'
+	const rawTransport = config.config_file.pluginTransport ?? 'websocket'
+	const resolvedTransport = rawTransport.startsWith('env:')
+		? (process.env[rawTransport.slice('env:'.length)] ?? 'websocket')
+		: rawTransport
+	const useStdio = resolvedTransport === 'stdio'
 
 	const plugins: Record<string, PluginSpec & { process: ChildProcess }> = {}
 
@@ -116,14 +130,15 @@ export async function codegen_setup(
 	// we use a ref so the readline handlers close over a mutable binding
 	const triggerHookRef: { fn: CompilerProxy['trigger_hook'] | null } = { fn: null }
 
-	// we need a function that waits for a plugin to register itself
-	const wait_for_plugin = (name: string) =>
+	// wait_for_plugin_db polls the SQLite DB until the plugin inserts its registration row.
+	// configKey is the houdini.config key (used for spec_results lookup).
+	// dbKey is the name the plugin actually registers with (plugin_db_key(configKey)).
+	const wait_for_plugin_db = (configKey: string, dbKey: string) =>
 		new Promise<PluginSpec>((resolve, reject) => {
 			const find_plugin = db.prepare('SELECT * FROM plugins WHERE name = ?')
 
-			// waiting for a plugin means polling the database until we see the plugin announce itself
 			const interval = setInterval(() => {
-				const row = find_plugin.get(name) as
+				const row = find_plugin.get(dbKey) as
 					| {
 							name: string
 							port: number
@@ -133,28 +148,22 @@ export async function codegen_setup(
 					  }
 					| undefined
 				if (row) {
-					// we found the plugin, stop polling
 					clearInterval(interval)
 
-					// update the plugin spec with the user provided config
 					db.prepare('UPDATE plugins set config = ? where name = ?').run(
-						JSON.stringify(config.plugins.find((p) => p.name === name)?.config ?? {}),
-						name
+						JSON.stringify(config.plugins.find((p) => p.name === configKey)?.config ?? {}),
+						dbKey
 					)
 
-					// create the plugin spec
 					const spec: PluginSpec = {
 						name: row.name,
 						port: row.port,
 						hooks: new Set(JSON.parse(row.hooks)),
 						order: row.plugin_order as 'before' | 'after' | 'core',
-						directory: config.plugins.find((p) => p.name === name)?.directory || '',
+						directory: config.plugins.find((p) => p.name === configKey)?.directory || '',
 					}
+					spec_results[configKey] = spec
 
-					// store the spec
-					spec_results[name] = spec
-
-					// if the row specifies a config module then we need to import it and invoke it
 					if (row.config_module) {
 						import(row.config_module).then((module) => {
 							if (module && typeof module.default === 'function') {
@@ -168,13 +177,11 @@ export async function codegen_setup(
 				}
 			}, 10)
 
-			// Create a timeout that will reject after 2 seconds
 			const timeout = setTimeout(() => {
 				clearInterval(interval)
-				reject(new Error(`Timeout waiting for plugin ${name} to register`))
+				reject(new Error(`Timeout waiting for plugin ${configKey} to register`))
 			}, 10000)
 
-			// Create a resolver function that clears the timeout
 			const resolver = (spec: PluginSpec) => {
 				clearTimeout(timeout)
 				resolve(spec)
@@ -183,6 +190,7 @@ export async function codegen_setup(
 
 	// wait_for_plugin_stdio reads the registration JSON line from stdout and sets
 	// up the permanent message handler for response/invoke messages.
+	// Used for stdio transport plugins.
 	const wait_for_plugin_stdio = (name: string, child: ChildProcess) =>
 		new Promise<PluginSpec>((resolve, reject) => {
 			const timeout = setTimeout(() => {
@@ -206,22 +214,23 @@ export async function codegen_setup(
 						clearTimeout(timeout)
 
 						const spec: PluginSpec = {
-							name: msg.name ?? name,
-							port: 0,
+							name: msg.name ?? plugin_db_key(name),
+							port: msg.port ?? 0,
 							hooks: new Set(msg.hooks ?? []),
 							order: msg.order as 'before' | 'after' | 'core',
 							directory: config.plugins.find((p) => p.name === name)?.directory || '',
 						}
 						spec_results[name] = spec
 
-						// Mirror what the plugin would write to the DB itself in WebSocket mode so
-						// that PluginConfig() reads succeed when hooks run.
+						// WebSocket plugins insert themselves into the DB; for stdio plugins (port=0)
+						// we do it here. INSERT OR IGNORE avoids a duplicate-key error either way.
 						db.prepare(
-							`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
-							 VALUES (?, ?, 0, ?, ?, ?, ?)`
+							`INSERT OR IGNORE INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
+							 VALUES (?, ?, ?, ?, ?, ?, ?)`
 						).run(
 							spec.name,
 							JSON.stringify([...spec.hooks]),
+							spec.port,
 							spec.order,
 							msg.includeRuntime ?? null,
 							msg.configModule ?? null,
@@ -283,7 +292,7 @@ export async function codegen_setup(
 									type: 'invoke_result',
 									error: { message: 'orchestrator not ready' },
 								}) + '\n'
-							child.stdin!.write(reply)
+							child.stdin?.write(reply)
 							return
 						}
 						triggerHookRef
@@ -296,7 +305,7 @@ export async function codegen_setup(
 								const reply =
 									JSON.stringify({ id: msg.id, type: 'invoke_result', result }) +
 									'\n'
-								child.stdin!.write(reply)
+								child.stdin?.write(reply)
 							})
 							.catch((err: Error) => {
 								const reply =
@@ -305,7 +314,7 @@ export async function codegen_setup(
 										type: 'invoke_result',
 										error: { message: err.message },
 									}) + '\n'
-								child.stdin!.write(reply)
+								child.stdin?.write(reply)
 							})
 					}
 				} catch (err: unknown) {
@@ -348,6 +357,8 @@ export async function codegen_setup(
 				args.unshift(plugin.executable)
 			}
 
+			const dbKey = plugin_db_key(plugin.name)
+			args.push('--plugin-key', dbKey)
 			if (useStdio) {
 				args.push('--transport', 'stdio')
 			}
@@ -355,13 +366,13 @@ export async function codegen_setup(
 			logger.time(`Spawn ${plugin.name}`)
 			const child = spawn(executable, args, {
 				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
-				// message protocol; stderr is always inherited so plugin logs reach the terminal
+				// message protocol; stderr is always inherited so plugin logs reach the terminal.
 				stdio: useStdio ? ['pipe', 'pipe', 'inherit'] : ['inherit', 'inherit', 'inherit'],
 				detached: process.platform !== 'win32',
 			})
 
 			if (useStdio) {
-				stdioStdin.set(plugin.name, child.stdin!)
+				stdioStdin.set(dbKey, child.stdin!)
 				child.stdin!.on('error', (err: Error) => {
 					if ((err as NodeJS.ErrnoException).code !== 'EPIPE') {
 						console.error(`[${plugin.name}] stdin error:`, err.message)
@@ -373,7 +384,7 @@ export async function codegen_setup(
 				process: child,
 				...(await (useStdio
 					? wait_for_plugin_stdio(plugin.name, child)
-					: wait_for_plugin(plugin.name))),
+					: wait_for_plugin_db(plugin.name, dbKey))),
 			}
 			logger.timeEnd(`Spawn ${plugin.name}`, LogLevel.Verbose)
 		})
