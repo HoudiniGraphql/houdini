@@ -36,7 +36,6 @@ const config = {
 
   plugins: {
     'houdini-svelte': {},
-    './plugins/node-plugin.mjs': {}
   },
 
   pluginTransport: 'env:HOUDINI_PLUGIN_TRANSPORT'

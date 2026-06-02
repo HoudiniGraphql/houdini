@@ -44,7 +44,7 @@ export default projectConfig;
 `, configPath), nil
 
 		// add any client plugins specified by codegen plugins
-	case fp.Join("client", "plugins", "injectedPlugins.ts"):
+	case fp.Join("plugins", "injectedPlugins.ts"):
 		return InjectPlugins(ctx, content, db)
 	}
 

@@ -11,7 +11,7 @@ export const cachePolicy =
 		enabled,
 		setFetching,
 		cache: localCache = cache,
-		serverSideFallback = false,
+		serverSideFallback = true,
 	}: {
 		enabled: boolean
 		setFetching: (val: boolean, data?: any) => void
