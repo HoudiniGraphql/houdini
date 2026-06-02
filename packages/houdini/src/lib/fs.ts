@@ -179,6 +179,15 @@ export async function stat(filepath: string) {
 	return memfs.statSync(filepath)
 }
 
+export function statSync(filepath: string) {
+	// no mock in production
+	if (!houdini_mode.is_testing) {
+		return fs.statSync(filepath)
+	}
+
+	return memfs.statSync(filepath)
+}
+
 export function existsSync(dirPath: string) {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
