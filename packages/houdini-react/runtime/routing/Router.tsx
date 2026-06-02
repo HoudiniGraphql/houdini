@@ -246,7 +246,7 @@ function usePageData({
 					injectToStream?.(`
 						<script>
 						{
-								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer)
+								window.__houdini__cache__?.hydrate(${cache.serialize()}, window.__houdini__hydration__layer__)
 
 								const artifactName = "${artifact.name}"
 								const value = ${JSON.stringify(
@@ -402,11 +402,6 @@ function usePageData({
 
 					// save the artifact in the cache
 					artifact_cache.set(artifact_id, artifact)
-
-					// add a script to load the artifact
-					injectToStream?.(`
-						<script type="module" src="${assetPrefix}/artifacts/${artifact.name}.js" async=""></script>
-					`)
 
 					// now that we have the artifact, we can load the query too
 					load_query({ id: artifact.name, artifact, variables })

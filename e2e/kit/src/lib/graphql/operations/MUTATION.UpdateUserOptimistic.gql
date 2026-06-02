@@ -1,0 +1,13 @@
+mutation UpdateUserOptimistic($id: ID!, $name: String, $birthDate: DateTime) {
+  updateUser(
+    id: $id
+    name: $name
+    birthDate: $birthDate
+    snapshot: "stores-mutation"
+    delay: 1000
+  ) {
+    id
+    name
+    birthDate
+  }
+}

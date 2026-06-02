@@ -9,7 +9,7 @@ export default function ({ RouteParamsUserInfo }: PageProps) {
 	return (
 		<div>
 			<div id="result">
-				{route.params.id}: {user.name}
+				{route.params.id}:{user.name}
 			</div>
 		</div>
 	)

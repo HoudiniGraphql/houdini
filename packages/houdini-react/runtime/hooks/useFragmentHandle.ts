@@ -19,9 +19,9 @@ export function useFragmentHandle<
 	_PaginationArtifact extends QueryArtifact,
 	_Input extends GraphQLVariables = GraphQLVariables
 >(
-	reference: _Data | { [fragmentKey]: _ReferenceType } | null,
+	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
-): DocumentHandle<_PaginationArtifact, _Data, _Input> {
+): any {
 	// get the fragment values
 	const data = useFragment<_Data, _ReferenceType, _Input>(reference, document)
 

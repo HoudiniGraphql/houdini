@@ -1148,7 +1148,7 @@ func prepareCollectStatements(conn *sqlite.Conn, count int) (*CollectStatements,
 			document_internal,
 			fragment_args
     FROM selection_tree
-      LEFT JOIN component_fields ON selection_tree.kind = 'fragment' AND component_fields.fragment = selection_tree.field_name
+      LEFT JOIN component_fields ON selection_tree.kind = 'fragment' AND component_fields.fragment = COALESCE(selection_tree.fragment_ref, selection_tree.field_name)
     ORDER BY parent_id ASC
   `, whereIn, whereIn, whereIn, whereIn, whereIn))
 	if err != nil {

@@ -23,7 +23,7 @@
 		"build:build": "pnpm build: && pnpm build",
 		"houdini": "node ensureLinks.js && houdini",
 		"dev": "node ./ensureLinks.js && vite dev",
-		"build": "vite build",
+		"build": "node ./ensureLinks.js && vite build",
 		"tests": "npm run build && playwright test",
 		"test": "npm run tests",
 		"tw": "npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
@@ -36,18 +36,19 @@
 		"@whatwg-node/server": "^0.9.14",
 		"cookie": "^0.5.0",
 		"e2e-api": "workspace:^",
-		"houdini": "workspace:^",
-		"houdini-react": "workspace:^",
 		"graphql-yoga": "^4.0.4",
+		"houdini": "workspace:^",
+		"houdini-adapter-node": "workspace:2.0.0-go.19",
+		"houdini-react": "workspace:^",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"react-streaming-compat": "^0.3.18"
+		"react-streaming": "^0.4.17"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.59.1",
 		"@types/react": "^19.0.7",
 		"@types/react-dom": "^19.0.3",
-		"@vitejs/plugin-react": "^3.1.0",
+		"@vitejs/plugin-react": "^6.0.2",
 		"autoprefixer": "^10.4.16",
 		"concurrently": "7.1.0",
 		"cross-env": "^7.0.3",
@@ -56,7 +57,7 @@
 		"postcss": "^8.4.31",
 		"tailwindcss": "^3.3.3",
 		"typescript": "^5.9.3",
-		"vite": "^4.1.0",
+		"vite": "^8.0.0",
 		"wrangler": "^3.91.0"
 	}
 }

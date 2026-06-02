@@ -5,7 +5,7 @@ export default ({ scalar_test }: PageProps) => {
 		<div id="result">
 			{scalar_test.usersList.map((user) => (
 				<div key={user.name}>
-					{user.name} - {user.birthDate?.toLocaleDateString()}
+					{user.name}-{user.birthDate?.toLocaleDateString('en-US', { timeZone: 'UTC' })}
 				</div>
 			))}
 		</div>

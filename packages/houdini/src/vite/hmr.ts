@@ -224,10 +224,13 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					)
 					.run({ task_id: task_id })
 
-				// the task now includes every document that we need to process
+				// the task now includes every document that we need to process.
+				// start after AfterExtract (already triggered above) so that
+				// BeforeValidate → Validate → AfterValidate run and surface
+				// any errors the user introduced (e.g. unknown fields).
 				const results = await run_pipeline(compiler.trigger_hook, {
 					task_id,
-					after: 'AfterValidate',
+					after: 'AfterExtract',
 				})
 
 				// the return value of each generate invocation is the list of modules that were updated

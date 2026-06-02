@@ -234,13 +234,16 @@ export async function init(
 	const s = p.spinner()
 	s.start(`🚧 Generating houdini's files...`)
 
+	const runtimeDir = '.houdini'
+
 	// Houdini's files
 	await houdiniConfig(
 		configPath,
 		schemaPath,
 		module,
 		frameworkInfo,
-		is_remote_endpoint ? url : null
+		is_remote_endpoint ? url : null,
+		runtimeDir
 	)
 	await houdiniClient(sourceDir, typescript, frameworkInfo, url)
 
@@ -256,7 +259,7 @@ export async function init(
 		targetPath,
 		schemaPath: is_remote_endpoint ? schemaPath : undefined,
 	})
-	await graphqlRC(targetPath)
+	await graphqlRC(targetPath, runtimeDir)
 	await viteConfig(targetPath, frameworkInfo, typescript)
 	await tjsConfig(targetPath, frameworkInfo)
 	await packageJSON(targetPath, frameworkInfo)
@@ -304,7 +307,8 @@ async function houdiniConfig(
 	schemaPath: string,
 	module: 'esm' | 'commonjs',
 	frameworkInfo: HoudiniFrameworkInfo,
-	url: string | null
+	url: string | null,
+	runtimeDir: string
 ): Promise<boolean> {
 	const config: ConfigFile = {}
 
@@ -315,7 +319,7 @@ async function houdiniConfig(
 		}
 	}
 
-	config.runtimeDir = '.houdini'
+	config.runtimeDir = runtimeDir
 
 	// if it's different for defaults, write it down
 	if (schemaPath !== './schema.graphql') {
@@ -355,7 +359,7 @@ const config = ${configObj}`
 export default config
 `
 			: // CommonJS default config
-			  `${content_base}}
+			  `${content_base}
 
 module.exports = config
 `
@@ -476,7 +480,7 @@ async function gitIgnore({ targetPath, schemaPath }: { targetPath: string; schem
 	}
 }
 
-async function graphqlRC(targetPath: string) {
+async function graphqlRC(targetPath: string, runtimeDir: string) {
 	// the filepath for the rcfile
 	const target = path.join(targetPath, '.graphqlrc.yaml')
 
@@ -484,11 +488,11 @@ async function graphqlRC(targetPath: string) {
   default:
     schema:
       - ./schema.graphql
-      - ./.houdini/graphql/schema.graphql
+      - ./${runtimeDir}/graphql/schema.graphql
     documents:
       - '**/*.gql'
       - '**/*.svelte'
-      - ./.houdini/graphql/documents.gql
+      - ./${runtimeDir}/graphql/documents.gql
 `
 
 	await fs.writeFile(target, content)

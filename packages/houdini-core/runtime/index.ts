@@ -5,6 +5,7 @@ import type { CacheTypeDef } from './generated'
 import { Cache } from './public'
 
 export { CachePolicy, PendingValue } from 'houdini/runtime'
+export type { QueryArtifact, GraphQLVariables } from 'houdini/runtime'
 
 export * from './client'
 export { getCurrentConfig } from './config'

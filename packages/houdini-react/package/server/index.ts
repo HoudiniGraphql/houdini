@@ -1,1 +1,1 @@
-export { renderToStream } from 'react-streaming-compat/server'
+export { renderToStream } from 'react-streaming/server'

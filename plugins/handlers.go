@@ -264,15 +264,7 @@ func handleGenerateRuntime[PluginConfig any](plugin HoudiniPlugin[PluginConfig])
 	return func(ctx context.Context, payload map[string]any) (any, error) {
 		paths := []string{}
 
-		if generate, ok := plugin.(GenerateRuntime); ok {
-			filepaths, err := generate.GenerateRuntime(ctx)
-			if err != nil {
-				return nil, err
-			}
-			paths = append(paths, filepaths...)
-		}
-
-		// if the plugin defines a runtime to be included then we should include it now
+		// copy the static runtime files first so GenerateRuntime can overwrite them
 		if includeRuntime, ok := plugin.(IncludeRuntime); ok {
 			runtimeDir, err := includeRuntime.IncludeRuntime(ctx)
 			if err != nil {
@@ -301,6 +293,15 @@ func handleGenerateRuntime[PluginConfig any](plugin HoudiniPlugin[PluginConfig])
 
 			// add any updated paths to the list
 			paths = append(paths, updated...)
+		}
+
+		// run GenerateRuntime after the static copy so it can overwrite stubs
+		if generate, ok := plugin.(GenerateRuntime); ok {
+			filepaths, err := generate.GenerateRuntime(ctx)
+			if err != nil {
+				return nil, err
+			}
+			paths = append(paths, filepaths...)
 		}
 
 		// nothing went wrong

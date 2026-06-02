@@ -5,13 +5,8 @@ import { useQueryHandle } from './useQueryHandle'
 
 export function useQuery<
 	_Artifact extends QueryArtifact,
-	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends GraphQLVariables = GraphQLVariables
->(
-	document: { artifact: QueryArtifact },
-	variables: any = null,
-	config: UseQueryConfig = {}
-): _Data {
-	const { data } = useQueryHandle<_Artifact, _Data, _Input>(document, variables, config)
-	return data
+	_Data extends GraphQLObject = GraphQLObject
+>(document: { artifact: _Artifact }, variables: any = null, config: UseQueryConfig = {}): _Data {
+	const { data } = useQueryHandle<_Artifact, _Data>(document, variables, config)
+	return data as unknown as _Data
 }

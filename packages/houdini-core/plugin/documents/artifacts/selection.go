@@ -1587,9 +1587,13 @@ func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {
 	case "String", "Enum":
 		attrs = fmt.Sprintf(`
 %s"value": "%s"`, indent1, arg.Raw)
-	case "Int", "Float", "Boolean":
+	case "Boolean":
 		attrs = fmt.Sprintf(`
 %s"value": %s`, indent1, arg.Raw)
+	case "Int", "Float":
+		// graphql-js IntValueNode and FloatValueNode require value as a string
+		attrs = fmt.Sprintf(`
+%s"value": "%s"`, indent1, arg.Raw)
 	case "Null":
 		attrs = fmt.Sprintf(`
 %s"value": null`, indent1)

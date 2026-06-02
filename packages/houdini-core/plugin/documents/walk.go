@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
 
-	"code.houdinigraphql.com/packages/houdini-core/glob"
+	"code.houdinigraphql.com/plugins/glob"
 	"code.houdinigraphql.com/plugins"
 )
 

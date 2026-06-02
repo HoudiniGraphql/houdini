@@ -5,5 +5,5 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [houdini({ adapter }), react({ fastRefresh: false })],
+	plugins: [houdini({ adapter }), react()],
 })

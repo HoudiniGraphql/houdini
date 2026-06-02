@@ -68,7 +68,7 @@ func generateDocumentTypeDef(
 	// Generate type definitions first to collect dependencies
 	if doc.Kind == "fragment" {
 		typeDefinitions = append(typeDefinitions, generateFragmentTypes(
-			docCtx,
+			&docCtx,
 			rootTypeName,
 			doc,
 			collectedDocs,
@@ -78,7 +78,7 @@ func generateDocumentTypeDef(
 	} else {
 		// Generate operation types
 		typeDefinitions = append(typeDefinitions, generateOperationTypes(
-			docCtx,
+			&docCtx,
 			rootTypeName,
 			doc,
 			collectedDocs,
@@ -136,7 +136,7 @@ func generateDocumentTypeDef(
 }
 
 func generateFragmentTypes(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
@@ -215,7 +215,7 @@ func generateFragmentTypes(
 }
 
 func generateOperationTypes(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	rootTypeName string,
 	doc *collected.Document,
 	collectedDocs *collected.Documents,
@@ -325,7 +325,7 @@ func generateOperationTypes(
 }
 
 func generateSelectionType(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	selections []*collected.Selection,
 	readonly bool,
 	indentLevel int,
@@ -415,6 +415,7 @@ func generateSelectionType(
 				fragmentFields,
 				fmt.Sprintf("%s%s: {};", fragmentIndent, fragmentName),
 			)
+
 			continue
 		}
 
@@ -509,7 +510,7 @@ func generateSelectionType(
 }
 
 func generateInterfaceUnionType(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	selection *collected.Selection,
 	readonly bool,
 	collectedDocs *collected.Documents,
@@ -518,7 +519,7 @@ func generateInterfaceUnionType(
 }
 
 func generateInterfaceUnionTypeWithLoading(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	selection *collected.Selection,
 	readonly bool,
 	isLoadingState bool,
@@ -765,7 +766,7 @@ func hasDocumentLevelLoading(doc *collected.Document) bool {
 }
 
 func generateOptimisticType(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	selections []*collected.Selection,
 	readonly bool,
 	indentLevel int,
@@ -811,6 +812,18 @@ func generateOptimisticType(
 
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
+		// Fields marked @optimisticKey are server-generated (e.g. id) and must not
+		// appear in the optimistic response type — the caller cannot know them yet.
+		isOptimisticKey := false
+		for _, d := range selection.Directives {
+			if d.Name == graphql.OptimisticKeyDirective {
+				isOptimisticKey = true
+				break
+			}
+		}
+		if isOptimisticKey {
+			continue
+		}
 
 		fieldName := selection.FieldName
 		readonlyPrefix := ""
@@ -886,7 +899,7 @@ func generateOptimisticType(
 }
 
 func generateLoadingStateType(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	selections []*collected.Selection,
 	indentLevel int,
 	parentType string,
@@ -1152,7 +1165,7 @@ func generateLoadingStateType(
 
 // convertLeafType converts GraphQL leaf types to TypeScript using automatic kind detection
 func convertLeafType(
-	ctx DocumentContext,
+	ctx *DocumentContext,
 	typeName string,
 	typeModifiers *string,
 	collectedDocs *collected.Documents,

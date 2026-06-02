@@ -1,460 +1,242 @@
 name: CI Checks
 
-# run this workflow on specific events in github
 on:
-    # pull requests to master
     pull_request:
         paths:
             - '**'
-
-    # every commit on master
     push:
         branches:
             - 'main'
 
 env:
-  # Playwright uses this env var for the browser install path. See:
-  # https://playwright.dev/docs/ci#directories-to-cache
-  # It makes most sense to default this to something cross-platform
-  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
+    PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
 
 jobs:
-    # Shared setup that installs deps and builds packages
-    setup:
-        name: Setup & Build
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
-              with:
-                node-version: 24.9.0
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
-              with:
-                  go-version: '1.23.2'
-                  cache: true
-
-            - uses: pnpm/action-setup@v4.1.0
-              name: Install pnpm
-              with:
-                version: 10.12.1
-
-            - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-            - uses: actions/cache@v3
-              id: pnpm-cache
-              with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: ${{ runner.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install
-
-            - name: Build packages
-              run: pnpm run build
-
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v6
-              with:
-                name: built-packages
-                path: |
-                  packages/*/build/
-                  packages/*/package/
-                  packages/*/package.json
-                retention-days: 1
-
     format:
         name: Format Check
         runs-on: ubuntu-latest
-        needs: setup
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
                 node-version: 24.9.0
-
             - uses: pnpm/action-setup@v4.1.0
               with:
                 version: 10.12.1
-
             - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-            - name: Restore pnpm cache
-              uses: actions/cache/restore@v3
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+            - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile --prefer-offline
-
-            - name: Check formatting
-              run: pnpm run format:check
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run format:check
 
     tests:
         name: Unit Tests
         runs-on: ubuntu-latest
-        needs: setup
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
                 node-version: 24.9.0
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
+            - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
                   cache: true
-
             - uses: pnpm/action-setup@v4.1.0
               with:
                 version: 10.12.1
-
             - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: ${{ runner.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile --prefer-offline
-
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
-              with:
-                name: built-packages
-                path: .
-
-            - name: Run tests
-              run: pnpm run tests
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run tests
 
     go_tests:
         name: Go Tests
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
+            - uses: actions/checkout@v3
+            - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
                   cache: true
-
-            - name: Run Go tests
-              run: go test ./... -v -timeout 15m
+            - run: go test ./... -v -timeout 15m
 
     verify_init:
         name: Verify Init
         runs-on: ubuntu-latest
-        needs: setup
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
                 node-version: 24.9.0
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
+            - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
                   cache: true
-
             - uses: pnpm/action-setup@v4.1.0
               with:
                 version: 10.12.1
-
             - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: ${{ runner.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile --prefer-offline
-
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
-              with:
-                name: built-packages
-                path: .
-
-            - name: Move artifacts to correct location
-              run: |
-                if [ -d "./houdini" ]; then
-                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
-                  rm -rf ./houdini
-                fi
-                if [ -d "./houdini-core" ]; then
-                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
-                  rm -rf ./houdini-core
-                fi
-                if [ -d "./houdini-svelte" ]; then
-                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
-                  rm -rf ./houdini-svelte
-                fi
-                if [ -d "./houdini-react" ]; then
-                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
-                  rm -rf ./houdini-react
-                fi
-
-            - name: Create template project
-              run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
-
-            - name: Run init
-              run: cd project && node ../packages/houdini/build/cmd/index.js init -y
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
+            - run: cd project && node ../packages/houdini/build/cmd/index.js init -y
 
     e2e_tests:
         name: End-to-End Tests
         runs-on: ubuntu-latest
-        needs: setup
+        strategy:
+            matrix:
+                framework: [e2e-kit, e2e-react]
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
                 node-version: 24.9.0
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
+            - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
                   cache: true
-
             - uses: pnpm/action-setup@v4.1.0
               with:
                 version: 10.12.1
-
             - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: ${{ runner.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile --prefer-offline
-
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
-              with:
-                name: built-packages
-                path: .
-
-            - name: Move artifacts to correct location
-              run: |
-                if [ -d "./houdini" ]; then
-                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
-                  rm -rf ./houdini
-                fi
-                if [ -d "./houdini-core" ]; then
-                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
-                  rm -rf ./houdini-core
-                fi
-                if [ -d "./houdini-svelte" ]; then
-                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
-                  rm -rf ./houdini-svelte
-                fi
-                if [ -d "./houdini-react" ]; then
-                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
-                  rm -rf ./houdini-react
-                fi
-
-            - name: Relink workspace dependencies
-              run: pnpm install
-
-            - name: Sync SvelteKit
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - if: matrix.framework == 'e2e-kit'
               run: pnpm --filter e2e-kit exec svelte-kit sync
-
-            # Playwright setup
             - name: Get Playwright version
-              run: echo "PLAYWRIGHT_VERSION=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
               id: playwright-version
-
+              run: echo "version=$(node -e "process.stdout.write(require('@playwright/test/package.json').version)")" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               id: playwright-cache
               with:
-                key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
+                key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
                 path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-
-            - name: Install Playwright
-              if: steps.playwright-cache.outputs.cache-hit != 'true'
+            - if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: pnpm playwright install --with-deps
-
-            - name: Run E2E tests
-              run: pnpm run --filter e2e-kit build && pnpm --filter e2e-kit tests
+            - if: matrix.framework != 'e2e-react'
+              run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
+            - if: matrix.framework == 'e2e-react'
+              run: pnpm --filter ${{ matrix.framework }} tests
 
     verify_generate:
         name: Verify Generate
         runs-on: ubuntu-latest
-        needs: setup
         strategy:
             matrix:
                 framework: [e2e-react, e2e-kit]
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
                 node-version: 24.9.0
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
+            - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
                   cache: true
-
             - uses: pnpm/action-setup@v4.1.0
               with:
                 version: 10.12.1
-
             - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: ${{ runner.os }}-pnpm-store-
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - run: pnpm --filter ${{ matrix.framework }} compile:generate
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile --prefer-offline
-
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
+    verify_protocols:
+        name: Verify Plugin Protocols
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                protocol: [websocket, stdio]
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
-                name: built-packages
-                path: .
-
-            - name: Move artifacts to correct location
-              run: |
-                if [ -d "./houdini" ]; then
-                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
-                  rm -rf ./houdini
-                fi
-                if [ -d "./houdini-core" ]; then
-                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
-                  rm -rf ./houdini-core
-                fi
-                if [ -d "./houdini-svelte" ]; then
-                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
-                  rm -rf ./houdini-svelte
-                fi
-                if [ -d "./houdini-react" ]; then
-                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
-                  rm -rf ./houdini-react
-                fi
-
-            - name: Relink workspace dependencies
-              run: pnpm install
-
-            - name: Test Plugin Detection and Generation
-              run: pnpm --filter ${{ matrix.framework }} compile:generate
+                node-version: 24.9.0
+            - uses: actions/setup-go@v4
+              with:
+                  go-version: '1.23.2'
+                  cache: true
+            - uses: pnpm/action-setup@v4.1.0
+              with:
+                version: 10.12.1
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+            - uses: actions/cache@v3
+              with:
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - name: Generate (${{ matrix.protocol }})
+              run: pnpm --filter e2e-kit generate
+              env:
+                HOUDINI_PLUGIN_TRANSPORT: ${{ matrix.protocol }}
 
     linter:
         name: Linter & Type Check
         runs-on: ubuntu-latest
-        needs: setup
         steps:
-            - name: Checkout source
-              uses: actions/checkout@v3
-
-            - name: Install Node.js
-              uses: actions/setup-node@v3
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
                 node-version: 24.9.0
-
-            - name: Set up Go
-              uses: actions/setup-go@v4
+            - uses: actions/setup-go@v4
               with:
                   go-version: '1.23.2'
                   cache: true
-
             - uses: pnpm/action-setup@v4.1.0
               with:
                 version: 10.12.1
-
             - name: Get pnpm store directory
-              id: pnpm-cache-dir
-              run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
             - uses: actions/cache@v3
               with:
-                path: ${{ steps.pnpm-cache-dir.outputs.pnpm_cache_dir }}
-                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: ${{ runner.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile --prefer-offline
-
-            - name: Download build artifacts
-              uses: actions/download-artifact@v6
-              with:
-                name: built-packages
-                path: .
-
-            - name: Move artifacts to correct location
-              run: |
-                if [ -d "./houdini" ]; then
-                  cp -r ./houdini/* ./packages/houdini/ || echo "Failed to copy houdini"
-                  rm -rf ./houdini
-                fi
-                if [ -d "./houdini-core" ]; then
-                  cp -r ./houdini-core/* ./packages/houdini-core/ || echo "Failed to copy houdini-core"
-                  rm -rf ./houdini-core
-                fi
-                if [ -d "./houdini-svelte" ]; then
-                  cp -r ./houdini-svelte/* ./packages/houdini-svelte/ || echo "Failed to copy houdini-svelte"
-                  rm -rf ./houdini-svelte
-                fi
-                if [ -d "./houdini-react" ]; then
-                  cp -r ./houdini-react/* ./packages/houdini-react/ || echo "Failed to copy houdini-react"
-                  rm -rf ./houdini-react
-                fi
-
-            - name: Relink workspace dependencies
-              run: pnpm install
-
-            - name: Build kit assets
-              run: pnpm --filter e2e-kit run build
-
-            - name: Run linter
-              run: pnpm --filter e2e-kit run lint
-
-            - name: Run type check
-              run: pnpm --filter e2e-kit run check
+                path: ${{ steps.pnpm-cache.outputs.dir }}
+                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - run: pnpm run build
+            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
+            - run: pnpm --filter e2e-kit run build
+            - run: pnpm --filter e2e-kit run lint
+            - run: pnpm --filter e2e-kit run check
