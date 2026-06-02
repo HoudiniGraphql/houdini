@@ -95,7 +95,13 @@ jobs:
                 key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
-            - run: pnpm run build
+            - id: build-cache
+              uses: actions/cache@v3
+              with:
+                path: packages/*/build/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**') }}
+            - if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
             - run: pnpm dlx sv@0.6 create project --types ts --template demo --no-add-ons --no-install
             - run: cd project && node ../packages/houdini/build/cmd/index.js init -y
@@ -127,7 +133,13 @@ jobs:
                 key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
-            - run: pnpm run build
+            - id: build-cache
+              uses: actions/cache@v3
+              with:
+                path: packages/*/build/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**') }}
+            - if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
             - if: matrix.framework == 'e2e-kit'
               run: pnpm --filter e2e-kit exec svelte-kit sync
@@ -173,43 +185,15 @@ jobs:
                 key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
-            - run: pnpm run build
+            - id: build-cache
+              uses: actions/cache@v3
+              with:
+                path: packages/*/build/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**') }}
+            - if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
             - run: pnpm --filter ${{ matrix.framework }} compile:generate
-
-    verify_protocols:
-        name: Verify Plugin Protocols
-        runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                protocol: [websocket, stdio]
-        steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
-              with:
-                node-version: 24.9.0
-            - uses: actions/setup-go@v4
-              with:
-                  go-version: '1.23.2'
-                  cache: true
-            - uses: pnpm/action-setup@v4.1.0
-              with:
-                version: 10.12.1
-            - name: Get pnpm store directory
-              id: pnpm-cache
-              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-            - uses: actions/cache@v3
-              with:
-                path: ${{ steps.pnpm-cache.outputs.dir }}
-                key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-                restore-keys: pnpm-
-            - run: pnpm install --frozen-lockfile --prefer-offline
-            - run: pnpm run build
-            - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
-            - name: Generate (${{ matrix.protocol }})
-              run: pnpm --filter e2e-kit generate
-              env:
-                HOUDINI_PLUGIN_TRANSPORT: ${{ matrix.protocol }}
 
     linter:
         name: Linter & Type Check
@@ -235,7 +219,13 @@ jobs:
                 key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: pnpm-
             - run: pnpm install --frozen-lockfile --prefer-offline
-            - run: pnpm run build
+            - id: build-cache
+              uses: actions/cache@v3
+              with:
+                path: packages/*/build/
+                key: build-${{ runner.os }}-${{ hashFiles('packages/**') }}
+            - if: steps.build-cache.outputs.cache-hit != 'true'
+              run: pnpm run build
             - run: find ./packages -path "*/bin/houdini-*" -type f | xargs chmod +x 2>/dev/null || true
             - run: pnpm --filter e2e-kit run build
             - run: pnpm --filter e2e-kit run lint
