@@ -1,5 +1,3 @@
-import { createRequire } from 'node:module'
-
 import { fs, path } from 'houdini'
 import {
 	app_component_path,
@@ -10,6 +8,7 @@ import {
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
+import { createRequire } from 'node:module'
 import type * as React from 'react'
 import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
 import { PluginOption } from 'vite'
@@ -114,7 +113,10 @@ export default function (ctx: VitePluginContext): PluginOption {
 			}
 
 			return reactStreamingServerPath
-				? { ...conf, resolve: { alias: { 'react-streaming/server': reactStreamingServerPath } } }
+				? {
+						...conf,
+						resolve: { alias: { 'react-streaming/server': reactStreamingServerPath } },
+				  }
 				: conf
 		},
 
