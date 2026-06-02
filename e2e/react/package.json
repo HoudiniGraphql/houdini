@@ -42,7 +42,7 @@
 		"houdini-react": "workspace:^",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"react-streaming-compat": "^0.3.18"
+		"react-streaming": "^0.4.17"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.59.1",

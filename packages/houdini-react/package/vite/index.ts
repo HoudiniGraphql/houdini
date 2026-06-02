@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module'
+
 import { fs, path } from 'houdini'
 import {
 	app_component_path,
@@ -13,6 +15,18 @@ import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
 import { PluginOption } from 'vite'
 
 import { transform_file, type ComponentFieldRow } from './transform.js'
+
+// Resolve the node-compatible react-streaming server entry at load time. The
+// resolve.alias we add in config() redirects react-streaming/server to this
+// path, bypassing the package.json "browser" condition poison pill that
+// rolldown picks up even in SSR builds.
+const _require = createRequire(import.meta.url)
+let reactStreamingServerPath = ''
+try {
+	const main = _require.resolve('react-streaming')
+	const pkgDir = main.replace(/\/dist\/.*$/, '')
+	reactStreamingServerPath = path.join(pkgDir, 'dist/server/index.node-and-web.js')
+} catch {}
 
 export default function (ctx: VitePluginContext): PluginOption {
 	let manifest: ProjectManifest
@@ -35,7 +49,9 @@ export default function (ctx: VitePluginContext): PluginOption {
 			// closeBundle() control where output lands. Transforms still run via the
 			// transform hook registered on this plugin instance.
 			if (userConfig.build?.ssr) {
-				return {}
+				return reactStreamingServerPath
+					? { resolve: { alias: { 'react-streaming/server': reactStreamingServerPath } } }
+					: {}
 			}
 
 			try {
@@ -97,7 +113,9 @@ export default function (ctx: VitePluginContext): PluginOption {
 				] = `virtual:houdini/pages/${page.id}.jsx`
 			}
 
-			return conf
+			return reactStreamingServerPath
+				? { ...conf, resolve: { alias: { 'react-streaming/server': reactStreamingServerPath } } }
+				: conf
 		},
 
 		resolveId(id) {
