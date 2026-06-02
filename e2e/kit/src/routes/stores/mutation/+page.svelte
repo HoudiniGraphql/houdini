@@ -15,7 +15,7 @@
       {
         optimisticResponse: {
           updateUser: {
-            id: 'stores-mutation:1',
+            id: 'update-user-mutation:1',
             name: '...optimisticResponse... I could have guessed JYC!'
           }
         }
