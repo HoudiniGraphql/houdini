@@ -222,7 +222,6 @@ func invokeHook(
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {
-	// hook url is just name of hook
 	endpoint := "/" + strings.ToLower(hook)
 	url := fmt.Sprintf("http://localhost:%d%s", port, endpoint)
 

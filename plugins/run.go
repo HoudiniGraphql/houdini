@@ -22,11 +22,13 @@ var (
 	configHost    string = ""
 	databasePath  string = ""
 	transportMode string = "websocket"
+	pluginKey     string = ""
 )
 
 func ParseFlags() {
 	flag.StringVar(&databasePath, "database", "", "")
 	flag.StringVar(&transportMode, "transport", "websocket", "transport protocol: websocket or stdio")
+	flag.StringVar(&pluginKey, "plugin-key", "", "registration key used by the orchestrator to look up this plugin")
 	flag.Parse()
 
 	// make sure a database path is provided
@@ -66,7 +68,6 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 	// register hooks for both HTTP and WebSocket together
 	httpRegistered := map[string]struct{}{}
 	hooks := registerPluginHooks(plugin, func(hookName string, handler HookHandler) {
-		// HTTP connection
 		path := "/" + strings.ToLower(hookName)
 		if _, ok := httpRegistered[path]; !ok {
 			http.Handle(path, wrapHandler(handler))
@@ -178,7 +179,7 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		`,
 		&sqlitex.ExecOptions{
 			Args: []any{
-				plugin.Name(),
+				cmp(pluginKey, plugin.Name()),
 				string(hooksStr),
 				port,
 				plugin.Order(),
@@ -213,4 +214,12 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 			return nil
 		}
 	}
+}
+
+// cmp returns a if non-empty, otherwise b.
+func cmp(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
 }

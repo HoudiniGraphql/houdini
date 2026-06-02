@@ -31,7 +31,10 @@ const config: ConfigFile = {
 
 	 plugins: {
 	 	'houdini-react': {},
+		'./plugins/node-plugin.mjs': {},
 	 },
+
+	pluginTransport: 'env:HOUDINI_PLUGIN_TRANSPORT',
 
 	router: {
 		auth: {

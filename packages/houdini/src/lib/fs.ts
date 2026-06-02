@@ -1,6 +1,7 @@
 import fsExtra from 'fs-extra'
 import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
+import fsSync from 'node:fs'
 import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
 import { promisify } from 'node:util'
@@ -174,6 +175,15 @@ export async function stat(filepath: string) {
 	// if the filepath points to a built package, use the real filesystem
 	if (filepath.includes('build/runtime')) {
 		return await fs.stat(filepath)
+	}
+
+	return memfs.statSync(filepath)
+}
+
+export function statSync(filepath: string) {
+	// no mock in production
+	if (!houdini_mode.is_testing) {
+		return fsSync.statSync(filepath)
 	}
 
 	return memfs.statSync(filepath)
