@@ -235,6 +235,9 @@ jobs:
         name: End-to-End Tests
         runs-on: ubuntu-latest
         needs: setup
+        strategy:
+            matrix:
+                framework: [e2e-kit, e2e-react]
         steps:
             - name: Checkout source
               uses: actions/checkout@v3
@@ -296,6 +299,7 @@ jobs:
               run: pnpm install
 
             - name: Sync SvelteKit
+              if: matrix.framework == 'e2e-kit'
               run: pnpm --filter e2e-kit exec svelte-kit sync
 
             # Playwright setup
@@ -314,7 +318,12 @@ jobs:
               run: pnpm playwright install --with-deps
 
             - name: Run E2E tests
-              run: pnpm run --filter e2e-kit build && pnpm --filter e2e-kit tests
+              if: matrix.framework != 'e2e-react'
+              run: pnpm run --filter ${{ matrix.framework }} build && pnpm --filter ${{ matrix.framework }} tests
+
+            - name: Run E2E tests (React)
+              if: matrix.framework == 'e2e-react'
+              run: pnpm --filter ${{ matrix.framework }} tests
 
     verify_generate:
         name: Verify Generate
