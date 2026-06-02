@@ -1,5 +1,6 @@
 import http from 'node:http'
 import { createInterface } from 'node:readline'
+import type { DatabaseSync } from 'node:sqlite'
 import { WebSocketServer } from 'ws'
 
 export type PipelineHook =
@@ -294,7 +295,7 @@ function resolveInvoke(pending: PendingMap, msg: any) {
 	}
 }
 
-function shutdown(db: sqlite.DatabaseSync, server: http.Server): void {
+function shutdown(db: DatabaseSync, server: http.Server): void {
 	try {
 		db.close()
 	} catch {}
