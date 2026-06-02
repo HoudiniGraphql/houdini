@@ -1124,9 +1124,7 @@ export type A$input = null | undefined;
 
 export type A$optimistic = {
 	readonly addFriend?: {
-		readonly friend?: {
-			readonly id?: string;
-		};
+		readonly friend?: {};
 	};
 };
 
