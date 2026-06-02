@@ -11,7 +11,7 @@ plugin({
 	order: 'after',
 	hooks: {
 		afterGenerate: () => {
-			const outDir = resolve(projectRoot, 'src', 'routes', 'node-plugin')
+			const outDir = resolve(projectRoot, 'src', 'routes', 'plugin', 'node-plugin')
 			mkdirSync(outDir, { recursive: true })
 			writeFileSync(
 				resolve(outDir, 'plugin-artifact.ts'),

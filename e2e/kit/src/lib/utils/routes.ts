@@ -84,5 +84,5 @@ export const routes = {
   Svelte5_Runes_Fragment: '/svelte5-runes/fragment',
   Svelte5_Runes_Mutation: '/svelte5-runes/mutation',
 
-  NodePlugin: '/node-plugin'
+  NodePlugin: '/plugin/node-plugin'
 };
