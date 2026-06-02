@@ -812,6 +812,18 @@ func generateOptimisticType(
 
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
+		// Fields marked @optimisticKey are server-generated (e.g. id) and must not
+		// appear in the optimistic response type — the caller cannot know them yet.
+		isOptimisticKey := false
+		for _, d := range selection.Directives {
+			if d.Name == graphql.OptimisticKeyDirective {
+				isOptimisticKey = true
+				break
+			}
+		}
+		if isOptimisticKey {
+			continue
+		}
 
 		fieldName := selection.FieldName
 		readonlyPrefix := ""

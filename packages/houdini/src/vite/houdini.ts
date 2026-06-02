@@ -84,12 +84,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			}
 
 			// we need to generate the runtime if we are building in production
-			if (
-				!devServer &&
-				!is_secondary_build() &&
-				!process.env.HOUDINI_SKIP_GENERATE &&
-				!alreadyBuilt
-			) {
+			if (!devServer && !process.env.HOUDINI_SKIP_GENERATE && !alreadyBuilt) {
 				// run the codegen
 				const buildResults = await compiler.run_pipeline({
 					// the pipeline through schema is run as part of codegen_setup
@@ -163,3 +158,4 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 		},
 	}
 }
+
