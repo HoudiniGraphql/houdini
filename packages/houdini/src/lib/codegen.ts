@@ -225,7 +225,6 @@ export async function codegen_setup(
 							spec.order,
 							msg.includeRuntime ?? null,
 							msg.configModule ?? null,
-<<<<<<< HEAD
 							msg.clientPlugins ?? null
 						)
 						db.prepare('UPDATE plugins SET config = ? WHERE name = ?').run(
@@ -250,24 +249,6 @@ export async function codegen_setup(
 										)
 									)
 								})
-=======
-							msg.clientPlugins ?? null,
-						)
-						db.prepare('UPDATE plugins SET config = ? WHERE name = ?').run(
-							JSON.stringify(config.plugins.find((p) => p.name === name)?.config ?? {}),
-							spec.name,
-						)
-
-						if (msg.configModule) {
-							import(msg.configModule).then((module) => {
-								if (module && typeof module.default === 'function') {
-									config.config_file = module.default(config.config_file)
-								}
-								resolve(spec)
-							}).catch((err: Error) => {
-								reject(new Error(`Failed to load configModule for ${name}: ${err.message}`))
-							})
->>>>>>> 417c940c (Implement stdio-based protocol for wasm compatibility)
 						} else {
 							resolve(spec)
 						}
@@ -296,16 +277,12 @@ export async function codegen_setup(
 						// Go plugin is asking Node.js to call other plugins on its behalf.
 						// triggerHookRef.fn is always set before any hook runs, but guard anyway.
 						if (!triggerHookRef.fn) {
-<<<<<<< HEAD
 							const reply =
 								JSON.stringify({
 									id: msg.id,
 									type: 'invoke_result',
 									error: { message: 'orchestrator not ready' },
 								}) + '\n'
-=======
-							const reply = JSON.stringify({ id: msg.id, type: 'invoke_result', error: { message: 'orchestrator not ready' } }) + '\n'
->>>>>>> 417c940c (Implement stdio-based protocol for wasm compatibility)
 							child.stdin!.write(reply)
 							return
 						}

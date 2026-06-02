@@ -1,5 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 
+import { plugin_path } from './plugins.js'
+
 // plugin_path's local-path branch never touches the filesystem, but the module
 // imports fs.ts which depends on glob — mock it to keep the test lightweight.
 vi.mock('glob', () => ({ glob: vi.fn() }))
@@ -7,8 +9,6 @@ vi.mock('./fs.js', () => ({
 	readFile: vi.fn(),
 	existsSync: vi.fn(),
 }))
-
-import { plugin_path } from './plugins.js'
 
 describe('plugin_path local resolution', () => {
 	test('resolves ./ path relative to config file', async () => {

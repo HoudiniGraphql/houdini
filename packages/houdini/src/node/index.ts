@@ -141,8 +141,8 @@ function runWebSocket(config: NodePluginConfig, databasePath: string): void {
 		}
 
 		const hookName = (req.url ?? '/').slice(1)
-		const taskId = req.headers['x-task-id'] as string ?? ''
-		const pluginDirectory = req.headers['x-plugin-directory'] as string ?? ''
+		const taskId = (req.headers['x-task-id'] as string) ?? ''
+		const pluginDirectory = (req.headers['x-plugin-directory'] as string) ?? ''
 
 		let body = ''
 		req.on('data', (chunk) => (body += chunk))
@@ -183,7 +183,13 @@ function runWebSocket(config: NodePluginConfig, databasePath: string): void {
 			}
 
 			if (msg.type !== 'request') {
-				ws.send(JSON.stringify({ id: msg.id, type: 'response', error: { message: 'expected request type' } }))
+				ws.send(
+					JSON.stringify({
+						id: msg.id,
+						type: 'response',
+						error: { message: 'expected request type' },
+					})
+				)
 				return
 			}
 
@@ -220,7 +226,8 @@ function runWebSocket(config: NodePluginConfig, databasePath: string): void {
 		}
 		if (config.includeRuntime !== undefined) reg.includeRuntime = config.includeRuntime
 		if (config.configModule !== undefined) reg.configModule = config.configModule
-		if (config.clientPlugins !== undefined) reg.clientPlugins = JSON.stringify(config.clientPlugins)
+		if (config.clientPlugins !== undefined)
+			reg.clientPlugins = JSON.stringify(config.clientPlugins)
 		stdioWrite(reg)
 
 		// Also write to the DB so Go plugins that query it directly can find us
@@ -279,7 +286,8 @@ function resolveInvoke(pending: PendingMap, msg: any) {
 	if (!entry) return
 	pending.delete(msg.id)
 	if (msg.error) {
-		const message = typeof msg.error === 'string' ? msg.error : (msg.error?.message ?? 'invoke error')
+		const message =
+			typeof msg.error === 'string' ? msg.error : msg.error?.message ?? 'invoke error'
 		entry.reject(new Error(message))
 	} else {
 		entry.resolve(msg.result ?? {})
@@ -287,14 +295,22 @@ function resolveInvoke(pending: PendingMap, msg: any) {
 }
 
 function shutdown(db: sqlite.DatabaseSync, server: http.Server): void {
-	try { db.close() } catch {}
+	try {
+		db.close()
+	} catch {}
 	server.close()
 	process.exit(0)
 }
 
 async function dispatch(
 	config: NodePluginConfig,
-	msg: { id: string; hook: string; payload: Record<string, any>; taskId: string; pluginDirectory: string },
+	msg: {
+		id: string
+		hook: string
+		payload: Record<string, any>
+		taskId: string
+		pluginDirectory: string
+	},
 	ctx: PluginContext,
 	send: (response: Record<string, any>) => void
 ): Promise<void> {
@@ -302,7 +318,11 @@ async function dispatch(
 	const handler = config.hooks[hookKey]
 
 	if (!handler) {
-		send({ id: msg.id, type: 'response', error: { message: `no handler for hook ${msg.hook}` } })
+		send({
+			id: msg.id,
+			type: 'response',
+			error: { message: `no handler for hook ${msg.hook}` },
+		})
 		return
 	}
 

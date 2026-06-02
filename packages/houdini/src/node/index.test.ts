@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
+import { PluginError, runPlugin } from './index.js'
+
 // ─── module mocks (hoisted) ───────────────────────────────────────────────────
 
 vi.mock('ws', () => ({
@@ -12,7 +14,13 @@ vi.mock('node:sqlite', () => ({
 	default: {
 		DatabaseSync: class {
 			prepare() {
-				return { run() {}, get() {}, all() { return [] } }
+				return {
+					run() {},
+					get() {},
+					all() {
+						return []
+					},
+				}
 			}
 		},
 	},
@@ -23,8 +31,6 @@ const stdinEmitter = new EventEmitter()
 vi.mock('node:readline', () => ({
 	createInterface: () => stdinEmitter,
 }))
-
-import { PluginError, runPlugin } from './index.js'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +49,9 @@ function captureStdout() {
 function useStdioTransport() {
 	const original = process.argv
 	process.argv = ['node', 'plugin.js', '--transport', 'stdio']
-	return () => { process.argv = original }
+	return () => {
+		process.argv = original
+	}
 }
 
 // ─── PluginError ──────────────────────────────────────────────────────────────
@@ -73,8 +81,14 @@ describe('PluginError', () => {
 describe('runPlugin stdio — register message', () => {
 	let restoreArgv: () => void
 
-	beforeEach(() => { restoreArgv = useStdioTransport() })
-	afterEach(() => { restoreArgv(); stdinEmitter.removeAllListeners(); vi.restoreAllMocks() })
+	beforeEach(() => {
+		restoreArgv = useStdioTransport()
+	})
+	afterEach(() => {
+		restoreArgv()
+		stdinEmitter.removeAllListeners()
+		vi.restoreAllMocks()
+	})
 
 	test('writes register message with PascalCase hook names', () => {
 		const { lines, restore } = captureStdout()
@@ -125,8 +139,14 @@ describe('runPlugin stdio — register message', () => {
 describe('runPlugin stdio — request/response', () => {
 	let restoreArgv: () => void
 
-	beforeEach(() => { restoreArgv = useStdioTransport() })
-	afterEach(() => { restoreArgv(); stdinEmitter.removeAllListeners(); vi.restoreAllMocks() })
+	beforeEach(() => {
+		restoreArgv = useStdioTransport()
+	})
+	afterEach(() => {
+		restoreArgv()
+		stdinEmitter.removeAllListeners()
+		vi.restoreAllMocks()
+	})
 
 	test('dispatches request and writes response', async () => {
 		const { lines, restore } = captureStdout()
@@ -140,7 +160,10 @@ describe('runPlugin stdio — request/response', () => {
 		})
 
 		// send a request after the register message
-		stdinEmitter.emit('line', JSON.stringify({ id: 'r-1', type: 'request', hook: 'Schema', payload: {} }))
+		stdinEmitter.emit(
+			'line',
+			JSON.stringify({ id: 'r-1', type: 'request', hook: 'Schema', payload: {} })
+		)
 
 		// give the async handler time to complete
 		await new Promise((r) => setTimeout(r, 20))
@@ -162,7 +185,10 @@ describe('runPlugin stdio — request/response', () => {
 			hooks: { schema: async () => {} },
 		})
 
-		stdinEmitter.emit('line', JSON.stringify({ id: 'r-2', type: 'request', hook: 'Validate', payload: {} }))
+		stdinEmitter.emit(
+			'line',
+			JSON.stringify({ id: 'r-2', type: 'request', hook: 'Validate', payload: {} })
+		)
 		await new Promise((r) => setTimeout(r, 20))
 		restore()
 
@@ -187,7 +213,10 @@ describe('runPlugin stdio — request/response', () => {
 			},
 		})
 
-		stdinEmitter.emit('line', JSON.stringify({ id: 'r-3', type: 'request', hook: 'Validate', payload: {} }))
+		stdinEmitter.emit(
+			'line',
+			JSON.stringify({ id: 'r-3', type: 'request', hook: 'Validate', payload: {} })
+		)
 		await new Promise((r) => setTimeout(r, 20))
 		restore()
 
