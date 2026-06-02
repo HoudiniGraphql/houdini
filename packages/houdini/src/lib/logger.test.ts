@@ -58,7 +58,7 @@ describe('Logger', () => {
 		test('returns true when level is sufficient', () => {
 			const log = new Logger(LogLevel.Summary)
 			expect(log.at(LogLevel.Summary)).toBe(true)
-			expect(log.at(LogLevel.PluginDetail)).toBe(true)  // PluginDetail < Summary
+			expect(log.at(LogLevel.PluginDetail)).toBe(true) // PluginDetail < Summary
 		})
 
 		test('returns false when level is insufficient', () => {

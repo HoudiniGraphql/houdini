@@ -100,8 +100,13 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
 				})
-				const buildDocCount = Object.values(buildResults.GenerateDocuments ?? {}).flat().length
-				console.log(`🎩 Generated ${buildDocCount} ${buildDocCount === 1 ? 'document' : 'documents'}`)
+				const buildDocCount = Object.values(buildResults.GenerateDocuments ?? {}).flat()
+					.length
+				console.log(
+					`🎩 Generated ${buildDocCount} ${
+						buildDocCount === 1 ? 'document' : 'documents'
+					}`
+				)
 
 				// make sure we don't build twice
 				alreadyBuilt = true

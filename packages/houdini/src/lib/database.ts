@@ -4,8 +4,8 @@ import type sqlite from 'node:sqlite'
 import type { PluginSpec } from './codegen.js'
 import type { Config } from './config.js'
 import { Logger } from './logger.js'
-import { LogLevel } from './types.js'
 import { default_config } from './project.js'
+import { LogLevel } from './types.js'
 
 export const create_schema = `
 CREATE TABLE IF NOT EXISTS plugins (
