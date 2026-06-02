@@ -9,7 +9,7 @@
 			"dependsOn": ["^typedefs", "^compile"]
 		},
 		"build": {
-			"dependsOn": ["typedefs", "compile"]
+			"dependsOn": ["^build", "typedefs", "compile"]
 		},
 		"publish": {
 			"dependsOn": ["build", "test", "lint"]
