@@ -39,6 +39,9 @@ func TransformVariables[PluginConfig any](
 	}
 
 	// we need a list of all the runtime scalars
+	if len(projectConfig.RuntimeScalars) == 0 {
+		return
+	}
 	var runtimeScalarsBuilder strings.Builder
 	for scalar := range projectConfig.RuntimeScalars {
 		runtimeScalarsBuilder.WriteRune('\'')
@@ -46,9 +49,6 @@ func TransformVariables[PluginConfig any](
 		runtimeScalarsBuilder.WriteString("',")
 	}
 	runtimeScalars := runtimeScalarsBuilder.String()
-	if runtimeScalars == "" {
-		runtimeScalars = ","
-	}
 
 	// we need to look at every operation variable that has a runtime scalar for its type
 	search, err := conn.Prepare(fmt.Sprintf(`

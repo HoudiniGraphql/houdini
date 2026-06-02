@@ -1104,6 +1104,9 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 ) (map[string]int64, error) {
 	// copying the fragment scope for a document is 2 steps. one grabs the
 	// argument values and another recreates the nested structure
+	if len(fragmentScope) == 0 {
+		return map[string]int64{}, nil
+	}
 	whereIn := "("
 	for _, id := range fragmentScope {
 		whereIn += fmt.Sprintf("%d,", id)
