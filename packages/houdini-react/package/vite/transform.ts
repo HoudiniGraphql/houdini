@@ -1,5 +1,13 @@
 import * as graphql from 'graphql'
-import { ArtifactKind, artifact_import, ensure_imports, find_graphql, parseJS, path, printJS } from 'houdini'
+import {
+	ArtifactKind,
+	artifact_import,
+	ensure_imports,
+	find_graphql,
+	parseJS,
+	path,
+	printJS,
+} from 'houdini'
 import type { TransformPage } from 'houdini'
 import { componentField_unit_path, houdini_root } from 'houdini/router/conventions'
 import * as recast from 'recast'
@@ -33,9 +41,7 @@ export async function transform_file(
 		tag({ node, artifact, parsedDocument }) {
 			const { id: artifactRef } = artifact_import({ page, script, artifact })
 
-			const properties = [
-				AST.objectProperty(AST.stringLiteral('artifact'), artifactRef),
-			]
+			const properties = [AST.objectProperty(AST.stringLiteral('artifact'), artifactRef)]
 
 			if (is_paginated(parsedDocument)) {
 				if (artifact.kind !== ArtifactKind.Query) {

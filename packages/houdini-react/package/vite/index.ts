@@ -1,16 +1,15 @@
-import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
-import type * as React from 'react'
-
 import { fs, path } from 'houdini'
-import { VitePluginContext } from 'houdini/vite'
-import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import {
 	app_component_path,
 	adapter_config_path,
 	plugin_dir,
 	client_build_directory,
 } from 'houdini/router/conventions'
+import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest } from 'houdini/router/types'
+import { VitePluginContext } from 'houdini/vite'
+import type * as React from 'react'
+import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
 import { PluginOption } from 'vite'
 
 import { transform_file, type ComponentFieldRow } from './transform.js'
@@ -77,7 +76,9 @@ export default function (ctx: VitePluginContext): PluginOption {
 					},
 					input: {
 						'entries/app': app_component_path(ctx.config),
-						...(ctx.adapter ? { 'entries/adapter': adapter_config_path(ctx.config) } : {}),
+						...(ctx.adapter
+							? { 'entries/adapter': adapter_config_path(ctx.config) }
+							: {}),
 					},
 				},
 			}
@@ -259,7 +260,7 @@ mount_static_app(App, manifest)
 								method: req.method,
 								headers: requestHeaders,
 								body: await getBody(req),
-							}
+						  }
 						: undefined
 				)
 

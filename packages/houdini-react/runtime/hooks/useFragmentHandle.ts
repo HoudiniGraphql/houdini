@@ -19,7 +19,7 @@ export function useFragmentHandle<
 	_PaginationArtifact extends QueryArtifact,
 	_Input extends GraphQLVariables = GraphQLVariables
 >(
-	reference: _Data | { " $fragments": _ReferenceType } | null,
+	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
 ): any {
 	// get the fragment values

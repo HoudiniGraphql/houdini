@@ -12,7 +12,7 @@ export function useFragment<
 	_ReferenceType extends {},
 	_Input extends GraphQLVariables = GraphQLVariables
 >(
-	reference: _Data | { " $fragments": _ReferenceType } | null,
+	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
 ): _Data | null {
 	const { cache } = useRouterContext()
@@ -82,7 +82,7 @@ export function useFragment<
 }
 
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(
-	reference: _Data | { " $fragments": _ReferenceType } | null,
+	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
 ): { variables: _Input; parent: string; loading: boolean } {
 	// @ts-expect-error: typescript can't guarantee that the fragment key is defined
