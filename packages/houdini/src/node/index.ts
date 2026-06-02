@@ -315,8 +315,11 @@ async function dispatch(
 	ctx: PluginContext,
 	send: (response: Record<string, any>) => void
 ): Promise<void> {
-	const hookKey = fromWireName(msg.hook) as PipelineHook
-	const handler = config.hooks[hookKey]
+	const normalizedHook = msg.hook.toLowerCase()
+	const hookKey = (Object.keys(config.hooks) as PipelineHook[]).find(
+		(k) => k.toLowerCase() === normalizedHook
+	)
+	const handler = hookKey ? config.hooks[hookKey] : undefined
 
 	if (!handler) {
 		send({
@@ -361,10 +364,6 @@ function toWireName(name: string): string {
 	return name.charAt(0).toUpperCase() + name.slice(1)
 }
 
-// 'AfterLoad' → 'afterLoad'
-function fromWireName(name: string): string {
-	return name.charAt(0).toLowerCase() + name.slice(1)
-}
 
 function serializeError(err: unknown): Record<string, any> {
 	if (err instanceof PluginError) {
