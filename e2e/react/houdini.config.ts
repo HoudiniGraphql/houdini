@@ -31,6 +31,7 @@ const config: ConfigFile = {
 
 	 plugins: {
 	 	'houdini-react': {},
+		'./plugins/node-plugin.mjs': {},
 	 },
 
 	router: {
