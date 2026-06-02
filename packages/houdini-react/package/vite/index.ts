@@ -8,7 +8,6 @@ import {
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
-import { createRequire } from 'node:module'
 import type * as React from 'react'
 import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
 import { PluginOption } from 'vite'
