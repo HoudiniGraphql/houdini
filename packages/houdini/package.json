@@ -154,10 +154,6 @@
             "types": "./build/test/*.d.ts",
             "import": "./build/test/*.js"
         },
-        "./node": {
-            "types": "./build/node/index.d.ts",
-            "import": "./build/node/index.js"
-        },
         "./vite": {
             "types": "./build/vite/index.d.ts",
             "import": "./build/vite/index.js"
