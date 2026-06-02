@@ -114,7 +114,7 @@ export async function codegen_setup(
 
 	const rawTransport = config.config_file.pluginTransport ?? 'websocket'
 	const resolvedTransport = rawTransport.startsWith('env:')
-		? (process.env[rawTransport.slice('env:'.length)] ?? 'websocket')
+		? process.env[rawTransport.slice('env:'.length)] ?? 'websocket'
 		: rawTransport
 	const useStdio = resolvedTransport === 'stdio'
 
@@ -151,7 +151,9 @@ export async function codegen_setup(
 					clearInterval(interval)
 
 					db.prepare('UPDATE plugins set config = ? where name = ?').run(
-						JSON.stringify(config.plugins.find((p) => p.name === configKey)?.config ?? {}),
+						JSON.stringify(
+							config.plugins.find((p) => p.name === configKey)?.config ?? {}
+						),
 						dbKey
 					)
 
@@ -160,7 +162,8 @@ export async function codegen_setup(
 						port: row.port,
 						hooks: new Set(JSON.parse(row.hooks)),
 						order: row.plugin_order as 'before' | 'after' | 'core',
-						directory: config.plugins.find((p) => p.name === configKey)?.directory || '',
+						directory:
+							config.plugins.find((p) => p.name === configKey)?.directory || '',
 					}
 					spec_results[configKey] = spec
 

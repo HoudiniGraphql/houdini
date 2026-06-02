@@ -348,7 +348,6 @@ function toWireName(name: string): string {
 	return name.charAt(0).toUpperCase() + name.slice(1)
 }
 
-
 function serializeError(err: unknown): Record<string, any> {
 	if (err instanceof PluginError) {
 		const out: Record<string, any> = { message: err.message }
