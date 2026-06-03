@@ -1,22 +1,22 @@
 {
-	"name": "scripts",
-	"private": true,
-	"version": "2.0.0-next.2",
-	"description": "Build and test scripts for Houdini packages",
-	"bin": "./main.js",
-	"type": "module",
-	"scripts": {},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"commander": "^9.4.0",
-		"esbuild": "^0.15.10",
-		"esbuild-plugin-alias": "^0.2.1",
-		"esbuild-plugin-replace": "^1.2.0",
-		"glob": "^11.0.1",
-		"rollup": "^4.28.1",
-		"rollup-plugin-typescript2": "^0.34.0",
-		"typescript": "^5.9.3"
-	}
+  "name": "scripts",
+  "private": true,
+  "version": "2.0.0-next.2",
+  "description": "Build and test scripts for Houdini packages",
+  "bin": "./main.js",
+  "type": "module",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^9.4.0",
+    "esbuild": "^0.15.10",
+    "esbuild-plugin-alias": "^0.2.1",
+    "esbuild-plugin-replace": "^1.2.0",
+    "glob": "^11.0.1",
+    "rollup": "^4.28.1",
+    "rollup-plugin-typescript2": "^0.34.0",
+    "typescript": "^5.9.3"
+  }
 }

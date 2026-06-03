@@ -1,58 +1,58 @@
 {
-    "name": "houdini-adapter-auto",
-    "version": "2.0.0-next.22",
-    "description": "An adapter for deploying your Houdini application according to the build environment ",
-    "keywords": [
-        "houdini",
-        "adpter",
-        "cloudflare",
-        "workers",
-        "node"
-    ],
-    "homepage": "https://github.com/HoudiniGraphql/houdini",
-    "funding": "https://github.com/sponsors/HoudiniGraphql",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/HoudiniGraphql/houdini.git"
+  "name": "houdini-adapter-auto",
+  "version": "2.0.0-next.22",
+  "description": "An adapter for deploying your Houdini application according to the build environment ",
+  "keywords": [
+    "houdini",
+    "adpter",
+    "cloudflare",
+    "workers",
+    "node"
+  ],
+  "homepage": "https://github.com/HoudiniGraphql/houdini",
+  "funding": "https://github.com/sponsors/HoudiniGraphql",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HoudiniGraphql/houdini.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/* --format esm,cjs  --external vite --minify --dts --clean --out-dir build",
+    "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+    "build:build": "pnpm build: && pnpm build"
+  },
+  "devDependencies": {
+    "scripts": "workspace:^",
+    "tsup": "^7.2.0"
+  },
+  "dependencies": {
+    "houdini": "workspace:^",
+    "import-meta-resolve": "^3.0.0"
+  },
+  "files": [
+    "build"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
     },
-    "license": "MIT",
-    "type": "module",
-    "publishConfig": {
-        "access": "public"
-    },
-    "scripts": {
-        "build": "tsup src/* --format esm,cjs  --external vite --minify --dts --clean --out-dir build",
-        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
-        "build:build": "pnpm build: && pnpm build"
-    },
-    "devDependencies": {
-        "scripts": "workspace:^",
-        "tsup": "^7.2.0"
-    },
-    "dependencies": {
-        "houdini": "workspace:^",
-        "import-meta-resolve": "^3.0.0"
-    },
-    "files": [
-        "build"
-    ],
-    "exports": {
-        "./package.json": "./package.json",
-        ".": {
-            "import": "./build/index.js",
-            "require": "./build/index.cjs"
-        },
-        "./app": {
-            "import": "./build/app.js",
-            "require": "./build/app.cjs"
-        }
-    },
-    "types": "./build/index.d.ts",
-    "typesVersions": {
-        "*": {
-            "app": [
-                "./build/app.d.ts"
-            ]
-        }
+    "./app": {
+      "import": "./build/app.js",
+      "require": "./build/app.cjs"
     }
+  },
+  "types": "./build/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "app": [
+        "./build/app.d.ts"
+      ]
+    }
+  }
 }

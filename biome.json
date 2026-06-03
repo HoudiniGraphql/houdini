@@ -1,52 +1,63 @@
 {
-	"files": {
-		"includes": [
-			"packages/*/src/**",
-			"packages/*/runtime/**",
-			"!!**/node_modules",
-			"!!**/build",
-			"!!**/dist"
-		]
-	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab",
-		"indentWidth": 4,
-		"lineWidth": 100
-	},
-	"javascript": {
-		"formatter": {
-			"semicolons": "asNeeded",
-			"quoteStyle": "single",
-			"trailingCommas": "es5",
-			"arrowParentheses": "always"
-		}
-	},
-	"assist": {
-		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
-			}
-		}
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"suspicious": {
-				"noExportsInTest": "off",
-				"noControlCharactersInRegex": "off",
-				"noExplicitAny": "off"
-			},
-			"style": {
-				"noNonNullAssertion": "off"
-			},
-			"complexity": {
-				"noBannedTypes": "off"
-			},
-			"performance": {
-				"noAccumulatingSpread": "off"
-			}
-		}
-	}
+  "files": {
+    "includes": [
+      "packages/*/src/**",
+      "packages/*/runtime/**",
+      "packages/*/package.json",
+      "!!**/node_modules",
+      "!!**/build",
+      "!!**/dist"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "tab",
+    "indentWidth": 4,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "quoteStyle": "single",
+      "trailingCommas": "es5",
+      "arrowParentheses": "always"
+    }
+  },
+  "json": {
+    "formatter": {
+      "indentStyle": "space",
+      "indentWidth": 2
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "correctness": {
+        "noUnusedImports": "error"
+      },
+      "suspicious": {
+        "noExportsInTest": "off",
+        "noControlCharactersInRegex": "off",
+        "noExplicitAny": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useImportType": "error"
+      },
+      "complexity": {
+        "noBannedTypes": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      }
+    }
+  }
 }

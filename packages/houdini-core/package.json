@@ -1,29 +1,29 @@
 {
-    "name": "houdini-core",
-    "version": "2.0.0-next.14",
-    "description": "The core GraphQL client for Houdini",
-    "keywords": [
-        "graphql",
-        "graphql-client",
-        "houdini"
-    ],
-    "homepage": "https://github.com/HoudiniGraphql/houdini",
-    "funding": "https://github.com/sponsors/HoudiniGraphql",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/HoudiniGraphql/houdini.git"
-    },
-    "license": "MIT",
-    "scripts": {
-        "compile": "scripts build-go",
-        "typedefs": "scripts typedefs --go-package"
-    },
-    "devDependencies": {
-        "scripts": "workspace:^"
-    },
-    "dependencies": {
-        "@whatwg-node/server": "^0.9.14",
-        "graphql-yoga": "^4.0.4",
-        "minimatch": "^5.1.0"
-    }
+  "name": "houdini-core",
+  "version": "2.0.0-next.14",
+  "description": "The core GraphQL client for Houdini",
+  "keywords": [
+    "graphql",
+    "graphql-client",
+    "houdini"
+  ],
+  "homepage": "https://github.com/HoudiniGraphql/houdini",
+  "funding": "https://github.com/sponsors/HoudiniGraphql",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HoudiniGraphql/houdini.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "compile": "scripts build-go",
+    "typedefs": "scripts typedefs --go-package"
+  },
+  "devDependencies": {
+    "scripts": "workspace:^"
+  },
+  "dependencies": {
+    "@whatwg-node/server": "^0.9.14",
+    "graphql-yoga": "^4.0.4",
+    "minimatch": "^5.1.0"
+  }
 }
