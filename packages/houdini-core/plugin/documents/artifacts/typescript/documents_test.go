@@ -8,6 +8,7 @@ import (
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 	"github.com/spf13/afero"
 )
@@ -990,5 +991,186 @@ func TestTypescriptGeneration(t *testing.T) {
 				},
 			},
 		},
+	})
+}
+
+func TestScalarImports(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			scalar DateTime
+			scalar JSON
+
+			type Query {
+				user(id: ID): User
+			}
+
+			type User {
+				id: ID!
+				firstName: String!
+				createdAt: DateTime
+				metadata: JSON
+			}
+		`,
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			cfg, err := plugin.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+
+			for docName, expected := range test.Extra {
+				typeDefs, err := afero.ReadFile(plugin.Fs, cfg.ArtifactTypePath(docName))
+				require.NoError(t, err)
+				require.Contains(t, string(typeDefs), expected)
+			}
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "named scalar import generates import statement in artifact types",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"DateTime": {
+							Type:   "Date",
+							Module: "date-fns",
+						},
+					}
+				},
+				Input: []string{`query UserQuery { user(id: "1") { firstName createdAt } }`},
+				Pass:  true,
+				Extra: map[string]any{
+					"UserQuery": `import type { Date } from 'date-fns'`,
+				},
+			},
+			{
+				Name: "default scalar import generates default import statement",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"DateTime": {
+							Type:          "MyDate",
+							Module:        "./my-date",
+							DefaultImport: true,
+						},
+					}
+				},
+				Input: []string{`query UserQuery { user(id: "1") { firstName createdAt } }`},
+				Pass:  true,
+				Extra: map[string]any{
+					"UserQuery": `import type MyDate from './my-date'`,
+				},
+			},
+			{
+				Name: "nested type extracts root identifier for named import",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"DateTime": {
+							Type:   "Temporal.Instant",
+							Module: "temporal-polyfill",
+						},
+					}
+				},
+				Input: []string{`query UserQuery { user(id: "1") { createdAt } }`},
+				Pass:  true,
+				Extra: map[string]any{
+					"UserQuery": `import type { Temporal } from 'temporal-polyfill'`,
+				},
+			},
+			{
+				Name: "scalar without module does not generate import statement",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"DateTime": {
+							Type: "Date",
+						},
+					}
+				},
+				Input: []string{`query UserQuery { user(id: "1") { firstName createdAt } }`},
+				Pass:  true,
+				Extra: map[string]any{
+					"UserQuery": tests.Dedent(`
+						export type UserQuery$result = {
+							readonly user: {
+								readonly firstName: string;
+								readonly createdAt: Date | null;
+							} | null;
+						};
+					`),
+				},
+			},
+			{
+				Name: "multiple scalars with modules each get their import",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"DateTime": {
+							Type:   "DateTime",
+							Module: "luxon",
+						},
+						"JSON": {
+							Type:   "JsonValue",
+							Module: "type-fest",
+						},
+					}
+				},
+				Input: []string{`query UserQuery { user(id: "1") { createdAt metadata } }`},
+				Pass:  true,
+				Extra: map[string]any{
+					"UserQuery": `import type { DateTime } from 'luxon'`,
+				},
+			},
+			{
+				Name: "scalar import included in fragment types",
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					cfg.Scalars = map[string]plugins.ScalarConfig{
+						"DateTime": {
+							Type:   "Date",
+							Module: "date-fns",
+						},
+					}
+				},
+				Input: []string{`fragment UserDates on User { createdAt }`},
+				Pass:  true,
+				Extra: map[string]any{
+					"UserDates": `import type { Date } from 'date-fns'`,
+				},
+			},
+		},
+	})
+
+	// Verify absence: when a scalar field is not selected, its import must not appear.
+	t.Run("scalar import only included when scalar field is selected", func(t *testing.T) {
+		tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+			Schema: `
+				scalar DateTime
+
+				type Query {
+					user(id: ID): User
+				}
+
+				type User {
+					id: ID!
+					firstName: String!
+					createdAt: DateTime
+				}
+			`,
+			VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+				cfg, err := plugin.DB.ProjectConfig(context.Background())
+				require.NoError(t, err)
+
+				typeDefs, err := afero.ReadFile(plugin.Fs, cfg.ArtifactTypePath("UserQuery"))
+				require.NoError(t, err)
+				require.NotContains(t, string(typeDefs), `import type { Date } from 'date-fns'`)
+			},
+			Tests: []tests.Test[config.PluginConfig]{
+				{
+					Name: "no scalar import when field not selected",
+					ProjectConfig: func(cfg *plugins.ProjectConfig) {
+						cfg.Scalars = map[string]plugins.ScalarConfig{
+							"DateTime": {
+								Type:   "Date",
+								Module: "date-fns",
+							},
+						}
+					},
+					Input: []string{`query UserQuery { user(id: "1") { firstName } }`},
+					Pass:  true,
+				},
+			},
+		})
 	})
 }

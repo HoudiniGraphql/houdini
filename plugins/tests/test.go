@@ -103,7 +103,9 @@ CREATE TABLE config (
 CREATE TABLE scalar_config (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,
-	input_types JSON
+	input_types JSON,
+	module TEXT,
+	default_import BOOLEAN
 );
 
 -- Types configuration

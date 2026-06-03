@@ -82,7 +82,9 @@ CREATE TABLE IF NOT EXISTS config (
 CREATE TABLE IF NOT EXISTS scalar_config (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     type TEXT NOT NULL,
-	input_types JSON
+	input_types JSON,
+	module TEXT,
+	default_import BOOLEAN
 );
 
 -- Types configuration
@@ -649,9 +651,9 @@ export async function write_config(
 	}
 
 	// write the scalar configs
-	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types) VALUES (?, ?, ?)')
-	for (const [name, { type, inputTypes }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type, JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)))
+	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types, module, default_import) VALUES (?, ?, ?, ?, ?)')
+	for (const [name, { type, inputTypes, module, default: isDefault }] of Object.entries(config.config_file.scalars ?? {})) {
+		insert.run(name, type, JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)), module ?? null, isDefault ? 1 : null)
 	}
 
 	// write the type configs

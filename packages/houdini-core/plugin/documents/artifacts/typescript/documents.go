@@ -17,10 +17,12 @@ import (
 // DocumentContext holds document-specific state that was previously stored in global variables
 // and embeds context.Context to serve as both context and document state
 type DocumentContext struct {
-	HasLoading    bool
-	ProjectConfig plugins.ProjectConfig
-	EnumTypes     map[string]bool
-	InputTypes    map[string]bool
+	HasLoading         bool
+	ProjectConfig      plugins.ProjectConfig
+	EnumTypes          map[string]bool
+	InputTypes         map[string]bool
+	ScalarNamedImports map[string]map[string]bool // module → set of named identifiers
+	ScalarDefaultImports map[string]bool           // module → default identifier (at most one per module)
 }
 
 func GenerateDocumentTypeDefs(
@@ -57,6 +59,7 @@ func generateDocumentTypeDef(
 		ProjectConfig: projectConfig,
 		EnumTypes:     make(map[string]bool),
 		InputTypes:    make(map[string]bool),
+		ScalarImports: make(map[string]bool),
 	}
 	hasFieldLoading := hasAnyLoadingDirectives(doc.Selections)
 	hasGlobalLoading := hasDocumentLevelLoading(doc)
@@ -114,6 +117,14 @@ func generateDocumentTypeDef(
 				strings.Join(inputTypes, ", "),
 			),
 		)
+	}
+	if len(docCtx.ScalarImports) > 0 {
+		var scalarImports []string
+		for importStmt := range docCtx.ScalarImports {
+			scalarImports = append(scalarImports, importStmt)
+		}
+		sort.Strings(scalarImports)
+		imports = append(imports, scalarImports...)
 	}
 
 	// Add artifact type
@@ -1189,6 +1200,9 @@ func convertLeafType(
 		typeStr = typeName
 	case "SCALAR":
 		typeStr = convertScalarType(kind, typeName, ctx.ProjectConfig, false)
+		if scalarCfg, ok := ctx.ProjectConfig.Scalars[typeName]; ok && scalarCfg.Module != "" {
+			ctx.ScalarImports[scalarImportStatement(scalarCfg)] = true
+		}
 	}
 
 	// Apply type modifiers using the exported function
@@ -1198,6 +1212,21 @@ func convertLeafType(
 	}
 
 	return ApplyTypeModifiers(typeStr, modifiers, false)
+}
+
+// scalarImportStatement builds the TypeScript import statement for a custom scalar.
+// The identifier is the root part of the type name (before any "."), so
+// { type: "Temporal.Instant", module: "temporal-polyfill" } → import type { Temporal } from 'temporal-polyfill'
+// { type: "MyDate", module: "./my-date", default: true }    → import type MyDate from './my-date'
+func scalarImportStatement(cfg plugins.ScalarConfig) string {
+	identifier := cfg.Type
+	if dot := strings.Index(identifier, "."); dot != -1 {
+		identifier = identifier[:dot]
+	}
+	if cfg.DefaultImport {
+		return fmt.Sprintf("import type %s from '%s'", identifier, cfg.Module)
+	}
+	return fmt.Sprintf("import type { %s } from '%s'", identifier, cfg.Module)
 }
 
 // determineTypeKind automatically determines the GraphQL type kind based on collected documents and project config

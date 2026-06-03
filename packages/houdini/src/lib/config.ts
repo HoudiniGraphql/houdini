@@ -247,6 +247,13 @@ export type ScalarSpec = {
 	marshal?: (val: any) => any
 	// the function to call that turns the API's response into _ClientType
 	unmarshal?: (val: any) => any
+	// the npm module to import the type from in generated artifact type files
+	module?: string
+	// when true, the type is imported as the default export of the module
+	// e.g. { type: 'MyDate', module: './my-date', default: true } → import type MyDate from './my-date'
+	// when false or absent, it is imported as a named export
+	// e.g. { type: 'Temporal', module: 'temporal-polyfill' } → import type { Temporal } from 'temporal-polyfill'
+	default?: boolean
 }
 
 // this type is meant to be extended by plugins to provide type definitions

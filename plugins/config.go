@@ -183,7 +183,7 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 	}
 
 	// load scalar config information
-	scalarConfig, err := conn.Prepare(`SELECT name, type, input_types FROM scalar_config`)
+	scalarConfig, err := conn.Prepare(`SELECT name, type, input_types, module, default_import FROM scalar_config`)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,9 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 		}
 
 		configValue := ScalarConfig{
-			Type: scalarConfig.ColumnText(1),
+			Type:          scalarConfig.ColumnText(1),
+			Module:        scalarConfig.ColumnText(3),
+			DefaultImport: scalarConfig.ColumnInt(4) != 0,
 		}
 		err = json.Unmarshal([]byte(scalarConfig.ColumnText(2)), &configValue.InputTypes)
 
@@ -263,6 +265,8 @@ type TypeConfig struct {
 }
 
 type ScalarConfig struct {
-	Type       string
-	InputTypes []string
+	Type          string
+	InputTypes    []string
+	Module        string
+	DefaultImport bool
 }

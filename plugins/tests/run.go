@@ -291,17 +291,27 @@ func RunTable[PluginConfig any, PluginType plugins.HoudiniPlugin[PluginConfig]](
 			}
 
 			insertScalarConfig, err := conn.Prepare(
-				`insert into scalar_config (name, "type", input_types) values ($name, $type, $input_types)`,
+				`insert into scalar_config (name, "type", input_types, module, default_import) values ($name, $type, $input_types, $module, $default_import)`,
 			)
 			require.Nil(t, err)
 			defer insertScalarConfig.Finalize()
 			for typ, config := range projectConfig.Scalars {
 				input_types, _ := json.Marshal(config.InputTypes)
 				config.InputTypes = append(config.InputTypes, typ)
+				var moduleVal any
+				if config.Module != "" {
+					moduleVal = config.Module
+				}
+				var defaultImportVal any
+				if config.DefaultImport {
+					defaultImportVal = 1
+				}
 				err = db.ExecStatement(insertScalarConfig, map[string]any{
-					"name":        typ,
-					"input_types": string(input_types),
-					"type":        config.Type,
+					"name":           typ,
+					"input_types":    string(input_types),
+					"type":           config.Type,
+					"module":         moduleVal,
+					"default_import": defaultImportVal,
 				})
 				require.Nil(t, err)
 			}
