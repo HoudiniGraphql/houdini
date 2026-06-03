@@ -1,5 +1,16 @@
 # houdini-react
 
+## 2.0.0-next.22
+
+### Minor Changes
+
+-   [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
+
+### Patch Changes
+
+-   Updated dependencies [[`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce)]:
+    -   houdini@2.0.0-next.22
+
 ## 2.0.0-go.21
 
 ### Patch Changes
