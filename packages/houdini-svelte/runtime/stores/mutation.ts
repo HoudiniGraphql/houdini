@@ -26,7 +26,6 @@ export class MutationStore<
 			abortController,
 			...mutationConfig
 		}: {
-			// @ts-expect-error
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
 			event?: RequestEvent

@@ -5,7 +5,6 @@ import { isBrowser } from './adapter.js'
 const sessionKeyName = '__houdini__session__'
 
 const sessionSentinel = {}
-// @ts-expect-error
 let session: App.Session | {} = sessionSentinel
 
 export function extractSession(val: {
@@ -22,7 +21,6 @@ export function buildSessionObject(event: RequestEvent) {
 }
 
 export function setClientSession(
-	// @ts-expect-error
 	val: App.Session
 ) {
 	if (!isBrowser) {
@@ -32,7 +30,6 @@ export function setClientSession(
 	session = val
 }
 
-// @ts-expect-error
 export function getClientSession(): App.Session {
 	return session
 }
@@ -47,7 +44,6 @@ export function setSession(
 
 export async function getSession(event?: RequestEvent | LoadEvent): Promise<
 	| {}
-	// @ts-expect-error
 	| App.Session
 > {
 	if (event) {
