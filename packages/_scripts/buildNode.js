@@ -304,10 +304,13 @@ export async function copyRuntimeFiles({ outDir, source }) {
 		await fs.copyFile(file, targetPath)
 	}
 
-	// create a package.json to mark it as ESM
+	// create a package.json to mark it as ESM and provide an entry point for bundlers
+	const indexEntry = files.some((f) => path.basename(f) === 'index.tsx')
+		? './index.tsx'
+		: './index.ts'
 	await fs.writeFile(
 		path.join(target_dir, 'package.json'),
-		JSON.stringify({ type: 'module' }),
+		JSON.stringify({ type: 'module', main: indexEntry }),
 		'utf-8'
 	)
 }
