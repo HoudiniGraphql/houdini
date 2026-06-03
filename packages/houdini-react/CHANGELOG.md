@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.26
+
+### Patch Changes
+
+- [`03e91242`](https://github.com/HoudiniGraphql/houdini/commit/03e912421b88610e9686b600f8e25d0c320ffa37) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - create is more flexible
+
 ## 2.0.0-next.25
 
 ### Patch Changes
