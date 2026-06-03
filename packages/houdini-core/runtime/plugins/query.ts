@@ -2,7 +2,7 @@ import type { RuntimeScalarPayload } from 'houdini'
 import type { Cache } from 'houdini/runtime/cache'
 import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
 
-import { documentPlugin } from './utils'
+import { documentPlugin } from './utils/index.js'
 
 export const query = (cache: Cache) =>
 	documentPlugin(ArtifactKind.Query, () => {

@@ -1,18 +1,18 @@
 import cache from '$houdini/runtime/cache'
 import { getCurrentConfig } from '$houdini/runtime/config'
-import { marshalInputs } from 'houdini/runtime'
+import { marshalInputs } from 'houdini/runtime.js'
 import type {
 	GraphQLObject,
 	FragmentArtifact,
 	HoudiniFetchContext,
 	GraphQLVariables,
-} from 'houdini/runtime'
-import { CompiledFragmentKind, fragmentKey } from 'houdini/runtime'
+} from 'houdini/runtime.js'
+import { CompiledFragmentKind, fragmentKey } from 'houdini/runtime.js'
 import { derived } from 'svelte/store'
 
-import { isBrowser } from '../adapter'
-import type { FragmentStoreInstance } from '../types'
-import { BaseStore } from './base'
+import { isBrowser } from '../adapter.js'
+import type { FragmentStoreInstance } from '../types.js'
+import { BaseStore } from './base.js'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the

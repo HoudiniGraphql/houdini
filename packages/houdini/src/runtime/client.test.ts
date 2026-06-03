@@ -1,8 +1,8 @@
 import { expect, vi, test } from 'vitest'
 
-import type { ClientPlugin } from './documentStore'
-import { createStore } from './documentStore.test'
-import { DataSource } from './types'
+import type { ClientPlugin } from './documentStore.js'
+import { createStore } from './documentStore.test.js'
+import { DataSource } from './types.js'
 
 test('createPluginHooks', async () => {
 	const enter = vi.fn()

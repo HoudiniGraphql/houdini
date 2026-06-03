@@ -1,8 +1,8 @@
 import { test, expect, describe } from 'vitest'
 
-import { testConfigFile } from '../test'
-import { exec, find_match, parse_page_pattern } from './match'
-import type { RouterManifest } from './types'
+import { testConfigFile } from '../test/index.js'
+import { exec, find_match, parse_page_pattern } from './match.js'
+import type { RouterManifest } from './types.js'
 
 describe('route_params', () => {
 	const testCases = [

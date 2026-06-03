@@ -9,7 +9,7 @@ import type {
 	PageInfo,
 	HoudiniFetchContext,
 	FetchParams,
-} from 'houdini/runtime'
+} from 'houdini/runtime.js'
 import type { Readable } from 'svelte/store'
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }

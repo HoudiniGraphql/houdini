@@ -1,4 +1,4 @@
-import type { Record } from './record'
+import type { Record } from './record.js'
 
 export type CacheTypeDef = {
 	types: {

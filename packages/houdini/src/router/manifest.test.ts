@@ -1,8 +1,8 @@
 import { test, expect, describe } from 'vitest'
 
-import { fs } from '../lib'
-import { testConfig, clearMock } from '../test'
-import { load_manifest, extractQueries } from './manifest'
+import { fs } from '../lib/index.js'
+import { testConfig, clearMock } from '../test/index.js'
+import { load_manifest, extractQueries } from './manifest.js'
 
 test('empty routes dir generates empty manifest', async () => {
 	const config = testConfig()

@@ -41,7 +41,16 @@
     "enabled": true,
     "rules": {
       "correctness": {
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "useImportExtensions": {
+          "level": "error",
+          "options": {
+            "extensionMappings": {
+              "ts": "js",
+              "tsx": "js"
+            }
+          }
+        }
       },
       "suspicious": {
         "noExportsInTest": "off",

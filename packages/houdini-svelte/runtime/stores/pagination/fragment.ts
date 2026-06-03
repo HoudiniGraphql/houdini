@@ -1,9 +1,9 @@
 import { getCurrentConfig } from '$houdini/runtime'
 import type { DocumentStore } from '$houdini/runtime/client'
-import { keyFieldsForType } from 'houdini/runtime'
-import { siteURL } from 'houdini/runtime'
-import { extractPageInfo } from 'houdini/runtime'
-import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
+import { keyFieldsForType } from 'houdini/runtime.js'
+import { siteURL } from 'houdini/runtime.js'
+import { extractPageInfo } from 'houdini/runtime.js'
+import { cursorHandlers, offsetHandlers } from 'houdini/runtime.js'
 import type {
 	FragmentArtifact,
 	GraphQLObject,
@@ -13,16 +13,16 @@ import type {
 	CursorHandlers,
 	GraphQLVariables,
 	fragmentKey,
-} from 'houdini/runtime'
-import { CompiledFragmentKind } from 'houdini/runtime'
+} from 'houdini/runtime.js'
+import { CompiledFragmentKind } from 'houdini/runtime.js'
 import type { Readable, Subscriber } from 'svelte/store'
 import { derived, get } from 'svelte/store'
 
-import { getClient, initClient } from '../../client'
-import { getSession } from '../../session'
-import type { OffsetFragmentStoreInstance } from '../../types'
-import { FragmentStore } from '../fragment'
-import type { StoreConfig } from '../query'
+import { getClient, initClient } from '../../client.js'
+import { getSession } from '../../session.js'
+import type { OffsetFragmentStoreInstance } from '../../types.js'
+import { FragmentStore } from '../fragment.js'
+import type { StoreConfig } from '../query.js'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,
@@ -61,11 +61,11 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType ext
 		let idVariables = {}
 		const value = getState()
 		if (typeConfig.resolve?.arguments) {
-			// @ts-ignore
+			// @ts-expect-error
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			// @ts-ignore
+			// @ts-expect-error
 			idVariables = Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 		}
 
@@ -255,7 +255,7 @@ export class FragmentStoreOffset<
 		return {
 			kind: CompiledFragmentKind,
 			data: derived(paginationStore, ($value) => $value.data!),
-			// @ts-ignore
+			// @ts-expect-error
 			subscribe,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,

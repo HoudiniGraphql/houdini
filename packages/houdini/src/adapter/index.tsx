@@ -1,4 +1,4 @@
-import type { serverAdapterFactory as createAdapter } from '../router/server'
+import type { serverAdapterFactory as createAdapter } from '../router/server.js'
 
 export const endpoint: string = ''
 

@@ -3,7 +3,7 @@ import type { SubscriptionSpec } from 'houdini/runtime'
 import { ArtifactKind } from 'houdini/runtime'
 import type { Cache } from 'houdini/runtime/cache'
 
-import { documentPlugin } from './utils'
+import { documentPlugin } from './utils/index.js'
 
 export const mutation = (cache: Cache) =>
 	documentPlugin(ArtifactKind.Mutation, () => {

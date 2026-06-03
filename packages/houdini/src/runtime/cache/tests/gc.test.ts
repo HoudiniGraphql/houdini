@@ -1,8 +1,8 @@
 import { test, vi, expect } from 'vitest'
 
-import { testConfigFile } from '../../../test'
-import type { SubscriptionSelection } from '../../types'
-import { Cache } from '../index'
+import { testConfigFile } from '../../../test/index.js'
+import type { SubscriptionSelection } from '../../types.js'
+import { Cache } from '../index.js'
 
 const config = testConfigFile()
 config.cacheBufferSize! = 10

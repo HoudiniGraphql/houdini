@@ -1,4 +1,4 @@
-import { type Adapter, fs, path } from 'houdini'
+import { type Adapter, fs, path } from 'houdini.js'
 import { fileURLToPath } from 'node:url'
 
 // the only thing we need to do for the cloudflare adapter is to copy the worker file

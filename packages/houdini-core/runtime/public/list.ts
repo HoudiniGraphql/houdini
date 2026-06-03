@@ -1,9 +1,9 @@
 import type { GraphQLObject, SubscriptionSelection } from 'houdini/runtime'
 import type { ListCollection as _Collection } from 'houdini/runtime/cache/lists'
 
-import type { Cache } from './cache'
-import { Record } from './record'
-import type { CacheTypeDef, ListType, ValidLists, ListFilters } from './types'
+import type { Cache } from './cache.js'
+import { Record } from './record.js'
+import type { CacheTypeDef, ListType, ValidLists, ListFilters } from './types.js'
 
 export class ListCollection<Def extends CacheTypeDef, ListName extends ValidLists<Def>> {
 	#parentID: string | undefined

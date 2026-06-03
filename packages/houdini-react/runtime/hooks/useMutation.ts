@@ -3,10 +3,10 @@ import type {
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from 'houdini/runtime'
+} from 'houdini/runtime.js'
 
-import { useSession } from '../routing/Router'
-import { useDocumentStore } from './useDocumentStore'
+import { useSession } from '../routing/Router.js'
+import { useDocumentStore } from './useDocumentStore.js'
 
 export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> = (args: {
 	variables: _Input

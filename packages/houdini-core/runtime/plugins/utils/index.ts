@@ -1,1 +1,1 @@
-export * from './documentPlugins'
+export * from './documentPlugins.js'

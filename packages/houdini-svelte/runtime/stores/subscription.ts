@@ -3,13 +3,13 @@ import type {
 	QueryResult,
 	SubscriptionArtifact,
 	GraphQLObject,
-} from 'houdini/runtime'
-import { CompiledSubscriptionKind } from 'houdini/runtime'
+} from 'houdini/runtime.js'
+import { CompiledSubscriptionKind } from 'houdini/runtime.js'
 import { derived, writable, type Subscriber, type Writable } from 'svelte/store'
 
-import { initClient } from '../client'
-import { getSession } from '../session'
-import { BaseStore } from './base'
+import { initClient } from '../client.js'
+import { getSession } from '../session.js'
+import { BaseStore } from './base.js'
 
 export class SubscriptionStore<
 	_Data extends GraphQLObject,

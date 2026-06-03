@@ -3,12 +3,12 @@ import type {
 	GraphQLVariables,
 	QueryResult,
 	GraphQLObject,
-} from 'houdini/runtime'
-import type { DocumentStore, SendParams } from 'houdini/runtime/client'
+} from 'houdini/runtime.js'
+import type { DocumentStore, SendParams } from 'houdini/runtime/client.js'
 
-import { useSession } from '../routing/Router'
-import useDeepCompareEffect from './useDeepCompareEffect'
-import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore'
+import { useSession } from '../routing/Router.js'
+import useDeepCompareEffect from './useDeepCompareEffect.js'
+import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStore.js'
 
 export function useDocumentSubscription<
 	_Artifact extends DocumentArtifact = DocumentArtifact,

@@ -1,6 +1,6 @@
 import * as recast from 'recast'
 
-import type { TransformPage, Script } from './types'
+import type { TransformPage, Script } from './types.js'
 
 const AST = recast.types.builders
 

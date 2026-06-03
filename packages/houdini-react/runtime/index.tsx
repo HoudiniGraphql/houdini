@@ -1,12 +1,12 @@
-import type { GraphQLObject } from 'houdini/runtime'
-import type { Cache } from 'houdini/runtime/cache'
+import type { GraphQLObject } from 'houdini/runtime.js'
+import type { Cache } from 'houdini/runtime/cache.js'
 
-import client from './client'
-import manifest from './manifest'
-import { Router as RouterImpl, type RouterCache, RouterContextProvider } from './routing'
+import client from './client.js'
+import manifest from './manifest.js'
+import { Router as RouterImpl, type RouterCache, RouterContextProvider } from './routing/index.js'
 
-export * from './hooks'
-export { router_cache, useSession, useLocation, useRoute } from './routing'
+export * from './hooks/index.js'
+export { router_cache, useSession, useLocation, useRoute } from './routing/index.js'
 
 export function Router({
 	cache,

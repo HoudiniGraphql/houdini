@@ -4,13 +4,13 @@ import type {
 	DocumentArtifact,
 	QueryResult,
 	GraphQLVariables,
-} from 'houdini/runtime'
-import { DocumentStore, type ObserveParams } from 'houdini/runtime/client'
+} from 'houdini/runtime.js'
+import { DocumentStore, type ObserveParams } from 'houdini/runtime/client.js'
 import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
-import { isBrowser } from '../adapter'
-import { getClient, initClient } from '../client'
+import { isBrowser } from '../adapter.js'
+import { getClient, initClient } from '../client.js'
 
 export class BaseStore<
 	_Data extends GraphQLObject,

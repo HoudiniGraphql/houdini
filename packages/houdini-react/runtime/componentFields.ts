@@ -1,6 +1,6 @@
-import { getFieldsForType } from 'houdini/runtime'
-import type { DocumentArtifact, GraphQLObject, GraphQLValue } from 'houdini/runtime'
-import { defaultComponentField, type Cache } from 'houdini/runtime/cache'
+import { getFieldsForType } from 'houdini/runtime.js'
+import type { DocumentArtifact, GraphQLObject, GraphQLValue } from 'houdini/runtime.js'
+import { defaultComponentField, type Cache } from 'houdini/runtime/cache.js'
 
 export function injectComponents({
 	cache,

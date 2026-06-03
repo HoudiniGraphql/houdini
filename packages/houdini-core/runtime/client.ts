@@ -10,9 +10,9 @@ import type {
 	GraphQLVariables,
 } from 'houdini/runtime/types'
 
-import cacheRef from './cache'
-import { getCurrentConfig, localApiEndpoint } from './config'
-import type { FetchParamFn, ThrowOnErrorParams } from './plugins'
+import cacheRef from './cache.js'
+import { getCurrentConfig, localApiEndpoint } from './config.js'
+import type { FetchParamFn, ThrowOnErrorParams } from './plugins/index.js'
 import {
 	fetch as fetchPlugin,
 	fetchParams as fetchParamsPlugin,
@@ -22,11 +22,11 @@ import {
 	throwOnError as throwOnErrorPlugin,
 	optimisticKeys,
 	cachePolicy,
-} from './plugins'
-import pluginsFromPlugins from './plugins/injectedPlugins'
+} from './plugins/index.js'
+import pluginsFromPlugins from './plugins/injectedPlugins.js'
 
 // export the plugin constructors
-export { fetch, mutation, query, subscription } from './plugins'
+export { fetch, mutation, query, subscription } from './plugins/index.js'
 export { DocumentStore, type ClientPlugin, type SendParams } from 'houdini/runtime/documentStore'
 
 export type HoudiniClientConstructorArgs = {

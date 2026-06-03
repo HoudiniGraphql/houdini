@@ -1,7 +1,7 @@
 import path from 'node:path'
 import type { ResolvedConfig, ConfigEnv as ViteEnv, Plugin as VitePlugin } from 'vite'
 
-import type { VitePluginContext } from '.'
+import type { VitePluginContext } from './index.js'
 import { codegen_setup } from '../lib/codegen.js'
 import * as fs from '../lib/fs.js'
 import type { CompilerProxy } from '../lib/index.js'

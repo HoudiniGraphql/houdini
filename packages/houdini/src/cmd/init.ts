@@ -2,7 +2,7 @@ import * as p from '@clack/prompts'
 import { bold, cyan, gray, green, italic } from 'kleur/colors'
 import { execSync } from 'node:child_process'
 
-import type { ConfigFile } from '../lib/config'
+import type { ConfigFile } from '../lib/config.js'
 import { fs, path } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 

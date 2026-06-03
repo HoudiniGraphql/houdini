@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { InMemoryStorage, OperationLocation } from '../storage'
+import { InMemoryStorage, OperationLocation } from '../storage.js'
 
 describe('in memory layers', () => {
 	test('first layer written can be looked up', () => {

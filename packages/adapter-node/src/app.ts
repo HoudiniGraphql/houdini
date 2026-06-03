@@ -1,4 +1,4 @@
-import { createServerAdapter } from 'houdini/adapter'
+import { createServerAdapter } from 'houdini/adapter.js'
 import * as fs from 'node:fs'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import path, { dirname } from 'node:path'

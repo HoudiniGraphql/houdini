@@ -1,7 +1,7 @@
 import type { ConfigFile } from 'houdini'
 
-import config from './imports/config'
-import pluginConfigs from './imports/pluginConfig'
+import config from './imports/config.js'
+import pluginConfigs from './imports/pluginConfig.js'
 
 let mockConfig: ConfigFile | null = null
 

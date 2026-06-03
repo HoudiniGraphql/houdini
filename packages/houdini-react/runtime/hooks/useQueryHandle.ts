@@ -1,11 +1,11 @@
-import { createLRUCache } from 'houdini/runtime'
-import type { GraphQLObject, CachePolicies, QueryArtifact, GraphQLVariables } from 'houdini/runtime'
+import { createLRUCache } from 'houdini/runtime.js'
+import type { GraphQLObject, CachePolicies, QueryArtifact, GraphQLVariables } from 'houdini/runtime.js'
 import React from 'react'
 
-import { useClient } from '../routing'
-import type { DocumentHandle } from './useDocumentHandle'
-import { useDocumentHandle } from './useDocumentHandle'
-import { useIsMountedRef } from './useIsMounted'
+import { useClient } from '../routing/index.js'
+import type { DocumentHandle } from './useDocumentHandle.js'
+import { useDocumentHandle } from './useDocumentHandle.js'
+import { useIsMountedRef } from './useIsMounted.js'
 
 // Suspense requires a way to throw a promise that resolves to a place
 // we can put when we go back on a susequent render. This means that we have to have
@@ -110,11 +110,11 @@ export function useQueryHandle<
 			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
-			// @ts-ignore
+			// @ts-expect-error
 			variables,
 		}
 
-		// @ts-ignore
+		// @ts-expect-error
 		promiseCache.set(identifier, suspenseUnit)
 
 		// the suspense unit gives react something to hold onto
@@ -123,13 +123,13 @@ export function useQueryHandle<
 		handle
 			.fetch({
 				variables,
-				// @ts-ignore: this is actually allowed... 🤫
+				// @ts-expect-error: this is actually allowed... 🤫
 				stuff: {
 					silenceLoading: true,
 				},
 			})
 			.then((value) => {
-				// @ts-ignore
+				// @ts-expect-error
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,

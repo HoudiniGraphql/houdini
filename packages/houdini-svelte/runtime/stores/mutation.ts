@@ -4,11 +4,11 @@ import type {
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from 'houdini/runtime'
+} from 'houdini/runtime.js'
 
-import { initClient } from '../client'
-import { BaseStore } from './base'
-import { fetchParams } from './query'
+import { initClient } from '../client.js'
+import { BaseStore } from './base.js'
+import { fetchParams } from './query.js'
 
 export class MutationStore<
 	_Data extends GraphQLObject,
@@ -26,7 +26,7 @@ export class MutationStore<
 			abortController,
 			...mutationConfig
 		}: {
-			// @ts-ignore
+			// @ts-expect-error
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
 			event?: RequestEvent

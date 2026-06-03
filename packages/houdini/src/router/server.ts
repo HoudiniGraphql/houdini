@@ -9,10 +9,10 @@ import {
 
 import type { ConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
-import { serialize as encodeCookie } from './cookies'
-import { find_match } from './match'
-import { get_session, handle_request, session_cookie_name } from './session'
-import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types'
+import { serialize as encodeCookie } from './cookies.js'
+import { find_match } from './match.js'
+import { get_session, handle_request, session_cookie_name } from './session.js'
+import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
 
 export function _serverHandler<ComponentType = unknown>({
 	schema,

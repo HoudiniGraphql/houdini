@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
-import type { GraphQLObject, ValueMap } from '../../types'
-import { evaluateVariables } from '../index'
+import type { GraphQLObject, ValueMap } from '../../types.js'
+import { evaluateVariables } from '../index.js'
 
 describe('evaluateFragmentVariables', () => {
 	const table: { title: string; input: ValueMap; variables: GraphQLObject; expected: any }[] = [

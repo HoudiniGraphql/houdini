@@ -1,4 +1,4 @@
-import { testConfigFile } from '../../../../houdini/src/test'
+import { testConfigFile } from '../../../../houdini/src/test/index.js'
 import { Cache as _Cache } from '../../cache/cache'
 import {
 	ArtifactKind,
@@ -6,8 +6,8 @@ import {
 	type FragmentArtifact,
 	type QueryArtifact,
 } from '../../lib'
-import { Cache } from '../cache'
-import type { Record } from '../record'
+import { Cache } from '../cache.js'
+import type { Record } from '../record.js'
 
 // the type definition for our test cache
 export type CacheTypeDefTest = {

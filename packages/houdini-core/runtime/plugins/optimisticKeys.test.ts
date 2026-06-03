@@ -5,9 +5,9 @@ import { testConfigFile } from 'houdini/test'
 import { beforeEach, expect, test } from 'vitest'
 
 import { setMockConfig } from '../lib/config'
-import { mutation } from './mutation'
-import { optimisticKeys } from './optimisticKeys'
-import { createStore, fakeFetch } from './test'
+import { mutation } from './mutation.js'
+import { optimisticKeys } from './optimisticKeys.js'
+import { createStore, fakeFetch } from './test.js'
 
 /**
  * Testing the cache plugin

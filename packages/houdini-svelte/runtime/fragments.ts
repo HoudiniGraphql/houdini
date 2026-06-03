@@ -1,8 +1,8 @@
-import type { Fragment, FragmentArtifact } from 'houdini/runtime'
+import type { Fragment, FragmentArtifact } from 'houdini/runtime.js'
 import type { Readable } from 'svelte/store'
 
-import type { FragmentStore } from './stores'
-import type { FragmentStorePaginated } from './stores/pagination/fragment'
+import type { FragmentStore } from './stores/index.js'
+import type { FragmentStorePaginated } from './stores/pagination/fragment.js'
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable

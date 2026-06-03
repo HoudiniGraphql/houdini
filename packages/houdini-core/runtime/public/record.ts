@@ -3,7 +3,7 @@ import { keyFieldsForType } from 'houdini/runtime'
 import type { FragmentArtifact, GraphQLObject } from 'houdini/runtime'
 import { rootID } from 'houdini/runtime/cache/stuff'
 
-import type { Cache } from './cache'
+import type { Cache } from './cache.js'
 import type {
 	ArgType,
 	CacheTypeDef,
@@ -12,7 +12,7 @@ import type {
 	FragmentVariables,
 	TypeFieldNames,
 	ValidTypes,
-} from './types'
+} from './types.js'
 
 export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	#id: string

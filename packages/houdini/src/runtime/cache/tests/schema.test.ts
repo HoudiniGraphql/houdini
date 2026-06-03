@@ -1,7 +1,7 @@
 import { test } from 'vitest'
 
-import { testConfigFile } from '../../../test'
-import { Cache } from '../index'
+import { testConfigFile } from '../../../test/index.js'
+import { Cache } from '../index.js'
 
 const config = testConfigFile()
 

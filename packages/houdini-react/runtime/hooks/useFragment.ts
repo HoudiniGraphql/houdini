@@ -1,10 +1,10 @@
-import { deepEquals } from 'houdini/runtime'
-import { fragmentKey } from 'houdini/runtime'
-import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from 'houdini/runtime'
+import { deepEquals } from 'houdini/runtime.js'
+import { fragmentKey } from 'houdini/runtime.js'
+import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from 'houdini/runtime.js'
 import * as React from 'react'
 
-import { useRouterContext } from '../routing'
-import { useDocumentSubscription } from './useDocumentSubscription'
+import { useRouterContext } from '../routing/index.js'
+import { useDocumentSubscription } from './useDocumentSubscription.js'
 
 export function useFragment<
 	_Data extends GraphQLObject,

@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { evaluateKey } from '../stuff'
+import { evaluateKey } from '../stuff.js'
 
 describe('key evaluation', () => {
 	const table = [

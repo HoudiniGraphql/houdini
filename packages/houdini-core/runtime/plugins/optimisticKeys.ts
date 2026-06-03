@@ -9,7 +9,7 @@ import type {
 } from 'houdini/runtime/types'
 import { ArtifactKind } from 'houdini/runtime/types'
 
-import configFile from '../imports/config'
+import configFile from '../imports/config.js'
 
 // This plugin is responsible for coordinating requests that have optimistic keys.
 // When a mutation contains optimistically generated keys as inputs, we need to block

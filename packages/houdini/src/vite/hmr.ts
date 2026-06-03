@@ -1,6 +1,6 @@
 import type { Plugin as VitePlugin, ModuleNode, HmrContext } from 'vite'
 
-import type { VitePluginContext } from '.'
+import type { VitePluginContext } from './index.js'
 import { codegen_setup, get_config, path, run_pipeline, type CompilerProxy } from '../lib/index.js'
 
 /**

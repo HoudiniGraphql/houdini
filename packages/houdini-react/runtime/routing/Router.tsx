@@ -1,20 +1,20 @@
-import type { GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import type { QueryArtifact } from 'houdini/runtime'
-import type { Cache } from 'houdini/runtime/cache'
-import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
+import type { GraphQLObject, GraphQLVariables } from 'houdini/runtime.js'
+import type { QueryArtifact } from 'houdini/runtime.js'
+import type { Cache } from 'houdini/runtime/cache.js'
+import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client.js'
 import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
-import { deepEquals } from 'houdini/runtime'
-import type { LRUCache } from 'houdini/runtime'
-import { marshalSelection, marshalInputs } from 'houdini/runtime'
-import { find_match } from 'houdini/router/match'
-import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
+import { deepEquals } from 'houdini/runtime.js'
+import type { LRUCache } from 'houdini/runtime.js'
+import { marshalSelection, marshalInputs } from 'houdini/runtime.js'
+import { find_match } from 'houdini/router/match.js'
+import type { RouterManifest, RouterPageManifest } from 'houdini/router/types.js'
 import React from 'react'
 import { useContext } from 'react'
 
-import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle'
-import { useDocumentStore } from '../hooks/useDocumentStore'
-import { type SuspenseCache, suspense_cache } from './cache'
+import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
+import { useDocumentStore } from '../hooks/useDocumentStore.js'
+import { type SuspenseCache, suspense_cache } from './cache.js'
 
 type PageComponent = React.ComponentType<{ url: string }>
 
@@ -484,12 +484,12 @@ export function RouterContextProvider({
 	}, [])
 
 	React.useEffect(() => {
-		// @ts-ignore
+		// @ts-expect-error
 		window.addEventListener('_houdini_session_', handleNewSession)
 
 		// cleanup this component
 		return () => {
-			// @ts-ignore
+			// @ts-expect-error
 			window.removeEventListener('_houdini_session_', handleNewSession)
 		}
 	}, [handleNewSession])
@@ -670,7 +670,7 @@ function useLinkBehavior({
 	// only use the preload handler if the browser hasn't chosen to reduce data usage
 	// this doesn't break the rule of hooks because it will only ever have one value
 	// in the lifetime of the app
-	// @ts-ignore
+	// @ts-expect-error
 	if (!globalThis.navigator?.connection?.saveData) {
 		// biome-ignore lint/correctness/useHookAtTopLevel: value is constant for the lifetime of the app
 		usePreload({ preload })

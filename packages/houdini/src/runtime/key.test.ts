@@ -1,8 +1,8 @@
 import * as graphql from 'graphql'
 import { test, expect, describe } from 'vitest'
 
-import { testConfig } from '../test'
-import { computeKey } from './key'
+import { testConfig } from '../test/index.js'
+import { computeKey } from './key.js'
 
 const _config = testConfig()
 

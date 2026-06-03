@@ -1,1 +1,1 @@
-export { Cache } from './cache'
+export { Cache } from './cache.js'

@@ -3,12 +3,12 @@ import type {
 	GraphQLVariables,
 	QueryResult,
 	GraphQLObject,
-} from 'houdini/runtime'
-import type { DocumentStore, ObserveParams } from 'houdini/runtime/client'
+} from 'houdini/runtime.js'
+import type { DocumentStore, ObserveParams } from 'houdini/runtime/client.js'
 import * as React from 'react'
 
-import { useClient } from '../routing'
-import { useIsMountedRef } from './useIsMounted'
+import { useClient } from '../routing/index.js'
+import { useIsMountedRef } from './useIsMounted.js'
 
 export type UseDocumentStoreParams<
 	_Artifact extends DocumentArtifact,

@@ -1,11 +1,11 @@
 import { test, expect, describe, beforeEach } from 'vitest'
 
-import { parseScalar } from '../router/match'
-import { testConfigFile } from '../test'
-import { defaultConfigValues, setMockConfig } from './config'
-import { marshalInputs, marshalSelection } from './scalars'
-import type { QueryArtifact, SubscriptionSelection } from './types'
-import { ArtifactKind } from './types'
+import { parseScalar } from '../router/match.js'
+import { testConfigFile } from '../test/index.js'
+import { defaultConfigValues, setMockConfig } from './config.js'
+import { marshalInputs, marshalSelection } from './scalars.js'
+import type { QueryArtifact, SubscriptionSelection } from './types.js'
+import { ArtifactKind } from './types.js'
 
 const config = defaultConfigValues({
 	scalars: {

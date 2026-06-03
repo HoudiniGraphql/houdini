@@ -1,6 +1,6 @@
-import type { ConfigFile } from '../lib'
-import { parse } from './cookies'
-import { decode, encode, verify } from './jwt'
+import type { ConfigFile } from '../lib/index.js'
+import { parse } from './cookies.js'
+import { decode, encode, verify } from './jwt.js'
 
 type ServerHandlerArgs = {
 	request: Request

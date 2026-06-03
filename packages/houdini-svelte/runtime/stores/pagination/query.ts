@@ -1,5 +1,5 @@
-import { extractPageInfo } from 'houdini/runtime'
-import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
+import { extractPageInfo } from 'houdini/runtime.js'
+import { cursorHandlers, offsetHandlers } from 'houdini/runtime.js'
 import type {
 	GraphQLObject,
 	QueryResult,
@@ -7,19 +7,19 @@ import type {
 	OffsetHandlers,
 	PageInfo,
 	GraphQLVariables,
-} from 'houdini/runtime'
+} from 'houdini/runtime.js'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 
-import { getClient, initClient } from '../../client'
-import { getSession } from '../../session'
+import { getClient, initClient } from '../../client.js'
+import { getSession } from '../../session.js'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
-} from '../../types'
-import { QueryStore } from '../query'
+} from '../../types.js'
+import { QueryStore } from '../query.js'
 
 export type CursorStoreResult<
 	_Data extends GraphQLObject,

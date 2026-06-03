@@ -5,9 +5,9 @@ import type { Cache } from '$houdini/runtime/cache'
 import type { HoudiniClient } from '$houdini/runtime/client'
 import cacheRef from '$houdini/runtime/cache'
 
-import { injectComponents } from './componentFields'
-import { router_cache, type RouterCache } from './routing'
-import clientFactory from './client'
+import { injectComponents } from './componentFields.js'
+import { router_cache, type RouterCache } from './routing/index.js'
+import clientFactory from './client.js'
 
 declare global {
 	interface Window {

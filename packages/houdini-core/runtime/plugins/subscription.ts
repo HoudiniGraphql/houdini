@@ -2,7 +2,7 @@ import { deepEquals } from 'houdini/runtime'
 import type { ClientPluginContext } from 'houdini/runtime/documentStore'
 import { ArtifactKind, DataSource } from 'houdini/runtime/types'
 
-import { documentPlugin } from './utils'
+import { documentPlugin } from './utils/index.js'
 
 export function subscription(factory: SubscriptionHandler) {
 	return documentPlugin(ArtifactKind.Subscription, () => {

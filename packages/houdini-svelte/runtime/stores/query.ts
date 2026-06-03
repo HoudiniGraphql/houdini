@@ -2,8 +2,8 @@ import type { HoudiniClient } from '$houdini/runtime/client'
 import { getCurrentConfig } from '$houdini/runtime/config'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { HoudiniSvelteConfig } from 'houdini-svelte'
-import type { FetchContext } from 'houdini/runtime'
-import * as log from 'houdini/runtime'
+import type { FetchContext } from 'houdini/runtime.js'
+import * as log from 'houdini/runtime.js'
 import type {
 	CachePolicies,
 	GraphQLVariables,
@@ -11,20 +11,20 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
-} from 'houdini/runtime'
-import { ArtifactKind, CachePolicy, CompiledQueryKind } from 'houdini/runtime'
+} from 'houdini/runtime.js'
+import { ArtifactKind, CachePolicy, CompiledQueryKind } from 'houdini/runtime.js'
 import { get } from 'svelte/store'
 
-import { clientStarted, isBrowser } from '../adapter'
-import { initClient } from '../client'
-import { getSession } from '../session'
+import { clientStarted, isBrowser } from '../adapter.js'
+import { initClient } from '../client.js'
+import { getSession } from '../session.js'
 import type {
 	ClientFetchParams,
 	LoadEventFetchParams,
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
-} from '../types'
-import { BaseStore } from './base'
+} from '../types.js'
+import { BaseStore } from './base.js'
 
 export class QueryStore<
 	_Data extends GraphQLObject,

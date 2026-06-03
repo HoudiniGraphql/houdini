@@ -1,4 +1,4 @@
-import type { ClientPlugin } from 'houdini/runtime/client'
+import type { ClientPlugin } from 'houdini/runtime/client.js'
 
 const plugin: () => ClientPlugin = () => () => {
 	return {

@@ -3,11 +3,11 @@ import type {
 	FragmentArtifact,
 	QueryArtifact,
 	GraphQLVariables,
-} from 'houdini/runtime'
+} from 'houdini/runtime.js'
 
-import { useDocumentHandle } from './useDocumentHandle'
-import { useDocumentStore } from './useDocumentStore'
-import { fragmentReference, useFragment } from './useFragment'
+import { useDocumentHandle } from './useDocumentHandle.js'
+import { useDocumentStore } from './useDocumentStore.js'
+import { fragmentReference, useFragment } from './useFragment.js'
 
 // useFragmentHandle is just like useFragment except it also returns an imperative handle
 // that users can use to interact with the fragment

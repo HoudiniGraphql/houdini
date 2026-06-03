@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { fs, type Adapter } from 'houdini'
+import { fs, type Adapter } from 'houdini.js'
 import path from 'node:path'
 import React from 'react'
 import ReactDOM from 'react-dom/server'

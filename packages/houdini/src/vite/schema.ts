@@ -3,7 +3,7 @@ import type { GraphQLSchema } from 'graphql'
 import path from 'node:path'
 import type { PluginOption, ModuleNode } from 'vite'
 
-import type { VitePluginContext } from '.'
+import type { VitePluginContext } from './index.js'
 import { get_config, fs, run_pipeline } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 import { sleep } from '../lib/sleep.js'

@@ -11,7 +11,7 @@ import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
 import * as fs from './fs.js'
 import { Logger } from './logger.js'
-import type { ProjectManifest } from './types'
+import type { ProjectManifest } from './types.js'
 import { LogLevel } from './types.js'
 
 export type PluginSpec = {

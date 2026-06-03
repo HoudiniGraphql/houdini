@@ -1,5 +1,5 @@
-import type { ConfigFile } from '../lib'
-import type { RouterManifest, RouterPageManifest } from './types'
+import type { ConfigFile } from '../lib/index.js'
+import type { RouterManifest, RouterPageManifest } from './types.js'
 
 /**
  * This file is copied from the SvelteKit source code under the MIT license found at the bottom of the file

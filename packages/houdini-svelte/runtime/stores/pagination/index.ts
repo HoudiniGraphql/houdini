@@ -1,2 +1,2 @@
-export { FragmentStoreCursor, FragmentStoreOffset } from './fragment'
-export { QueryStoreCursor, QueryStoreOffset } from './query'
+export { FragmentStoreCursor, FragmentStoreOffset } from './fragment.js'
+export { QueryStoreCursor, QueryStoreOffset } from './query.js'

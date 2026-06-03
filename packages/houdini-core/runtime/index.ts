@@ -1,14 +1,14 @@
 import type { Cache as InternalCache } from 'houdini/runtime/cache'
 
-import _cache from './cache'
-import type { CacheTypeDef } from './generated'
-import { Cache } from './public'
+import _cache from './cache.js'
+import type { CacheTypeDef } from './generated.js'
+import { Cache } from './public/index.js'
 
 export { CachePolicy, PendingValue } from 'houdini/runtime'
 export type { QueryArtifact, GraphQLVariables } from 'houdini/runtime'
 
-export * from './client'
-export { getCurrentConfig } from './config'
+export * from './client.js'
+export { getCurrentConfig } from './config.js'
 
 // this template tag gets removed by the preprocessor so it should never be invoked.
 // this function must return any so that we can assign it a type in a variable declaration (ie an inline store)
