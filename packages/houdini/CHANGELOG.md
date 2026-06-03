@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-go.20
+
+### Minor Changes
+
+-   [#1606](https://github.com/HoudiniGraphql/houdini/pull/1606) [`d1848162`](https://github.com/HoudiniGraphql/houdini/commit/d18481625a443cd41f72d605b0999a0ca75c9555) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implemented stdio-based protocol switch for wasm compatability
+
 ## 2.0.0-go.19
 
 ### Minor Changes
