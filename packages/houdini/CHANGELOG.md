@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.26
+
+### Patch Changes
+
+- [`899054d5`](https://github.com/HoudiniGraphql/houdini/commit/899054d5d0ec1416dc0e4a3d8bd745093b951642) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix document count when generating ; fix scaffold config runtime"
+
 ## 2.0.0-next.25
 
 ### Patch Changes
