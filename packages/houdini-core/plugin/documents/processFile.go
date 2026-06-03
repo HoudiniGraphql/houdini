@@ -1,7 +1,6 @@
 package documents
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"regexp"
@@ -12,9 +11,9 @@ import (
 	"code.houdinigraphql.com/plugins"
 )
 
-// ProcessFile reads the file (using the provided afero.Fs) in fixed-size chunks to avoid holding
-// onto the full file in memory whenever possible. If a complete match is found, it sends the
-// extracted document on the provided channel.
+// ProcessFile reads the file (using the provided afero.Fs) and sends each discovered
+// GraphQL document on ch. Comments are stripped before scanning so commented-out
+// graphql() calls are never extracted.
 func ProcessFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Error {
 	f, err := fs.Open(fp)
 	if err != nil {
@@ -22,180 +21,151 @@ func ProcessFile(fs afero.Fs, fp string, ch chan DiscoveredDocument) *plugins.Er
 	}
 	defer f.Close()
 
-	// For .graphql/.gql files, read it entirely.
+	raw, err := io.ReadAll(f)
+	if err != nil {
+		return plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
+	}
+
+	// For .graphql/.gql files, send the whole file as a single document.
 	if strings.HasSuffix(fp, ".graphql") || strings.HasSuffix(fp, ".gql") {
-		content, err := io.ReadAll(f)
-		if err != nil {
-			return plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
-		}
 		ch <- DiscoveredDocument{
 			FilePath:     fp,
-			Content:      string(content),
+			Content:      string(raw),
 			OffsetRow:    0,
 			OffsetColumn: 0,
 		}
 		return nil
 	}
 
-	const chunkSize = 4096
-	var buffer []byte
-	reader := bufio.NewReader(f)
+	original := string(raw)
 
-	// absoluteOffset tracks the total bytes read so far.
-	absoluteOffset := 0
-	// newlinePositions stores the absolute positions of each '\n' encountered.
-	var newlinePositions []int
-
-	// Use an incremental pointer to avoid scanning the entire newlinePositions slice every time.
-	// Since file reading and regex matching produce offsets in increasing order, we can maintain:
-	// - lastNewlineIndex: the index in newlinePositions that was used for the previous match.
-	// - currentLine: the number of newlines encountered up to that index.
-	lastNewlineIndex := 0
-	currentLine := 0
-
-	// getLineAndColumn computes the 0-indexed line and column for an absolute byte offset.
-	// It increments from the last position instead of performing a full binary search.
-	getLineAndColumn := func(absPos int) (line, col int) {
-		// Process any new newlines that occur before absPos.
-		for lastNewlineIndex < len(newlinePositions) && newlinePositions[lastNewlineIndex] < absPos {
-			currentLine++
-			lastNewlineIndex++
+	// Precompute newline positions so getLineAndColumn is O(log n).
+	newlinePositions := make([]int, 0)
+	for i := 0; i < len(raw); i++ {
+		if raw[i] == '\n' {
+			newlinePositions = append(newlinePositions, i)
 		}
-		if lastNewlineIndex == 0 {
-			// No newline has been seen before absPos.
-			return 0, absPos
-		}
-		// The column is the difference between absPos and the last newline.
-		return currentLine, absPos - newlinePositions[lastNewlineIndex-1] - 1
 	}
 
-	for {
-		chunk := make([]byte, chunkSize)
-		n, err := reader.Read(chunk)
-		if n > 0 {
-			// Update newlinePositions for this chunk.
-			for i := 0; i < n; i++ {
-				if chunk[i] == '\n' {
-					newlinePositions = append(newlinePositions, absoluteOffset+i)
-				}
-			}
-			absoluteOffset += n
-
-			// Append the newly read data.
-			buffer = append(buffer, chunk[:n]...)
-			text := string(buffer)
-			lastCompleteMatchEnd := 0
-
-			// Look for matches of graphql( ... )
-			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
-			for _, m := range matches {
-				// Process only complete matches.
-				if m[1] < len(text) {
-					if len(m) >= 4 {
-						extracted := text[m[2]:m[3]]
-						// Replace escaped backticks.
-						extracted = strings.ReplaceAll(extracted, "\\`", "`")
-						// Compute absolute offset for the start of the GraphQL content.
-						absPos := (absoluteOffset - len(buffer)) + m[2]
-						row, col := getLineAndColumn(absPos)
-						ch <- DiscoveredDocument{
-							FilePath:     fp,
-							Content:      extracted,
-							OffsetRow:    row,
-							OffsetColumn: col,
-						}
-					}
-					if m[1] > lastCompleteMatchEnd {
-						lastCompleteMatchEnd = m[1]
-					}
-				}
-			}
-
-			// Look for component field matches: e.g. "user: GraphQL<` ... `>"
-			compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
-			for _, m := range compMatches {
-				if m[1] < len(text) {
-					if len(m) >= 6 {
-						prop := text[m[2]:m[3]]
-						extracted := text[m[4]:m[5]]
-						extracted = strings.ReplaceAll(extracted, "\\`", "`")
-						absPos := (absoluteOffset - len(buffer)) + m[4]
-						row, col := getLineAndColumn(absPos)
-						ch <- DiscoveredDocument{
-							FilePath:     fp,
-							Content:      extracted,
-							Prop:         prop,
-							OffsetRow:    row,
-							OffsetColumn: col,
-						}
-					}
-					if m[1] > lastCompleteMatchEnd {
-						lastCompleteMatchEnd = m[1]
-					}
-				}
-			}
-
-			// Trim the buffer: remove data that has already been processed.
-			if lastCompleteMatchEnd > 0 {
-				buffer = buffer[lastCompleteMatchEnd:]
+	getLineAndColumn := func(absPos int) (line, col int) {
+		lo, hi := 0, len(newlinePositions)
+		for lo < hi {
+			mid := (lo + hi) / 2
+			if newlinePositions[mid] < absPos {
+				lo = mid + 1
 			} else {
-				idx1 := strings.LastIndex(text, "graphql(")
-				idx2 := strings.LastIndex(text, "GraphQL<")
-				if idx1 == -1 && idx2 == -1 {
-					buffer = nil
-				} else {
-					idx := idx1
-					if idx2 > idx {
-						idx = idx2
-					}
-					buffer = buffer[idx:]
-				}
+				hi = mid
 			}
 		}
+		line = lo
+		if lo == 0 {
+			col = absPos
+		} else {
+			col = absPos - newlinePositions[lo-1] - 1
+		}
+		return
+	}
 
-		if err != nil {
-			if err != io.EOF {
-				return plugins.WrapError(fmt.Errorf("failed to read file: %w", err))
-			}
-			// Process any remaining text at the end of the file.
-			text := string(buffer)
-			matches := graphqlRegex.FindAllStringSubmatchIndex(text, -1)
-			for _, m := range matches {
-				if len(m) >= 4 {
-					extracted := text[m[2]:m[3]]
-					extracted = strings.ReplaceAll(extracted, "\\`", "`")
-					absPos := (absoluteOffset - len(buffer)) + m[2]
-					row, col := getLineAndColumn(absPos)
-					ch <- DiscoveredDocument{
-						FilePath:     fp,
-						Content:      extracted,
-						OffsetRow:    row,
-						OffsetColumn: col,
-					}
-				}
-			}
-			compMatches := componentFieldRegex.FindAllStringSubmatchIndex(text, -1)
-			for _, m := range compMatches {
-				if len(m) >= 6 {
-					prop := text[m[2]:m[3]]
-					extracted := text[m[4]:m[5]]
-					extracted = strings.ReplaceAll(extracted, "\\`", "`")
-					absPos := (absoluteOffset - len(buffer)) + m[4]
-					row, col := getLineAndColumn(absPos)
-					ch <- DiscoveredDocument{
-						FilePath:     fp,
-						Content:      extracted,
-						Prop:         prop,
-						OffsetRow:    row,
-						OffsetColumn: col,
-					}
-				}
-			}
-			break
+	// Strip comments before running the regexes. stripComments preserves all byte
+	// positions (replacing comment content with spaces), so indices found in stripped
+	// are valid in original.
+	stripped := stripComments(original)
+
+	for _, m := range graphqlRegex.FindAllStringSubmatchIndex(stripped, -1) {
+		if len(m) < 4 {
+			continue
+		}
+		extracted := strings.ReplaceAll(original[m[2]:m[3]], "\\`", "`")
+		row, col := getLineAndColumn(m[2])
+		ch <- DiscoveredDocument{
+			FilePath:     fp,
+			Content:      extracted,
+			OffsetRow:    row,
+			OffsetColumn: col,
+		}
+	}
+
+	for _, m := range componentFieldRegex.FindAllStringSubmatchIndex(stripped, -1) {
+		if len(m) < 6 {
+			continue
+		}
+		prop := original[m[2]:m[3]]
+		extracted := strings.ReplaceAll(original[m[4]:m[5]], "\\`", "`")
+		row, col := getLineAndColumn(m[4])
+		ch <- DiscoveredDocument{
+			FilePath:     fp,
+			Content:      extracted,
+			Prop:         prop,
+			OffsetRow:    row,
+			OffsetColumn: col,
 		}
 	}
 
 	return nil
+}
+
+// stripComments replaces JS/TS comment content with spaces, preserving all byte
+// positions. Newlines inside block comments are kept so line numbers stay correct.
+// String and template literals are skipped so comment-like sequences inside them
+// are left intact.
+func stripComments(src string) string {
+	b := []byte(src)
+	i := 0
+	for i < len(b) {
+		switch {
+		case b[i] == '/' && i+1 < len(b) && b[i+1] == '/':
+			for i < len(b) && b[i] != '\n' {
+				b[i] = ' '
+				i++
+			}
+		case b[i] == '/' && i+1 < len(b) && b[i+1] == '*':
+			b[i] = ' '
+			b[i+1] = ' '
+			i += 2
+			for i < len(b) {
+				if b[i] == '*' && i+1 < len(b) && b[i+1] == '/' {
+					b[i] = ' '
+					b[i+1] = ' '
+					i += 2
+					break
+				}
+				if b[i] != '\n' {
+					b[i] = ' '
+				}
+				i++
+			}
+		case b[i] == '\'' || b[i] == '"':
+			q := b[i]
+			i++
+			for i < len(b) {
+				if b[i] == '\\' {
+					i += 2
+					continue
+				}
+				if b[i] == q {
+					i++
+					break
+				}
+				i++
+			}
+		case b[i] == '`':
+			i++
+			for i < len(b) {
+				if b[i] == '\\' {
+					i += 2
+					continue
+				}
+				if b[i] == '`' {
+					i++
+					break
+				}
+				i++
+			}
+		default:
+			i++
+		}
+	}
+	return string(b)
 }
 
 // There are two separate regexes we are concerned about:
