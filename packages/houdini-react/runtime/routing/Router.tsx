@@ -222,6 +222,8 @@ function usePageData({
 			? data_cache.get(artifact.name)!
 			: client.observe({ artifact, cache })
 
+		// store the observer immediately so useQueryResult can access it
+		// during SSR rendering before the fetch resolves
 		let resolve: () => void = () => {}
 		let reject: (message: string) => void = () => {}
 		const promise = new Promise<void>((res, rej) => {
@@ -234,7 +236,6 @@ function usePageData({
 					session,
 				})
 				.then(async () => {
-					data_cache.set(id, observer)
 
 					// if there is an error, we need to reject the promise
 					if (observer.state.errors && observer.state.errors.length > 0) {

@@ -192,7 +192,7 @@ export function useDocumentHandle<
 		storeValue,
 		backwardPending,
 		forwardPending,
-		paginationObserver!.send,
+		paginationObserver,
 		location.params,
 	])
 }
