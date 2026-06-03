@@ -218,7 +218,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/houdini
       houdini-adapter-node:
-        specifier: workspace:2.0.0-go.19
+        specifier: workspace:2.0.0-go.20
         version: link:../../packages/adapter-node
       houdini-react:
         specifier: workspace:^
