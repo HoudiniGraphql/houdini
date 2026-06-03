@@ -23,7 +23,7 @@ describe('Logger', () => {
 
 		test('prints when logger level exceeds minLevel', () => {
 			const log = new Logger(LogLevel.Verbose)
-			log.info('hello', LogLevel.PluginDetail)
+			log.info('hello', LogLevel.ShortSummary)
 			expect(console.log).toHaveBeenCalledWith('hello')
 		})
 
@@ -58,7 +58,7 @@ describe('Logger', () => {
 		test('returns true when level is sufficient', () => {
 			const log = new Logger(LogLevel.Summary)
 			expect(log.at(LogLevel.Summary)).toBe(true)
-			expect(log.at(LogLevel.PluginDetail)).toBe(true) // PluginDetail < Summary
+			expect(log.at(LogLevel.ShortSummary)).toBe(true) // PluginDetail < Summary
 		})
 
 		test('returns false when level is insufficient', () => {

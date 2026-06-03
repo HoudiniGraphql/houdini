@@ -43,12 +43,16 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 
 			// before we do anyting we neeed to make sure everything has run
 			try {
-				const results = await compiler.run_pipeline({
+				await compiler.run_pipeline({
 					// the pipeline through schema is run as part of codegen_setup
 					after: 'Schema',
 				})
-				const docCount = Object.values(results.GenerateDocuments ?? {}).flat().length
-				console.log(`🎩 Generated ${docCount} ${docCount === 1 ? 'document' : 'documents'}`)
+				const docCount = ctx.db
+					.prepare('SELECT COUNT(*) as count FROM documents WHERE visible = 1')
+					.get() as { count: number }
+				console.log(
+					`🎩 Generated ${docCount.count} ${docCount.count === 1 ? 'document' : 'documents'}`
+				)
 			} catch {}
 		},
 

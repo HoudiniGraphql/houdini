@@ -16,7 +16,7 @@ dist
 dist-ssr
 *.local
 
-./$houdini
+.houdini
 ./dist
 
 # Editor directories and files

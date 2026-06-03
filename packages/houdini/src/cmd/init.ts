@@ -258,6 +258,7 @@ export async function init(
 	// Global files
 	await gitIgnore({
 		targetPath,
+		runtimeDir,
 		schemaPath: is_remote_endpoint ? schemaPath : undefined,
 	})
 	await graphqlRC(targetPath, runtimeDir)
@@ -465,13 +466,13 @@ export default config;
 /******************************/
 /*  Global files              */
 /******************************/
-async function gitIgnore({ targetPath, schemaPath }: { targetPath: string; schemaPath?: string }) {
+async function gitIgnore({ targetPath, runtimeDir, schemaPath }: { targetPath: string; runtimeDir: string; schemaPath?: string }) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
 
 	let newIgnores = ''
-	if (!existing.includes('\n.houdini\n')) {
-		newIgnores += '.houdini\n'
+	if (!existing.includes(`\n${runtimeDir}\n`)) {
+		newIgnores += `${runtimeDir}\n`
 	}
 	if (schemaPath && !existing.includes(`\n${schemaPath}\n`)) {
 		newIgnores += `${schemaPath}\n`

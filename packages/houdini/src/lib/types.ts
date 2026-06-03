@@ -6,7 +6,7 @@ import type { Config } from './config.js'
 export const LogLevel = {
 	Quiet: 'quiet',
 	Summary: 'summary',
-	PluginDetail: 'short-summary',
+	ShortSummary: 'short-summary',
 	Verbose: 'full',
 } as const
 

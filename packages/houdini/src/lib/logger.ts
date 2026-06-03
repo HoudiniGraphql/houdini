@@ -11,7 +11,7 @@ export class Logger {
 	private timers = new Map<string, number>()
 	private order: number
 
-	constructor(public readonly level: string = LogLevel.Summary) {
+	constructor(public readonly level: string = LogLevel.ShortSummary) {
 		this.order = LEVEL_ORDER[level] ?? 1
 	}
 
