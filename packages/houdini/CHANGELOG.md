@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.25
+
+### Patch Changes
+
+- [`dd9d1cbf`](https://github.com/HoudiniGraphql/houdini/commit/dd9d1cbf499b8b6f327c8d457edc3b04176d55a4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug caused crashes during hydration
+
 ## 2.0.0-next.24
 
 ### Patch Changes
