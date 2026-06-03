@@ -17,12 +17,11 @@ import (
 // DocumentContext holds document-specific state that was previously stored in global variables
 // and embeds context.Context to serve as both context and document state
 type DocumentContext struct {
-	HasLoading         bool
-	ProjectConfig      plugins.ProjectConfig
-	EnumTypes          map[string]bool
-	InputTypes         map[string]bool
-	ScalarNamedImports map[string]map[string]bool // module → set of named identifiers
-	ScalarDefaultImports map[string]bool           // module → default identifier (at most one per module)
+	HasLoading    bool
+	ProjectConfig plugins.ProjectConfig
+	EnumTypes     map[string]bool
+	InputTypes    map[string]bool
+	ScalarImports map[string]bool // full import statement → true
 }
 
 func GenerateDocumentTypeDefs(

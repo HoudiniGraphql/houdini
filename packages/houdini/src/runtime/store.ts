@@ -2,7 +2,7 @@
 // bottom of this file
 
 const subscriber_queue: any[] = []
-const noop = () => {}
+const noop = (): undefined => undefined
 
 export class Writable<T> {
 	state: T

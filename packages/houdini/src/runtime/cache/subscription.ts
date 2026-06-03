@@ -131,7 +131,7 @@ export class InMemorySubscriptions {
 
 	addFieldSubscription({
 		id,
-		key: _key,
+		key,
 		selection,
 		type: _type,
 	}: {

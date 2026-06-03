@@ -226,7 +226,6 @@ export async function readdir(
 		return await fs.readdir(filepath, opts)
 	}
 	try {
-		// @ts-expect-error
 		return memfs.readdirSync(filepath, opts) as string[]
 	} catch {
 		return []

@@ -1168,7 +1168,6 @@ class CacheInternal {
 
 			// if we are generating a loading state and we're supposed to stop here, do so
 			if (generateLoading && fieldLoading?.kind === 'value') {
-				// @ts-expect-error: we're violating the contract knowingly
 				fieldTarget[attributeName] = PendingValue
 				hasData = true
 			}
@@ -1524,7 +1523,6 @@ class CacheInternal {
 			const entryObj = entry as GraphQLObject
 
 			// start off building up the embedded id
-			// @ts-expect-error
 			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
 			let innerType = linkedType
 

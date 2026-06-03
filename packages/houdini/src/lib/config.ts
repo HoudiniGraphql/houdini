@@ -165,7 +165,6 @@ export type ConfigFile = {
 }
 
 export type RuntimeScalarPayload = {
-	// @ts-expect-error
 	session?: App.Session | null | undefined
 }
 
@@ -258,12 +257,12 @@ export type ScalarSpec = {
 
 // this type is meant to be extended by plugins to provide type definitions
 // for config
-// @ts-expect-error
+// @ts-ignore
 export type HoudiniPluginConfig = {}
 
 // this type is meant to be extended by client plugins to provide type definitions
 // for config
-// @ts-expect-error
+// @ts-ignore
 export type HoudiniClientPluginConfig = {}
 
 // we need to include some extra meta data along with the config file

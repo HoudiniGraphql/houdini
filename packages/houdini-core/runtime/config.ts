@@ -50,7 +50,6 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 let _configFile: ConfigFile | null = null
 
 export function localApiEndpoint(configFile: ConfigFile) {
-	// @ts-expect-error
 	return configFile.router?.apiEndpoint ?? '/_api'
 }
 

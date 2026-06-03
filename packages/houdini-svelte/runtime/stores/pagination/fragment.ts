@@ -61,11 +61,11 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType ext
 		let idVariables = {}
 		const value = getState()
 		if (typeConfig.resolve?.arguments) {
-			// @ts-expect-error
+			// @ts-ignore
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			// @ts-expect-error
+			// @ts-ignore
 			idVariables = Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 		}
 
@@ -255,7 +255,7 @@ export class FragmentStoreOffset<
 		return {
 			kind: CompiledFragmentKind,
 			data: derived(paginationStore, ($value) => $value.data!),
-			// @ts-expect-error
+			// @ts-ignore
 			subscribe,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,

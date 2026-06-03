@@ -1,4 +1,5 @@
 declare module 'houdini' {
+	// @ts-ignore
 	interface HoudiniPluginConfig {
 		'houdini-svelte': HoudiniSvelteConfig
 	}

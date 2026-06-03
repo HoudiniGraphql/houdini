@@ -183,6 +183,7 @@ export class List {
 	readonly name: string
 	private connection: boolean
 	private manager: ListManager
+	abstract?: boolean
 
 	constructor({
 		name,

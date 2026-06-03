@@ -53,7 +53,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 		},
 
 		// this is called when a file is created or modified
-		async handleHotUpdate(hmr): Promise<undefined | ModuleNode[]> {
+		async handleHotUpdate(hmr): Promise<void | ModuleNode[]> {
 			return debounceHmr(hmr, async (files, task_id) => {
 				// the first thing we need to do is look for all of the relevant files that have houdini dependencies
 				const filepaths: Array<string> = []

@@ -110,11 +110,11 @@ export function useQueryHandle<
 			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
-			// @ts-expect-error
+			// @ts-ignore
 			variables,
 		}
 
-		// @ts-expect-error
+		// @ts-ignore
 		promiseCache.set(identifier, suspenseUnit)
 
 		// the suspense unit gives react something to hold onto
@@ -123,13 +123,13 @@ export function useQueryHandle<
 		handle
 			.fetch({
 				variables,
-				// @ts-expect-error: this is actually allowed... 🤫
+				// @ts-ignore: this is actually allowed... 🤫
 				stuff: {
 					silenceLoading: true,
 				},
 			})
 			.then((value) => {
-				// @ts-expect-error
+				// @ts-ignore
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,

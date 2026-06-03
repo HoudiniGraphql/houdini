@@ -119,7 +119,6 @@ export interface JwtData {
 
 function base64UrlParse(s: string): Uint8Array {
 	return new Uint8Array(
-		// @ts-expect-error
 		Array.prototype.map.call(
 			atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')),
 			(c) => c.charCodeAt(0)
@@ -129,7 +128,6 @@ function base64UrlParse(s: string): Uint8Array {
 }
 
 function base64UrlStringify(a: Uint8Array): string {
-	// @ts-expect-error
 	return btoa(String.fromCharCode.apply(0, a))
 		.replace(/=/g, '')
 		.replace(/\+/g, '-')
@@ -225,7 +223,7 @@ export async function encode(
 	)}.${base64UrlStringify(_utf8ToUint8Array(payloadAsJSON))}`
 
 	let keyFormat = 'raw'
-	let keyData: JsonWebKey | ArrayBuffer | string
+	let keyData: JsonWebKey | ArrayBuffer | Uint8Array | string
 
 	if (typeof secret === 'object') {
 		keyFormat = 'jwk'
@@ -304,7 +302,7 @@ export async function verify(
 		return false
 	}
 	let keyFormat = 'raw'
-	let keyData: JsonWebKey | ArrayBuffer | string
+	let keyData: JsonWebKey | ArrayBuffer | Uint8Array | string
 
 	if (typeof secret === 'object') {
 		keyFormat = 'jwk'

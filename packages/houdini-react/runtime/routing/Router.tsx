@@ -484,12 +484,12 @@ export function RouterContextProvider({
 	}, [])
 
 	React.useEffect(() => {
-		// @ts-expect-error
+		// @ts-ignore
 		window.addEventListener('_houdini_session_', handleNewSession)
 
 		// cleanup this component
 		return () => {
-			// @ts-expect-error
+			// @ts-ignore
 			window.removeEventListener('_houdini_session_', handleNewSession)
 		}
 	}, [handleNewSession])
@@ -670,8 +670,8 @@ function useLinkBehavior({
 	// only use the preload handler if the browser hasn't chosen to reduce data usage
 	// this doesn't break the rule of hooks because it will only ever have one value
 	// in the lifetime of the app
+	// @ts-ignore
 	if (!globalThis.navigator?.connection?.saveData) {
-		// @ts-expect-error
 		// biome-ignore lint/correctness/useHookAtTopLevel: value is constant for the lifetime of the app
 		usePreload({ preload })
 	}

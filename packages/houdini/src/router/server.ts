@@ -190,7 +190,7 @@ export class Server<
 
 		return createServerAdapter<ServerContext, Server<ServerContext, UserContext>>(this, {
 			fetchAPI: this._yoga!.fetchAPI,
-			plugins: this._yoga!.plugins,
+			plugins: (this._yoga! as any).plugins,
 		})
 	}
 

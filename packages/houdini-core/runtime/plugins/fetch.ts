@@ -264,7 +264,6 @@ export function extractFiles(value?: any) {
 				if (valueIsList) {
 					let index = 0
 
-					// @ts-expect-error
 					for (const item of value) {
 						const itemClone = recurse(item, pathPrefix + index++, recursedDeeper)
 

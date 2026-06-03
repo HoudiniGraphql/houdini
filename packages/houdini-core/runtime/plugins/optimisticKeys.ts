@@ -190,7 +190,7 @@ function addKeysToResponse(args: {
 		// if this field is marked as an optimistic key, add it to the obj
 		if (optimisticKey) {
 			// figure out the value we should use for the optimistic key
-			let keyValue: string | undefined
+			let keyValue: string | number | undefined
 
 			// if there is a value already in the response then we should use that
 			if (value) {
