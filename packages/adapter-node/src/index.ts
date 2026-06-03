@@ -1,4 +1,4 @@
-import { type Adapter, fs, path } from 'houdini.js'
+import { type Adapter, fs, path } from 'houdini'
 import { fileURLToPath } from 'node:url'
 
 const adapter: Adapter = async ({ outDir, adapterPath, config: _config }) => {

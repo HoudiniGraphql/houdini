@@ -3,8 +3,8 @@ import type {
 	GraphQLVariables,
 	QueryResult,
 	GraphQLObject,
-} from 'houdini/runtime.js'
-import type { DocumentStore, ObserveParams } from 'houdini/runtime/client.js'
+} from 'houdini/runtime'
+import type { DocumentStore, ObserveParams } from 'houdini/runtime/client'
 import * as React from 'react'
 
 import { useClient } from '../routing/index.js'

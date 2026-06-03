@@ -1,5 +1,5 @@
 import type { ExportedHandler } from '@cloudflare/workers-types'
-import { createServerAdapter } from 'houdini/adapter.js'
+import { createServerAdapter } from 'houdini/adapter'
 
 // create the production server adapter
 const server_adapter = createServerAdapter({

@@ -4,8 +4,8 @@ import type {
 	DocumentArtifact,
 	QueryResult,
 	GraphQLVariables,
-} from 'houdini/runtime.js'
-import { DocumentStore, type ObserveParams } from 'houdini/runtime/client.js'
+} from 'houdini/runtime'
+import { DocumentStore, type ObserveParams } from 'houdini/runtime/client'
 import { get } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 

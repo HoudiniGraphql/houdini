@@ -1,4 +1,4 @@
-import type { RouterManifest } from 'houdini/runtime.js'
+import type { RouterManifest } from 'houdini/runtime'
 
 // @ts-expect-error: this file will get replaced by the build system
 const manifest: RouterManifest = {}

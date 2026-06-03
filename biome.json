@@ -37,20 +37,31 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["packages/houdini/src/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useImportExtensions": {
+              "level": "error",
+              "options": {
+                "extensionMappings": {
+                  "ts": "js",
+                  "tsx": "js"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "linter": {
     "enabled": true,
     "rules": {
       "correctness": {
-        "noUnusedImports": "error",
-        "useImportExtensions": {
-          "level": "error",
-          "options": {
-            "extensionMappings": {
-              "ts": "js",
-              "tsx": "js"
-            }
-          }
-        }
+        "noUnusedImports": "error"
       },
       "suspicious": {
         "noExportsInTest": "off",

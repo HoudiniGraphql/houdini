@@ -1,5 +1,5 @@
-import type { GraphQLObject } from 'houdini/runtime.js'
-import type { Cache } from 'houdini/runtime/cache.js'
+import type { GraphQLObject } from 'houdini/runtime'
+import type { Cache } from 'houdini/runtime/cache'
 
 import client from './client.js'
 import manifest from './manifest.js'

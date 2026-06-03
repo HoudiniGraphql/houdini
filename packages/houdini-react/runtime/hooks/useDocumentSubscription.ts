@@ -3,8 +3,8 @@ import type {
 	GraphQLVariables,
 	QueryResult,
 	GraphQLObject,
-} from 'houdini/runtime.js'
-import type { DocumentStore, SendParams } from 'houdini/runtime/client.js'
+} from 'houdini/runtime'
+import type { DocumentStore, SendParams } from 'houdini/runtime/client'
 
 import { useSession } from '../routing/Router.js'
 import useDeepCompareEffect from './useDeepCompareEffect.js'

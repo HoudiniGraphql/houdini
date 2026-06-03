@@ -3,7 +3,7 @@ import type {
 	FragmentArtifact,
 	QueryArtifact,
 	GraphQLVariables,
-} from 'houdini/runtime.js'
+} from 'houdini/runtime'
 
 import { useDocumentHandle } from './useDocumentHandle.js'
 import { useDocumentStore } from './useDocumentStore.js'

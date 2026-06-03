@@ -1,4 +1,4 @@
-import type { Adapter } from 'houdini.js'
+import type { Adapter } from 'houdini'
 import { resolve } from 'import-meta-resolve'
 import { execSync } from 'node:child_process'
 import fs from 'node:fs/promises'

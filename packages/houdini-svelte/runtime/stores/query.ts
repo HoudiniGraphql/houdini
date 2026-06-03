@@ -2,8 +2,8 @@ import type { HoudiniClient } from '$houdini/runtime/client'
 import { getCurrentConfig } from '$houdini/runtime/config'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { HoudiniSvelteConfig } from 'houdini-svelte'
-import type { FetchContext } from 'houdini/runtime.js'
-import * as log from 'houdini/runtime.js'
+import type { FetchContext } from 'houdini/runtime'
+import * as log from 'houdini/runtime'
 import type {
 	CachePolicies,
 	GraphQLVariables,
@@ -11,8 +11,8 @@ import type {
 	MutationArtifact,
 	QueryArtifact,
 	QueryResult,
-} from 'houdini/runtime.js'
-import { ArtifactKind, CachePolicy, CompiledQueryKind } from 'houdini/runtime.js'
+} from 'houdini/runtime'
+import { ArtifactKind, CachePolicy, CompiledQueryKind } from 'houdini/runtime'
 import { get } from 'svelte/store'
 
 import { clientStarted, isBrowser } from '../adapter.js'

@@ -3,7 +3,7 @@ import type {
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from 'houdini/runtime.js'
+} from 'houdini/runtime'
 
 import { useSession } from '../routing/Router.js'
 import { useDocumentStore } from './useDocumentStore.js'

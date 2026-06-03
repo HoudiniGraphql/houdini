@@ -4,7 +4,7 @@ import type {
 	GraphQLObject,
 	QueryResult,
 	GraphQLVariables,
-} from 'houdini/runtime.js'
+} from 'houdini/runtime'
 
 import { initClient } from '../client.js'
 import { BaseStore } from './base.js'

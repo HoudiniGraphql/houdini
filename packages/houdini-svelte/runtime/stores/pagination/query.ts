@@ -1,5 +1,5 @@
-import { extractPageInfo } from 'houdini/runtime.js'
-import { cursorHandlers, offsetHandlers } from 'houdini/runtime.js'
+import { extractPageInfo } from 'houdini/runtime'
+import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	QueryResult,
@@ -7,7 +7,7 @@ import type {
 	OffsetHandlers,
 	PageInfo,
 	GraphQLVariables,
-} from 'houdini/runtime.js'
+} from 'houdini/runtime'
 import { get, derived } from 'svelte/store'
 import type { Subscriber } from 'svelte/store'
 
