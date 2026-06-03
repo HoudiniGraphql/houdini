@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-next.7
+
+### Patch Changes
+
+- [`8f470769`](https://github.com/HoudiniGraphql/houdini/commit/8f4707693ea2a554b603f92996670e25fee719a1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump create
+
 ## 2.0.0-next.6
 
 ### Patch Changes
