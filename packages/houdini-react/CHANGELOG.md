@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.25
+
+### Patch Changes
+
+- [`e929d0d2`](https://github.com/HoudiniGraphql/houdini/commit/e929d0d2325fd33d9128bcdfce21fbc47d16066e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix refresh collapse
+
 ## 2.0.0-next.24
 
 ### Patch Changes
