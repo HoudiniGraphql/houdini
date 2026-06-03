@@ -484,12 +484,10 @@ export function RouterContextProvider({
 	}, [])
 
 	React.useEffect(() => {
-		// @ts-expect-error
 		window.addEventListener('_houdini_session_', handleNewSession)
 
 		// cleanup this component
 		return () => {
-			// @ts-expect-error
 			window.removeEventListener('_houdini_session_', handleNewSession)
 		}
 	}, [handleNewSession])

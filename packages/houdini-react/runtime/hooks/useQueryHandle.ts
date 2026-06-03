@@ -114,7 +114,6 @@ export function useQueryHandle<
 			variables,
 		}
 
-		// @ts-expect-error
 		promiseCache.set(identifier, suspenseUnit)
 
 		// the suspense unit gives react something to hold onto
@@ -129,7 +128,6 @@ export function useQueryHandle<
 				},
 			})
 			.then((value) => {
-				// @ts-expect-error
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,
