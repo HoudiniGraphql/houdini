@@ -20,6 +20,7 @@
   },
   "changesets": [
     "abort-controller",
+    "angry-zoos-talk",
     "auth-header-fix",
     "cloudflare-adapter-fix",
     "cyan-sheep-compare",
@@ -27,6 +28,7 @@
     "gitignore-schema-path",
     "go-rewrite",
     "graphql-peer-dep",
+    "hip-fishes-end",
     "large-countries-fetch",
     "mutation-error-handling",
     "nasty-tables-fix",

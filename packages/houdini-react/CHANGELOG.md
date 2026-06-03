@@ -1,5 +1,16 @@
 # houdini-react
 
+## 2.0.0-go.20
+
+### Minor Changes
+
+-   [#1609](https://github.com/HoudiniGraphql/houdini/pull/1609) [`bac3a2b5`](https://github.com/HoudiniGraphql/houdini/commit/bac3a2b554f6d990adb6ae6314d524977d7771b5) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Converted react plugin to new go compiler
+
+### Patch Changes
+
+-   Updated dependencies [[`d1848162`](https://github.com/HoudiniGraphql/houdini/commit/d18481625a443cd41f72d605b0999a0ca75c9555)]:
+    -   houdini@2.0.0-go.20
+
 ## 2.0.0-go.19
 
 ### Minor Changes

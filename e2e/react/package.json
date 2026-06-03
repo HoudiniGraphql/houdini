@@ -38,7 +38,7 @@
 		"e2e-api": "workspace:^",
 		"graphql-yoga": "^4.0.4",
 		"houdini": "workspace:^",
-		"houdini-adapter-node": "workspace:2.0.0-go.19",
+		"houdini-adapter-node": "workspace:2.0.0-go.20",
 		"houdini-react": "workspace:^",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
