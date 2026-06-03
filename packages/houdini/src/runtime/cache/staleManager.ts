@@ -43,7 +43,7 @@ export class StaleManager {
 	 */
 	setFieldTimeToNow(id: string, field: string): void {
 		this.#initMapId(id)
-		this.fieldsTime.get(id)?.set(field, new Date().valueOf())
+		this.fieldsTime.get(id)?.set(field, Date.now())
 	}
 
 	/**

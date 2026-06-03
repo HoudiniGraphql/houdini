@@ -21,7 +21,7 @@ export function extractPageInfo(data: any, path: readonly string[]): PageInfo {
 		}
 	}
 
-	let localPath = [...path]
+	const localPath = [...path]
 	// walk down the object until we get to the end
 	let current = data
 	while (localPath.length > 0) {

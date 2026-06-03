@@ -64,7 +64,7 @@ export class HoudiniClient extends BaseClient {
 			)
 		}
 
-		let serverPort =
+		const serverPort =
 			globalThis.process?.env?.HOUDINI_PORT ?? globalThis.process?.env?.PORT ?? '5173'
 
 		super({

@@ -55,7 +55,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 ): FragmentStorePaginated<_Fragment['shape'], {}> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
-		throw new Error('paginatedFragment() must be passed a fragment document: ' + store.kind)
+		throw new Error(`paginatedFragment() must be passed a fragment document: ${store.kind}`)
 	}
 	// if we don't have a pagination fragment there is a problem
 	if (!('paginated' in store)) {
@@ -63,7 +63,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	}
 
 	// TODO: fix type checking paginated
-	// @ts-ignore: the query store will only include the methods when it needs to
+	// @ts-expect-error: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
 	return fragment(initialValue, store)
 }

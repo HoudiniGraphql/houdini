@@ -5,5 +5,5 @@ export { useFragmentHandle } from './useFragmentHandle'
 export { useMutation } from './useMutation'
 export { useSubscription } from './useSubscription'
 
-export { type DocumentHandle } from './useDocumentHandle'
-export { type UseQueryConfig } from './useQueryHandle'
+export type { DocumentHandle } from './useDocumentHandle'
+export type { UseQueryConfig } from './useQueryHandle'

@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { graphql, paginatedFragment } from '$houdini';
-  import type { PageData } from './$types'
-  import { stringify } from '$lib/utils/stringify';
+import { graphql, paginatedFragment } from '$houdini'
+import type { PageData } from './$types'
+import { stringify } from '$lib/utils/stringify'
 
-  export let data: PageData;
+export let data: PageData
 
-  $:({ UserFragmentBackwardsCursorQuery: queryResult } = data);
+$: ({ UserFragmentBackwardsCursorQuery: queryResult } = data)
 
-  $: fragmentResult = paginatedFragment(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data?.user,
-    graphql(`
+$: fragmentResult = paginatedFragment(
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	$queryResult.data?.user,
+	graphql(`
       fragment BackwardsCursorFragment on User {
         friendsConnection(last: 2) @paginate {
           edges {
@@ -21,7 +21,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <div id="result">

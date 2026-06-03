@@ -119,7 +119,7 @@ export interface JwtData {
 
 function base64UrlParse(s: string): Uint8Array {
 	return new Uint8Array(
-		// @ts-ignore
+		// @ts-expect-error
 		Array.prototype.map.call(
 			atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')),
 			(c) => c.charCodeAt(0)
@@ -129,7 +129,7 @@ function base64UrlParse(s: string): Uint8Array {
 }
 
 function base64UrlStringify(a: Uint8Array): string {
-	// @ts-ignore
+	// @ts-expect-error
 	return btoa(String.fromCharCode.apply(0, a))
 		.replace(/=/g, '')
 		.replace(/\+/g, '-')
@@ -177,7 +177,7 @@ function _decodePayload(raw: string): JwtHeader | JwtPayload | null {
 			raw += '='
 			break
 		default:
-			throw new Error('Illegal base64url string!' + raw)
+			throw new Error(`Illegal base64url string!${raw}`)
 	}
 
 	try {
@@ -225,7 +225,7 @@ export async function encode(
 	)}.${base64UrlStringify(_utf8ToUint8Array(payloadAsJSON))}`
 
 	let keyFormat = 'raw'
-	let keyData
+	let keyData: JsonWebKey | ArrayBuffer | string
 
 	if (typeof secret === 'object') {
 		keyFormat = 'jwk'
@@ -240,7 +240,7 @@ export async function encode(
 		)
 	} else keyData = _utf8ToUint8Array(secret)
 
-	// @ts-ignore
+	// @ts-expect-error
 	const key = await crypto.subtle.importKey(keyFormat, keyData, algorithm, false, ['sign'])
 	const signature = await crypto.subtle.sign(
 		algorithm,
@@ -304,7 +304,7 @@ export async function verify(
 		return false
 	}
 	let keyFormat = 'raw'
-	let keyData
+	let keyData: JsonWebKey | ArrayBuffer | string
 
 	if (typeof secret === 'object') {
 		keyFormat = 'jwk'
@@ -319,7 +319,7 @@ export async function verify(
 		)
 	} else keyData = _utf8ToUint8Array(secret)
 
-	// @ts-ignore
+	// @ts-expect-error
 	const key = await crypto.subtle.importKey(keyFormat, keyData, algorithm, false, ['verify'])
 
 	return await crypto.subtle.verify(

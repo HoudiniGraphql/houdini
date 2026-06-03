@@ -1,5 +1,5 @@
-import type { PageLoad } from './$types';
-import { graphql } from '$houdini';
+import type { PageLoad } from './$types'
+import { graphql } from '$houdini'
 
 const store = graphql(`
     query OffsetVariablePaginationQuery($limit: Int!) {
@@ -10,9 +10,9 @@ const store = graphql(`
 `)
 
 export const load: PageLoad = async (event) => {
-    await store.fetch({ event, variables: { limit: 2 } })
+	await store.fetch({ event, variables: { limit: 2 } })
 
-    return {
-        OffsetVariablePaginationQuery: store
-    }
-};
+	return {
+		OffsetVariablePaginationQuery: store,
+	}
+}

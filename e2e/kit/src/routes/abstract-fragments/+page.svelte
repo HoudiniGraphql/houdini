@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  import TestAnimal from './AnimalsList.svelte';
+import type { PageData } from './$types'
+import TestAnimal from './AnimalsList.svelte'
 
-  export let data: PageData;
-  $: ({ MonkeyListQuery } = data);
+export let data: PageData
+$: ({ MonkeyListQuery } = data)
 </script>
 
 data:

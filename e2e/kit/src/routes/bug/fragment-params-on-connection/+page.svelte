@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
-  import { onMount } from 'svelte';
-  import UsersList from './UsersList.svelte';
-  import UserItem from './UserItem.svelte';
+import { graphql } from '$houdini'
+import { onMount } from 'svelte'
+import UsersList from './UsersList.svelte'
+import UserItem from './UserItem.svelte'
 
-  $: store = graphql(`
+$: store = graphql(`
     query Test {
       usersConnection(snapshot: "test-user", first: 5) {
         ...UsersListFragment @with(someParam: true)
@@ -15,11 +15,11 @@
         }
       }
     }
-  `);
+  `)
 
-  onMount(() => {
-    store.fetch();
-  });
+onMount(() => {
+	store.fetch()
+})
 </script>
 
 {#if $store.data}

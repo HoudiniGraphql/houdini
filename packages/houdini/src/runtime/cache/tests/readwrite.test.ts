@@ -7,7 +7,7 @@ import { rootID } from '../stuff'
 
 const config = testConfigFile()
 
-test('write selection to root', function () {
+test('write selection to root', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -59,7 +59,7 @@ test('write selection to root', function () {
 	})
 })
 
-test('write abstract fields of matching type', function () {
+test('write abstract fields of matching type', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -132,7 +132,7 @@ test('write abstract fields of matching type', function () {
 	})
 })
 
-test('use abstract type map when it applies', function () {
+test('use abstract type map when it applies', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -207,7 +207,7 @@ test('use abstract type map when it applies', function () {
 	})
 })
 
-test('ignore abstract fields of unmatched type', function () {
+test('ignore abstract fields of unmatched type', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -324,7 +324,7 @@ test('ignore abstract fields of unmatched type', function () {
 	})
 })
 
-test('linked records with updates', function () {
+test('linked records with updates', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -464,7 +464,7 @@ test('linked records with updates', function () {
 	})
 })
 
-test('linked lists', function () {
+test('linked lists', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -552,7 +552,7 @@ test('linked lists', function () {
 	})
 })
 
-test('list as value with args', function () {
+test('list as value with args', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -614,7 +614,7 @@ test('list as value with args', function () {
 	})
 })
 
-test('writing abstract objects', function () {
+test('writing abstract objects', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -690,7 +690,7 @@ test('writing abstract objects', function () {
 	})
 })
 
-test('writing abstract lists', function () {
+test('writing abstract lists', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -773,7 +773,7 @@ test('writing abstract lists', function () {
 	})
 })
 
-test('can pull enum from cached values', function () {
+test('can pull enum from cached values', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -822,7 +822,7 @@ test('can pull enum from cached values', function () {
 	})
 })
 
-test('can store and retrieve lists with null values', function () {
+test('can store and retrieve lists with null values', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -903,7 +903,7 @@ test('can store and retrieve lists with null values', function () {
 	})
 })
 
-test('can store and retrieve lists of lists of records', function () {
+test('can store and retrieve lists of lists of records', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1008,7 +1008,7 @@ test('can store and retrieve lists of lists of records', function () {
 	})
 })
 
-test('can store and retrieve links with null values', function () {
+test('can store and retrieve links with null values', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1070,7 +1070,7 @@ test('can store and retrieve links with null values', function () {
 	})
 })
 
-test('can write list of just null', function () {
+test('can write list of just null', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1139,7 +1139,7 @@ test('can write list of just null', function () {
 	})
 })
 
-test('null-value cascade from field value', function () {
+test('null-value cascade from field value', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1229,7 +1229,7 @@ test('null-value cascade from field value', function () {
 	})
 })
 
-test('null-value field', function () {
+test('null-value field', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1323,7 +1323,7 @@ test('null-value field', function () {
 	})
 })
 
-test('null-value cascade from object value', function () {
+test('null-value cascade from object value', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1431,7 +1431,7 @@ test('null-value cascade from object value', function () {
 	})
 })
 
-test('null-value cascade to root', function () {
+test('null-value cascade to root', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1528,7 +1528,7 @@ test('null-value cascade to root', function () {
 	})
 })
 
-test('must have a single value in order to use partial data', function () {
+test('must have a single value in order to use partial data', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1624,7 +1624,7 @@ test('must have a single value in order to use partial data', function () {
 	})
 })
 
-test('reading an empty list counts as data', function () {
+test('reading an empty list counts as data', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1724,7 +1724,7 @@ test('reading an empty list counts as data', function () {
 	})
 })
 
-test('does not show visible fields', function () {
+test('does not show visible fields', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1793,7 +1793,7 @@ test('does not show visible fields', function () {
 	})
 })
 
-test('recreates fragment references', function () {
+test('recreates fragment references', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1864,7 +1864,7 @@ test('recreates fragment references', function () {
 	})
 })
 
-test('recreates fragment references on root', function () {
+test('recreates fragment references on root', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -1934,7 +1934,7 @@ test('recreates fragment references on root', function () {
 	})
 })
 
-test('recreates fragment references with variables', function () {
+test('recreates fragment references with variables', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2009,7 +2009,7 @@ test('recreates fragment references with variables', function () {
 	})
 })
 
-test('include directive - positive', function () {
+test('include directive - positive', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2074,7 +2074,7 @@ test('include directive - positive', function () {
 	})
 })
 
-test('include directive - negative', function () {
+test('include directive - negative', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2137,7 +2137,7 @@ test('include directive - negative', function () {
 	})
 })
 
-test('skip directive - positive', function () {
+test('skip directive - positive', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2202,7 +2202,7 @@ test('skip directive - positive', function () {
 	})
 })
 
-test('skip directive - negative', function () {
+test('skip directive - negative', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2265,7 +2265,7 @@ test('skip directive - negative', function () {
 	})
 })
 
-test('can perform full query check while retrieving masked value', function () {
+test('can perform full query check while retrieving masked value', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -2332,7 +2332,7 @@ test('can perform full query check while retrieving masked value', function () {
 	})
 })
 
-test('embedded types can be configured with an empty list', function () {
+test('embedded types can be configured with an empty list', () => {
 	// instantiate the cache
 	const cache = new Cache({
 		...config,
@@ -2420,7 +2420,7 @@ test('embedded types can be configured with an empty list', function () {
 	})
 })
 
-test('reading a component field produces a function and serializing it does not', function () {
+test('reading a component field produces a function and serializing it does not', () => {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -2476,7 +2476,7 @@ test('reading a component field produces a function and serializing it does not'
 		selection,
 	}).data
 
-	// @ts-ignore
+	// @ts-expect-error
 	expect(typeof result?.viewer?.Avatar).toBe('function')
 
 	// should still be able to serialize
@@ -2500,7 +2500,7 @@ test('reading a component field produces a function and serializing it does not'
 	)
 })
 
-test('cascade null through null', function () {
+test('cascade null through null', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 

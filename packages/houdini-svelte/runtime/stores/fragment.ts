@@ -20,7 +20,7 @@ import { BaseStore } from './base'
 export class FragmentStore<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables = GraphQLVariables,
 > {
 	artifact: FragmentArtifact
 	name: string

@@ -27,7 +27,7 @@ adapter.includePaths = ({ config: { runtimeDir } }) => ({
 // we dont want any server artifacts to be generated
 adapter.disableServer = true
 
-adapter.pre = async ({ config, outDir, conventions }) => {
+adapter.pre = async ({ config, outDir: _outDir, conventions: _conventions }) => {
 	// before we do anything, we need to ensure the user isn't using a local API
 	if (config.localSchema) {
 		throw new Error(
@@ -69,14 +69,8 @@ adapter.pre = async ({ config, outDir, conventions }) => {
 
 	// render the index.jsx file to generate the static html that
 	// we can use to wrap the ajvascript application
-	let shellContents = ReactDOM.renderToStaticMarkup(
-		React.createElement(App, {
-			children: [
-				React.createElement('div', {
-					id: 'app',
-				}),
-			],
-		})
+	const shellContents = ReactDOM.renderToStaticMarkup(
+		React.createElement(App, null, React.createElement('div', { id: 'app' }))
 	).replace(
 		'</head>',
 		"<script type='module' src='virtual:houdini/static-entry'></script></head>"

@@ -61,11 +61,11 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType ext
 		let idVariables = {}
 		const value = getState()
 		if (typeConfig.resolve?.arguments) {
-			// @ts-ignore
+			// @ts-expect-error
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			// @ts-ignore
+			// @ts-expect-error
 			idVariables = Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 		}
 
@@ -80,7 +80,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType ext
 export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables,
 > extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
 	// we want to add the cursor-based fetch to the return value of get
 	get(initialValue: _Data | { [fragmentKey]: _ReferenceType } | null) {
@@ -136,7 +136,7 @@ export class FragmentStoreCursor<
 
 	protected storeHandlers(
 		observer: DocumentStore<_Data, _Input>,
-		initialValue: _Data | null,
+		_initialValue: _Data | null,
 		getState: () => _Data | null,
 		getVariables: () => NonNullable<_Input>
 	): CursorHandlers<_Data, _Input> {
@@ -183,7 +183,7 @@ export class FragmentStoreCursor<
 export class FragmentStoreOffset<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables,
 > extends BasePaginatedFragmentStore<_Data, _ReferenceType, _Input> {
 	get(initialValue: _Data | null): OffsetFragmentStoreInstance<_Data, _Input> {
 		const base = new FragmentStore<_Data, {}, _Input>({
@@ -255,7 +255,7 @@ export class FragmentStoreOffset<
 		return {
 			kind: CompiledFragmentKind,
 			data: derived(paginationStore, ($value) => $value.data!),
-			// @ts-ignore
+			// @ts-expect-error
 			subscribe,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,

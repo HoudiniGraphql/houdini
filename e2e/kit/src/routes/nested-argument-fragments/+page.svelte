@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  import User from './User.svelte';
+import type { PageData } from './$types'
+import User from './User.svelte'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ NestedFragmentArgs } = data);
+$: ({ NestedFragmentArgs } = data)
 </script>
 
 <pre>

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  import { stringify } from '$lib/utils/stringify';
+import type { PageData } from './$types'
+import { stringify } from '$lib/utils/stringify'
 
-  interface Props {
-    data: PageData;
-  }
-  const { data }: Props = $props();
-  const { Svelte5Pagination } = $derived(data);
+interface Props {
+	data: PageData
+}
+const { data }: Props = $props()
+const { Svelte5Pagination } = $derived(data)
 </script>
 
 <div id="result">

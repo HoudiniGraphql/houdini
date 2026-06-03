@@ -563,12 +563,12 @@ export async function write_config(
 		JSON.stringify(
 			typeof config_file.include === 'string'
 				? [config_file.include]
-				: config_file.include ?? []
+				: (config_file.include ?? [])
 		),
 		JSON.stringify(
 			typeof config_file.exclude === 'string'
 				? [config_file.exclude]
-				: config_file.exclude ?? []
+				: (config_file.exclude ?? [])
 		),
 		config_file.schemaPath!,
 		config_file.definitionsPath ?? '',
@@ -597,8 +597,8 @@ export async function write_config(
 
 	// write router config
 	if (config.config_file.router) {
-		let session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
-		let api_endpoint: string | null = null
+		const session_keys = config.config_file.router.auth?.sessionKeys.join(',') ?? ''
+		const api_endpoint: string | null = null
 		let url: string | null = null
 		let mutation: string | null = null
 		let redirect: string | null = null
@@ -633,8 +633,8 @@ export async function write_config(
 		const headers = !config.config_file.watchSchema.headers
 			? {}
 			: typeof config.config_file.watchSchema.headers === 'function'
-			? typeof config.config_file.watchSchema.headers(env)
-			: typeof config.config_file.watchSchema.headers
+				? typeof config.config_file.watchSchema.headers(env)
+				: typeof config.config_file.watchSchema.headers
 		db.prepare(
 			`INSERT INTO watch_schema_config (
 				url,
@@ -651,9 +651,19 @@ export async function write_config(
 	}
 
 	// write the scalar configs
-	insert = db.prepare('INSERT INTO scalar_config (name, type, input_types, module, default_import) VALUES (?, ?, ?, ?, ?)')
-	for (const [name, { type, inputTypes, module, default: isDefault }] of Object.entries(config.config_file.scalars ?? {})) {
-		insert.run(name, type, JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)), module ?? null, isDefault ? 1 : null)
+	insert = db.prepare(
+		'INSERT INTO scalar_config (name, type, input_types, module, default_import) VALUES (?, ?, ?, ?, ?)'
+	)
+	for (const [name, { type, inputTypes, module, default: isDefault }] of Object.entries(
+		config.config_file.scalars ?? {}
+	)) {
+		insert.run(
+			name,
+			type,
+			JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)),
+			module ?? null,
+			isDefault ? 1 : null
+		)
 	}
 
 	// write the type configs

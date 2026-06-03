@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { UsersListSubUnSubStore } from '$houdini';
-  import { onMount } from 'svelte';
+import { UsersListSubUnSubStore } from '$houdini'
+import { onMount } from 'svelte'
 
-  const usersListSubUnSub = new UsersListSubUnSubStore();
+const usersListSubUnSub = new UsersListSubUnSubStore()
 
-  onMount(() => {
-    usersListSubUnSub.fetch();
-  });
+onMount(() => {
+	usersListSubUnSub.fetch()
+})
 </script>
 
 <h1>Sub Unsub - List</h1>

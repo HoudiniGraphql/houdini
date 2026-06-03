@@ -28,7 +28,7 @@ type QuerySuspenseUnit = {
 export function useQueryHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables = GraphQLVariables,
 >(
 	{ artifact }: { artifact: QueryArtifact },
 	variables: any = null,
@@ -45,7 +45,7 @@ export function useQueryHandle<
 	const isMountedRef = useIsMountedRef()
 
 	// hold onto an observer we'll use
-	let [observer] = React.useState(
+	const [observer] = React.useState(
 		client.observe<_Data, _Input>({
 			artifact,
 			initialValue: (suspenseValue?.resolved?.data ?? {}) as _Data,
@@ -68,7 +68,7 @@ export function useQueryHandle<
 				}
 			})
 		},
-		[observer]
+		[observer, isMountedRef.current]
 	)
 
 	// get a safe reference to the cache
@@ -97,7 +97,7 @@ export function useQueryHandle<
 	}, [observer])
 
 	// if the promise has resolved, let's use that for our first render
-	let result = storeValue.data
+	const result = storeValue.data
 
 	if (!suspenseValue) {
 		// we are going to cache the promise and then throw it
@@ -107,13 +107,14 @@ export function useQueryHandle<
 		const loadPromise = new Promise<void>((r) => (resolve = r))
 
 		const suspenseUnit: QuerySuspenseUnit = {
+			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
-			// @ts-ignore
+			// @ts-expect-error
 			variables,
 		}
 
-		// @ts-ignore
+		// @ts-expect-error
 		promiseCache.set(identifier, suspenseUnit)
 
 		// the suspense unit gives react something to hold onto
@@ -122,13 +123,13 @@ export function useQueryHandle<
 		handle
 			.fetch({
 				variables,
-				// @ts-ignore: this is actually allowed... 🤫
+				// @ts-expect-error: this is actually allowed... 🤫
 				stuff: {
 					silenceLoading: true,
 				},
 			})
 			.then((value) => {
-				// @ts-ignore
+				// @ts-expect-error
 				// the final value
 				suspenseUnit.resolved = {
 					...handle,

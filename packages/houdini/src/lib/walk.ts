@@ -14,7 +14,7 @@ import {
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-	Script,
+	type Script,
 } from './types.js'
 
 export type EmbeddedGraphqlDocument = {
@@ -59,7 +59,7 @@ export async function find_graphql(
 			}
 
 			let documentString: string = ''
-			let propName: string = ''
+			let _propName: string = ''
 
 			// process template tags
 			if (node.type === 'TaggedTemplateExpression') {
@@ -126,7 +126,7 @@ export async function find_graphql(
 				}
 
 				if (signature.key.type === 'Identifier') {
-					propName = signature.key.name
+					_propName = signature.key.name
 				}
 			} else if (!documentString) {
 				return

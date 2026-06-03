@@ -138,7 +138,7 @@ export class ListCollection<Def extends CacheTypeDef, ListName extends ValidList
 		let selection: SubscriptionSelection = this.#collection!.selection
 		// if the list is a connection, we can't use this selection immediately
 		// we need to look for edges.node
-		const connectionSelection = selection.fields?.['edges']?.selection?.fields?.node.selection
+		const connectionSelection = selection.fields?.edges?.selection?.fields?.node.selection
 		if (connectionSelection) {
 			selection = connectionSelection
 		}

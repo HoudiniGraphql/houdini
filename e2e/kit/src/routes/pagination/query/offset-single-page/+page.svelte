@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { graphql, CachePolicy } from '$houdini';
-  import type { PageData } from './$types'
+import { graphql, CachePolicy } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ OffsetPaginationSinglePageQuery: result } = data);
+$: ({ OffsetPaginationSinglePageQuery: result } = data)
 </script>
 
 <div id="result">

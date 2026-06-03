@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { fragment, graphql } from '$houdini';
+import { fragment, graphql } from '$houdini'
 
-  import type { PageData } from './$types';
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ UserConnectionFragmentQuery: queryResult } = data);
+$: ({ UserConnectionFragmentQuery: queryResult } = data)
 
-  $: frag = fragment(
-    $queryResult.data?.user?.friendsConnection ?? null,
-    graphql(`
+$: frag = fragment(
+	$queryResult.data?.user?.friendsConnection ?? null,
+	graphql(`
       fragment ConnectionFragment on UserConnection {
         edges {
           node {
@@ -18,7 +18,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <div id="result">

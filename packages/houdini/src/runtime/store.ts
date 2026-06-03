@@ -60,11 +60,12 @@ export class Writable<T> {
 }
 
 function safe_not_equal(a: any, b: any) {
-	return a != a ? b == b : a !== b || (a && typeof a === 'object') || typeof a === 'function'
+	// biome-ignore lint/suspicious/noSelfCompare: NaN check — a !== a is true only for NaN
+	return a !== a ? b === b : a !== b || (a && typeof a === 'object') || typeof a === 'function'
 }
 
 /** Start and stop notification callbacks. */
-type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | void
+type StartStopNotifier<T> = (set: Subscriber<T>) => Unsubscriber | undefined
 
 /** Pair of subscriber and invalidator. */
 type SubscribeInvalidateTuple<T> = [Subscriber<T>, Invalidator<T>]

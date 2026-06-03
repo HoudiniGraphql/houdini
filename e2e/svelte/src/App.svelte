@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { graphql } from '$houdini'
+import { graphql } from '$houdini'
 
-	import houdiniLogo from './assets/logo_l.svg'
-	import svelteLogo from './assets/svelte.svg'
-	import Counter from './lib/Counter.svelte'
+import houdiniLogo from './assets/logo_l.svg'
+import svelteLogo from './assets/svelte.svg'
+import Counter from './lib/Counter.svelte'
 
-	const store = graphql(`
+const store = graphql(`
 		query Hello @load {
 			hello
 		}

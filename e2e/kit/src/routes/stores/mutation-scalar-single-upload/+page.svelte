@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { singleUploadStore } from '$houdini';
+import { singleUploadStore } from '$houdini'
 
-  const singleUpload = new singleUploadStore();
+const singleUpload = new singleUploadStore()
 
-  async function upload() {
-    const file = new File(['Houdini'], 'foo.txt', {
-      type: 'text/plain'
-    });
+async function upload() {
+	const file = new File(['Houdini'], 'foo.txt', {
+		type: 'text/plain',
+	})
 
-    await singleUpload.mutate({ file: file });
-  }
+	await singleUpload.mutate({ file: file })
+}
 </script>
 
 <h1>Mutation single upload</h1>

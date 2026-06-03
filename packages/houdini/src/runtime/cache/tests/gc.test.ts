@@ -7,7 +7,7 @@ import { Cache } from '../index'
 const config = testConfigFile()
 config.cacheBufferSize! = 10
 
-test('adequate ticks of garbage collector clear unsubscribed data', function () {
+test('adequate ticks of garbage collector clear unsubscribed data', () => {
 	const cache = new Cache(config)
 
 	const userFields: SubscriptionSelection = {
@@ -59,7 +59,7 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 	})
 })
 
-test("subscribed data shouldn't be garbage collected", function () {
+test("subscribed data shouldn't be garbage collected", () => {
 	const cache = new Cache(testConfigFile())
 
 	cache.write({
@@ -139,7 +139,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 	).toEqual({ id: '1' })
 })
 
-test('resubscribing to fields marked for garbage collection resets counter', function () {
+test('resubscribing to fields marked for garbage collection resets counter', () => {
 	const cache = new Cache(testConfigFile())
 
 	cache.write({
@@ -276,7 +276,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 })
 
-test('ticks of gc delete list handlers', function () {
+test('ticks of gc delete list handlers', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
 

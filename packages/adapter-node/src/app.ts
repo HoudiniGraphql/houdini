@@ -36,8 +36,8 @@ function handleAssets(
 		req: IncomingMessage
 	}
 ) {
-	let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url ?? '/')
-	let extname = path.extname(filePath)
+	const filePath = path.join(__dirname, req.url === '/' ? 'index.html' : (req.url ?? '/'))
+	const extname = path.extname(filePath)
 	let contentType = 'text/html'
 
 	// Determine the content type based on the file extension
@@ -69,7 +69,7 @@ function handleAssets(
 		if (error) {
 			if (error.code === 'ENOENT') {
 				// If the file is not found, return a 404
-				fs.readFile(path.join(__dirname, '404.html'), (error, content) => {
+				fs.readFile(path.join(__dirname, '404.html'), (_error, content) => {
 					res.writeHead(404, { 'Content-Type': 'text/html' })
 					res.end(content, 'utf8')
 				})

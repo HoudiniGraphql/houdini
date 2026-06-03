@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
-  import type { LayoutData } from './$types'
+import { graphql } from '$houdini'
+import type { LayoutData } from './$types'
 
-  export let data: LayoutData
+export let data: LayoutData
 
-  $: ({LayoutCity: store} = data)
-
+$: ({ LayoutCity: store } = data)
 </script>
 
 <h3>inside +layout.svelte: (try disabling this query, or enabling <code>...CityDetails</code>)</h3>

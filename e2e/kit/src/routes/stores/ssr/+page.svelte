@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { PageData } from './$types';
+import type { PageData } from './$types'
 
-  export let data: PageData;
-  $: ({ usersList, Hello } = data);
+export let data: PageData
+$: ({ usersList, Hello } = data)
 </script>
 
 <h1>SSR</h1>

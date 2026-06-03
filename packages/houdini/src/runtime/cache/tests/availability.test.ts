@@ -6,7 +6,7 @@ import { Cache } from '../index'
 
 const config = testConfigFile()
 
-test('not partial', function () {
+test('not partial', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -84,7 +84,7 @@ test('not partial', function () {
 	})
 })
 
-test('not partial with empty list', function () {
+test('not partial with empty list', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -155,7 +155,7 @@ test('not partial with empty list', function () {
 	})
 })
 
-test('partial with missing linked record', function () {
+test('partial with missing linked record', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -225,7 +225,7 @@ test('partial with missing linked record', function () {
 	})
 })
 
-test('partial with missing single field', function () {
+test('partial with missing single field', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -288,7 +288,7 @@ test('partial with missing single field', function () {
 	})
 })
 
-test('partial missing data inside of linked list', function () {
+test('partial missing data inside of linked list', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -347,7 +347,7 @@ test('partial missing data inside of linked list', function () {
 	})
 })
 
-test('missing cursor of item in connection from operation should not trigger null cascade', function () {
+test('missing cursor of item in connection from operation should not trigger null cascade', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 

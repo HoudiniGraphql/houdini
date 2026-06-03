@@ -19,7 +19,7 @@ export function graphql(str: string): never {
 	// the query instead of throwing an error. We don't want to bundle the graphql
 	// module into the runtime so all we can do is return the query string
 	if (globalThis?.process?.env?.HOUDINI_PLUGIN) {
-		// @ts-ignore: this is a totally internal/hidden value. user will never see it and we won't
+		// @ts-expect-error: this is a totally internal/hidden value. user will never see it and we won't
 		//             and ever get a typed value of this since it's only used in the result of a dynamic
 		//             import from the plugin which gives Record<string, any>
 		return str

@@ -15,7 +15,7 @@ beforeEach(async () => {
 	setMockConfig({})
 })
 
-test('NetworkOnly', async function () {
+test('NetworkOnly', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -67,7 +67,7 @@ test('NetworkOnly', async function () {
 	})
 })
 
-test('CacheOrNetwork', async function () {
+test('CacheOrNetwork', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -119,7 +119,7 @@ test('CacheOrNetwork', async function () {
 	})
 })
 
-test('CacheAndNetwork', async function () {
+test('CacheAndNetwork', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -185,7 +185,7 @@ test('CacheAndNetwork', async function () {
 	})
 })
 
-test('CacheOnly', async function () {
+test('CacheOnly', async () => {
 	const spy = vi.fn()
 
 	const store = createStore({
@@ -252,7 +252,7 @@ test('CacheOnly', async function () {
 	})
 })
 
-test('stale', async function () {
+test('stale', async () => {
 	const setFetching = vi.fn()
 	const fn = vi.fn()
 
@@ -361,7 +361,7 @@ test('stale', async function () {
 	})
 })
 
-test('NoCache', async function () {
+test('NoCache', async () => {
 	const spy = vi.fn()
 
 	const cache = new Cache({ ...config, disabled: false })
@@ -423,7 +423,7 @@ test('NoCache', async function () {
 	expect(Object.keys(cache._internal_unstable.storage.topLayer.fields)).toHaveLength(0)
 })
 
-test('loading states when fetching is true', async function () {
+test('loading states when fetching is true', async () => {
 	// create the store
 	const store = createStore()
 

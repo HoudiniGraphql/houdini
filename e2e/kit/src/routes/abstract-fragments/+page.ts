@@ -1,5 +1,5 @@
-import type { PageLoad } from './$types';
-import { graphql } from '$houdini';
+import type { PageLoad } from './$types'
+import { graphql } from '$houdini'
 
 const store = graphql(`
     query MonkeyListQuery {
@@ -16,9 +16,9 @@ const store = graphql(`
 `)
 
 export const load: PageLoad = async (event) => {
-    await store.fetch({ event })
+	await store.fetch({ event })
 
-    return {
-        MonkeyListQuery: store
-    }
-};
+	return {
+		MonkeyListQuery: store,
+	}
+}

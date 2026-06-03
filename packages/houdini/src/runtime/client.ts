@@ -19,7 +19,7 @@ export type HoudiniClientConstructorArgs = {
 export type ObserveParams<
 	_Data extends GraphQLObject,
 	_Artifact extends DocumentArtifact = DocumentArtifact,
-	_Input extends GraphQLVariables | undefined = GraphQLVariables
+	_Input extends GraphQLVariables | undefined = GraphQLVariables,
 > = {
 	artifact: _Artifact
 	enableCache?: boolean

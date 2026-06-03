@@ -26,8 +26,8 @@ function colorize(message: string): string[] {
 		return [message]
 	}
 
-	let final = message.replaceAll(/\$HOUDINI\$(\w*\$)?/g, '%c')
-	let colors: string[] = []
+	const final = message.replaceAll(/\$HOUDINI\$(\w*\$)?/g, '%c')
+	const colors: string[] = []
 
 	// ever match with a color, adds something to the list. the others add an empty string (a reset)
 	for (const match of matches) {
@@ -65,5 +65,5 @@ export function green(message: string) {
 const tag = `$HOUDINI$`
 
 const wrapMessage = (color: string, message: string) => {
-	return tag + `${color}$` + message + tag
+	return `${tag}${color}$${message}${tag}`
 }

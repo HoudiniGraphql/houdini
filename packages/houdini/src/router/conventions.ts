@@ -1,4 +1,4 @@
-import { type Config } from '../lib/config.js'
+import type { Config } from '../lib/config.js'
 import * as fs from '../lib/fs.js'
 import * as path from '../lib/path.js'
 
@@ -75,8 +75,8 @@ export async function read_pageQuery(base: string) {
 /** Load the page view for the given route from disk */
 export async function read_pageView(base: string) {
 	for (const name of ['+page.tsx', '+page.jsx']) {
-		let target = path.join(base, name)
-		let result = await fs.readFile(target)
+		const target = path.join(base, name)
+		const result = await fs.readFile(target)
 		if (result) {
 			return [target, result]
 		}
@@ -94,8 +94,8 @@ export async function read_layoutQuery(base: string) {
 /** Load the layout view for the given route from disk */
 export async function read_layoutView(base: string) {
 	for (const name of ['+layout.tsx', '+layout.jsx']) {
-		let target = path.join(base, name)
-		let result = await fs.readFile(target)
+		const target = path.join(base, name)
+		const result = await fs.readFile(target)
 		if (result) {
 			return [target, result]
 		}

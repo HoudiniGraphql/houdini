@@ -1,10 +1,10 @@
-import { graphql, load_TestMutationUpdateUsersList } from '$houdini';
-import type { LoadEvent } from '@sveltejs/kit';
+import { graphql, load_TestMutationUpdateUsersList } from '$houdini'
+import type { LoadEvent } from '@sveltejs/kit'
 
 export async function load(event: LoadEvent) {
-  return {
-    ...(await load_TestMutationUpdateUsersList({ event }))
-  };
+	return {
+		...(await load_TestMutationUpdateUsersList({ event })),
+	}
 }
 
 graphql(`
@@ -15,4 +15,4 @@ graphql(`
       ...UserInfo
     }
   }
-`);
+`)

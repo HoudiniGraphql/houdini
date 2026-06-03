@@ -41,4 +41,4 @@ export const throwOnError =
 	}
 
 const defaultErrorFn: Required<ThrowOnErrorParams>['error'] = async (errors) =>
-	new Error(errors.map((error) => error.message).join('. ') + '.')
+	new Error(`${errors.map((error) => error.message).join('. ')}.`)

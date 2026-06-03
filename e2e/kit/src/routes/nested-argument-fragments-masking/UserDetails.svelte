@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { fragment, graphql, type UserDetails } from '$houdini';
-  import FriendInfo from './FriendInfo.svelte';
+import { fragment, graphql, type UserDetails } from '$houdini'
+import FriendInfo from './FriendInfo.svelte'
 
-  export let user: UserDetails;
+export let user: UserDetails
 
-  $: userDetails = fragment(
-    user,
-    graphql(`
+$: userDetails = fragment(
+	user,
+	graphql(`
       fragment UserDetails on User @arguments(someParam: { type: "Boolean!" }) {
         id
         name
@@ -19,7 +19,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <li>

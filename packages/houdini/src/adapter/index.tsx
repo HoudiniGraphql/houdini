@@ -13,5 +13,5 @@ export let createServerAdapter: (
 		| 'componentCache'
 		| 'client'
 		| 'config_file'
-	>,
+	>
 ) => ReturnType<typeof createAdapter>

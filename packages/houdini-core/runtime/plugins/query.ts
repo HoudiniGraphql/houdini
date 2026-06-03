@@ -5,7 +5,7 @@ import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime
 import { documentPlugin } from './utils'
 
 export const query = (cache: Cache) =>
-	documentPlugin(ArtifactKind.Query, function () {
+	documentPlugin(ArtifactKind.Query, () => {
 		// track the bits of state we need to hold onto
 		let subscriptionSpec: SubscriptionSpec | null = null
 

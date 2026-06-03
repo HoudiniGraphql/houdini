@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  import UserItem from './UserItem.svelte';
+import type { PageData } from './$types'
+import UserItem from './UserItem.svelte'
 
-  export let data: PageData;
-  $: ({ ListUsers } = data);
+export let data: PageData
+$: ({ ListUsers } = data)
 </script>
 
 <div id="result">

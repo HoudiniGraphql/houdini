@@ -3,7 +3,7 @@ import { test, expect } from 'vitest'
 import { ArtifactKind, type FragmentArtifact, type SubscriptionSelection } from '../../lib'
 import { testCache, testFragment } from './test'
 
-test('can read fragment', function () {
+test('can read fragment', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -97,7 +97,7 @@ test('can read fragment', function () {
 	})
 })
 
-test('can writeFragments', function () {
+test('can writeFragments', () => {
 	const cache = testCache()
 
 	const selection: SubscriptionSelection = {
@@ -210,7 +210,7 @@ test('can writeFragments', function () {
 	})
 })
 
-test('can read and write variables', function () {
+test('can read and write variables', () => {
 	const cache = testCache()
 
 	const artifact: FragmentArtifact = {

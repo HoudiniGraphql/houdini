@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { fragment, graphql } from '$houdini';
-  import type { PageData } from './$types';
-  import MonkeyList from './MonkeyList.svelte';
+import { fragment, graphql } from '$houdini'
+import type { PageData } from './$types'
+import MonkeyList from './MonkeyList.svelte'
 
-  export let data: PageData;
-  $: ({ MonkeyListQueryForNesting } = data);
+export let data: PageData
+$: ({ MonkeyListQueryForNesting } = data)
 
-  $: initialFragmentData = fragment(
-    $MonkeyListQueryForNesting.data?.monkeys,
-    graphql(`
+$: initialFragmentData = fragment(
+	$MonkeyListQueryForNesting.data?.monkeys,
+	graphql(`
       fragment InitialData on MonkeyConnection {
         edges {
           node {
@@ -17,7 +17,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 data:

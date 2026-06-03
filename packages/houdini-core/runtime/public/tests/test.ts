@@ -61,7 +61,7 @@ export type CacheTypeDefTest = {
 				id: string
 			}
 			fragments: [
-				[{ artifact: FragmentArtifact }, { firstName: string }, { pattern: string }]
+				[{ artifact: FragmentArtifact }, { firstName: string }, { pattern: string }],
 			]
 			fields: {
 				firstName: {
@@ -138,8 +138,8 @@ export type CacheTypeDefTest = {
 					}
 				}
 			},
-			any
-		]
+			any,
+		],
 	]
 	lists: {
 		All_Pets: {

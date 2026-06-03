@@ -1,5 +1,5 @@
 fragment UserInfo on User {
-  id
-  name
-  birthDate
+	id
+	name
+	birthDate
 }

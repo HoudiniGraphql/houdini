@@ -1,4 +1,4 @@
-import { HoudiniClient } from '$houdini/runtime/client'
+import type { HoudiniClient } from '$houdini/runtime/client'
 import { getCurrentConfig } from '$houdini/runtime/config'
 import type { LoadEvent } from '@sveltejs/kit'
 import type { HoudiniSvelteConfig } from 'houdini-svelte'
@@ -28,7 +28,7 @@ import { BaseStore } from './base'
 
 export class QueryStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 > extends BaseStore<_Data, _Input, QueryArtifact> {
 	// whether the store requires variables for input
 	variables: boolean
@@ -196,7 +196,7 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 
 export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
-	storeName: string,
+	_storeName: string,
 	params?: QueryStoreFetchParams<_Data, _Input>
 ): Promise<{
 	context: FetchContext
@@ -239,7 +239,7 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	}
 }
 
-const contextError = (storeName: string) => `
+const _contextError = (storeName: string) => `
 	${log.red(`Missing event args in load function`)}.
 
 Please remember to pass event to fetch like so:

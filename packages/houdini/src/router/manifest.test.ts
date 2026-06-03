@@ -4,7 +4,7 @@ import { fs } from '../lib'
 import { testConfig, clearMock } from '../test'
 import { load_manifest, extractQueries } from './manifest'
 
-test('empty routes dir generates empty manifest', async function () {
+test('empty routes dir generates empty manifest', async () => {
 	const config = testConfig()
 
 	// create the mock filesystem with empty routes directory
@@ -30,7 +30,7 @@ test('empty routes dir generates empty manifest', async function () {
 	`)
 })
 
-test('route groups', async function () {
+test('route groups', async () => {
 	const config = testConfig()
 
 	// create the mock filesystem
@@ -125,7 +125,7 @@ test('route groups', async function () {
 	`)
 })
 
-test('nested route structure happy path', async function () {
+test('nested route structure happy path', async () => {
 	const config = testConfig()
 
 	// create the mock filesystem
@@ -370,7 +370,7 @@ test('nested route structure happy path', async function () {
 	`)
 })
 
-test('local schema', async function () {
+test('local schema', async () => {
 	const config = testConfig()
 
 	// create the mock filesystem
@@ -602,7 +602,7 @@ test('local schema', async function () {
 	`)
 })
 
-test('local yoga', async function () {
+test('local yoga', async () => {
 	const config = testConfig()
 
 	// create the mock filesystem
@@ -834,7 +834,7 @@ test('local yoga', async function () {
 	`)
 })
 
-test('extract route params', async function () {
+test('extract route params', async () => {
 	const config = testConfig()
 
 	// create the mock filesystem
@@ -1131,7 +1131,7 @@ describe('validate filesystem', async () => {
 			pass: false,
 			filesystem: {
 				[config.routes_dir]: {
-					['subRoute']: {
+					subRoute: {
 						'+page.tsx': mockView(['RootQuery']),
 					},
 					'+page.gql': mockQuery('RootQuery'),
@@ -1143,9 +1143,9 @@ describe('validate filesystem', async () => {
 			pass: false,
 			filesystem: {
 				[config.routes_dir]: {
-					['subRoute']: {
+					subRoute: {
 						'+page.tsx': mockView(['RootQuery']),
-						['subSubRoute']: {
+						subSubRoute: {
 							'+page.gql': mockQuery('RootQuery'),
 						},
 					},
@@ -1157,7 +1157,7 @@ describe('validate filesystem', async () => {
 			pass: true,
 			filesystem: {
 				[config.routes_dir]: {
-					['subRoute']: {
+					subRoute: {
 						'+layout.gql': mockQuery('RootQuery'),
 						'+page.tsx': mockView(['RootQuery']),
 					},
@@ -1169,10 +1169,10 @@ describe('validate filesystem', async () => {
 			pass: true,
 			filesystem: {
 				[config.routes_dir]: {
-					['subRoute']: {
+					subRoute: {
 						'+layout.gql': mockQuery('RootQuery'),
-						['subSubRoute']: {
-							['subSubSubRoute']: {
+						subSubRoute: {
+							subSubSubRoute: {
 								'+page.tsx': mockView(['RootQuery']),
 							},
 						},
@@ -1185,9 +1185,9 @@ describe('validate filesystem', async () => {
 			pass: false,
 			filesystem: {
 				[config.routes_dir]: {
-					['subRoute']: {
+					subRoute: {
 						'+page.tsx': mockView(['RootQuery']),
-						['subSubRoute']: {
+						subSubRoute: {
 							'+layout.gql': mockQuery('RootQuery'),
 						},
 					},

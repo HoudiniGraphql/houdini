@@ -9,7 +9,7 @@ import { promisify } from 'node:util'
 import { houdini_mode } from './constants.js'
 import * as path from './path.js'
 
-export function copyFileSync(src: string, dest: string): void | null {
+export function copyFileSync(src: string, dest: string): undefined | null {
 	if (houdini_mode.is_testing) {
 		try {
 			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
@@ -19,19 +19,19 @@ export function copyFileSync(src: string, dest: string): void | null {
 
 			memfs.copyFileSync(src, dest)
 			return
-		} catch (e) {
+		} catch (_e) {
 			return null
 		}
 	}
 	try {
 		fsExtra.copyFileSync(src, dest)
 		return
-	} catch (e) {}
+	} catch (_e) {}
 
 	return null
 }
 
-export async function copyFile(src: string, dest: string): Promise<void | null> {
+export async function copyFile(src: string, dest: string): Promise<undefined | null> {
 	if (houdini_mode.is_testing) {
 		try {
 			if (src.includes('build/runtime') || dest.includes('build/runtime')) {
@@ -43,14 +43,14 @@ export async function copyFile(src: string, dest: string): Promise<void | null> 
 				throw err
 			})
 			return
-		} catch (e) {
+		} catch (_e) {
 			return null
 		}
 	}
 	try {
 		await fs.copyFile(src, dest)
 		return
-	} catch (e) {}
+	} catch (_e) {}
 
 	return null
 }
@@ -66,14 +66,14 @@ export async function readFile(
 			}
 
 			return memfs.readFileSync(filepath, encoding ?? 'utf-8')!.toString()
-		} catch (e) {
+		} catch (_e) {
 			return null
 		}
 	}
 
 	try {
 		return await fs.readFile(filepath, 'utf8')
-	} catch (error) {}
+	} catch (_error) {}
 
 	return null
 }
@@ -86,14 +86,14 @@ export function readFileSync(filepath: string): string | null {
 			}
 
 			return memfs.readFileSync(filepath, 'utf-8')!.toString()
-		} catch (e) {
+		} catch (_e) {
 			return null
 		}
 	}
 
 	try {
 		return fsExtra.readFileSync(filepath, 'utf-8')
-	} catch (error) {}
+	} catch (_error) {}
 
 	return null
 }
@@ -217,16 +217,16 @@ export async function readdir(
 ): Promise<Dirent[] | string[]> {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
-		// @ts-ignore
+		// @ts-expect-error
 		return await fs.readdir(filepath, opts)
 	}
 
 	if (filepath.includes('build/runtime')) {
-		// @ts-ignore
+		// @ts-expect-error
 		return await fs.readdir(filepath, opts)
 	}
 	try {
-		// @ts-ignore
+		// @ts-expect-error
 		return memfs.readdirSync(filepath, opts) as string[]
 	} catch {
 		return []
@@ -276,16 +276,14 @@ export async function recursiveCopy(
 	try {
 		await access(parentDir)
 		// the parent directory does not exist
-	} catch (e) {
+	} catch (_e) {
 		await mkdirp(parentDir)
 	}
 	// check if we are copying a directory
 	if ((await stat(source)).isDirectory()) {
 		// look in the contents of the source directory
 		await Promise.all(
-			(
-				await readdir(source)
-			).map(async (child) => {
+			(await readdir(source)).map(async (child) => {
 				// figure out the full path of the source
 				const childPath = path.join(source, child)
 
@@ -300,7 +298,7 @@ export async function recursiveCopy(
 
 					// if we have a transform, read the file and then write it
 					if (transforms?.[childPath]) {
-						let original = (await readFile(childPath)) || ''
+						const original = (await readFile(childPath)) || ''
 						await writeFile(
 							targetPath,
 							await transforms[childPath](original, childPath)

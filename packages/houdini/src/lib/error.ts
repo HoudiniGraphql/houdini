@@ -70,7 +70,7 @@ export function format_hook_error(rootDir: string, error: HookError, plugin: str
 		'red',
 		`${error.kind ?? 'internal'} error during ${hook.toLowerCase()} @ ${plugin}`
 	)} -----------------------------\n`
-	message += error.message + '\n'
+	message += `${error.message}\n`
 	message += '\n'
 
 	try {

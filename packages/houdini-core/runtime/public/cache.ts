@@ -27,7 +27,7 @@ export class Cache<Def extends CacheTypeDef> {
 	// return the record proxy for the given type/id combo
 	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
 		// compute the id for the record
-		let recordID = this._internal_unstable._internal_unstable.id(type, data)
+		const recordID = this._internal_unstable._internal_unstable.id(type, data)
 		if (!recordID) {
 			throw new Error('todo')
 		}
@@ -108,7 +108,7 @@ export class Cache<Def extends CacheTypeDef> {
 			when?: ArgType<Def, _Type, _Field>
 		}
 	): void {
-		return this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
+		this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
 	}
 
 	/**
@@ -116,6 +116,6 @@ export class Cache<Def extends CacheTypeDef> {
 	 */
 
 	reset(): void {
-		return this._internal_unstable.reset()
+		this._internal_unstable.reset()
 	}
 }

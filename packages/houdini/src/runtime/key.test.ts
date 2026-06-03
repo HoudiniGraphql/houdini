@@ -4,11 +4,11 @@ import { test, expect, describe } from 'vitest'
 import { testConfig } from '../test'
 import { computeKey } from './key'
 
-const config = testConfig()
+const _config = testConfig()
 
 // we need to make sure that the imperative API behaves similarly to the
 // artifact generator
-describe('evaluateKey', function () {
+describe('evaluateKey', () => {
 	const table = [
 		{
 			title: 'int',
@@ -61,9 +61,9 @@ describe('evaluateKey', function () {
 	]
 
 	for (const row of table) {
-		test(row.title, function () {
+		test(row.title, () => {
 			// figure out the key we would have printed during codegen
-			const field = graphql
+			const _field = graphql
 				.parse(`{ ${row.expected} }`)
 				.definitions.find<graphql.OperationDefinitionNode>(
 					(def): def is graphql.OperationDefinitionNode =>

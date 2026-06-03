@@ -2,8 +2,8 @@ import { test, expect, describe } from 'vitest'
 
 import { InMemoryStorage, OperationLocation } from '../storage'
 
-describe('in memory layers', function () {
-	test('first layer written can be looked up', function () {
+describe('in memory layers', () => {
+	test('first layer written can be looked up', () => {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
@@ -20,7 +20,7 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(1)
 	})
 
-	test('non-optimistic layer overwrites base', function () {
+	test('non-optimistic layer overwrites base', () => {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
@@ -37,7 +37,7 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(1)
 	})
 
-	test('optimistic layer overwrites base', function () {
+	test('optimistic layer overwrites base', () => {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
@@ -56,7 +56,7 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(2)
 	})
 
-	test('resolving layer merges into base', function () {
+	test('resolving layer merges into base', () => {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
@@ -94,7 +94,7 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(1)
 	})
 
-	test('resolving layer merges up', function () {
+	test('resolving layer merges up', () => {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
@@ -143,7 +143,7 @@ describe('in memory layers', function () {
 		})
 	})
 
-	test('can write links', function () {
+	test('can write links', () => {
 		const storage = new InMemoryStorage()
 		const layerID = storage.writeLink('User:1', 'bestFriend', 'User:2')
 		expect(storage.get('User:1', 'bestFriend')).toEqual({
@@ -153,7 +153,7 @@ describe('in memory layers', function () {
 		})
 	})
 
-	test('can write list of links', function () {
+	test('can write list of links', () => {
 		const storage = new InMemoryStorage()
 		const layerID = storage.writeLink('User:1', 'friends', ['User:1'])
 		expect(storage.get('User:1', 'friends')).toEqual({
@@ -163,7 +163,7 @@ describe('in memory layers', function () {
 		})
 	})
 
-	test('values are reset when layer is cleared', function () {
+	test('values are reset when layer is cleared', () => {
 		const storage = new InMemoryStorage()
 		const layer = storage.createLayer(true)
 
@@ -183,7 +183,7 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'firstName').value).toBeUndefined()
 	})
 
-	test('can overwrite deletes for a specific link list', function () {
+	test('can overwrite deletes for a specific link list', () => {
 		const storage = new InMemoryStorage()
 
 		// add a base layer with some value
@@ -207,7 +207,7 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'friends').value).toEqual(['User:2'])
 	})
 
-	test('deleting specific fields removes the field', function () {
+	test('deleting specific fields removes the field', () => {
 		const storage = new InMemoryStorage()
 
 		// write some data to the storage we will delete
@@ -235,7 +235,7 @@ describe('in memory layers', function () {
 		expect(Object.keys(storage.topLayer.fields['User:1'])).toEqual(['lastName'])
 	})
 
-	test('deleting all fields of a record deletes the record', function () {
+	test('deleting all fields of a record deletes the record', () => {
 		const storage = new InMemoryStorage()
 
 		// write some data to the storage we will delete
@@ -262,7 +262,7 @@ describe('in memory layers', function () {
 		expect(storage.topLayer.fields['User:1']).toBeUndefined()
 	})
 
-	test('create and resolve on base layer', function () {
+	test('create and resolve on base layer', () => {
 		// note: this situation happens if a mutation fires before any queries
 		// are sent to the server to create a non-optimistic layer
 
@@ -281,8 +281,8 @@ describe('in memory layers', function () {
 
 	test.todo('links are reset when layer is cleared')
 
-	describe('operations', function () {
-		test('optimistic deletes', function () {
+	describe('operations', () => {
+		test('optimistic deletes', () => {
 			const storage = new InMemoryStorage()
 
 			// add some information on the base layer we will delete
@@ -346,7 +346,7 @@ describe('in memory layers', function () {
 			})
 		})
 
-		test('insert into end of linked list', function () {
+		test('insert into end of linked list', () => {
 			const storage = new InMemoryStorage()
 
 			// add a linked list that we will append to in an optimistic layer
@@ -398,7 +398,7 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 		})
 
-		test('two inserts on the same layer', function () {
+		test('two inserts on the same layer', () => {
 			const storage = new InMemoryStorage()
 
 			// add 2 base lists will append to
@@ -424,7 +424,7 @@ describe('in memory layers', function () {
 			})
 		})
 
-		test('insert into start of linked list', function () {
+		test('insert into start of linked list', () => {
 			const storage = new InMemoryStorage()
 
 			// add a linked list that we will append to in an optimistic layer
@@ -476,7 +476,7 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 		})
 
-		test('remove from linked list', function () {
+		test('remove from linked list', () => {
 			const storage = new InMemoryStorage()
 
 			// add a linked list we will remove from in a layer
@@ -512,7 +512,7 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 		})
 
-		test('a delete and insert on the same layer correctly cancel out', function () {
+		test('a delete and insert on the same layer correctly cancel out', () => {
 			const storage = new InMemoryStorage()
 
 			// add a linked list we will remove from in a layer

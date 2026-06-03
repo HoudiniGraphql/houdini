@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
-  import type { PageData } from './$types';
+import { graphql } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ LayoutTestQuery: result} = data)
+$: ({ LayoutTestQuery: result } = data)
 </script>
 
 <div id="result">

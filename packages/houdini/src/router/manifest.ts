@@ -194,7 +194,7 @@ async function walk_routes(args: {
 	await Promise.all(
 		directory_contents.map((dir) => {
 			if (!dir.isDirectory()) {
-				return
+				return null
 			}
 
 			return walk_routes({
@@ -368,7 +368,7 @@ export async function extractQueries(source: string): Promise<string[]> {
 		return []
 	}
 
-	let props: string[] = []
+	const props: string[] = []
 	const componentFunction = defaultExportNode as
 		| t.FunctionDeclaration
 		| t.ArrowFunctionExpression

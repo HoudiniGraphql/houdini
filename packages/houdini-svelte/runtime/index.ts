@@ -19,22 +19,20 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 
 // transforms `LoadResult` into its awaited type
 // transforms `{a: LoadResult}` and replaces the key of the load result with `a`
-type InferLoadResult<T extends LoadAllInput> = T extends Record<
-	infer Key,
-	infer Res extends LoadResult
->
-	? {
-			[K in Key]: ValueOf<Awaited<Res>>
-	  }
-	: T extends LoadResult
-	? Awaited<T>
-	: never
+type InferLoadResult<T extends LoadAllInput> =
+	T extends Record<infer Key, infer Res extends LoadResult>
+		? {
+				[K in Key]: ValueOf<Awaited<Res>>
+			}
+		: T extends LoadResult
+			? Awaited<T>
+			: never
 
 export async function loadAll<
 	// generic to narrow the array correctly
 	L extends LoadAllInput,
 	// generic to get all of the inputs otherwise it fails on the `...`
-	Loads extends L[]
+	Loads extends L[],
 >(
 	...loads: Loads
 ): Promise<
@@ -81,7 +79,7 @@ export async function loadAll(
 	await Promise.all(promises)
 
 	// all of the promises are resolved so go back over the value we were given a reconstruct it
-	let result = {}
+	const result = {}
 
 	for (const entry of loads) {
 		// if we're looking at a promise, it will contain the key

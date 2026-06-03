@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { fragment, graphql, PendingValue, type CityInfoWithLoadingState } from '$houdini';
+import { fragment, graphql, PendingValue, type CityInfoWithLoadingState } from '$houdini'
 
-  export let city: CityInfoWithLoadingState;
+export let city: CityInfoWithLoadingState
 
-  $: data = fragment(
-    city,
-    graphql(`
+$: data = fragment(
+	city,
+	graphql(`
       fragment CityInfoWithLoadingState on City {
         id
         libraries @loading {
@@ -14,7 +14,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <ul>

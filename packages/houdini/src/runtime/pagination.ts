@@ -14,7 +14,7 @@ import type {
 
 export function cursorHandlers<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 >({
 	artifact,
 	fetchUpdate: parentFetchUpdate,
@@ -58,7 +58,7 @@ export function cursorHandlers<
 		}
 
 		// Get the Pagination Mode
-		let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+		const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 		// send the query
 		return (isSinglePage ? parentFetch : parentFetchUpdate)(
@@ -176,8 +176,9 @@ export function cursorHandlers<
 			}
 
 			// we need to find the connection object holding the current page info
+			let currentPageInfo: ReturnType<typeof extractPageInfo>
 			try {
-				var currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
+				currentPageInfo = extractPageInfo(getState(), artifact.refetch!.path)
 			} catch {
 				// if there was any issue getting the page info, just fetch like normal
 				return await parentFetch(args)
@@ -201,8 +202,8 @@ export function cursorHandlers<
 					currentPageInfo.hasNextPage &&
 					// only log if they haven't provided special parameters
 					!(
-						(variables?.['first'] && variables?.['after']) ||
-						(variables?.['last'] && variables?.['before'])
+						(variables?.first && variables?.after) ||
+						(variables?.last && variables?.before)
 					)
 				) {
 					console.warn(`! Encountered a fetch() in the middle of the connection.
@@ -212,18 +213,18 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 
 				// if we are loading the first boundary
 				if (!currentPageInfo.hasPreviousPage) {
-					queryVariables['first'] = count
-					queryVariables['after'] = null
-					queryVariables['last'] = null
-					queryVariables['before'] = null
+					queryVariables.first = count
+					queryVariables.after = null
+					queryVariables.last = null
+					queryVariables.before = null
 				}
 
 				// or we're loading the last boundary
 				else if (!currentPageInfo.hasNextPage) {
-					queryVariables['last'] = count
-					queryVariables['first'] = null
-					queryVariables['after'] = null
-					queryVariables['before'] = null
+					queryVariables.last = count
+					queryVariables.first = null
+					queryVariables.after = null
+					queryVariables.before = null
 				}
 			}
 
@@ -243,10 +244,10 @@ Make sure to pass a cursor value by hand that includes the current set (ie the e
 
 export function offsetHandlers<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 >({
 	artifact,
-	storeName,
+	storeName: _storeName,
 	getState,
 	getVariables,
 	fetch: parentFetch,
@@ -262,10 +263,10 @@ export function offsetHandlers<
 	getSession: () => Promise<App.Session>
 }) {
 	// Get the Pagination Mode
-	let isSinglePage = artifact.refetch?.mode === 'SinglePage'
+	const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
 	// we need to track the most recent offset for this handler
-	let getOffset = () => {
+	const getOffset = () => {
 		let offset =
 			(artifact.refetch?.start as number) ||
 			countPage(artifact.refetch!.path, getState()) ||

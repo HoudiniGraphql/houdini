@@ -191,7 +191,7 @@ export type GraphQLValue =
 	| GraphQLDefaultScalar
 	| CacheTypeDef['scalars']
 	| CacheComponentFields
-	| Symbol
+	| symbol
 	| null
 	| GraphQLObject
 	| GraphQLValue[]
@@ -321,7 +321,7 @@ export type FetchParams<_Input> = {
 	 * An object that will be passed to the fetch function.
 	 * You can do what you want with it!
 	 */
-	// @ts-ignore
+	// @ts-expect-error
 	metadata?: App.Metadata
 
 	/**

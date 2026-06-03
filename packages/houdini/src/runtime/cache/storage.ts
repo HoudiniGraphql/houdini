@@ -66,7 +66,7 @@ export class InMemoryStorage {
 		}
 
 		// we didn't find the layer
-		throw new Error('Could not find layer with id: ' + id)
+		throw new Error(`Could not find layer with id: ${id}`)
 	}
 
 	replaceID(replacement: { from: string; to: string }) {
@@ -238,7 +238,7 @@ export class InMemoryStorage {
 
 		// if we didn't find the layer, yell loudly
 		if (startingIndex === null) {
-			throw new Error('could not find layer with id: ' + id)
+			throw new Error(`could not find layer with id: ${id}`)
 		}
 
 		// if we are resolving the base layer make sure we start at zero

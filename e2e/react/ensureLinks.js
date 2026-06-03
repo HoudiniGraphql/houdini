@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // we need to make sure we have executables for houdini
 try {
 	// Remove existing bin file (might be a pnpm wrapper script)
-	await fs.rm('node_modules/.bin/houdini', { force: true });
+	await fs.rm('node_modules/.bin/houdini', { force: true })
 
 	await fs.symlink(
 		path.resolve(__dirname, '../../packages/houdini/build/cmd/index.js'),
@@ -54,8 +54,8 @@ const packagesWithPlatformBinaries = [
 			'houdini-core-linux-arm64',
 			'houdini-core-linux-x64',
 			'houdini-core-win32-arm64',
-			'houdini-core-win32-x64'
-		]
+			'houdini-core-win32-x64',
+		],
 	},
 	{
 		name: 'houdini-react',
@@ -65,40 +65,46 @@ const packagesWithPlatformBinaries = [
 			'houdini-react-linux-arm64',
 			'houdini-react-linux-x64',
 			'houdini-react-win32-arm64',
-			'houdini-react-win32-x64'
-		]
-	}
-];
+			'houdini-react-win32-x64',
+		],
+	},
+]
 
 for (const packageInfo of packagesWithPlatformBinaries) {
 	// Create node_modules directory inside the symlinked package
-	const packageNodeModules = `node_modules/${packageInfo.name}/node_modules`;
+	const packageNodeModules = `node_modules/${packageInfo.name}/node_modules`
 	try {
-		await fs.mkdir(packageNodeModules, { recursive: true });
+		await fs.mkdir(packageNodeModules, { recursive: true })
 	} catch (e) {
-		console.warn(`Failed to create ${packageNodeModules}:`, e.message);
+		console.warn(`Failed to create ${packageNodeModules}:`, e.message)
 	}
 
 	// Create symlinks for platform-specific packages inside the package's node_modules
 	for (const platformPackageName of packageInfo.platformPackages) {
 		try {
-			const sourcePath = path.resolve(__dirname, `../../packages/${packageInfo.name}/build/${platformPackageName}`);
-			const targetPath = `${packageNodeModules}/${platformPackageName}`;
+			const sourcePath = path.resolve(
+				__dirname,
+				`../../packages/${packageInfo.name}/build/${platformPackageName}`
+			)
+			const targetPath = `${packageNodeModules}/${platformPackageName}`
 
 			// Check if source exists
 			try {
-				await fs.access(sourcePath);
+				await fs.access(sourcePath)
 			} catch {
-				continue; // Skip if source doesn't exist
+				continue // Skip if source doesn't exist
 			}
 
 			// Remove existing symlink if it exists
-			await fs.rm(targetPath, { recursive: true, force: true });
+			await fs.rm(targetPath, { recursive: true, force: true })
 
 			// Create symlink
-			await fs.symlink(sourcePath, targetPath, 'dir');
+			await fs.symlink(sourcePath, targetPath, 'dir')
 		} catch (e) {
-			console.warn(`Failed to create symlink for ${platformPackageName} in ${packageInfo.name}:`, e.message);
+			console.warn(
+				`Failed to create symlink for ${platformPackageName} in ${packageInfo.name}:`,
+				e.message
+			)
 		}
 	}
 }

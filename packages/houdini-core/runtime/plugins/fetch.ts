@@ -152,7 +152,8 @@ function handleMultipart(
 		if (req?.headers) {
 			const filtered = Object.entries(req?.headers).filter(([key, value]) => {
 				return !(
-					key.toLowerCase() == 'content-type' && value.toLowerCase() == 'application/json'
+					key.toLowerCase() === 'content-type' &&
+					value.toLowerCase() === 'application/json'
 				)
 			})
 			headers = Object.fromEntries(filtered)
@@ -163,7 +164,7 @@ function handleMultipart(
 		const form = new FormData()
 
 		// if we have a body, just use it.
-		if (args && args?.body) {
+		if (args?.body) {
 			form.set('operations', args?.body as string)
 		} else {
 			form.set(
@@ -185,7 +186,7 @@ function handleMultipart(
 		form.set('map', JSON.stringify(map))
 
 		i = 0
-		files.forEach((paths, file) => {
+		files.forEach((_paths, file) => {
 			form.set(`${++i}`, file as Blob, (file as File).name)
 		})
 
@@ -207,8 +208,8 @@ type ExtractableFile = File | Blob
 
 /** @typedef {import("./isExtractableFile.mjs").default} isExtractableFile */
 
-export function extractFiles(value: any) {
-	if (!arguments.length) throw new TypeError('Argument 1 `value` is required.')
+export function extractFiles(value?: any) {
+	if (value === undefined) throw new TypeError('Argument 1 `value` is required.')
 
 	/**
 	 * Map of values recursed within the input value and their clones, for reusing
@@ -249,9 +250,9 @@ export function extractFiles(value: any) {
 				clone = valueIsList
 					? []
 					: // Replicate if the plain object is an `Object` instance.
-					value instanceof /** @type {any} */ Object
-					? {}
-					: Object.create(null)
+						value instanceof /** @type {any} */ Object
+						? {}
+						: Object.create(null)
 
 				clones.set(value, /** @type {Clone} */ clone)
 			}
@@ -263,7 +264,7 @@ export function extractFiles(value: any) {
 				if (valueIsList) {
 					let index = 0
 
-					// @ts-ignore
+					// @ts-expect-error
 					for (const item of value) {
 						const itemClone = recurse(item, pathPrefix + index++, recursedDeeper)
 

@@ -22,7 +22,7 @@ export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): 
 						}
 
 						return handler(ctx, handlers)
-				  }
+					}
 		}
 		const exitWrapper = (
 			handler?: ClientPluginExitPhase
@@ -35,7 +35,7 @@ export const documentPlugin = (kind: ArtifactKinds, source: () => ClientHooks): 
 						}
 
 						return handler(ctx, handlers)
-				  }
+					}
 		}
 
 		// return the modified hooks

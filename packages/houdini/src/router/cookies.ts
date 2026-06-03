@@ -5,14 +5,12 @@
  * MIT Licensed
  */
 
-'use strict'
-
 /**
  * Module letiables.
  * @private
  */
 
-let __toString = Object.prototype.toString
+const __toString = Object.prototype.toString
 
 /**
  * RegExp to match field-content in RFC 7230 sec 3.2
@@ -23,7 +21,7 @@ let __toString = Object.prototype.toString
  */
 
 // eslint-disable-next-line no-control-regex
-let fieldContentRegExp = /^[\u0009\u0020-\u007e\u0080-\u00ff]+$/
+const fieldContentRegExp = /^[\u0009\u0020-\u007e\u0080-\u00ff]+$/
 
 /**
  * Parse a cookie header.
@@ -45,13 +43,13 @@ export function parse(
 		throw new TypeError('argument str must be a string')
 	}
 
-	let obj: Record<string, string> = {}
-	let opt = options || {}
-	let dec = opt.decode || decode
+	const obj: Record<string, string> = {}
+	const opt = options || {}
+	const dec = opt.decode || decode
 
 	let index = 0
 	while (index < str.length) {
-		let eqIdx = str.indexOf('=', index)
+		const eqIdx = str.indexOf('=', index)
 
 		// no more cookie pairs
 		if (eqIdx === -1) {
@@ -68,7 +66,7 @@ export function parse(
 			continue
 		}
 
-		let key = str.slice(index, eqIdx).trim()
+		const key = str.slice(index, eqIdx).trim()
 
 		// only assign once
 		if (undefined === obj[key]) {
@@ -114,8 +112,8 @@ export function serialize(
 		sameSite?: string | boolean
 	}
 ): string {
-	let opt = options || {}
-	let enc = opt.encode || encode
+	const opt = options || {}
+	const enc = opt.encode || encode
 
 	if (typeof enc !== 'function') {
 		throw new TypeError('option encode is invalid')
@@ -125,22 +123,22 @@ export function serialize(
 		throw new TypeError('argument name is invalid')
 	}
 
-	let value = enc(val)
+	const value = enc(val)
 
 	if (value && !fieldContentRegExp.test(value)) {
 		throw new TypeError('argument val is invalid')
 	}
 
-	let str = name + '=' + value
+	let str = `${name}=${value}`
 
 	if (opt.maxAge) {
-		let maxAge = opt.maxAge - 0
+		const maxAge = opt.maxAge - 0
 
-		if (Number.isNaN(maxAge) || !isFinite(maxAge)) {
+		if (Number.isNaN(maxAge) || !Number.isFinite(maxAge)) {
 			throw new TypeError('option maxAge is invalid')
 		}
 
-		str += '; Max-Age=' + Math.floor(maxAge)
+		str += `; Max-Age=${Math.floor(maxAge)}`
 	}
 
 	if (opt.domain) {
@@ -148,7 +146,7 @@ export function serialize(
 			throw new TypeError('option domain is invalid')
 		}
 
-		str += '; Domain=' + opt.domain
+		str += `; Domain=${opt.domain}`
 	}
 
 	if (opt.path) {
@@ -156,17 +154,17 @@ export function serialize(
 			throw new TypeError('option path is invalid')
 		}
 
-		str += '; Path=' + opt.path
+		str += `; Path=${opt.path}`
 	}
 
 	if (opt.expires) {
-		let expires = opt.expires
+		const expires = opt.expires
 
 		if (!isDate(expires) || Number.isNaN(expires.valueOf())) {
 			throw new TypeError('option expires is invalid')
 		}
 
-		str += '; Expires=' + expires.toUTCString()
+		str += `; Expires=${expires.toUTCString()}`
 	}
 
 	if (opt.httpOnly) {
@@ -178,7 +176,8 @@ export function serialize(
 	}
 
 	if (opt.priority) {
-		let priority = typeof opt.priority === 'string' ? opt.priority.toLowerCase() : opt.priority
+		const priority =
+			typeof opt.priority === 'string' ? opt.priority.toLowerCase() : opt.priority
 
 		switch (priority) {
 			case 'low':
@@ -196,7 +195,8 @@ export function serialize(
 	}
 
 	if (opt.sameSite) {
-		let sameSite = typeof opt.sameSite === 'string' ? opt.sameSite.toLowerCase() : opt.sameSite
+		const sameSite =
+			typeof opt.sameSite === 'string' ? opt.sameSite.toLowerCase() : opt.sameSite
 
 		switch (sameSite) {
 			case true:
@@ -263,7 +263,7 @@ function isDate(val: any) {
 function tryDecode(str: string, decode: (val: string) => string) {
 	try {
 		return decode(str)
-	} catch (e) {
+	} catch (_e) {
 		return str
 	}
 }

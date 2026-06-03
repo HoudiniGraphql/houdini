@@ -38,11 +38,11 @@ export function getFieldsForType(
 // It's not resilient to things like circular references so it should really only be used for loading states (for now).
 function deepMerge(...objects: (Record<string, any> | undefined)[]) {
 	const mergedObj: Record<string, any> = {}
-	for (let obj of objects) {
+	for (const obj of objects) {
 		if (!obj) {
 			continue
 		}
-		for (let prop in obj) {
+		for (const prop in obj) {
 			if (prop in obj) {
 				const val = obj[prop]
 

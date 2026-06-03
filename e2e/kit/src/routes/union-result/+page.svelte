@@ -1,6 +1,6 @@
 <script lang="ts">
-  import UserNodesResult from './UserNodesResult.svelte';
-  import UserResult from './UserResult.svelte';
+import UserNodesResult from './UserNodesResult.svelte'
+import UserResult from './UserResult.svelte'
 </script>
 
 <UserNodesResult />

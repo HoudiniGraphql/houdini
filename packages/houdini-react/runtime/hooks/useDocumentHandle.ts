@@ -20,7 +20,7 @@ import { useClient, useLocation, useSession } from '../routing/Router'
 export function useDocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables,
 >({
 	artifact,
 	observer,
@@ -46,7 +46,7 @@ export function useDocumentHandle<
 		}
 
 		return client.observe<_Data, _Input>({ artifact })
-	}, [artifact.name])
+	}, [artifact.name, artifact, client.observe])
 
 	// @ts-expect-error: avoiding an as DocumentHandle<_Artifact, _Data, _Input>
 	return React.useMemo<DocumentHandle<_Artifact, _Data, _Input>>(() => {
@@ -185,13 +185,22 @@ export function useDocumentHandle<
 			fetch: fetchQuery,
 			refetch: fetchQuery,
 		}
-	}, [artifact, observer, session, storeValue])
+	}, [
+		artifact,
+		observer,
+		session,
+		storeValue,
+		backwardPending,
+		forwardPending,
+		paginationObserver!.send,
+		location.params,
+	])
 }
 
 export type DocumentHandle<
 	_Artifact extends QueryArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables = GraphQLVariables,
 > = {
 	data: _Data
 	partial: boolean
@@ -212,12 +221,12 @@ type RefetchHandlers<_Artifact extends QueryArtifact, _Data extends GraphQLObjec
 				loadPrevious: CursorHandlers<_Data, _Input>['loadPreviousPage']
 				loadPreviousPending: boolean
 				pageInfo: PageInfo
-		  }
+			}
 		: // offset pagination
-		_Artifact extends { refetch: { paginated: true; method: 'offset' } }
-		? {
-				loadNext: OffsetHandlers<_Data, _Input>['loadNextPage']
-				loadNextPending: boolean
-		  }
-		: // the artifact does not support a known pagination method, don't add anything
-		  {}
+			_Artifact extends { refetch: { paginated: true; method: 'offset' } }
+			? {
+					loadNext: OffsetHandlers<_Data, _Input>['loadNextPage']
+					loadNextPending: boolean
+				}
+			: // the artifact does not support a known pagination method, don't add anything
+				{}

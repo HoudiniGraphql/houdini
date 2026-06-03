@@ -173,9 +173,9 @@ function addKeysToResponse(args: {
 }): any {
 	// we need to walk the selection and inject the optimistic keys into the response
 	// collect all of the fields that we need to write
-	let targetSelection = getFieldsForType(
+	const targetSelection = getFieldsForType(
 		args.selection,
-		args.response['__typename'] as string | undefined,
+		args.response.__typename as string | undefined,
 		false
 	)
 	const newKeys = []
@@ -190,7 +190,7 @@ function addKeysToResponse(args: {
 		// if this field is marked as an optimistic key, add it to the obj
 		if (optimisticKey) {
 			// figure out the value we should use for the optimistic key
-			let keyValue
+			let keyValue: string | undefined
 
 			// if there is a value already in the response then we should use that
 			if (value) {
@@ -240,7 +240,7 @@ function addKeysToResponse(args: {
 						})
 					}
 				}
-			} else if (value && typeof value == 'object') {
+			} else if (value && typeof value === 'object') {
 				addKeysToResponse({
 					...args,
 					selection: fieldSelection,
@@ -306,9 +306,9 @@ function extractResponseKeys(
 	type: string = ''
 ) {
 	// collect all of the fields that we need to write
-	let targetSelection = getFieldsForType(
+	const targetSelection = getFieldsForType(
 		selection,
-		response['__typename'] as string | undefined,
+		response.__typename as string | undefined,
 		false
 	)
 
@@ -334,7 +334,7 @@ function extractResponseKeys(
 		}
 
 		// look up the field in our schema
-		let { type, selection: fieldSelection } = targetSelection[field]
+		const { type, selection: fieldSelection } = targetSelection[field]
 
 		// walk down lists in the response
 		if (Array.isArray(value)) {
@@ -438,15 +438,15 @@ function replaceKeyWithVariable(
 
 function generateKey(type: string) {
 	if (type === 'Int') {
-		return new Date().getTime()
+		return Date.now()
 	}
 
 	if (type === 'String') {
-		return new Date().getTime().toString()
+		return Date.now().toString()
 	}
 
 	if (type === 'ID') {
-		return new Date().getTime().toString()
+		return Date.now().toString()
 	}
 
 	throw new Error(

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  export let data: PageData;
+import type { PageData } from './$types'
+export let data: PageData
 
-  $: ({ PartialOff } = data);
+$: ({ PartialOff } = data)
 
-  const partials: boolean[] = [];
-  $: partials.push($PartialOff.partial);
+const partials: boolean[] = []
+$: partials.push($PartialOff.partial)
 </script>
 
 parent:

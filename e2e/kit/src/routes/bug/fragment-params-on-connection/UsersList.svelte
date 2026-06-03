@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { fragment, graphql, type UsersListFragment } from '$houdini';
-  import UserItem from './UserItem.svelte';
+import { fragment, graphql, type UsersListFragment } from '$houdini'
+import UserItem from './UserItem.svelte'
 
-  export let usersList: UsersListFragment;
+export let usersList: UsersListFragment
 
-  $: data = fragment(
-    usersList,
-    graphql(`
+$: data = fragment(
+	usersList,
+	graphql(`
       fragment UsersListFragment on UserConnection @arguments(someParam: { type: "Boolean!" }) {
         edges {
           node {
@@ -15,7 +15,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <ul>

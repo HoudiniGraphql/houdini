@@ -7,7 +7,7 @@ import { documentPlugin } from './utils'
 // the purpose of the fragment plugin is to provide fine-reactivity for cache updates
 // there are no network requests that get sent. send() always returns the initial value
 export const fragment = (cache: Cache) =>
-	documentPlugin(ArtifactKind.Fragment, function () {
+	documentPlugin(ArtifactKind.Fragment, () => {
 		// track the bits of state we need to hold onto
 		let subscriptionSpec: SubscriptionSpec | null = null
 

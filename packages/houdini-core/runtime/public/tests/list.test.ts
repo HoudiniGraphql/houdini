@@ -1,9 +1,9 @@
 import { test, expect, vi } from 'vitest'
 
-import { type SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from '../../lib'
 import { testCache, testFragment } from './test'
 
-test('list.append accepts record proxies', function () {
+test('list.append accepts record proxies', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -165,7 +165,7 @@ test('list.append accepts record proxies', function () {
 	})
 })
 
-test('list.prepend accepts record proxies', function () {
+test('list.prepend accepts record proxies', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -326,7 +326,7 @@ test('list.prepend accepts record proxies', function () {
 	})
 })
 
-test('list when must', function () {
+test('list when must', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -445,7 +445,7 @@ test('list when must', function () {
 	})
 })
 
-test('can remove record', function () {
+test('can remove record', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -535,7 +535,7 @@ test('can remove record', function () {
 	})
 })
 
-test('can toggle records', function () {
+test('can toggle records', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -647,7 +647,7 @@ test('can toggle records', function () {
 	expect([...list]).toEqual(['User:5', 'User:3'])
 })
 
-test('can remove record from all lists', function () {
+test('can remove record from all lists', () => {
 	// instantiate a cache
 	const cache = testCache()
 
@@ -748,8 +748,8 @@ test('can remove record from all lists', function () {
 	expect([...cache.list('All_Users')]).toHaveLength(0)
 })
 
-test('list operations fail silently if there is no matching list', function () {
+test('list operations fail silently if there is no matching list', () => {
 	const cache = testCache()
-	const user = cache.get('User', { id: '1' })
+	const _user = cache.get('User', { id: '1' })
 	expect(() => cache.list('All_Pets')).not.toThrow()
 })

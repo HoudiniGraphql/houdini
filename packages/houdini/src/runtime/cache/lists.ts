@@ -44,7 +44,7 @@ export class ListManager {
 		// if we want to update all list, return all matches
 		if (allLists) {
 			return new ListCollection(
-				Array.from(matches, ([key, value]) => [...value.lists]).flat()
+				Array.from(matches, ([_key, value]) => [...value.lists]).flat()
 			)
 		}
 
@@ -183,7 +183,6 @@ export class List {
 	readonly name: string
 	private connection: boolean
 	private manager: ListManager
-	private abstract?: boolean
 
 	constructor({
 		name,
@@ -319,7 +318,7 @@ export class List {
 				newEntry: {
 					edges: [
 						{
-							__typename: listType + 'Edge',
+							__typename: `${listType}Edge`,
 							node: {
 								...data,
 								__typename: listType,
@@ -417,9 +416,9 @@ export class List {
 		}
 
 		// if the id is not contained in the list, dont notify anyone
-		let value = this.cache._internal_unstable.storage.get(parentID, targetKey)
+		const value = this.cache._internal_unstable.storage.get(parentID, targetKey)
 			.value as NestedList
-		if (!value || !value.includes(targetID)) {
+		if (!value?.includes(targetID)) {
 			return
 		}
 
@@ -472,7 +471,7 @@ export class List {
 
 	validateWhen(when?: ListWhen) {
 		// if this when doesn't apply, we should look at others to see if we should update those behind the scenes
-		let filters = when || this._when
+		const filters = when || this._when
 
 		let ok = true
 		// if there are conditions for this operation
@@ -526,7 +525,7 @@ export class List {
 		let entries: string[] = []
 
 		// grab the underlying value from the cache
-		let value = this.cache._internal_unstable.storage.get(this.recordID, this.key).value as
+		const value = this.cache._internal_unstable.storage.get(this.recordID, this.key).value as
 			| NestedList
 			| string
 
@@ -538,7 +537,7 @@ export class List {
 				.value as string[]
 		}
 
-		for (let record of entries) {
+		for (const record of entries) {
 			yield record
 		}
 	}
@@ -616,7 +615,7 @@ export class ListCollection {
 	// iterating over the collection should be the same as iterating over
 	// the underlying list
 	*[Symbol.iterator]() {
-		for (let list of this.lists) {
+		for (const list of this.lists) {
 			for (const entry of list) {
 				yield entry
 			}

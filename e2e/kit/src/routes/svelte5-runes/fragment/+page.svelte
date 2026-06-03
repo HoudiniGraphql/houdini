@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type { PageData } from './$types';
-  import UserDetailsSvelte5 from './UserDetailsSvelte5.svelte';
-  import { stringify } from '$lib/utils/stringify';
+import type { PageData } from './$types'
+import UserDetailsSvelte5 from './UserDetailsSvelte5.svelte'
+import { stringify } from '$lib/utils/stringify'
 
-  interface Props {
-    data: PageData;
-  }
-  const { data }: Props = $props();
-  const { Svelte5UsersList } = $derived(data);
+interface Props {
+	data: PageData
+}
+const { data }: Props = $props()
+const { Svelte5UsersList } = $derived(data)
 </script>
 
 <div>

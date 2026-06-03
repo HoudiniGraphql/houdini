@@ -1,7 +1,7 @@
 query Partial_User($id: ID!) {
-  user(id: $id, snapshot: "Partial", delay: 1000) {
-    id
-    name
-    birthDate
-  }
+	user(id: $id, snapshot: "Partial", delay: 1000) {
+		id
+		name
+		birthDate
+	}
 }

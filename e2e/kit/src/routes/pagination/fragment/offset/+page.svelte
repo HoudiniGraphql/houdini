@@ -1,22 +1,22 @@
 <script lang="ts">
-  import { paginatedFragment, graphql } from '$houdini';
-  import type { PageData } from './$types';
+import { paginatedFragment, graphql } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $:({ UserFragmentOffsetQuery: queryResult } = data);
+$: ({ UserFragmentOffsetQuery: queryResult } = data)
 
-  $: fragmentResult = paginatedFragment(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data?.user,
-    graphql(`
+$: fragmentResult = paginatedFragment(
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	$queryResult.data?.user,
+	graphql(`
       fragment OffsetFragment on User {
         friendsList(limit: 2) @paginate {
           name
         }
       }
     `)
-  );
+)
 </script>
 
 <div id="result">

@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { HelloStore } from '$houdini';
-  import type { PageData } from './$types';
+import { HelloStore } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ Hello } = data);
+$: ({ Hello } = data)
 
-  const checkTypes = () => {
-    return `${data.Hello instanceof HelloStore}`;
-  };
+const checkTypes = () => {
+	return `${data.Hello instanceof HelloStore}`
+}
 </script>
 
 <h1>ssr-loadall-store-without-variables</h1>

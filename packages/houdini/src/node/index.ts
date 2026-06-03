@@ -30,7 +30,7 @@ export type PluginContext = {
 export type HookHandler = (
 	ctx: PluginContext,
 	payload: Record<string, any>
-) => Promise<Record<string, any> | void> | Record<string, any> | void
+) => Promise<Record<string, any> | undefined> | Record<string, any> | undefined
 
 export type NodePluginConfig = {
 	name: string
@@ -270,7 +270,7 @@ function resolveInvoke(pending: PendingMap, msg: any) {
 	pending.delete(msg.id)
 	if (msg.error) {
 		const message =
-			typeof msg.error === 'string' ? msg.error : msg.error?.message ?? 'invoke error'
+			typeof msg.error === 'string' ? msg.error : (msg.error?.message ?? 'invoke error')
 		entry.reject(new Error(message))
 	} else {
 		entry.resolve(msg.result ?? {})
@@ -340,7 +340,7 @@ function parseArgs(): { transport: string; database: string; pluginKey: string }
 }
 
 function stdioWrite(obj: Record<string, any>): void {
-	process.stdout.write(JSON.stringify(obj) + '\n')
+	process.stdout.write(`${JSON.stringify(obj)}\n`)
 }
 
 // 'afterLoad' → 'AfterLoad'

@@ -17,9 +17,7 @@ export type RouteParam = {
 	chained: boolean
 }
 
-export interface ParamMatcher {
-	(param: string): boolean
-}
+export type ParamMatcher = (param: string) => boolean
 
 // find the matching page given the current path
 export function find_match<_ComponentType>(
@@ -121,7 +119,7 @@ export function parse_page_pattern(id: string) {
 							}
 
 							if (!segment) {
-								return
+								return ''
 							}
 
 							const parts = segment.split(/\[(.+?)\](?!\])/)
@@ -129,13 +127,13 @@ export function parse_page_pattern(id: string) {
 								.map((content, i) => {
 									if (i % 2) {
 										if (content.startsWith('x+')) {
-											return escape(
+											return escapeRegex(
 												String.fromCharCode(parseInt(content.slice(2), 16))
 											)
 										}
 
 										if (content.startsWith('u+')) {
-											return escape(
+											return escapeRegex(
 												String.fromCharCode(
 													...content
 														.slice(2)
@@ -167,18 +165,18 @@ export function parse_page_pattern(id: string) {
 										return is_rest
 											? '(.*?)'
 											: is_optional
-											? '([^/]*)?'
-											: '([^/]+?)'
+												? '([^/]*)?'
+												: '([^/]+?)'
 									}
 
-									return escape(content)
+									return escapeRegex(content)
 								})
 								.join('')
 
-							return '/' + result
+							return `/${result}`
 						})
 						.join('')}/?$`
-			  )
+				)
 
 	return { pattern, params, page_id: id }
 }
@@ -213,7 +211,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 		if (param.chained && param.rest && buffered) {
 			// in the `[[lang=lang]]/[...rest]` case, if `lang` didn't
 			// match, we roll it over into the rest value
-			value = value ? buffered + '/' + value : buffered
+			value = value ? `${buffered}/${value}` : buffered
 		}
 
 		buffered = ''
@@ -231,7 +229,7 @@ export function exec(match: RegExpMatchArray, params: RouteParam[]) {
 	return result
 }
 
-function escape(str: string) {
+function escapeRegex(str: string) {
 	return (
 		str
 			.normalize()
@@ -282,7 +280,7 @@ export function parseScalar(
 
 	// if we have a special parse function, use it
 	if (config.scalars?.[type]?.marshal) {
-		return config.scalars[type]?.marshal!(value)
+		return config.scalars[type]!.marshal!(value)
 	}
 
 	// we dont recognize the type, just use the string value

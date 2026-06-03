@@ -66,13 +66,13 @@ export async function init_db(config: Config, preserve: boolean): Promise<[Datab
 	if (!preserve) {
 		try {
 			await fs.remove(db_file)
-		} catch (e) {}
+		} catch (_e) {}
 		try {
 			await fs.remove(`${db_file}-shm`)
-		} catch (e) {}
+		} catch (_e) {}
 		try {
 			await fs.remove(`${db_file}-wal`)
-		} catch (e) {}
+		} catch (_e) {}
 	}
 	return [connect_db(config)[0], db_file]
 }
@@ -114,7 +114,7 @@ export async function codegen_setup(
 
 	const rawTransport = config.config_file.pluginTransport ?? 'websocket'
 	const resolvedTransport = rawTransport.startsWith('env:')
-		? process.env[rawTransport.slice('env:'.length)] ?? 'websocket'
+		? (process.env[rawTransport.slice('env:'.length)] ?? 'websocket')
 		: rawTransport
 	const useStdio = resolvedTransport === 'stdio'
 
@@ -278,9 +278,9 @@ export async function codegen_setup(
 							const errors: HookError[] = Array.isArray(msg.error)
 								? msg.error
 								: [msg.error]
-							errors.forEach((error) =>
+							errors.forEach((error) => {
 								format_hook_error(config.root_dir, error, name, pending.hook)
-							)
+							})
 							pending.reject(new Error(`Failed to call ${name}`))
 						} else {
 							pending.resolve(msg.result)
@@ -289,12 +289,11 @@ export async function codegen_setup(
 						// Go plugin is asking Node.js to call other plugins on its behalf.
 						// triggerHookRef.fn is always set before any hook runs, but guard anyway.
 						if (!triggerHookRef.fn) {
-							const reply =
-								JSON.stringify({
-									id: msg.id,
-									type: 'invoke_result',
-									error: { message: 'orchestrator not ready' },
-								}) + '\n'
+							const reply = `${JSON.stringify({
+								id: msg.id,
+								type: 'invoke_result',
+								error: { message: 'orchestrator not ready' },
+							})}\n`
 							child.stdin?.write(reply)
 							return
 						}
@@ -311,12 +310,11 @@ export async function codegen_setup(
 								child.stdin?.write(reply)
 							})
 							.catch((err: Error) => {
-								const reply =
-									JSON.stringify({
-										id: msg.id,
-										type: 'invoke_result',
-										error: { message: err.message },
-									}) + '\n'
+								const reply = `${JSON.stringify({
+									id: msg.id,
+									type: 'invoke_result',
+									error: { message: err.message },
+								})}\n`
 								child.stdin?.write(reply)
 							})
 					}
@@ -522,7 +520,7 @@ export async function codegen_setup(
 					reject(new Error(`Request timeout for ${name}/${hook}`))
 				}, 30000)
 				pendingRequests.set(messageId, { resolve, reject, timeout, hook, plugin: name })
-				stdin.write(JSON.stringify(message) + '\n')
+				stdin.write(`${JSON.stringify(message)}\n`)
 			})
 		} else {
 			// WebSocket transport: await the connection before registering the pending request
@@ -649,7 +647,7 @@ export async function codegen_setup(
 									'/f',
 									'/t',
 								])
-							} catch (err) {
+							} catch (_err) {
 								// Ignore errors if the process is already gone
 							}
 						} else {
@@ -757,8 +755,8 @@ export async function run_pipeline(
 				trigger_hook('GenerateDocuments', { task_id, parallel_safe: true }),
 				trigger_hook('GenerateRuntime', { task_id }),
 			])
-			results['GenerateDocuments'] = gdResult
-			results['GenerateRuntime'] = grResult
+			results.GenerateDocuments = gdResult
+			results.GenerateRuntime = grResult
 			i++ // GenerateRuntime already handled
 			continue
 		}

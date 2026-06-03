@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { UserInfoStore } from '$houdini';
+import { UserInfoStore } from '$houdini'
 
-  const userInfo = new UserInfoStore();
-  const data = userInfo.get(null);
+const userInfo = new UserInfoStore()
+const data = userInfo.get(null)
 </script>
 
 <div id="result">

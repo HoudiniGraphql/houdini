@@ -8,7 +8,7 @@ import type { PluginMeta } from './project.js'
 import type { CachePolicies, PaginateModes } from './types.js'
 
 declare namespace App {
-	interface Session {}
+	type Session = {}
 }
 
 // the values we can take in from the config file
@@ -165,7 +165,7 @@ export type ConfigFile = {
 }
 
 export type RuntimeScalarPayload = {
-	// @ts-ignore
+	// @ts-expect-error
 	session?: App.Session | null | undefined
 }
 
@@ -258,13 +258,13 @@ export type ScalarSpec = {
 
 // this type is meant to be extended by plugins to provide type definitions
 // for config
-// @ts-ignore
-export interface HoudiniPluginConfig {}
+// @ts-expect-error
+export type HoudiniPluginConfig = {}
 
 // this type is meant to be extended by client plugins to provide type definitions
 // for config
-// @ts-ignore
-export interface HoudiniClientPluginConfig {}
+// @ts-expect-error
+export type HoudiniClientPluginConfig = {}
 
 // we need to include some extra meta data along with the config file
 export class Config {
@@ -350,7 +350,7 @@ export class Config {
 		const parsed = path.parse(filepath)
 		filepath = `${parsed.dir}/${parsed.name}${parsed.ext.split('?')[0]}`
 
-		let included = false
+		const included = false
 		// if the filepath doesn't match the include we're done
 		if (
 			!included &&
@@ -455,13 +455,13 @@ export class Config {
 function documentName(document: graphql.DocumentNode) {
 	// if there is an operation in the document
 	const operation = document.definitions.find(
-		({ kind }) => graphql.Kind.OPERATION_DEFINITION
+		({ kind: _kind }) => graphql.Kind.OPERATION_DEFINITION
 	) as graphql.OperationDefinitionNode | null
 	if (operation) {
 		// if the operation does not have a name
 		if (!operation.name) {
 			// we can't give them a file
-			throw new Error('encountered operation with no name: ' + graphql.print(document))
+			throw new Error(`encountered operation with no name: ${graphql.print(document)}`)
 		}
 
 		// use the operation name for the artifact
@@ -478,5 +478,5 @@ function documentName(document: graphql.DocumentNode) {
 	}
 
 	// we don't know how to generate a name for this document
-	throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
+	throw new Error(`Could not generate artifact name for document: ${graphql.print(document)}`)
 }

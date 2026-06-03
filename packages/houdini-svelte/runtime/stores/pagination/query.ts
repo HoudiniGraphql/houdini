@@ -2,7 +2,6 @@ import { extractPageInfo } from 'houdini/runtime'
 import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
 import type {
 	GraphQLObject,
-	QueryArtifact,
 	QueryResult,
 	CursorHandlers,
 	OffsetHandlers,
@@ -20,25 +19,20 @@ import type {
 	QueryStoreFetchParams,
 	RequestEventFetchParams,
 } from '../../types'
-import type { StoreConfig } from '../query'
 import { QueryStore } from '../query'
 
 export type CursorStoreResult<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 > = QueryResult<_Data, _Input> & { pageInfo: PageInfo }
 
 // both cursor paginated stores add a page info to their subscribe
 export class QueryStoreCursor<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 > extends QueryStore<_Data, _Input> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
-
-	constructor(config: StoreConfig<_Data, _Input, QueryArtifact>) {
-		super(config)
-	}
 
 	#_handlers: CursorHandlers<_Data, _Input> | null = null
 	async #handlers(): Promise<CursorHandlers<_Data, _Input>> {
@@ -124,9 +118,9 @@ export class QueryStoreCursor<
 	): () => void {
 		const combined = derived([{ subscribe: super.subscribe.bind(this) }], ([$parent]) => {
 			return {
-				// @ts-ignore
+				// @ts-expect-error
 				...$parent,
-				// @ts-ignore
+				// @ts-expect-error
 				pageInfo: extractPageInfo($parent.data, this.artifact.refetch!.path),
 			}
 		})
@@ -137,7 +131,7 @@ export class QueryStoreCursor<
 
 export class QueryStoreOffset<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 > extends QueryStore<_Data, _Input> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true

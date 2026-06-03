@@ -1,20 +1,20 @@
-import { GraphQLObject, GraphQLVariables } from 'houdini/runtime'
-import { QueryArtifact } from 'houdini/runtime'
+import type { GraphQLObject, GraphQLVariables } from 'houdini/runtime'
+import type { QueryArtifact } from 'houdini/runtime'
 import type { Cache } from 'houdini/runtime/cache'
-import { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
+import type { DocumentStore, HoudiniClient } from 'houdini/runtime/client'
 import { getCurrentConfig } from '$houdini/runtime'
 import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from 'houdini/runtime'
-import { LRUCache } from 'houdini/runtime'
+import type { LRUCache } from 'houdini/runtime'
 import { marshalSelection, marshalInputs } from 'houdini/runtime'
 import { find_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext } from 'react'
 
-import { DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle'
+import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle'
 import { useDocumentStore } from '../hooks/useDocumentStore'
-import { SuspenseCache, suspense_cache } from './cache'
+import { type SuspenseCache, suspense_cache } from './cache'
 
 type PageComponent = React.ComponentType<{ url: string }>
 
@@ -94,7 +94,7 @@ export function Router({
 		if (!globalThis.window) {
 			return
 		}
-		const onChange = (evt: PopStateEvent) => {
+		const onChange = (_evt: PopStateEvent) => {
 			setCurrentURL(window.location.pathname)
 		}
 		window.addEventListener('popstate', onChange)
@@ -166,7 +166,7 @@ export const useLocation = () => useContext(LocationContext)
 function usePageData({
 	page,
 	variables,
-	assetPrefix,
+	assetPrefix: _assetPrefix,
 	injectToStream,
 }: {
 	page: RouterPageManifest<ComponentType>
@@ -216,7 +216,9 @@ function usePageData({
 		}
 
 		// send the request
-		const observer: DocumentStore<GraphQLObject, GraphQLVariables> = data_cache.has(artifact.name)
+		const observer: DocumentStore<GraphQLObject, GraphQLVariables> = data_cache.has(
+			artifact.name
+		)
 			? data_cache.get(artifact.name)!
 			: client.observe({ artifact, cache })
 
@@ -364,11 +366,11 @@ function usePageData({
 			}
 
 			// compare the last known variables with the current set
-			let last: GraphQLVariables = {}
-			let usedVariables: GraphQLVariables = {}
+			const last: GraphQLVariables = {}
+			const usedVariables: GraphQLVariables = {}
 			for (const variable of Object.keys(pageVariables)) {
 				last[variable] = last_variables.get(artifact)![variable]
-				usedVariables[variable] = (variables ?? {})[variable]
+				usedVariables[variable] = variables?.[variable]
 			}
 
 			// before we can compare we need to only look at the variables that the artifact cares about
@@ -482,15 +484,15 @@ export function RouterContextProvider({
 	}, [])
 
 	React.useEffect(() => {
-		// @ts-ignore
+		// @ts-expect-error
 		window.addEventListener('_houdini_session_', handleNewSession)
 
 		// cleanup this component
 		return () => {
-			// @ts-ignore
+			// @ts-expect-error
 			window.removeEventListener('_houdini_session_', handleNewSession)
 		}
-	}, [])
+	}, [handleNewSession])
 
 	return (
 		<Context.Provider
@@ -668,15 +670,16 @@ function useLinkBehavior({
 	// only use the preload handler if the browser hasn't chosen to reduce data usage
 	// this doesn't break the rule of hooks because it will only ever have one value
 	// in the lifetime of the app
-	// @ts-ignore
 	if (!globalThis.navigator?.connection?.saveData) {
+		// @ts-expect-error
+		// biome-ignore lint/correctness/useHookAtTopLevel: value is constant for the lifetime of the app
 		usePreload({ preload })
 	}
 }
 
 function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 	// navigations need to be registered as transitions
-	const [pending, startTransition] = React.useTransition()
+	const [_pending, startTransition] = React.useTransition()
 
 	React.useEffect(() => {
 		const onClick: HTMLAnchorElement['onclick'] = (e) => {
@@ -712,7 +715,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 			// we need to figure out the target url by looking at the href attribute
 			const target = link.attributes.getNamedItem('href')?.value
 			// make sure its a link we recognize
-			if (!target || !target.startsWith('/')) {
+			if (!target?.startsWith('/')) {
 				return
 			}
 
@@ -730,7 +733,7 @@ function useLinkNavigation({ goto }: { goto: (url: string) => void }) {
 		return () => {
 			window.removeEventListener('click', onClick!)
 		}
-	}, [])
+	}, [goto])
 }
 
 function usePreload({ preload }: { preload: (url: string, which: PreloadWhichValue) => void }) {
@@ -751,8 +754,8 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 			}
 
 			// if the anchor doesn't allow for preloading, don't do anything
-			let preloadWhichRaw = anchor.attributes.getNamedItem('data-houdini-preload')?.value
-			let preloadWhich: PreloadWhichValue =
+			const preloadWhichRaw = anchor.attributes.getNamedItem('data-houdini-preload')?.value
+			const preloadWhich: PreloadWhichValue =
 				!preloadWhichRaw || preloadWhichRaw === 'true'
 					? 'page'
 					: (preloadWhichRaw as PreloadWhichValue)
@@ -785,7 +788,7 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 		return () => {
 			document.removeEventListener('mousemove', mouseMove)
 		}
-	}, [])
+	}, [preload])
 }
 
 export type RouterCache = {

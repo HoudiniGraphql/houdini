@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { usersListCompStore } from '$houdini';
-  import { onMount } from 'svelte';
+import { usersListCompStore } from '$houdini'
+import { onMount } from 'svelte'
 
-  const usersListComp = new usersListCompStore();
+const usersListComp = new usersListCompStore()
 
-  onMount(() => {
-    usersListComp.fetch();
-  });
+onMount(() => {
+	usersListComp.fetch()
+})
 </script>
 
 <p id="QueryExt-result">

@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { graphql, paginatedFragment } from '$houdini';
-  import type { PageData } from './$types';
-  import { stringify } from '$lib/utils/stringify';
+import { graphql, paginatedFragment } from '$houdini'
+import type { PageData } from './$types'
+import { stringify } from '$lib/utils/stringify'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ UserFragmentRequiredArgsQuery: queryResult } = data);
+$: ({ UserFragmentRequiredArgsQuery: queryResult } = data)
 
-  $: fragmentResult = paginatedFragment(
-    $queryResult.data?.user ?? null,
-    graphql(`
+$: fragmentResult = paginatedFragment(
+	$queryResult.data?.user ?? null,
+	graphql(`
       fragment TestFragment on User @arguments(snapshot: { type: "String!" }) {
         usersConnectionSnapshot(first: 2, snapshot: $snapshot) @paginate {
           edges {
@@ -21,7 +21,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <div id="result">

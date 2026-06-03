@@ -41,7 +41,7 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 		if (id !== rootID) {
 			for (const key of keyFieldsForType(this.#cache.config, type)) {
 				if (!(key in idFields)) {
-					throw new Error('Missing key in idFields: ' + key)
+					throw new Error(`Missing key in idFields: ${key}`)
 				}
 			}
 		}

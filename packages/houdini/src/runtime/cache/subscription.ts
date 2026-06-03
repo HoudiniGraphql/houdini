@@ -6,7 +6,7 @@ import { evaluateKey, rootID } from './stuff.js'
 
 export type FieldSelection = [
 	SubscriptionSpec,
-	Required<SubscriptionSelection>['fields'] | undefined
+	Required<SubscriptionSelection>['fields'] | undefined,
 ]
 
 // manage the subscriptions
@@ -54,7 +54,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
 			.value as string
-		let targetSelection = getFieldsForType(selection, __typename, false)
+		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// walk down the selection
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -106,7 +106,7 @@ export class InMemorySubscriptions {
 					parent,
 					key
 				)
-				let children = !Array.isArray(linkedRecord)
+				const children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
 					: flatten(linkedRecord) || []
 
@@ -131,9 +131,9 @@ export class InMemorySubscriptions {
 
 	addFieldSubscription({
 		id,
-		key,
+		key: _key,
 		selection,
-		type,
+		type: _type,
 	}: {
 		id: string
 		key: string
@@ -285,7 +285,7 @@ export class InMemorySubscriptions {
 							linkedRecord,
 							'__typename'
 						).value as string
-						let targetSelection = getFieldsForType(childSelection, __typename, false)
+						const targetSelection = getFieldsForType(childSelection, __typename, false)
 						// insert the subscriber
 						this.addMany({
 							parent: linkedRecord,
@@ -324,7 +324,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
 			.value as string
-		let targetSelection = getFieldsForType(selection, __typename, false)
+		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links
 		for (const fieldSelection of Object.values(targetSelection || {})) {
@@ -377,7 +377,7 @@ export class InMemorySubscriptions {
 	private removeSubscribers(id: string, fieldName: string, specs: SubscriptionSpec[]) {
 		// build up a list of the sets we actually need to remove after
 		// checking reference counts
-		let targets: SubscriptionSpec['set'][] = []
+		const targets: SubscriptionSpec['set'][] = []
 
 		const subscriber = this.subscribers.get(id)
 		if (!subscriber) {
@@ -469,7 +469,7 @@ export class InMemorySubscriptions {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parentID, '__typename')
 			.value as string
-		let targetSelection = getFieldsForType(selection, __typename, false)
+		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links
 		for (const fieldSelection of Object.values(targetSelection || {})) {

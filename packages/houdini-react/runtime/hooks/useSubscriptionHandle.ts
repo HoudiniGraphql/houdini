@@ -14,7 +14,7 @@ export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends Gra
 // a hook to subscribe to a subscription artifact
 export function useSubscriptionHandle<
 	_Result extends GraphQLObject,
-	_Input extends GraphQLVariables
+	_Input extends GraphQLVariables,
 >({ artifact }: { artifact: SubscriptionArtifact }, variables: _Input) {
 	// a subscription is basically just a live document
 	const [storeValue, observer] = useDocumentSubscription({

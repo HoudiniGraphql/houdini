@@ -20,7 +20,7 @@ export type MutationHandler<_Result, _Input, _Optimistic extends GraphQLObject> 
 export function useMutation<
 	_Result extends GraphQLObject,
 	_Input extends GraphQLVariables,
-	_Optimistic extends GraphQLObject
+	_Optimistic extends GraphQLObject,
 >({
 	artifact,
 }: {

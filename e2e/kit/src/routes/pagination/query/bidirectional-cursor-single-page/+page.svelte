@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { CachePolicy, graphql } from '$houdini';
-  import type { PageData } from './$types'
-  import { stringify } from '$lib/utils/stringify';
+import { CachePolicy, graphql } from '$houdini'
+import type { PageData } from './$types'
+import { stringify } from '$lib/utils/stringify'
 
-  export let data: PageData
+export let data: PageData
 
-  $: ({ BidirectionalCursorSinglePagePaginationQuery: result } = data);
+$: ({ BidirectionalCursorSinglePagePaginationQuery: result } = data)
 </script>
 
 <div id="result">

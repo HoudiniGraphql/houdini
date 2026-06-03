@@ -4,13 +4,12 @@ import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from 'houdini/
 import * as React from 'react'
 
 import { useRouterContext } from '../routing'
-import { useDeepCompareMemoize } from './useDeepCompareEffect'
 import { useDocumentSubscription } from './useDocumentSubscription'
 
 export function useFragment<
 	_Data extends GraphQLObject,
 	_ReferenceType extends {},
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables = GraphQLVariables,
 >(
 	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
@@ -70,15 +69,7 @@ export function useFragment<
 		}
 
 		return storeValue.data
-	}, [
-		useDeepCompareMemoize({
-			parent,
-			variables,
-			cachedValue,
-			storeValue: storeValue.data,
-			storeParent: storeValue.parent,
-		}),
-	])
+	}, [variables, parent, storeValue.parent, storeValue.data, cachedValue])
 }
 
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { fragment, graphql, type AnimalsList } from '$houdini';
+import { fragment, graphql, type AnimalsList } from '$houdini'
 
-  export let connection: AnimalsList;
-  $: data = fragment(
-    connection,
-    graphql(`
+export let connection: AnimalsList
+$: data = fragment(
+	connection,
+	graphql(`
       fragment AnimalsList on AnimalConnection {
         edges {
           node {
@@ -13,7 +13,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 {$data.edges.map(({ node }) => node?.id).join(',')}

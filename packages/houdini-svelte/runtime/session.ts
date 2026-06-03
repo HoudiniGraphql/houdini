@@ -5,7 +5,7 @@ import { isBrowser } from './adapter'
 const sessionKeyName = '__houdini__session__'
 
 const sessionSentinel = {}
-// @ts-ignore
+// @ts-expect-error
 let session: App.Session | {} = sessionSentinel
 
 export function extractSession(val: {
@@ -22,7 +22,7 @@ export function buildSessionObject(event: RequestEvent) {
 }
 
 export function setClientSession(
-	// @ts-ignore
+	// @ts-expect-error
 	val: App.Session
 ) {
 	if (!isBrowser) {
@@ -32,7 +32,7 @@ export function setClientSession(
 	session = val
 }
 
-// @ts-ignore
+// @ts-expect-error
 export function getClientSession(): App.Session {
 	return session
 }
@@ -47,7 +47,7 @@ export function setSession(
 
 export async function getSession(event?: RequestEvent | LoadEvent): Promise<
 	| {}
-	// @ts-ignore
+	// @ts-expect-error
 	| App.Session
 > {
 	if (event) {
@@ -58,7 +58,7 @@ export async function getSession(event?: RequestEvent | LoadEvent): Promise<
 		}
 		// the session data could also already be present in the data field
 		else if ('data' in event && event.data && sessionKeyName in event.data) {
-			// @ts-ignore
+			// @ts-expect-error
 			return extractSession(event.data) || sessionSentinel
 		} else {
 			// this is a client side event -> await the parent data which include the session

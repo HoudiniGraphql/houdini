@@ -8,7 +8,7 @@ export async function initClient(): Promise<HoudiniClient> {
 		return client
 	}
 
-	// @ts-ignore
+	// @ts-expect-error
 	client = (await import('HOUDINI_CLIENT_PATH')).default
 	return client!
 }

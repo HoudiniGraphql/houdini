@@ -100,7 +100,7 @@ async function loadAdapter({ module }: { module: string }): Promise<Adapter> {
 
 async function importFromCwd(name: string) {
 	const cwd = pathToFileURL(process.cwd()).href
-	const url = resolve(name, cwd + '/x.js')
+	const url = resolve(name, `${cwd}/x.js`)
 
 	return (await import(url)).default
 }
@@ -127,6 +127,7 @@ async function detectTools(cwd: string = process.cwd()): Promise<DetectedTools> 
 			package_manager = 'yarn'
 			break
 		} catch {}
+		// biome-ignore lint/suspicious/noAssignInExpressions: standard dir-walk pattern
 	} while (dir !== (dir = path.dirname(dir)))
 
 	return {
@@ -177,7 +178,7 @@ async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTo
 
 	return {
 		frameworkInfo,
-		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
+		module: packageJSON.type === 'module' ? 'esm' : 'commonjs',
 	}
 }
 

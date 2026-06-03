@@ -54,7 +54,7 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 									find,
 									replacement,
 								})),
-						  ]
+							]
 						: { ...userConfig.resolve?.alias, ...houdiniAliases },
 				},
 				server: {

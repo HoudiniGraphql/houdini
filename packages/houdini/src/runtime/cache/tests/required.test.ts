@@ -7,7 +7,7 @@ import { rootID } from '../stuff'
 
 const config = testConfigFile()
 
-test('client-side nullability', function () {
+test('client-side nullability', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {

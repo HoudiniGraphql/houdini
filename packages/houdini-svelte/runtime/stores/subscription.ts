@@ -13,7 +13,7 @@ import { BaseStore } from './base'
 
 export class SubscriptionStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | null | undefined
+	_Input extends GraphQLVariables | null | undefined,
 > extends BaseStore<_Data, _Input, SubscriptionArtifact> {
 	kind = CompiledSubscriptionKind
 	fetchingStore: Writable<boolean>
@@ -47,7 +47,7 @@ export class SubscriptionStore<
 		return derived(
 			[{ subscribe: super.subscribe.bind(this) }, this.fetchingStore],
 			([$parent, $fetching]) => ({
-				// @ts-ignore
+				// @ts-expect-error
 				...$parent,
 				fetching: $fetching,
 			})

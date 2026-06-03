@@ -143,8 +143,8 @@ export class Cache {
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
-					parentID ? ' under parent ' + parentID : ''
-				}. ` + 'Is it possible that the query is not mounted?'
+					parentID ? ` under parent ${parentID}` : ''
+				}. Is it possible that the query is not mounted?`
 			)
 		}
 
@@ -231,7 +231,7 @@ export class Cache {
 		// find the layer
 		const layer = this._internal_unstable.storage.getLayer(layerID)
 		if (!layer) {
-			throw new Error('Cannot find layer with id: ' + layerID)
+			throw new Error(`Cannot find layer with id: ${layerID}`)
 		}
 
 		// build up the list of everything we need to notify because of the clear
@@ -458,9 +458,9 @@ class CacheInternal {
 		// normal field one
 
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(
+		const targetSelection = getFieldsForType(
 			selection,
-			data['__typename'] as string | undefined,
+			data.__typename as string | undefined,
 			false
 		)
 
@@ -483,13 +483,8 @@ class CacheInternal {
 			const key = evaluateKey(keyRaw, variables)
 
 			// if there is a __typename field, then we should use that as the type
-			if (
-				value &&
-				typeof value === 'object' &&
-				'__typename' in value &&
-				value['__typename']
-			) {
-				linkedType = value['__typename'] as string
+			if (value && typeof value === 'object' && '__typename' in value && value.__typename) {
+				linkedType = value.__typename as string
 			}
 
 			// the current set of subscribers
@@ -619,7 +614,7 @@ class CacheInternal {
 						? this.id(linkedType, value)
 						: `${parent}.${key}`
 				}
-				let linkChange = linkedID !== previousValue
+				const linkChange = linkedID !== previousValue
 
 				// write the link to the layer
 				layer.writeLink(parent, key, linkedID)
@@ -1061,7 +1056,7 @@ class CacheInternal {
 		// if we have abstract fields, grab the __typename and include them in the list
 		const typename = this.storage.get(parent, '__typename').value as string
 		// collect all of the fields that we need to write
-		let targetSelection = getFieldsForType(selection, typename, !!generateLoading)
+		const targetSelection = getFieldsForType(selection, typename, !!generateLoading)
 
 		// look at every field in the parentFields
 		for (const [
@@ -1091,7 +1086,7 @@ class CacheInternal {
 			})
 			if (includeDirective) {
 				// if the `if` argument evaluates to false, skip the field
-				if (!evaluateVariables(includeDirective.arguments, variables ?? {})['if']) {
+				if (!evaluateVariables(includeDirective.arguments, variables ?? {}).if) {
 					continue
 				}
 			}
@@ -1100,7 +1095,7 @@ class CacheInternal {
 			})
 			if (skipDirective) {
 				// if the `if` argument evaluates to false, skip the field
-				if (evaluateVariables(skipDirective.arguments, variables ?? {})['if']) {
+				if (evaluateVariables(skipDirective.arguments, variables ?? {}).if) {
 					continue
 				}
 			}
@@ -1125,7 +1120,7 @@ class CacheInternal {
 						component,
 						variables,
 						parent,
-				  })
+					})
 
 			// look up the value in our store
 			let { value } = this.storage.get(parent, key, defaultValue)
@@ -1173,7 +1168,7 @@ class CacheInternal {
 
 			// if we are generating a loading state and we're supposed to stop here, do so
 			if (generateLoading && fieldLoading?.kind === 'value') {
-				// @ts-ignore: we're violating the contract knowingly
+				// @ts-expect-error: we're violating the contract knowingly
 				fieldTarget[attributeName] = PendingValue
 				hasData = true
 			}
@@ -1333,7 +1328,7 @@ class CacheInternal {
 			return id
 		}
 
-		return type + ':' + id
+		return `${type}:${id}`
 	}
 
 	// the list of fields that we need in order to compute an objects id
@@ -1529,7 +1524,7 @@ class CacheInternal {
 			const entryObj = entry as GraphQLObject
 
 			// start off building up the embedded id
-			// @ts-ignore
+			// @ts-expect-error
 			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
 			let innerType = linkedType
 

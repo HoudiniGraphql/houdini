@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { fragment, graphql, type MonkeyListProps } from '$houdini';
-  import AnimalConnection from './AnimalConnection.svelte';
+import { fragment, graphql, type MonkeyListProps } from '$houdini'
+import AnimalConnection from './AnimalConnection.svelte'
 
-  export let connection: MonkeyListProps;
-  $: data = fragment(
-    connection,
-    graphql(`
+export let connection: MonkeyListProps
+$: data = fragment(
+	connection,
+	graphql(`
       fragment MonkeyListProps on MonkeyConnection {
         edges {
           node {
@@ -15,7 +15,7 @@
         ...AnimalConnectionProps
       }
     `)
-  );
+)
 </script>
 
 <div>

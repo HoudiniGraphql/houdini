@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { EnumMutationStore, MyEnum, TypeOfUser } from '$houdini';
+import { EnumMutationStore, MyEnum, TypeOfUser } from '$houdini'
 
-  const enumMutation = new EnumMutationStore();
+const enumMutation = new EnumMutationStore()
 
-  async function update() {
-    await enumMutation.mutate({
-      birthDate: new Date(),
-      name: 'Foo',
-      snapshot: 'foo',
-      value: MyEnum.Value1,
-      types: [TypeOfUser.COOL, TypeOfUser.NICE]
-    });
-  }
+async function update() {
+	await enumMutation.mutate({
+		birthDate: new Date(),
+		name: 'Foo',
+		snapshot: 'foo',
+		value: MyEnum.Value1,
+		types: [TypeOfUser.COOL, TypeOfUser.NICE],
+	})
+}
 </script>
 
 <h1>Mutation update</h1>

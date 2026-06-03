@@ -15,7 +15,7 @@ import { getClient, initClient } from '../client'
 export class BaseStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables | undefined,
-	_Artifact extends DocumentArtifact = DocumentArtifact
+	_Artifact extends DocumentArtifact = DocumentArtifact,
 > {
 	// the underlying data
 	#params: ObserveParams<_Data, _Artifact, _Input> & { initialize?: boolean }

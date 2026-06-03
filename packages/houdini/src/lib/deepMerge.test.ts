@@ -2,8 +2,8 @@ import { test, expect, describe } from 'vitest'
 
 import { deepMerge } from './deepMerge.js'
 
-describe('deep merge', function () {
-	test('non-conflicting keys', function () {
+describe('deep merge', () => {
+	test('non-conflicting keys', () => {
 		const one = {
 			hello: 'world',
 		}
@@ -17,7 +17,7 @@ describe('deep merge', function () {
 		})
 	})
 
-	test('nested objects', function () {
+	test('nested objects', () => {
 		const one = {
 			hello: {
 				message: 'world',
@@ -36,7 +36,7 @@ describe('deep merge', function () {
 		})
 	})
 
-	test('conflicting keys - same value', function () {
+	test('conflicting keys - same value', () => {
 		const one = {
 			hello: 'world',
 		}
@@ -48,7 +48,7 @@ describe('deep merge', function () {
 		})
 	})
 
-	test('conflicting keys - different value', function () {
+	test('conflicting keys - different value', () => {
 		const one = {
 			hello: 'world',
 		}
@@ -60,7 +60,7 @@ describe('deep merge', function () {
 		})
 	})
 
-	test('three-way merge', function () {
+	test('three-way merge', () => {
 		const one = {
 			message1: 'hello world',
 		}
@@ -78,7 +78,7 @@ describe('deep merge', function () {
 		})
 	})
 
-	test('three way deep nested', function () {
+	test('three way deep nested', () => {
 		const one = {
 			message1: 'hello world',
 			nested: {

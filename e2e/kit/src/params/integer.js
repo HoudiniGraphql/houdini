@@ -1,9 +1,9 @@
-import { MyEnum } from '$houdini/graphql';
+import { MyEnum } from '$houdini/graphql'
 // this is here to silence the warning that MyEnum isn't being used :facepalm:
 // eslint-disable-next-line
-MyEnum;
+MyEnum
 
 /** @type {import('@sveltejs/kit').ParamMatcher} */
 export function match(param) {
-  return /^\d+$/.test(param);
+	return /^\d+$/.test(param)
 }

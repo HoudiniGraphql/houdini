@@ -118,7 +118,7 @@ describe('route_params', () => {
 	})
 })
 
-describe('find_match parse and match', async function () {
+describe('find_match parse and match', async () => {
 	// every test case needs to be an collection of urls and the expected match
 	const table = [
 		{
@@ -129,7 +129,7 @@ describe('find_match parse and match', async function () {
 	]
 
 	for (const { name, urls, expected } of table) {
-		test(name, async function () {
+		test(name, async () => {
 			// build up the list of patterns
 			const patterns = urls.map((url) => parse_page_pattern(url))
 

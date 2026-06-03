@@ -142,7 +142,7 @@ export const cachePolicy =
 							? new Cache({ disabled: false, ...ctx.config })
 							: localCache
 
-					let layer
+					let layer: string | undefined
 					if (!serverSide && ctx.cacheParams?.layer) {
 						layer = ctx.cacheParams.layer.id
 					}

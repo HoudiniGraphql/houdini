@@ -13,12 +13,12 @@ export default async function (args: { headers: string[]; output?: string }) {
 		process.exit(1)
 	}
 
-	let headers = await config.schema_pull_headers()
+	const headers = await config.schema_pull_headers()
 
 	// the destination for the schema can come from the cli arguments, the config file, or a default
 	const targetPath = args.output
 		? path.resolve(args.output)
-		: config.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json')
+		: (config.config_file.schemaPath ?? path.resolve(process.cwd(), 'schema.json'))
 
 	// Write the schema
 	await pull_schema(apiURL, config.config_file.watchSchema?.timeout ?? 30000, targetPath, headers)

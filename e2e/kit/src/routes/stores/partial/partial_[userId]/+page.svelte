@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { PageData } from './$types';
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ Partial_User } = data);
+$: ({ Partial_User } = data)
 </script>
 
 <a href="./partial_List">Back to the list</a>

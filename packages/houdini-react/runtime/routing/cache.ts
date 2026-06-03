@@ -40,7 +40,9 @@ export class SuspenseCache<_Data> extends LRUCache<_Data> {
 		// if there are subscribers, resolve them
 		if (this.#callbacks.has(key)) {
 			// resolve all of the callbacks
-			this.#callbacks.get(key)?.forEach(({ resolve }) => resolve())
+			this.#callbacks.get(key)?.forEach(({ resolve }) => {
+				resolve()
+			})
 			// delete the key
 			this.#callbacks.delete(key)
 		}

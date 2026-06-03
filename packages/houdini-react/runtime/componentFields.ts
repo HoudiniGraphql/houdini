@@ -28,7 +28,7 @@ export function injectComponents({
 
 	// if the value is an array we need to instantiate each item
 	if (Array.isArray(data)) {
-		data.forEach((item) =>
+		data.forEach((item) => {
 			injectComponents({
 				cache,
 				selection,
@@ -36,12 +36,12 @@ export function injectComponents({
 				variables,
 				parentType,
 			})
-		)
+		})
 		return
 	}
 
 	// if the object has a subselection we need to walk down
-	const typename = '__typename' in data ? (data['__typename'] as string) : ''
+	const typename = '__typename' in data ? (data.__typename as string) : ''
 	const fields = getFieldsForType(selection, typename, false)
 	if (!fields) {
 		return

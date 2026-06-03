@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { fragment, graphql } from '$houdini';
-  import type { PageData } from './$types'
+import { fragment, graphql } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({FragmentUpdateTestQuery: userInfo } = data)
+$: ({ FragmentUpdateTestQuery: userInfo } = data)
 
-  $: user = fragment(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $userInfo.data?.node,
-    graphql(`
+$: user = fragment(
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	$userInfo.data?.node,
+	graphql(`
       fragment UserFragmentTestFragment on User {
         name
       }
     `)
-  );
+)
 </script>
 
 <div id="result">{$user?.name}</div>

@@ -6,7 +6,7 @@ import { Cache } from '../index'
 
 const config = testConfigFile()
 
-test('make sure the cache data was reset', function () {
+test('make sure the cache data was reset', () => {
 	const cache = new Cache(config)
 
 	// save the data
@@ -53,7 +53,7 @@ test('make sure the cache data was reset', function () {
 	expect(cache.read({ selection }).data).toBe(null)
 })
 
-test('make sure the cache lists were reset', function () {
+test('make sure the cache lists were reset', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
@@ -135,7 +135,7 @@ test('make sure the cache lists were reset', function () {
 	expect(() => cache.list('All_Users')).toThrowError('Cannot find list with name')
 })
 
-test('make sure the cache subscribers were reset', function () {
+test('make sure the cache subscribers were reset', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {

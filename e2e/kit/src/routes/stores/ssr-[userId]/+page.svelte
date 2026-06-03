@@ -1,25 +1,25 @@
 <script lang="ts">
-  import { CachePolicy } from '$houdini';
-  import { page } from '$app/stores';
-  import { stringify } from '$lib/utils/stringify';
-  import type { PageData } from './$types';
+import { CachePolicy } from '$houdini'
+import { page } from '$app/stores'
+import { stringify } from '$lib/utils/stringify'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ User } = data);
+$: ({ User } = data)
 
-  async function refresh(id: string | null) {
-    if (id) {
-      await User.fetch({ variables: { id, tmp: false } });
-    } else {
-      // context not usefull here, but we can put it!
-      await User.fetch({ policy: CachePolicy.NetworkOnly });
-    }
-  }
+async function refresh(id: string | null) {
+	if (id) {
+		await User.fetch({ variables: { id, tmp: false } })
+	} else {
+		// context not usefull here, but we can put it!
+		await User.fetch({ policy: CachePolicy.NetworkOnly })
+	}
+}
 
-  async function refresh2WithVariableDifferentOrder() {
-    await User.fetch({ variables: { tmp: false, id: '2' } });
-  }
+async function refresh2WithVariableDifferentOrder() {
+	await User.fetch({ variables: { tmp: false, id: '2' } })
+}
 </script>
 
 <h1>SSR - [userId: {$page.params.userId}]</h1>

@@ -151,7 +151,7 @@ type ConstructorParams = Omit<YogaParams, 'schema' | 'graphqlEndpoint'>
 
 export class Server<
 	ServerContext extends Record<string, any>,
-	UserContext extends Record<string, any>
+	UserContext extends Record<string, any>,
 > {
 	opts: ConstructorParams | null
 
@@ -178,8 +178,8 @@ export class Server<
 				const userContext = !this.opts
 					? {}
 					: typeof this.opts.context === 'function'
-					? await this.opts.context(ctx)
-					: this.opts.context || {}
+						? await this.opts.context(ctx)
+						: this.opts.context || {}
 				const sessionContext = (await getSession(ctx.request)) || {}
 				return {
 					...userContext,
@@ -190,7 +190,7 @@ export class Server<
 
 		return createServerAdapter<ServerContext, Server<ServerContext, UserContext>>(this, {
 			fetchAPI: this._yoga!.fetchAPI,
-			plugins: this._yoga!['plugins'],
+			plugins: this._yoga!.plugins,
 		})
 	}
 

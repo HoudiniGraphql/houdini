@@ -43,7 +43,7 @@ export async function generate(
 
 	try {
 		// grab the config file
-		let config: Config | null = await get_config()
+		const config: Config | null = await get_config()
 
 		const [db, dbFilepath] = await init_db(config, args.preserveDatabase)
 
@@ -55,7 +55,7 @@ export async function generate(
 			try {
 				await close()
 				process.exit(0)
-			} catch (error) {
+			} catch (_error) {
 				process.exit(1)
 			}
 		}

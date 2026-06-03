@@ -11,7 +11,7 @@ beforeEach(async () => {
 	setMockConfig(config)
 })
 
-test('query plugin evaluates runtime scalars', async function () {
+test('query plugin evaluates runtime scalars', async () => {
 	const fetchSpy = vi.fn()
 
 	const cache = new Cache()

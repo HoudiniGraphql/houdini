@@ -22,7 +22,7 @@ const steps = {
 	backwards: ['end', 'afterNetwork'],
 } as const
 
-let inflightRequests: Record<
+const inflightRequests: Record<
 	string,
 	{
 		variables: Record<string, any> | null | undefined
@@ -32,7 +32,7 @@ let inflightRequests: Record<
 
 export class DocumentStore<
 	_Data extends GraphQLObject,
-	_Input extends GraphQLVariables | undefined
+	_Input extends GraphQLVariables | undefined,
 > extends Writable<QueryResult<_Data, _Input>> {
 	readonly artifact: DocumentArtifact
 	#client: HoudiniClient | null
@@ -218,6 +218,7 @@ export class DocumentStore<
 					resolved: false,
 					resolve,
 					reject,
+					// biome-ignore lint/suspicious/noThenProperty: thenable required for await support
 					then: (...args) => promise.then(...args),
 				},
 				// patch the context with new variables
@@ -310,10 +311,6 @@ export class DocumentStore<
 			return await globalThis.fetch(input, init)
 		}
 	}
-
-	#step(direction: 'error', ctx: IteratorState, value: unknown): void
-	#step(direction: 'backwards', ctx: IteratorState, value: QueryResult): void
-	#step(direction: 'forward', ctx: IteratorState, value?: never): void
 	#step(direction: keyof typeof steps | 'error', ctx: IteratorState, value?: any): void {
 		// grab the current step
 		const hook = direction === 'error' ? 'catch' : steps[direction][ctx.currentStep]
@@ -329,7 +326,7 @@ export class DocumentStore<
 		// walk down the list of plugins
 		for (let index = ctx.index; valid(index); index = step(index)) {
 			// if we found a handle
-			let target = this.#plugins[index]?.[hook]
+			const target = this.#plugins[index]?.[hook]
 			if (!target) {
 				continue
 			}
@@ -338,7 +335,7 @@ export class DocumentStore<
 			const draft = ctx.context.draft()
 
 			// detect changes in the variables from the user using object identity
-			let variablesRefChanged = (newContext: ClientPluginContext) =>
+			const variablesRefChanged = (newContext: ClientPluginContext) =>
 				newContext.variables !== draft.variables
 
 			// the common handlers
@@ -352,10 +349,10 @@ export class DocumentStore<
 					// the next index depends on the direction we're going now
 					const nextIndex = ['forward', 'error'].includes(direction)
 						? // if we're going forward, add one
-						  index + 1
+							index + 1
 						: // if we're moving backwards but called next, we
-						  // we need to invoke the same hook
-						  index
+							// we need to invoke the same hook
+							index
 
 					// if we are resolving the pipe and fire next, we need to start
 					// from the first phase
@@ -376,10 +373,10 @@ export class DocumentStore<
 					const nextIndex =
 						direction === 'backwards'
 							? // if we're going backwards, subtract one
-							  index - 1
+								index - 1
 							: // if we're moving forwards but then call resolve
-							  // we need to visit the same hook
-							  index
+								// we need to visit the same hook
+								index
 
 					// move on
 					this.#step(
@@ -586,7 +583,7 @@ class ClientPluginContextWrapper {
 		const val = values.variables
 
 		// look at the variables for ones that are different
-		let changed: ClientPluginContext['variables'] = {}
+		const changed: ClientPluginContext['variables'] = {}
 		for (const [name, value] of Object.entries(val ?? {})) {
 			if (value !== source.variables?.[name]) {
 				// we need to marshal the new value
@@ -605,7 +602,7 @@ class ClientPluginContextWrapper {
 		// update the marshaled version of the inputs
 		// - only update the values that changed (to re-marshal scalars)
 		// - or if there are no values to begin with
-		const firstInit = !ctx.stuff.inputs || !ctx.stuff.inputs.init
+		const firstInit = !ctx.stuff.inputs?.init
 		const hasChanged = Object.keys(changed).length > 0 || firstInit
 		if (hasChanged) {
 			// only marshal the changed variables so we don't double marshal

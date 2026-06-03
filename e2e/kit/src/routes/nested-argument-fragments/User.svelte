@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { fragment, graphql, type UserSearch } from '$houdini';
+import { fragment, graphql, type UserSearch } from '$houdini'
 
-  export let data: UserSearch;
-  $: _frag = fragment(
-    data,
-    graphql(`
+export let data: UserSearch
+$: _frag = fragment(
+	data,
+	graphql(`
       fragment UserSearch on Query @arguments(name: { type: "String", default: "" }) {
         userSearch(filter: { name: $name }, snapshot: "") {
           id
@@ -12,7 +12,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <pre>

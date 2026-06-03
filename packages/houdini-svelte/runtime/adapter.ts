@@ -7,12 +7,12 @@ export const isBrowser = true
  */
 export let clientStarted = true // Will be true on a client side navigation
 
-export let isPrerender = false
+export const isPrerender = false
 
-export const error = (code: number, message: string) => message
+export const error = (_code: number, message: string) => message
 export const redirect = (
-	status: 300 | 301 | 302 | 303 | 304 | 305 | 306 | 307 | 308,
-	location: string
+	_status: 300 | 301 | 302 | 303 | 304 | 305 | 306 | 307 | 308,
+	_location: string
 ) => {}
 
 export function setClientStarted() {

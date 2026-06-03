@@ -13,7 +13,7 @@ import { fetchParams } from './query'
 export class MutationStore<
 	_Data extends GraphQLObject,
 	_Input extends GraphQLVariables | undefined | null,
-	_Optimistic extends GraphQLObject
+	_Optimistic extends GraphQLObject,
 > extends BaseStore<_Data, _Input, MutationArtifact> {
 	kind = 'HoudiniMutation' as const
 
@@ -26,7 +26,7 @@ export class MutationStore<
 			abortController,
 			...mutationConfig
 		}: {
-			// @ts-ignore
+			// @ts-expect-error
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
 			event?: RequestEvent

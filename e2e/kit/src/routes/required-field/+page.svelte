@@ -1,48 +1,48 @@
 <script lang="ts">
-  import {
-    CachePolicy,
-    fragment,
-    UserRequiredStore,
-    UserRequiredFragmentsStore,
-    graphql
-  } from '$houdini';
-  import { stringify } from '$lib/utils/stringify';
+import {
+	CachePolicy,
+	fragment,
+	UserRequiredStore,
+	UserRequiredFragmentsStore,
+	graphql,
+} from '$houdini'
+import { stringify } from '$lib/utils/stringify'
 
-  const userRequired = new UserRequiredStore();
-  const userRequiredFragments = new UserRequiredFragmentsStore();
+const userRequired = new UserRequiredStore()
+const userRequiredFragments = new UserRequiredFragmentsStore()
 
-  async function getUser(id: string, forceNullDate: boolean) {
-    await Promise.all([
-      userRequired.fetch({
-        variables: { id, forceNullDate },
-        policy: CachePolicy.NetworkOnly
-      }),
-      userRequiredFragments.fetch({
-        variables: { id, forceNullDate },
-        policy: CachePolicy.NetworkOnly
-      })
-    ]);
-  }
+async function getUser(id: string, forceNullDate: boolean) {
+	await Promise.all([
+		userRequired.fetch({
+			variables: { id, forceNullDate },
+			policy: CachePolicy.NetworkOnly,
+		}),
+		userRequiredFragments.fetch({
+			variables: { id, forceNullDate },
+			policy: CachePolicy.NetworkOnly,
+		}),
+	])
+}
 
-  $: withRequired = fragment(
-    $userRequiredFragments.data?.user,
-    graphql(`
+$: withRequired = fragment(
+	$userRequiredFragments.data?.user,
+	graphql(`
       fragment UserWithRequired on User {
         name
         birthDate @required
       }
     `)
-  );
+)
 
-  $: withoutRequired = fragment(
-    $userRequiredFragments.data?.user,
-    graphql(`
+$: withoutRequired = fragment(
+	$userRequiredFragments.data?.user,
+	graphql(`
       fragment UserWithoutRequired on User {
         name
         birthDate
       }
     `)
-  );
+)
 </script>
 
 <button id="getNonNull" on:click={() => getUser('1', false)}

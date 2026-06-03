@@ -1,7 +1,7 @@
-import type { LayoutLoad } from './$types';
-import { graphql } from '$houdini';
+import type { LayoutLoad } from './$types'
+import { graphql } from '$houdini'
 
-export const _houdini_session = true;
+export const _houdini_session = true
 
 const store = graphql(`
     query LayoutSession {
@@ -10,9 +10,9 @@ const store = graphql(`
 `)
 
 export const load: LayoutLoad = async (event) => {
-    await store.fetch({ event })
+	await store.fetch({ event })
 
-    return {
-        LayoutSession: store
-    }
-};
+	return {
+		LayoutSession: store,
+	}
+}

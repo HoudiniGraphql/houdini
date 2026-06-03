@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { fragment, graphql, type AnimalConnectionProps } from '$houdini';
-  import Animal from './Animal.svelte';
+import { fragment, graphql, type AnimalConnectionProps } from '$houdini'
+import Animal from './Animal.svelte'
 
-  export let connection: AnimalConnectionProps;
-  $: data = fragment(
-    connection,
-    graphql(`
+export let connection: AnimalConnectionProps
+$: data = fragment(
+	connection,
+	graphql(`
       fragment AnimalConnectionProps on AnimalConnection {
         edges {
           node {
@@ -15,7 +15,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <div>

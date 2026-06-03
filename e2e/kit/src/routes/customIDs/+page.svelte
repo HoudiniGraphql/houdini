@@ -1,22 +1,22 @@
 <script lang="ts">
-  import { graphql } from '$houdini';
-  import type { PageData } from './$types';
+import { graphql } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData
+export let data: PageData
 
-  $:({RentedBooks: store} = data)
-  
-  const update = graphql(`
+$: ({ RentedBooks: store } = data)
+
+const update = graphql(`
     mutation updateRentedBook($rate: Int!) {
       updateRentedBook(userId: "1", bookId: 1, rate: $rate) {
         rate
       }
     }
-  `);
+  `)
 
-  const updateRate = (rate: number) => {
-    update.mutate({ rate });
-  };
+const updateRate = (rate: number) => {
+	update.mutate({ rate })
+}
 </script>
 
 <h2>RentedBooks</h2>

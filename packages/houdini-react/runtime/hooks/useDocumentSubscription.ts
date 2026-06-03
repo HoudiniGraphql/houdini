@@ -13,7 +13,7 @@ import { useDocumentStore, type UseDocumentStoreParams } from './useDocumentStor
 export function useDocumentSubscription<
 	_Artifact extends DocumentArtifact = DocumentArtifact,
 	_Data extends GraphQLObject = GraphQLObject,
-	_Input extends GraphQLVariables = GraphQLVariables
+	_Input extends GraphQLVariables = GraphQLVariables,
 >({
 	artifact,
 	variables,

@@ -4,7 +4,7 @@ import type { ClientPlugin } from './documentStore'
 import { createStore } from './documentStore.test'
 import { DataSource } from './types'
 
-test('createPluginHooks', async function () {
+test('createPluginHooks', async () => {
 	const enter = vi.fn()
 	const create = vi.fn()
 

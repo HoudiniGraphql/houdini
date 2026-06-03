@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { MultiUserStore } from '$houdini';
-  import type { PageData } from './$types';
+import { MultiUserStore } from '$houdini'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ store1, store2 } = data);
+$: ({ store1, store2 } = data)
 
-  const checkTypes = () => {
-    return (
-      `${data.store1 instanceof MultiUserStore} ` +
-      `- ${data.store2 instanceof MultiUserStore} ` +
-      // @ts-ignore
-      `- ${data.store3 instanceof MultiUserStore}`
-    );
-  };
+const checkTypes = () => {
+	return (
+		`${data.store1 instanceof MultiUserStore} ` +
+		`- ${data.store2 instanceof MultiUserStore} ` +
+		// @ts-ignore
+		`- ${data.store3 instanceof MultiUserStore}`
+	)
+}
 </script>
 
 <h1>ssr-one-store-multivariables</h1>

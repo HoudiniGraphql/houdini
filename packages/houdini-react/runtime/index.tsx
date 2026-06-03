@@ -3,7 +3,7 @@ import type { Cache } from 'houdini/runtime/cache'
 
 import client from './client'
 import manifest from './manifest'
-import { Router as RouterImpl, RouterCache, RouterContextProvider } from './routing'
+import { Router as RouterImpl, type RouterCache, RouterContextProvider } from './routing'
 
 export * from './hooks'
 export { router_cache, useSession, useLocation, useRoute } from './routing'

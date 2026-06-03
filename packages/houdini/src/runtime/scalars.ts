@@ -30,7 +30,7 @@ export function marshalSelection({
 		return data.map((val) => marshalSelection({ selection, data: val, config }))
 	}
 
-	const targetSelection = getFieldsForType(selection, data['__typename'] as string, false)
+	const targetSelection = getFieldsForType(selection, data.__typename as string, false)
 
 	// we're looking at an object, build it up from the current input
 	return Object.fromEntries(

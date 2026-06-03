@@ -10,7 +10,7 @@ type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 type FunctionExpression = recast.types.namedTypes.FunctionExpression
 type CallExpression = recast.types.namedTypes.CallExpression
 
-const AST = recast.types.builders
+const _AST = recast.types.builders
 
 export function find_insert_index(script: Program) {
 	let insert_index = script.body.findIndex((statement) => {
@@ -102,7 +102,6 @@ export function find_exported_fn(
 		}
 		// it wasn't something we care about, move along
 		else {
-			continue
 		}
 	}
 	const exported = body.find(

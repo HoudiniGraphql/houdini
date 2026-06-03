@@ -16,10 +16,9 @@
 		"compile": "turbo compile --filter=\"./packages/*\"",
 		"typedefs:all": "turbo run typedefs",
 		"typedefs": "turbo run typedefs --filter=\"./packages/*\"",
-		"lint": "eslint --ignore-pattern .prettierignore \"./packages/*/src/**/*.ts\"",
-		"format": "prettier \"packages/**/*.ts\"",
-		"format:write": "npm run format -- -w",
-		"format:check": "npm run format -- --check",
+		"lint": "biome lint",
+		"format": "biome format --write",
+		"format:check": "biome format",
 		"release": "pnpm run build && node packages/_scripts/release.js",
 		"release:snapshot": "pnpm run build && node packages/_scripts/release.js --snapshot",
 		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
@@ -33,16 +32,12 @@
 		"@changesets/changelog-github": "^0.4.8",
 		"@changesets/cli": "^2.26.0",
 		"@playwright/test": "1.59.1",
-		"@theguild/eslint-config": "^0.13.4",
-		"@trivago/prettier-plugin-sort-imports": "^4.0.0",
+		"@biomejs/biome": "^2.4.16",
 		"@types/react": "^19.0.7",
 		"@vitest/coverage-v8": "^1.6.0",
 		"@vitest/ui": "^1.6.0",
-		"eslint": "^9.36.0",
-		"eslint-plugin-unused-imports": "^3.0.0",
 		"graphql": "^15.8.0",
 		"lint-staged": "^12.3.4",
-		"prettier": "^2.8.3",
 		"turbo": "^1.8.8",
 		"typescript": "^5.9.3",
 		"vite": "^8.0.0",
@@ -56,10 +51,7 @@
 	},
 	"packageManager": "pnpm@10.12.1",
 	"lint-staged": {
-		"*.ts&!(*.d.ts)": "prettier -w ",
-		"*.tsx": "prettier -w ",
-		"*.js": "prettier -w ",
-		"*.json": "prettier -w "
+		"*.{ts,tsx,js,json}": "biome format --write"
 	},
 	"pnpm": {
 		"overrides": {

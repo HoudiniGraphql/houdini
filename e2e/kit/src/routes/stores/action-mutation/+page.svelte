@@ -1,8 +1,8 @@
 <script>
-  import { enhance } from '$app/forms';
+import { enhance } from '$app/forms'
 
-  /** @type {import('./$types').ActionData} */
-  export let form;
+/** @type {import('./$types').ActionData} */
+export let form
 </script>
 
 <form method="POST" action="?/add" use:enhance>

@@ -41,7 +41,7 @@ function insertSort(array) {
 
 const typedArrayPrototypeGetSymbolToStringTag = Object.getOwnPropertyDescriptor(
 	Object.getPrototypeOf(Object.getPrototypeOf(new Int8Array())),
-	Symbol.toStringTag,
+	Symbol.toStringTag
 ).get
 
 function isTypedArrayWithEntries(value) {
@@ -77,7 +77,7 @@ function getCircularValueOption(options) {
 			}
 		}
 		throw new TypeError(
-			'The "circularValue" argument must be of type string or the value null or undefined',
+			'The "circularValue" argument must be of type string or the value null or undefined'
 		)
 	}
 	return '"[Circular]"'
@@ -200,11 +200,25 @@ function configure(options) {
 					const maximumValuesToStringify = Math.min(value.length, maximumBreadth)
 					let i = 0
 					for (; i < maximumValuesToStringify - 1; i++) {
-						const tmp = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation)
+						const tmp = stringifyFnReplacer(
+							String(i),
+							value,
+							stack,
+							replacer,
+							spacer,
+							indentation
+						)
 						res += tmp === undefined ? 'null' : tmp
 						res += join
 					}
-					const tmp = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation)
+					const tmp = stringifyFnReplacer(
+						String(i),
+						value,
+						stack,
+						replacer,
+						spacer,
+						indentation
+					)
 					res += tmp === undefined ? 'null' : tmp
 					if (value.length - 1 > maximumBreadth) {
 						const removedKeys = value.length - maximumBreadth - 1
@@ -239,7 +253,14 @@ function configure(options) {
 				stack.push(value)
 				for (let i = 0; i < maximumPropertiesToStringify; i++) {
 					const key = keys[i]
-					const tmp = stringifyFnReplacer(key, value, stack, replacer, spacer, indentation)
+					const tmp = stringifyFnReplacer(
+						key,
+						value,
+						stack,
+						replacer,
+						spacer,
+						indentation
+					)
 					if (tmp !== undefined) {
 						res += `${separator}${strEscape(key)}:${whitespace}${tmp}`
 						separator = join
@@ -308,11 +329,25 @@ function configure(options) {
 					const maximumValuesToStringify = Math.min(value.length, maximumBreadth)
 					let i = 0
 					for (; i < maximumValuesToStringify - 1; i++) {
-						const tmp = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation)
+						const tmp = stringifyArrayReplacer(
+							String(i),
+							value[i],
+							stack,
+							replacer,
+							spacer,
+							indentation
+						)
 						res += tmp === undefined ? 'null' : tmp
 						res += join
 					}
-					const tmp = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation)
+					const tmp = stringifyArrayReplacer(
+						String(i),
+						value[i],
+						stack,
+						replacer,
+						spacer,
+						indentation
+					)
 					res += tmp === undefined ? 'null' : tmp
 					if (value.length - 1 > maximumBreadth) {
 						const removedKeys = value.length - maximumBreadth - 1
@@ -333,7 +368,14 @@ function configure(options) {
 				}
 				let separator = ''
 				for (const key of replacer) {
-					const tmp = stringifyArrayReplacer(key, value[key], stack, replacer, spacer, indentation)
+					const tmp = stringifyArrayReplacer(
+						key,
+						value[key],
+						stack,
+						replacer,
+						spacer,
+						indentation
+					)
 					if (tmp !== undefined) {
 						res += `${separator}${strEscape(key)}:${whitespace}${tmp}`
 						separator = join
@@ -584,7 +626,14 @@ function configure(options) {
 					return stringifyFnReplacer('', { '': value }, [], replacer, spacer, '')
 				}
 				if (Array.isArray(replacer)) {
-					return stringifyArrayReplacer('', value, [], getUniqueReplacerSet(replacer), spacer, '')
+					return stringifyArrayReplacer(
+						'',
+						value,
+						[],
+						getUniqueReplacerSet(replacer),
+						spacer,
+						''
+					)
 				}
 			}
 			if (spacer.length !== 0) {

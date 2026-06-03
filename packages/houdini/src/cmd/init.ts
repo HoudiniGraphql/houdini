@@ -31,7 +31,7 @@ export async function init(
 		)
 	}
 
-	let headers = extractHeaders(args.headers)
+	const headers = extractHeaders(args.headers)
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
@@ -46,6 +46,7 @@ export async function init(
 			use_git = true
 			break
 		}
+		// biome-ignore lint/suspicious/noAssignInExpressions: standard dir-walk pattern
 	} while (dir !== (dir = path.dirname(dir)))
 
 	if (use_git) {
@@ -140,7 +141,7 @@ export async function init(
 			const local_headers =
 				value_splited.length > 1
 					? // remove the url and app all the headers
-					  extractHeadersStr(value_splited.slice(1).join(' '))
+						extractHeadersStr(value_splited.slice(1).join(' '))
 					: headers
 
 			// Since we don't have a config file yet, we need to provide the default here.
@@ -354,12 +355,12 @@ const config = ${configObj}`
 	const content =
 		module === 'esm'
 			? // ESM default config
-			  `${content_base}
+				`${content_base}
 
 export default config
 `
 			: // CommonJS default config
-			  `${content_base}
+				`${content_base}
 
 module.exports = config
 `
@@ -372,7 +373,7 @@ module.exports = config
 async function houdiniClient(
 	targetPath: string,
 	typescript: boolean,
-	frameworkInfo: HoudiniFrameworkInfo,
+	_frameworkInfo: HoudiniFrameworkInfo,
 	url: string
 ) {
 	// where we put the houdiniClient
@@ -476,7 +477,7 @@ async function gitIgnore({ targetPath, schemaPath }: { targetPath: string; schem
 		newIgnores += `${schemaPath}\n`
 	}
 	if (newIgnores) {
-		await fs.writeFile(filepath, existing + '\n' + newIgnores)
+		await fs.writeFile(filepath, `${existing}\n${newIgnores}`)
 	}
 }
 
@@ -555,10 +556,11 @@ async function tjsConfig(targetPath: string, frameworkInfo: HoudiniFrameworkInfo
 	}
 
 	// check if the tsconfig.json file exists
+	let tjsConfig: any
 	try {
-		let tjsConfigFile = await fs.readFile(configFile)
+		const tjsConfigFile = await fs.readFile(configFile)
 		if (tjsConfigFile) {
-			var tjsConfig = parseJSON(tjsConfigFile)
+			tjsConfig = parseJSON(tjsConfigFile)
 		}
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
@@ -633,10 +635,11 @@ type DetectedTools = {
 
 async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTools> {
 	// if there's no package.json then there's nothing we can detect
+	let packageJSON: any
 	try {
 		const packageJSONFile = await fs.readFile(path.join(cwd, 'package.json'))
 		if (packageJSONFile) {
-			var packageJSON = JSON.parse(packageJSONFile)
+			packageJSON = JSON.parse(packageJSONFile)
 		} else {
 			throw new Error('not found')
 		}
@@ -658,7 +661,7 @@ async function detectFromPackageJSON(cwd: string): Promise<DetectedFromPackageTo
 
 	return {
 		frameworkInfo,
-		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
+		module: packageJSON.type === 'module' ? 'esm' : 'commonjs',
 	}
 }
 
@@ -681,6 +684,7 @@ async function detectTools(cwd: string = process.cwd()): Promise<DetectedTools> 
 			package_manager = 'yarn'
 			break
 		}
+		// biome-ignore lint/suspicious/noAssignInExpressions: standard dir-walk pattern
 	} while (dir !== (dir = path.dirname(dir)))
 
 	return {
@@ -700,7 +704,8 @@ function extractHeadersStr(str: string | undefined) {
 	const regex = /(\w+)=("[^"]*"|[^ ]*)/g
 	const obj: Record<string, string> = {}
 
-	let match
+	let match: RegExpExecArray | null
+	// biome-ignore lint/suspicious/noAssignInExpressions: standard regex exec loop
 	while ((match = regex.exec(str ?? '')) !== null) {
 		obj[match[1]] = match[2].replaceAll('"', '')
 	}

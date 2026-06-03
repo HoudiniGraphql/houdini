@@ -7,7 +7,7 @@ import { Cache } from '../index'
 
 const config = testConfigFile()
 
-test('can generate loading state with nested objects', function () {
+test('can generate loading state with nested objects', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -93,7 +93,7 @@ test('can generate loading state with nested objects', function () {
 	})
 })
 
-test('can generate loading state with lists', function () {
+test('can generate loading state with lists', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -153,7 +153,7 @@ test('can generate loading state with lists', function () {
 	})
 })
 
-test('can generate loading state with multi-dimensional lists', function () {
+test('can generate loading state with multi-dimensional lists', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -215,7 +215,7 @@ test('can generate loading state with multi-dimensional lists', function () {
 	})
 })
 
-test('can generate loading state with lists of loading values', function () {
+test('can generate loading state with lists of loading values', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -258,7 +258,7 @@ test('can generate loading state with lists of loading values', function () {
 	})
 })
 
-test('generate abstract loading states', function () {
+test('generate abstract loading states', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -324,7 +324,7 @@ test('generate abstract loading states', function () {
 	})
 })
 
-test('abstract loading states merge', function () {
+test('abstract loading states merge', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 

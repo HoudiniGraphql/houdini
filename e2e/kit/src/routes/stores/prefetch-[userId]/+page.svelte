@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import { stringify } from '$lib/utils/stringify';
-  import type { PageData } from './$types';
+import { page } from '$app/stores'
+import { stringify } from '$lib/utils/stringify'
+import type { PageData } from './$types'
 
-  export let data: PageData;
+export let data: PageData
 
-  $: ({ User } = data);
+$: ({ User } = data)
 </script>
 
 <h1>Prefetch - [userId: {$page.params.userId}]</h1>

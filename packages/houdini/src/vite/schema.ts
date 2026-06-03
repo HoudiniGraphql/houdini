@@ -66,7 +66,7 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 	}
 }
 
-export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
+export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 	// we want to stop polling when the plugin closes
 	let go = true
 
@@ -125,7 +125,7 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 						!(config.config_file.watchSchema?.writePolledSchema ?? true)
 					)
 					error_count = 0
-				} catch (e) {
+				} catch (_e) {
 					error_count += 1
 				}
 				// if we're suposed to poll more than once then keep going
@@ -158,7 +158,7 @@ export function poll_remote_schema(ctx: VitePluginContext): PluginOption {
 }
 
 // a plugin that re-runs the codegen pipline when the schema changes
-export function watch_local_schema(ctx: VitePluginContext): PluginOption {
+export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-refresh-on-schema',
 
@@ -175,7 +175,7 @@ export function watch_local_schema(ctx: VitePluginContext): PluginOption {
 			}
 
 			// load the current schema into the module graph
-			const schema_mod_path = local_schema_path + '?t=' + Date.now()
+			const schema_mod_path = `${local_schema_path}?t=${Date.now()}`
 			let schema: GraphQLSchema
 			try {
 				schema = (await server.ssrLoadModule(schema_mod_path)).default

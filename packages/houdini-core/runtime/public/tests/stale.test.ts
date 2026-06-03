@@ -105,14 +105,14 @@ const h_GetFieldTime = (
 }
 
 /**   2/ Tests    */
-test("info doesn't exist in the stale manager, return undefined (not stale)", async function () {
+test("info doesn't exist in the stale manager, return undefined (not stale)", async () => {
 	const cache = testCache()
 
 	// let's have a look at something that  was never seen before, it should be undefined
 	expect(h_GetFieldTime(cache, h_GetCatRecord('1'))).toBe(undefined)
 })
 
-test('Mark all stale', async function () {
+test('Mark all stale', async () => {
 	const cache = testCache()
 
 	// create some users & Cats
@@ -137,7 +137,7 @@ test('Mark all stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetCatRecord('9'))).toBe(null)
 })
 
-test('Mark a type stale', async function () {
+test('Mark a type stale', async () => {
 	const cache = testCache()
 
 	// create some users & Cats
@@ -162,7 +162,7 @@ test('Mark a type stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetCatRecord('9'))).not.toBe(null)
 })
 
-test('Mark a type field stale', async function () {
+test('Mark a type field stale', async () => {
 	const cache = testCache()
 
 	// create some users
@@ -185,7 +185,7 @@ test('Mark a type field stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetUserRecord('2', 'firstName'))).toBe(null)
 })
 
-test('Mark a record stale', async function () {
+test('Mark a record stale', async () => {
 	const cache = testCache()
 
 	// create a user
@@ -203,7 +203,7 @@ test('Mark a record stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).toBe(null)
 })
 
-test('Mark a record field stale', async function () {
+test('Mark a record field stale', async () => {
 	const cache = testCache()
 
 	// create a user
@@ -222,7 +222,7 @@ test('Mark a record field stale', async function () {
 	expect(h_GetFieldTime(cache, h_GetUserRecord('1', 'firstName'))).not.toBe(null)
 })
 
-test('Mark a record field stale when args', async function () {
+test('Mark a record field stale when args', async () => {
 	const cache = testCache()
 
 	// create a user

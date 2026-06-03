@@ -56,7 +56,7 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	const data = {
 		node: {
 			id: '1',
-			date: new Date().getTime(),
+			date: Date.now(),
 		},
 	}
 
@@ -72,7 +72,7 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	})
 })
 
-test('reading a list of custom scalars unmarshals every scalar correctly', function () {
+test('reading a list of custom scalars unmarshals every scalar correctly', () => {
 	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
@@ -123,7 +123,7 @@ test('reading a list of custom scalars unmarshals every scalar correctly', funct
 	})
 })
 
-test('can store and retrieve lists of lists of scalars', function () {
+test('can store and retrieve lists of lists of scalars', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -174,7 +174,7 @@ test('can store and retrieve lists of lists of scalars', function () {
 	})
 })
 
-test('can write list of scalars', function () {
+test('can write list of scalars', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -233,7 +233,7 @@ test('can write list of scalars', function () {
 	})
 })
 
-test('writing a scalar marked with replace', function () {
+test('writing a scalar marked with replace', () => {
 	// instantiate the cache
 	const cache = new Cache(config)
 

@@ -80,7 +80,7 @@ export async function get_config({
 
 	// there isn't a pending config so let's make one to claim
 	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
-	let reject = (message?: any) => {}
+	let reject = (_message?: any) => {}
 	pending_config_promises = new Promise((res, rej) => {
 		resolve = res
 		reject = rej
@@ -171,7 +171,7 @@ export async function get_config({
 async function read_config_file(configPath: string): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
-	let importPath = path.importPath(configPath)
+	const importPath = path.importPath(configPath)
 
 	let imported: any
 	try {

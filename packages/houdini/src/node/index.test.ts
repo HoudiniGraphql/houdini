@@ -40,7 +40,9 @@ function captureStdout() {
 		const text = typeof chunk === 'string' ? chunk : chunk.toString()
 		text.split('\n')
 			.filter(Boolean)
-			.forEach((l: string) => lines.push(JSON.parse(l)))
+			.forEach((l: string) => {
+				lines.push(JSON.parse(l))
+			})
 		return true
 	})
 	return { lines, restore: () => spy.mockRestore() }

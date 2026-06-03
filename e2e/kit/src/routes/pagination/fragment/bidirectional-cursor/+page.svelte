@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { CachePolicy, graphql, paginatedFragment } from '$houdini';
-  import type { PageData } from './$types'
-  import { stringify } from '$lib/utils/stringify';
+import { CachePolicy, graphql, paginatedFragment } from '$houdini'
+import type { PageData } from './$types'
+import { stringify } from '$lib/utils/stringify'
 
-  export let data: PageData;
+export let data: PageData
 
-  $:({ UserFragmentBidirectionalCursorQuery: queryResult } = data);
+$: ({ UserFragmentBidirectionalCursorQuery: queryResult } = data)
 
-  $: fragmentResult = paginatedFragment(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    $queryResult.data?.user,
-    graphql(`
+$: fragmentResult = paginatedFragment(
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	$queryResult.data?.user,
+	graphql(`
       fragment BidirectionalCursorFragment on User {
         usersConnection(after: "YXJyYXljb25uZWN0aW9uOjE=", first: 2) @paginate {
           edges {
@@ -21,7 +21,7 @@
         }
       }
     `)
-  );
+)
 </script>
 
 <div id="result">

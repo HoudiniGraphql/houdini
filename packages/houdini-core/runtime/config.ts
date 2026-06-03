@@ -40,7 +40,7 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 	let id = ''
 
 	for (const field of fields) {
-		id += data[field] + '__'
+		id += `${data[field]}__`
 	}
 
 	return id.slice(0, -2)
@@ -50,7 +50,7 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 let _configFile: ConfigFile | null = null
 
 export function localApiEndpoint(configFile: ConfigFile) {
-	// @ts-ignore
+	// @ts-expect-error
 	return configFile.router?.apiEndpoint ?? '/_api'
 }
 

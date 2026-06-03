@@ -2,7 +2,7 @@ import { test, expect } from 'vitest'
 
 import { testCache, testQuery } from './test'
 
-test('can read values', function () {
+test('can read values', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -89,7 +89,7 @@ test('can read values', function () {
 	})
 })
 
-test('can write values', function () {
+test('can write values', () => {
 	const cache = testCache()
 
 	const selection = {
@@ -176,7 +176,7 @@ test('can write values', function () {
 	})
 })
 
-test('can read and write variables', function () {
+test('can read and write variables', () => {
 	const cache = testCache()
 
 	const selection = {

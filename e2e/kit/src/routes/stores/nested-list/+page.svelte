@@ -1,99 +1,99 @@
 <script lang="ts">
-  import {
-    CitiesStore,
-    AddCityStore,
-    AddLibraryStore,
-    AddBookStore,
-    DeleteCityStore,
-    DeleteLibraryStore,
-    DeleteBookStore,
-    type ForceReturn$options,
-    RemoveBookStore
-  } from '$houdini';
-  import { onMount } from 'svelte';
+import {
+	CitiesStore,
+	AddCityStore,
+	AddLibraryStore,
+	AddBookStore,
+	DeleteCityStore,
+	DeleteLibraryStore,
+	DeleteBookStore,
+	type ForceReturn$options,
+	RemoveBookStore,
+} from '$houdini'
+import { onMount } from 'svelte'
 
-  const cities = new CitiesStore();
-  const addCity = new AddCityStore();
-  const addLibrary = new AddLibraryStore();
-  const addBook = new AddBookStore();
-  const deleteCity = new DeleteCityStore();
-  const deleteLibrary = new DeleteLibraryStore();
-  const deleteBook = new DeleteBookStore();
-  const removeBook = new RemoveBookStore();
+const cities = new CitiesStore()
+const addCity = new AddCityStore()
+const addLibrary = new AddLibraryStore()
+const addBook = new AddBookStore()
+const deleteCity = new DeleteCityStore()
+const deleteLibrary = new DeleteLibraryStore()
+const deleteBook = new DeleteBookStore()
+const removeBook = new RemoveBookStore()
 
-  onMount(() => {
-    cities.fetch();
-  });
+onMount(() => {
+	cities.fetch()
+})
 
-  const addCityHandler = (event: Event) => {
-    const target = event?.target as HTMLInputElement;
-    addCity.mutate({ name: target.value });
-    target.value = '';
-  };
+const addCityHandler = (event: Event) => {
+	const target = event?.target as HTMLInputElement
+	addCity.mutate({ name: target.value })
+	target.value = ''
+}
 
-  const deleteCityHandler = (event: Event) => {
-    const target = event?.target as HTMLButtonElement;
-    if (!target.dataset.id) {
-      return;
-    }
-    deleteCity.mutate({ city: target.dataset.id });
-  };
+const deleteCityHandler = (event: Event) => {
+	const target = event?.target as HTMLButtonElement
+	if (!target.dataset.id) {
+		return
+	}
+	deleteCity.mutate({ city: target.dataset.id })
+}
 
-  const addLibraryHandler = (event: Event) => {
-    const target = event?.target as HTMLInputElement;
-    if (!target.dataset.id) {
-      return;
-    }
+const addLibraryHandler = (event: Event) => {
+	const target = event?.target as HTMLInputElement
+	if (!target.dataset.id) {
+		return
+	}
 
-    addLibrary.mutate({ city: target.dataset.id, name: target.value });
-    target.value = '';
-  };
+	addLibrary.mutate({ city: target.dataset.id, name: target.value })
+	target.value = ''
+}
 
-  const deleteLibraryHandler = (event: Event) => {
-    const target = event?.target as HTMLButtonElement;
-    if (!target.dataset.id) {
-      return;
-    }
-    deleteLibrary.mutate({ library: target.dataset.id });
-  };
+const deleteLibraryHandler = (event: Event) => {
+	const target = event?.target as HTMLButtonElement
+	if (!target.dataset.id) {
+		return
+	}
+	deleteLibrary.mutate({ library: target.dataset.id })
+}
 
-  const addBookHandler = (event: Event) => {
-    const target = event?.target as HTMLInputElement;
-    if (!target.dataset.id) {
-      return;
-    }
+const addBookHandler = (event: Event) => {
+	const target = event?.target as HTMLInputElement
+	if (!target.dataset.id) {
+		return
+	}
 
-    addBook.mutate({ library: target.dataset.id, title: target.value });
-    target.value = '';
-  };
+	addBook.mutate({ library: target.dataset.id, title: target.value })
+	target.value = ''
+}
 
-  const removeBookHandler = (event: Event) => {
-    const target = event?.target as HTMLButtonElement;
-    if (!target.dataset.id) {
-      return;
-    }
-    removeBook.mutate(
-      {
-        book: target.dataset.id,
-        force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL'
-      },
-      { optimisticResponse: { deleteBook: { id: target.dataset.id } } }
-    );
-  };
+const removeBookHandler = (event: Event) => {
+	const target = event?.target as HTMLButtonElement
+	if (!target.dataset.id) {
+		return
+	}
+	removeBook.mutate(
+		{
+			book: target.dataset.id,
+			force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL',
+		},
+		{ optimisticResponse: { deleteBook: { id: target.dataset.id } } }
+	)
+}
 
-  const deleteBookHandler = (event: Event) => {
-    const target = event?.target as HTMLButtonElement;
-    if (!target.dataset.id) {
-      return;
-    }
-    deleteBook.mutate(
-      {
-        book: target.dataset.id,
-        force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL'
-      },
-      { optimisticResponse: { deleteBook: { id: target.dataset.id } } }
-    );
-  };
+const deleteBookHandler = (event: Event) => {
+	const target = event?.target as HTMLButtonElement
+	if (!target.dataset.id) {
+		return
+	}
+	deleteBook.mutate(
+		{
+			book: target.dataset.id,
+			force: (target.dataset.force as ForceReturn$options) ?? 'NORMAL',
+		},
+		{ optimisticResponse: { deleteBook: { id: target.dataset.id } } }
+	)
+}
 </script>
 
 <h1>Nested - List</h1>

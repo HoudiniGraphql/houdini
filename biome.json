@@ -1,18 +1,51 @@
 {
 	"files": {
-		"includes": ["packages/*/src/**"]
+		"includes": [
+			"packages/*/src/**",
+			"packages/*/runtime/**",
+			"!!**/node_modules",
+			"!!**/build",
+			"!!**/dist"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineWidth": 100
 	},
 	"javascript": {
 		"formatter": {
 			"semicolons": "asNeeded",
-			"quoteStyle": "single"
+			"quoteStyle": "single",
+			"trailingCommas": "es5",
+			"arrowParentheses": "always"
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
 		}
 	},
 	"linter": {
+		"enabled": true,
 		"rules": {
 			"suspicious": {
 				"noExportsInTest": "off",
-				"noControlCharactersInRegex": "off"
+				"noControlCharactersInRegex": "off",
+				"noExplicitAny": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off"
+			},
+			"complexity": {
+				"noBannedTypes": "off"
+			},
+			"performance": {
+				"noAccumulatingSpread": "off"
 			}
 		}
 	}
