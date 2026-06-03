@@ -1,5 +1,13 @@
 # houdini
 
+## 2.0.0-go.21
+
+### Patch Changes
+
+-   [`14fa602a`](https://github.com/HoudiniGraphql/houdini/commit/14fa602a4aaeee3f0863e7f0c93945f0eebac51e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for nested types in scalar definitions
+
+-   [`cd3fa07a`](https://github.com/HoudiniGraphql/houdini/commit/cd3fa07a6405de85f08954faa84895296f032ef4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Align Result and QueryResult
+
 ## 2.0.0-go.20
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-go.4
+
+### Patch Changes
+
+-   [#1612](https://github.com/HoudiniGraphql/houdini/pull/1612) [`0150e386`](https://github.com/HoudiniGraphql/houdini/commit/0150e386b02b36fb3c98a2cf7f3036e147c93cc7) Thanks [@github-actions](https://github.com/apps/github-actions)! - bump create
+
 ## 2.0.0-go.3
 
 ### Minor Changes

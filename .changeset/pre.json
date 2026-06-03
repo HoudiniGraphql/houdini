@@ -23,6 +23,7 @@
     "angry-zoos-talk",
     "auth-header-fix",
     "cloudflare-adapter-fix",
+    "curly-olives-flash",
     "cyan-sheep-compare",
     "eleven-parents-rest",
     "gitignore-schema-path",
@@ -30,11 +31,13 @@
     "graphql-peer-dep",
     "hip-fishes-end",
     "large-countries-fetch",
+    "many-geese-admire",
     "mutation-error-handling",
     "nasty-tables-fix",
     "session-transform-ts-annotations",
     "stale-trainers-enjoy",
     "svelte-async-component-query",
+    "tall-forks-leave",
     "write-polled-schema"
   ]
 }
