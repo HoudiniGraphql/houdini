@@ -102,14 +102,20 @@ export function useDocumentHandle<
 			})
 		}
 
+		const baseFields = {
+			artifact,
+			data: storeValue.data,
+			variables: storeValue.variables,
+			partial: storeValue.partial,
+			fetching: storeValue.fetching,
+			errors: storeValue.errors,
+		}
+
 		// only consider paginated queries
 		if (artifact.kind !== ArtifactKind.Query || !artifact.refetch?.paginated) {
 			return {
-				artifact,
-				data: storeValue.data,
-				variables: storeValue.variables,
+				...baseFields,
 				fetch: fetchQuery,
-				partial: storeValue.partial,
 			}
 		}
 
@@ -135,11 +141,8 @@ export function useDocumentHandle<
 			})
 
 			return {
-				artifact,
-				data: storeValue.data,
-				variables: storeValue.variables,
+				...baseFields,
 				fetch: handlers.fetch,
-				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
 				loadNextPending: forwardPending,
 				loadPrevious: wrapLoad(setBackwardPending, handlers.loadPreviousPage),
@@ -169,11 +172,8 @@ export function useDocumentHandle<
 			})
 
 			return {
-				artifact,
-				data: storeValue.data,
-				variables: storeValue.variables,
+				...baseFields,
 				fetch: handlers.fetch,
-				partial: storeValue.partial,
 				loadNext: wrapLoad(setForwardPending, handlers.loadNextPage),
 				loadNextPending: forwardPending,
 			}
@@ -181,12 +181,9 @@ export function useDocumentHandle<
 
 		// we don't want to add anything
 		return {
-			artifact,
-			data: storeValue.data,
-			variables: storeValue.variables,
+			...baseFields,
 			fetch: fetchQuery,
 			refetch: fetchQuery,
-			partial: storeValue.partial,
 		}
 	}, [artifact, observer, session, storeValue])
 }
@@ -198,6 +195,8 @@ export type DocumentHandle<
 > = {
 	data: _Data
 	partial: boolean
+	fetching: boolean
+	errors: { message: string }[] | null
 	fetch: FetchFn<_Data, Partial<_Input>>
 	variables: _Input
 } & RefetchHandlers<_Artifact, _Data, _Input>

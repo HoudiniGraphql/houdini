@@ -267,6 +267,7 @@ export class FragmentStoreOffset<
 export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readable<{
 	data: _Data
 	fetching: boolean
+	errors: { message: string }[] | null
 	pageInfo: PageInfo
 }> & {
 	loadNextPage(
@@ -284,4 +285,5 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readab
 export type FragmentPaginatedResult<_Data, _ExtraFields = {}> = {
 	data: _Data | null
 	fetching: boolean
+	errors: { message: string }[] | null
 } & _ExtraFields
