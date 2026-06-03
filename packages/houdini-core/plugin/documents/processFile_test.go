@@ -295,6 +295,79 @@ export default function CF_A_UserAvatar({ user }: Props) {
 				},
 			},
 		},
+		// ── comment stripping ────────────────────────────────────────────────
+		{
+			name:     "line comment hides graphql call",
+			content:  "// graphql(`query Hidden { id }`)",
+			expected: []string{},
+		},
+		{
+			name:     "inline line comment hides graphql call",
+			content:  "const x = 1 // graphql(`query Hidden { id }`)",
+			expected: []string{},
+		},
+		{
+			name:     "block comment hides graphql call",
+			content:  "/* graphql(`query Hidden { id }`) */",
+			expected: []string{},
+		},
+		{
+			name: "multiline block comment hides graphql call",
+			content: `/*
+ * graphql(` + "`" + `query Hidden { id }` + "`" + `)
+ */`,
+			expected: []string{},
+		},
+		{
+			name: "commented-out call does not block following real call",
+			content: "// graphql(`query Hidden { id }`)\n" +
+				"graphql(`query Visible { id }`)",
+			expected: []string{"query Visible { id }"},
+			expectedLocations: []location{
+				{Row: 1, Col: 9},
+			},
+		},
+		{
+			name: "block comment before real call",
+			content: "/* graphql(`query Hidden { id }`) */\n" +
+				"graphql(`query Visible { id }`)",
+			expected: []string{"query Visible { id }"},
+			expectedLocations: []location{
+				{Row: 1, Col: 9},
+			},
+		},
+		{
+			name:    "double-slash inside string is not a comment",
+			content: `const s = "// not a comment"; graphql(` + "`" + `query Real { id }` + "`" + `)`,
+			expected: []string{"query Real { id }"},
+		},
+		{
+			name: "block comment delimiters inside string are not comments",
+			content: `const s = "/* not a comment */"; graphql(` + "`" + `query Real { id }` + "`" + `)`,
+			expected: []string{"query Real { id }"},
+		},
+		{
+			name: "graphql call inside block comment spanning multiple lines",
+			content: `
+/*
+graphql(` + "`" + `query OldQuery {
+  user { id }
+}` + "`" + `)
+*/
+graphql(` + "`" + `query NewQuery { id }` + "`" + `)`,
+			expected: []string{"query NewQuery { id }"},
+		},
+		// ── component field comment stripping ─────────────────────────────────
+		{
+			name: "line comment hides component field",
+			content: `// user: GraphQL<` + "`" + `{ id }` + "`" + `>`,
+			expectedComponentFields: []expectedComponentField{},
+		},
+		{
+			name: "block comment hides component field",
+			content: `/* user: GraphQL<` + "`" + `{ id }` + "`" + `> */`,
+			expectedComponentFields: []expectedComponentField{},
+		},
 		{
 			name: "Component field spanning buffer",
 			content: func() string {
