@@ -1,334 +1,341 @@
 # houdini-adapter-static
 
+## 2.0.0-next.23
+
+### Patch Changes
+
+- Updated dependencies []:
+  - houdini@2.0.0-next.23
+
 ## 2.0.0-next.22
 
 ### Minor Changes
 
--   [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
+- [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
 
 ### Patch Changes
 
--   Updated dependencies [[`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce)]:
-    -   houdini@2.0.0-next.22
+- Updated dependencies [[`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce)]:
+  - houdini@2.0.0-next.22
 
 ## 2.0.0-go.21
 
 ### Patch Changes
 
--   Updated dependencies [[`14fa602a`](https://github.com/HoudiniGraphql/houdini/commit/14fa602a4aaeee3f0863e7f0c93945f0eebac51e), [`cd3fa07a`](https://github.com/HoudiniGraphql/houdini/commit/cd3fa07a6405de85f08954faa84895296f032ef4)]:
-    -   houdini@2.0.0-go.21
+- Updated dependencies [[`14fa602a`](https://github.com/HoudiniGraphql/houdini/commit/14fa602a4aaeee3f0863e7f0c93945f0eebac51e), [`cd3fa07a`](https://github.com/HoudiniGraphql/houdini/commit/cd3fa07a6405de85f08954faa84895296f032ef4)]:
+  - houdini@2.0.0-go.21
 
 ## 2.0.0-go.20
 
 ### Patch Changes
 
--   Updated dependencies [[`d1848162`](https://github.com/HoudiniGraphql/houdini/commit/d18481625a443cd41f72d605b0999a0ca75c9555)]:
-    -   houdini@2.0.0-go.20
+- Updated dependencies [[`d1848162`](https://github.com/HoudiniGraphql/houdini/commit/d18481625a443cd41f72d605b0999a0ca75c9555)]:
+  - houdini@2.0.0-go.20
 
 ## 2.0.0-go.19
 
 ### Minor Changes
 
--   [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
 
 ### Patch Changes
 
--   Updated dependencies [[`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f)]:
-    -   houdini@2.0.0-go.19
+- Updated dependencies [[`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f)]:
+  - houdini@2.0.0-go.19
 
 ## 2.0.0-go.18
 
 ### Patch Changes
 
--   Updated dependencies [[`86ed9d27`](https://github.com/HoudiniGraphql/houdini/commit/86ed9d279d11443df553e9d1d42ab930ba878393)]:
-    -   houdini@2.0.0-go.18
+- Updated dependencies [[`86ed9d27`](https://github.com/HoudiniGraphql/houdini/commit/86ed9d279d11443df553e9d1d42ab930ba878393)]:
+  - houdini@2.0.0-go.18
 
 ## 2.0.0-go.17
 
 ### Major Changes
 
--   [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
 
 ### Patch Changes
 
--   Updated dependencies [[`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
-    -   houdini@2.0.0-go.17
+- Updated dependencies [[`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480), [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480)]:
+  - houdini@2.0.0-go.17
 
 ## 2.0.0-go.16
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.16
+- Updated dependencies []:
+  - houdini@2.0.0-go.16
 
 ## 2.0.0-go.15
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.15
+- Updated dependencies []:
+  - houdini@2.0.0-go.15
 
 ## 2.0.0-go.14
 
 ### Patch Changes
 
--   Updated dependencies [[`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f), [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920)]:
-    -   houdini@2.0.0-go.14
+- Updated dependencies [[`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f), [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920)]:
+  - houdini@2.0.0-go.14
 
 ## 2.0.0-go.13
 
 ### Patch Changes
 
--   Updated dependencies [[`62a0e62a`](https://github.com/HoudiniGraphql/houdini/commit/62a0e62a476d6183d50bda21ed939c8f267308f0)]:
-    -   houdini@2.0.0-go.13
+- Updated dependencies [[`62a0e62a`](https://github.com/HoudiniGraphql/houdini/commit/62a0e62a476d6183d50bda21ed939c8f267308f0)]:
+  - houdini@2.0.0-go.13
 
 ## 2.0.0-go.12
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.12
+- Updated dependencies []:
+  - houdini@2.0.0-go.12
 
 ## 2.0.0-go.11
 
 ### Patch Changes
 
--   Updated dependencies [[`2bf6cd4f`](https://github.com/HoudiniGraphql/houdini/commit/2bf6cd4fdfddec1324ba702d65436c46d50e3fe5)]:
-    -   houdini@2.0.0-go.11
+- Updated dependencies [[`2bf6cd4f`](https://github.com/HoudiniGraphql/houdini/commit/2bf6cd4fdfddec1324ba702d65436c46d50e3fe5)]:
+  - houdini@2.0.0-go.11
 
 ## 2.0.0-go.10
 
 ### Patch Changes
 
--   Updated dependencies [[`53fc6baa`](https://github.com/HoudiniGraphql/houdini/commit/53fc6baaa58d4022ae3495c1e0940b07e85d971c)]:
-    -   houdini@2.0.0-go.10
+- Updated dependencies [[`53fc6baa`](https://github.com/HoudiniGraphql/houdini/commit/53fc6baaa58d4022ae3495c1e0940b07e85d971c)]:
+  - houdini@2.0.0-go.10
 
 ## 2.0.0-go.9
 
 ### Patch Changes
 
--   Updated dependencies [[`d656515b`](https://github.com/HoudiniGraphql/houdini/commit/d656515bda5835d6e8a19b0e6eb8ecf5627fe34e)]:
-    -   houdini@2.0.0-go.9
+- Updated dependencies [[`d656515b`](https://github.com/HoudiniGraphql/houdini/commit/d656515bda5835d6e8a19b0e6eb8ecf5627fe34e)]:
+  - houdini@2.0.0-go.9
 
 ## 2.0.0-go.8
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.8
+- Updated dependencies []:
+  - houdini@2.0.0-go.8
 
 ## 2.0.0-go.7
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.7
+- Updated dependencies []:
+  - houdini@2.0.0-go.7
 
 ## 2.0.0-go.6
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.6
+- Updated dependencies []:
+  - houdini@2.0.0-go.6
 
 ## 2.0.0-go.5
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@2.0.0-go.5
+- Updated dependencies []:
+  - houdini@2.0.0-go.5
 
 ## 2.0.0-go.4
 
 ### Patch Changes
 
--   Updated dependencies [[`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2)]:
-    -   houdini@2.0.0-go.4
+- Updated dependencies [[`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2)]:
+  - houdini@2.0.0-go.4
 
 ## 2.0.0-go.3
 
 ### Patch Changes
 
--   [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
+- [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
 
--   Updated dependencies [[`043c4e29`](https://github.com/HoudiniGraphql/houdini/commit/043c4e29ce2c2f41b4a6750b191983e5d53a3540), [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448)]:
-    -   houdini@2.0.0-go.3
+- Updated dependencies [[`043c4e29`](https://github.com/HoudiniGraphql/houdini/commit/043c4e29ce2c2f41b4a6750b191983e5d53a3540), [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448)]:
+  - houdini@2.0.0-go.3
 
 ## 2.0.0-go.2
 
 ### Patch Changes
 
--   Updated dependencies [[`6fe29007`](https://github.com/HoudiniGraphql/houdini/commit/6fe290071bf356ef71567ebcbf025b1802f5cb42)]:
-    -   houdini@2.0.0-go.2
+- Updated dependencies [[`6fe29007`](https://github.com/HoudiniGraphql/houdini/commit/6fe290071bf356ef71567ebcbf025b1802f5cb42)]:
+  - houdini@2.0.0-go.2
 
 ## 2.0.0-go.1
 
 ### Patch Changes
 
--   Updated dependencies [[`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06)]:
-    -   houdini@2.0.0-go.1
+- Updated dependencies [[`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06)]:
+  - houdini@2.0.0-go.1
 
 ## 2.0.0-go.0
 
 ### Major Changes
 
--   [`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implement new compiler architecture
+- [`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implement new compiler architecture
 
 ### Patch Changes
 
--   Updated dependencies [[`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765)]:
-    -   houdini@2.0.0-go.0
+- Updated dependencies [[`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765)]:
+  - houdini@2.0.0-go.0
 
 ## 1.4.1
 
 ### Patch Changes
 
--   [#1398](https://github.com/HoudiniGraphql/houdini/pull/1398) [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Move svelte, sveltekit and vite into peerDependencies
+- [#1398](https://github.com/HoudiniGraphql/houdini/pull/1398) [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Move svelte, sveltekit and vite into peerDependencies
 
--   Updated dependencies [[`1f11803e`](https://github.com/HoudiniGraphql/houdini/commit/1f11803e98ad9aada1b4fb068a51af7948e82da0), [`47f89581`](https://github.com/HoudiniGraphql/houdini/commit/47f895810a2340fe898f0c4fc4605e890f48fc9f), [`f07875bf`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f), [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432)]:
-    -   houdini@1.4.2
+- Updated dependencies [[`1f11803e`](https://github.com/HoudiniGraphql/houdini/commit/1f11803e98ad9aada1b4fb068a51af7948e82da0), [`47f89581`](https://github.com/HoudiniGraphql/houdini/commit/47f895810a2340fe898f0c4fc4605e890f48fc9f), [`f07875bf`](https://github.com/HoudiniGraphql/houdini/commit/f07875bf1e50370cdfdb762eae9311f0cc1e680f), [`3d78749f`](https://github.com/HoudiniGraphql/houdini/commit/3d78749f4f917ee7e6edfa948ab62a1544f7d432)]:
+  - houdini@1.4.2
 
 ## 1.4.0
 
 ### Minor Changes
 
--   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) @AlecAivazis! - Version bump to align with rest of packages
+- [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) @AlecAivazis! - Version bump to align with rest of packages
 
 ### Patch Changes
 
--   [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) @AlecAivazis! - Fix bug when shell was defined as tsx
+- [#1415](https://github.com/HoudiniGraphql/houdini/pull/1415) [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70) @AlecAivazis! - Fix bug when shell was defined as tsx
 
--   Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
-    -   houdini@1.4.1
+- Updated dependencies [[`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d0b11685`](https://github.com/HoudiniGraphql/houdini/commit/d0b116852871af258a8c6a33ede6858c04295f70), [`d7b30f00`](https://github.com/HoudiniGraphql/houdini/commit/d7b30f00aaf974068a4a3b61a353bf2f9fa405e4)]:
+  - houdini@1.4.1
 
 ## 1.3.0
 
 ### Minor Changes
 
--   [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks @endigma! - Added support for configuring Houdini's output directory
+- [#1386](https://github.com/HoudiniGraphql/houdini/pull/1386) [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde) Thanks @endigma! - Added support for configuring Houdini's output directory
 
 ### Patch Changes
 
--   Updated dependencies [[`d6375b6b`](https://github.com/HoudiniGraphql/houdini/commit/d6375b6b04ecd48fba663e83b3aed9b6b25e51b3), [`21316ede`](https://github.com/HoudiniGraphql/houdini/commit/21316ede86e52dbdc3d0de7952385f9cb8307f46), [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde), [`d2dbcd2d`](https://github.com/HoudiniGraphql/houdini/commit/d2dbcd2de9b77b855053ea7775dff1207eb60a4c)]:
-    -   houdini@1.4.0
+- Updated dependencies [[`d6375b6b`](https://github.com/HoudiniGraphql/houdini/commit/d6375b6b04ecd48fba663e83b3aed9b6b25e51b3), [`21316ede`](https://github.com/HoudiniGraphql/houdini/commit/21316ede86e52dbdc3d0de7952385f9cb8307f46), [`3c08996a`](https://github.com/HoudiniGraphql/houdini/commit/3c08996a17177937fb3cf97185660c9dda3c5cde), [`d2dbcd2d`](https://github.com/HoudiniGraphql/houdini/commit/d2dbcd2de9b77b855053ea7775dff1207eb60a4c)]:
+  - houdini@1.4.0
 
 ## 1.2.66
 
 ### Patch Changes
 
--   Updated dependencies [[`70dab292`](https://github.com/HoudiniGraphql/houdini/commit/70dab292b4590183f7c0ccfa3731c28c4ea3f6b1), [`24e6bef9`](https://github.com/HoudiniGraphql/houdini/commit/24e6bef9a28875e0026f9aa1ef0e71aba17447e2), [`fa869cea`](https://github.com/HoudiniGraphql/houdini/commit/fa869ceab903190f7c098bb02e7f838a3609e947)]:
-    -   houdini@1.3.1
+- Updated dependencies [[`70dab292`](https://github.com/HoudiniGraphql/houdini/commit/70dab292b4590183f7c0ccfa3731c28c4ea3f6b1), [`24e6bef9`](https://github.com/HoudiniGraphql/houdini/commit/24e6bef9a28875e0026f9aa1ef0e71aba17447e2), [`fa869cea`](https://github.com/HoudiniGraphql/houdini/commit/fa869ceab903190f7c098bb02e7f838a3609e947)]:
+  - houdini@1.3.1
 
 ## 1.2.65
 
 ### Patch Changes
 
--   Updated dependencies [[`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22), [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22)]:
-    -   houdini@1.3.0
+- Updated dependencies [[`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22), [`45b9bb80`](https://github.com/HoudiniGraphql/houdini/commit/45b9bb80fdecd80c788cc2be7157c64ef3a43a22)]:
+  - houdini@1.3.0
 
 ## 1.2.65-next.0
 
 ### Patch Changes
 
--   Updated dependencies [[`9fe06516`](https://github.com/HoudiniGraphql/houdini/commit/9fe06516becca5803b70c4455ee4a68a1ff1ad42), [`c39d14d0`](https://github.com/HoudiniGraphql/houdini/commit/c39d14d0ac721248789bef1a46af9a460740cf26)]:
-    -   houdini@1.3.0-next.0
+- Updated dependencies [[`9fe06516`](https://github.com/HoudiniGraphql/houdini/commit/9fe06516becca5803b70c4455ee4a68a1ff1ad42), [`c39d14d0`](https://github.com/HoudiniGraphql/houdini/commit/c39d14d0ac721248789bef1a46af9a460740cf26)]:
+  - houdini@1.3.0-next.0
 
 ## 1.2.64
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.64
+- Updated dependencies []:
+  - houdini@1.2.64
 
 ## 1.2.63
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.63
+- Updated dependencies []:
+  - houdini@1.2.63
 
 ## 1.2.62
 
 ### Patch Changes
 
--   Updated dependencies [[`2cf22c7c`](https://github.com/HoudiniGraphql/houdini/commit/2cf22c7ccae088b107770b819d2c0019054d3c6e)]:
-    -   houdini@1.2.62
+- Updated dependencies [[`2cf22c7c`](https://github.com/HoudiniGraphql/houdini/commit/2cf22c7ccae088b107770b819d2c0019054d3c6e)]:
+  - houdini@1.2.62
 
 ## 1.2.61
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.61
+- Updated dependencies []:
+  - houdini@1.2.61
 
 ## 1.2.60
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.60
+- Updated dependencies []:
+  - houdini@1.2.60
 
 ## 1.2.59
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.59
+- Updated dependencies []:
+  - houdini@1.2.59
 
 ## 1.2.58
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.58
+- Updated dependencies []:
+  - houdini@1.2.58
 
 ## 1.2.57
 
 ### Patch Changes
 
--   Updated dependencies [[`fe0d7599`](https://github.com/HoudiniGraphql/houdini/commit/fe0d75996ac5632fe8a10dde85a3f59b036dd3c7)]:
-    -   houdini@1.2.57
+- Updated dependencies [[`fe0d7599`](https://github.com/HoudiniGraphql/houdini/commit/fe0d75996ac5632fe8a10dde85a3f59b036dd3c7)]:
+  - houdini@1.2.57
 
 ## 1.2.56
 
 ### Patch Changes
 
--   Updated dependencies [[`1728454f`](https://github.com/HoudiniGraphql/houdini/commit/1728454f0f1ca6a35ad5c4c039cc6e2f6212ab25)]:
-    -   houdini@1.2.56
+- Updated dependencies [[`1728454f`](https://github.com/HoudiniGraphql/houdini/commit/1728454f0f1ca6a35ad5c4c039cc6e2f6212ab25)]:
+  - houdini@1.2.56
 
 ## 1.2.55
 
 ### Patch Changes
 
--   Updated dependencies [[`98859e78`](https://github.com/HoudiniGraphql/houdini/commit/98859e78e088cf733edc35b3ad96b1a1f9f48b79), [`5add29a6`](https://github.com/HoudiniGraphql/houdini/commit/5add29a68489fd9382d0809cf574a1db2746aae8)]:
-    -   houdini@1.2.55
+- Updated dependencies [[`98859e78`](https://github.com/HoudiniGraphql/houdini/commit/98859e78e088cf733edc35b3ad96b1a1f9f48b79), [`5add29a6`](https://github.com/HoudiniGraphql/houdini/commit/5add29a68489fd9382d0809cf574a1db2746aae8)]:
+  - houdini@1.2.55
 
 ## 1.2.54
 
 ### Patch Changes
 
--   Updated dependencies []:
-    -   houdini@1.2.54
+- Updated dependencies []:
+  - houdini@1.2.54
 
 ## 1.2.53
 
 ### Patch Changes
 
--   Updated dependencies [[`389de558`](https://github.com/HoudiniGraphql/houdini/commit/389de558fa52ed0ec6fd37f1aac1d3e12da9da02)]:
-    -   houdini@1.2.53
+- Updated dependencies [[`389de558`](https://github.com/HoudiniGraphql/houdini/commit/389de558fa52ed0ec6fd37f1aac1d3e12da9da02)]:
+  - houdini@1.2.53
 
 ## 1.2.52
 
 ### Patch Changes
 
--   Updated dependencies [[`69b7781e`](https://github.com/HoudiniGraphql/houdini/commit/69b7781e11b0824081be8a863a574d176d6bd138)]:
-    -   houdini@1.2.52
+- Updated dependencies [[`69b7781e`](https://github.com/HoudiniGraphql/houdini/commit/69b7781e11b0824081be8a863a574d176d6bd138)]:
+  - houdini@1.2.52
 
 ## 1.2.51
 
 ### Patch Changes
 
--   [#1328](https://github.com/HoudiniGraphql/houdini/pull/1328) [`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d) @AlecAivazis! - initial release
+- [#1328](https://github.com/HoudiniGraphql/houdini/pull/1328) [`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d) @AlecAivazis! - initial release
 
--   Updated dependencies [[`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d)]:
-    -   houdini@1.2.51
+- Updated dependencies [[`90901979`](https://github.com/HoudiniGraphql/houdini/commit/90901979bbd7f70df166b21f5fe7cf0ffc71ad1d)]:
+  - houdini@1.2.51
