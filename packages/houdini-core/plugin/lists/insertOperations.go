@@ -463,7 +463,7 @@ func InsertOperationDocuments(
 
 	projectConfig, err := db.ProjectConfig(ctx)
 	if err != nil {
-		return err
+		return commit(err)
 	}
 
 	// we'll insert delete directive and remove fragment driven by a separate query

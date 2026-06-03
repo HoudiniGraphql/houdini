@@ -40,6 +40,7 @@ func TransformVariables[PluginConfig any](
 
 	// we need a list of all the runtime scalars
 	if len(projectConfig.RuntimeScalars) == 0 {
+		commit(nil)
 		return
 	}
 	var runtimeScalarsBuilder strings.Builder
