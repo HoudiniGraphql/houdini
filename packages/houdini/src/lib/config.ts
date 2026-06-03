@@ -257,12 +257,10 @@ export type ScalarSpec = {
 
 // this type is meant to be extended by plugins to provide type definitions
 // for config
-// @ts-expect-error
 export type HoudiniPluginConfig = {}
 
 // this type is meant to be extended by client plugins to provide type definitions
 // for config
-// @ts-expect-error
 export type HoudiniClientPluginConfig = {}
 
 // we need to include some extra meta data along with the config file
