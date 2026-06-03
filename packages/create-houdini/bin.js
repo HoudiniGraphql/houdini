@@ -16,6 +16,17 @@ let projectName = projectDir
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
 console.log(`${grey(`create-houdini version ${version}`)}\n`)
 
+// derive the dist-tag from our own version, then resolve it to a real version from the registry
+const distTag = version.includes('-') ? version.split('-')[1].split('.')[0] : 'latest'
+let houdiniVersion = version
+try {
+	const { execSync } = await import('node:child_process')
+	const resolved = execSync(`npm view houdini@${distTag} version`, { encoding: 'utf-8' }).trim()
+	if (resolved) houdiniVersion = resolved
+} catch {
+	// offline or registry unavailable — fall back to create-houdini's own version
+}
+
 // prepare options
 const templatesDir = sourcePath(`./templates`)
 const options = fs.readdirSync(templatesDir).map((templateDir) => {
@@ -171,7 +182,7 @@ copy(
 	{
 		API_URL: apiUrl,
 		PROJECT_NAME: projectName,
-		HOUDINI_VERSION: version,
+		HOUDINI_VERSION: houdiniVersion,
 		["'CLIENT_CONFIG'"]: clientConfig,
 		["'CONFIG_FILE'"]: configFile,
 	},

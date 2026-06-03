@@ -236,6 +236,7 @@ function usePageData({
 					session,
 				})
 				.then(async () => {
+					data_cache.set(id, observer)
 
 					// if there is an error, we need to reject the promise
 					if (observer.state.errors && observer.state.errors.length > 0) {
