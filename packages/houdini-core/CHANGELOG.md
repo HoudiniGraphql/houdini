@@ -1,93 +1,111 @@
 # houdini-core
 
+## 2.0.0
+
+### Major Changes
+
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+
+### Minor Changes
+
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+
+- [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
+
+### Patch Changes
+
+- [#1595](https://github.com/HoudiniGraphql/houdini/pull/1595) [`3157a458`](https://github.com/HoudiniGraphql/houdini/commit/3157a458206bb15264b5fa124d7656c2257267de) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Fix documents validation for schema that use custom operation types names for query/mutaiton/subscription
+
+- [#1597](https://github.com/HoudiniGraphql/houdini/pull/1597) [`7990ece2`](https://github.com/HoudiniGraphql/houdini/commit/7990ece2ed5d9a4b807ce2246b298f2777d0a6d9) Thanks [@siddarthvader](https://github.com/siddarthvader)! - generate artifacts pipeline deadlock condition resolve
+
 ## 2.0.0-next.14
 
 ### Minor Changes
 
--   [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
+- [`ef91e5c1`](https://github.com/HoudiniGraphql/houdini/commit/ef91e5c1d00526fea772d3eae5661a8617fd79ce) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add scalar module imports, align DocumentHandle with fetching and errors fields
 
 ## 2.0.0-go.13
 
 ### Minor Changes
 
--   [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
+- [#1599](https://github.com/HoudiniGraphql/houdini/pull/1599) [`d4472272`](https://github.com/HoudiniGraphql/houdini/commit/d44722725c5e2302e041e3360020e386e098730f) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Bump Vite version
 
 ## 2.0.0-go.12
 
 ### Major Changes
 
--   [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
+- [#1593](https://github.com/HoudiniGraphql/houdini/pull/1593) [`8bd407b4`](https://github.com/HoudiniGraphql/houdini/commit/8bd407b430687543944da269814344e01d2e8480) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rewrote entire codegen pipeline in golang
 
 ## 2.0.0-go.11
 
 ### Patch Changes
 
--   [#1597](https://github.com/HoudiniGraphql/houdini/pull/1597) [`7990ece2`](https://github.com/HoudiniGraphql/houdini/commit/7990ece2ed5d9a4b807ce2246b298f2777d0a6d9) Thanks [@siddarthvader](https://github.com/siddarthvader)! - generate artifacts pipeline deadlock condition resolve
+- [#1597](https://github.com/HoudiniGraphql/houdini/pull/1597) [`7990ece2`](https://github.com/HoudiniGraphql/houdini/commit/7990ece2ed5d9a4b807ce2246b298f2777d0a6d9) Thanks [@siddarthvader](https://github.com/siddarthvader)! - generate artifacts pipeline deadlock condition resolve
 
 ## 2.0.0-go.10
 
 ### Patch Changes
 
--   [#1595](https://github.com/HoudiniGraphql/houdini/pull/1595) [`3157a458`](https://github.com/HoudiniGraphql/houdini/commit/3157a458206bb15264b5fa124d7656c2257267de) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Fix documents validation for schema that use custom operation types names for query/mutaiton/subscription
+- [#1595](https://github.com/HoudiniGraphql/houdini/pull/1595) [`3157a458`](https://github.com/HoudiniGraphql/houdini/commit/3157a458206bb15264b5fa124d7656c2257267de) Thanks [@siddarthvader](https://github.com/siddarthvader)! - Fix documents validation for schema that use custom operation types names for query/mutaiton/subscription
 
 ## 2.0.0-go.9
 
 ### Patch Changes
 
--   [#1590](https://github.com/HoudiniGraphql/houdini/pull/1590) [`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Codegen pipeline now runs 5x faster
+- [#1590](https://github.com/HoudiniGraphql/houdini/pull/1590) [`0610efa9`](https://github.com/HoudiniGraphql/houdini/commit/0610efa92e09344216bb1be1cf5610dbba3d570f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Codegen pipeline now runs 5x faster
 
--   [#1589](https://github.com/HoudiniGraphql/houdini/pull/1589) [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920) Thanks [@github-actions](https://github.com/apps/github-actions)! - treat argument value seeds as roots in recursive CTE traversal
+- [#1589](https://github.com/HoudiniGraphql/houdini/pull/1589) [`89252315`](https://github.com/HoudiniGraphql/houdini/commit/8925231525061d0fba35a6b78df5cfd2cde74920) Thanks [@github-actions](https://github.com/apps/github-actions)! - treat argument value seeds as roots in recursive CTE traversal
 
 ## 2.0.0-go.8
 
 ### Patch Changes
 
--   [`c90c92b1`](https://github.com/HoudiniGraphql/houdini/commit/c90c92b1e5966b9756676abafc314b6b8e6439fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compatability issue with go binary shim sand pnpm
+- [`c90c92b1`](https://github.com/HoudiniGraphql/houdini/commit/c90c92b1e5966b9756676abafc314b6b8e6439fe) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix compatability issue with go binary shim sand pnpm
 
 ## 2.0.0-go.7
 
 ### Patch Changes
 
--   [`ae4cdfe4`](https://github.com/HoudiniGraphql/houdini/commit/ae4cdfe445503611ab56330fdc750f79a067ab8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix shim replacement for execution
+- [`ae4cdfe4`](https://github.com/HoudiniGraphql/houdini/commit/ae4cdfe445503611ab56330fdc750f79a067ab8d) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix shim replacement for execution
 
 ## 2.0.0-go.6
 
 ### Patch Changes
 
--   [`2d60bc70`](https://github.com/HoudiniGraphql/houdini/commit/2d60bc70818bdcbefd3ba177bb56fc69b33f90ea) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - rework postinstall script
+- [`2d60bc70`](https://github.com/HoudiniGraphql/houdini/commit/2d60bc70818bdcbefd3ba177bb56fc69b33f90ea) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - rework postinstall script
 
 ## 2.0.0-go.5
 
 ### Patch Changes
 
--   [`d66db310`](https://github.com/HoudiniGraphql/houdini/commit/d66db31026f37c1e8b5f661b8fbc05173b618a0e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Attempt to fix post install script
+- [`d66db310`](https://github.com/HoudiniGraphql/houdini/commit/d66db31026f37c1e8b5f661b8fbc05173b618a0e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Attempt to fix post install script
 
 ## 2.0.0-go.4
 
 ### Patch Changes
 
--   [`7822a62e`](https://github.com/HoudiniGraphql/houdini/commit/7822a62e0421192000dbdf55a1c4379cdfe29358) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix files entry in published package
+- [`7822a62e`](https://github.com/HoudiniGraphql/houdini/commit/7822a62e0421192000dbdf55a1c4379cdfe29358) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix files entry in published package
 
 ## 2.0.0-go.3
 
 ### Patch Changes
 
--   [`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix shim paths
+- [`9bcf4188`](https://github.com/HoudiniGraphql/houdini/commit/9bcf4188dce2f153a07f3a9a47ffbd905def9da2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix shim paths
 
 ## 2.0.0-go.2
 
 ### Patch Changes
 
--   [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
+- [`a74bf5f8`](https://github.com/HoudiniGraphql/houdini/commit/a74bf5f803d97686d98b2d78f28ea542cb6f9448) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix inter-workspace deps
 
 ## 2.0.0-go.1
 
 ### Patch Changes
 
--   [`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump houdini dep version
+- [`07347a95`](https://github.com/HoudiniGraphql/houdini/commit/07347a9505ea11ba0d3e533979e96963b9001c06) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - bump houdini dep version
 
 ## 2.0.0-go.0
 
 ### Major Changes
 
--   [`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implement new compiler architecture
+- [`3af119a2`](https://github.com/HoudiniGraphql/houdini/commit/3af119a28ba88dd3b0e8902fdf94563354ebb765) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Implement new compiler architecture
