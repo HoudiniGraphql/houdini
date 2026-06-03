@@ -237,6 +237,21 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					after: 'AfterExtract',
 				})
 
+				// count documents processed in this task
+				const taskDocCount = (
+					ctx.db
+						.prepare(
+							`SELECT COUNT(DISTINCT d.id) as count
+							 FROM documents d
+							 JOIN raw_documents rd ON rd.id = d.raw_document
+							 WHERE rd.current_task = ?`
+						)
+						.get(task_id) as { count: number }
+				).count
+				console.log(
+					`🎩 Updated ${taskDocCount} ${taskDocCount === 1 ? 'document' : 'documents'}`
+				)
+
 				// the return value of each generate invocation is the list of modules that were updated
 				const updated_modules = Object.values(
 					results.GenerateDocuments || {}
