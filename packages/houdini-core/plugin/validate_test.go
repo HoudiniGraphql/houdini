@@ -96,6 +96,7 @@ func TestValidate_Houdini(t *testing.T) {
 				firstName: String!
 				lastName: String
 				avatarURL(size: Int): String
+				greeting(uppercase: Boolean! = false): String!
 				friends(offset: Int, limit: Int): [User!]!
 				friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
 				believers(first: Int, after: String, last: Int, before: String): UserConnection!
@@ -509,6 +510,17 @@ func TestValidate_Houdini(t *testing.T) {
 					`query Test($name: String!) {
 				   user(name: $name) {
 					   firstName
+				   }
+			   }`,
+				},
+			},
+			{
+				Name: "Non-null argument with default value is not required",
+				Pass: true,
+				Input: []string{
+					`query Test {
+				   user(name: "foo") {
+					   greeting
 				   }
 			   }`,
 				},

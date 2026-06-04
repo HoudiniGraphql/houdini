@@ -74,15 +74,16 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
     `,
 	)
 	insertFieldArgumentStmt := db.Prep(
-		`INSERT INTO type_field_arguments 
-        (id, field, name, type, type_modifiers) 
-    VALUES 
-        ($id, $field, $name, $type,  $type_modifiers) 
-    ON CONFLICT DO UPDATE SET  
+		`INSERT INTO type_field_arguments
+        (id, field, name, type, type_modifiers, default_value)
+    VALUES
+        ($id, $field, $name, $type, $type_modifiers, $default_value)
+    ON CONFLICT DO UPDATE SET
       field = excluded.field,
       name = excluded.name,
       type = excluded.type,
-      type_modifiers = excluded.type_modifiers
+      type_modifiers = excluded.type_modifiers,
+      default_value = excluded.default_value
     `,
 	)
 	insertDirectiveStmt := db.Prep(

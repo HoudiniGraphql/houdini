@@ -1023,6 +1023,7 @@ func ValidateMissingRequiredArgument(
 	  JOIN documents d ON d.id = sr.document
 	  JOIN raw_documents rd ON rd.id = d.raw_document
 	WHERE fad.type_modifiers LIKE '%!'
+	  AND fad.default_value IS NULL
 	  AND sa.id IS NULL
 	  AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, fad.name
