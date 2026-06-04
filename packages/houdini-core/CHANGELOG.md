@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.16
+
+### Patch Changes
+
+- [#1624](https://github.com/HoudiniGraphql/houdini/pull/1624) [`a8c43f7e`](https://github.com/HoudiniGraphql/houdini/commit/a8c43f7e830c0dfe55c808a76c34133f2e0f18cb) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix validation bug when field has default value defined in the schema
+
 ## 2.0.0-next.15
 
 ### Patch Changes
