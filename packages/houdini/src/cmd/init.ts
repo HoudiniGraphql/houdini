@@ -102,85 +102,127 @@ export async function init(
 
 	let pullSchema_content: string | null = null
 	if (is_remote_endpoint && !args.yes) {
-		let number_of_round = 0
-		let url_and_headers = ''
-		while (pullSchema_content === null && number_of_round < 10) {
-			number_of_round++
-			const answer = await p.group(
-				{
-					url_and_headers: async () =>
-						p.text({
-							message: `What's the URL for your api? ${
-								number_of_round === 1 ? '' : `(attempt ${number_of_round})`
-							}`,
-							placeholder: `http://localhost:4000/graphql ${
-								number_of_round === 1 ? '' : 'Authorization=Bearer MyToken'
-							}`,
-							// initialValue: url_and_headers,
-							validate: (value) => {
-								// If empty, let's assume the placeholder value
-								if (value === '') {
-									return
-								}
+		const { api_running } = await p.group(
+			{
+				api_running: () =>
+					p.confirm({
+						message: 'Is your API currently running?',
+						initialValue: true,
+					}),
+			},
+			{ onCancel: () => pCancel() }
+		)
 
-								if (!value.startsWith('http')) {
-									return 'Please enter a valid URL'
-								}
-							},
-						}),
-				},
-				{
-					onCancel: () => pCancel(),
+		if (api_running) {
+			let number_of_round = 0
+			let url_and_headers = ''
+			while (pullSchema_content === null && number_of_round < 10) {
+				number_of_round++
+				const answer = await p.group(
+					{
+						url_and_headers: async () =>
+							p.text({
+								message: `What's the URL for your api? ${
+									number_of_round === 1 ? '' : `(attempt ${number_of_round})`
+								}`,
+								placeholder: `http://localhost:4000/graphql ${
+									number_of_round === 1 ? '' : 'Authorization=Bearer MyToken'
+								}`,
+								validate: (value) => {
+									if (value === '') {
+										return
+									}
+									if (!value.startsWith('http')) {
+										return 'Please enter a valid URL'
+									}
+								},
+							}),
+					},
+					{
+						onCancel: () => pCancel(),
+					}
+				)
+
+				url_and_headers = answer.url_and_headers
+				const value_splited = url_and_headers.split(' ')
+				const local_url = value_splited[0]
+
+				const local_headers =
+					value_splited.length > 1
+						? extractHeadersStr(value_splited.slice(1).join(' '))
+						: headers
+
+				const fetchTimeout = 30000
+				pullSchema_content = await pull_schema(
+					local_url,
+					fetchTimeout,
+					schemaPath,
+					local_headers,
+					true
+				)
+
+				if (pullSchema_content === null) {
+					const msg = `If you need to pass headers, add them after the URL (eg: '${green(
+						`http://myurl.com/graphql Authorization=Bearer MyToken`
+					)}')`
+					p.log.error(msg)
 				}
-			)
 
-			url_and_headers = answer.url_and_headers
-			const value_splited = url_and_headers.split(' ')
-			const local_url = value_splited[0]
-
-			const local_headers =
-				value_splited.length > 1
-					? // remove the url and app all the headers
-						extractHeadersStr(value_splited.slice(1).join(' '))
-					: headers
-
-			// Since we don't have a config file yet, we need to provide the default here.
-			const fetchTimeout = 30000
-			pullSchema_content = await pull_schema(
-				local_url,
-				fetchTimeout,
-				schemaPath,
-				local_headers,
-				true
-			)
-
-			if (pullSchema_content === null) {
-				const msg = `If you need to pass headers, add them after the URL (eg: '${green(
-					`http://myurl.com/graphql Authorization=Bearer MyToken`
-				)}')`
-				p.log.error(msg)
+				url = url_and_headers === '' ? 'http://localhost:4000/graphql' : local_url
 			}
 
-			// set the url for later
-			url = url_and_headers === '' ? 'http://localhost:4000/graphql' : local_url
-		}
+			if (pullSchema_content === null) {
+				pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
+			}
+		} else {
+			// API not running — see if they have a schema file on disk to bootstrap with
+			const { has_schema_file } = await p.group(
+				{
+					has_schema_file: () =>
+						p.confirm({
+							message: 'Do you have a schema file on disk we can use?',
+							initialValue: false,
+						}),
+				},
+				{ onCancel: () => pCancel() }
+			)
 
-		// if we are here... it means that we have tried x times to pull the schema and it failed
-		if (pullSchema_content === null) {
-			pCancel("We couldn't pull the schema. Please check your URL/headers and try again.")
+			if (has_schema_file) {
+				const { schema_file_path } = await p.group(
+					{
+						schema_file_path: () =>
+							p.path({
+								message: 'Where is the schema file?',
+								initialValue: './schema.graphql',
+								validate: async (value) => {
+									if (!value) return 'Please enter a valid path'
+									try {
+										await fs.stat(path.resolve(value))
+									} catch {
+										return 'File not found'
+									}
+								},
+							}),
+					},
+					{ onCancel: () => pCancel() }
+				)
+
+				pullSchema_content = (await fs.readFile(path.resolve(schema_file_path))) ?? null
+			}
+
+			// leave url as a placeholder the user will fill in later
+			url = 'API_URL'
 		}
 	} else if (!args.yes) {
 		// the schema is local so ask them for the path
 		const answers = await p.group(
 			{
 				schema_path: () =>
-					p.text({
+					p.path({
 						message: 'Where is your schema located?',
-						placeholder: schemaPath,
+						initialValue: schemaPath,
 						validate: (value) => {
-							if (value === '') {
-								return 'Please enter a valid schemaPath'
-							}
+							if (!value) return 'Please enter a valid schemaPath'
 						},
 					}),
 			},
@@ -192,7 +234,7 @@ export async function init(
 		schemaPath = answers.schema_path
 	}
 
-	// Let's write the schema only now (after the function "after_questions" where the project has been created)
+	// write the schema to disk if we have content to write
 	if (is_remote_endpoint && pullSchema_content) {
 		await fs.writeFile(path.join(targetPath, schemaPath), pullSchema_content)
 	}
@@ -246,7 +288,7 @@ export async function init(
 		is_remote_endpoint ? url : null,
 		runtimeDir
 	)
-	await houdiniClient(sourceDir, typescript, frameworkInfo, url)
+	await houdiniClient(sourceDir, typescript, frameworkInfo, is_remote_endpoint ? url : null)
 
 	// Framework specific files
 	if (frameworkInfo.framework === 'svelte') {
@@ -256,11 +298,7 @@ export async function init(
 	}
 
 	// Global files
-	await gitIgnore({
-		targetPath,
-		runtimeDir,
-		schemaPath: is_remote_endpoint ? schemaPath : undefined,
-	})
+	await gitIgnore({ targetPath, runtimeDir })
 	await graphqlRC(targetPath, runtimeDir)
 	await viteConfig(targetPath, frameworkInfo, typescript)
 	await tjsConfig(targetPath, frameworkInfo)
@@ -322,9 +360,7 @@ async function houdiniConfig(
 	}
 
 	config.runtimeDir = runtimeDir
-
-	// if it's different for defaults, write it down
-	if (schemaPath !== './schema.graphql') {
+	if (url !== null) {
 		config.schemaPath = schemaPath
 	}
 
@@ -375,17 +411,12 @@ async function houdiniClient(
 	targetPath: string,
 	typescript: boolean,
 	_frameworkInfo: HoudiniFrameworkInfo,
-	url: string
+	url: string | null
 ) {
-	// where we put the houdiniClient
 	const houdiniClientExt = typescript ? `ts` : `js`
 	const houdiniClientPath = path.join(targetPath, `client.${houdiniClientExt}`)
 
-	const content = `import { HoudiniClient } from '$houdini';
-
-export default new HoudiniClient({
-    url: '${url}'
-
+	const comment = `
     // uncomment this to configure the network call (for things like authentication)
     // for more information, please visit here: https://www.houdinigraphql.com/guides/authentication
     // fetchParams({ session }) {
@@ -394,8 +425,11 @@ export default new HoudiniClient({
     //             Authorization: \`Bearer \${session.token}\`,
     //         }
     //     }
-    // }
-})
+    // }`
+	const urlLine = url ? `{\n    url: '${url}',${comment}\n}` : `{${comment}\n}`
+	const content = `import { HoudiniClient } from '$houdini';
+
+export default new HoudiniClient(${urlLine})
 `
 
 	await fs.writeFile(houdiniClientPath, content)
@@ -466,27 +500,12 @@ export default config;
 /******************************/
 /*  Global files              */
 /******************************/
-async function gitIgnore({
-	targetPath,
-	runtimeDir,
-	schemaPath,
-}: {
-	targetPath: string
-	runtimeDir: string
-	schemaPath?: string
-}) {
+async function gitIgnore({ targetPath, runtimeDir }: { targetPath: string; runtimeDir: string }) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
 
-	let newIgnores = ''
 	if (!existing.includes(`\n${runtimeDir}\n`)) {
-		newIgnores += `${runtimeDir}\n`
-	}
-	if (schemaPath && !existing.includes(`\n${schemaPath}\n`)) {
-		newIgnores += `${schemaPath}\n`
-	}
-	if (newIgnores) {
-		await fs.writeFile(filepath, `${existing}\n${newIgnores}`)
+		await fs.writeFile(filepath, `${existing}\n${runtimeDir}\n`)
 	}
 }
 

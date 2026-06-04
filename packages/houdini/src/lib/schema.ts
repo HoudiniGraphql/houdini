@@ -1,6 +1,5 @@
 import * as graphql from 'graphql'
 import colors from 'kleur'
-import fetch from 'node-fetch'
 import * as fs from 'node:fs/promises'
 
 export async function pull_schema(
