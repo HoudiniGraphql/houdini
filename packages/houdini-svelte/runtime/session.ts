@@ -20,9 +20,7 @@ export function buildSessionObject(event: RequestEvent) {
 	}
 }
 
-export function setClientSession(
-	val: App.Session
-) {
+export function setClientSession(val: App.Session) {
 	if (!isBrowser) {
 		return
 	}
@@ -42,10 +40,7 @@ export function setSession(
 	;(event.locals as any)[sessionKeyName] = session
 }
 
-export async function getSession(event?: RequestEvent | LoadEvent): Promise<
-	| {}
-	| App.Session
-> {
+export async function getSession(event?: RequestEvent | LoadEvent): Promise<{} | App.Session> {
 	if (event) {
 		// get the session either from the server side event or the client side event
 		if ('locals' in event) {

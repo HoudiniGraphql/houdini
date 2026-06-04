@@ -162,6 +162,7 @@ CREATE TABLE type_field_arguments (
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     type_modifiers TEXT,
+    default_value TEXT,
     FOREIGN KEY (field) REFERENCES type_fields(id),
     UNIQUE (field, name)
 );

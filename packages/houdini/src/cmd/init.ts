@@ -466,7 +466,15 @@ export default config;
 /******************************/
 /*  Global files              */
 /******************************/
-async function gitIgnore({ targetPath, runtimeDir, schemaPath }: { targetPath: string; runtimeDir: string; schemaPath?: string }) {
+async function gitIgnore({
+	targetPath,
+	runtimeDir,
+	schemaPath,
+}: {
+	targetPath: string
+	runtimeDir: string
+	schemaPath?: string
+}) {
 	const filepath = path.join(targetPath, '.gitignore')
 	const existing = (await fs.readFile(filepath)) || ''
 
