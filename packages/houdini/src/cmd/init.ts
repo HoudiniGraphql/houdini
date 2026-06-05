@@ -194,10 +194,10 @@ export async function init(
 							p.path({
 								message: 'Where is the schema file?',
 								initialValue: './schema.graphql',
-								validate: async (value) => {
+								validate: (value) => {
 									if (!value) return 'Please enter a valid path'
 									try {
-										await fs.stat(path.resolve(value))
+										fs.statSync(path.resolve(value))
 									} catch {
 										return 'File not found'
 									}
