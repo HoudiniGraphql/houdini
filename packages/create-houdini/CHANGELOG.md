@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-next.11
+
+### Patch Changes
+
+- [`9058799a`](https://github.com/HoudiniGraphql/houdini/commit/9058799a7518f69d98f382f9be7eb7275fe86c74) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Improve init flow and fix dependency issues
+
 ## 2.0.0-next.10
 
 ### Patch Changes
