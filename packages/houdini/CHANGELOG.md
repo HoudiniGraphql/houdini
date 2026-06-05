@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.28
+
+### Patch Changes
+
+- [`5668b992`](https://github.com/HoudiniGraphql/houdini/commit/5668b9927ace9b9574faf396d1a559b3b5ccf769) Thanks [@SeppahBaws](https://github.com/SeppahBaws)! - Fix type error causing build error
+
 ## 2.0.0-next.27
 
 ### Patch Changes

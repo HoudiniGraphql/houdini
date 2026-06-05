@@ -1,5 +1,12 @@
 # houdini-adapter-cloudflare
 
+## 2.0.0-next.28
+
+### Patch Changes
+
+- Updated dependencies [[`5668b992`](https://github.com/HoudiniGraphql/houdini/commit/5668b9927ace9b9574faf396d1a559b3b5ccf769)]:
+  - houdini@2.0.0-next.28
+
 ## 2.0.0-next.27
 
 ### Patch Changes
