@@ -21,7 +21,7 @@ import { useIsMountedRef } from './useIsMounted.js'
 const promiseCache = createLRUCache<QuerySuspenseUnit>()
 type QuerySuspenseUnit = {
 	resolve: () => void
-	resolved?: DocumentHandle<QueryArtifact, GraphQLObject, {}>
+	resolved?: any
 	then: (val: any) => any
 }
 

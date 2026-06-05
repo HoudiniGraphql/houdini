@@ -119,20 +119,17 @@ export interface JwtData {
 
 function base64UrlParse(s: string): Uint8Array {
 	return new Uint8Array(
-		Array.prototype.map.call(
-			atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')),
-			(c) => c.charCodeAt(0)
+		Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, ''))).map((c) =>
+			c.charCodeAt(0)
 		)
 	)
-	// return new Uint8Array(Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, ''))).map(c => c.charCodeAt(0)))
 }
 
 function base64UrlStringify(a: Uint8Array): string {
-	return btoa(String.fromCharCode.apply(0, a))
+	return btoa(String.fromCharCode.apply(0, Array.from(a)))
 		.replace(/=/g, '')
 		.replace(/\+/g, '-')
 		.replace(/\//g, '_')
-	// return btoa(String.fromCharCode.apply(0, Array.from(a))).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
 }
 
 const algorithms: JwtAlgorithms = {

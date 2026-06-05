@@ -27,6 +27,7 @@
 			"houdini-svelte/*": ["./packages/houdini-svelte/package/lib/*"],
 			"houdini-svelte": ["./packages/houdini-svelte/package/lib"]
 		},
-		"jsx": "react-jsx"
+		"jsx": "react-jsx",
+		"ignoreDeprecations": "6.0"
 	}
 }
