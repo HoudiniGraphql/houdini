@@ -53,8 +53,19 @@ export function connect_db(config: Config): [DatabaseSync, string] {
 	db.exec('PRAGMA foreign_key = ON')
 	db.exec('PRAGMA defer_foreign_keys = ON')
 
-	// TODO: we might have to destroy the existing tables if we run with a new version
 	db.exec(create_schema)
+
+	// Add columns that may be missing from databases created before they were introduced
+	const migrations = [
+		'ALTER TABLE type_field_arguments ADD COLUMN default_value TEXT',
+	]
+	for (const migration of migrations) {
+		try {
+			db.exec(migration)
+		} catch (_) {
+			// column already exists — safe to ignore
+		}
+	}
 
 	return [db, filepath]
 }
