@@ -62,12 +62,11 @@ p.intro('🎩 Welcome to Houdini!')
 
 // if we weren't given a directory, then we should ask
 if (!projectDir) {
-	const dir = await p.text({
+	const dir = await pathInput({
 		message: `Where should we create your project?`,
-		placeholder: '  (press Enter to use the current directory)',
 	})
 
-	if (p.isCancel(dir)) {
+	if (dir === null) {
 		process.exit(1)
 	}
 
@@ -141,13 +140,46 @@ let apiUrl = options_cli.schema?.startsWith('http') ? options_cli.schema : templ
 if (!localSchema) {
 	let pullSchema_content = ''
 	if (apiUrl === '') {
-		const { apiUrl: apiUrlCli, pullSchema_content: pullSchema_content_cli } =
-			await pullSchemaCli()
-		apiUrl = apiUrlCli
-		if (pullSchema_content_cli === null) {
-			pCancel('There was a problem pulling your shema. Please try again.')
+		const apiRunning = await p.confirm({
+			message: 'Is your API currently running?',
+			initialValue: true,
+		})
+		if (p.isCancel(apiRunning)) pCancel()
+
+		if (apiRunning) {
+			const { apiUrl: apiUrlCli, pullSchema_content: pullSchema_content_cli } =
+				await pullSchemaCli()
+			apiUrl = apiUrlCli
+			if (pullSchema_content_cli === null) {
+				pCancel('There was a problem pulling your shema. Please try again.')
+			} else {
+				pullSchema_content = pullSchema_content_cli
+			}
 		} else {
-			pullSchema_content = pullSchema_content_cli
+			const hasSchemaFile = await p.confirm({
+				message: 'Do you have a schema file on disk we can use?',
+				initialValue: false,
+			})
+			if (p.isCancel(hasSchemaFile)) pCancel()
+
+			if (hasSchemaFile) {
+				const schemaFilePath = await pathInput({
+					message: 'Where is the schema file?',
+					initialValue: './schema.graphql',
+					validate: (value) => {
+						if (!value) return 'Please enter a valid path'
+						try {
+							fs.statSync(path.resolve(value))
+						} catch {
+							return 'File not found'
+						}
+					},
+				})
+				if (schemaFilePath === null) pCancel()
+				pullSchema_content = fs.readFileSync(path.resolve(schemaFilePath), 'utf-8')
+			}
+
+			apiUrl = 'API_URL'
 		}
 	} else {
 		const pullSchema_content_local = await pullSchema(apiUrl, {})
@@ -158,7 +190,9 @@ if (!localSchema) {
 		}
 	}
 
-	writeFileSync(path.join(projectDir, 'schema.graphql'), pullSchema_content)
+	if (pullSchema_content) {
+		writeFileSync(path.join(projectDir, 'schema.graphql'), pullSchema_content)
+	}
 }
 
 // the final client config depends on whether we have a local schema or not
@@ -378,6 +412,59 @@ function extractHeadersStr(/** @type {string} */ str) {
 	}
 
 	return obj
+}
+
+async function pathInput({ message, initialValue = '', validate }) {
+	const { createInterface } = await import('node:readline')
+
+	function completer(line) {
+		const isTrailingSlash = line.endsWith('/')
+		const dir = isTrailingSlash ? line || '.' : path.dirname(line) || '.'
+		const base = isTrailingSlash ? '' : path.basename(line)
+		let hits = []
+		try {
+			hits = fs
+				.readdirSync(dir)
+				.filter((e) => e.startsWith(base))
+				.map((e) => {
+					const full = path.join(dir, e)
+					try {
+						return fs.statSync(full).isDirectory() ? full + '/' : full
+					} catch {
+						return full
+					}
+				})
+		} catch {}
+		return [hits, line]
+	}
+
+	process.stdout.write(`\n${gray('◆')}  ${message}\n`)
+
+	for (;;) {
+		const answer = await new Promise((resolve) => {
+			const rl = createInterface({ input: process.stdin, output: process.stdout, completer })
+			rl.setPrompt(`${gray('│')}  `)
+			rl.prompt()
+			rl.once('line', (v) => {
+				rl.close()
+				resolve(v.trim() || initialValue)
+			})
+			rl.on('SIGINT', () => {
+				rl.close()
+				resolve(null)
+			})
+		})
+
+		if (answer === null) return null
+		if (validate) {
+			const err = validate(answer)
+			if (err) {
+				process.stdout.write(`${gray('▲')}  ${err}\n`)
+				continue
+			}
+		}
+		return answer
+	}
 }
 
 function pCancel(cancelText = 'Operation cancelled.') {
