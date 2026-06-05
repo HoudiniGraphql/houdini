@@ -25,9 +25,9 @@
     "build:build": "pnpm build: && pnpm build"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230904.0",
+    "@cloudflare/workers-types": "^4.20260605.1",
     "scripts": "workspace:^",
-    "tsup": "^7.2.0"
+    "tsup": "^8.5.1"
   },
   "dependencies": {
     "houdini": "workspace:^"

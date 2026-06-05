@@ -23,12 +23,5 @@ export default defineConfig({
 				external: ['node:sqlite'],
 			},
 		},
-		deps: {
-			optimizer: {
-				ssr: {
-					exclude: ['node:sqlite'],
-				},
-			},
-		},
 	},
 })
