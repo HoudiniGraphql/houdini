@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-next.12
+
+### Patch Changes
+
+- [`68f815be`](https://github.com/HoudiniGraphql/houdini/commit/68f815bebe8884898659a55528e2da5a5776dbd1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update create script to reflect new init flow
+
 ## 2.0.0-next.11
 
 ### Patch Changes

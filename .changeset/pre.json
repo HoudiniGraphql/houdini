@@ -39,6 +39,7 @@
     "mutation-error-handling",
     "nasty-tables-fix",
     "session-transform-ts-annotations",
+    "small-falcons-grow",
     "stale-lizards-warn",
     "stale-trainers-enjoy",
     "svelte-async-component-query",
