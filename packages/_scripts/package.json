@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "commander": "^9.4.0",
+    "commander": "^15.0.0",
     "esbuild": "^0.28.0",
     "esbuild-plugin-alias": "^0.2.1",
     "esbuild-plugin-replace": "^1.4.0",

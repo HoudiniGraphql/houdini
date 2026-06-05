@@ -43,9 +43,9 @@
 		"vitest": "^4.1.8"
 	},
 	"dependencies": {
-		"fs-extra": "^10.1.0",
+		"fs-extra": "^11.3.5",
 		"jest-snapshot": "^30.4.1",
-		"memfs": "^3.4.7",
+		"memfs": "^4.17.2",
 		"recast": "^0.23.11",
 		"rollup": "^4.61.1"
 	},

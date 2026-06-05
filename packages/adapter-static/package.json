@@ -24,7 +24,7 @@
     "build:build": "pnpm build: && pnpm build"
   },
   "devDependencies": {
-    "@types/node": "^22.13.1",
+    "@types/node": "^25.9.1",
     "@types/react-dom": "^19.2.3",
     "csstype": "^3.2.3",
     "scripts": "workspace:^",
