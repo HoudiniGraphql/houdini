@@ -1,26 +1,26 @@
 package documents
 
-import "zombiezen.com/go/sqlite"
+import "code.houdinigraphql.com/plugins"
 
 type DocumentInsertStatements struct {
-	InsertDocument                          *sqlite.Stmt
-	InsertDocumentVariable                  *sqlite.Stmt
-	UpdateLoadedWith                        *sqlite.Stmt
-	InsertDocumentVariableDirective         *sqlite.Stmt
-	InsertDocumentVariableDirectiveArgument *sqlite.Stmt
-	InsertSelection                         *sqlite.Stmt
-	CheckExistingSelection                  *sqlite.Stmt
-	InsertSelectionRef                      *sqlite.Stmt
-	InsertSelectionArgument                 *sqlite.Stmt
-	InsertArgumentValue                     *sqlite.Stmt
-	InsertArgumentValueChild                *sqlite.Stmt
-	InsertSelectionDirective                *sqlite.Stmt
-	InsertSelectionDirectiveArgument        *sqlite.Stmt
-	InsertDocumentDirective                 *sqlite.Stmt
-	InsertDocumentDirectiveArgument         *sqlite.Stmt
+	InsertDocument                          plugins.Stmt
+	InsertDocumentVariable                  plugins.Stmt
+	UpdateLoadedWith                        plugins.Stmt
+	InsertDocumentVariableDirective         plugins.Stmt
+	InsertDocumentVariableDirectiveArgument plugins.Stmt
+	InsertSelection                         plugins.Stmt
+	CheckExistingSelection                  plugins.Stmt
+	InsertSelectionRef                      plugins.Stmt
+	InsertSelectionArgument                 plugins.Stmt
+	InsertArgumentValue                     plugins.Stmt
+	InsertArgumentValueChild                plugins.Stmt
+	InsertSelectionDirective                plugins.Stmt
+	InsertSelectionDirectiveArgument        plugins.Stmt
+	InsertDocumentDirective                 plugins.Stmt
+	InsertDocumentDirectiveArgument         plugins.Stmt
 }
 
-func PrepareDocumentInsertStatements(conn *sqlite.Conn) (DocumentInsertStatements, error, func()) {
+func PrepareDocumentInsertStatements(conn plugins.Conn) (DocumentInsertStatements, error, func()) {
 	insertDocument, err := conn.Prepare(
 		"INSERT INTO documents (name, raw_document, kind, type_condition) VALUES ($name, $raw_document, $kind, $type_condition)",
 	)

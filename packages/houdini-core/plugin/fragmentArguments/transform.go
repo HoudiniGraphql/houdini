@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"golang.org/x/sync/syncmap"
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
+	
 
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -112,7 +112,7 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 					}
 
 					// wrap the processing in transaction
-					commit := sqlitex.Transaction(conn)
+					commit := db.Transaction(conn)
 					err = processDocument(ctx, db, conn, statements, doc.DocID, doc.Scope, processedFragments, &fragmentMutex)
 					commit(&err)
 					if err != nil {
@@ -188,7 +188,7 @@ func Transform[PluginConfig any](ctx context.Context, db plugins.DatabasePool[Pl
 func processDocument[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	statements *transformStatements[PluginConfig],
 	documentID int64,
 	scope map[string]int64,
@@ -524,7 +524,7 @@ func processDocument[PluginConfig any](
 func cloneDocument[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	sourceDocument int64,
 	sourceRawDocument int64,
 	name string,
@@ -927,7 +927,7 @@ func cloneDocument[PluginConfig any](
 func copyDiscoveredListsForClonedFragment[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	sourceDocument int64,
 	targetDocument int64,
 	selectionMap map[int64]int64,
@@ -1065,40 +1065,40 @@ func copyDiscoveredListsForClonedFragment[PluginConfig any](
 }
 
 type transformStatements[PluginConfig any] struct {
-	WithSpreadsInDocument              *sqlite.Stmt
-	DeleteValue                        *sqlite.Stmt
-	InsertNullValue                    *sqlite.Stmt
-	ArgumentValueVariableSearch        *sqlite.Stmt
-	InsertCopyArgumentValues           *sqlite.Stmt
-	InsertCopyArgumentValueChildren    *sqlite.Stmt
-	SelectionArgumentVariableSearch    *sqlite.Stmt
-	UpdateArgumentValue                *sqlite.Stmt
-	UpdateSelectionArgument            *sqlite.Stmt
-	CopySelectionsNoArgs               *sqlite.Stmt
-	CopyArgumentValue                  *sqlite.Stmt
-	InsertFragment                     *sqlite.Stmt
-	InsertDocumentVariable             *sqlite.Stmt
-	DocumentArgumentValueSearch        *sqlite.Stmt
-	InsertArgumentValue                *sqlite.Stmt
-	InsertArgumentValueChildren        *sqlite.Stmt
-	SearchSelectionsWithArgs           *sqlite.Stmt
-	InsertSelection                    *sqlite.Stmt
-	InsertSelectionRef                 *sqlite.Stmt
-	InsertSelectionArgument            *sqlite.Stmt
-	InsertSelectionDirective           *sqlite.Stmt
-	InsertSelectionDirectiveArgument   *sqlite.Stmt
-	UpdateSelectionRef                 *sqlite.Stmt
-	UpdateSelectionFieldName           *sqlite.Stmt
-	DirectiveArgumentSearch            *sqlite.Stmt
-	UpdateDirectiveArgument            *sqlite.Stmt
-	NoSelectionArgsDirectiveArgsSearch *sqlite.Stmt
+	WithSpreadsInDocument              plugins.Stmt
+	DeleteValue                        plugins.Stmt
+	InsertNullValue                    plugins.Stmt
+	ArgumentValueVariableSearch        plugins.Stmt
+	InsertCopyArgumentValues           plugins.Stmt
+	InsertCopyArgumentValueChildren    plugins.Stmt
+	SelectionArgumentVariableSearch    plugins.Stmt
+	UpdateArgumentValue                plugins.Stmt
+	UpdateSelectionArgument            plugins.Stmt
+	CopySelectionsNoArgs               plugins.Stmt
+	CopyArgumentValue                  plugins.Stmt
+	InsertFragment                     plugins.Stmt
+	InsertDocumentVariable             plugins.Stmt
+	DocumentArgumentValueSearch        plugins.Stmt
+	InsertArgumentValue                plugins.Stmt
+	InsertArgumentValueChildren        plugins.Stmt
+	SearchSelectionsWithArgs           plugins.Stmt
+	InsertSelection                    plugins.Stmt
+	InsertSelectionRef                 plugins.Stmt
+	InsertSelectionArgument            plugins.Stmt
+	InsertSelectionDirective           plugins.Stmt
+	InsertSelectionDirectiveArgument   plugins.Stmt
+	UpdateSelectionRef                 plugins.Stmt
+	UpdateSelectionFieldName           plugins.Stmt
+	DirectiveArgumentSearch            plugins.Stmt
+	UpdateDirectiveArgument            plugins.Stmt
+	NoSelectionArgsDirectiveArgsSearch plugins.Stmt
 	nullValue                          int64
 }
 
 func (s *transformStatements[PluginConfig]) CopyScope(
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	fragmentScope map[string]int64,
 	documentID int64,
 ) (map[string]int64, error) {
@@ -1273,7 +1273,7 @@ func (s *transformStatements[PluginConfig]) CopyScope(
 }
 
 func prepareTransformStatements[PluginConfig any](
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 ) (*transformStatements[PluginConfig], error) {
 	withSpreadsInDocument, err := conn.Prepare(`
     SELECT 
@@ -1662,9 +1662,9 @@ func (s *transformStatements[PluginConfig]) Finalize() {
 func (s *transformStatements[PluginConfig]) ReplaceVariables(
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
-	search *sqlite.Stmt,
-	update *sqlite.Stmt,
+	conn plugins.Conn,
+	search plugins.Stmt,
+	update plugins.Stmt,
 	documentID int64,
 	scope map[string]int64,
 ) error {

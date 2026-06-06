@@ -11,7 +11,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
+	
 )
 
 func generateInputTypeDefinitions(
@@ -43,11 +43,11 @@ func generateInputTypeDefinitions(
 		LEFT JOIN types ft on f.type = ft.name
 		WHERE t.kind = 'INPUT' AND t.built_in = 0 AND t.internal = 0
 		ORDER BY t.name, f.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		typeName := stmt.ColumnText(0)
 
 		// If this is just a type without fields (NULL field_name), create empty entry
-		if stmt.ColumnType(1) == sqlite.TypeNull {
+		if stmt.ColumnType(1) == plugins.ColumnKindNull {
 			if _, exists := inputTypesWithFields[typeName]; !exists {
 				inputTypesWithFields[typeName] = []InputField{}
 			}
@@ -59,7 +59,7 @@ func generateInputTypeDefinitions(
 			Type: stmt.ColumnText(2),
 			Kind: stmt.GetText("kind"),
 		}
-		if stmt.ColumnType(3) == sqlite.TypeText {
+		if stmt.ColumnType(3) == plugins.ColumnKindText {
 			field.TypeModifiers = stmt.ColumnText(3)
 		}
 

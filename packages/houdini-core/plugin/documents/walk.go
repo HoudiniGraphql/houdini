@@ -116,7 +116,6 @@ func ExtractFromFilepaths[PluginConfig any](
 				continue
 			}
 			rel = filepath.ToSlash(rel)
-			// send the single filepath to the channel
 			select {
 			case filePathsCh <- rel:
 				return nil

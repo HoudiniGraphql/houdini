@@ -41,14 +41,12 @@ async function execCmd(cmd, args, env) {
 }
 
 function buildGoModule(goOS, goArch, outputPath, moduleName) {
-	return execCmd(
-		'go',
-		['build', '-o', `${outputPath}/${moduleName}${goOS === 'windows' ? '.exe' : ''}`],
-		{
-			GOOS: goOS,
-			GOARCH: goArch,
-		}
-	)
+	const isWasm = goArch === 'wasm'
+	// Strip debug info from WASM binaries: they're loaded and compiled in the
+	// browser on every plugin spawn, so binary size directly affects startup time.
+	const args = ['build', '-o', `${outputPath}/${moduleName}${goOS === 'windows' ? '.exe' : ''}`]
+	if (isWasm) args.push('-trimpath', '-ldflags=-s -w')
+	return execCmd('go', args, { GOOS: goOS, GOARCH: goArch })
 }
 
 export default async function () {
@@ -61,6 +59,12 @@ export default async function () {
 
 	// load the current package.json to grab necessary metadata
 	let packageJSON = JSON.parse(await fs.readFile('./package.json'))
+
+	// build WASM (wasip1) into its own package, same pattern as native platform packages
+	const wasmModuleName = `${packageJSON.name}-wasm`
+	const wasmBinDir = path.join(buildDir, wasmModuleName, 'bin')
+	await fs.mkdir(wasmBinDir, { recursive: true })
+	await buildGoModule('wasip1', 'wasm', wasmBinDir, `${packageJSON.name}.wasm`)
 
 	// build each platform
 	await Promise.all(
@@ -110,6 +114,22 @@ export default async function () {
 		})
 	)
 
+	// write package.json for the WASM package
+	await writePackageJson(
+		path.join(buildDir, wasmModuleName, 'package.json'),
+		{
+			name: wasmModuleName,
+			version: packageJSON.version,
+			bin: `bin/${packageJSON.name}.wasm`,
+			repository: packageJSON.repository,
+			license: packageJSON.license,
+			author: packageJSON.author,
+			description: packageJSON.description,
+			keywords: packageJSON.keywords,
+			homepage: packageJSON.homepage,
+		}
+	)
+
 	// now we need to create the root package
   try { 
 	  await fs.mkdir(path.join(buildDir, packageJSON.name))
@@ -146,12 +166,13 @@ export default async function () {
 		...packageJSON,
 		dependencies: resolvedDependencies,
 		devDependencies: resolvedDevDependencies,
-		optionalDependencies: Object.fromEntries(
-			platforms.map((platform) => [
+		optionalDependencies: Object.fromEntries([
+			...platforms.map((platform) => [
 				`${packageJSON.name}-${platform.nodeOS}-${platform.cpu}`,
 				packageJSON.version,
-			])
-		),
+			]),
+			[wasmModuleName, packageJSON.version],
+		]),
 		scripts: {
 			...packageJSON.scripts,
 			postinstall: 'node postInstall.js',

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
@@ -20,7 +20,7 @@ import (
 func EnsureDocumentsPrinted(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	collectedDocuments *collected.Documents,
 	includeHidden bool,
 ) error {

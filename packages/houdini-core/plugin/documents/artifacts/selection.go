@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
@@ -25,7 +25,7 @@ func writeSelectionDocument(
 	ctx context.Context,
 	fs afero.Fs,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	projectConfig plugins.ProjectConfig,
 	docs *collected.Documents,
 	name string,
@@ -76,7 +76,7 @@ type DocumentData struct {
 func GenerateSelectionDocument(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	projectConfig plugins.ProjectConfig,
 	docs *collected.Documents,
 	name string,
@@ -465,7 +465,7 @@ export default artifact
 func getDocumentData(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	docs *collected.Documents,
 	name string,
 ) (DocumentData, error) {
@@ -683,7 +683,7 @@ func stringifySelection(
 
 				visible := ""
 				if selection.Visible {
-					visible = fmt.Sprintf("\n" + indent4 + `"visible": true,`)
+					visible = "\n" + indent4 + `"visible": true,`
 				}
 
 				// make sure the component field is added to the selection object

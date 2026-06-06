@@ -8,7 +8,8 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
+
+	plugins "code.houdinigraphql.com/plugins"
 )
 
 // ---- path helpers ----
@@ -372,7 +373,7 @@ func (p *HoudiniReact) GenerateRenderInfrastructure(ctx context.Context) ([]stri
 
 	// Read the API endpoint from router_config, defaulting to "/_api"
 	apiEndpoint := "/_api"
-	_ = p.DB.StepQuery(ctx, `SELECT api_endpoint FROM router_config LIMIT 1`, nil, func(q *sqlite.Stmt) {
+	_ = p.DB.StepQuery(ctx, `SELECT api_endpoint FROM router_config LIMIT 1`, nil, func(q plugins.Row) {
 		if v := q.ColumnText(0); v != "" {
 			apiEndpoint = v
 		}
@@ -707,7 +708,7 @@ func (p *HoudiniReact) loadComponentFields(ctx context.Context) ([]componentFiel
 		JOIN raw_documents rd ON rd.id = cf.document
 		WHERE cf.fragment IS NOT NULL
 		ORDER BY cf.fragment ASC
-	`, nil, func(q *sqlite.Stmt) {
+	`, nil, func(q plugins.Row) {
 		fields = append(fields, componentField{
 			fragment: q.ColumnText(0),
 			typeName: q.ColumnText(1),

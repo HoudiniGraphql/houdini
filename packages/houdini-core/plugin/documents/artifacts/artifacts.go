@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
@@ -19,7 +19,7 @@ import (
 func GenerateDocumentArtifacts(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	collectedDefinitions *collected.Documents,
 	fs afero.Fs,
 	sortKeys bool,

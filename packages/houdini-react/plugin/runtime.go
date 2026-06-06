@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
+
+	plugins "code.houdinigraphql.com/plugins"
 )
 
 // TransformRuntime patches static runtime files as they are copied into the plugin directory.
@@ -72,7 +73,7 @@ func (p *HoudiniReact) UpdateIndexFiles(ctx context.Context) ([]string, error) {
 		JOIN raw_documents rd ON d.raw_document = rd.id
 		WHERE d.visible = 1
 		ORDER BY d.name ASC
-	`, nil, func(q *sqlite.Stmt) {
+	`, nil, func(q plugins.Row) {
 		name := q.ColumnText(0)
 		content := q.ColumnText(1)
 		imports.WriteString(fmt.Sprintf(
@@ -436,7 +437,7 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		FROM documents d
 		WHERE d.visible = 1
 		ORDER BY d.name ASC
-	`, nil, func(q *sqlite.Stmt) {
+	`, nil, func(q plugins.Row) {
 		docsByKind[q.ColumnText(1)] = append(docsByKind[q.ColumnText(1)], q.ColumnText(0))
 	})
 	if err != nil {

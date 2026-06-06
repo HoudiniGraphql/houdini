@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"path/filepath"
-
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 type ProjectConfig struct {
@@ -79,8 +76,9 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 		return err
 	}
 	defer db.Put(conn)
+
 	// load the config from the database
-	err = sqlitex.Execute(conn, `SELECT
+	configStmt, err := conn.Prepare(`SELECT
 		include,
 		exclude,
 		definitions_path,
@@ -100,44 +98,47 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 		runtime_dir,
 		schema_path,
 		path
-	FROM config LIMIT 1`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			err := json.Unmarshal([]byte(stmt.ColumnText(0)), &config.Include)
-			if err != nil {
-				return err
-			}
-			err = json.Unmarshal([]byte(stmt.ColumnText(1)), &config.Exclude)
-			if err != nil {
-				return err
-			}
-
-			config.DefinitionsPath = stmt.ColumnText(2)
-			config.CacheBufferSize = stmt.ColumnInt(3)
-			config.DefaultCachePolicy = stmt.ColumnText(4)
-			config.DefaultPartial = stmt.ColumnInt(5) == 1
-			config.DefaultLifetime = stmt.ColumnInt(6)
-			config.DefaultListPosition = stmt.ColumnText(7)
-			config.DefaultListTarget = stmt.ColumnText(8)
-			config.DefaultPaginateMode = stmt.ColumnText(9)
-			config.SuppressPaginationDeduplication = stmt.ColumnInt(10) == 1
-			config.LogLevel = stmt.ColumnText(11)
-			config.DefaultFragmentMasking = stmt.ColumnInt(12) == 1
-			err = json.Unmarshal([]byte(stmt.ColumnText(13)), &config.DefaultKeys)
-			if err != nil {
-				return err
-			}
-			config.PersistedQueriesPath = stmt.ColumnText(14)
-			config.ProjectRoot = stmt.ColumnText(15)
-			config.RuntimeDir = stmt.ColumnText(16)
-			config.SchemaPath = stmt.ColumnText(17)
-			config.Filepath = stmt.GetText("path")
-
-			// nothing went wrong
-			return nil
-		},
-	})
+	FROM config LIMIT 1`)
 	if err != nil {
 		return err
+	}
+	defer configStmt.Finalize()
+
+	hasRow, err := configStmt.Step()
+	if err != nil {
+		return err
+	}
+	if hasRow {
+		stmt := configStmt
+		err = json.Unmarshal([]byte(stmt.ColumnText(0)), &config.Include)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal([]byte(stmt.ColumnText(1)), &config.Exclude)
+		if err != nil {
+			return err
+		}
+
+		config.DefinitionsPath = stmt.ColumnText(2)
+		config.CacheBufferSize = stmt.ColumnInt(3)
+		config.DefaultCachePolicy = stmt.ColumnText(4)
+		config.DefaultPartial = stmt.ColumnInt(5) == 1
+		config.DefaultLifetime = stmt.ColumnInt(6)
+		config.DefaultListPosition = stmt.ColumnText(7)
+		config.DefaultListTarget = stmt.ColumnText(8)
+		config.DefaultPaginateMode = stmt.ColumnText(9)
+		config.SuppressPaginationDeduplication = stmt.ColumnInt(10) == 1
+		config.LogLevel = stmt.ColumnText(11)
+		config.DefaultFragmentMasking = stmt.ColumnInt(12) == 1
+		err = json.Unmarshal([]byte(stmt.ColumnText(13)), &config.DefaultKeys)
+		if err != nil {
+			return err
+		}
+		config.PersistedQueriesPath = stmt.ColumnText(14)
+		config.ProjectRoot = stmt.ColumnText(15)
+		config.RuntimeDir = stmt.ColumnText(16)
+		config.SchemaPath = stmt.ColumnText(17)
+		config.Filepath = stmt.GetText("path")
 	}
 
 	// load runtime scalar information
@@ -145,6 +146,7 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 	if err != nil {
 		return err
 	}
+	defer search.Finalize()
 	for {
 		hasRow, err := search.Step()
 		if err != nil {
@@ -161,6 +163,7 @@ func (db *DatabasePool[PluginConfig]) ReloadProjectConfig(ctx context.Context) e
 	if err != nil {
 		return err
 	}
+	defer typeConfigSearch.Finalize()
 	for {
 		hasRow, err := typeConfigSearch.Step()
 		if err != nil {
@@ -241,22 +244,30 @@ func (db *DatabasePool[PluginConfig]) ReloadPluginConfig(ctx context.Context) er
 	defer db.Put(conn)
 
 	// look for the plugin entry with the correct name and marshal it into the pluginConfig field
-	return sqlitex.Execute(conn, `SELECT config FROM plugins WHERE name = ?`, &sqlitex.ExecOptions{
-		Args: []any{db.PluginName},
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			result := stmt.ColumnText(0)
-			// Allocate a new PluginConfig if it is nil.
-			if db._pluginConfig == nil {
-				db._pluginConfig = new(PluginConfig)
-			}
-			// Now unmarshal into the allocated value.
-			err := json.Unmarshal([]byte(result), db._pluginConfig)
-			if err != nil {
-				return err
-			}
-			return nil
-		},
-	})
+	stmt, err := conn.Prepare(`SELECT config FROM plugins WHERE name = ?1`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Finalize()
+	stmt.BindText(1, db.PluginName)
+
+	hasRow, err := stmt.Step()
+	if err != nil {
+		return err
+	}
+	if hasRow {
+		result := stmt.ColumnText(0)
+		// Allocate a new PluginConfig if it is nil.
+		if db._pluginConfig == nil {
+			db._pluginConfig = new(PluginConfig)
+		}
+		// Now unmarshal into the allocated value.
+		err = json.Unmarshal([]byte(result), db._pluginConfig)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type TypeConfig struct {
