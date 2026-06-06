@@ -16,7 +16,11 @@ import { compiler } from './hmr.js'
  * 3. a plugin that watches the serialized schema file and triggers a codegen run when it changes
  */
 
-export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
+// Tracks schema file paths written by write_local_schema so refresh_on_schema
+// can skip them — otherwise the startup write triggers a second pipeline run.
+const ownSchemaWrites = new Set<string>()
+
+export function refresh_on_schema(_ctx: VitePluginContext): PluginOption {
 	return {
 		name: 'houdini-refresh-on-schema',
 
@@ -28,40 +32,26 @@ export function refresh_on_schema(ctx: VitePluginContext): PluginOption {
 				return
 			}
 
+			// Skip writes we made ourselves (e.g. the startup write from write_local_schema)
+			// so we don't trigger a second pipeline run immediately after startup.
+			if (ownSchemaWrites.has(file)) {
+				ownSchemaWrites.delete(file)
+				return
+			}
+
 			// if the compiler hasn't started yet then there's nothing to do
 			if (!compiler) {
 				return
 			}
 
-			// when there's a schema update, the only thing that could change documents that are already
-			// loaded is that they're types could change which will require re-valildation
-			// that means that when we detect there is a schema change we have to do 2 things:
-			// 1. delete all of the type_field information for non-component fields
-			// 2. re-run validation
-			// 3. re-run generation since the types may have changed which changes the generated artifact (scalars)
-			//
-			// since we want to run on all known documents, we don't need to worry about tasks
-
-			// delete the non-component type fields
-			ctx.db
-				.prepare(
-					`
-        DELETE FROM type_fields
-        WHERE id IN (
-          SELECT type_fields.id FROM type_fields 
-            LEFT JOIN component_fields ON component_fields.type_field = type_fields.id 
-          WHERE component_fields.id IS NULL
-        )
-      `
-				)
-				.run()
-
+			// trigger_hook handles flush before Go runs and reload after.
+			// The Schema hook itself clears stale type_fields before re-inserting.
 			try {
-				// load the schema
 				await run_pipeline(compiler.trigger_hook, { start: 'Schema' })
 			} catch (e) {
 				console.error(e)
 			}
+			// ctx.db is reloaded by the last trigger_hook inside run_pipeline
 		},
 	}
 }
@@ -160,54 +150,105 @@ export function poll_remote_schema(_ctx: VitePluginContext): PluginOption {
 // a plugin that re-runs the codegen pipline when the schema changes
 export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 	return {
-		name: 'houdini-refresh-on-schema',
+		name: 'houdini-watch-local-schema',
 
-		async handleHotUpdate({ file, server }) {
-			// build up the path to the local schema file
+		// Write the serialized schema at startup so houdini-core's Schema hook sees
+		// the current schema even before any file changes trigger handleHotUpdate.
+		async configureServer(server) {
 			const config = await get_config()
-			const local_schema_path = path.join(config.root_dir, 'src', 'api', '+schema')
+			await write_local_schema(server, config.root_dir, config.schema_path())
+		},
 
-			// before we go  any further, check if teh file exists
-			try {
-				await fs.access(local_schema_path)
-			} catch {
-				return
-			}
+		// hotUpdate (not the legacy handleHotUpdate) so create events are handled too.
+		async hotUpdate(opts) {
+			if (opts.type === 'delete') return
 
-			// load the current schema into the module graph
+			const config = await get_config()
+			const local_schema_path = await resolve_local_schema(path.join(config.root_dir, 'src', 'api', '+schema'))
+			if (!local_schema_path) return
+
 			const schema_mod_path = `${local_schema_path}?t=${Date.now()}`
 			let schema: GraphQLSchema
 			try {
-				schema = (await server.ssrLoadModule(schema_mod_path)).default
+				schema = (await opts.server.ssrLoadModule(schema_mod_path)).default
 			} catch {
 				return
 			}
-			const schema_mod = await server.moduleGraph.getModuleByUrl(schema_mod_path)
 
-			// if the schema module does not dependon the filepath then there is no update so we can ignore it
-			if (!(schema_mod && depends_on(schema_mod, file))) {
-				return
+			const schema_mod = await opts.server.moduleGraph.getModuleByUrl(schema_mod_path)
+
+			// If getModuleByUrl can't find the module (URL normalization edge case), fall
+			// back to checking whether the changed file IS the schema file rather than
+			// silently skipping.
+			const relevant = schema_mod
+				? depends_on(schema_mod, opts.file)
+				: opts.file === local_schema_path
+			if (!relevant) return
+
+			const write_target = path.join(opts.server.config.root, config.schema_path())
+			// Mark the write so refresh_on_schema's file-watcher path doesn't double-trigger.
+			ownSchemaWrites.add(write_target)
+			await serialize_and_write(schema, write_target)
+			setTimeout(() => ownSchemaWrites.delete(write_target), 2000)
+
+			// Trigger the pipeline directly — no need to bounce through the file watcher.
+			// The Schema hook itself clears stale type_fields before re-inserting.
+			if (!compiler) return
+			try {
+				await run_pipeline(compiler.trigger_hook, { start: 'Schema' })
+			} catch (e) {
+				console.error(e)
 			}
-
-			// pull the target schema path out of the config
-			const write_target = path.join(server.config.root, config.schema_path())
-
-			// figure out what we need to write
-			let fileData = ''
-			if (
-				write_target!.endsWith('gql') ||
-				write_target!.endsWith('graphql') ||
-				write_target.endsWith('graphqls')
-			) {
-				fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
-			} else {
-				fileData = JSON.stringify(graphql.introspectionFromSchema(schema))
-			}
-
-			// write the file
-			await fs.writeFile(write_target, fileData)
 		},
 	} as PluginOption
+}
+
+// Resolve '+schema' to its actual file on disk, trying common JS/TS extensions.
+async function resolve_local_schema(base: string): Promise<string | null> {
+	for (const ext of ['', '.ts', '.js', '.tsx', '.jsx']) {
+		try {
+			await fs.access(base + ext)
+			return base + ext
+		} catch {}
+	}
+	return null
+}
+
+async function write_local_schema(
+	server: { ssrLoadModule: (path: string) => Promise<any>; config: { root: string } },
+	root_dir: string,
+	schema_path: string
+) {
+	const local_schema_path = await resolve_local_schema(path.join(root_dir, 'src', 'api', '+schema'))
+	if (!local_schema_path) return
+
+	let schema: GraphQLSchema
+	try {
+		schema = (await server.ssrLoadModule(local_schema_path + '?t=' + Date.now())).default
+	} catch {
+		return
+	}
+
+	const write_target = path.join(server.config.root, schema_path)
+	// Mark the write so refresh_on_schema doesn't trigger a second pipeline run.
+	ownSchemaWrites.add(write_target)
+	await serialize_and_write(schema, write_target)
+	// Fallback cleanup in case the watcher never fires (e.g. schema unchanged).
+	setTimeout(() => ownSchemaWrites.delete(write_target), 2000)
+}
+
+async function serialize_and_write(schema: GraphQLSchema, write_target: string) {
+	let fileData = ''
+	if (
+		write_target.endsWith('gql') ||
+		write_target.endsWith('graphql') ||
+		write_target.endsWith('graphqls')
+	) {
+		fileData = graphql.printSchema(graphql.lexicographicSortSchema(schema))
+	} else {
+		fileData = JSON.stringify(graphql.introspectionFromSchema(schema))
+	}
+	await fs.writeFile(write_target, fileData)
 }
 
 function depends_on(mod: ModuleNode, filepath: string): boolean {

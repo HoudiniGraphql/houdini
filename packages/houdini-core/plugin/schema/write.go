@@ -11,6 +11,20 @@ import (
 	"code.houdinigraphql.com/plugins/graphql"
 )
 
+func posLine(p *ast.Position) int {
+	if p == nil {
+		return 0
+	}
+	return p.Line
+}
+
+func posCol(p *ast.Position) int {
+	if p == nil {
+		return 0
+	}
+	return p.Column
+}
+
 func WriteProjectSchema[PluginConfig any](
 	schemaPath string,
 	db plugins.DatabasePool[PluginConfig],
@@ -64,8 +78,8 @@ func WriteProjectSchema[PluginConfig any](
 				Locations: []*plugins.ErrorLocation{
 					{
 						Filepath: schemaPath,
-						Line:     typ.Position.Line,
-						Column:   typ.Position.Column,
+						Line:     posLine(typ.Position),
+						Column:   posCol(typ.Position),
 					},
 				},
 			})
@@ -122,8 +136,8 @@ func WriteProjectSchema[PluginConfig any](
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: schemaPath,
-								Line:     typ.Position.Line,
-								Column:   typ.Position.Column,
+								Line:     posLine(typ.Position),
+								Column:   posCol(typ.Position),
 							},
 						},
 					})
@@ -164,8 +178,8 @@ func WriteProjectSchema[PluginConfig any](
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: schemaPath,
-								Line:     field.Position.Line,
-								Column:   field.Position.Column,
+								Line:     posLine(field.Position),
+								Column:   posCol(field.Position),
 							},
 						},
 					})
@@ -174,17 +188,12 @@ func WriteProjectSchema[PluginConfig any](
 
 				for _, arg := range field.Arguments {
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
-					var defaultValue any
-					if arg.DefaultValue != nil {
-						defaultValue = arg.DefaultValue.Raw
-					}
 					err = db.ExecStatement(statements.InsertFieldArgument, map[string]any{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
 						"type":           variableType,
 						"type_modifiers": typeModifiers,
-						"default_value":  defaultValue,
 					})
 					if err != nil {
 						errors.Append(&plugins.Error{
@@ -197,8 +206,8 @@ func WriteProjectSchema[PluginConfig any](
 							Locations: []*plugins.ErrorLocation{
 								{
 									Filepath: schemaPath,
-									Line:     arg.Position.Line,
-									Column:   arg.Position.Column,
+									Line:     posLine(arg.Position),
+									Column:   posCol(arg.Position),
 								},
 							},
 						})
@@ -247,8 +256,8 @@ func WriteProjectSchema[PluginConfig any](
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: schemaPath,
-								Line:     field.Position.Line,
-								Column:   field.Position.Column,
+								Line:     posLine(field.Position),
+								Column:   posCol(field.Position),
 							},
 						},
 					})
@@ -282,8 +291,8 @@ func WriteProjectSchema[PluginConfig any](
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: schemaPath,
-								Line:     field.Position.Line,
-								Column:   field.Position.Column,
+								Line:     posLine(field.Position),
+								Column:   posCol(field.Position),
 							},
 						},
 					})
@@ -292,17 +301,12 @@ func WriteProjectSchema[PluginConfig any](
 
 				for _, arg := range field.Arguments {
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
-					var defaultValue any
-					if arg.DefaultValue != nil {
-						defaultValue = arg.DefaultValue.Raw
-					}
 					err = db.ExecStatement(statements.InsertFieldArgument, map[string]any{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
 						"type":           variableType,
 						"type_modifiers": typeModifiers,
-						"default_value":  defaultValue,
 					})
 					if err != nil {
 						errors.Append(&plugins.Error{
@@ -315,8 +319,8 @@ func WriteProjectSchema[PluginConfig any](
 							Locations: []*plugins.ErrorLocation{
 								{
 									Filepath: schemaPath,
-									Line:     arg.Position.Line,
-									Column:   arg.Position.Column,
+									Line:     posLine(arg.Position),
+									Column:   posCol(arg.Position),
 								},
 							},
 						})
@@ -342,8 +346,8 @@ func WriteProjectSchema[PluginConfig any](
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: schemaPath,
-								Line:     impl.Position.Line,
-								Column:   impl.Position.Column,
+								Line:     posLine(impl.Position),
+								Column:   posCol(impl.Position),
 							},
 						},
 					})
@@ -382,8 +386,8 @@ func WriteProjectSchema[PluginConfig any](
 						Locations: []*plugins.ErrorLocation{
 							{
 								Filepath: schemaPath,
-								Line:     member.Position.Line,
-								Column:   member.Position.Column,
+								Line:     posLine(member.Position),
+								Column:   posCol(member.Position),
 							},
 						},
 					})
@@ -420,8 +424,8 @@ func WriteProjectSchema[PluginConfig any](
 				Locations: []*plugins.ErrorLocation{
 					{
 						Filepath: schemaPath,
-						Line:     directive.Position.Line,
-						Column:   directive.Position.Column,
+						Line:     posLine(directive.Position),
+						Column:   posCol(directive.Position),
 					},
 				},
 			})
@@ -443,8 +447,8 @@ func WriteProjectSchema[PluginConfig any](
 					Locations: []*plugins.ErrorLocation{
 						{
 							Filepath: schemaPath,
-							Line:     directive.Position.Line,
-							Column:   directive.Position.Column,
+							Line:     posLine(directive.Position),
+							Column:   posCol(directive.Position),
 						},
 					},
 				})
@@ -470,8 +474,8 @@ func WriteProjectSchema[PluginConfig any](
 					Locations: []*plugins.ErrorLocation{
 						{
 							Filepath: schemaPath,
-							Line:     arg.Position.Line,
-							Column:   arg.Position.Column,
+							Line:     posLine(arg.Position),
+							Column:   posCol(arg.Position),
 						},
 					},
 				})
