@@ -10,20 +10,18 @@ vi.mock('ws', () => ({
 		on() {}
 	},
 }))
-vi.mock('node:sqlite', () => ({
-	default: {
-		DatabaseSync: class {
-			prepare() {
-				return {
-					run() {},
-					get() {},
-					all() {
-						return []
-					},
-				}
-			}
-		},
-	},
+vi.mock('../lib/db.js', () => ({
+	openDb: async () => ({
+		run() {},
+		get() { return undefined },
+		all() { return [] },
+		exec() {},
+		rowsModified() { return 0 },
+		flush() {},
+		reload() {},
+		close() {},
+		filepath: ':memory:',
+	}),
 }))
 
 // readline mock: each test can push lines into `stdinLines` to simulate stdin

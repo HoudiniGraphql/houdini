@@ -1,6 +1,6 @@
 import http from 'node:http'
 import { createInterface } from 'node:readline'
-import sqlite, { type DatabaseSync } from 'node:sqlite'
+import { openDb, type Db } from '../lib/db.js'
 import { WebSocketServer } from 'ws'
 
 export type PipelineHook =
@@ -66,7 +66,7 @@ export function plugin(config: NodePluginConfig): void {
 	if (transport === 'stdio') {
 		runStdio(config, pluginKey)
 	} else {
-		runWebSocket(config, database, pluginKey)
+		void runWebSocket(config, database, pluginKey)
 	}
 }
 
@@ -118,13 +118,13 @@ function runStdio(config: NodePluginConfig, pluginKey: string): void {
 
 // ─── WebSocket transport ──────────────────────────────────────────────────────
 
-function runWebSocket(config: NodePluginConfig, databasePath: string, pluginKey: string): void {
+async function runWebSocket(config: NodePluginConfig, databasePath: string, pluginKey: string): Promise<void> {
 	if (!databasePath) {
 		process.stderr.write('node plugin: --database path is required in websocket mode\n')
 		process.exit(1)
 	}
 
-	const db = new sqlite.DatabaseSync(databasePath)
+	const db = await openDb(databasePath)
 	const wireHooks = hookKeys(config).map(toWireName)
 
 	const wsInvokeHook: PluginContext['invokeHook'] = () => {
@@ -214,18 +214,20 @@ function runWebSocket(config: NodePluginConfig, databasePath: string, pluginKey:
 		const port = (server.address() as { port: number }).port
 
 		// Write to the DB so the orchestrator (and Go plugins) can find us.
-		db.prepare(
+		db.run(
 			`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)`
-		).run(
-			pluginKey || config.name,
-			JSON.stringify(wireHooks),
-			port,
-			config.order,
-			config.includeRuntime ?? null,
-			config.configModule ?? null,
-			config.clientPlugins ? JSON.stringify(config.clientPlugins) : null
+			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			[
+				pluginKey || config.name,
+				JSON.stringify(wireHooks),
+				port,
+				config.order,
+				config.includeRuntime ?? null,
+				config.configModule ?? null,
+				config.clientPlugins ? JSON.stringify(config.clientPlugins) : null,
+			]
 		)
+		db.flush()
 	})
 
 	process.on('SIGINT', () => shutdown(db, server))
@@ -277,7 +279,7 @@ function resolveInvoke(pending: PendingMap, msg: any) {
 	}
 }
 
-function shutdown(db: DatabaseSync, server: http.Server): void {
+function shutdown(db: Db, server: http.Server): void {
 	try {
 		db.close()
 	} catch {}
