@@ -1,0 +1,121 @@
+import type { Cache as _Cache } from 'houdini/runtime/cache'
+import { marshalInputs } from 'houdini/runtime/scalars'
+import type { QueryArtifact } from 'houdini/runtime/types'
+
+import { getCurrentConfig } from '../config'
+import { ListCollection } from './list'
+import { Record } from './record'
+import type {
+	ArgType,
+	CacheTypeDef,
+	IDFields,
+	QueryInput,
+	QueryList,
+	QueryValue,
+	TypeFieldNames,
+	TypeNames,
+	ValidLists,
+} from './types'
+
+export class Cache<Def extends CacheTypeDef> {
+	_internal_unstable: _Cache
+
+	constructor(cache: _Cache) {
+		this._internal_unstable = cache
+	}
+
+	// return the record proxy for the given type/id combo
+	get<T extends TypeNames<Def>>(type: T, data: IDFields<Def, T>): Record<Def, T> {
+		// compute the id for the record
+		const recordID = this._internal_unstable._internal_unstable.id(type, data)
+		if (!recordID) {
+			throw new Error('todo')
+		}
+
+		// return the proxy
+		return new Record({
+			cache: this,
+			type: type,
+			id: recordID,
+			idFields: data,
+		})
+	}
+
+	get config() {
+		return getCurrentConfig()
+	}
+
+	list<Name extends ValidLists<Def>>(
+		name: Name,
+		{ parentID, allLists }: { parentID?: string; allLists?: boolean } = {}
+	): ListCollection<Def, Name> {
+		return new ListCollection<Def, Name>({
+			cache: this,
+			name,
+			parentID,
+			allLists,
+		})
+	}
+
+	read<_Query extends { artifact: QueryArtifact }>({
+		query,
+		variables,
+	}: {
+		query: _Query
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}): {
+		data: QueryValue<QueryList<Def>, _Query> | null
+		partial: boolean
+	} {
+		// @ts-expect-error
+		return this._internal_unstable.read({
+			selection: query.artifact.selection,
+			variables,
+		})
+	}
+
+	write<_Query extends { artifact: QueryArtifact }>({
+		query,
+		variables,
+		data,
+	}: {
+		query: _Query
+		data: QueryValue<QueryList<Def>, _Query>
+		variables?: QueryInput<QueryList<Def>, _Query>
+	}) {
+		this._internal_unstable.write({
+			selection: query.artifact.selection,
+			// @ts-expect-error
+			data,
+			variables:
+				marshalInputs({
+					config: this.config,
+					artifact: query.artifact,
+					input: variables,
+				}) ?? {},
+		})
+
+		return
+	}
+
+	/**
+	 * Mark some elements of the cache stale.
+	 */
+	markStale<_Type extends TypeNames<Def>, _Field extends TypeFieldNames<Def, _Type>>(
+		type?: _Type,
+		options?: {
+			field?: _Field
+			when?: ArgType<Def, _Type, _Field>
+		}
+	): void {
+		this._internal_unstable.markTypeStale(type ? { ...options, type } : undefined)
+	}
+
+	/**
+	 * Reset the entire cache by clearing all records and lists
+	 */
+
+	reset(): void {
+		this._internal_unstable.reset()
+	}
+}

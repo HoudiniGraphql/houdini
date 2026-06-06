@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* GraphiQL design token system */
+:root {
+  /* Raw tokens (light defaults) */
+  --color-primary: 320, 95%, 43%;
+  --color-neutral: 219, 28%, 32%;
+  --color-base: 219, 28%, 100%;
+  --alpha-secondary: 0.76;
+  --alpha-tertiary: 0.5;
+  --alpha-background-heavy: 0.15;
+  --alpha-background-medium: 0.1;
+  --alpha-background-light: 0.07;
+
+  /* Surface layers (light) */
+  --surface-deep:    hsl(219, 20%, 91%);
+  --surface:         hsl(var(--color-base));
+  --surface-raised:  hsl(219, 20%, 97%);
+  --surface-overlay: hsl(219, 20%, 87%);
+
+  /* Derived semantics — auto-update when raw tokens change */
+  --fg:        hsl(var(--color-neutral));
+  --fg-muted:  hsla(var(--color-neutral), var(--alpha-secondary));
+  --fg-subtle: hsla(var(--color-neutral), var(--alpha-tertiary));
+  --edge:      hsla(var(--color-neutral), var(--alpha-background-heavy));
+  --edge-heavy: hsla(var(--color-neutral), 0.25);
+  --accent:    hsl(var(--color-primary));
+
+  /* Popover — light uses a shadow, dark uses a full-opacity border */
+  --popover-border: var(--edge-heavy);
+  --popover-shadow: 0px 6px 20px rgba(59, 76, 106, 0.13), 0px 1px 4px rgba(59, 76, 106, 0.08);
+}
+
+/* Dark theme */
+:root[data-theme='dark'] {
+  --popover-border: hsl(var(--color-neutral));
+  --popover-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --color-primary: 338, 100%, 67%;
+  --color-neutral: 219, 29%, 78%;
+  --color-base: 219, 29%, 18%;
+
+  --surface-deep:    hsl(219, 29%, 11%);
+  --surface-raised:  hsl(219, 29%, 23%);
+  --surface-overlay: hsl(219, 29%, 28%);
+}
+
+/* Tailwind utilities backed by CSS variables */
+@theme inline {
+  --color-graphql:          var(--accent);
+  --color-surface-deep:     var(--surface-deep);
+  --color-surface:          var(--surface);
+  --color-surface-raised:   var(--surface-raised);
+  --color-surface-overlay:  var(--surface-overlay);
+  --color-fg:               var(--fg);
+  --color-fg-muted:         var(--fg-muted);
+  --color-fg-subtle:        var(--fg-subtle);
+  --color-edge:             var(--edge);
+  --color-edge-heavy:       var(--edge-heavy);
+}
+
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}

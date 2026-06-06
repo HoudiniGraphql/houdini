@@ -1,0 +1,5 @@
+src/routeTree.gen.ts
+.tanstack
+node_modules/
+public/snapshots/
+content/*/_base/node_modules/

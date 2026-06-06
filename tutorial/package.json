@@ -1,0 +1,45 @@
+{
+	"name": "houdini-tutorial-ui",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "node scripts/build-snapshots.mjs && vite build",
+		"preview": "vite preview",
+		"build:snapshots": "node scripts/build-snapshots.mjs"
+	},
+	"dependencies": {
+		"@codemirror/autocomplete": "^6.0.0",
+		"@codemirror/commands": "^6.0.0",
+		"@codemirror/lang-javascript": "^6.0.0",
+		"@codemirror/language": "^6.0.0",
+		"@codemirror/lint": "^6.0.0",
+		"@codemirror/search": "^6.0.0",
+		"@codemirror/state": "^6.0.0",
+		"@codemirror/view": "^6.0.0",
+		"@lezer/highlight": "^1.2.3",
+		"@tanstack/react-router": "latest",
+		"@tanstack/react-start": "latest",
+		"@webcontainer/api": "^1.0.0",
+		"ansi-to-html": "^0.7.2",
+		"codemirror": "^6.0.1",
+		"codemirror-graphql": "^2.0.0",
+		"marked": "^9.0.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"react-resizable-panels": "^2.0.0",
+		"tiny-glob": "^0.2.9"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.0.0",
+		"@types/node": "^22.0.0",
+		"@types/react": "^19.0.7",
+		"@types/react-dom": "^19.0.3",
+		"@vitejs/plugin-react": "^6.0.2",
+		"@webcontainer/snapshot": "^0.1.0",
+		"tailwindcss": "^4.0.0",
+		"typescript": "^5.9.3",
+		"vite": "^8.0.0"
+	}
+}

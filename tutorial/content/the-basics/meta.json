@@ -1,0 +1,9 @@
+{
+	"title": "The Basics",
+	"installScript": "HOUDINI_SKIP_SHIM_INSTALL=1 HOUDINI_PLATFORM=wasm npm install --install-links",
+	"setupSnapshot": "setup-snapshot.mjs",
+	"commands": [{ "command": "npm", "args": ["run", "dev"] }],
+	"applyOrder": [".gql"],
+	"completionSignal": "Updated",
+	"watchNodeModules": ["houdini/vite", "houdini/lib"]
+}

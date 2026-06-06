@@ -1,0 +1,32 @@
+{
+	"name": "houdini-tutorial",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "HOUDINI_PLATFORM=wasm node node_modules/vite/bin/vite.js dev"
+	},
+	"dependencies": {
+		"sql.js": "^1.13.0",
+		"graphql-yoga": "^4.0.4",
+		"houdini": "next",
+		"houdini-core": "next",
+		"houdini-adapter-node": "next",
+		"houdini-react": "next",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"react-streaming-compat": "^0.3.18"
+	},
+	"optionalDependencies": {
+		"houdini-core-wasm": "next",
+		"houdini-react-wasm": "next",
+		"@rolldown/binding-wasm32-wasi": "*"
+	},
+	"devDependencies": {
+		"@types/react": "^19.0.7",
+		"@types/react-dom": "^19.0.3",
+		"@vitejs/plugin-react": "^6.0.2",
+		"typescript": "^5.9.3",
+		"vite": "^8.0.0"
+	}
+}
