@@ -140,9 +140,9 @@ export default function (ctx: VitePluginContext): PluginOption {
 
 			if (cfCache === null) {
 				try {
-					cfCache = ctx.db
-						.prepare('SELECT type, field, fragment FROM component_fields')
-						.all() as ComponentFieldRow[]
+					cfCache = ctx.db.all<ComponentFieldRow>(
+						'SELECT type, field, fragment FROM component_fields'
+					)
 				} catch {
 					cfCache = []
 				}
