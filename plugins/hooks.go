@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"zombiezen.com/go/sqlite"
+	
 )
 
 func TriggerHookSerial[PluginConfig any](
@@ -38,7 +38,7 @@ func TriggerHookSerial[PluginConfig any](
   `
 
 	pluginPorts := map[string]int64{}
-	err := db.StepQuery(ctx, query, map[string]any{"hook": hook}, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, map[string]any{"hook": hook}, func(stmt Row) {
 		pluginPorts[stmt.GetText("name")] = stmt.GetInt64("port")
 	})
 	if err != nil {
@@ -97,7 +97,7 @@ func TriggerHookParallel[PluginConfig any](
   `
 
 	pluginPorts := map[string]int64{}
-	err := db.StepQuery(ctx, query, map[string]any{"hook": hook}, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, map[string]any{"hook": hook}, func(stmt Row) {
 		pluginPorts[stmt.GetText("name")] = stmt.GetInt64("port")
 	})
 	if err != nil {
@@ -144,7 +144,7 @@ func TriggerHookParallel[PluginConfig any](
 func TriggerHookParallelWithConn[PluginConfig any](
 	ctx context.Context,
 	db DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn Conn,
 	hook string,
 	payload map[string]any,
 ) (map[string]any, error) {

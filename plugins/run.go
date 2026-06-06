@@ -1,3 +1,5 @@
+//go:build !wasip1
+
 package plugins
 
 import (
@@ -15,14 +17,12 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
 )
 
 var (
-	configHost    string = ""
-	databasePath  string = ""
-	transportMode string = "websocket"
-	pluginKey     string = ""
+	configHost   string = ""
+	databasePath string = ""
 )
 
 func ParseFlags() {
@@ -168,28 +168,24 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 		clientPlugins = string(stringified)
 	}
 
+	db.Put(conn)
+
 	// insert the plugin metadata
-	err = sqlitex.ExecuteTransient(
-		conn,
-		`
-			INSERT INTO plugins (
-				name, hooks, port, plugin_order, include_runtime, config_module, client_plugins
-			) VALUES
-				(?, ?, ?, ?, ?, ?, ?)
-		`,
-		&sqlitex.ExecOptions{
-			Args: []any{
-				cmp(pluginKey, plugin.Name()),
-				string(hooksStr),
-				port,
-				plugin.Order(),
-				includeRuntime,
-				configModule,
-				clientPlugins,
-			},
+	err = db.ExecQuery(ctx,
+		`INSERT INTO plugins (
+			name, hooks, port, plugin_order, include_runtime, config_module, client_plugins
+		) VALUES
+			($name, $hooks, $port, $plugin_order, $include_runtime, $config_module, $client_plugins)`,
+		map[string]any{
+			"name":            cmp(pluginKey, plugin.Name()),
+			"hooks":           string(hooksStr),
+			"port":            port,
+			"plugin_order":    string(plugin.Order()),
+			"include_runtime": includeRuntime,
+			"config_module":   configModule,
+			"client_plugins":  clientPlugins,
 		},
 	)
-	db.Put(conn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -214,12 +210,4 @@ func Run[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) error {
 			return nil
 		}
 	}
-}
-
-// cmp returns a if non-empty, otherwise b.
-func cmp(a, b string) string {
-	if a != "" {
-		return a
-	}
-	return b
 }
