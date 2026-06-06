@@ -84,14 +84,19 @@ export function connect_db(config: Config): [DatabaseSync, string] {
 	if (stored_hash !== schema_hash) {
 		db.close()
 		for (const ext of ['', '-shm', '-wal']) {
-			try { nodeFs.rmSync(filepath + ext) } catch (_) {}
+			try {
+				nodeFs.rmSync(filepath + ext)
+			} catch (_) {}
 		}
 		db = open()
 	}
 
 	db.exec(create_schema)
 	db.exec(`CREATE TABLE IF NOT EXISTS _houdini_meta (key TEXT PRIMARY KEY, value TEXT)`)
-	db.prepare('INSERT OR REPLACE INTO _houdini_meta (key, value) VALUES (?, ?)').run('schema_hash', schema_hash)
+	db.prepare('INSERT OR REPLACE INTO _houdini_meta (key, value) VALUES (?, ?)').run(
+		'schema_hash',
+		schema_hash
+	)
 
 	return [db, filepath]
 }
