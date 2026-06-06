@@ -7,7 +7,7 @@ import (
 
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
 
 	houdiniSchema "code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
@@ -72,10 +72,29 @@ func (p *HoudiniCore) Schema(ctx context.Context) error {
 	}
 
 	// all of the schema operations are done in a transaction
-	close := sqlitex.Transaction(conn)
+	closeTx := p.DB.Transaction(conn)
 	commit := func(err error) error {
-		close(&err)
+		closeTx(&err)
 		return err
+	}
+
+	// Delete non-component type_fields left over from the previous schema so
+	// removed types/fields don't persist as stale rows. Component-field rows
+	// are preserved because other plugins re-register them after Schema runs.
+	deleteStaleFields, err := conn.Prepare(`
+		DELETE FROM type_fields
+		WHERE id IN (
+			SELECT type_fields.id FROM type_fields
+				LEFT JOIN component_fields ON component_fields.type_field = type_fields.id
+			WHERE component_fields.id IS NULL
+		)
+	`)
+	if err != nil {
+		return commit(err)
+	}
+	defer deleteStaleFields.Finalize()
+	if _, err = deleteStaleFields.Step(); err != nil {
+		return commit(err)
 	}
 
 	// prepare the statements we'll use
