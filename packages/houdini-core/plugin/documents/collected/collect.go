@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -52,7 +52,7 @@ func directivesEqual(a, b *Directive) bool {
 func CollectDocuments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	sortKeys bool,
 ) (*Documents, error) {
 	result := &Documents{
@@ -226,7 +226,7 @@ func collectDoc(
 		// wrap each processing in a function so we have a defer context to avoid deadlocking the connection
 		func(ids []int64) {
 			// bind this batch's IDs; unused placeholder slots remain NULL from the previous ClearBindings
-			for _, stmt := range []*sqlite.Stmt{
+			for _, stmt := range []plugins.Stmt{
 				statements.Search,
 				statements.DocumentVariables,
 				statements.DocumentDirectives,
@@ -944,14 +944,14 @@ func collectDoc(
 }
 
 type CollectStatements struct {
-	Search             *sqlite.Stmt
-	DocumentVariables  *sqlite.Stmt
-	DocumentDirectives *sqlite.Stmt
-	PossibleTypes      *sqlite.Stmt
-	InputTypes         *sqlite.Stmt
+	Search             plugins.Stmt
+	DocumentVariables  plugins.Stmt
+	DocumentDirectives plugins.Stmt
+	PossibleTypes      plugins.Stmt
+	InputTypes         plugins.Stmt
 }
 
-func prepareCollectStatements(conn *sqlite.Conn, count int) (*CollectStatements, error) {
+func prepareCollectStatements(conn plugins.Conn, count int) (*CollectStatements, error) {
 	// Build a fixed-size placeholder list. count is always a power of two so all batches
 	// for this worker share the same SQL string and SQLite reuses the compiled plan.
 	placeholders := make([]string, count)
@@ -1411,7 +1411,7 @@ func nextPowerOfTwo(n int) int {
 func processArgumentValuesInBatches[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	valueIDs []int64,
 	argumentValues map[int64]*ArgumentValue,
 	errs *plugins.ErrorList,
@@ -1524,7 +1524,7 @@ func processArgumentValuesInBatches[PluginConfig any](
 	return nil
 }
 
-func prepareArgumentValuesSearch(conn *sqlite.Conn, valueIDs []int64) (*sqlite.Stmt, error) {
+func prepareArgumentValuesSearch(conn plugins.Conn, valueIDs []int64) (plugins.Stmt, error) {
 	placeholders := make([]string, len(valueIDs))
 	for i := range valueIDs {
 		placeholders[i] = fmt.Sprintf("$value_%v", i)

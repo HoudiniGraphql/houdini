@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -56,28 +56,28 @@ type discoveredList struct {
 
 type paginationContext struct {
 	context.Context
-	conn                             *sqlite.Conn
+	conn                             plugins.Conn
 	db                               plugins.DatabasePool[config.PluginConfig]
-	insertDocument                   *sqlite.Stmt
-	insertFragment                   *sqlite.Stmt
-	insertDocumentVariable           *sqlite.Stmt
-	insertSelectionArgument          *sqlite.Stmt
-	insertSelection                  *sqlite.Stmt
-	insertSelectionRef               *sqlite.Stmt
-	insertArgumentValue              *sqlite.Stmt
-	insertDocumentDirectives         *sqlite.Stmt
-	insertDocumentDirectiveArgument  *sqlite.Stmt
-	deleteSelectionArgument          *sqlite.Stmt
-	insertSelectionDirective         *sqlite.Stmt
-	insertSelectionDirectiveArgument *sqlite.Stmt
-	copyArgumentValue                *sqlite.Stmt
-	insertDiscoveredLists            *sqlite.Stmt
-	copySelectionsQuery              *sqlite.Stmt
-	copyChildSelectionsQuery         *sqlite.Stmt
-	copyDirectiveQuery               *sqlite.Stmt
-	getOriginalListQuery             *sqlite.Stmt
-	getPaginatedFieldAliasQuery      *sqlite.Stmt
-	getVariablesQuery                *sqlite.Stmt
+	insertDocument                   plugins.Stmt
+	insertFragment                   plugins.Stmt
+	insertDocumentVariable           plugins.Stmt
+	insertSelectionArgument          plugins.Stmt
+	insertSelection                  plugins.Stmt
+	insertSelectionRef               plugins.Stmt
+	insertArgumentValue              plugins.Stmt
+	insertDocumentDirectives         plugins.Stmt
+	insertDocumentDirectiveArgument  plugins.Stmt
+	deleteSelectionArgument          plugins.Stmt
+	insertSelectionDirective         plugins.Stmt
+	insertSelectionDirectiveArgument plugins.Stmt
+	copyArgumentValue                plugins.Stmt
+	insertDiscoveredLists            plugins.Stmt
+	copySelectionsQuery              plugins.Stmt
+	copyChildSelectionsQuery         plugins.Stmt
+	copyDirectiveQuery               plugins.Stmt
+	getOriginalListQuery             plugins.Stmt
+	getPaginatedFieldAliasQuery      plugins.Stmt
+	getVariablesQuery                plugins.Stmt
 }
 
 func PreparePaginationDocuments(
@@ -95,7 +95,7 @@ func PreparePaginationDocuments(
 	}
 	defer db.Put(conn)
 
-	close := sqlitex.Transaction(conn)
+	close := db.Transaction(conn)
 	commit := func(err error) error {
 		close(&err)
 		return err

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"zombiezen.com/go/sqlite/sqlitex"
+	
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -21,7 +21,7 @@ func AddDocumentFields[PluginConfig any](
 	}
 	defer db.Put(conn)
 
-	close := sqlitex.Transaction(conn)
+	close := db.Transaction(conn)
 	commit := func(err error) error {
 		close(&err)
 		return err

@@ -11,8 +11,8 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/vektah/gqlparser/v2/parser"
 	"golang.org/x/sync/errgroup"
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
@@ -59,7 +59,7 @@ func LoadDocuments(
 
 			// consume queries until the channel is closed
 			for query := range queries {
-				commit := sqlitex.Transaction(conn)
+				commit := db.Transaction(conn)
 				// load the document into the database
 				pluginErr := LoadPendingQuery(ctx, db, conn, query, statements, typeCache)
 				if pluginErr != nil {
@@ -154,7 +154,7 @@ func LoadDocuments(
 func LoadPendingQuery(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	query PendingQuery,
 	statements DocumentInsertStatements,
 	typeCache TypeCache,
@@ -994,7 +994,7 @@ func LoadPendingQuery(
 func processSelection[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	query PendingQuery,
 	operationID int64,
 	statements DocumentInsertStatements,
@@ -1238,7 +1238,7 @@ func processSelection[PluginConfig any](
 func processDirectives[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	query PendingQuery,
 	operationID int64,
 	statements DocumentInsertStatements,
@@ -1375,7 +1375,7 @@ type PendingQuery struct {
 func processArgumentValue[PluginConfig any](
 	ctx context.Context,
 	db plugins.DatabasePool[PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 	query PendingQuery,
 	operationID int64,
 	value *ast.Value,

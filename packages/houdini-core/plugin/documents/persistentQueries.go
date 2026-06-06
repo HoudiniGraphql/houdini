@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
+	
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -40,53 +40,44 @@ func GeneratePersistentQueries(
 		}
 	}
 
-	conn, err := db.Take(ctx)
-	if err != nil {
-		return nil, plugins.WrapError(err)
-	}
-	defer db.Put(conn)
-
 	queryMap := make(map[string]string)
 
 	// Get all operations (queries, mutations, subscriptions)
 	operations := make(map[string]*OperationDoc)
 	fragments := make(map[string]*OperationDoc)
-	err = sqlitex.Execute(conn, `
+	err = db.StepQuery(ctx, `
 		SELECT d.id, d.name, d.kind, d.hash, d.printed
 		FROM documents d
 		WHERE  d.hash IS NOT NULL
 			AND d.hash != ''
 			AND d.printed IS NOT NULL
 			AND d.printed != ''
-	`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			id := stmt.ColumnText(0)
-			name := stmt.ColumnText(1)
-			kind := stmt.ColumnText(2)
-			hash := stmt.ColumnText(3)
-			printed := stmt.ColumnText(4)
+	`, nil, func(stmt plugins.Row) {
+		id := stmt.ColumnText(0)
+		name := stmt.ColumnText(1)
+		kind := stmt.ColumnText(2)
+		hash := stmt.ColumnText(3)
+		printed := stmt.ColumnText(4)
 
-			if kind == "fragment" {
-				// named map for faster lookup
-				fragments[name] = &OperationDoc{
-					ID:      id,
-					Name:    name,
-					Kind:    kind,
-					Hash:    hash,
-					Printed: printed,
-				}
-				return nil
-			}
-
-			operations[id] = &OperationDoc{
+		if kind == "fragment" {
+			// named map for faster lookup
+			fragments[name] = &OperationDoc{
 				ID:      id,
 				Name:    name,
 				Kind:    kind,
 				Hash:    hash,
 				Printed: printed,
 			}
-			return nil
-		},
+			return
+		}
+
+		operations[id] = &OperationDoc{
+			ID:      id,
+			Name:    name,
+			Kind:    kind,
+			Hash:    hash,
+			Printed: printed,
+		}
 	})
 	if err != nil {
 		return nil, plugins.WrapError(err)
@@ -97,25 +88,22 @@ func GeneratePersistentQueries(
 	// depends on (directly or through other fragments). This avoids a recursive
 	// UNION CTE with a large IN clause (400+ items), which SQLite executes slowly.
 	docToDirectFrags := make(map[string][]string) // doc_id/name → direct fragment spreads
-	err = sqlitex.Execute(conn, `
+	err = db.StepQuery(ctx, `
 		SELECT d.id, d.name, d.kind, s.field_name
 		FROM selections s
 		JOIN selection_refs sr ON s.id = sr.child_id
 		JOIN documents d ON sr.document = d.id
 		WHERE s.kind = 'fragment'
-	`, &sqlitex.ExecOptions{
-		ResultFunc: func(stmt *sqlite.Stmt) error {
-			docID := stmt.ColumnText(0)
-			docName := stmt.ColumnText(1)
-			kind := stmt.ColumnText(2)
-			fragName := stmt.ColumnText(3)
-			if kind == "fragment" {
-				docToDirectFrags[docName] = append(docToDirectFrags[docName], fragName)
-			} else {
-				docToDirectFrags[docID] = append(docToDirectFrags[docID], fragName)
-			}
-			return nil
-		},
+	`, nil, func(stmt plugins.Row) {
+		docID := stmt.ColumnText(0)
+		docName := stmt.ColumnText(1)
+		kind := stmt.ColumnText(2)
+		fragName := stmt.ColumnText(3)
+		if kind == "fragment" {
+			docToDirectFrags[docName] = append(docToDirectFrags[docName], fragName)
+		} else {
+			docToDirectFrags[docID] = append(docToDirectFrags[docID], fragName)
+		}
 	})
 	if err != nil {
 		return nil, plugins.WrapError(err)

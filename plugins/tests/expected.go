@@ -1,3 +1,5 @@
+//go:build !wasip1
+
 package tests
 
 import (
@@ -6,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/plugins"
 )
@@ -272,7 +274,7 @@ ORDER BY s.id`
 		id := int(stmt.ColumnInt(0))
 		var alias *string
 		// alias is at column index 2.
-		if stmt.ColumnType(2) == sqlite.TypeText {
+		if stmt.ColumnType(2) == plugins.ColumnKindText {
 			a := stmt.ColumnText(2)
 			alias = &a
 		}
@@ -308,7 +310,7 @@ ORDER BY s.id`
 			break
 		}
 		// if parent_id is null then this row indicates a top-level selection; do not add mapping.
-		if stmt.ColumnType(0) == sqlite.TypeNull {
+		if stmt.ColumnType(0) == plugins.ColumnKindNull {
 			continue
 		}
 		parentID := int(stmt.ColumnInt(0))
@@ -373,9 +375,9 @@ func fetchDocuments[PluginConfig any](
 		context.Background(),
 		"select name, raw_document, kind, type_condition, id from documents order by name",
 		map[string]any{},
-		func(stmt *sqlite.Stmt) {
+		func(stmt plugins.Row) {
 			var tc *string
-			if stmt.ColumnType(3) == sqlite.TypeText {
+			if stmt.ColumnType(3) == plugins.ColumnKindText {
 				s := stmt.ColumnText(3)
 				tc = &s
 			}
@@ -433,7 +435,7 @@ func findDocumentVariables[PluginConfig any](
 
 		// Read the default value (if any)
 		var defaultValue *int
-		if stmt.ColumnType(4) == sqlite.TypeInteger {
+		if stmt.ColumnType(4) == plugins.ColumnKindInt {
 			s := stmt.ColumnInt(4)
 			defaultValue = &s
 		}
@@ -1041,12 +1043,12 @@ func findArgumentValue[PluginConfig any](
 		context.Background(),
 		query,
 		map[string]any{"value_id": valueID, "document": documentID},
-		func(s *sqlite.Stmt) {
+		func(s plugins.Row) {
 			id := int(s.ColumnInt(0))
 			kind := s.ColumnText(1)
 			raw := s.ColumnText(2)
 			var parentID *int
-			if s.ColumnType(3) != sqlite.TypeNull {
+			if s.ColumnType(3) != plugins.ColumnKindNull {
 				pid := int(s.ColumnInt(3))
 				parentID = &pid
 			}

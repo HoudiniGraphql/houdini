@@ -11,7 +11,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
-	"zombiezen.com/go/sqlite"
+	
 )
 
 // DocumentContext holds document-specific state that was previously stored in global variables
@@ -1280,7 +1280,7 @@ type RootTypeNames struct {
 func GetRootTypes(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
-	conn *sqlite.Conn,
+	conn plugins.Conn,
 ) (*RootTypeNames, error) {
 	rootTypes := &RootTypeNames{}
 
