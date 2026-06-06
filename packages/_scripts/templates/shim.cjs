@@ -1,88 +1,173 @@
 #!/usr/bin/env node
 
-// Simple shim that can be replaced with the actual binary for optimal performance
-// This follows esbuild's approach: the postInstall script will replace this entire file
-// with the native binary when possible, eliminating Node.js startup overhead
-
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-// Manual binary path override support
-const MANUAL_BINARY_PATH = process.env.HOUDINI_BINARY_PATH || process.env.MY_PACKAGE_BINARY_PATH;
+const binaryName = process.platform === 'win32' ? 'my-binary.exe' : 'my-binary';
 
+const BINARY_DISTRIBUTION_PACKAGES = {
+	'linux-x64':   'my-package-linux-x64',
+	'linux-arm64': 'my-package-linux-arm64',
+	'win32-x64':   'my-package-win32-x64',
+	'win32-arm64': 'my-package-win32-arm64',
+	'darwin-x64':  'my-package-darwin-x64',
+	'darwin-arm64':'my-package-darwin-arm64',
+};
+
+const PLATFORM_OVERRIDE = process.env.HOUDINI_PLATFORM;
+const MANUAL_BINARY_PATH = process.env.MY_PACKAGE_BINARY_PATH || process.env.HOUDINI_BINARY_PATH;
+
+// --- WASM path ---
+if (PLATFORM_OVERRIDE === 'wasm') {
+	const wasmPackage = 'my-package-wasm';
+	const wasmBinaryName = 'my-binary.wasm';
+	let wasmBin = null;
+
+	try {
+		const pkgPath = require.resolve(`${wasmPackage}/package.json`);
+		wasmBin = path.join(path.dirname(pkgPath), 'bin', wasmBinaryName);
+	} catch {
+		const sibling = path.join(__dirname, '..', wasmPackage, 'bin', wasmBinaryName);
+		if (fs.existsSync(sibling)) wasmBin = sibling;
+	}
+
+	if (!wasmBin || !fs.existsSync(wasmBin)) {
+		process.stderr.write(`[my-package] WASM package not installed. Try: npm install ${wasmPackage}\n`);
+		process.exit(1);
+	}
+
+	// In WebContainers, fs.readSync on a pipe fd is not supported in any thread
+	// (the child gets EBADF). Instead:
+	//   Main thread  — async process.stdin.on('data') works fine (event loop)
+	//   Worker thread — Atomics.wait + receiveMessageOnPort provides real blocking
+	// A custom fd_read override feeds WASM stdin from the message channel so WASI
+	// never touches fd 0 directly.
+	const { Worker, isMainThread, workerData, MessageChannel, receiveMessageOnPort } = require('worker_threads');
+
+	if (isMainThread) {
+		const { port1: stdinMain, port2: stdinWorker } = new MessageChannel();
+		// Counter: main increments (Atomics.add) per message so rapid bursts
+		// (two frames in the same tick) produce two distinct wakeups.
+		const syncBuf = new Int32Array(new SharedArrayBuffer(4));
+
+		process.stdin.on('error', () => {});
+		process.stdin.on('data', data => {
+			stdinMain.postMessage(data);
+			Atomics.add(syncBuf, 0, 1);
+			Atomics.notify(syncBuf, 0);
+		});
+		process.stdin.on('end', () => {
+			stdinMain.postMessage(null); // EOF sentinel
+			Atomics.add(syncBuf, 0, 1);
+			Atomics.notify(syncBuf, 0);
+		});
+
+		const worker = new Worker(__filename, {
+			workerData: { wasmBin, args: process.argv.slice(2), stdinPort: stdinWorker, syncBuf },
+			transferList: [stdinWorker],
+		});
+		worker.on('exit', code => process.exit(code ?? 0));
+		return; // prevent fallthrough to native binary path
+	} else {
+		const { wasmBin: wb, args, stdinPort, syncBuf } = workerData;
+		const { WASI } = require('node:wasi');
+
+		const wasi = new WASI({
+			args: [wb, ...args],
+			env: process.env,
+			preopens: { '/': '/' },
+			version: 'preview1',
+		});
+
+		let wasmMem = null;
+		const importObj = wasi.getImportObject();
+		const realFdRead = importObj.wasi_snapshot_preview1.fd_read;
+
+		// Override fd_read for stdin (fd 0) only: block via Atomics until the main
+		// thread delivers a chunk, then copy it into WASM memory via iov buffers.
+		importObj.wasi_snapshot_preview1.fd_read = (fd, iovs, iovsLen, nread) => {
+			if (fd !== 0 || !wasmMem) return realFdRead(fd, iovs, iovsLen, nread);
+
+			while (Atomics.load(syncBuf, 0) === 0) {
+				Atomics.wait(syncBuf, 0, 0);
+			}
+			const msg = receiveMessageOnPort(stdinPort);
+			Atomics.sub(syncBuf, 0, 1);
+
+			const view = new DataView(wasmMem.buffer);
+			if (!msg || msg.message === null) {
+				view.setUint32(nread, 0, true); // EOF
+				return 0;
+			}
+
+			const chunk = msg.message;
+			const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+			let written = 0;
+			for (let i = 0; i < iovsLen; i++) {
+				const ptr = view.getUint32(iovs + i * 8, true);
+				const len = view.getUint32(iovs + i * 8 + 4, true);
+				const n = Math.min(len, buf.length - written);
+				if (n <= 0) break;
+				new Uint8Array(wasmMem.buffer, ptr, n).set(buf.subarray(written, written + n));
+				written += n;
+			}
+			view.setUint32(nread, written, true);
+			return 0;
+		};
+
+		const mod = new WebAssembly.Module(fs.readFileSync(wb));
+		const inst = new WebAssembly.Instance(mod, importObj);
+		wasmMem = inst.exports.memory;
+		wasi.start(inst);
+		process.exit(0);
+	}
+}
+
+// --- Native binary path ---
 function getBinaryPath() {
-	// Check for manual override first
 	if (MANUAL_BINARY_PATH && fs.existsSync(MANUAL_BINARY_PATH)) {
 		return MANUAL_BINARY_PATH;
 	}
 
-	// Platform-specific package lookup
-	const BINARY_DISTRIBUTION_PACKAGES = {
-		'linux-x64': 'my-package-linux-x64',
-		'linux-arm64': 'my-package-linux-arm64',
-		'win32-x64': 'my-package-win32-x64',
-		'win32-arm64': 'my-package-win32-arm64',
-		'darwin-x64': 'my-package-darwin-x64',
-		'darwin-arm64': 'my-package-darwin-arm64',
-	}
-
-	const binaryName = process.platform === 'win32' ? 'my-binary.exe' : 'my-binary'
-	const platformSpecificPackageName = BINARY_DISTRIBUTION_PACKAGES[`${process.platform}-${process.arch}`]
+	const platformKey = PLATFORM_OVERRIDE || `${process.platform}-${process.arch}`;
+	const platformSpecificPackageName = BINARY_DISTRIBUTION_PACKAGES[platformKey];
 
 	if (!platformSpecificPackageName) {
-		// Fallback to downloaded binary if platform not supported
-		return path.join(__dirname, binaryName)
+		if (PLATFORM_OVERRIDE) {
+			process.stderr.write(`[my-package] Unknown platform "${PLATFORM_OVERRIDE}". Valid values: ${Object.keys(BINARY_DISTRIBUTION_PACKAGES).join(', ')}, wasm\n`);
+			process.exit(1);
+		}
+		return path.join(__dirname, binaryName);
 	}
 
 	try {
-		// Method 1: Use require.resolve to find the platform-specific package
-		const platformPackagePath = require.resolve(`${platformSpecificPackageName}/package.json`)
-		const platformPackageDir = path.dirname(platformPackagePath)
-		return path.join(platformPackageDir, 'bin', binaryName)
-	} catch (error) {
-		// Method 2: Check sibling directory (npm structure)
-		const siblingPath = path.join(__dirname, '..', platformSpecificPackageName)
-		const siblingBinaryPath = path.join(siblingPath, 'bin', binaryName)
+		const platformPackagePath = require.resolve(`${platformSpecificPackageName}/package.json`);
+		return path.join(path.dirname(platformPackagePath), 'bin', binaryName);
+	} catch {
+		const siblingPath = path.join(__dirname, '..', platformSpecificPackageName, 'bin', binaryName);
+		if (fs.existsSync(siblingPath)) return siblingPath;
 
-		if (fs.existsSync(siblingBinaryPath)) {
-			return siblingBinaryPath
-		}
-
-		// Method 3: Check pnpm structure
-		const pnpmMatch = __dirname.match(/(.+\/node_modules\/)\.pnpm\/([^\/]+)\/node_modules\//)
+		const pnpmMatch = __dirname.match(/(.+\/node_modules\/)\.pnpm\/[^/]+\/node_modules\//);
 		if (pnpmMatch) {
-			const [, nodeModulesRoot] = pnpmMatch
-			const pnpmDir = path.join(nodeModulesRoot, '.pnpm')
-
+			const pnpmDir = path.join(pnpmMatch[1], '.pnpm');
 			try {
-				const pnpmEntries = fs.readdirSync(pnpmDir)
-				// Get the expected version from the main package
-				const packageJSON = require(path.join(__dirname, '..', 'package.json'))
-				const expectedVersion = packageJSON.version
-				const expectedPnpmEntry = `${platformSpecificPackageName}@${expectedVersion}`
-				const platformEntry = pnpmEntries.find(entry => entry === expectedPnpmEntry)
-
-				if (platformEntry) {
-					const pnpmBinaryPath = path.join(pnpmDir, platformEntry, 'node_modules', platformSpecificPackageName, 'bin', binaryName)
-					if (fs.existsSync(pnpmBinaryPath)) {
-						return pnpmBinaryPath
-					}
+				const packageJSON = require(path.join(__dirname, '..', 'package.json'));
+				const entry = `${platformSpecificPackageName}@${packageJSON.version}`;
+				const found = fs.readdirSync(pnpmDir).find(e => e === entry);
+				if (found) {
+					const p = path.join(pnpmDir, found, 'node_modules', platformSpecificPackageName, 'bin', binaryName);
+					if (fs.existsSync(p)) return p;
 				}
-			} catch (err) {
-				// Ignore pnpm detection errors
-			}
+			} catch {}
 		}
 
-		// Method 4: Fallback to downloaded binary in main package
-		return path.join(__dirname, binaryName)
+		return path.join(__dirname, binaryName);
 	}
 }
 
-// Execute the binary directly (this entire file may be replaced with the actual binary)
 try {
 	execFileSync(getBinaryPath(), process.argv.slice(2), { stdio: 'inherit' });
 } catch (error) {
-	// If execFileSync fails, exit with the same code
 	process.exit(error.status || 1);
 }

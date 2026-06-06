@@ -181,6 +181,13 @@ if (!platformSpecificPackageName) {
 // Replace the JavaScript shim with the actual binary for optimal performance (skip Node.js overhead)
 // This is inspired by esbuild's approach: https://github.com/evanw/esbuild/blob/main/lib/npm/node-install.ts
 function maybeOptimizePackage() {
+	// Allow callers to opt out of the optimization (e.g. when building a snapshot
+	// for an environment that can't run native binaries, like WebContainers).
+	if (process.env.HOUDINI_SKIP_SHIM_INSTALL) {
+		console.log(`[${packageJSON.name}] HOUDINI_SKIP_SHIM_INSTALL set, keeping JavaScript shim`)
+		return
+	}
+
 	// This optimization doesn't work on Windows because the binary must be called with .exe extension
 	// It also doesn't work with Yarn due to various compatibility issues
 	if (process.platform === 'win32' || isYarn()) {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -58,6 +59,12 @@ var (
 	pendingInvokes   = make(map[string]chan StdioInbound)
 	pendingInvokesMu sync.Mutex
 	stdioIDCounter   atomic.Int64
+
+	// wasip1: goroutines can't switch while blocked in a JS Atomics.wait, so
+	// StdioInvoke reads stdin inline using a shared scanner + message queue
+	// instead of channels. runStdio initialises this on wasip1 before the loop.
+	wasip1Sc    *bufio.Scanner
+	wasip1Queue []StdioInbound
 )
 
 func writeStdio(msg any) error {
@@ -96,6 +103,40 @@ func StdioInvoke(ctx context.Context, hook string, payload map[string]any, paral
 		Parallel: parallel,
 	}); err != nil {
 		return nil, err
+	}
+
+	if runtime.GOOS == "wasip1" {
+		// wasip1: scan stdin inline — goroutines can't switch while the JS
+		// worker thread is blocked, so we can't rely on the outer scanner loop
+		// to populate the channel. Non-matching messages are deferred into a
+		// temp slice (NOT wasip1Queue) to avoid infinite re-queuing, then
+		// prepended back to wasip1Queue when we return.
+		var deferred []StdioInbound
+		for {
+			var msg StdioInbound
+			if len(wasip1Queue) > 0 {
+				msg = wasip1Queue[0]
+				wasip1Queue = wasip1Queue[1:]
+			} else if wasip1Sc != nil && wasip1Sc.Scan() {
+				if err := json.Unmarshal(wasip1Sc.Bytes(), &msg); err != nil {
+					continue
+				}
+			} else {
+				wasip1Queue = append(deferred, wasip1Queue...)
+				return nil, fmt.Errorf("stdin closed waiting for invoke_result for hook %s", hook)
+			}
+			if msg.Type == "invoke_result" && msg.ID == id {
+				wasip1Queue = append(deferred, wasip1Queue...)
+				if msg.Error != nil {
+					return nil, fmt.Errorf("invoke %s error: %v", hook, msg.Error)
+				}
+				if result, ok := msg.Result.(map[string]any); ok {
+					return result, nil
+				}
+				return map[string]any{}, nil
+			}
+			deferred = append(deferred, msg)
+		}
 	}
 
 	select {
@@ -167,16 +208,38 @@ func runStdio[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plugin
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Buffer(make([]byte, 10*1024*1024), 10*1024*1024)
+	if runtime.GOOS == "wasip1" {
+		wasip1Sc = scanner
+	}
 
-	for scanner.Scan() {
-		var msg StdioInbound
-		if err := json.Unmarshal(scanner.Bytes(), &msg); err != nil {
-			continue
+	nextMsg := func() (StdioInbound, bool) {
+		for {
+			// On wasip1, drain the queue first (populated by StdioInvoke's inline reads).
+			if runtime.GOOS == "wasip1" && len(wasip1Queue) > 0 {
+				msg := wasip1Queue[0]
+				wasip1Queue = wasip1Queue[1:]
+				return msg, true
+			}
+			if !scanner.Scan() {
+				return StdioInbound{}, false
+			}
+			var msg StdioInbound
+			if err := json.Unmarshal(scanner.Bytes(), &msg); err != nil {
+				continue // skip malformed lines
+			}
+			return msg, true
+		}
+	}
+
+	for {
+		msg, ok := nextMsg()
+		if !ok {
+			break
 		}
 
 		switch msg.Type {
 		case "request":
-			go func(m StdioInbound) {
+			handleRequest := func(m StdioInbound) {
 				defer func() {
 					if r := recover(); r != nil {
 						writeStdio(StdioResponse{
@@ -217,7 +280,15 @@ func runStdio[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plugin
 				}
 
 				writeStdio(StdioResponse{ID: m.ID, Type: "response", Result: result})
-			}(msg)
+			}
+			// wasip1: goroutine switching requires poll_oneoff, which doesn't work
+			// while Atomics.wait holds the worker thread. Run synchronously so the
+			// response is written before the scanner blocks on the next read.
+			if runtime.GOOS == "wasip1" {
+				handleRequest(msg)
+			} else {
+				go handleRequest(msg)
+			}
 
 		case "invoke_result":
 			pendingInvokesMu.Lock()
@@ -234,3 +305,4 @@ func runStdio[PluginConfig any](ctx context.Context, plugin HoudiniPlugin[Plugin
 
 	return scanner.Err()
 }
+
