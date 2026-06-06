@@ -19,9 +19,12 @@ import { useIsMountedRef } from './useIsMounted.js'
 // When the Component unmounts, we need to remove the entry from the cache (so we can load again)
 
 const promiseCache = createLRUCache<QuerySuspenseUnit>()
-type QuerySuspenseUnit = {
+type QuerySuspenseUnit<
+	_Data extends GraphQLObject = GraphQLObject,
+	_Input extends GraphQLVariables = GraphQLVariables,
+> = {
 	resolve: () => void
-	resolved?: any
+	resolved?: DocumentHandle<QueryArtifact, _Data, _Input>
 	then: (val: any) => any
 }
 
@@ -106,7 +109,7 @@ export function useQueryHandle<
 		let resolve: () => void = () => {}
 		const loadPromise = new Promise<void>((r) => (resolve = r))
 
-		const suspenseUnit: QuerySuspenseUnit = {
+		const suspenseUnit: QuerySuspenseUnit<_Data, _Input> = {
 			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
 			then: loadPromise.then.bind(loadPromise),
 			resolve,
@@ -114,7 +117,7 @@ export function useQueryHandle<
 			variables,
 		}
 
-		promiseCache.set(identifier, suspenseUnit)
+		promiseCache.set(identifier, suspenseUnit as QuerySuspenseUnit)
 
 		// the suspense unit gives react something to hold onto
 		// and it acts as a place for us to register a callback on
@@ -134,7 +137,7 @@ export function useQueryHandle<
 					data: value.data,
 					partia: value.partial,
 					artifact,
-				}
+				} as unknown as DocumentHandle<QueryArtifact, _Data, _Input>
 
 				suspenseUnit.resolve()
 			})
