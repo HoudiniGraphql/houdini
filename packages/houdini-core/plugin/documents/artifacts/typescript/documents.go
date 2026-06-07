@@ -820,6 +820,27 @@ func generateOptimisticType(
 		}
 	}
 
+	// When all selections are fragment spreads (e.g. list-operation mutations), expand
+	// the fragments inline so users can provide the actual fields in the optimistic response.
+	if explicitFieldCount == 0 && fragmentCount > 0 {
+		var expanded []*collected.Selection
+		for _, sel := range visibleSelections {
+			if sel.Kind != "fragment" {
+				continue
+			}
+			fragName := sel.FieldName
+			if sel.FragmentRef != nil {
+				fragName = *sel.FragmentRef
+			}
+			if fragDoc, ok := collectedDocs.Selections[fragName]; ok {
+				expanded = append(expanded, fragDoc.Selections...)
+			}
+		}
+		if len(expanded) > 0 {
+			return generateOptimisticType(ctx, expanded, readonly, indentLevel, parentType, collectedDocs)
+		}
+	}
+
 	// Second pass: generate types for visible selections
 	for _, selection := range visibleSelections {
 		// Fields marked @optimisticKey are server-generated (e.g. id) and must not

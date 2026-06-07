@@ -5,6 +5,7 @@ import { siteURL } from 'houdini/runtime'
 import { extractPageInfo } from 'houdini/runtime'
 import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
 import type {
+	CachePolicies,
 	FragmentArtifact,
 	GraphQLObject,
 	HoudiniFetchContext,
@@ -268,6 +269,7 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readab
 	errors: { message: string }[] | null
 	pageInfo: PageInfo
 }> & {
+	fetch(params?: { policy?: CachePolicies }): Promise<void>
 	loadNextPage(
 		pageCount?: number,
 		after?: string | number,

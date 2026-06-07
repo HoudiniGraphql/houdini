@@ -17,7 +17,7 @@ if (browser) {
 let routesKvp = Object.keys(routes).map((key: string) => {
 	return { key, value: (routes as Record<string, string>)[key] }
 })
-let { data, children }: { data: LayoutData } = $props()
+let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
 
 let info = $derived(data.LayoutSession)
 </script>
