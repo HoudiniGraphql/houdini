@@ -188,12 +188,17 @@ func WriteProjectSchema[PluginConfig any](
 
 				for _, arg := range field.Arguments {
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
+					var defaultValue any
+					if arg.DefaultValue != nil {
+						defaultValue = arg.DefaultValue.Raw
+					}
 					err = db.ExecStatement(statements.InsertFieldArgument, map[string]any{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
 						"type":           variableType,
 						"type_modifiers": typeModifiers,
+						"default_value":  defaultValue,
 					})
 					if err != nil {
 						errors.Append(&plugins.Error{
@@ -301,12 +306,17 @@ func WriteProjectSchema[PluginConfig any](
 
 				for _, arg := range field.Arguments {
 					variableType, typeModifiers := ParseFieldType(arg.Type.String())
+					var defaultValue any
+					if arg.DefaultValue != nil {
+						defaultValue = arg.DefaultValue.Raw
+					}
 					err = db.ExecStatement(statements.InsertFieldArgument, map[string]any{
 						"id":             fmt.Sprintf("%s.%s", fieldID, arg.Name),
 						"field":          fieldID,
 						"name":           arg.Name,
 						"type":           variableType,
 						"type_modifiers": typeModifiers,
+						"default_value":  defaultValue,
 					})
 					if err != nil {
 						errors.Append(&plugins.Error{

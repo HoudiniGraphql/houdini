@@ -4,11 +4,11 @@ package plugins
 type ColumnKind int
 
 const (
-	ColumnKindNull  ColumnKind = 0
 	ColumnKindInt   ColumnKind = 1
 	ColumnKindFloat ColumnKind = 2
 	ColumnKindText  ColumnKind = 3
 	ColumnKindBlob  ColumnKind = 4
+	ColumnKindNull  ColumnKind = 5 // matches SQLITE_NULL
 )
 
 // Row is the read-only view of a result row, satisfied by *sqlite.Stmt in zombiezen builds
