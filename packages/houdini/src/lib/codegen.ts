@@ -1,4 +1,6 @@
 import { type ChildProcess, spawn } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import nodeFs from 'node:fs'
 import path from 'node:path'
 import { createInterface } from 'node:readline'
 import sqlite, { type DatabaseSync } from 'node:sqlite'
@@ -42,19 +44,59 @@ export type Adapter = ((args: {
 	}) => Promise<void> | void
 }
 
+function hash_schema(schema: string): string {
+	return createHash('sha256').update(schema).digest('hex').slice(0, 16)
+}
+
 export function connect_db(config: Config): [DatabaseSync, string] {
 	const filepath = conventions.db_path(config)
-	const db = new sqlite.DatabaseSync(filepath)
-	db.exec('PRAGMA journal_mode = WAL')
-	db.exec('PRAGMA synchronous = off')
-	db.exec('PRAGMA cache_size = 10000')
-	db.exec('PRAGMA temp_store = memory')
-	db.exec('PRAGMA busy_timeout = 5000')
-	db.exec('PRAGMA foreign_key = ON')
-	db.exec('PRAGMA defer_foreign_keys = ON')
 
-	// TODO: we might have to destroy the existing tables if we run with a new version
+	// Open (or create) the database, then check if the schema is current.
+	// If the hash stored in _houdini_meta doesn't match, wipe the file and start fresh
+	// so we never need an explicit migration list.
+	const schema_hash = hash_schema(create_schema)
+
+	const open = (): DatabaseSync => {
+		const db = new sqlite.DatabaseSync(filepath)
+		db.exec('PRAGMA journal_mode = WAL')
+		db.exec('PRAGMA synchronous = off')
+		db.exec('PRAGMA cache_size = 10000')
+		db.exec('PRAGMA temp_store = memory')
+		db.exec('PRAGMA busy_timeout = 5000')
+		db.exec('PRAGMA foreign_key = ON')
+		db.exec('PRAGMA defer_foreign_keys = ON')
+		return db
+	}
+
+	let db = open()
+
+	let stored_hash: string | undefined
+	try {
+		stored_hash = (
+			db.prepare('SELECT value FROM _houdini_meta WHERE key = ?').get('schema_hash') as
+				| { value: string }
+				| undefined
+		)?.value
+	} catch (_) {
+		// _houdini_meta doesn't exist yet — first run on this database
+	}
+
+	if (stored_hash !== schema_hash) {
+		db.close()
+		for (const ext of ['', '-shm', '-wal']) {
+			try {
+				nodeFs.rmSync(filepath + ext)
+			} catch (_) {}
+		}
+		db = open()
+	}
+
 	db.exec(create_schema)
+	db.exec(`CREATE TABLE IF NOT EXISTS _houdini_meta (key TEXT PRIMARY KEY, value TEXT)`)
+	db.prepare('INSERT OR REPLACE INTO _houdini_meta (key, value) VALUES (?, ?)').run(
+		'schema_hash',
+		schema_hash
+	)
 
 	return [db, filepath]
 }

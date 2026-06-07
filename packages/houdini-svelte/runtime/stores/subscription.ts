@@ -47,7 +47,6 @@ export class SubscriptionStore<
 		return derived(
 			[{ subscribe: super.subscribe.bind(this) }, this.fetchingStore],
 			([$parent, $fetching]) => ({
-				// @ts-expect-error
 				...$parent,
 				fetching: $fetching,
 			})

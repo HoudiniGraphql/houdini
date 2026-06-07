@@ -10,15 +10,15 @@
     "url": "https://github.com/HoudiniGraphql/houdini.git"
   },
   "dependencies": {
-    "@sveltejs/kit": "^2.53.0",
-    "estree-walker": "^3.0.1",
+    "@sveltejs/kit": "^2.63.0",
+    "estree-walker": "^3.0.3",
     "houdini": "workspace:^",
-    "rollup": "^4.28.1",
-    "svelte": "^5.46.4",
-    "vite": "^8.0.0"
+    "rollup": "^4.61.1",
+    "svelte": "^5.56.2",
+    "vite": "^8.0.16"
   },
   "devDependencies": {
-    "@sveltejs/kit": "^2.46.5",
+    "@sveltejs/kit": "^2.63.0",
     "ast-types": "^0.16.1",
     "scripts": "workspace:^",
     "svelte": "^5.19.0"

@@ -2,7 +2,7 @@ import fsExtra from 'fs-extra'
 import { glob as G } from 'glob'
 import { fs as memfs, vol } from 'memfs'
 import fsSync from 'node:fs'
-import type { Dirent } from 'node:fs'
+import type { Dirent, Stats } from 'node:fs'
 import fs from 'node:fs/promises'
 import { promisify } from 'node:util'
 
@@ -106,14 +106,14 @@ export async function writeFile(filepath: string, data: string) {
 
 	// write the file when testing
 	if (houdini_mode.is_testing) {
-		memfs.mkdirpSync(path.dirname(filepath))
+		memfs.mkdirSync(path.dirname(filepath), { recursive: true })
 		return memfs.writeFileSync(filepath, data)
 	}
 
 	return await fs.writeFile(filepath, data, 'utf8')
 }
 
-export async function access(filepath: string) {
+export async function access(filepath: string): Promise<void> {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
 		return await fs.access(filepath)
@@ -125,7 +125,7 @@ export async function access(filepath: string) {
 
 	// split up the path in accessors and keep going until we get undefined
 	// or we get a value
-	return memfs.statSync(filepath)
+	memfs.statSync(filepath)
 }
 
 export async function mkdirp(filepath: string) {
@@ -134,7 +134,7 @@ export async function mkdirp(filepath: string) {
 		return await fsExtra.mkdirp(filepath)
 	}
 
-	return memfs.mkdirpSync(filepath)
+	return memfs.mkdirSync(filepath, { recursive: true })
 }
 
 export async function mkdirpSync(filepath: string) {
@@ -143,7 +143,7 @@ export async function mkdirpSync(filepath: string) {
 		return fsExtra.mkdirpSync(filepath)
 	}
 
-	return memfs.mkdirpSync(filepath)
+	return memfs.mkdirSync(filepath, { recursive: true })
 }
 
 export async function mkdir(filepath: string) {
@@ -166,7 +166,7 @@ export async function rmdir(filepath: string) {
 	return await promisify(memfs.rmdir)(filepath)
 }
 
-export async function stat(filepath: string) {
+export async function stat(filepath: string): Promise<Stats> {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
 		return await fs.stat(filepath)
@@ -177,16 +177,16 @@ export async function stat(filepath: string) {
 		return await fs.stat(filepath)
 	}
 
-	return memfs.statSync(filepath)
+	return memfs.statSync(filepath) as unknown as Stats
 }
 
-export function statSync(filepath: string) {
+export function statSync(filepath: string): Stats {
 	// no mock in production
 	if (!houdini_mode.is_testing) {
 		return fsSync.statSync(filepath)
 	}
 
-	return memfs.statSync(filepath)
+	return memfs.statSync(filepath) as unknown as Stats
 }
 
 export function existsSync(dirPath: string) {
@@ -226,7 +226,7 @@ export async function readdir(
 		return await fs.readdir(filepath, opts)
 	}
 	try {
-		return memfs.readdirSync(filepath, opts) as string[]
+		return memfs.readdirSync(filepath, opts as any) as string[]
 	} catch {
 		return []
 	}

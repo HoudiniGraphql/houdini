@@ -103,7 +103,7 @@ export default function (ctx: VitePluginContext): PluginOption {
 					typeof ctx.adapter.includePaths === 'function'
 						? ctx.adapter.includePaths({ config: ctx.config })
 						: ctx.adapter.includePaths
-				Object.assign(conf.build!.rollupOptions!.input, extra)
+				Object.assign(conf.build!.rollupOptions!.input ?? {}, extra)
 			}
 
 			for (const [id, page] of Object.entries(manifest.pages)) {

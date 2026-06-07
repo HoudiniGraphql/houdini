@@ -1,7 +1,7 @@
 import { usePersistedOperations } from '@graphql-yoga/plugin-persisted-operations'
 import { green } from './helpers.mjs'
 import fs from 'fs-extra'
-import { useServer } from 'graphql-ws/lib/use/ws'
+import { useServer } from 'graphql-ws/use/ws'
 import { createYoga, createSchema } from 'graphql-yoga'
 import { createServer } from 'node:http'
 import path from 'path'
@@ -98,10 +98,10 @@ mutation AddUser {
 		{
 			execute: (args) => args.rootValue.execute(args),
 			subscribe: (args) => args.rootValue.subscribe(args),
-			onSubscribe: async (ctx, msg) => {
+			onSubscribe: async (ctx, id, payload) => {
 				// if it's a persisted query, use the stored document instead
 				if (with_persisted_queries) {
-					msg.payload.query = store[msg.payload.extensions.persistedQuery]
+					payload.query = store[payload.extensions.persistedQuery]
 				}
 
 				const { schema, execute, subscribe, contextFactory, parse, validate } =
@@ -109,14 +109,14 @@ mutation AddUser {
 						...ctx,
 						req: ctx.extra.request,
 						socket: ctx.extra.socket,
-						params: msg.payload,
+						params: payload,
 					})
 
 				const args = {
 					schema,
-					operationName: msg.payload.operationName,
-					document: parse(msg.payload.query),
-					variableValues: msg.payload.variables,
+					operationName: payload.operationName,
+					document: parse(payload.query),
+					variableValues: payload.variables,
 					contextValue: await contextFactory(),
 					rootValue: {
 						execute,

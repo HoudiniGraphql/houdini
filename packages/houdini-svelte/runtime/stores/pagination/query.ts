@@ -118,9 +118,7 @@ export class QueryStoreCursor<
 	): () => void {
 		const combined = derived([{ subscribe: super.subscribe.bind(this) }], ([$parent]) => {
 			return {
-				// @ts-expect-error
 				...$parent,
-				// @ts-expect-error
 				pageInfo: extractPageInfo($parent.data, this.artifact.refetch!.path),
 			}
 		})

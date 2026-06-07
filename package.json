@@ -8,7 +8,6 @@
 		"tests": "vitest",
 		"tests:ui": "vitest --ui --coverage",
 		"test": "pnpm run tests",
-
 		"build:all": "turbo build",
 		"build": "turbo run build --filter=\"./packages/*\"",
 		"dev": "turbo dev --filter=\"./packages/*\"",
@@ -21,41 +20,34 @@
 		"format:check": "biome format",
 		"release": "pnpm run build && node packages/_scripts/release.js",
 		"release:snapshot": "pnpm run build && node packages/_scripts/release.js --snapshot",
-		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
-		"prepack": "pinst --disable",
-		"postpack": "pinst --enable",
 		"version": "changeset version"
 	},
 	"devDependencies": {
-		"@babel/plugin-syntax-import-assertions": "^7.26.0",
-		"@changesets/changelog-git": "^0.1.14",
-		"@changesets/changelog-github": "^0.4.8",
-		"@changesets/cli": "^2.26.0",
-		"@playwright/test": "1.59.1",
+		"@babel/plugin-syntax-import-assertions": "^7.29.7",
 		"@biomejs/biome": "^2.4.16",
-		"@types/react": "^19.0.7",
-		"@vitest/coverage-v8": "^1.6.0",
-		"@vitest/ui": "^1.6.0",
-		"graphql": "^15.8.0",
-		"lint-staged": "^12.3.4",
-		"turbo": "^1.8.8",
-		"typescript": "^5.9.3",
-		"vite": "^8.0.0",
-		"vitest": "^1.6.0"
+		"@changesets/changelog-git": "^0.2.1",
+		"@changesets/changelog-github": "^0.7.0",
+		"@changesets/cli": "^2.31.0",
+		"@playwright/test": "^1.60.0",
+		"@types/react": "^19.2.16",
+		"@vitest/coverage-v8": "^4.1.8",
+		"@vitest/ui": "^4.1.8",
+		"graphql": "^16.14.1",
+		"lint-staged": "^17.0.7",
+		"turbo": "^2.9.16",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.16",
+		"vitest": "^4.1.8"
 	},
 	"dependencies": {
-		"fs-extra": "^10.1.0",
-		"jest-snapshot": "^29.4.1",
-		"memfs": "^3.4.7",
-		"recast": "^0.23.1"
+		"fs-extra": "^11.3.5",
+		"jest-snapshot": "^30.4.1",
+		"memfs": "^4.17.2",
+		"recast": "^0.23.11",
+		"rollup": "^4.61.1"
 	},
 	"packageManager": "pnpm@10.12.1",
 	"lint-staged": {
 		"*.{ts,tsx,js,json}": "biome format --write"
-	},
-	"pnpm": {
-		"overrides": {
-			"graphql": "16.8.1"
-		}
 	}
 }

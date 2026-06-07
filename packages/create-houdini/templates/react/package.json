@@ -14,13 +14,13 @@
 		"houdini-adapter-auto": "^HOUDINI_VERSION",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"graphql-yoga": "4.0.4",
+		"graphql-yoga": "^5.21.1",
 		"graphql": "^16.0.0",
-		"@whatwg-node/server": "^0.9.14"
+		"@whatwg-node/server": "^0.11.0"
 	},
 	"devDependencies": {
-		"@vitejs/plugin-react": "^4.0.0",
-		"vite": "^4.1.0"
+		"@vitejs/plugin-react": "^6.0.2",
+		"vite": "^8.0.0"
 	},
 	"resolutions": {
 		"graphql": "^16.0.0",

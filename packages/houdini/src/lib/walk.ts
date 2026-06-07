@@ -3,8 +3,9 @@ import type {
 	TaggedTemplateExpressionKind,
 	TSPropertySignatureKind,
 } from 'ast-types/lib/gen/kinds'
-import type { BaseNode } from 'estree-walker'
 import { asyncWalk } from 'estree-walker'
+
+export type BaseNode = { type: string; start?: number; end?: number }
 import * as graphql from 'graphql'
 
 import type { Config } from './config.js'
@@ -28,12 +29,12 @@ export type EmbeddedGraphqlDocument = {
 		replaceWith: (node: BaseNode) => void
 	}
 	tagContent: string
-	parent: BaseNode
+	parent: BaseNode | null
 }
 
 type GraphqlTagWalker = {
 	skipGraphqlType?: boolean
-	where?: (tag: graphql.DocumentNode, ast: { node: BaseNode; parent: BaseNode }) => boolean
+	where?: (tag: graphql.DocumentNode, ast: { node: BaseNode; parent: BaseNode | null }) => boolean
 	dependency?: (fp: string) => void
 	tag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
 }
@@ -44,8 +45,8 @@ export async function find_graphql(
 	parsedScript: Script,
 	walker: GraphqlTagWalker
 ): Promise<void> {
-	await asyncWalk(parsedScript, {
-		async enter(node, parent) {
+	await asyncWalk(parsedScript as any, {
+		async enter(node: any, parent: any) {
 			// graphql documents come in a few forms:
 			// - graphql template tags
 			// - strings passed to graphql function

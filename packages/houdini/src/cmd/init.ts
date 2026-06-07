@@ -129,10 +129,7 @@ export async function init(
 									number_of_round === 1 ? '' : 'Authorization=Bearer MyToken'
 								}`,
 								validate: (value) => {
-									if (value === '') {
-										return
-									}
-									if (!value.startsWith('http')) {
+									if (value && !value.startsWith('http')) {
 										return 'Please enter a valid URL'
 									}
 								},

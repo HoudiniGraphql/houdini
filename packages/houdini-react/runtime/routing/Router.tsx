@@ -481,8 +481,8 @@ export function RouterContextProvider({
 	const [session, setSession] = React.useState<App.Session>(ssrSession)
 
 	// if we detect an event that contains a new session value
-	const handleNewSession = React.useCallback((event: CustomEvent<App.Session>) => {
-		setSession(event.detail)
+	const handleNewSession = React.useCallback((event: Event) => {
+		setSession((event as CustomEvent<App.Session>).detail)
 	}, [])
 
 	React.useEffect(() => {

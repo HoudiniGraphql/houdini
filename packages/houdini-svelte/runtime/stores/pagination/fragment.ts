@@ -58,13 +58,13 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType ext
 
 		// if we have a specific function to use when computing the variables
 		// then we need to collect those fields
-		let idVariables = {}
+		let idVariables: _Input = {} as _Input
 		const value = getState()
 		if (typeConfig.resolve?.arguments) {
 			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			idVariables = Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
+			idVariables = Object.fromEntries(keys.map((key) => [key, value![key]])) as _Input
 		}
 
 		// add the id variables to the query variables
