@@ -10,7 +10,7 @@ const checkTypes = () => {
 	return (
 		`${data.store1 instanceof MultiUserStore} ` +
 		`- ${data.store2 instanceof MultiUserStore} ` +
-		// @ts-ignore
+		// @ts-expect-error: store3 is intentionally absent from PageData to test undefined handling
 		`- ${data.store3 instanceof MultiUserStore}`
 	)
 }

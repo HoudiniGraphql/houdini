@@ -10,7 +10,7 @@ import type { LayoutData } from './$types'
 import Test from './Test.svelte'
 
 if (browser) {
-	// @ts-ignore
+	// @ts-expect-error: window.cache is a test-only property used by Playwright tests
 	window.cache = cache
 }
 

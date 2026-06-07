@@ -5,7 +5,7 @@ import sveltePlugin from 'eslint-plugin-svelte'
 
 export default [
 	{
-		ignores: ['**/*.cjs', '**/$houdini/**', '.houdini/**', '.svelte-kit/**', 'build/**'],
+		ignores: ['**/*.cjs', '**/$houdini/**', '.houdini/**', '.svelte-kit/**', 'build/**', 'src/lib/utils/stringify.ts'],
 	},
 	...tsPlugin.configs['flat/recommended'],
 	...sveltePlugin.configs['flat/recommended'],
@@ -21,7 +21,11 @@ export default [
 	},
 	{
 		rules: {
-			'@typescript-eslint/ban-ts-comment': 'off',
+			'@typescript-eslint/ban-ts-comment': ['error', {
+				'ts-ignore': true,
+				'ts-expect-error': 'allow-with-description',
+				'ts-nocheck': true,
+			}],
 			'@typescript-eslint/no-empty-function': 'off',
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-non-null-assertion': 'off',
