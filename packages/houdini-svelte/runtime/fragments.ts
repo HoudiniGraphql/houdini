@@ -2,7 +2,10 @@ import type { Fragment, FragmentArtifact, GraphQLObject } from 'houdini/runtime'
 import type { Readable } from 'svelte/store'
 
 import type { FragmentStore } from './stores/index.js'
-import type { BasePaginatedFragmentStore, FragmentStorePaginated } from './stores/pagination/fragment.js'
+import type {
+	BasePaginatedFragmentStore,
+	FragmentStorePaginated,
+} from './stores/pagination/fragment.js'
 
 // Accepts both FragmentStore (non-paginated) and paginated variants (FragmentStoreCursor /
 // FragmentStoreOffset). The paginated classes extend BasePaginatedFragmentStore, not

@@ -31,7 +31,11 @@ type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	FragmentArtifact
 > & { paginationArtifact: QueryArtifact }
 
-export class BasePaginatedFragmentStore<_Data extends GraphQLObject, _ReferenceType extends {}, _Input> {
+export class BasePaginatedFragmentStore<
+	_Data extends GraphQLObject,
+	_ReferenceType extends {},
+	_Input,
+> {
 	// all paginated stores need to have a flag to distinguish from other fragment stores
 	paginated = true
 
