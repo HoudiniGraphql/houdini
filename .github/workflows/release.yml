@@ -35,11 +35,9 @@ jobs:
             - name: Update npm CLI
               run: npm install -g npm@latest # Ensure npm 11.5.1 or later
 
-            - uses: pnpm/action-setup@v2.0.1
+            - uses: pnpm/action-setup@v4
               name: Install pnpm
               id: pnpm-install
-              with:
-                version: 9
 
             - name: Install dependencies
               run: pnpm install

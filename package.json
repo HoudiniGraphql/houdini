@@ -46,7 +46,7 @@
 		"recast": "^0.23.11",
 		"rollup": "^4.61.1"
 	},
-	"packageManager": "pnpm@10.12.1",
+	"packageManager": "pnpm@11.5.2",
 	"lint-staged": {
 		"*.{ts,tsx,js,json}": "biome format --write"
 	}
