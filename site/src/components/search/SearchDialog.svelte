@@ -1,5 +1,5 @@
 <script>
-	import { Index } from 'flexsearch/dist/flexsearch.bundle'
+	import { Index } from 'flexsearch'
 	import { onMount } from 'svelte'
 	import { Icon } from '~/components'
 
