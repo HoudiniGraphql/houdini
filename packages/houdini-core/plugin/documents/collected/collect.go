@@ -977,6 +977,7 @@ func prepareCollectStatements(conn plugins.Conn, count int) (*CollectStatements,
           selection_directive_arguments
           JOIN selection_directives ON selection_directive_arguments.parent = selection_directives.id
           JOIN selection_refs ON selection_refs.child_id = selection_directives.selection_id
+            AND selection_refs.document = selection_directive_arguments.document
         WHERE
           selection_refs."document" IN %s AND selection_directive_arguments.document in %s
         GROUP BY
@@ -993,12 +994,13 @@ func prepareCollectStatements(conn plugins.Conn, count int) (*CollectStatements,
               'internal', directives.internal
             )
           ) AS directives
-        FROM selection_directives sd
+        FROM (
+          SELECT DISTINCT sd.id, sd.selection_id, sd.directive
+          FROM selection_directives sd
+          WHERE sd.selection_id IN (SELECT child_id FROM selection_refs WHERE document IN %s)
+        ) sd
           LEFT JOIN directive_args da ON da.directive_id = sd.id
-          JOIN selection_refs ON selection_refs.child_id = sd.selection_id
           LEFT JOIN directives on sd.directive = directives.name
-        WHERE
-          selection_refs."document" IN %s
         GROUP BY sd.selection_id
       ),
       arguments_agg AS (

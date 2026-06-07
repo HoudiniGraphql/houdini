@@ -89,7 +89,7 @@ func generateDocumentTypeDef(
 
 	// the first thing we have to do is add the imports
 	if docCtx.HasLoading {
-		imports = append(imports, `import type { LoadingType } from "$houdini/runtime/lib/types";`)
+		imports = append(imports, `import type { LoadingType } from "houdini/runtime";`)
 	}
 	if len(docCtx.EnumTypes) > 0 {
 		var enumTypes []string

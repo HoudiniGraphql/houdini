@@ -189,7 +189,9 @@ export * from './client'
 					"TestFragment": tests.Dedent(`
 						import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
 						import artifact from '$houdini/artifacts/TestFragment.js'
-						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment, TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+
+						export type { TestFragment }
 
 						export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 						    constructor() {
@@ -450,7 +452,9 @@ export * from './client'
 					"TestFragment": tests.Dedent(`
 							import { FragmentStore } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
 							import artifact from '$houdini/artifacts/TestFragment.js'
-							import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+							import type { TestFragment, TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+
+							export type { TestFragment }
 
 							export class TestFragmentStore extends FragmentStore<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 							    constructor() {
@@ -481,8 +485,10 @@ export * from './client'
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
 						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
 						import artifact from '$houdini/artifacts/TestFragment.js'
-						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment, TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 						import _PaginationArtifact from '$houdini/artifacts/%s.js'
+
+						export type { TestFragment }
 
 						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 						    constructor() {
@@ -517,8 +523,10 @@ export * from './client'
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
 						import { FragmentStoreCursor } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
 						import artifact from '$houdini/artifacts/TestFragment.js'
-						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment, TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 						import _PaginationArtifact from '$houdini/artifacts/%s.js'
+
+						export type { TestFragment }
 
 						export class TestFragmentStore extends FragmentStoreCursor<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 						    constructor() {
@@ -550,8 +558,10 @@ export * from './client'
 					"TestFragment": tests.Dedent(fmt.Sprintf(`
 						import { FragmentStoreOffset } from '$houdini/plugins/houdini-svelte/runtime/stores/fragment.js'
 						import artifact from '$houdini/artifacts/TestFragment.js'
-						import type { TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
+						import type { TestFragment, TestFragment$data, TestFragment$input } from '$houdini/artifacts/TestFragment.js'
 						import _PaginationArtifact from '$houdini/artifacts/%s.js'
+
+						export type { TestFragment }
 
 						export class TestFragmentStore extends FragmentStoreOffset<TestFragment$data, { TestFragment: any }, TestFragment$input> {
 						    constructor() {

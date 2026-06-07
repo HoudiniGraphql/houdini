@@ -111,7 +111,7 @@ func TestLoadingArtifacts(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"MonkeyListQuery": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "MonkeyListQuery",
     "kind": "HoudiniQuery",
@@ -339,7 +339,7 @@ export type MonkeyListQuery$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -575,7 +575,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -755,7 +755,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -903,7 +903,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1072,7 +1072,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1254,7 +1254,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
