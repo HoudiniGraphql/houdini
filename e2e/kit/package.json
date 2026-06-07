@@ -33,7 +33,9 @@
 		"houdini": "node ensureLinks.js && houdini",
 		"build": "node ensureLinks.js && vite build",
 		"preview": "vite preview --port 3007",
-		"preview-e2e": "concurrently \"pnpm run preview\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\""
+		"preview-e2e": "concurrently \"pnpm run preview\" \"pnpm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"lint": "eslint .",
+		"check": "svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.60.0",
