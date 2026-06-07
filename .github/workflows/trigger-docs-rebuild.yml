@@ -1,0 +1,31 @@
+name: Trigger docs rebuild
+
+on:
+  push:
+    branches: [houdini-2.0]
+    paths:
+      - 'packages/*/docs/**'
+      - 'packages/_docs/**'
+      - 'docs/project/**'
+  push:
+    tags:
+      - 'svelte-v*'
+      - 'react-v*'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.DOCS_SITE_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'houdinigraphql',
+              repo: 'houdinigraphql.com',
+              event_type: 'docs-updated',
+              client_payload: {
+                ref: context.ref,
+                sha: context.sha,
+              },
+            })
