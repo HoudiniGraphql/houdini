@@ -276,7 +276,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -427,7 +427,8 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert_kVR6H?:  | null;
+			readonly firstName?: string;
+			readonly field?: string | null;
 		};
 	};
 };
@@ -570,7 +571,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -713,7 +714,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -859,7 +860,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -1011,7 +1012,8 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert_kVR6H?:  | null;
+			readonly firstName?: string;
+			readonly field?: string | null;
 		};
 	};
 };
@@ -1261,7 +1263,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -1390,9 +1392,7 @@ export type A$input = null | undefined;
 
 export type A$optimistic = {
 	readonly addFriend?: {
-		readonly friend?: {
-			readonly All_Users_remove?:  | null;
-		};
+		readonly friend?: {};
 	};
 };
 
@@ -1529,7 +1529,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_toggle?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -1681,7 +1681,8 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_toggle_kVR6H?:  | null;
+			readonly firstName?: string;
+			readonly field?: string | null;
 		};
 	};
 };
@@ -1822,7 +1823,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_toggle?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -1962,7 +1963,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_toggle?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };
@@ -2090,9 +2091,7 @@ export type A$input = null | undefined;
 
 export type A$optimistic = {
 	readonly addFriend?: {
-		readonly friend?: {
-			readonly All_Users_remove?:  | null;
-		};
+		readonly friend?: {};
 	};
 };
 
@@ -2555,7 +2554,7 @@ export type A$input = null | undefined;
 export type A$optimistic = {
 	readonly addFriend?: {
 		readonly friend?: {
-			readonly All_Users_insert?:  | null;
+			readonly firstName?: string;
 		};
 	};
 };

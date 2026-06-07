@@ -28,7 +28,8 @@
 		"test": "npm run tests",
 		"tw": "npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
 		"preview": "vite dev",
-		"preinstall": "node preInstall.js"
+		"preinstall": "node preInstall.js",
+		"lint": "eslint ."
 	},
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20260605.1",
@@ -46,6 +47,9 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.60.0",
+		"@typescript-eslint/eslint-plugin": "^8.60.1",
+		"@typescript-eslint/parser": "^8.60.1",
+		"eslint": "^10.4.1",
 		"@types/react": "^19.2.16",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.2",

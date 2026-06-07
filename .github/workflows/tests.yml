@@ -244,3 +244,4 @@ jobs:
             - run: pnpm --filter e2e-kit run build
             - run: pnpm --filter e2e-kit run lint
             - run: pnpm --filter e2e-kit run check
+            - run: pnpm --filter e2e-react run lint

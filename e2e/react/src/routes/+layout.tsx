@@ -9,7 +9,7 @@ export default function ({ children }: LayoutProps) {
 	const cache = useCache()
 	React.useEffect(() => {
 		if (globalThis.window) {
-			// @ts-ignore
+			// @ts-expect-error: window.cache is a test-only property used by Playwright tests
 			globalThis.window.cache = cache
 		}
 	}, [])

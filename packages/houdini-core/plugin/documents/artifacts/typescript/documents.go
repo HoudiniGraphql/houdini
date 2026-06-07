@@ -89,7 +89,7 @@ func generateDocumentTypeDef(
 
 	// the first thing we have to do is add the imports
 	if docCtx.HasLoading {
-		imports = append(imports, `import type { LoadingType } from "$houdini/runtime/lib/types";`)
+		imports = append(imports, `import type { LoadingType } from "houdini/runtime";`)
 	}
 	if len(docCtx.EnumTypes) > 0 {
 		var enumTypes []string
@@ -543,6 +543,8 @@ func generateInterfaceUnionTypeWithLoading(
 	// Collect all fragments and determine which concrete types need union members
 	fragmentsByType := make(map[string][]*collected.Selection)
 	concreteTypesSet := make(map[string]bool)
+	// Track named fragment spreads (e.g. ...UserFrag) per concrete type for " $fragments" markers
+	namedFragmentsByType := make(map[string][]string)
 
 	// Get the possible types for this field (e.g., for Entity union: User, Cat)
 	fieldPossibleTypes := make(map[string]bool)
@@ -553,6 +555,19 @@ func generateInterfaceUnionTypeWithLoading(
 	} else {
 		// If it's not a union/interface, the field type itself is the only possible type
 		fieldPossibleTypes[selection.FieldType] = true
+	}
+
+	// collectNamedFragments gathers named fragment spreads from a child list into the map
+	collectNamedFragments := func(concreteType string, children []*collected.Selection) {
+		for _, grandchild := range children {
+			if grandchild.Kind == "fragment" {
+				fragName := grandchild.FieldName
+				if grandchild.FragmentRef != nil {
+					fragName = *grandchild.FragmentRef
+				}
+				namedFragmentsByType[concreteType] = append(namedFragmentsByType[concreteType], fragName)
+			}
+		}
 	}
 
 	// Helper function to recursively process inline fragments
@@ -569,6 +584,7 @@ func generateInterfaceUnionTypeWithLoading(
 					for concreteType := range possibleTypesMap {
 						fragmentsByType[concreteType] = append(fragmentsByType[concreteType], child)
 						concreteTypesSet[concreteType] = true
+						collectNamedFragments(concreteType, child.Children)
 					}
 					// Also recursively process any nested inline fragments within this abstract fragment
 					processInlineFragments(child.Children)
@@ -577,6 +593,7 @@ func generateInterfaceUnionTypeWithLoading(
 					if fieldPossibleTypes[fragmentTypeName] {
 						fragmentsByType[fragmentTypeName] = append(fragmentsByType[fragmentTypeName], child)
 						concreteTypesSet[fragmentTypeName] = true
+						collectNamedFragments(fragmentTypeName, child.Children)
 					}
 				}
 			}
@@ -701,6 +718,28 @@ func generateInterfaceUnionTypeWithLoading(
 			}
 		}
 
+		// Add " $fragments" marker for named fragment spreads on this concrete type
+		if fragNames := namedFragmentsByType[typeName]; len(fragNames) > 0 {
+			seen := make(map[string]bool)
+			var uniqueFragNames []string
+			for _, n := range fragNames {
+				if !seen[n] {
+					seen[n] = true
+					uniqueFragNames = append(uniqueFragNames, n)
+				}
+			}
+			sort.Strings(uniqueFragNames)
+			fragEntries := make([]string, len(uniqueFragNames))
+			for i, n := range uniqueFragNames {
+				fragEntries[i] = fmt.Sprintf("\t\t\t%s: {};", n)
+			}
+			fields = append(fields, fmt.Sprintf(
+				"\t\t%s\" $fragments\": {\n%s\n\t\t};",
+				readonlyPrefix,
+				strings.Join(fragEntries, "\n"),
+			))
+		}
+
 		// Always add __typename field for discrimination with literal type
 		fields = append(fields, fmt.Sprintf("\t\t%s__typename: \"%s\";", readonlyPrefix, typeName))
 
@@ -732,7 +771,8 @@ func generateInterfaceUnionTypeWithLoading(
 
 		if !hasFragmentForAllTypes {
 			nonExhaustive := fmt.Sprintf(
-				"({\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
+				"({\n\t\t%s\" $fragments\"?: {};\n\t\t%s__typename: \"non-exhaustive; don't match this\";\n\t})",
+				readonlyPrefix,
 				readonlyPrefix,
 			)
 			unionParts = append(unionParts, nonExhaustive)
@@ -817,6 +857,27 @@ func generateOptimisticType(
 		visibleSelections = append(visibleSelections, sel)
 		if sel.FieldName != "__typename" {
 			explicitFieldCount++
+		}
+	}
+
+	// When all selections are fragment spreads (e.g. list-operation mutations), expand
+	// the fragments inline so users can provide the actual fields in the optimistic response.
+	if explicitFieldCount == 0 && fragmentCount > 0 {
+		var expanded []*collected.Selection
+		for _, sel := range visibleSelections {
+			if sel.Kind != "fragment" {
+				continue
+			}
+			fragName := sel.FieldName
+			if sel.FragmentRef != nil {
+				fragName = *sel.FragmentRef
+			}
+			if fragDoc, ok := collectedDocs.Selections[fragName]; ok {
+				expanded = append(expanded, fragDoc.Selections...)
+			}
+		}
+		if len(expanded) > 0 {
+			return generateOptimisticType(ctx, expanded, readonly, indentLevel, parentType, collectedDocs)
 		}
 	}
 

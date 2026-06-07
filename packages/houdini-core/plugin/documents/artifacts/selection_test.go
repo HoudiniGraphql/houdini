@@ -861,6 +861,7 @@ export type TestQuery$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 };
@@ -1026,6 +1027,7 @@ export type Friends$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 };
@@ -1788,8 +1790,12 @@ export type NestedQuery = {
 export type NestedQuery$result = {
 	readonly node: {} & (({
 		readonly id: string;
+		readonly " $fragments": {
+			UserThings: {};
+		};
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})) | null;
 };

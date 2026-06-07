@@ -10,14 +10,14 @@ import type { LayoutData } from './$types'
 import Test from './Test.svelte'
 
 if (browser) {
-	// @ts-ignore
+	// @ts-expect-error: window.cache is a test-only property used by Playwright tests
 	window.cache = cache
 }
 
 let routesKvp = Object.keys(routes).map((key: string) => {
 	return { key, value: (routes as Record<string, string>)[key] }
 })
-let { data, children }: { data: LayoutData } = $props()
+let { data, children }: { data: LayoutData; children?: import('svelte').Snippet } = $props()
 
 let info = $derived(data.LayoutSession)
 </script>

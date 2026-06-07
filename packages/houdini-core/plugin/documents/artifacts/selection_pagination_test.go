@@ -1678,6 +1678,7 @@ export type TestQuery$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})) | null;
 			readonly cursor: string;

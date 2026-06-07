@@ -363,7 +363,9 @@ import _PaginationArtifact from '$houdini/artifacts/%s.js'`,
 
 	storeContent := fmt.Sprintf(`import { %s } from '%s'
 import artifact from '$houdini/artifacts/%s.js'
-import type { %s$data, %s$input } from '$houdini/artifacts/%s.js'%s
+import type { %s, %s$data, %s$input } from '$houdini/artifacts/%s.js'%s
+
+export type { %s }
 
 export class %s extends %s<%s$data, { %s: any }, %s$input> {
     constructor() {
@@ -372,7 +374,7 @@ export class %s extends %s<%s$data, { %s: any }, %s$input> {
             storeName: "%s",%s
         })
     }
-}`, storeImport.Name, storeImport.Module, name, name, name, name, extraImport, storeName, storeImport.Name, name, name, name, storeName, extraFields)
+}`, storeImport.Name, storeImport.Module, name, name, name, name, name, extraImport, name, storeName, storeImport.Name, name, name, name, storeName, extraFields)
 
 	return storeContent, nil
 }

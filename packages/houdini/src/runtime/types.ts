@@ -36,6 +36,7 @@ export type RuntimeScalarResolver = (args: { session: App.Session }) => any
 
 export type Fragment<_Result> = {
 	readonly shape?: _Result
+	readonly ' $fragments'?: Record<string, unknown>
 }
 
 export type Operation<_Result, _Input> = {

@@ -111,7 +111,7 @@ func TestLoadingArtifacts(t *testing.T) {
 				},
 				Extra: map[string]any{
 					"MonkeyListQuery": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "MonkeyListQuery",
     "kind": "HoudiniQuery",
@@ -339,7 +339,7 @@ export type MonkeyListQuery$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -535,6 +535,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -575,7 +576,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -713,6 +714,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -755,7 +757,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -903,7 +905,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1037,6 +1039,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1072,7 +1075,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1205,6 +1208,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1217,6 +1221,7 @@ export type Query$result = {
 		readonly id: LoadingType;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 };
@@ -1254,7 +1259,7 @@ export type Query$artifact = typeof artifact
 				},
 				Extra: map[string]any{
 					"Query": tests.Dedent(
-						`import type { LoadingType } from "$houdini/runtime/lib/types";
+						`import type { LoadingType } from "houdini/runtime";
 const artifact = {
     "name": "Query",
     "kind": "HoudiniQuery",
@@ -1444,6 +1449,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 	readonly b: ({} & (({
@@ -1451,6 +1457,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1463,6 +1470,7 @@ export type Query$result = {
 		readonly id: LoadingType;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 };
