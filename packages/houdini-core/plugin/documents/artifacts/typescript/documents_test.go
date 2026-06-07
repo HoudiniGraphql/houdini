@@ -489,6 +489,7 @@ func TestTypescriptGeneration(t *testing.T) {
 								readonly id: string;
 								readonly __typename: "User";
 							}) | ({
+								readonly " $fragments"?: {};
 								readonly __typename: "non-exhaustive; don't match this";
 							})))[];
 						};
@@ -567,6 +568,7 @@ func TestTypescriptGeneration(t *testing.T) {
 								readonly id: string;
 								readonly __typename: "User";
 							}) | ({
+								readonly " $fragments"?: {};
 								readonly __typename: "non-exhaustive; don't match this";
 							})))[];
 						};
@@ -658,6 +660,7 @@ func TestTypescriptGeneration(t *testing.T) {
 								readonly firstName: string;
 								readonly __typename: "User";
 							}) | ({
+								readonly " $fragments"?: {};
 								readonly __typename: "non-exhaustive; don't match this";
 							})))[];
 						};
@@ -798,6 +801,7 @@ func TestTypescriptGeneration(t *testing.T) {
 								readonly id: string;
 								readonly __typename: "Cat";
 							}) | ({
+								readonly " $fragments"?: {};
 								readonly __typename: "non-exhaustive; don't match this";
 							})) | null)[] | null;
 						};
@@ -919,6 +923,42 @@ func TestTypescriptGeneration(t *testing.T) {
 						};
 
 						export type Foo$artifact = typeof artifact
+					`),
+				},
+			},
+
+			{
+				Name: "named fragment spread on abstract type gets $fragments marker",
+				Input: []string{
+					`fragment UserFrag on User { firstName }`,
+					`query NodeQuery($id: ID!) { node(id: $id) { ... on User { ...UserFrag } } }`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"NodeQuery": tests.Dedent(`
+						export type NodeQuery = {
+							readonly "input": NodeQuery$input;
+							readonly "result": NodeQuery$result | undefined;
+						};
+
+						export type NodeQuery$result = {
+							readonly node: {} & (({
+								readonly id: string;
+								readonly " $fragments": {
+									UserFrag: {};
+								};
+								readonly __typename: "User";
+							}) | ({
+								readonly " $fragments"?: {};
+								readonly __typename: "non-exhaustive; don't match this";
+							})) | null;
+						};
+
+						export type NodeQuery$input = {
+							id: string;
+						};
+
+						export type NodeQuery$artifact = typeof artifact
 					`),
 				},
 			},

@@ -535,6 +535,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -713,6 +714,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1037,6 +1039,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1205,6 +1208,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1217,6 +1221,7 @@ export type Query$result = {
 		readonly id: LoadingType;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 };
@@ -1444,6 +1449,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 	readonly b: ({} & (({
@@ -1451,6 +1457,7 @@ export type Query$result = {
 		readonly id: string;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 } | {
@@ -1463,6 +1470,7 @@ export type Query$result = {
 		readonly id: LoadingType;
 		readonly __typename: "User";
 	}) | ({
+		readonly " $fragments"?: {};
 		readonly __typename: "non-exhaustive; don't match this";
 	})))[];
 };
