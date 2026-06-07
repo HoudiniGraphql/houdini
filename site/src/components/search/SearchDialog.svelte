@@ -1,5 +1,6 @@
 <script>
-	import { Index } from 'flexsearch'
+	import FlexSearch from 'flexsearch'
+	const { Index } = FlexSearch
 	import { onMount } from 'svelte'
 	import { Icon } from '~/components'
 
