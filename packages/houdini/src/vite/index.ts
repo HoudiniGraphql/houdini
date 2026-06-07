@@ -1,11 +1,11 @@
 import * as fs from 'node:fs'
 import { createRequire } from 'node:module'
 import * as path from 'node:path'
-import type { DatabaseSync } from 'node:sqlite'
+import type { Db } from '../lib/db.js'
 import { pathToFileURL } from 'node:url'
 import type { PluginOption } from 'vite'
 
-import { connect_db, get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
+import { init_db, get_config, type Adapter, type ConfigFile, type Config } from '../lib/index.js'
 import { document_hmr } from './hmr.js'
 import { houdini } from './houdini.js'
 import { poll_remote_schema, watch_local_schema, refresh_on_schema } from './schema.js'
@@ -16,7 +16,7 @@ export type PluginConfig = {
 } & Partial<ConfigFile>
 
 export type VitePluginContext = PluginConfig & {
-	db: DatabaseSync
+	db: Db
 	db_file: string
 	config: Config
 }
@@ -25,8 +25,9 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 	// load the current config
 	const config = await get_config()
 
-	// and instantiate the database connection
-	const [db, db_file] = connect_db(config)
+	// Always start with a fresh DB — the pipeline rebuilds everything on each dev start.
+	// This avoids journal-mode mismatches (WAL from old node:sqlite runs) and stale schema.
+	const [db, db_file] = await init_db(config, false)
 
 	// build up the arguments we'll pass to the sub-plugins
 	const ctx: VitePluginContext = {
@@ -40,9 +41,9 @@ export default async function (opts?: PluginConfig): Promise<Array<PluginOption>
 
 	return [
 		houdini(ctx),
+		watch_local_schema(ctx),
 		document_hmr(ctx),
 		poll_remote_schema(ctx),
-		watch_local_schema(ctx),
 		refresh_on_schema(ctx),
 		// each registered plugin could provide a vite portion
 		...(await load_vite_plugins(ctx)),

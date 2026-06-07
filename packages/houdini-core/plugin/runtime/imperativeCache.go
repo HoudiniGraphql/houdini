@@ -14,7 +14,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts/typescript"
 	"code.houdinigraphql.com/plugins"
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
+	
 )
 
 func GenerateImperativeCacheTypeDefs(
@@ -208,13 +208,13 @@ func getDocumentsWithArguments(
 		LEFT JOIN document_directives dd ON d.id = dd.document AND dd.directive = 'arguments'
 		WHERE d.visible = 1
 		ORDER BY d.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		doc := DocumentWithArgs{
 			Name:         stmt.ColumnText(0),
 			Kind:         stmt.ColumnText(1),
 			HasArguments: stmt.ColumnInt(3) == 1,
 		}
-		if stmt.ColumnType(2) == sqlite.TypeText {
+		if stmt.ColumnType(2) == plugins.ColumnKindText {
 			tc := stmt.ColumnText(2)
 			doc.TypeCondition = &tc
 		}
@@ -235,7 +235,7 @@ func getEnumNames(
 		FROM types
 		WHERE kind = 'ENUM' AND built_in = 0 AND internal = 0
 		ORDER BY name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		enumNames = append(enumNames, stmt.ColumnText(0))
 	})
 
@@ -253,7 +253,7 @@ func getInputNames(
 		FROM types
 		WHERE kind = 'INPUT' AND built_in = 0 AND internal = 0
 		ORDER BY name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		enumNames = append(enumNames, stmt.ColumnText(0))
 	})
 
@@ -317,7 +317,7 @@ func fetchAllTypeKinds(
 	db plugins.DatabasePool[config.PluginConfig],
 ) (map[string]string, error) {
 	kinds := make(map[string]string)
-	err := db.StepQuery(ctx, `SELECT name, kind FROM types`, nil, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, `SELECT name, kind FROM types`, nil, func(stmt plugins.Row) {
 		kinds[stmt.ColumnText(0)] = stmt.ColumnText(1)
 	})
 	return kinds, err
@@ -330,7 +330,7 @@ func fetchAllPossibleTypes(
 	result := make(map[string][]string)
 	err := db.StepQuery(ctx, `
 		SELECT type, member FROM possible_types ORDER BY type, member
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		typeName := stmt.ColumnText(0)
 		member := stmt.ColumnText(1)
 		result[typeName] = append(result[typeName], member)
@@ -348,14 +348,14 @@ func fetchAllFieldArguments(
 		FROM type_field_arguments tfa
 		JOIN types t ON tfa.type = t.name
 		ORDER BY tfa.field, tfa.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		fieldID := stmt.ColumnText(0)
 		arg := FieldArgument{
 			Name: stmt.ColumnText(1),
 			Type: stmt.ColumnText(2),
 			Kind: stmt.ColumnText(4),
 		}
-		if stmt.ColumnType(3) == sqlite.TypeText {
+		if stmt.ColumnType(3) == plugins.ColumnKindText {
 			arg.TypeModifiers = stmt.ColumnText(3)
 		}
 		result[fieldID] = append(result[fieldID], arg)
@@ -373,7 +373,7 @@ func buildKeyFieldsMap(
 ) (map[string][]InputField, error) {
 	// Fetch custom key overrides from type_configs in one query
 	typeConfigKeys := make(map[string][]string)
-	err := db.StepQuery(ctx, `SELECT name, keys FROM type_configs`, nil, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, `SELECT name, keys FROM type_configs`, nil, func(stmt plugins.Row) {
 		var keys []string
 		json.Unmarshal([]byte(stmt.ColumnText(1)), &keys)
 		if len(keys) > 0 {
@@ -563,7 +563,7 @@ func getTypesWithFields(
 		LEFT JOIN type_fields f ON t.name = f.parent AND f.internal = 0
 		WHERE t.kind in ('OBJECT', 'INTERFACE') AND t.built_in = 0 AND t.internal = 0
 		ORDER BY t.name, f.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		typeName := stmt.ColumnText(0)
 
 		// Get or create the type entry
@@ -574,20 +574,20 @@ func getTypesWithFields(
 				Kind:   stmt.ColumnText(1),
 				Fields: []TypeField{},
 			}
-			if stmt.ColumnType(2) == sqlite.TypeText {
+			if stmt.ColumnType(2) == plugins.ColumnKindText {
 				op := stmt.ColumnText(2)
 				typeInfo.Operation = &op
 			}
 		}
 
 		// If this row has field data (not NULL), add the field
-		if stmt.ColumnType(3) != sqlite.TypeNull {
+		if stmt.ColumnType(3) != plugins.ColumnKindNull {
 			field := TypeField{
 				ID:   stmt.ColumnText(3),
 				Name: stmt.ColumnText(4),
 				Type: stmt.ColumnText(5),
 			}
-			if stmt.ColumnType(6) == sqlite.TypeText {
+			if stmt.ColumnType(6) == plugins.ColumnKindText {
 				field.TypeModifiers = stmt.ColumnText(6)
 			}
 			typeInfo.Fields = append(typeInfo.Fields, field)
@@ -747,7 +747,7 @@ func getFragmentsByType(
 		LEFT JOIN document_directives dd ON d.id = dd.document AND dd.directive = 'arguments'
 		WHERE d.kind = 'fragment' AND d.type_condition IS NOT NULL AND d.visible = 1
 		ORDER BY d.type_condition, d.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		typeName := stmt.ColumnText(0)
 		fragmentName := stmt.ColumnText(1)
 		hasArgs := stmt.ColumnInt(2) == 1
@@ -838,7 +838,7 @@ func getDiscoveredListsWithFilters(
 		LEFT JOIN possible_types pt ON dl.target_type = pt.type
 		WHERE dl.name IS NOT NULL
 		ORDER BY dl.name, possible_type
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		listName := stmt.ColumnText(0)
 		possibleType := stmt.ColumnText(3)
 
@@ -869,7 +869,7 @@ func getDiscoveredListsWithFilters(
 		JOIN type_field_arguments tfa ON dl.list_field = tfa.field
 		WHERE dl.name IS NOT NULL
 		ORDER BY dl.name, tfa.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		listName := stmt.ColumnText(0)
 
 		if list, exists := listsWithFilters[listName]; exists {
@@ -877,7 +877,7 @@ func getDiscoveredListsWithFilters(
 				Name: stmt.ColumnText(1),
 				Type: stmt.ColumnText(2),
 			}
-			if stmt.ColumnType(3) == sqlite.TypeText {
+			if stmt.ColumnType(3) == plugins.ColumnKindText {
 				arg.TypeModifiers = stmt.ColumnText(3)
 			}
 			list.FilterArgs = append(list.FilterArgs, arg)
@@ -919,7 +919,7 @@ func generateScalarUnion(
 
 	err := db.StepQuery(ctx, `
 		SELECT DISTINCT "type" from scalar_config
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		scalarValues = append(scalarValues, stmt.GetText("type"))
 	})
 	if err != nil {

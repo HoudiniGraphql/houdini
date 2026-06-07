@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
@@ -107,7 +107,7 @@ func WriteMetadata[PluginConfig any](
 		"arguments_directive": graphql.ArgumentsDirective,
 	}
 
-	err := db.StepQuery(ctx, query, bindings, func(search *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(search plugins.Row) {
 		rawDocumentID := search.ColumnInt(0)
 		// Create or reuse the entry for this raw document.
 		document, ok := documentInfo[rawDocumentID]
@@ -148,7 +148,7 @@ func WriteMetadata[PluginConfig any](
 	}
 	defer db.Put(conn)
 
-	close := sqlitex.Transaction(conn)
+	close := db.Transaction(conn)
 	commit := func(err error) error {
 		close(&err)
 		return err

@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -37,7 +37,7 @@ func ValidateSubscriptionsWithMultipleRootFields(
 			AND selections.kind = 'field'
 		GROUP BY documents.id, documents.name HAVING COUNT(*) > 1
 	`
-	err := db.StepQuery(ctx, queryStr, nil, func(q *sqlite.Stmt) {
+	err := db.StepQuery(ctx, queryStr, nil, func(q plugins.Row) {
 		filepath := q.ColumnText(0)
 		locationsRaw := q.ColumnText(1)
 
@@ -86,7 +86,7 @@ func ValidateDuplicateDocumentNames(
 		GROUP BY documents.name
 		HAVING COUNT(*) > 1
 	`
-	err := db.StepQuery(ctx, queryStr, nil, func(q *sqlite.Stmt) {
+	err := db.StepQuery(ctx, queryStr, nil, func(q plugins.Row) {
 		docName := q.ColumnText(0)
 		locationsRaw := q.ColumnText(1)
 
@@ -136,7 +136,7 @@ func ValidateFragmentUnknownType(
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id
 	`
-	err := db.StepQuery(ctx, queryStr, nil, func(query *sqlite.Stmt) {
+	err := db.StepQuery(ctx, queryStr, nil, func(query plugins.Row) {
 		fragName := query.ColumnText(0)
 		typeCond := query.ColumnText(1)
 		filepath := query.ColumnText(2)
@@ -197,7 +197,7 @@ func ValidateFragmentOnScalar(
 		  AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 		GROUP BY documents.id
 	`
-	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, queryStr, nil, func(row plugins.Row) {
 		fragName := row.ColumnText(0)
 		typeCond := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -254,7 +254,7 @@ func ValidateOutputTypeAsInput(
 		WHERE types.kind in ('OBJECT', 'INTERFACE', 'UNION')
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
-	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, queryStr, nil, func(row plugins.Row) {
 		varName := row.ColumnText(0)
 		varType := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -302,7 +302,7 @@ func ValidateScalarWithSelection(
 		WHERE types.kind = 'SCALAR'
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
-	err := db.StepQuery(ctx, queryStr, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, queryStr, nil, func(row plugins.Row) {
 		alias := row.ColumnText(0)
 		filepath := row.ColumnText(1)
 		line := row.ColumnInt(2)
@@ -351,7 +351,7 @@ func ValidateUnknownField(
 		GROUP BY selections.id
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		alias := row.ColumnText(0)
 		fieldType := strings.Split(row.ColumnText(1), ".")[0]
 
@@ -415,7 +415,7 @@ func ValidateIncompatibleFragmentSpread(
 	GROUP BY childSel.id
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		parentFieldType := row.ColumnText(1)
 		fragTypeCondition := row.ColumnText(2)
 		locationsRaw := row.ColumnText(3)
@@ -525,7 +525,7 @@ func ValidateFragmentCycles(
 	var edges []edge
 
 	// run the query using our helper
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		source := row.ColumnText(0)
 		target := row.ColumnText(1)
 		locJSON := row.ColumnText(2)
@@ -648,7 +648,7 @@ func ValidateDuplicateVariables(
 			HAVING COUNT(*) > 1
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		docName := row.ColumnText(0)
 		varName := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -714,7 +714,7 @@ func ValidateUndefinedVariables(
 	GROUP BY d.id, av.raw
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		varUsage := row.ColumnText(0)
 		filepath := row.ColumnText(1)
 		locationsRaw := row.ColumnText(2)
@@ -768,7 +768,7 @@ func ValidateUnusedVariables(
 		WHERE argument_values.document IS NULL
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(stmt plugins.Row) {
 		varName := stmt.ColumnText(0)
 		filepath := stmt.ColumnText(1)
 		row := stmt.ColumnInt(2)
@@ -821,7 +821,7 @@ func ValidateRepeatingNonRepeatable(
 		GROUP BY r.selection_id, r.directive
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		selectionID := row.ColumnText(0)
 		directive := row.ColumnText(1)
 		documentID := row.ColumnText(2)
@@ -889,7 +889,7 @@ func ValidateDuplicateArgumentInField(
 	HAVING COUNT(DISTINCT sargs.id) > 1
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		selectionID := row.ColumnText(0)
 		argName := row.ColumnText(1)
 		filepath := row.ColumnText(3)
@@ -964,7 +964,7 @@ func ValidateFieldArgumentIncompatibleType(
 	)
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		argName := row.ColumnText(1)
 		expectedType := row.ColumnText(2)
 		expectedModifiers := row.ColumnText(3)
@@ -1028,7 +1028,7 @@ func ValidateMissingRequiredArgument(
 	  AND (rd.current_task = $task_id OR $task_id IS NULL)
 	GROUP BY s.id, fad.name
 	`
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		argName := row.ColumnText(0)
 		filepath := row.ColumnText(1)
 		locationsRaw := row.ColumnText(2)
@@ -1089,7 +1089,7 @@ func ValidateConflictingSelections(
 		HAVING COUNT(DISTINCT s.type) > 1
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		parentSelectionID := row.ColumnText(0)
 		alias := row.ColumnText(1)
 		conflictingFields := row.ColumnText(2)
@@ -1155,7 +1155,7 @@ func ValidateDuplicateKeysInInputObject(
 		GROUP BY av.id, av2.name
 		HAVING COUNT(*) > 1
 		`
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		parentRow := row.ColumnInt(1)
 		parentCol := row.ColumnInt(2)
 		keyName := row.ColumnText(3)
@@ -1551,7 +1551,7 @@ func ValidateWrongTypesToArg(
 			!]!   | !]!      | true
 	*/
 
-	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(stmt plugins.Row) {
 		filepath := stmt.ColumnText(0)
 		offsetLine := stmt.ColumnInt(1)
 		offsetColumn := stmt.ColumnInt(2)
@@ -1652,7 +1652,7 @@ func ValidateNoKeyAlias(
 		GROUP BY s.alias, t.name, rd.filepath
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(stmt plugins.Row) {
 		alias := stmt.ColumnText(0)
 		typeName := stmt.ColumnText(1)
 		filepath := stmt.ColumnText(2)
@@ -1729,7 +1729,7 @@ func ValidateKnownDirectiveArguments(
 		)
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(row *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(row plugins.Row) {
 		directive := row.ColumnText(0)
 		argName := row.ColumnText(1)
 		filepath := row.ColumnText(2)
@@ -1779,7 +1779,7 @@ func ValidateUnknownFieldArguments(
 			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
 	`
 
-	err := db.StepQuery(ctx, query, nil, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, nil, func(stmt plugins.Row) {
 		argName := stmt.ColumnText(0)
 		row := int(stmt.ColumnInt(1))
 		col := int(stmt.ColumnInt(2))
@@ -1830,7 +1830,7 @@ func ValidateMaskDirectives(
 		"enable_directive":  graphql.EnableMaskDirective,
 		"disable_directive": graphql.DisableMaskDirective,
 	}
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		filepath := stmt.ColumnText(1)
 		row := int(stmt.ColumnInt(2))
 		column := int(stmt.ColumnInt(3))
@@ -1894,7 +1894,7 @@ func ValidateLoadingDirective(
 		"loading_directive": graphql.LoadingDirective,
 	}
 
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		filepath := stmt.ColumnText(2)
 		row := int(stmt.ColumnInt(3))
 		column := int(stmt.ColumnInt(4))
@@ -1963,7 +1963,7 @@ func ValidateRequiredDirective(
 		"required_directive": graphql.RequiredDirective,
 	}
 
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		fieldName := stmt.ColumnText(1)
 		typeModifiers := stmt.ColumnText(2)
 		parentKind := stmt.ColumnText(3)
@@ -2049,7 +2049,7 @@ func ValidateOptimisticKeyOnScalar(
 		"optimistic_key_directive": graphql.OptimisticKeyDirective,
 	}
 
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		fieldTypeKind := stmt.ColumnText(6)
 		filepath := stmt.ColumnText(2)
 		row := int(stmt.ColumnInt(3))

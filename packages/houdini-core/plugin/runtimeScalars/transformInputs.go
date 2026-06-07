@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"zombiezen.com/go/sqlite/sqlitex"
+	
 
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
@@ -32,7 +32,7 @@ func TransformVariables[PluginConfig any](
 	defer db.Put(conn)
 
 	// wrap the operations in a transaction
-	close := sqlitex.Transaction(conn)
+	close := db.Transaction(conn)
 	commit := func(err error) error {
 		close(&err)
 		return err

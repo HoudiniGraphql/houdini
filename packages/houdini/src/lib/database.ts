@@ -1,7 +1,7 @@
 import path from 'node:path'
-import type sqlite from 'node:sqlite'
 
 import type { PluginSpec } from './codegen.js'
+import type { Db } from './db.js'
 import type { Config } from './config.js'
 import { Logger } from './logger.js'
 import { default_config } from './project.js'
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS plugins (
     name TEXT NOT NULL PRIMARY KEY UNIQUE,
     port INTEGER NOT NULL,
     hooks JSON NOT NULL,
-    plugin_order TEXT NOT NULL CHECK (plugin_order IN ('before', 'after', 'core')),
+    plugin_order TEXT CHECK (plugin_order IS NULL OR plugin_order IN ('before', 'after', 'core')),
     include_runtime TEXT,
     include_static_runtime TEXT,
     config JSON,
@@ -491,7 +491,7 @@ CREATE INDEX IF NOT EXISTS idx_argument_value_children_document ON argument_valu
 `
 
 export async function write_config(
-	db: sqlite.DatabaseSync,
+	db: Db,
 	config: Config,
 	invoke_hook: (
 		plugin: string,
@@ -527,73 +527,47 @@ export async function write_config(
 	}
 
 	// before we write the config row, let's delete the existing one
-	db.prepare('DELETE FROM config').run()
-	db.prepare('DELETE FROM router_config').run()
-	db.prepare('DELETE FROM watch_schema_config').run()
-	db.prepare('DELETE FROM scalar_config').run()
-	db.prepare('DELETE FROM type_configs').run()
+	db.run('DELETE FROM config')
+	db.run('DELETE FROM router_config')
+	db.run('DELETE FROM watch_schema_config')
+	db.run('DELETE FROM scalar_config')
+	db.run('DELETE FROM type_configs')
 
 	// write the config to the database
-	db.prepare(
-		`
-		INSERT INTO config (
-			include,
-			exclude,
-			schema_path,
-			definitions_path,
-			cache_buffer_size,
-			default_cache_policy,
-			default_partial,
-			default_lifetime,
-			default_list_position,
-			default_list_target,
-			default_paginate_mode,
-			suppress_pagination_deduplication,
-			log_level,
-			default_fragment_masking,
-			default_keys,
-			persisted_queries_path,
-			project_root,
-			runtime_dir,
-      path
-		) VALUES (
-			?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-		)
-	`
-	).run(
-		JSON.stringify(
-			typeof config_file.include === 'string'
-				? [config_file.include]
-				: (config_file.include ?? [])
-		),
-		JSON.stringify(
-			typeof config_file.exclude === 'string'
-				? [config_file.exclude]
-				: (config_file.exclude ?? [])
-		),
-		config_file.schemaPath!,
-		config_file.definitionsPath ?? '',
-		config_file.cacheBufferSize ?? null,
-		config_file.defaultCachePolicy ?? null,
-		config_file.defaultPartial ? 1 : 0,
-		config_file.defaultLifetime ?? null,
-		config_file.defaultListPosition ?? null,
-		config_file.defaultListTarget ?? null,
-		config_file.defaultPaginateMode ?? 'Infinite',
-		config_file.supressPaginationDeduplication ? 1 : 0,
-		config_file.logLevel?.toUpperCase().replace(/-/g, '_') ?? null,
-		config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
-		JSON.stringify(config_file.defaultKeys ?? []),
-		config_file.persistedQueriesPath ?? path.join(config_file.runtimeDir!, 'queries.json'),
-		config.root_dir ?? null,
-		config_file.runtimeDir ?? null,
-		config.filepath ?? null
+	db.run(
+		`INSERT INTO config (
+			include, exclude, schema_path, definitions_path, cache_buffer_size,
+			default_cache_policy, default_partial, default_lifetime,
+			default_list_position, default_list_target, default_paginate_mode,
+			suppress_pagination_deduplication, log_level, default_fragment_masking,
+			default_keys, persisted_queries_path, project_root, runtime_dir, path
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		[
+			JSON.stringify(config.include),
+			JSON.stringify(config.exclude),
+			config_file.schemaPath!,
+			config_file.definitionsPath ?? '',
+			config_file.cacheBufferSize ?? null,
+			config_file.defaultCachePolicy ?? null,
+			config_file.defaultPartial ? 1 : 0,
+			config_file.defaultLifetime ?? null,
+			config_file.defaultListPosition ?? null,
+			config_file.defaultListTarget ?? null,
+			config_file.defaultPaginateMode ?? 'Infinite',
+			config_file.supressPaginationDeduplication ? 1 : 0,
+			config_file.logLevel?.toUpperCase().replace(/-/g, '_') ?? null,
+			config_file.defaultFragmentMasking === 'enable' ? 1 : 0,
+			JSON.stringify(config_file.defaultKeys ?? []),
+			config_file.persistedQueriesPath ?? path.join(config_file.runtimeDir!, 'queries.json'),
+			config.root_dir ?? null,
+			config_file.runtimeDir ?? null,
+			config.filepath ?? null,
+		]
 	)
 
 	// write the scalar definitions
-	let insert = db.prepare('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)')
 	for (const [name, { type }] of Object.entries(config.config_file.runtimeScalars ?? {})) {
-		insert.run(name, type)
+		db.run('INSERT INTO runtime_scalar_definitions (name, type) VALUES (?, ?)', [name, type])
 	}
 
 	// write router config
@@ -613,16 +587,11 @@ export async function write_config(
 			url = config.config_file.router.auth.url ?? null
 		}
 
-		db.prepare(
-			`INSERT INTO router_config (
-				redirect,
-				session_keys,
-				url,
-				mutation,
-				redirect,
-				api_endpoint
-			) VALUES (?, ?, ?, ?, ?, ?)`
-		).run(redirect, session_keys, url, mutation, redirect, api_endpoint)
+		db.run(
+			`INSERT INTO router_config (redirect, session_keys, url, mutation, redirect, api_endpoint)
+			 VALUES (?, ?, ?, ?, ?, ?)`,
+			[redirect, session_keys, url, mutation, redirect, api_endpoint]
+		)
 	}
 
 	// add watch_schema_config
@@ -636,44 +605,39 @@ export async function write_config(
 			: typeof config.config_file.watchSchema.headers === 'function'
 				? typeof config.config_file.watchSchema.headers(env)
 				: typeof config.config_file.watchSchema.headers
-		db.prepare(
-			`INSERT INTO watch_schema_config (
+		db.run(
+			`INSERT INTO watch_schema_config (url, headers, interval, timeout) VALUES (?, ?, ?, ?)`,
+			[
 				url,
-				headers,
-				interval,
-				timeout
-			) VALUES (?, ?, ?, ?)`
-		).run(
-			url,
-			JSON.stringify(headers),
-			config.config_file.watchSchema.interval ?? null,
-			config.config_file.watchSchema.timeout ?? null
+				JSON.stringify(headers),
+				config.config_file.watchSchema.interval ?? null,
+				config.config_file.watchSchema.timeout ?? null,
+			]
 		)
 	}
 
 	// write the scalar configs
-	insert = db.prepare(
-		'INSERT INTO scalar_config (name, type, input_types, module, default_import) VALUES (?, ?, ?, ?, ?)'
-	)
 	for (const [name, { type, inputTypes, module, default: isDefault }] of Object.entries(
 		config.config_file.scalars ?? {}
 	)) {
-		insert.run(
-			name,
-			type,
-			JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)),
-			module ?? null,
-			isDefault ? 1 : null
+		db.run(
+			'INSERT INTO scalar_config (name, type, input_types, module, default_import) VALUES (?, ?, ?, ?, ?)',
+			[
+				name,
+				type,
+				JSON.stringify(((inputTypes as Array<string>) ?? []).concat(name)),
+				module ?? null,
+				isDefault ? 1 : null,
+			]
 		)
 	}
 
 	// write the type configs
-	insert = db.prepare('INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)')
 	for (const [name, { keys, resolve }] of Object.entries(config.config_file.types ?? {})) {
-		insert.run(
+		db.run('INSERT INTO type_configs (name, keys, resolve_query) VALUES (?, ?, ?)', [
 			name,
 			JSON.stringify(keys || config_file.defaultKeys || []),
-			resolve?.queryField || null
-		)
+			resolve?.queryField || null,
+		])
 	}
 }

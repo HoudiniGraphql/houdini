@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/afero"
 	"golang.org/x/sync/errgroup"
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -85,7 +85,7 @@ func generateSchemaFile(
 		FROM directives
 		WHERE internal = 1
 		ORDER BY rowid
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		name := stmt.ColumnText(0)
 		internal := stmt.ColumnInt(1) == 1
 		repeatable := stmt.ColumnInt(2) == 1
@@ -107,7 +107,7 @@ func generateSchemaFile(
 				FROM directive_arguments
 				WHERE parent = $directive
 				ORDER BY name
-			`, map[string]any{"directive": name}, func(stmt *sqlite.Stmt) {
+			`, map[string]any{"directive": name}, func(stmt plugins.Row) {
 			arg := &argument{
 				Name:          stmt.ColumnText(0),
 				Type:          stmt.ColumnText(1),
@@ -132,7 +132,7 @@ func generateSchemaFile(
 				FROM directive_locations
 				WHERE directive = $directive
 				ORDER BY location
-			`, map[string]any{"directive": name}, func(stmt *sqlite.Stmt) {
+			`, map[string]any{"directive": name}, func(stmt plugins.Row) {
 			location := stmt.ColumnText(0)
 			directive.Locations = append(directive.Locations, location)
 		})
@@ -202,7 +202,7 @@ func generateSchemaFile(
 			FROM enum_values
 			WHERE parent = $typeName
 			ORDER BY value
-		`, map[string]any{"typeName": typeName}, func(stmt *sqlite.Stmt) {
+		`, map[string]any{"typeName": typeName}, func(stmt plugins.Row) {
 			value := stmt.ColumnText(0)
 			description := stmt.ColumnText(1)
 			enumValues = append(enumValues, enumValue{Value: value, Description: description})
@@ -265,7 +265,7 @@ func generateDocumentsFile(
 		       OR d.name = dl.name || '_remove'
 		  )
 		ORDER BY d.name
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		printed := stmt.ColumnText(0)
 		// remove __typename from the printed document, maybe there is a better way to do this
 		cleanedPrinted := removeTypename(printed)
@@ -319,7 +319,7 @@ func generateEnumFiles(
 		WHERE t.kind == 'ENUM' AND t.internal == 0 AND t.built_in == 0
 		ORDER BY t.name
 
-	`, nil, func(stmt *sqlite.Stmt) {
+	`, nil, func(stmt plugins.Row) {
 		enumName := stmt.ColumnText(0)
 		enumDescription := stmt.ColumnText(1)
 		enum := enumData{
@@ -334,7 +334,7 @@ func generateEnumFiles(
 			FROM enum_values
 			WHERE parent = $enumName
 			ORDER BY value
-		`, map[string]any{"enumName": enumName}, func(valueStmt *sqlite.Stmt) {
+		`, map[string]any{"enumName": enumName}, func(valueStmt plugins.Row) {
 			value := valueStmt.ColumnText(0)
 			description := valueStmt.ColumnText(1)
 			enum.Values = append(enum.Values, enumValue{Value: value, Description: description})

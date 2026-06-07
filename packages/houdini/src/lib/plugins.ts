@@ -6,7 +6,8 @@ import * as path from './path.js'
 
 export async function plugin_path(
 	plugin_name: string,
-	config_path: string
+	config_path: string,
+	preferWasm = false
 ): Promise<{ executable: string; directory: string }> {
 	// local path: resolve relative to the config file, skip npm resolution entirely
 	if (
@@ -55,8 +56,20 @@ export async function plugin_path(
 			throw new Error('There is no bin defined.')
 		}
 
+		const native_bin = path.join(plugin_dir, package_json.bin)
+
+		if (preferWasm) {
+			try {
+				const wasm_dir = find_module(`${plugin_name}-wasm`, config_path)
+				return {
+					executable: path.join(wasm_dir, 'bin', `${plugin_name}.wasm`),
+					directory: plugin_dir,
+				}
+			} catch {}
+		}
+
 		return {
-			executable: path.join(plugin_dir, package_json.bin),
+			executable: native_bin,
 			directory: plugin_dir,
 		}
 	} catch (e) {

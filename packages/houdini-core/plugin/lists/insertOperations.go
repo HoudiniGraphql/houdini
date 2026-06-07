@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"zombiezen.com/go/sqlite/sqlitex"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -26,7 +26,7 @@ func InsertOperationDocuments(
 	}
 	defer db.Put(conn)
 
-	close := sqlitex.Transaction(conn)
+	close := db.Transaction(conn)
 	commit := func(err error) error {
 		close(&err)
 		return err

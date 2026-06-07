@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
@@ -153,7 +153,7 @@ func TestDocumentDependencies(t *testing.T) {
 					context.Background(),
 					query,
 					map[string]any{"document": document},
-					func(q *sqlite.Stmt) {
+					func(q plugins.Row) {
 						dependsOnName := q.GetText("depends_on")
 						count := int(q.GetInt64("count"))
 						foundDependsOn[dependsOnName] = count
@@ -202,7 +202,7 @@ func TestDocumentDependencies(t *testing.T) {
 				context.Background(),
 				duplicateQuery,
 				nil,
-				func(q *sqlite.Stmt) {
+				func(q plugins.Row) {
 					documentName := q.GetText("document_name")
 					dependsOn := q.GetText("depends_on")
 					count := q.GetInt64("count")

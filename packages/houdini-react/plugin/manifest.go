@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/spf13/afero"
-	"zombiezen.com/go/sqlite"
 
+	plugins "code.houdinigraphql.com/plugins"
 	pluginglob "code.houdinigraphql.com/plugins/glob"
 )
 
@@ -295,7 +295,7 @@ func (p *HoudiniReact) loadRouteDocuments(
 		WHERE d.kind = 'query'
 		  AND (rd.filepath LIKE '%+page.gql' OR rd.filepath LIKE '%+layout.gql')
 		ORDER BY d.id
-	`, nil, func(q *sqlite.Stmt) {
+	`, nil, func(q plugins.Row) {
 		id := q.ColumnInt64(0)
 		entry, ok := docsByID[id]
 		if !ok {

@@ -1,25 +1,36 @@
+//go:build !wasip1
+
 package tests
 
 import (
 	"bytes"
 	"fmt"
 	"strings"
+	"code.houdinigraphql.com/plugins"
 	"text/tabwriter"
 	"unicode"
 
-	"zombiezen.com/go/sqlite"
-	"zombiezen.com/go/sqlite/sqlitex"
+	
+	
 )
 
-// ExecuteSchema creates the database schema.
-func WriteDatabaseSchema(db *sqlite.Conn) error {
+// WriteDatabaseSchema creates the database schema.
+func WriteDatabaseSchema(conn plugins.Conn) error {
 	statements := strings.Split(schema, ";")
-	for _, stmt := range statements {
-		stmt = strings.TrimSpace(stmt)
-		if stmt == "" {
+	for _, sql := range statements {
+		sql = strings.TrimSpace(sql)
+		if sql == "" {
 			continue
 		}
-		if err := sqlitex.ExecuteTransient(db, stmt, nil); err != nil {
+		s, err := conn.Prepare(sql)
+		if err != nil {
+			return err
+		}
+		if _, err := s.Step(); err != nil {
+			s.Finalize()
+			return err
+		}
+		if err := s.Finalize(); err != nil {
 			return err
 		}
 	}

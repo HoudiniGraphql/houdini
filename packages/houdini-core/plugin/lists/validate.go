@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"zombiezen.com/go/sqlite"
+	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/plugins"
@@ -40,7 +40,7 @@ func ValidateConflictingPrependAppend(
 		"prepend": graphql.PrependDirective,
 		"append":  graphql.AppendDirective,
 	}
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		filepath := stmt.ColumnText(0)
 		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
 		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
@@ -90,7 +90,7 @@ func ValidateConflictingParentIDAllLists(
 		"parentID": graphql.ParentIDDirective,
 		"allLists": graphql.AllListsDirective,
 	}
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		filepath := stmt.ColumnText(0)
 		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
 		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
@@ -138,7 +138,7 @@ func validateConflictingPaginateListDirectives(
 		"list_directive":     graphql.ListDirective,
 		"paginate_directive": graphql.PaginationDirective,
 	}
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		filepath := stmt.ColumnText(0)
 		line := int(stmt.ColumnInt(1)) + int(stmt.ColumnInt(3))
 		column := int(stmt.ColumnInt(2)) + int(stmt.ColumnInt(4))
@@ -192,7 +192,7 @@ func ValidatePaginateTypeCondition(
 	bindings := map[string]any{
 		"paginate_directive": graphql.PaginationDirective,
 	}
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		docName := stmt.ColumnText(0)
 		typeCondition := stmt.ColumnText(1)
 		filepath := stmt.ColumnText(2)
@@ -252,7 +252,7 @@ func ValidateSinglePaginateDirective(
 	groups := make(map[int64][]usage)
 
 	// Iterate over all rows.
-	db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		uid := stmt.ColumnInt64(0)
 		u := usage{
 			documentID:   uid,
@@ -424,7 +424,7 @@ func ValidateParentID(
 	}
 
 	// every result is a list that requires a parent id but doesn't have one
-	err = db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err = db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("operations on %q requires a parentID", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,
@@ -611,7 +611,7 @@ func DiscoverListsThenValidate(
 	lists := map[int]*DiscoveredList{}
 
 	// iterate over the results
-	err = db.StepQuery(ctx, query, bindings, func(nameStatement *sqlite.Stmt) {
+	err = db.StepQuery(ctx, query, bindings, func(nameStatement plugins.Row) {
 		listName := nameStatement.ColumnText(0)
 		row := nameStatement.ColumnInt(1)
 		column := nameStatement.ColumnInt(2)
@@ -842,7 +842,7 @@ func validateDirectives(
 	bindings := map[string]any{
 		"delete_prefix": graphql.ListOperationSuffixDelete,
 	}
-	err := db.StepQuery(ctx, selectionSearch, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, selectionSearch, bindings, func(stmt plugins.Row) {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("Unknown directive %q", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,
@@ -899,7 +899,7 @@ func validateFragmentSpreads(
 		"toggle_prefix": graphql.ListOperationSuffixToggle,
 	}
 
-	err := db.StepQuery(ctx, query, bindings, func(stmt *sqlite.Stmt) {
+	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {
 		errs.Append(&plugins.Error{
 			Message: fmt.Sprintf("Unknown fragment spread %q", stmt.ColumnText(0)),
 			Kind:    plugins.ErrorKindValidation,

@@ -1,23 +1,23 @@
 package schema
 
-import "zombiezen.com/go/sqlite"
+import "code.houdinigraphql.com/plugins"
 
 type SchemaInsertStatements struct {
-	InsertType              *sqlite.Stmt
-	InsertInternalType      *sqlite.Stmt
-	InsertTypeField         *sqlite.Stmt
-	InsertPossibleType      *sqlite.Stmt
-	InsertEnumValue         *sqlite.Stmt
-	InsertFieldArgument     *sqlite.Stmt
-	InsertDirective         *sqlite.Stmt
-	InsertInternalDirective *sqlite.Stmt
-	InsertDirectiveLocation *sqlite.Stmt
-	InsertDirectiveArgument *sqlite.Stmt
+	InsertType              plugins.Stmt
+	InsertInternalType      plugins.Stmt
+	InsertTypeField         plugins.Stmt
+	InsertPossibleType      plugins.Stmt
+	InsertEnumValue         plugins.Stmt
+	InsertFieldArgument     plugins.Stmt
+	InsertDirective         plugins.Stmt
+	InsertInternalDirective plugins.Stmt
+	InsertDirectiveLocation plugins.Stmt
+	InsertDirectiveArgument plugins.Stmt
 }
 
-func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, func()) {
+func PrepareSchemaInsertStatements(conn plugins.Conn) (SchemaInsertStatements, func()) {
 	// Prepare statements. (Check errors and defer closing each statement.)
-	insertTypeStmt := db.Prep(
+	insertTypeStmt, _ := conn.Prepare(
 		`INSERT INTO types
         (name, kind, operation, description, built_in)
     VALUES
@@ -29,7 +29,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
         built_in = excluded.built_in
     `,
 	)
-	insertInternalTypeStmt := db.Prep(
+	insertInternalTypeStmt, _ := conn.Prepare(
 		`INSERT INTO types
         (name, kind, internal)
     VALUES 
@@ -38,7 +38,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
         kind = excluded.kind
     `,
 	)
-	insertTypeFieldStmt := db.Prep(
+	insertTypeFieldStmt, _ := conn.Prepare(
 		`INSERT INTO type_fields 
         (id, parent, name, type, type_modifiers, default_value, description, internal) 
     VALUES 
@@ -53,7 +53,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
     
     `,
 	)
-	insertPossibleTypeStmt := db.Prep(
+	insertPossibleTypeStmt, _ := conn.Prepare(
 		`INSERT INTO possible_types 
         (type, member) 
     VALUES 
@@ -63,7 +63,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
     
     `,
 	)
-	insertEnumValueStmt := db.Prep(
+	insertEnumValueStmt, _ := conn.Prepare(
 		`INSERT INTO enum_values
         (parent, value, description)
     VALUES
@@ -73,7 +73,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
         description = excluded.description
     `,
 	)
-	insertFieldArgumentStmt := db.Prep(
+	insertFieldArgumentStmt, _ := conn.Prepare(
 		`INSERT INTO type_field_arguments
         (id, field, name, type, type_modifiers, default_value)
     VALUES
@@ -86,7 +86,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
       default_value = excluded.default_value
     `,
 	)
-	insertDirectiveStmt := db.Prep(
+	insertDirectiveStmt, _ := conn.Prepare(
 		`INSERT INTO directives 
         (name, repeatable) 
     VALUES 
@@ -95,7 +95,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
       repeatable = excluded.repeatable
     `,
 	)
-	insertInternalDirectiveStmt := db.Prep(
+	insertInternalDirectiveStmt, _ := conn.Prepare(
 		`INSERT INTO directives 
         (name, description, internal, visible) 
     VALUES 
@@ -105,7 +105,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
         visible = excluded.visible
     `,
 	)
-	insertDirectiveLocationStmt := db.Prep(
+	insertDirectiveLocationStmt, _ := conn.Prepare(
 		`INSERT INTO directive_locations 
         (directive, location) 
     VALUES 
@@ -114,7 +114,7 @@ func PrepareSchemaInsertStatements(db *sqlite.Conn) (SchemaInsertStatements, fun
       location = excluded.location
     `,
 	)
-	insertDirectiveArgumentStmt := db.Prep(
+	insertDirectiveArgumentStmt, _ := conn.Prepare(
 		`INSERT INTO directive_arguments 
         (parent, name, type, default_value, type_modifiers) 
     VALUES 

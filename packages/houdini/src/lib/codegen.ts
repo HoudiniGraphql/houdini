@@ -1,13 +1,67 @@
 import { type ChildProcess, spawn } from 'node:child_process'
-import { createHash } from 'node:crypto'
-import nodeFs from 'node:fs'
+import { writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { createInterface } from 'node:readline'
-import sqlite, { type DatabaseSync } from 'node:sqlite'
 import { WebSocket } from 'ws'
+
+// WASI runner written to a temp file on first use — no extra asset to ship.
+// argv[2] = wasmPath, argv[3..] = plugin args forwarded verbatim.
+//
+// WebContainers (and other sandboxed runtimes) don't support fs.readSync on
+// pipe fds (EBADF). Use a worker-thread relay instead:
+//   main thread  — process.stdin async events work fine, relay via MessageChannel
+//   worker thread — Atomics.wait + receiveMessageOnPort provides real blocking,
+//                   custom fd_read feeds WASM without ever touching fd 0 directly.
+const wasiRunnerPath = path.join(tmpdir(), 'houdini-wasi-runner.mjs')
+writeFileSync(
+	wasiRunnerPath,
+	`import{WASI}from'node:wasi';
+import{readFileSync}from'node:fs';
+import{Worker,isMainThread,workerData,MessageChannel,receiveMessageOnPort}from'worker_threads';
+const[,,w,...r]=process.argv;
+if(isMainThread){
+const{port1:p1,port2:p2}=new MessageChannel();
+const sb=new Int32Array(new SharedArrayBuffer(4));
+process.stdin.on('error',()=>{});
+process.stdin.on('data',d=>{p1.postMessage(d);Atomics.add(sb,0,1);Atomics.notify(sb,0);});
+process.stdin.on('end',()=>{p1.postMessage(null);Atomics.add(sb,0,1);Atomics.notify(sb,0);});
+const wk=new Worker(new URL(import.meta.url),{workerData:{w,r,p:p2,sb},transferList:[p2]});
+wk.on('exit',c=>process.exit(c??0));
+}else{
+const{w:wb,r:args,p:port,sb}=workerData;
+const wasi=new WASI({version:'preview1',args:[wb,...args],env:process.env,preopens:{'/':'/'}});
+let mem=null;
+const io=wasi.getImportObject();
+const rfr=io.wasi_snapshot_preview1.fd_read;
+io.wasi_snapshot_preview1.fd_read=(fd,iovs,il,nr)=>{
+if(fd!==0||!mem)return rfr(fd,iovs,il,nr);
+while(Atomics.load(sb,0)===0)Atomics.wait(sb,0,0);
+const m=receiveMessageOnPort(port);
+Atomics.sub(sb,0,1);
+const v=new DataView(mem.buffer);
+if(!m||m.message===null){v.setUint32(nr,0,true);return 0;}
+const b=Buffer.isBuffer(m.message)?m.message:Buffer.from(m.message);
+let wn=0;
+for(let i=0;i<il;i++){
+const p=v.getUint32(iovs+i*8,true),l=v.getUint32(iovs+i*8+4,true);
+const n=Math.min(l,b.length-wn);
+if(n<=0)break;
+new Uint8Array(mem.buffer,p,n).set(b.subarray(wn,wn+n));
+wn+=n;}
+v.setUint32(nr,wn,true);
+return 0;};
+const mod=new WebAssembly.Module(readFileSync(wb));
+const inst=new WebAssembly.Instance(mod,io);
+mem=inst.exports.memory;
+wasi.start(inst);
+process.exit(0);}
+`
+)
 
 import * as conventions from '../router/conventions.js'
 import type { Config } from './config.js'
+import { openDb, type Db } from './db.js'
 import { create_schema, write_config } from './database.js'
 import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
@@ -15,6 +69,8 @@ import * as fs from './fs.js'
 import { Logger } from './logger.js'
 import type { ProjectManifest } from './types.js'
 import { LogLevel } from './types.js'
+
+// ─── database connection ──────────────────────────────────────────────────────
 
 export type PluginSpec = {
 	name: string
@@ -44,64 +100,15 @@ export type Adapter = ((args: {
 	}) => Promise<void> | void
 }
 
-function hash_schema(schema: string): string {
-	return createHash('sha256').update(schema).digest('hex').slice(0, 16)
-}
-
-export function connect_db(config: Config): [DatabaseSync, string] {
+export async function connect_db(config: Config): Promise<[Db, string]> {
 	const filepath = conventions.db_path(config)
-
-	// Open (or create) the database, then check if the schema is current.
-	// If the hash stored in _houdini_meta doesn't match, wipe the file and start fresh
-	// so we never need an explicit migration list.
-	const schema_hash = hash_schema(create_schema)
-
-	const open = (): DatabaseSync => {
-		const db = new sqlite.DatabaseSync(filepath)
-		db.exec('PRAGMA journal_mode = WAL')
-		db.exec('PRAGMA synchronous = off')
-		db.exec('PRAGMA cache_size = 10000')
-		db.exec('PRAGMA temp_store = memory')
-		db.exec('PRAGMA busy_timeout = 5000')
-		db.exec('PRAGMA foreign_key = ON')
-		db.exec('PRAGMA defer_foreign_keys = ON')
-		return db
-	}
-
-	let db = open()
-
-	let stored_hash: string | undefined
-	try {
-		stored_hash = (
-			db.prepare('SELECT value FROM _houdini_meta WHERE key = ?').get('schema_hash') as
-				| { value: string }
-				| undefined
-		)?.value
-	} catch (_) {
-		// _houdini_meta doesn't exist yet — first run on this database
-	}
-
-	if (stored_hash !== schema_hash) {
-		db.close()
-		for (const ext of ['', '-shm', '-wal']) {
-			try {
-				nodeFs.rmSync(filepath + ext)
-			} catch (_) {}
-		}
-		db = open()
-	}
-
+	const db = await openDb(filepath)
 	db.exec(create_schema)
-	db.exec(`CREATE TABLE IF NOT EXISTS _houdini_meta (key TEXT PRIMARY KEY, value TEXT)`)
-	db.prepare('INSERT OR REPLACE INTO _houdini_meta (key, value) VALUES (?, ?)').run(
-		'schema_hash',
-		schema_hash
-	)
-
+	db.flush()
 	return [db, filepath]
 }
 
-export async function init_db(config: Config, preserve: boolean): Promise<[DatabaseSync, string]> {
+export async function init_db(config: Config, preserve: boolean): Promise<[Db, string]> {
 	const db_file = conventions.db_path(config)
 
 	// we need to create a fresh database for orchestration
@@ -116,7 +123,7 @@ export async function init_db(config: Config, preserve: boolean): Promise<[Datab
 			await fs.remove(`${db_file}-wal`)
 		} catch (_e) {}
 	}
-	return [connect_db(config)[0], db_file]
+	return connect_db(config)
 }
 
 export type CompilerProxy = {
@@ -146,9 +153,12 @@ export function plugin_db_key(name: string): string {
 export async function codegen_setup(
 	config: Config,
 	mode: string,
-	db: DatabaseSync,
+	db: Db,
 	db_file: string
 ): Promise<CompilerProxy> {
+	// _db is the same object as the caller's db (ctx.db). reload() mutates it
+	// in-place so the caller always sees the latest state without reassignment.
+	let _db = db
 	const logger = new Logger(config.config_file.logLevel ?? LogLevel.Summary)
 
 	// We need the root dir before we get to the exciting stuff
@@ -172,32 +182,48 @@ export async function codegen_setup(
 	// we use a ref so the readline handlers close over a mutable binding
 	const triggerHookRef: { fn: CompilerProxy['trigger_hook'] | null } = { fn: null }
 
-	// wait_for_plugin_db polls the SQLite DB until the plugin inserts its registration row.
-	// configKey is the houdini.config key (used for spec_results lookup).
-	// dbKey is the name the plugin actually registers with (plugin_db_key(configKey)).
-	const wait_for_plugin_db = (configKey: string, dbKey: string) =>
-		new Promise<PluginSpec>((resolve, reject) => {
-			const find_plugin = db.prepare('SELECT * FROM plugins WHERE name = ?')
+	// Declared here (before wait_for_plugin_stdio) to avoid TDZ: the close
+	// handler in wait_for_plugin_stdio closes over this Map and can fire before
+	// the original declaration site (after the plugins-registered await) executes.
+	const pendingRequests = new Map<
+		string,
+		{
+			resolve: (value: any) => void
+			reject: (reason: any) => void
+			timeout: NodeJS.Timeout
+			hook: string
+			plugin: string
+		}
+	>()
 
+	// wait_for_plugin_db polls the SQLite file using a dedicated connection until
+	// the Go plugin inserts its registration row. Uses a separate pollDb so the
+	// main _db is not disturbed during the wait.
+	const wait_for_plugin_db = async (configKey: string, dbKey: string): Promise<PluginSpec> => {
+		const pollDb = await openDb(db_file)
+		return new Promise<PluginSpec>((resolve, reject) => {
 			const interval = setInterval(() => {
-				const row = find_plugin.get(dbKey) as
-					| {
-							name: string
-							port: number
-							hooks: string
-							plugin_order: string
-							config_module: string | null
-					  }
-					| undefined
+				pollDb.reload()
+				const row = pollDb.get<{
+					name: string
+					port: number
+					hooks: string
+					plugin_order: string
+					config_module: string | null
+				}>('SELECT * FROM plugins WHERE name = ?', [dbKey])
+
 				if (row) {
 					clearInterval(interval)
+					clearTimeout(timeout)
 
-					db.prepare('UPDATE plugins set config = ? where name = ?').run(
+					pollDb.run('UPDATE plugins SET config = ? WHERE name = ?', [
 						JSON.stringify(
 							config.plugins.find((p) => p.name === configKey)?.config ?? {}
 						),
-						dbKey
-					)
+						dbKey,
+					])
+					pollDb.flush()
+					pollDb.close()
 
 					const spec: PluginSpec = {
 						name: row.name,
@@ -214,24 +240,21 @@ export async function codegen_setup(
 							if (module && typeof module.default === 'function') {
 								config.config_file = module.default(config.config_file)
 							}
-							resolver(spec)
+							resolve(spec)
 						})
 					} else {
-						resolver(spec)
+						resolve(spec)
 					}
 				}
 			}, 10)
 
 			const timeout = setTimeout(() => {
 				clearInterval(interval)
+				pollDb.close()
 				reject(new Error(`Timeout waiting for plugin ${configKey} to register`))
 			}, 10000)
-
-			const resolver = (spec: PluginSpec) => {
-				clearTimeout(timeout)
-				resolve(spec)
-			}
 		})
+	}
 
 	// wait_for_plugin_stdio reads the registration JSON line from stdout and sets
 	// up the permanent message handler for response/invoke messages.
@@ -269,24 +292,26 @@ export async function codegen_setup(
 
 						// WebSocket plugins insert themselves into the DB; for stdio plugins (port=0)
 						// we do it here. INSERT OR IGNORE avoids a duplicate-key error either way.
-						db.prepare(
+						_db.run(
 							`INSERT OR IGNORE INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
-							 VALUES (?, ?, ?, ?, ?, ?, ?)`
-						).run(
-							spec.name,
-							JSON.stringify([...spec.hooks]),
-							spec.port,
-							spec.order,
-							msg.includeRuntime ?? null,
-							msg.configModule ?? null,
-							msg.clientPlugins ?? null
+							 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+							[
+								spec.name,
+								JSON.stringify([...spec.hooks]),
+								spec.port,
+								spec.order,
+								msg.includeRuntime ?? null,
+								msg.configModule ?? null,
+								msg.clientPlugins ?? null,
+							]
 						)
-						db.prepare('UPDATE plugins SET config = ? WHERE name = ?').run(
+						_db.run('UPDATE plugins SET config = ? WHERE name = ?', [
 							JSON.stringify(
 								config.plugins.find((p) => p.name === name)?.config ?? {}
 							),
-							spec.name
-						)
+							spec.name,
+						])
+						_db.flush()
 
 						if (msg.configModule) {
 							import(msg.configModule)
@@ -384,7 +409,8 @@ export async function codegen_setup(
 		})
 
 	// delete existing plugin metadata
-	db.prepare('DELETE FROM plugins').run()
+	_db.run('DELETE FROM plugins')
+	_db.flush()
 
 	// start each plugin
 	logger.time('Start Plugins')
@@ -398,11 +424,17 @@ export async function codegen_setup(
 			if (jsExtensions.includes(path.extname(plugin.executable))) {
 				executable = 'node'
 				args.unshift(plugin.executable)
+			} else if (path.extname(plugin.executable) === '.wasm') {
+				// WASM plugins always use stdio and run via node:wasi
+				executable = 'node'
+				args.unshift(wasiRunnerPath, plugin.executable)
 			}
 
 			const dbKey = plugin_db_key(plugin.name)
 			args.push('--plugin-key', dbKey)
-			if (useStdio) {
+			// WASM plugins always communicate over stdio regardless of the global transport setting
+			const pluginUsesStdio = useStdio || path.extname(plugin.executable) === '.wasm'
+			if (pluginUsesStdio) {
 				args.push('--transport', 'stdio')
 			}
 
@@ -410,11 +442,13 @@ export async function codegen_setup(
 			const child = spawn(executable, args, {
 				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
 				// message protocol; stderr is always inherited so plugin logs reach the terminal.
-				stdio: useStdio ? ['pipe', 'pipe', 'inherit'] : ['inherit', 'inherit', 'inherit'],
+				stdio: pluginUsesStdio
+					? ['pipe', 'pipe', 'inherit']
+					: ['inherit', 'inherit', 'inherit'],
 				detached: process.platform !== 'win32',
 			})
 
-			if (useStdio) {
+			if (pluginUsesStdio) {
 				stdioStdin.set(dbKey, child.stdin!)
 				child.stdin!.on('error', (err: Error) => {
 					if ((err as NodeJS.ErrnoException).code !== 'EPIPE') {
@@ -425,7 +459,7 @@ export async function codegen_setup(
 
 			plugins[plugin.name] = {
 				process: child,
-				...(await (useStdio
+				...(await (pluginUsesStdio
 					? wait_for_plugin_stdio(plugin.name, child)
 					: wait_for_plugin_db(plugin.name, dbKey))),
 			}
@@ -441,16 +475,6 @@ export async function codegen_setup(
 
 	const wsConnections = new Map<string, WebSocket>()
 	let messageCounter = 0
-	const pendingRequests = new Map<
-		string,
-		{
-			resolve: (value: any) => void
-			reject: (reason: any) => void
-			timeout: NodeJS.Timeout
-			hook: string
-			plugin: string
-		}
-	>()
 
 	async function getOrCreateWS(name: string, port: number): Promise<WebSocket> {
 		const existing = wsConnections.get(name)
@@ -579,7 +603,12 @@ export async function codegen_setup(
 		}
 	}
 
-	const trigger_hook = async (
+	// Reload from disk so we see rows that WebSocket (Go) plugins inserted directly.
+	// reload() mutates _db in-place, so the caller's reference (ctx.db) is also updated.
+	_db.reload()
+
+	// Raw dispatch: sends messages to plugins without touching the DB.
+	const _fireHook = async (
 		hook: PipelineHook,
 		{
 			parallel_safe,
@@ -593,13 +622,9 @@ export async function codegen_setup(
 	) => {
 		const timeName = hook + (task_id ? ` (${task_id})` : '')
 		logger.time(timeName)
-		// look for all of the plugins that have registered for this hook
 		const plugins = plugin_specs.filter(({ hooks }) => hooks.has(hook))
-
 		const result: Record<string, any> = {}
-
 		try {
-			// if the hook is parallel safe, we can run all of the plugins in parallel
 			if (parallel_safe) {
 				await Promise.all(
 					plugins.map(async (plugin) => {
@@ -607,16 +632,25 @@ export async function codegen_setup(
 					})
 				)
 			} else {
-				// if the hook isn't parallel safe, we need to run the plugins in order
 				for (const { name } of plugins) {
 					result[name] = await invoke_hook(name, hook, payload, task_id)
 				}
 			}
 		} finally {
-			// task-scoped hook calls are HMR partial runs — only show at full
 			logger.timeEnd(timeName, task_id ? LogLevel.Verbose : LogLevel.Summary)
 		}
+		return result
+	}
 
+	// Synced wrapper: flush before (Go reads JS writes), reload after (JS sees Go writes).
+	// flush/reload are no-ops on NativeDb (WAL handles it); on SqlJsDb they save/re-read the file.
+	const trigger_hook = async (
+		hook: PipelineHook,
+		opts?: { parallel_safe?: boolean; payload?: Record<string, any>; task_id?: string }
+	) => {
+		_db.flush()
+		const result = await _fireHook(hook, opts)
+		_db.reload()
 		return result
 	}
 
@@ -624,7 +658,9 @@ export async function codegen_setup(
 	triggerHookRef.fn = trigger_hook
 
 	// write the current config values to the database
-	await write_config(db, config, invoke_hook, plugin_specs, mode, logger)
+	await write_config(_db, config, invoke_hook, plugin_specs, mode, logger)
+	// flush so Go plugins can read config when the Config hook fires
+	_db.flush()
 
 	// now we should load the config hook so other plugins can set their defaults
 	await trigger_hook('Config')

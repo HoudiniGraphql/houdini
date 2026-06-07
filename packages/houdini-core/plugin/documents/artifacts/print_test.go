@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"zombiezen.com/go/sqlite"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
@@ -13,6 +12,7 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/artifacts"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/documents/collected"
 	"code.houdinigraphql.com/packages/houdini-core/plugin/fragmentArguments"
+	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -143,7 +143,7 @@ func TestDocumentCollectAndPrint(t *testing.T) {
 					context.Background(),
 					search,
 					map[string]any{"name": name},
-					func(q *sqlite.Stmt) {
+					func(q plugins.Row) {
 						documentID = q.GetInt64("id")
 					},
 				)
