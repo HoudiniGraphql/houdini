@@ -1,188 +1,189 @@
 {
-  "name": "houdini",
-  "version": "2.0.0-next.28",
-  "description": "The disappearing GraphQL clients",
-  "keywords": [
-    "typescript",
-    "graphql",
-    "graphql-client"
-  ],
-  "homepage": "https://github.com/HoudiniGraphql/houdini",
-  "funding": "https://github.com/sponsors/HoudiniGraphql",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HoudiniGraphql/houdini.git"
-  },
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "build": "scripts build-node",
-    "compile": "scripts build-node",
-    "typedefs": "scripts typedefs"
-  },
-  "devDependencies": {
-    "@babel/types": "^7.29.7",
-    "@types/node": "^25.9.1",
-    "@types/ungap__structured-clone": "^1.2.0",
-    "@types/ws": "^8.18.1",
-    "prettier": "^3.8.3",
-    "rollup": "^4.61.1",
-    "scripts": "workspace:^",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8"
-  },
-  "dependencies": {
-    "@babel/parser": "^7.29.7",
-    "@clack/prompts": "^1.5.1",
-    "@graphql-tools/merge": "^9.1.9",
-    "@graphql-tools/schema": "^10.0.33",
-    "@types/estree": "^1.0.9",
-    "@types/fs-extra": "^11.0.4",
-    "@ungap/structured-clone": "^1.3.1",
-    "@whatwg-node/server": "^0.11.0",
-    "ast-types": "^0.16.1",
-    "commander": "^15.0.0",
-    "deepmerge": "^4.3.1",
-    "estree-walker": "^3.0.3",
-    "fs-extra": "^11.3.5",
-    "glob": "^13.0.0",
-    "graphql-yoga": "^5.21.1",
-    "houdini-core": "workspace:^",
-    "kleur": "^4.1.5",
-    "memfs": "^4.17.2",
-    "minimatch": "^10.2.5",
-    "npx-import": "^1.1.4",
-    "recast": "^0.23.11",
-    "sql.js": "^1.14.1",
-    "ws": "^8.21.0"
-  },
-  "peerDependencies": {
-    "graphql": ">=16",
-    "vite": "^8.0.0"
-  },
-  "files": [
-    "build"
-  ],
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "types": "./build/lib/index.d.ts",
-      "import": "./build/lib/index.js"
+    "name": "houdini",
+    "version": "2.0.0-next.28",
+    "description": "The disappearing GraphQL clients",
+    "keywords": [
+        "typescript",
+        "graphql",
+        "graphql-client"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
     },
-    "./*": {
-      "types": "./build/lib/*",
-      "import": "./build/lib/index.js"
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "scripts build-node",
+        "compile": "scripts build-node",
+        "typedefs": "scripts typedefs"
     },
-    "./adapter": {
-      "types": "./build/adapter/index.d.ts",
-      "import": "./build/adapter/index.js"
+    "devDependencies": {
+        "@babel/types": "^7.29.7",
+        "@types/node": "^25.9.1",
+        "@types/sql.js": "^1.4.11",
+        "@types/ungap__structured-clone": "^1.2.0",
+        "@types/ws": "^8.18.1",
+        "prettier": "^3.8.3",
+        "rollup": "^4.61.1",
+        "scripts": "workspace:^",
+        "vite": "^8.0.16",
+        "vitest": "^4.1.8"
     },
-    "./adapter/*": {
-      "types": "./build/adapter/*.d.ts",
-      "import": "./build/adapter/*.js"
+    "dependencies": {
+        "@babel/parser": "^7.29.7",
+        "@clack/prompts": "^1.5.1",
+        "@graphql-tools/merge": "^9.1.9",
+        "@graphql-tools/schema": "^10.0.33",
+        "@types/estree": "^1.0.9",
+        "@types/fs-extra": "^11.0.4",
+        "@ungap/structured-clone": "^1.3.1",
+        "@whatwg-node/server": "^0.11.0",
+        "ast-types": "^0.16.1",
+        "commander": "^15.0.0",
+        "deepmerge": "^4.3.1",
+        "estree-walker": "^3.0.3",
+        "fs-extra": "^11.3.5",
+        "glob": "^13.0.0",
+        "graphql-yoga": "^5.21.1",
+        "houdini-core": "workspace:^",
+        "kleur": "^4.1.5",
+        "memfs": "^4.17.2",
+        "minimatch": "^10.2.5",
+        "npx-import": "^1.1.4",
+        "recast": "^0.23.11",
+        "sql.js": "^1.14.1",
+        "ws": "^8.21.0"
     },
-    "./cmd": {
-      "types": "./build/cmd/index.d.ts",
-      "import": "./build/cmd/index.js"
+    "peerDependencies": {
+        "graphql": ">=16",
+        "vite": "^8.0.0"
     },
-    "./lib": {
-      "types": "./build/lib/index.d.ts",
-      "import": "./build/lib/index.js"
+    "files": [
+        "build"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "types": "./build/lib/index.d.ts",
+            "import": "./build/lib/index.js"
+        },
+        "./*": {
+            "types": "./build/lib/*",
+            "import": "./build/lib/index.js"
+        },
+        "./adapter": {
+            "types": "./build/adapter/index.d.ts",
+            "import": "./build/adapter/index.js"
+        },
+        "./adapter/*": {
+            "types": "./build/adapter/*.d.ts",
+            "import": "./build/adapter/*.js"
+        },
+        "./cmd": {
+            "types": "./build/cmd/index.d.ts",
+            "import": "./build/cmd/index.js"
+        },
+        "./lib": {
+            "types": "./build/lib/index.d.ts",
+            "import": "./build/lib/index.js"
+        },
+        "./lib/config": {
+            "types": "./build/lib/config.d.ts",
+            "import": "./build/lib/config.js"
+        },
+        "./lib/constants": {
+            "types": "./build/lib/constants.d.ts",
+            "import": "./build/lib/constants.js"
+        },
+        "./lib/types": {
+            "types": "./build/lib/types.d.ts",
+            "import": "./build/lib/types.js"
+        },
+        "./node": {
+            "types": "./build/node/index.d.ts",
+            "import": "./build/node/index.js"
+        },
+        "./node/*": {
+            "types": "./build/node/*.d.ts",
+            "import": "./build/node/*.js"
+        },
+        "./router": {
+            "types": "./build/router/index.d.ts",
+            "import": "./build/router/index.js"
+        },
+        "./router/*": {
+            "types": "./build/router/*.d.ts",
+            "import": "./build/router/*.js"
+        },
+        "./runtime": {
+            "types": "./build/runtime/index.d.ts",
+            "import": "./build/runtime/index.js"
+        },
+        "./runtime/*": {
+            "types": "./build/runtime/*.d.ts",
+            "import": "./build/runtime/*.js"
+        },
+        "./runtime/cache": {
+            "types": "./build/runtime/cache/index.d.ts",
+            "import": "./build/runtime/cache/index.js"
+        },
+        "./runtime/config": {
+            "types": "./build/runtime/config.d.ts",
+            "import": "./build/runtime/config.js"
+        },
+        "./runtime/constants": {
+            "types": "./build/runtime/constants.d.ts",
+            "import": "./build/runtime/constants.js"
+        },
+        "./runtime/types": {
+            "types": "./build/runtime/types.d.ts",
+            "import": "./build/runtime/types.js"
+        },
+        "./test": {
+            "types": "./build/test/index.d.ts",
+            "import": "./build/test/index.js"
+        },
+        "./test/*": {
+            "types": "./build/test/*.d.ts",
+            "import": "./build/test/*.js"
+        },
+        "./vite": {
+            "types": "./build/vite/index.d.ts",
+            "import": "./build/vite/index.js"
+        },
+        "./vite/*": {
+            "types": "./build/vite/*.d.ts",
+            "import": "./build/vite/*.js"
+        }
     },
-    "./lib/config": {
-      "types": "./build/lib/config.d.ts",
-      "import": "./build/lib/config.js"
+    "typesVersions": {
+        "*": {
+            "adapter": [
+                "./build/adapter/index.d.ts"
+            ],
+            ".": [
+                "./build/lib/index.d.ts"
+            ],
+            "node": [
+                "./build/node/index.d.ts"
+            ],
+            "router": [
+                "./build/router/index.d.ts"
+            ],
+            "runtime": [
+                "./build/runtime/index.d.ts"
+            ],
+            "test": [
+                "./build/test/index.d.ts"
+            ],
+            "vite": [
+                "./build/vite/index.d.ts"
+            ]
+        }
     },
-    "./lib/constants": {
-      "types": "./build/lib/constants.d.ts",
-      "import": "./build/lib/constants.js"
-    },
-    "./lib/types": {
-      "types": "./build/lib/types.d.ts",
-      "import": "./build/lib/types.js"
-    },
-    "./node": {
-      "types": "./build/node/index.d.ts",
-      "import": "./build/node/index.js"
-    },
-    "./node/*": {
-      "types": "./build/node/*.d.ts",
-      "import": "./build/node/*.js"
-    },
-    "./router": {
-      "types": "./build/router/index.d.ts",
-      "import": "./build/router/index.js"
-    },
-    "./router/*": {
-      "types": "./build/router/*.d.ts",
-      "import": "./build/router/*.js"
-    },
-    "./runtime": {
-      "types": "./build/runtime/index.d.ts",
-      "import": "./build/runtime/index.js"
-    },
-    "./runtime/*": {
-      "types": "./build/runtime/*.d.ts",
-      "import": "./build/runtime/*.js"
-    },
-    "./runtime/cache": {
-      "types": "./build/runtime/cache/index.d.ts",
-      "import": "./build/runtime/cache/index.js"
-    },
-    "./runtime/config": {
-      "types": "./build/runtime/config.d.ts",
-      "import": "./build/runtime/config.js"
-    },
-    "./runtime/constants": {
-      "types": "./build/runtime/constants.d.ts",
-      "import": "./build/runtime/constants.js"
-    },
-    "./runtime/types": {
-      "types": "./build/runtime/types.d.ts",
-      "import": "./build/runtime/types.js"
-    },
-    "./test": {
-      "types": "./build/test/index.d.ts",
-      "import": "./build/test/index.js"
-    },
-    "./test/*": {
-      "types": "./build/test/*.d.ts",
-      "import": "./build/test/*.js"
-    },
-    "./vite": {
-      "types": "./build/vite/index.d.ts",
-      "import": "./build/vite/index.js"
-    },
-    "./vite/*": {
-      "types": "./build/vite/*.d.ts",
-      "import": "./build/vite/*.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "adapter": [
-        "./build/adapter/index.d.ts"
-      ],
-      ".": [
-        "./build/lib/index.d.ts"
-      ],
-      "node": [
-        "./build/node/index.d.ts"
-      ],
-      "router": [
-        "./build/router/index.d.ts"
-      ],
-      "runtime": [
-        "./build/runtime/index.d.ts"
-      ],
-      "test": [
-        "./build/test/index.d.ts"
-      ],
-      "vite": [
-        "./build/vite/index.d.ts"
-      ]
-    }
-  },
-  "bin": "./build/cmd/index.js",
-  "types": "./build/lib/index.d.ts"
+    "bin": "./build/cmd/index.js",
+    "types": "./build/lib/index.d.ts"
 }
