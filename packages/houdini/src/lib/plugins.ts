@@ -61,7 +61,10 @@ export async function plugin_path(
 		if (preferWasm) {
 			try {
 				const wasm_dir = find_module(`${plugin_name}-wasm`, config_path)
-				return { executable: path.join(wasm_dir, 'bin', `${plugin_name}.wasm`), directory: plugin_dir }
+				return {
+					executable: path.join(wasm_dir, 'bin', `${plugin_name}.wasm`),
+					directory: plugin_dir,
+				}
 			} catch {}
 		}
 

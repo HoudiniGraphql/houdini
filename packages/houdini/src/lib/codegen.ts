@@ -217,7 +217,9 @@ export async function codegen_setup(
 					clearTimeout(timeout)
 
 					pollDb.run('UPDATE plugins SET config = ? WHERE name = ?', [
-						JSON.stringify(config.plugins.find((p) => p.name === configKey)?.config ?? {}),
+						JSON.stringify(
+							config.plugins.find((p) => p.name === configKey)?.config ?? {}
+						),
 						dbKey,
 					])
 					pollDb.flush()
@@ -228,7 +230,8 @@ export async function codegen_setup(
 						port: row.port,
 						hooks: new Set(JSON.parse(row.hooks)),
 						order: row.plugin_order as 'before' | 'after' | 'core',
-						directory: config.plugins.find((p) => p.name === configKey)?.directory || '',
+						directory:
+							config.plugins.find((p) => p.name === configKey)?.directory || '',
 					}
 					spec_results[configKey] = spec
 
@@ -439,7 +442,9 @@ export async function codegen_setup(
 			const child = spawn(executable, args, {
 				// [stdin, stdout, stderr]: stdio plugins need piped stdin/stdout for the
 				// message protocol; stderr is always inherited so plugin logs reach the terminal.
-				stdio: pluginUsesStdio ? ['pipe', 'pipe', 'inherit'] : ['inherit', 'inherit', 'inherit'],
+				stdio: pluginUsesStdio
+					? ['pipe', 'pipe', 'inherit']
+					: ['inherit', 'inherit', 'inherit'],
 				detached: process.platform !== 'win32',
 			})
 

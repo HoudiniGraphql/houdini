@@ -148,7 +148,8 @@ export async function get_config({
 		}
 
 		// order the list of plugins
-		const preferWasm = process.env.HOUDINI_PLATFORM === 'wasm' || config_file.pluginTransport === 'stdio'
+		const preferWasm =
+			process.env.HOUDINI_PLATFORM === 'wasm' || config_file.pluginTransport === 'stdio'
 		_config.plugins = await Promise.all(
 			plugins.map(async ([name, config]) => ({
 				name,

@@ -164,7 +164,9 @@ export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 			if (opts.type === 'delete') return
 
 			const config = await get_config()
-			const local_schema_path = await resolve_local_schema(path.join(config.root_dir, 'src', 'api', '+schema'))
+			const local_schema_path = await resolve_local_schema(
+				path.join(config.root_dir, 'src', 'api', '+schema')
+			)
 			if (!local_schema_path) return
 
 			const schema_mod_path = `${local_schema_path}?t=${Date.now()}`
@@ -219,7 +221,9 @@ async function write_local_schema(
 	root_dir: string,
 	schema_path: string
 ) {
-	const local_schema_path = await resolve_local_schema(path.join(root_dir, 'src', 'api', '+schema'))
+	const local_schema_path = await resolve_local_schema(
+		path.join(root_dir, 'src', 'api', '+schema')
+	)
 	if (!local_schema_path) return
 
 	let schema: GraphQLSchema

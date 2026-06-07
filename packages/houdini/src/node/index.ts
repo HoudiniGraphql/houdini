@@ -118,7 +118,11 @@ function runStdio(config: NodePluginConfig, pluginKey: string): void {
 
 // ─── WebSocket transport ──────────────────────────────────────────────────────
 
-async function runWebSocket(config: NodePluginConfig, databasePath: string, pluginKey: string): Promise<void> {
+async function runWebSocket(
+	config: NodePluginConfig,
+	databasePath: string,
+	pluginKey: string
+): Promise<void> {
 	if (!databasePath) {
 		process.stderr.write('node plugin: --database path is required in websocket mode\n')
 		process.exit(1)

@@ -9,7 +9,10 @@ export interface Db {
 	readonly filepath: string
 	exec(sql: string): void
 	run(sql: string, params?: Params): void
-	get<T extends Record<string, any> = Record<string, any>>(sql: string, params?: Params): T | undefined
+	get<T extends Record<string, any> = Record<string, any>>(
+		sql: string,
+		params?: Params
+	): T | undefined
 	all<T extends Record<string, any> = Record<string, any>>(sql: string, params?: Params): T[]
 	rowsModified(): number
 	// SqlJsDb: export in-memory db to disk so Go can read it. NativeDb: no-op (WAL file is always current).
@@ -27,11 +30,7 @@ class SqlJsDb implements Db {
 	readonly filepath: string
 	private _lastRowsModified = 0
 
-	constructor(
-		db: SqlJsDatabase,
-		SQL: Awaited<ReturnType<typeof initSqlJs>>,
-		filepath: string
-	) {
+	constructor(db: SqlJsDatabase, SQL: Awaited<ReturnType<typeof initSqlJs>>, filepath: string) {
 		this._db = db
 		this._SQL = SQL
 		this.filepath = filepath
@@ -108,24 +107,35 @@ class NativeDb implements Db {
 
 	run(sql: string, params?: Params): void {
 		const stmt = this._conn.prepare(sql)
-		const result = params === undefined ? stmt.run()
-			: Array.isArray(params) ? stmt.run(...params)
-			: stmt.run(this._norm(params))
+		const result =
+			params === undefined
+				? stmt.run()
+				: Array.isArray(params)
+					? stmt.run(...params)
+					: stmt.run(this._norm(params))
 		this._lastChanges = result?.changes ?? 0
 	}
 
 	get<T extends Record<string, any>>(sql: string, params?: Params): T | undefined {
 		const stmt = this._conn.prepare(sql)
-		return (params === undefined ? stmt.get()
-			: Array.isArray(params) ? stmt.get(...params)
-			: stmt.get(this._norm(params))) as T | undefined
+		return (
+			params === undefined
+				? stmt.get()
+				: Array.isArray(params)
+					? stmt.get(...params)
+					: stmt.get(this._norm(params))
+		) as T | undefined
 	}
 
 	all<T extends Record<string, any>>(sql: string, params?: Params): T[] {
 		const stmt = this._conn.prepare(sql)
-		return (params === undefined ? stmt.all()
-			: Array.isArray(params) ? stmt.all(...params)
-			: stmt.all(this._norm(params))) as T[]
+		return (
+			params === undefined
+				? stmt.all()
+				: Array.isArray(params)
+					? stmt.all(...params)
+					: stmt.all(this._norm(params))
+		) as T[]
 	}
 
 	rowsModified(): number {

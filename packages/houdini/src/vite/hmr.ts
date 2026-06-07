@@ -124,11 +124,17 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 							// Fall back to readFileSync so we never write empty content.
 							let fileContent = content
 							if (fileContent.trim() === '' && filepath.endsWith('.gql')) {
-								try { fileContent = readFileSync(filepath, 'utf-8') } catch {}
+								try {
+									fileContent = readFileSync(filepath, 'utf-8')
+								} catch {}
 							}
 							if (fileContent.trim() !== '') {
 								ownWrites.set(filepath, Date.now())
-								try { writeFileSync(filepath, fileContent, 'utf-8') } catch { ownWrites.delete(filepath) }
+								try {
+									writeFileSync(filepath, fileContent, 'utf-8')
+								} catch {
+									ownWrites.delete(filepath)
+								}
 							}
 						}
 					}
@@ -182,10 +188,10 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 				}
 
 				// ctx.db is reloaded by trigger_hook — mark extracted documents for this task
-				ctx.db.run(
-					`UPDATE raw_documents SET current_task = ? WHERE ${eqClause}`,
-					[task_id, ...relativePaths]
-				)
+				ctx.db.run(`UPDATE raw_documents SET current_task = ? WHERE ${eqClause}`, [
+					task_id,
+					...relativePaths,
+				])
 				const changes = ctx.db.rowsModified()
 
 				// if the update did not contain any changes, then there were no extracted files

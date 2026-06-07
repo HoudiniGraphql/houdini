@@ -13,10 +13,16 @@ vi.mock('ws', () => ({
 vi.mock('../lib/db.js', () => ({
 	openDb: async () => ({
 		run() {},
-		get() { return undefined },
-		all() { return [] },
+		get() {
+			return undefined
+		},
+		all() {
+			return []
+		},
 		exec() {},
-		rowsModified() { return 0 },
+		rowsModified() {
+			return 0
+		},
 		flush() {},
 		reload() {},
 		close() {},
