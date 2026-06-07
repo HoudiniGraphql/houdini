@@ -45,7 +45,6 @@ const addNonNull = async (force: ForceReturn$options = 'NORMAL') => {
 		{
 			optimisticResponse: {
 				addNonNullUser: {
-					id: '??? id ???',
 					name: '...optimisticResponse... I could have guessed JYC!',
 				},
 			},
@@ -63,7 +62,6 @@ const add = async (force: ForceReturn$options = 'NORMAL') => {
 		{
 			optimisticResponse: {
 				addUser: {
-					id: '??? id ???',
 					name: '...optimisticResponse... I could have guessed JYC!',
 				},
 			},

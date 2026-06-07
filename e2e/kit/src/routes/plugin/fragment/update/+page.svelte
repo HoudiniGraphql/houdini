@@ -8,6 +8,7 @@ $: ({ FragmentUpdateTestQuery: userInfo } = data)
 
 $: user = fragment(
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	// @ts-ignore: abstract interface result type lacks " $fragments" marker on concrete variants
 	$userInfo.data?.node,
 	graphql(`
       fragment UserFragmentTestFragment on User {
