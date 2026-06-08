@@ -1,0 +1,38 @@
+<style>{`
+  .houdini-coming-soon {
+    --cs-accent: var(--primary);
+
+    margin: 1.35rem 0 2rem;
+    padding: 1.25rem 1.45rem;
+    border: 1px solid color-mix(in oklch, var(--cs-accent) 25%, transparent);
+    border-inline-start: 5px solid var(--cs-accent);
+    border-radius: 4px;
+    background: color-mix(in oklch, var(--cs-accent) 8%, transparent);
+    color: var(--contrast);
+  }
+
+  .houdini-coming-soon__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.65rem;
+    color: var(--cs-accent);
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .houdini-coming-soon p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+`}</style>
+
+<div class="houdini-coming-soon">
+  <p class="houdini-coming-soon__title">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Coming Soon
+  </p>
+  <p>This page is a work in progress. Check back soon for full documentation.</p>
+</div>

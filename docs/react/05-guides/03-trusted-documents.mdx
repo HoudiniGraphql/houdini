@@ -1,6 +1,6 @@
 ---
-title: Persisted Queries
-description: A guide to persisted queries in Houdini
+title: Trusted Documents
+description: A guide to trusted documents in Houdini
 ---
 
 Sometimes you want to confine an API to only fire a set of pre-defined queries. This
@@ -16,14 +16,15 @@ The simplest solution for persisted queries it to generate a fixed mapping of ha
 query for every document that your client will send.
 
 Two ways to generate this list:
+
 1. Configuring the `persistedQueriesPath` option in your
-`houdini.config.js` file. More info in the [config section](/svelte/api/config#fields).
-2. Running the `generate` command with the `--output` flag 
+`houdini.config.js` file. More info in the [config section](/react/api/config/#fields).
+2. Running the `generate` command with the `--output` flag
 and provide a path to save the map:
 
 ```bash
 npx houdini generate --output ./queries.json
-## or
+# or
 npx houdini generate -o ./queries.json
 ```
 
@@ -50,7 +51,7 @@ export default new HoudiniClient({
 An approach to Persisted Queries, popularized by Apollo, is known as
 [Automatic Persisted Queries (APQ)](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 This involves first sending a query's hash and if its unrecognized, sending the full
-query string. The easiest way to do this is to define a [client plugin](/svelte/api/client-plugins).
+query string. The easiest way to do this is to define a [client plugin](/react/api/client-plugins/).
 This might look something like:
 
 ```typescript title="src/client.ts&typescriptToggle=true"

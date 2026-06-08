@@ -3,14 +3,14 @@ name: Trigger docs rebuild
 on:
   push:
     branches: [houdini-2.0]
-    paths:
-      - 'packages/*/docs/**'
-      - 'packages/_docs/**'
-      - 'docs/project/**'
-  push:
     tags:
       - 'svelte-v*'
       - 'react-v*'
+      - 'houdini-v*'
+      - 'create-houdini-v*'
+    paths:
+      - 'docs/**'
+      - 'packages/*/CHANGELOG.md'
 
 jobs:
   trigger:
@@ -21,8 +21,8 @@ jobs:
           github-token: ${{ secrets.DOCS_SITE_TOKEN }}
           script: |
             await github.rest.repos.createDispatchEvent({
-              owner: 'houdinigraphql',
-              repo: 'houdinigraphql.com',
+              owner: 'HoudiniGraphql',
+              repo: 'marketing',
               event_type: 'docs-updated',
               client_payload: {
                 ref: context.ref,

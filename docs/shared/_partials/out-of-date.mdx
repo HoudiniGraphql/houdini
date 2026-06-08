@@ -1,25 +1,14 @@
 <style>{`
   .houdini-out-of-date {
     --ood-accent: var(--primary);
-    --ood-bg: color-mix(in oklch, var(--docs-content-bg) 94%, var(--ood-accent));
-    --ood-border: color-mix(in oklch, var(--contrast) 18%, transparent);
 
     margin: 1.35rem 0 2rem;
     padding: 1.25rem 1.45rem;
-    border: 1px solid var(--ood-border);
+    border: 1px solid color-mix(in oklch, var(--ood-accent) 25%, transparent);
     border-inline-start: 5px solid var(--ood-accent);
     border-radius: 4px;
-    background: var(--ood-bg);
+    background: color-mix(in oklch, var(--ood-accent) 8%, transparent);
     color: var(--contrast);
-  }
-
-  :root[data-theme="light"]  .houdini-out-of-date,
-  :root[data-theme="auto"]   .houdini-out-of-date {
-    --ood-bg: color-mix(in oklch, var(--docs-content-bg) 97%, var(--ood-accent));
-  }
-
-  :root[data-theme="dark"] .houdini-out-of-date {
-    --ood-bg: color-mix(in oklch, var(--docs-content-bg) 96%, var(--ood-accent));
   }
 
   .houdini-out-of-date__title {
