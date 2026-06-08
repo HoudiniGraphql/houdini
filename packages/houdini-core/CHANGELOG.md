@@ -1,5 +1,15 @@
 # houdini-core
 
+## 2.0.0-next.17
+
+### Patch Changes
+
+- [#1631](https://github.com/HoudiniGraphql/houdini/pull/1631) [`86cecd1`](https://github.com/HoudiniGraphql/houdini/commit/86cecd19a8f54662624913400a6d82192639901b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump dependencies to latest: graphql-yoga ^5, @whatwg-node/server ^0.11, minimatch ^10
+
+- [#1633](https://github.com/HoudiniGraphql/houdini/pull/1633) [`f84e3cc`](https://github.com/HoudiniGraphql/houdini/commit/f84e3cc00c1c4c70acd0bac2087f08b16af3a879) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix TypeScript types for fragment masking on abstract/interface fields.
+
+- [#1630](https://github.com/HoudiniGraphql/houdini/pull/1630) [`43d89e0`](https://github.com/HoudiniGraphql/houdini/commit/43d89e0a70b0daf8748ca9225a92b0b2b6bffa7a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added WebContainer compatible database layer
+
 ## 2.0.0-next.16
 
 ### Patch Changes
