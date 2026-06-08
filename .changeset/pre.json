@@ -46,6 +46,7 @@
     "mean-clocks-care",
     "mutation-error-handling",
     "nasty-tables-fix",
+    "publish-wasm-packages",
     "session-transform-ts-annotations",
     "small-falcons-grow",
     "stale-lizards-warn",
