@@ -140,7 +140,7 @@ function discoverPackages() {
     if (isGoPackage) {
       // Go-based package with platform builds
       const buildDir = join(packageDir, BUILD_DIR);
-      const buildPackages = discoverBuildPackages(buildDir);
+      const buildPackages = discoverBuildPackages(buildDir, packageInfo.name);
       packages.push({
         type: 'go',
         name: packageInfo.name,
@@ -166,7 +166,7 @@ function discoverPackages() {
   return packages;
 }
 
-function discoverBuildPackages(buildDir) {
+function discoverBuildPackages(buildDir, parentName) {
   const buildPackages = [];
 
   if (!existsSync(buildDir)) {
@@ -182,23 +182,12 @@ function discoverBuildPackages(buildDir) {
     const packageInfo = getPackageInfo(packageJsonPath);
 
     if (packageInfo) {
-      // Main package typically doesn't have platform-specific suffixes
-      // Platform packages have names like "houdini-core-darwin-arm64"
-      const subdirName = basename(subdir);
-      const isMainPackage = !subdirName.includes('-darwin-') &&
-                           !subdirName.includes('-linux-') &&
-                           !subdirName.includes('-windows-') &&
-                           !subdirName.includes('-win32-') &&
-                           !subdirName.endsWith('-wasm') &&
-                           !packageInfo.os &&
-                           !packageInfo.cpu;
-
       buildPackages.push({
         name: packageInfo.name,
         version: packageInfo.version,
         path: subdir,
         packageInfo,
-        isMainPackage
+        isMainPackage: packageInfo.name === parentName
       });
     }
   }
