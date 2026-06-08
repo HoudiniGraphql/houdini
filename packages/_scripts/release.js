@@ -189,6 +189,7 @@ function discoverBuildPackages(buildDir) {
                            !subdirName.includes('-linux-') &&
                            !subdirName.includes('-windows-') &&
                            !subdirName.includes('-win32-') &&
+                           !subdirName.endsWith('-wasm') &&
                            !packageInfo.os &&
                            !packageInfo.cpu;
 
