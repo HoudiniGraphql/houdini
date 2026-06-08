@@ -59,13 +59,13 @@ jobs:
                     echo "📝 Will use prerelease titles and skip snapshot releases"
                     echo "is_prerelease=true" >> $GITHUB_OUTPUT
                     echo "title=🚧 Prerelease Version Update" >> $GITHUB_OUTPUT
-                    echo "commit=🚧 v{VERSION}" >> $GITHUB_OUTPUT
+                    echo "commit=🚧 Version Packages" >> $GITHUB_OUTPUT
                   else
                     echo "✅ Regular release mode detected (no .changeset/pre.json)"
                     echo "📝 Will use regular titles and publish snapshot releases"
                     echo "is_prerelease=false" >> $GITHUB_OUTPUT
                     echo "title=📦 Release Version Update" >> $GITHUB_OUTPUT
-                    echo "commit=📦 v{VERSION}" >> $GITHUB_OUTPUT
+                    echo "commit=📦 Version Packages" >> $GITHUB_OUTPUT
                   fi
 
             # Per-commit snapshot release - only runs when NOT in prerelease mode
