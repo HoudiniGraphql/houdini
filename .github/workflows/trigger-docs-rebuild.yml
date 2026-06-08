@@ -22,7 +22,7 @@ jobs:
           script: |
             await github.rest.repos.createDispatchEvent({
               owner: 'HoudiniGraphql',
-              repo: 'marketing',
+              repo: 'houdinigraphql.com',
               event_type: 'docs-updated',
               client_payload: {
                 ref: context.ref,
