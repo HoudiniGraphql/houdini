@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.31
+
+### Patch Changes
+
+- [`a095fcc`](https://github.com/HoudiniGraphql/houdini/commit/a095fcc4eb51d6863a9cabc04b145fa96a53f240) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - publish wasm packages
+
 ## 2.0.0-next.30
 
 ### Patch Changes
