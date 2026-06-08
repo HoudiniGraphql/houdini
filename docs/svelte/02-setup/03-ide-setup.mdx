@@ -9,7 +9,7 @@ We recommend the following extensions for your editor to take full advantage of 
 - [Vim - vim-graphql](https://github.com/jparise/vim-graphql)
 - [VSCode - GraphQL: Language Feature Support](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql)
 
-To take the full advantage of these extensions, you should add a file in the root like:
+To take full advantage of these extensions, add a `.graphqlrc.yaml` at the root of your project:
 
 ```yaml title=".graphqlrc.yaml"
 projects:
@@ -22,5 +22,7 @@ projects:
       - '**/*.svelte'
       - ./$houdini/graphql/documents.gql
 ```
+
+The two `$houdini/graphql` entries are important: Houdini generates its own schema definitions (for directives like `@list`, `@paginate`, and `@cache`) and document definitions into that directory. Without them, your editor will flag Houdini's built-in directives as unknown. If your IDE is still complaining after adding this file, check that `definitionsPath` in your [config](/reference/config) points to the same directory.
 
 If you want to add another suggestion, please open a PR or contact us.

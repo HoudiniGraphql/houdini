@@ -1,0 +1,129 @@
+---
+title: Default Plugins
+description: The built-in client plugins that power Houdini's default pipeline
+---
+
+Houdini's client pipeline is built from a set of default plugins exported from `$houdini/plugins`. We can mix these into a custom pipeline when we need fine-grained control over how operations are processed.
+
+## `fetch`
+
+Resolves the pipeline by sending a standard HTTP request to the configured URL. This is the default terminating plugin and is most commonly referenced when building a custom pipeline.
+
+- Type: `(handler?: string | RequestHandler) => ClientPlugin`
+
+```typescript title="src/client.ts"
+import { HoudiniClient } from '$houdini'
+import { fetch } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        fetch()
+    ]
+})
+```
+
+For fully custom request handling, pass `fetch` a handler function directly:
+
+```typescript title="src/client.ts"
+import { HoudiniClient } from '$houdini'
+import { fetch } from '$houdini/plugins'
+import type { RequestHandler } from './$houdini'
+
+const fetchFn: RequestHandler = async ({ fetch, text, variables }) => {
+    const result = await fetch("...", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.user.token}`,
+        },
+        body: JSON.stringify({
+            query: text,
+            variables,
+        }),
+    })
+
+    return await result.json()
+}
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        fetch(fetchFn)
+    ]
+})
+```
+
+## `query`
+
+Defines the core behavior for queries: establishing cache subscriptions and accumulating variables.
+
+- Type: `ClientPlugin`
+
+```typescript title="src/client.ts"
+import { HoudiniClient } from '$houdini'
+import { query } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        query
+    ]
+})
+```
+
+## `mutation`
+
+Defines the core behavior for mutations, including optimistic responses.
+
+- Type: `ClientPlugin`
+
+```typescript title="src/client.ts"
+import { HoudiniClient } from '$houdini'
+import { mutation } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        mutation
+    ]
+})
+```
+
+## `subscription`
+
+Defines the default behavior for subscriptions. Resolves on `start` when not running in the browser.
+
+- Type: `(handler: SubscriptionHandler) => ClientPlugin`
+
+```typescript title="src/client.ts"
+import { HoudiniClient } from '$houdini'
+import { subscription } from '$houdini/plugins'
+
+export default new HoudiniClient({
+    url: "...",
+    pipeline: [
+        subscription
+    ]
+})
+```
+
+The `SubscriptionHandler` interface:
+
+```typescript
+type SubscriptionHandler = (ctx: ClientPluginContext) => {
+    subscribe: (
+        payload: { query: string; variables?: {} },
+        handlers: {
+            next: (payload: NextPayload) => void
+            error: (data: {}) => void
+            complete: () => void
+        }
+    ) => () => void
+}
+
+type NextPayload = {
+    data?: {} | null
+    errors?: readonly { message: string }[]
+}
+```

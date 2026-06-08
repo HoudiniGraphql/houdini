@@ -7,11 +7,11 @@ These files are fetched and rendered by [houdinigraphql.com](https://houdinigrap
 Files and directories are ordered by numeric prefix, which is stripped from URLs:
 
 ```
-01-start/
-  01-getting-started.mdx   → /svelte/v3/start/getting-started/
-  02-installation.mdx      → /svelte/v3/start/installation/
-02-core-topics/
-  01-queries.mdx           → /svelte/v3/core-topics/queries/
+01-your-first-app/
+  00-getting-started.mdx   → /svelte/v3/your-first-app/getting-started/
+  01-queries.mdx           → /svelte/v3/your-first-app/queries/
+02-setup/
+  01-installation.mdx      → /svelte/v3/setup/installation/
 ```
 
 ## Frontmatter

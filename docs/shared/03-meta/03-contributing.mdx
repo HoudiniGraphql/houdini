@@ -1,0 +1,72 @@
+---
+title: Contributing
+description: A guide for contributing to Houdini.
+---
+
+import OutOfDate from '@shared/_partials/out-of-date.mdx'
+
+<OutOfDate />
+
+First off, thanks for the interest in contributing to Houdini.
+
+This document should provide some guidance for working on the project, including tips for local development and an introduction to the internal architecture and relevant files.
+
+**Note**: this document contains links to files and sometimes specific lines of code that could easily be invalidated by future work. If you run into a broken link, please open a PR to fix it — keeping documentation up to date is as important as any bug fix or new feature.
+
+## Local Development
+
+The quickest way to test and develop new features is by using the [end-to-end tests](https://github.com/HoudiniGraphQL/houdini/tree/main/e2e/kit). Starting with `pnpm i && pnpm build` at the root of the repository will handle linking everything up. Once that's done, run `pnpm dev` inside the `e2e/kit` directory to start both the web app and API development servers. After all of this, visiting `localhost:5173` should show the end-to-end test suite. We recommend creating a route in that application to work against — don't worry about where it "belongs", we'll sort that out when the PR is open.
+
+Make sure you're using Node.js and pnpm versions compatible with the `engines` config in the repo's `package.json`, otherwise behavior between local, CI, and deploy environments may diverge. Some good options for managing multiple Node versions:
+
+- [nvm](https://github.com/nvm-sh/nvm)
+- [mise-en-place](https://mise.jdx.dev/)
+- [nix](https://nixos.org/)
+
+## General Introduction
+
+At a high level, Houdini is broken up into a few parts. The core project lives in [packages/houdini](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini) and provides the artifact generation pipeline, cache runtime, Vite plugin, and utilities for building extensions. Apart from that, Houdini has framework-specific bindings that take the generated artifacts and deliver an experience tailored to each framework. The Svelte bindings live in [packages/houdini-svelte](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-svelte) and the React bindings in [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react).
+
+## Code Generation
+
+Houdini's code generation pipeline is written in Go and lives in the [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins) directory. It is ultimately responsible for generating the artifacts that describe every document in a project — those artifacts save the runtime from parsing user documents and enable features like compiling fragments and queries into a single string sent to the API.
+
+The pipeline tasks fall into three categories:
+
+- **Validators** ensure that assumptions made by the rest of the pipeline hold. For example, one validator makes sure every document has a unique name so the preprocessor can reliably import the correct artifact.
+- **Transforms** modify the actual documents the user provides. For example, the `collectDefinitions` transform adds any fragment definitions used by an operation so they can be included in the network request.
+- **Generators** write things to disk. For example, the TypeScript generator creates type definitions for every document in a project.
+
+### Document Artifacts
+
+Artifacts are the central output of code generation. They encode everything the runtime needs: the raw query string, the selection shape, list operation metadata, and more. Rather than outlining every field (which would go stale quickly), the best place to get a feel for them is the artifact snapshot tests.
+
+## The Vite Plugin
+
+The base Vite plugin lives in [packages/houdini/src/vite](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/vite) and handles tasks like polling the API for schema changes. The framework-specific plugins extend this to transform every `graphql`-tagged string into something the runtime can use.
+
+## The Runtime
+
+The shared runtime lives in [packages/houdini/src/runtime](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini/src/runtime) and contains the cache and utilities shared across all frameworks.
+
+### The Cache
+
+The cache is built on two core operations: writing data and subscribing to a selection.
+
+When writing, the cache walks the result and stores every field value in a normalized map keyed by entity ID. References to other entities are stored as references rather than inline values, so updates only need to happen in one place regardless of how many times an entity appears across queries.
+
+Subscriptions keep stores up to date as values change. The cache walks a given selection and embeds a reference to the store's `set` function alongside the field values for each entity. When data is written, the cache captures every relevant `set` function and calls it with the updated selection. For a good conceptual introduction to normalized caching, the [urql docs on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/) are worth a read — the concepts carry over even if some implementation details differ.
+
+## End-to-End Tests
+
+The best way to verify a feature is to write a test that simulates the user's experience. These live in the [e2e/](https://github.com/HoudiniGraphQL/houdini/tree/main/e2e) directory at the root of the repository. The general pattern is to create a route in one of the test applications that showcases a specific behavior, then use [Playwright](https://playwright.dev/) to simulate a user interacting with the UI.
+
+## Piecing It All Together
+
+When thinking about adding a feature, a few questions help frame the work:
+
+1. **Does the feature appear in GraphQL documents?** If so, figure out how to persist what the user writes in the generated artifacts. The runtime walks the selection field when writing values to the cache and can look for special keys to perform additional logic when processing a response.
+2. **Are there validation steps needed?** Validators protect users but also provide guarantees to the runtime — they can save a lot of conditional checks when processing server responses.
+3. **Can the framework layer help the runtime?** Because the generated code lives in the user's project, things like reactive statements and lifecycle functions work out of the box.
+
+An end-to-end feature will typically touch the artifact generator and the runtime at minimum. It's easy to get lost in how the pieces fit together — the implementation of list operations in the codebase is a good worked example to trace through when getting oriented.

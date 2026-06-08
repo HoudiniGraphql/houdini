@@ -3,6 +3,8 @@ title: Mutation
 description: Mutations in Houdini
 ---
 
+import Dedupe from '@shared/_partials/dedupe.mdx'
+
 
 Send a mutation to the server and updating your client-side cache with any changes.
 
@@ -171,6 +173,20 @@ mutation NewItem($input: AddItemInput!) {
 }
 ```
 
+By default, records are appended to the end of the list. Use `@prepend` to insert at the beginning instead:
+
+```graphql
+mutation NewItem($input: AddItemInput!) {
+	addItem(input: $input) {
+		item {
+			...All_Items_insert @prepend
+		}
+	}
+}
+```
+
+`@append` is also available when you want to be explicit. Both work with `_toggle` fragments as well.
+
 ### Removing a record
 
 Any mutation that returns an `Item` can also be used to remove an item from the list:
@@ -212,6 +228,22 @@ mutation DeleteItem($id: ID!) {
 	}
 }
 ```
+
+### Targeting all lists
+
+If the same list name appears in multiple places in your cache (across different queries or fragments), you can target all of them at once with `@allLists`:
+
+```graphql
+mutation RemoveItem($input: RemoveItemInput!) {
+	removeItem(input: $input) {
+		item {
+			...All_Items_remove @allLists
+		}
+	}
+}
+```
+
+`@allLists` cannot be combined with `@parentID`.
 
 ### Conditionals
 
@@ -379,3 +411,5 @@ so the generated types are trying to guide you towards a safer practice.
 There's no harm in duplicating a field that is part of a fragment so if you are going to
 provide an optimistic value, you should add those fields to the explicit selection
 set of the mutation.
+
+<Dedupe />

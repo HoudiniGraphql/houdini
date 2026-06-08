@@ -1,0 +1,27 @@
+## Deduplication
+
+By default, nothing stops the same operation from running multiple times simultaneously. The `@dedupe` directive gives us control over that behavior:
+
+```graphql
+query UserProfile($id: ID!) @dedupe {
+    user(id: $id) {
+        name
+    }
+}
+```
+
+With no arguments, `@dedupe` prevents a second request from firing if an identical one is already in-flight. To cancel the first request instead of dropping the second, pass `cancelFirst: true`:
+
+```graphql
+query UserProfile($id: ID!) @dedupe(cancelFirst: true) {
+    user(id: $id) {
+        name
+    }
+}
+```
+
+The `match` argument controls what counts as "identical":
+
+- `Operation` — dedupe if any execution of this operation is pending, regardless of variables (default)
+- `Variables` — dedupe only if the variables also match
+- `None` — never dedupe

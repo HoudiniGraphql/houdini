@@ -1,0 +1,8 @@
+---
+title: Nullability
+description: Controlling null propagation in your GraphQL documents
+---
+
+### `@required`
+
+Customizes the behavior of null values at runtime. When a field marked with `@required` is null, the parent object is set to null instead of the field itself. For more background on the pattern, see [this post](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the Relay blog.
