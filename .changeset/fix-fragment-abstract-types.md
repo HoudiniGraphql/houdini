@@ -4,4 +4,4 @@
 'houdini-core': patch
 ---
 
-Fix TypeScript types for fragment masking on abstract/interface fields.
+fix fragment masking types on abstract and interface fields
