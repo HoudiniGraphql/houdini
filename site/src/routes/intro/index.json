@@ -1,4 +1,0 @@
-{
-	"name": "Get Started",
-	"pages": ["fetching-data", "reusing-parts-of-a-query", "mutations", "pagination"]
-}

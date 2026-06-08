@@ -1,0 +1,13 @@
+---
+title: Page Views
+description: Page views in Houdini's React framework
+---
+
+Page views (defined by `+page.jsx`) are components that are unique to just that route and in many ways _define_ a route. For example, to
+define a view at the root of your application you just need to define a component at `src/routes/+page.jsx`:
+
+```jsx title="src/routes/+page.tsx&typescriptToggle=true"
+export default () => {
+    return <div> Hello Houdini! </div>
+}
+```

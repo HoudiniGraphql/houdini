@@ -1,0 +1,13 @@
+---
+title: Routing
+description: Documentation for Houdini's application framework
+---
+
+At the core of a Houdini application is a filesystem-based router located at `src/routes`. You will use it to encode your applications
+visual skeleton as well as its data requirements. Routes in houdini are directory-based. That is to say:
+
+- `src/routes` is the root route
+- `src/routes/shows` corresponds to a route at `/shows`
+- `src/routes/show/[id]` defines a route with a parameter, `id`, that matches a pattern such as `/show/1234`
+
+Each route is defined by the presence of any number of magic files (all of which are conventionally prefixed with `+`).

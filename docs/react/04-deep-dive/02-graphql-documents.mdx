@@ -1,0 +1,126 @@
+---
+title: Working with GraphQL Documents
+description: An overview of the various ways Houdini applications can leverage GraphQL documents.
+---
+
+Just like views are defined in page and layout variants, your applications queries
+are defined in `+page.gql` and `+layout.gql` files. Queries must have a unique name:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowList {
+    shows {
+        title
+    }
+}
+```
+
+Just like their equivalent view component, layout queries are designed to "wrap" child routes and are
+accessible by any child (or sibling) page or layout component.
+
+To access the value of a query, your component just needs to accept a prop with the appropriate name.
+This could be one query or as many as you have defined. Keep in mind that since this works off of very
+simple static analysis, your component props must be spread out from the
+argument like so:
+
+```jsx title="src/routes/shows/+page.tsx&typescriptToggle=true"
+export default function ({ ShowList }) {
+    return (
+        <>
+            {ShowList.shows.map(show => (
+                <div>
+                    {show.title}
+                </div>
+            ))}
+        </>
+    )
+}
+```
+
+An arrow function would have also worked as long as it had `{ ShowList }` or `{ ShowList, AnotherQuery }`
+
+## Query Variables
+
+If your query contains variables with the same name as a [route parameter](/react/route-parameters/), Houdini will wire the two up.
+
+For example, all you need to do is define this query at `src/routes/show/[id]/+page.gql` and you can visit `/show/123` or `/show/abc`:
+
+```graphql title="src/routes/show/[id]/+page.gql"
+query ShowInfo($id: ID!) {
+    show(id: $id) {
+        name
+    }
+}
+```
+
+## Fragments
+
+There are two ways to use fragments in Houdini. The first is defining it inside of the `useFragment` hook and this
+approach will always work in all situations:
+
+```tsx title="src/components/ShowCard.tsx"
+import { graphql, useFragment } from "$houdini";
+
+export  function ShowCard(props: { show: ShowCardInfo }) {
+  const data = useFragment(props.show, graphql(`
+    fragment ShowCardInfo on Show {
+        name
+    }
+  `))
+
+  return (
+    <div>
+        {data.name}
+    </div>
+  )
+}
+```
+
+And then can be passed to your graphql query:
+
+```graphql title="src/routes/show/[id]/+page.gql"
+query ShowInfo($id: ID!) {
+    show(id: $id) {
+        ...ShowCardInfo
+    }
+}
+```
+
+And then threaded through to the component:
+
+```tsx title="src/routes/show/[id]/+page.tsx&typescriptToggle=true"
+import { ShowCard } from '...'
+import type { PageProps } from './$types'
+
+export default function ShowInfoView({ ShowInfo }:PageProps) {
+    return (
+        <ShowCard show={ShowInfo.show} />
+    )
+}
+```
+
+## Mutations
+
+Mutations are defined by simply wrapping the result of `graphql` in `useMutation`:
+
+```tsx title="src/routes/shows/[id]/edit/+page.jsx"
+import { graphql, useMutation } from "$houdini";
+
+export default function EditShow({ AllShows }) {
+  const [one, setOne] = React.useState("");
+  const [two, setTwo] = React.useState("");
+
+  const mutate = useMutation(graphql(`
+      mutation OneTwo($one: String!, $two: String!) {
+        do(one: $one, two: $two)
+      }
+  `))
+
+  return (
+    <form onSubmit={() => mutate({one, two})}>
+      <input value={one} onChange={(e) => setOne(e.target.value)} />
+      <input value={two} onChange={(e) => setTwo(e.target.value)} />
+      <button type=“submit">submit</button>
+    </form>
+  )
+}
+```

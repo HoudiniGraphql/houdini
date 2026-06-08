@@ -1,0 +1,32 @@
+---
+title: Route Parameters
+description: Route parameters in Houdini's React framework
+---
+
+Dynamic portions of a route can be labeled using square brackets. For example `src/routes/show/[id]/+page`
+creates a page that matches `/shows/1` or `/show/abc`.
+
+:::tip[Rest Paramters]
+
+
+If the length of a path segment is unknown, you can match multiple segments using the rest syntax. For example:
+`src/routes/assets/[...filepath]`.
+
+:::
+
+:::tip[Optional Parameters]
+
+
+Optional parameters are denoted with double brackets, ie `/[[lang]]/home/`.
+
+:::caution
+
+
+Optional route parameter cannot follow a rest parameter ([...rest]/[[optional]]),
+since parameters are matched 'greedily' and the optional parameter would always be unused.
+
+
+:::
+
+
+:::

@@ -1,0 +1,45 @@
+---
+title: Code Generation
+description: A summary of code generation in Houdini's React framework
+---
+
+Houdini's Vite Plugin is responsible for generating the code necessary to
+power [its GraphQL APIs](/react/graphql-documents/).
+
+The plugin is primarily responsible for a few tasks:
+
+- transforming `graphql` tags into store references
+- generating the hidden load functions for our routes
+- watching your project source for changes to validate and process your project
+- watching for changes in your APIs schema
+
+## Configuration
+
+The plugin can be optionally configured with an object containing any of the [config values](/react/api/config/) as well as
+the `configFile` key which can be used to provide an absolute path to your `houdini.config.js` (useful in monorepos).
+
+## Adapters
+
+Deployment of your application is handled by an "adapter" - a simple function that
+prepares your project for deployment. Adapters are passed to your application through
+the vite plugin:
+
+```javascript title="vite.config.js"
+import houdini from 'houdini/vite'
+import adapter from 'houdini-adapter-cloudflare'
+
+/** @type {import('vite').UserConfig} */
+const config = {
+    plugins: [houdini( { adapter } ), ...]
+}
+
+export default config
+```
+
+Here is a list of the available adapters:
+
+- `houdini-adapter-cloudflare`: builds your application to run on Cloudflare Pages
+- `houdini-adapter-static`: builds your application to run as a single page application (no server bits). Keep in mind if you use this adapter,
+your `+index` file will be used to generate the static shell. This means that any special react components (error boundaries, etc) should be moved to the root `+layout`
+in order to preserve the behavior.
+- `houdini-adapter-auto`: tries to install the appropriate adapter for the current situation

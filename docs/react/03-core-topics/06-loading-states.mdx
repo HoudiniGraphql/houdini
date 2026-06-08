@@ -1,0 +1,312 @@
+---
+title: Loading States
+description: An overview of the tools that houdini provides to help construct loading states for your application.
+---
+
+At some point, your users are going to be waiting for data to load from the server. This could be because they
+don't live in a place with state-of-the-art internet service or maybe they just stepped into a tunnel. Regardless,
+you are going to want to show them _something_ while your request loads. These loading states are sometimes referred
+to as "Skeleton UIs" and usually display placeholder elements while the actual content is being loaded.
+
+This guide will go over all of the tools that Houdini provides to help you build these interfaces.
+
+## A Concrete Example
+
+For the sake of this guide, you can imagine that the route is built using the following query:
+
+```graphql title="src/routes/[[id]]/+page.gql"
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) {
+        name
+        description
+        evolutionChain {
+            name
+            ...Sprite_species
+        }
+
+        ...Sprite_species
+        ...MoveList_species
+        ...NavButtons_species
+    }
+}
+```
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import {
+    Container,
+    Panel,
+    Sprite,
+    Display,
+    MoveList,
+    NavButtons,
+    Number,
+} from '~/components'
+
+export default function SpeciesPage({ SpeciesInfo }) {
+    const species = SpeciesInfo.species
+
+    return (
+        <Container>
+            <Panel slot="left">
+                <Display>{species.name}</Display>
+                <Sprite species={species} />
+                <Display>{species.description}</Display>
+            </Panel>
+            <Panel slot="right">
+                <div className="evolution-chain">
+                    {species.evolutionChain.map((evolvedForm, i) => (
+                        <div className="evolution-form">
+                            <Number value={i + 1} />
+                            <Sprite style={{ height: 96 }} species={evolvedForm} />
+                            <Display>{evolvedForm.name}</Display>
+                        </div>
+                    ))}
+                </div>
+                <MoveList species={species} />
+                <NavButtons species={species} />
+            </Panel>
+        </Container>
+    )
+}
+```
+
+Just in case it's not clear: the `evolutionChain` list corresponds to the 3 columns
+in the top right of the loading screen.
+
+## The Simplest Solution
+
+The easiest way to protect against loading data is to check whether the value is pending and render your loading state.
+For React, use `isPending` from `$houdini` when identifying a pending value.
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { isPending } from '$houdini'
+
+export default function SpeciesPage({ SpeciesInfo }) {
+    const species = SpeciesInfo.species
+
+    if (isPending(species)) {
+        return (
+            <Container>
+                <Panel slot="left">
+                    <Display height={30} loading />
+                    <Sprite style={{ flexGrow: 1 }} loading />
+                    <Display height={120} loading />
+                </Panel>
+                <Panel slot="right">
+                    <div className="evolution-chain">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <div className="evolution-form">
+                                <Number value={i + 1} />
+                                <Sprite height={96} loading />
+                                <Display height={30} loading />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="row">
+                        <Display height={400} loading />
+                        <UpDownButtons disabled />
+                    </div>
+                    <div className="row">
+                        <Button disabled>Previous</Button>
+                        <Button disabled>Next</Button>
+                    </div>
+                </Panel>
+            </Container>
+        )
+    }
+
+    return (
+        <Container>
+            <Panel slot="left">
+                <Display>{species.name}</Display>
+                <Sprite species={species} />
+                <Display>{species.description}</Display>
+            </Panel>
+            <Panel slot="right">
+                <div className="evolution-chain">
+                    {species.evolutionChain.map((evolvedForm, i) => (
+                        <div className="evolution-form">
+                            <Number value={i + 1} />
+                            <Sprite style={{ height: 96 }} species={evolvedForm} />
+                            <Display>{evolvedForm.name}</Display>
+                        </div>
+                    ))}
+                </div>
+                <MoveList species={species} />
+                <NavButtons species={species} />
+            </Panel>
+        </Container>
+    )
+}
+```
+
+There are 2 major problems with this:
+
+1. We basically have to build our layout twice. Even if we relied heavily on optional chaining or sprinkled a bunch of `isPending` checks everywhere, we still _must_ duplicate the logic for the evolution chain since when `data` is pending, there is no natural list to iterate over to render the boxes.
+1. We had to break the abstraction created by the `MoveList` and `NavButtons` components since we needed to duplicate their structure here.
+
+Bottom Line? No matter how we approach it, if our goal is to build a loading state that reflects our final UI, relying
+on a single top-level pending check is pretty annoying.
+But don't worry - Houdini solves both of these problems with a single directive: `@loading`.
+
+## Defining the Shape
+
+Let's look at how we can address the first point by using the `@loading` directive. Simply put, the `@loading` directive
+is used to describe the desired shape of your loading state. While a network request is pending, the `data` value will contain every
+field with `@loading` starting from the top. Let's start off simple and see what happens if we just put `@loading` at the top of
+our query:
+
+```graphql title="src/routes/[[id]]/+page.gql"
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        name
+        description
+    }
+}
+```
+
+The result will contain a pending marker at the field you tagged. In React, check that value with `isPending`:
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { isPending } from '$houdini'
+
+export default function SpeciesPage({ SpeciesInfo }) {
+    const species = SpeciesInfo.species
+
+    return (
+        <Container>
+            <Panel slot="left">
+                {isPending(species) ? (
+                    <>
+                        <Display height={30} loading />
+                        <Sprite style={{ flexGrow: 1 }} loading />
+                        <Display height={120} loading />
+                    </>
+                ) : (
+                    <>
+                        <Display>{species.name}</Display>
+                        <Sprite species={species} />
+                        <Display>{species.description}</Display>
+                    </>
+                )}
+            </Panel>
+        </Container>
+    )
+}
+```
+
+## Fine-Grained Loading States
+
+Just a single `@loading` directive at the top of your document is pretty much the same as what we had before. The real
+power comes from using `@loading` deeper in your query. Houdini will walk down your query and build your loading state as long as it encounters the directive.
+
+```graphql title="src/routes/[[id]]/+page.gql"
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        name @loading
+        description
+        evolutionChain @loading(count: 3) {
+            name @loading
+            ...Sprite_species
+        }
+    }
+}
+```
+
+Now `species` is always safe to use and the loading value starts to reflect the final query value. The deepest fields tagged with `@loading` are pending values:
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { isPending } from '$houdini'
+
+export default function SpeciesPage({ SpeciesInfo }) {
+    const species = SpeciesInfo.species
+
+    return (
+        <Container>
+            <Panel slot="left">
+                {isPending(species.name) ? (
+                    <Display height={30} loading />
+                ) : (
+                    <Display>{species.name}</Display>
+                )}
+                <Sprite species={species} />
+                <Display>{species.description}</Display>
+            </Panel>
+            <Panel slot="right">
+                <div className="evolution-chain">
+                    {species.evolutionChain.map((evolvedForm, i) => (
+                        <div className="evolution-form">
+                            <Number value={i + 1} />
+                            {isPending(evolvedForm) ? (
+                                <>
+                                    <Sprite height={96} loading />
+                                    <Display height={30} loading />
+                                </>
+                            ) : (
+                                <>
+                                    <Sprite style={{ height: 96 }} species={evolvedForm} />
+                                    <Display>{evolvedForm.name}</Display>
+                                </>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </Panel>
+        </Container>
+    )
+}
+```
+
+Problem #1 solved. You can use `@loading` to create the most convenient shape for your exact needs.
+
+## Composing Loading States
+
+As your application grows, your routes will contain a variety of components that have
+their own loading needs. In doing so, your route can stay totally decoupled from the internal structure of the component.
+
+As I'm sure you guessed, this is done with `@loading`. All we have to do is mark the fragment spread with `@loading` and Houdini
+will make sure that the fragment's loading shape is included in the route result.
+
+```graphql title="src/routes/[[id]]/+page.gql"
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        name @loading
+        description
+        evolutionChain @loading(count: 3) {
+            name @loading
+            ...Sprite_species
+        }
+
+        ...MoveList_species @loading
+        ...NavButtons_species @loading
+    }
+}
+```
+
+Just like with the query, the only thing we had to do is use `@loading` on a value that we could
+compare against to render our loading state.
+
+## Cascading Loading States
+
+If you find yourself wanting `@loading` on every field in your document, you
+can use the `cascade` argument:
+
+```graphql title="src/routes/[[id]]/+page.gql"
+query SpeciesInfo($id: Int = 1) {
+    species(id: $id) @loading {
+        name @loading
+        evolutionChain @loading(cascade: true) {
+            name
+            ...Sprite_species
+        }
+    }
+}
+```
+
+This implicitly marks `name` and `...Sprite_species` with `@loading` as well.
+
+## React and Suspense
+
+For the React framework, the presence of `@loading` implies the existence of a suspense boundary
+in your component hierarchy. Also remember that React should use `isPending` from `$houdini` when identifying a pending value.
+Checking if a value is `=== PendingValue` won't work with React 18.2.

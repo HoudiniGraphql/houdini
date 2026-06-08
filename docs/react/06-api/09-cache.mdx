@@ -1,0 +1,339 @@
+---
+title: Cache
+description: A description of the programatic cache api provided by Houdini
+---
+
+## Cache API
+
+There are times where Houdini's [automatic cache updates](/react/api/mutation#updating-fields)
+or [list operation fragments](/react/api/mutation#lists) are not sufficient. For those times,
+Houdini provides a programatic API for interacting with the cache directly. If you
+find yourself relying on this API for a considerable amount of your business logic,
+please open an issue or discussion on GitHub so we can try to figure out if there
+is something that Houdini could be doing better. This should be considered an advanced
+escape hatch for one-off situations.
+
+## Enabling the API
+
+This API is currently considered experimental and while we refine it, we might need
+to dramatically change it overall shape. Until it's ready, we want to reserve the ability
+to break its API on any minor version. We understand this is not technically semantic versioning
+but ultimately it will let us refine the API against real applications and lead to a better solution
+faster.
+
+In order to acknowledge this, you will need to enable the `imperativeCache` flag in your config file:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+	features: {
+		imperativeCache: true,
+	}
+}
+```
+
+## Records
+
+The primary unit of the cache api is the `Record`. It acts as a proxy for interacting with entities in Houdini's cache
+and does not actually hold onto any values. Creating a record is done
+with the `get` method on the `cache` exported from `$houdini`:
+
+```typescript
+import { cache } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+```
+
+## Retrieving Values
+
+Once you have the reference, you can query any cached fields or related records using the `read` method on the record:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+
+const info = user.read({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			firstName
+		}
+	`)
+})
+
+console.log(`hello ${info.data.firstName}!`)
+```
+
+To extract values from the root of your cache (the Query type), use the `read` method on the cache:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+const allUsers = cache.read({
+	query: graphql(`
+		query AllUsersCache {
+			users {
+				name
+			}
+		}
+	`)
+})
+
+console.log('Users:', allUsers.data?.users)
+```
+
+Your documents can use variables to read dynamic fields to match any situation. This includes
+both queries and fragments:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+// read data from the root of your api
+cache.read({
+	query: graphql(`
+		query AllUsersCache($pattern: String!) {
+			users {
+				firstName(pattern: $pattern)
+			}
+		}
+	`)
+	variables: {
+		pattern: "capitalize"
+	}
+})
+
+
+// use fragment variables to read a specific field/argument combo:
+cache.get('User', { id: '1' }).read({
+	fragment: graphql(`
+		fragment UserInfo on User
+			@arguments(pattern: { type: "String" }) {
+				firstName(pattern: $pattern)
+			}
+	`),
+	variables: {
+		pattern: "capitalize"
+	}
+})
+```
+
+For more information about fragment variables, head over to the [fragment api reference](/react/api/fragment#fragment-arguments).
+
+## Updating Cache Values
+
+To update your cache's data, you can use the `write` method on any record:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			firstName
+		}
+	`),
+	data: {
+		firstName: 'New name'
+	}
+})
+```
+
+Just like `read`, there is also a way to write values to the root of your api:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+cache.write({
+	query: graphql(`
+		query AllUsersCache {
+			users {
+				name
+			}
+		}
+	`)
+	data: {
+		users: [
+			{ name: "Harry" },
+		]
+	}
+})
+```
+
+Your documents can use variables to write dynamic fields to match any situation. This includes
+both queries and fragments
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+// update data at the root of your api
+cache.write({
+	query: graphql(`
+		query AllUsersCache($pattern: String!) {
+			users {
+				firstName(pattern: $pattern)
+			}
+		}
+	`)
+	data: {
+		users: [
+			{ name: "Harry" },
+		]
+	},
+	variables: {
+		pattern: "capitalize"
+	}
+})
+
+
+// use fragment variables to update a specific field/argument combo:
+cache.get('User', { id: '1' }).write({
+	fragment: graphql(`
+		fragment UserInfo on User
+			@arguments(pattern: { type: "String" }) {
+				firstName(pattern: $pattern)
+			}
+	`),
+	data: {
+		firstName: 'New Name'
+	},
+	variables: {
+		pattern: "capitalize"
+	}
+})
+```
+
+For more information about fragment variables, head over to the [fragment api reference](/react/api/fragment#fragment-arguments).
+
+### Updating Relationships
+
+The fragment and query that you pass do not have to be limited to only fields
+on the record. You can use the same API in order to change a link between two
+records.
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+
+// set the parent field to be user 2
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			parent {
+				id
+			}
+		}
+	`),
+	data: {
+		parent: {
+			id: '2'
+		}
+	}
+})
+
+// set the list of friends to be users 2 and 3
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			friends {
+				id
+			}
+		}
+	`),
+	data: {
+		friends: [{ id: '2' }, { id: '3' }]
+	}
+})
+```
+
+## Deleting Records
+
+You can delete a record from the cache using the `delete` method:
+
+```typescript
+const user = cache.get('User', { id: '1' })
+
+user.delete()
+```
+
+## Lists
+
+Another primitive provided by the `cache` instance is `List` and it provide a programatic
+API for the same operations supported by the [list operation fragments](/react/api/mutation#lists).
+
+Accessing a list can be done with the `list` method:
+
+```typescript
+const allUsers = cache.list('All_Users')
+const userFriends = cache.list('User_Friends', { parentID: '1' })
+const allFriends = cache.list('User_Friends', { allLists: true })
+```
+
+You can mutate the list using the `prepend`, `append`, `remove`, and `toggle` methods:
+
+```typescript
+const allUsers = cache.list('All_Users')
+const user1 = cache.get('User', { id: '1' })
+
+// add it to the beginning
+allUsers.prepend(user1)
+
+// add it to the end
+allFriends.append(user1)
+
+// remove it from the list
+allFriends.remove(user1)
+
+// if its in list, remove it. Otherwise, add it to the front.
+// You can also also pass 'last' to insert it to the end of the list
+allFriends.toggle('first', user1)
+```
+
+If you only want to operate on the list depending on argument values, you can use the `when` method
+
+```typescript
+allFriends.when({ favorites: true }).append(user1)
+```
+
+## Stale Data
+
+If you want fine-grained logic for marking data as stale, you can use the programmatic api. For more
+information on stale data in Houdini, check out the [React Caching Data guide](/react/cache/#stale-data).
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+// Mark everything stale
+cache.markStale()
+
+// Mark all type 'UserNodes' stale
+cache.markStale('UserNodes')
+
+// Mark all type 'UserNodes' field 'totalCount' stale
+cache.markStale('UserNodes', { field: 'totalCount' })
+
+// Mark the User 1 stale
+const user = cache.get('User', { id: '1' })
+user.markStale()
+
+// Mark the User 1 field name stale
+const user = cache.get('User', { id: '1' })
+user.markStale('name')
+
+// Mark the name field when the pattern field argument is 'capitalize'
+const user = cache.get('User', { id: '1' })
+user.markStale('name' { when: { pattern: 'capitalize' } })
+```
+
+## Resetting the Cache
+
+In some situations, it is necessary to reset the cache to a totally blank state. To do this, you
+should use the `reset` method:
+
+```typescript
+import { cache } from '$houdini'
+
+cache.reset()
+```

@@ -1,0 +1,29 @@
+---
+title: Custom Scalars
+---
+
+Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
+
+```javascript title="houdini.config.js"
+export default {
+	// ...
+	scalars: {
+		// the name of the scalar we are configuring
+		DateTime: {
+			// the corresponding typescript type
+			type: 'Date',
+			// turn the api's response into that type
+			unmarshal(val) {
+				return val ? new Date(val) : null
+			},
+			// turn the value into something the API can use
+			marshal(date) {
+				return date && date.getTime()
+			}
+		}
+	}
+}
+```
+
+Please note that your marshal/unmarshal functions are also called with null
+values, and these must be handled appropriately.

@@ -1,0 +1,71 @@
+---
+title: Typescript
+description: An overview of Houdini's support for Typescript
+---
+
+Houdini is written in typescript and will generate types for your documents.
+
+## Page Props
+
+To access the value of a query, your component just needs to accept a prop with the appropriate name.
+This could be one query or as many as you have defined. Keep in mind that since this works off of very
+simple static analysis, your component props must be spread out from the
+argument like so:
+
+```tsx title="src/routes/show/[id]/+page.tsx&typescriptToggle=true"
+import { ShowCard } from '...'
+import type { PageProps } from './$types'
+
+export default function ShowInfoView({ ShowInfo }:PageProps) {
+    return (
+        <ShowCard show={ShowInfo.show} />
+    )
+}
+```
+
+## Component Fields
+
+With component fields enabled, your components can define fragments using the `GraphQL` type:
+
+```tsx title="src/components/UserAvatar.tsx"
+import { GraphQL } from '$houdini'
+
+type Props = {
+    user: GraphQL<`{
+        ... on User @componentField(field: "Avatar") {
+            avatarURL
+        }
+    }`>
+}
+
+export default function UserAvatar({ user } : Props) {
+    return <img src={user.avatarURL} />
+}
+```
+
+This example registers the `Avatar` field on the `User` type:
+
+```graphql title="src/routes/profile/+page.gql"
+query Profile {
+    currentUser {
+        Avatar
+    }
+}
+```
+
+Which can be used directly as a component in your page source. Notice there's no need
+to import the component or remember the name of the prop that needs to be passed:
+
+```tsx title="src/routes/profile/+page.tsx"
+import type { PageProps } from './$types'
+
+export default function ShowInfoView({ Profile }: PageProps) {
+    return (
+        <div>
+            <Profile.currentUser.Avatar />
+        </div>
+    )
+}
+```
+
+Broader React TypeScript setup documentation needs source copy before it can be completed.
