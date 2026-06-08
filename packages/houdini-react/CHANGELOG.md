@@ -1,5 +1,13 @@
 # houdini-react
 
+## 2.0.0-next.30
+
+### Patch Changes
+
+- [#1631](https://github.com/HoudiniGraphql/houdini/pull/1631) [`86cecd1`](https://github.com/HoudiniGraphql/houdini/commit/86cecd19a8f54662624913400a6d82192639901b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump dependencies to latest: express ^5, graphql-yoga ^5, @whatwg-node/server ^0.11, react ^19.2.7
+
+- [#1630](https://github.com/HoudiniGraphql/houdini/pull/1630) [`43d89e0`](https://github.com/HoudiniGraphql/houdini/commit/43d89e0a70b0daf8748ca9225a92b0b2b6bffa7a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added WebContainer compatible database layer
+
 ## 2.0.0-next.29
 
 ### Patch Changes

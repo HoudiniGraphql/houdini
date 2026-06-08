@@ -27,7 +27,15 @@
     "cold-carrots-wink",
     "curly-olives-flash",
     "cyan-sheep-compare",
+    "dep-bump-adapter-auto",
+    "dep-bump-adapter-static",
+    "dep-bump-create-houdini",
+    "dep-bump-houdini-core",
+    "dep-bump-houdini-react",
+    "dep-bump-houdini-svelte",
+    "dep-bump-houdini",
     "eleven-parents-rest",
+    "fix-fragment-abstract-types",
     "gitignore-schema-path",
     "go-compiler-features",
     "go-rewrite",
@@ -43,6 +51,7 @@
     "stale-lizards-warn",
     "stale-trainers-enjoy",
     "svelte-async-component-query",
-    "write-polled-schema"
+    "write-polled-schema",
+    "yellow-dancers-start"
   ]
 }

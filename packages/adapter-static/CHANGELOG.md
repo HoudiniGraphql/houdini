@@ -1,5 +1,11 @@
 # houdini-adapter-static
 
+## 2.0.0-next.29
+
+### Patch Changes
+
+- [#1631](https://github.com/HoudiniGraphql/houdini/pull/1631) [`86cecd1`](https://github.com/HoudiniGraphql/houdini/commit/86cecd19a8f54662624913400a6d82192639901b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump dependencies to latest: react ^19.2.7, vite peer dependency ^8
+
 ## 2.0.0-next.28
 
 ### Patch Changes

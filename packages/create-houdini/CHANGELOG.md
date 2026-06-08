@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-next.13
+
+### Patch Changes
+
+- [#1631](https://github.com/HoudiniGraphql/houdini/pull/1631) [`86cecd1`](https://github.com/HoudiniGraphql/houdini/commit/86cecd19a8f54662624913400a6d82192639901b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump dependencies to latest: commander ^15, graphql 16.14.1, @clack/prompts ^1.5.1
+
 ## 2.0.0-next.12
 
 ### Patch Changes
