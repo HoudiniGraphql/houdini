@@ -35,6 +35,7 @@
     "dep-bump-houdini-svelte",
     "dep-bump-houdini",
     "eleven-parents-rest",
+    "fix-bin-object-plugin-resolution",
     "fix-fragment-abstract-types",
     "gitignore-schema-path",
     "go-compiler-features",
