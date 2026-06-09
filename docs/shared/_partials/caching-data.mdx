@@ -1,0 +1,304 @@
+Houdini's cache behavior can be customized with the `@cache` directive:
+
+```graphql
+query AllItems @cache(policy: CacheAndNetwork) {
+	items {
+		id
+		text
+	}
+}
+```
+
+There are a few different policies that can be specified:
+
+- `CacheOrNetwork` will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing. If you have opted into partial data with `@cache(partial: true)` and the result contains partial data (some but not all of the data is available in the cache), you will get the partial data first and then a network request will trigger - almost like it behaves like `CacheAndNetwork`.
+- `CacheAndNetwork` will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server. The cached portion of this might contain partial data if you opt-in.
+- `NetworkOnly` will never check if the data exists in the cache and always send a network request
+- `CacheOnly` will only ever return cache data which can be a partial response
+- `NoCache` is like `NetworkOnly` but also will never write to the cache
+
+The default cache policy as well as other parameters can be changed in your [config file](/svelte/api/config).
+
+### Partial Data
+
+As your users navigate through your application, their cache will build up with the data that they encounter. This means that a lot of the times, they will have already seen at least _some_ the data that a new view wants. Houdini can be told to render a view even if we have only seen a subset of the necessary data using the `@cache` directive:
+
+```graphql
+query AllItems @cache(partial: true) {
+	items {
+		id
+		text
+	}
+}
+```
+
+This means that you will have to deal with a lot of `null` states in order to accommodate the missing data but it can result in a much snappier interface for your users. Keep in mind that Houdini tries its hardest to keep your data "correct". This means that if a value is missing that isn't allowed to be null according to your project's schema it will turn the entire object `null` (assuming that's valid). This behavior is described by the [GraphQL spec](http://spec.graphql.org/June2018/#sec-Errors-and-Non-Nullability).
+
+The default partial state can be configured with the `defaultPartial` value in your config file:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+    defaultPartial: true
+}
+```
+
+### Data Retention
+
+Houdini will retain a query's data for a configurable number of queries (default 10).
+For a concrete example, consider an example app that has 3 routes. If you load one of the
+routes and then click between the other two 5 times, the first route's data will still be
+resolvable (and the counter will reset if you visit it).
+If you then toggle between the other routes 10 times and then try to load the first
+route, a network request will be sent. This number is configurable with the
+`cacheBufferSize` value in your config file:
+
+```js title="houdini.config.js"
+export default {
+    // ...
+    cacheBufferSize: 5
+}
+```
+
+### Custom IDs
+
+Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field. If it's the case, you can tell it to Houdini by setting keys to your `types` in your `houdini.config.js`, like:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+    types: {
+        User: {
+            keys: ['firstName', 'lastName'],
+        }
+    }
+}
+```
+
+Maybe your API does not support the `node` query field. In this case, Houdini lets you configure both parts of this interaction so you can tell Houdini how to do the right thing.
+
+If all you need to do is change the way that Houdini resolves a particular type, you can use the following configuration:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+    types: {
+        User: {
+            resolve: {
+                queryField: "user",
+            }
+        }
+    }
+}
+```
+
+This tells Houdini that in order to resolve a particular `User`, it needs to use a query field on our API that looks like: `user(id: ID!)`. By default, Houdini takes the keys of an object and passes each one as the input for the query field. If you need to change this behavior, you can pass an `arguments` field to the `resolve` object:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+    types: {
+        User: {
+            resolve: {
+                queryField: "user",
+                arguments: (user) => ({
+                    userID: user.id,
+                })
+            }
+        }
+    }
+}
+```
+
+Note: Houdini's generator guarantees that your entities will always have its keys so there's no need to check if `user.id` is defined.
+
+If you want to configure Houdini to use a different key for computing your records' ID, you can configure the specific type with the `types` config value:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+    types: {
+        User: {
+            keys: ['firstName', 'lastName'],
+            resolve: {
+                queryField: 'user'
+            }
+        }
+    }
+}
+```
+
+Remember, Houdini will take every key for an object and pass it as an argument to the query with the same name. Ie, the following configuration is equivalent to the one above:
+
+```javascript title="houdini.config.js"
+export default {
+    // ...
+    types: {
+        User: {
+            keys: ['firstName', 'lastName' ],
+            resolve: {
+                queryField: 'user',
+                arguments: (user) => ({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                })
+            }
+        }
+    }
+}
+```
+
+### Stale Data
+
+In some cases it can be useful to mark data as "stale" so that next time it is requested,
+it will be refetched over the network. This can be done in two ways:
+
+#### Globally after a timeout
+
+If you set `defaultLifetime` in your [config file](/svelte/api/config#fields) then data will
+get automatically marked stale after a certain time (in milliseconds). For example, you can
+configure so that any data older than 7 minutes is refreshed (example: `defaultLifetime: 7 * 60 * 1000`).
+When this happens, the cached data will still be returned but a new query will be sent
+(effectively making the cache policy `CacheAndNetwork`).
+
+#### Programmatically
+
+If you want more fine-grained logic for marking data as stale, you can use the programmatic api:
+
+```typescript
+import { cache, graphql } from '$houdini'
+
+// Mark everything stale
+cache.markStale()
+
+// Mark all type 'UserNodes' stale
+cache.markStale('UserNodes')
+
+// Mark all type 'UserNodes' field 'totalCount' stale
+cache.markStale('UserNodes', { field: 'totalCount' })
+
+// Mark the User 1 stale
+const user = cache.get('User', { id: '1' })
+user.markStale()
+
+// Mark the User 1 field name stale
+const user = cache.get('User', { id: '1' })
+user.markStale('name')
+
+// Mark the name field when the pattern field argument is 'capitalize'
+const user = cache.get('User', { id: '1' })
+user.markStale('name', { when: { pattern: 'capitalize' } })
+```
+
+### Programmatic API
+
+There are times where Houdini's automatic cache updates or list operation fragments are not sufficient.
+For those times, Houdini provides a programatic API for interacting with the cache directly. For more
+information, check out the [Cache API reference](/svelte/api/cache)
+.
+
+```typescript
+import { cache } from '$houdini'
+
+const user = cache.get('User', { id: '1' })
+
+user.write({
+	fragment: graphql(`
+		fragment UserInfo on User {
+			firstName
+		}
+	`),
+	data: {
+		firstName: 'New name'
+	}
+})
+```
+
+#### Query Hints
+
+One interesting application of the programmatic API is to provide hints for the runtime before performing
+a query. This creates a snappier experience since you are more likely to load cached data.
+
+Let's see this in action. Pretend we are building an application with the following schema:
+
+```graphql
+type Query {
+	user(name: String!): User
+	users: [User!]!
+}
+
+type User {
+	id: ID!
+	name: String!
+}
+```
+
+Now, imagine that there are two different views in our application:
+a list of users and a user profile page. The list is driven by this query:
+
+```graphql
+query UserList {
+	users {
+		id
+		name
+	}
+}
+```
+
+And the user profile view uses a query that takes the name and returns the user information:
+
+```graphql meta="title"
+query UserProfile($name: String!) {
+	user(name: $name) {
+		id
+		name
+	}
+}
+```
+
+Now we want to show a link from the list view to a detail view of the specific user:
+
+```jsx
+// in a loop over users...
+
+<a href={`/users/${user.name}/`}>
+```
+
+When we render this link, Houdini's cache already knows the `id` and `name` of the user
+that is providing the data. However, when we click on the link, Houdini won't be able to
+use cached data for the `UserProfile` query because it does not know the value of
+`user(name: "Steve")`. Since we know the answer when generating the link, we can provide
+Houdini with the information before the link resolves:
+
+```jsx
+import { cache, graphql }  from "$houdini"
+
+function primeCache(user) {
+    // prime the cache to know the id of the user we are resolving
+    cache.write({
+        query: graphql(`
+            query UserProfileHint($name: String!) {
+                user(name: $name) {
+                    id
+                }
+            }
+        `),
+        data: {
+            user: {
+                id: user.id,
+            }
+        },
+        variables: {
+            name: user.name,
+        }
+    })
+}
+
+// in a loop over users...
+
+<a href={`/users/${user.name}/`} onClick={() => primeCache(user)}>
+```
+
+With this setup, we let the cache know that the value of `user(name: "Steve")`
+points to a `User` with a particular `id` and we can use the cached `name`
+value.

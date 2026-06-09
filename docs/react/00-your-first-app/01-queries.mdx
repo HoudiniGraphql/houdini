@@ -1,0 +1,215 @@
+---
+title: Fetching Data
+description: The first part of the Houdini intro focusing on how to fetch data
+---
+
+import AsideAccordion from "@components/docs/AsideAccordion.astro";
+
+Before we do anything _too_ complicated, lets start with some static content pulled from our GraphQL API.
+Create two files inside of your `src/routes` directory, `+page.gql` and `+page.tsx`:
+
+```graphql title="src/routes/+page.gql"
+query Info {
+    species(id: 1) {
+        id
+        name
+        flavor_text
+        sprites {
+            front
+        }
+    }
+}
+```
+
+```tsx title="src/routes/+page.tsx&typescriptToggle=true"
+import { Container, Display, Sprite, Panel } from '~/components'
+import type { PageProps } from './$types'
+
+export default function Page({ Info }: PageProps) {
+    return (
+        <Container>
+            <Panel side="left">
+                <Display id="species-name">
+                    {Info.species.name}
+                    <span>no.{Info.species.id}</span>
+                </Display>
+                <Sprite
+                    id="species-sprite"
+                    src={Info.species.sprites.front}
+                    speciesName={Info.species.name}
+                />
+                <Display id="species-flavor_text">
+                    {Info.species.flavor_text}
+                </Display>
+            </Panel>
+        </Container>
+    )
+}
+```
+
+You're already starting to see some of the very exciting things Houdini offers. Just like you might define data requirements for a route in other frameworks, you can use `+page.gql` to define the query for your route.
+
+The data for the query is passed as a prop that matches the query's name (in this case `Info`). We used it to render some basic information about Bulbasaur using components that were provided in the project's `components` directory.
+
+<AsideAccordion variant="note" title="GraphQL: Queries">
+
+A GraphQL query is a string that describes what information you want from the API. For example, the following defines a query named `QueryUserInfo`. In Houdini, all documents like queries must be named for reasons that will become more clear later.
+
+```graphql
+query CurrentUserInfo {
+	current_user {
+		firstName
+	}
+}
+```
+
+The result of the above query might look something like:
+
+```json
+{
+	"data": {
+		"current_user": {
+			"firstName": "Bill"
+		}
+	}
+}
+```
+
+Notice how the fields in the query match the values? The format of the original query is meant to model the response type.
+
+Fields in a query can take arguments to customize their behavior, for example:
+
+```graphql
+query CurrentUserInfo {
+	current_user {
+		# specify the format for the date time stamp
+		lastLogin(format: "YYYY-MM-DD")
+	}
+}
+```
+
+might return something like this:
+
+```json
+{
+	"data": {
+		"current_user": {
+			"lastLogin": "2022-12-25"
+		}
+	}
+}
+```
+
+For more information on GraphQL Queries, [this is a good resource](https://graphql.org/learn/queries/#fields).
+
+</AsideAccordion>
+
+If everything is set up properly, you should see a message printed in your terminal once you save the file. Behind the scenes, Houdini is constantly validating and processing your queries so you can catch errors as quickly as possible.
+
+Now that you have the necessary files, you should see Bulbasaur's description. If you are still running into issues, please reach out to us on Discord and we'd be happy to help.
+
+## Query Variables
+
+This is a good start but we will need to be able to show information for more species than just Bulbasaur.
+Let's set up our application to read the id of the species from the URL.
+To do that, add a directory named `[[id]]` and move both `+page.gql` and `+page.tsx` inside of it:
+
+```bash
+## This needs to be run at the root of the project
+cd src/routes && mkdir "[[id]]" && mv +page.* "./[[id]]"
+```
+
+The double braces mark an optional parameter so we can render the same view for both `/` and `/1`.
+
+<AsideAccordion variant="note" title="GraphQL: Query Variables">
+
+All of the queries we've seen so far have had static arguments. However, most of the time
+you will need to give an argument a dynamic value based on something in your application.
+For example, the text of an input when filtering a list. GraphQL allows us to define references
+to dynamic values that must be fulfilled when sending the query. These values are known as
+variables and can be applied to not just queries: mutations and subscriptions too!
+
+Defining variables for your document looks like the following:
+
+```graphql
+query MyQuery($variable1: Boolean) {
+	myField(argument: $variable1)
+}
+```
+
+Notice the `($variable1: Boolean)`? That's how we say that the `MyQuery` query takes one argument,
+called `$variable1`, that is a `Boolean`. All variables in GraphQL must start with a `$`
+(makes the compiler's job easier) and are optional by default. In order to mark a variable as required,
+you have to put `!` at the end of the type:
+
+```graphql
+query MyQuery($variable1: Boolean, $variable2: String!) {
+    myField(arg1: $variable1, arg2: $variable2)
+}
+```
+
+</AsideAccordion>
+
+Now that we have the actual route defined, we will have to change our query so that it can accept
+a variable. Doing this is relatively simple, just update the query inside of `+page.gql` to look like the following:
+
+```graphql title="src/routes/[[id]]/+page.gql"
+query Info($id: Int! = 1) {
+    species(id: $id) {
+        name
+        flavor_text
+        sprites {
+            front
+        }
+    }
+}
+```
+
+And that's it! Notice that the route parameter matched the name of the query variable? Houdini detected that
+and took care of all of the wiring for you. Pretty cool, huh?
+
+You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
+there is no value for the `[[id]]` portion of the url and the query uses its default value of `1`.
+
+For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block as the last child of the `Container` component. Don't worry if you see an error when you click on them, we'll fix that next.
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+<Panel side="right">
+    <nav>
+        <a href={Info.species.id - 1} disabled={Info.species.id <= 1}>
+            previous
+        </a>
+        <a href={Info.species.id + 1} disabled={Info.species.id >= 151}>
+            next
+        </a>
+    </nav>
+</Panel>
+```
+
+## Loading State
+
+Since Houdini's router starts fetching data the moment navigation begins, your component always receives fully-loaded data as props — there is no window where `Info.species` could be `null` on the initial render. You won't crash clicking those nav buttons.
+
+If you want to show a visual indicator while a navigation is in flight, wrap the subtree in a `<Suspense>` boundary with a fallback:
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { Suspense } from 'react'
+
+export default function Page({ Info }: PageProps) {
+    return (
+        <Suspense fallback={<Container />}>
+            {/* your content */}
+        </Suspense>
+    )
+}
+```
+
+## Error Handling
+
+{/* TODO: error handling via route-level hooks is not yet implemented for the React adapter.
+    When it lands, add a section here showing how to validate the `id` param (1–151)
+    and throw a 400 response for out-of-range values, mirroring the SvelteKit beforeLoad hook. */}
+
+## What's Next?
+
+Now that you've seen the basics of fetching data from the server, we're going to start to dig a little deeper into how we should be organizing our queries. In the next section we're going to give our React components the power to define their own data requirements so we don't have to worry about their concerns when building this route's query.

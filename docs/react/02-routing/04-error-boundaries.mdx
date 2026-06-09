@@ -1,0 +1,39 @@
+---
+title: Error Boundaries
+description: Handling errors at the route level in Houdini's React framework
+---
+
+Houdini uses standard React error boundaries for route-level error handling. A `+layout.jsx` is just a React component, so wrapping its children in an error boundary works exactly as you'd expect:
+
+```jsx title="src/routes/+layout.tsx&typescriptToggle=true"
+import { ErrorBoundary } from 'react-error-boundary'
+import type { LayoutProps } from './$types'
+
+export default function RootLayout({ children }: LayoutProps) {
+  return (
+    <ErrorBoundary fallback={<p>Something went wrong.</p>}>
+      {children}
+    </ErrorBoundary>
+  )
+}
+```
+
+We recommend [react-error-boundary](https://github.com/bvaughn/react-error-boundary) for the extra utilities it provides — reset keys, error logging callbacks, and a `useErrorBoundary` hook for throwing errors imperatively from event handlers.
+
+## Placement
+
+Because layouts nest, we can have boundaries at multiple levels. A boundary in the root layout catches everything. A boundary in a section layout catches only that section. Nothing stops us from having both.
+
+```
+src/routes/
+  +layout.jsx          ← catches everything
+  dashboard/
+    +layout.jsx        ← catches only dashboard routes
+    +page.jsx
+```
+
+This is more control than a single `+error.jsx` per route, and it composes naturally with any third-party error reporting setup.
+
+## Query Errors
+
+By default, query errors are returned as data rather than thrown — so error boundaries won't catch them unless you opt in. The `throwOnError` option on your queries controls this. See [Error Handling](~/guides/error-handling) for the full picture.

@@ -1,0 +1,48 @@
+---
+title: Svelte Config
+description: Svelte-specific configuration options for Houdini
+---
+
+Svelte-specific config lives under the `houdini-svelte` key inside `plugins` in your `houdini.config.js`:
+
+```javascript title="houdini.config.js"
+/// <references types="houdini-svelte">
+
+/** @type {import('houdini').ConfigFile} */
+export default {
+	// ...
+	plugins: {
+		'houdini-svelte': { }
+	}
+}
+```
+
+## Options
+
+- `client` (optional, default: `"./src/client"`): a relative path (from `houdini.config.js`) to a file that exports your Houdini client as its default.
+- `defaultRouteBlocking` (optional, default: `false`): Specifies the default blocking behavior for client-side navigation. For more information, please visit [this section of the docs](https://houdinigraphql.com/svelte/api/query#loading-states).
+- `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos).
+- `pageQueryFilename` (optional, default: `"+page.gql"`): The name of the file used to define page queries.
+- `layoutQueryFilename` (optional, default: `"+layout.gql"`): The name of the file used to define layout queries.
+- `quietQueryErrors` (optional, default: `false`): With this enabled, errors in your query will not be thrown as exceptions. You will have to handle error state in your route components or by hand in your load (or the `onError` hook).
+- `static` (optional, default: `false`): A flag to remove the session infrastructure from your application.
+- `framework` (optional, default: `undefined`): Should be automatically detected, but you can override it with `"kit"` or `"svelte"`.
+
+## Client Location
+
+Your client must be discoverable by the Svelte code generation logic. By default, it looks at `src/client.{js,ts}`. If your client is defined elsewhere, configure the plugin to point to the correct location:
+
+```javascript title="houdini.config.js"
+export default {
+	// ...
+	plugins: {
+		'houdini-svelte': {
+			client: './src/lib/graphql/client',
+		}
+	}
+}
+```
+
+## More Configuration
+
+For all other configuration options — scalars, schema polling, cache defaults, and more — see the [Config Reference](~/reference/config/).

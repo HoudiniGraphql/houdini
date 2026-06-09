@@ -1,0 +1,89 @@
+---
+title: Mutations
+description: Sending mutations in Houdini's React framework
+---
+
+import Dedupe from '@shared/_partials/dedupe.mdx'
+
+The `useMutation` hook wraps a GraphQL mutation and returns a tuple of `[pending, mutate]`. Call `mutate` with your variables to execute it.
+
+```jsx meta="typescriptToggle=true"
+import { graphql, useMutation } from '$houdini'
+
+export function AddCommentForm({ postId }: { postId: string }) {
+  const [pending, mutate] = useMutation(graphql(`
+    mutation AddComment($postId: ID!, $body: String!) {
+      addComment(postId: $postId, body: $body) {
+        id
+        body
+      }
+    }
+  `))
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    await mutate({
+      variables: { postId, body: e.target.body.value }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea name="body" />
+      <button type="submit" disabled={pending}>
+        {pending ? 'Submitting...' : 'Add comment'}
+      </button>
+    </form>
+  )
+}
+```
+
+`pending` is `true` from the moment `mutate` is called until the server responds.
+
+## Error Handling
+
+Mutations always throw on error — unlike queries, there's no opt-in. Wrap calls in `try/catch` and inspect the `RuntimeGraphQLError`:
+
+```jsx
+import { graphql, useMutation, RuntimeGraphQLError } from '$houdini'
+
+const [pending, mutate] = useMutation(graphql(`...`))
+
+try {
+  await mutate({ variables: { ... } })
+} catch (e) {
+  if (e instanceof RuntimeGraphQLError) {
+    // e.message is the joined error messages
+    // e.raw is the full errors array from the GraphQL response
+    console.error(e.raw)
+  }
+}
+```
+
+## Cache Updates
+
+After a successful mutation, Houdini automatically updates any cached fields that appear in the mutation's response. If the mutation returns a type that's already in the cache, fields are merged and any components watching those fields re-render.
+
+For mutations that add or remove items from lists, see [Updating Lists](~/updating-data/updating-lists).
+
+## Optimistic Updates
+
+Pass an `optimisticResponse` to apply an immediate cache update before the server responds. If the mutation fails, the optimistic update is rolled back:
+
+```jsx
+await mutate({
+  variables: { postId, body: 'Great post!' },
+  optimisticResponse: {
+    addComment: {
+      id: 'temp-id',
+      body: 'Great post!'
+    }
+  }
+})
+```
+
+See [Optimistic Updates](~/updating-data/optimistic-updates) for a full walkthrough.
+
+## Deduplication
+
+<Dedupe />

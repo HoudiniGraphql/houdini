@@ -1,0 +1,58 @@
+---
+title: Optimistic Updates
+description: Applying immediate cache updates before the server responds
+---
+
+import OptimisticKey from '@shared/_partials/optimistic-key.mdx'
+
+When you know what a mutation will return assuming everything goes right, you can apply the change to the cache immediately rather than waiting for the server. Pass an `optimisticResponse` as the second argument to `mutate`:
+
+```svelte title="ToggleButton.svelte"
+<script>
+	import { graphql } from '$houdini'
+
+	let { itemID }: { itemID: string } = $props()
+
+	const toggle = graphql(`
+		mutation ToggleItem($id: ID!) {
+			toggleItem(id: $id) {
+				item {
+					id
+					checked
+				}
+			}
+		}
+	`)
+
+	function toggleItem() {
+		toggle.mutate({ id: itemID }, {
+			optimisticResponse: {
+				toggleItem: {
+					item: {
+						id: itemID,
+						checked: true
+					}
+				}
+			}
+		})
+	}
+</script>
+
+<button onclick={toggleItem}>
+	toggle item
+</button>
+```
+
+When the mutation resolves, the optimistic values are replaced with the real response. If the mutation fails, the optimistic changes are reverted and the promise rejects with the error.
+
+Always include `id` in your selection when using optimistic responses so the cache knows which record to update. You don't need to provide a complete response — the cache will write whatever fields you include.
+
+## Optimistic Keys
+
+<OptimisticKey />
+
+## Why is TypeScript Missing Fields?
+
+The generated types for optimistic responses don't include fields from fragments you've spread in. This is intentional — tightly coupling a mutation invocation to a fragment defined elsewhere creates a fragile dependency. If the fragment changes, the type mismatch won't surface until runtime.
+
+The safe practice is to duplicate any fields you need in the mutation's own selection set.

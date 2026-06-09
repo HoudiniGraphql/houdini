@@ -1,0 +1,37 @@
+---
+title: Error Handling
+description: Handling GraphQL and network errors in Houdini
+---
+
+import ErrorHandling from '@shared/_partials/error-handling.mdx'
+
+<ErrorHandling />
+
+## Error Boundaries
+
+When `throwOnError` is configured, thrown errors from queries will propagate up the React tree. Wrap the relevant subtree in an error boundary to catch them:
+
+```tsx meta="typescriptToggle=true"
+import { ErrorBoundary } from 'react-error-boundary'
+import type { LayoutProps } from './$types'
+
+export default function Layout({ children }: LayoutProps) {
+  return (
+    <ErrorBoundary fallback={<div>Something went wrong.</div>}>
+      {children}
+    </ErrorBoundary>
+  )
+}
+```
+
+For mutations, wrap the `mutate` call in a `try/catch` — mutations always throw regardless of `throwOnError`:
+
+```tsx meta="typescriptToggle=true"
+try {
+  await mutate({ variables: { ... } })
+} catch (e) {
+  if (e instanceof RuntimeGraphQLError) {
+    console.error(e.raw)
+  }
+}
+```

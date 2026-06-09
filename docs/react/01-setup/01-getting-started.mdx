@@ -1,0 +1,44 @@
+---
+title: Getting Started
+description: Setting up a Houdini project
+---
+
+Houdini is a full-stack React framework built around GraphQL. It handles routing, server-side rendering, and data fetching — and because it's built for GraphQL specifically, it can make some assumptions that general-purpose frameworks can't, which means a lot less wiring for you.
+
+The fastest way to start a project is:
+
+```bash
+npm create houdini@latest
+```
+
+Answer the prompts, then:
+
+```bash
+cd <project-name>
+npm install
+npm run dev
+```
+
+That's enough to have a working app running locally.
+
+## Project Structure
+
+A freshly generated project looks like this:
+
+```
+src/
+  routes/
+    +layout.jsx       # root layout, wraps every page
+    +page.jsx         # the root page (renders at /)
+  +index.tsx          # the root HTML document
+  +client.ts          # your HoudiniClient definition
+vite.config.js        # Vite config with the Houdini plugin
+houdini.config.js     # Houdini configuration
+```
+
+Routes live in `src/routes`. The filesystem is the router — new routes are new files. We'll cover how that works in detail in [Routing](~/routing/pages-and-layouts).
+
+
+## IDE Setup
+
+Houdini integrates with the community-standard [GraphQL LSP](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql), which gives you autocomplete and validation for your GraphQL documents directly in your editor. Install the VS Code extension and it will pick up Houdini's configuration automatically.

@@ -1,0 +1,34 @@
+---
+title: File Uploads
+description: Handling file uploads in Houdini
+---
+
+import FileUploads from '@shared/_partials/file-uploads.mdx'
+
+<FileUploads />
+
+## Wiring a File Input
+
+Pass a `File` directly as a mutation variable. Houdini detects it and switches to a multipart request automatically — no extra configuration needed:
+
+```tsx meta="typescriptToggle=true"
+import { graphql, useMutation } from '$houdini'
+
+export function UploadForm() {
+  const [pending, mutate] = useMutation(graphql(`
+    mutation UploadFile($file: File!) {
+      uploadImage(file: $file)
+    }
+  `))
+
+  return (
+    <input
+      type="file"
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) mutate({ variables: { file } })
+      }}
+    />
+  )
+}
+```

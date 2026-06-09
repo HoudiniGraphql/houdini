@@ -1,0 +1,34 @@
+---
+title: Preparing for Deployment
+description: Deploying a Houdini application
+---
+
+Houdini is deployed through platform adapters passed to the Vite plugin. For the most part, the adapter takes care of the details — it wires up a server that renders your app on the platform you're targeting. Install your adapter and pass it to the Houdini plugin in your Vite config:
+
+```javascript title="vite.config.js"
+import { houdini } from 'houdini/vite'
+import adapter from 'houdini-adapter-auto'
+
+export default {
+  plugins: [houdini({ adapter })]
+}
+```
+
+The following adapters are available:
+
+<AdapterList />
+
+## Single-Page Applications
+
+If you want to build a traditional single-page application with no server-side rendering, use `houdini-adapter-static`. The build output lands in `dist/` with a static `index.html` at the root — ready to deploy to any static host.
+
+```javascript title="vite.config.js"
+import { houdini } from 'houdini/vite'
+import adapter from 'houdini-adapter-static'
+
+export default {
+  plugins: [houdini({ adapter })]
+}
+```
+
+One constraint: the static adapter is incompatible with [local APIs](/react/your-graphql-server). Since there's no server to resolve queries against, your app must point at an external GraphQL endpoint.

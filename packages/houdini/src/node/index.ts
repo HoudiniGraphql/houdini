@@ -1,6 +1,7 @@
 import http from 'node:http'
 import { createInterface } from 'node:readline'
 import { openDb, type Db } from '../lib/db.js'
+export type { Db } from '../lib/db.js'
 import { WebSocketServer } from 'ws'
 
 export type PipelineHook =
@@ -20,6 +21,7 @@ export type PipelineHook =
 export type PluginContext = {
 	taskId: string
 	pluginDirectory: string
+	db: Db
 	invokeHook(
 		hook: string,
 		payload?: Record<string, any>,
@@ -64,7 +66,7 @@ export function plugin(config: NodePluginConfig): void {
 	const { transport, database, pluginKey } = parseArgs()
 
 	if (transport === 'stdio') {
-		runStdio(config, pluginKey)
+		void runStdio(config, database, pluginKey)
 	} else {
 		void runWebSocket(config, database, pluginKey)
 	}
@@ -72,7 +74,8 @@ export function plugin(config: NodePluginConfig): void {
 
 // ─── stdio transport ──────────────────────────────────────────────────────────
 
-function runStdio(config: NodePluginConfig, pluginKey: string): void {
+async function runStdio(config: NodePluginConfig, databasePath: string, pluginKey: string): Promise<void> {
+	const db = await openDb(databasePath || ':memory:')
 	const { pending, invokeCounter, rl } = makeStdioChannel()
 
 	const reg: Record<string, any> = {
@@ -99,6 +102,7 @@ function runStdio(config: NodePluginConfig, pluginKey: string): void {
 			const ctx: PluginContext = {
 				taskId: msg.taskId ?? '',
 				pluginDirectory: msg.pluginDirectory ?? '',
+				db,
 				invokeHook: makeInvokeHook(pending, invokeCounter, msg.taskId ?? ''),
 			}
 			await dispatch(config, msg, ctx, (response) => stdioWrite(response))
@@ -112,6 +116,7 @@ function runStdio(config: NodePluginConfig, pluginKey: string): void {
 			reject(new Error('stdin closed'))
 		}
 		pending.clear()
+		db.close()
 		process.exit(0)
 	})
 }
@@ -158,6 +163,7 @@ async function runWebSocket(
 			const ctx: PluginContext = {
 				taskId,
 				pluginDirectory,
+				db,
 				invokeHook: wsInvokeHook,
 			}
 
@@ -198,6 +204,7 @@ async function runWebSocket(
 			const ctx: PluginContext = {
 				taskId: msg.taskId ?? '',
 				pluginDirectory: msg.pluginDirectory ?? '',
+				db,
 				invokeHook: wsInvokeHook,
 			}
 			await dispatch(config, msg, ctx, (response) => ws.send(JSON.stringify(response)))

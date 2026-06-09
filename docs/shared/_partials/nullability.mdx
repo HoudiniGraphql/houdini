@@ -1,0 +1,64 @@
+By default, a nullable field that returns `null` from the server stays `null` on that specific field — leaving the rest of the object intact. This means you often end up with deeply nested null checks scattered through your components.
+
+```graphql
+type Query {
+  user(id: ID!): User
+}
+
+type User {
+  id: ID!
+  name: String!
+  bestFriend: User  # nullable
+}
+```
+
+```graphql
+query UserProfile($id: ID!) {
+  user(id: $id) {
+    id
+    name
+    bestFriend {
+      name
+    }
+  }
+}
+```
+
+Because `bestFriend` is nullable, you can't safely write `user.bestFriend.name` — you have to guard against `bestFriend` being null at every call site, even when your component only makes sense if a best friend exists.
+
+The `@required` directive gives you control over where null surfaces. When a `@required` field is null, Houdini nulls out the parent object instead:
+
+```graphql
+query UserProfile($id: ID!) {
+  user(id: $id) {
+    id
+    name
+    bestFriend @required {
+      name
+    }
+  }
+}
+```
+
+If `bestFriend` is null, the entire `user` object becomes null. You only need to null-check `user` — if it's present, `bestFriend` is guaranteed to be non-null and `user.bestFriend.name` is safe to access. For more background on this pattern, see [this post](https://relay.dev/blog/2023/01/03/resilient-relay-apps/) on the Relay blog.
+
+### Bubbling Through Parents
+
+Null bubbles up to the nearest nullable ancestor. If the parent is non-nullable in your schema, you can still use `@required` — as long as the parent is also marked `@required` to allow the null to continue propagating:
+
+```graphql
+query UserProfile($id: ID!) {
+  user(id: $id) @required {
+    bestFriend @required {
+      name
+    }
+  }
+}
+```
+
+If `bestFriend` is null, it makes `user` null. If `user` is the outermost nullable field, the null stops there.
+
+### Constraints
+
+- `@required` can only be placed on nullable fields
+- The exception: a non-nullable field can carry `@required` if one of its children is also marked `@required`, allowing the null to pass through it

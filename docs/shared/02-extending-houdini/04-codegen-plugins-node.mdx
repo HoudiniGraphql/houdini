@@ -1,0 +1,155 @@
+---
+title: Codegen Plugins (Node)
+description: Writing Houdini codegen plugins in Node.js
+---
+
+Node plugins let you hook into Houdini's codegen pipeline from JavaScript or TypeScript. They follow the same lifecycle as [Go plugins](~/extending-houdini/codegen-plugins-golang) but are written as plain Node.js scripts and distributed as normal npm packages.
+
+## Defining a Plugin
+
+A Node plugin is a script that calls `plugin()` from `houdini/node`. Pass it a name, an order, and an object of hook handlers:
+
+```typescript title="src/index.ts"
+import { plugin } from 'houdini/node'
+
+plugin({
+	name: 'my-plugin',
+	order: 'after',
+	hooks: {
+		async validate(ctx, payload) {
+			// inspect documents and throw PluginError to surface problems
+		},
+		async generateRuntime(ctx, payload) {
+			// write project-wide output files
+		},
+	},
+})
+```
+
+`plugin()` handles all the transport plumbing — registering with the orchestrator, receiving hook invocations, and sending results back — so the script itself stays minimal.
+
+### Plugin Order
+
+- `'before'` — runs before `houdini-core`
+- `'core'` — reserved for `houdini-core` and framework plugins
+- `'after'` — runs after `houdini-core` (the right choice for most plugins)
+
+### Entry Point
+
+The script is the entry point. Wire it up in `package.json`'s `bin` field so the orchestrator can launch it:
+
+```json title="package.json"
+{
+  "name": "my-plugin",
+  "bin": "dist/index.js"
+}
+```
+
+## Hook Handlers
+
+Each hook is an async function that receives a `PluginContext` and a payload, and can return a result object:
+
+```typescript
+type HookHandler = (
+	ctx: PluginContext,
+	payload: Record<string, any>
+) => Promise<Record<string, any> | undefined> | Record<string, any> | undefined
+```
+
+The available hooks mirror the Go pipeline exactly:
+
+| Hook | When it fires |
+|---|---|
+| `config` | Plugin is loading; return default config values |
+| `afterLoad` | All plugins have loaded |
+| `schema` | Add custom directives or types to the project schema |
+| `extractDocuments` | Parse source files; receives `{ filepaths: string[] }` |
+| `afterExtract` | All documents extracted |
+| `beforeValidate` | Transform documents before validation |
+| `validate` | Report validation errors |
+| `afterValidate` | Documents are valid; last chance to transform before codegen |
+| `beforeGenerate` | Runs just before artifact generation |
+| `generateDocuments` | Write per-document output files |
+| `generateRuntime` | Write project-wide runtime files |
+| `afterGenerate` | Runs after all generation is complete |
+
+## Errors
+
+Throw `PluginError` from any hook to surface a structured error to the user:
+
+```typescript
+import { plugin, PluginError } from 'houdini/node'
+
+plugin({
+	name: 'my-plugin',
+	order: 'after',
+	hooks: {
+		async validate(ctx, payload) {
+			throw new PluginError({
+				message: 'document must have a name',
+				kind: 'validation',
+				locations: [{ filepath: 'src/routes/+page.svelte', line: 12 }],
+			})
+		},
+	},
+})
+```
+
+Plain `Error` throws are also caught and forwarded, but without file locations or a `kind`.
+
+## Plugin Context
+
+Every hook receives a `PluginContext` as its first argument:
+
+```typescript
+type PluginContext = {
+	taskId: string
+	pluginDirectory: string
+	db: Db
+	invokeHook(
+		hook: string,
+		payload?: Record<string, any>,
+		options?: { parallel?: boolean }
+	): Promise<Record<string, any>>
+}
+```
+
+- `pluginDirectory` — absolute path to the directory containing your plugin's entry point. Use it to resolve bundled assets.
+- `db` — a connection to the shared SQLite database. Exposes `get`, `all`, and `run` for reading and writing pipeline data directly:
+
+```typescript
+async validate(ctx, payload) {
+	const docs = ctx.db.all(`SELECT name, filepath FROM documents WHERE kind = 'query'`)
+	for (const doc of docs) {
+		if (!doc.name.endsWith('Query')) {
+			throw new PluginError({
+				message: `query name must end with 'Query'`,
+				kind: 'validation',
+				locations: [{ filepath: doc.filepath }],
+			})
+		}
+	}
+},
+```
+
+- `invokeHook` — call another pipeline hook from within your handler. Results are keyed by plugin name.
+
+## Optional Fields
+
+The plugin config accepts a few additional fields for plugins that need to ship runtime code:
+
+- `includeRuntime` — a path (relative to your plugin entry point) to a directory that Houdini will copy into the project's generated runtime
+- `configModule` — a path to a JavaScript module that exports config values to merge into the project config
+- `clientPlugins` — an object of client-side plugins to inject into the user's `HoudiniClient`
+
+```typescript
+plugin({
+	name: 'my-plugin',
+	order: 'after',
+	includeRuntime: './runtime',
+	clientPlugins: {
+		'my-plugin/runtime/clientPlugin': null,
+	},
+	hooks: { /* ... */ },
+})
+```

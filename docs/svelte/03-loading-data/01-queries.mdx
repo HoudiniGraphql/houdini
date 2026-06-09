@@ -1,0 +1,227 @@
+---
+title: Query
+description: Queries in Houdini
+---
+
+import Dedupe from '@shared/_partials/dedupe.mdx'
+import RuntimeScalars from '@shared/_partials/runtime-scalars.mdx'
+
+Load data from the server and subscribe to any changes that mutations, subscriptions, and other queries bring in.
+
+## Defining a Query
+
+Queries can be defined inline using `graphql` from `$houdini`, or in an external `.gql` file that Houdini picks up automatically and generates a typed store class for.
+
+**Inline:**
+
+```svelte title="src/lib/MyComponent.svelte"
+<script>
+	import { graphql } from '$houdini'
+
+	const store = graphql(`
+		query MyProfileInfo {
+			viewer {
+				firstName
+			}
+		}
+	`)
+</script>
+```
+
+**External `.gql` file:**
+
+```graphql title="src/routes/myRoute/+page.gql"
+query MyProfileInfo {
+	viewer {
+		firstName
+	}
+}
+```
+
+```svelte title="src/routes/myRoute/+page.svelte"
+<script>
+	import { MyProfileInfoStore } from '$houdini'
+
+	const store = new MyProfileInfoStore()
+</script>
+```
+
+## Store Fields
+
+A query store holds the following fields, accessed as `$store.fieldName`:
+
+- `data` — the result of the query, updated as mutations, subscriptions, and other queries bring in more recent values
+- `fetching` — `true` while a network request is in flight
+- `errors` — any errors returned by the server
+- `partial` — `true` if the result is a partial cache hit
+- `variables` — the variables used in the last request
+
+## Store Methods
+
+`store.fetch(params?)` sends the query and returns a promise that resolves with the result. It accepts `variables`, `policy`, `metadata`, and `blocking`.
+
+## Fetching Data
+
+Since `fetch` is just an async function, you can call it anywhere Svelte supports async.
+
+### Using `{#await}` (recommended)
+
+The cleanest pattern for loading data in a component:
+
+```svelte title="src/routes/myRoute/+page.svelte"
+<script>
+	import { graphql } from '$houdini'
+
+	const store = graphql(`
+		query MyProfileInfo {
+			viewer {
+				firstName
+			}
+		}
+	`)
+</script>
+
+{#await store.fetch()}
+	Loading...
+{:then}
+	{$store.data.viewer.firstName}
+{/await}
+```
+
+### Using `$effect`
+
+When the query depends on reactive state — a prop, a search input, a selected filter — use `$effect` to re-fetch whenever the dependency changes. This is the right pattern for non-SSR components like typeahead search or prop-driven queries:
+
+```svelte title="src/lib/UserProfile.svelte"
+<script>
+	import { graphql } from '$houdini'
+
+	let { id } = $props()
+
+	const store = graphql(`
+		query UserProfile($id: ID!) {
+			user(id: $id) {
+				name
+			}
+		}
+	`)
+
+	$effect(() => {
+		store.fetch({ variables: { id } })
+	})
+</script>
+
+{#if $store.fetching}
+	Loading...
+{:else}
+	{$store.data.user.name}
+{/if}
+```
+
+### Using SvelteKit load
+
+For routes where you want fetching tied to navigation, use the generated `load_<QueryName>` helper in a universal `+page.ts` load function:
+
+```typescript title="src/routes/myRoute/+page.ts"
+import { load_MyProfileInfo } from '$houdini'
+import type { PageLoad } from './$houdini'
+
+export const load: PageLoad = async (event) => {
+	return {
+		...(await load_MyProfileInfo({ event }))
+	}
+}
+```
+
+```svelte title="src/routes/myRoute/+page.svelte"
+<script lang="ts">
+	import type { PageData } from './$houdini'
+
+	let { data }: { data: PageData } = $props()
+	let { MyProfileInfo } = $derived(data)
+</script>
+
+{$MyProfileInfo.data.viewer.firstName}
+```
+
+For multiple queries in parallel, use `loadAll`:
+
+```typescript title="src/routes/myRoute/+page.ts"
+import { loadAll, load_QueryA, load_QueryB } from '$houdini'
+import type { PageLoad } from './$houdini'
+
+export const load: PageLoad = async (event) => {
+	return {
+		...(await loadAll(
+			load_QueryA({ event }),
+			load_QueryB({ event })
+		))
+	}
+}
+```
+
+## Query Variables
+
+Pass variables directly to `fetch`:
+
+```svelte
+{#await store.fetch({ variables: { id } })}
+	Loading...
+{:then}
+	{$store.data.user.name}
+{/await}
+```
+
+When using `load_<QueryName>`, pass them there instead:
+
+```typescript title="src/routes/myRoute/+page.ts"
+export const load: PageLoad = async (event) => {
+	return {
+		...(await load_MyQuery({
+			event,
+			variables: { id: event.params.id }
+		}))
+	}
+}
+```
+
+## Runtime Scalars
+
+<RuntimeScalars />
+
+## Loading States
+
+Use `$store.fetching` to show a loading indicator during refetches:
+
+```svelte
+{#if $store.fetching}
+	Loading...
+{:else}
+	{$store.data.viewer.firstName}
+{/if}
+```
+
+For more sophisticated skeleton UIs that avoid duplicating your layout, see the [Loading States](~/loading-data/loading-states) guide.
+
+## Passing Metadata
+
+Pass `metadata` to `fetch` to forward custom values to your network function:
+
+```svelte
+<script>
+	store.fetch({ metadata: { key: 'value' } })
+</script>
+```
+
+```typescript title="src/client.ts"
+export default new HoudiniClient({
+	url: '...',
+	fetchParams({ metadata }) {
+		// use metadata here
+	}
+})
+```
+
+## Deduplication
+
+<Dedupe />

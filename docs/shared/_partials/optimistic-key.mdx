@@ -1,0 +1,33 @@
+Sometimes it's not possible to know the ID to provide in an optimistic response. Most commonly, this happens when creating a new record and inserting the result into a list:
+
+```graphql
+mutation CreateTodoItem($text: String!) {
+  createItem(text: $text) {
+    item {
+      id   # <--- what goes here?
+      text
+      ...All_Items_insert
+    }
+  }
+}
+```
+
+To handle this, mark the `id` field with `@optimisticKey` and Houdini will generate a temporary ID for you:
+
+```graphql
+mutation CreateTodoItem($text: String!) {
+  createItem(text: $text) {
+    item {
+      id @optimisticKey
+      text
+      ...All_Items_insert
+    }
+  }
+}
+```
+
+With `@optimisticKey`, you no longer need to provide an `id` in the `optimisticResponse` — Houdini generates one, immediately inserts the record into the list, and replaces the temporary ID with the real one when the mutation resolves.
+
+The important distinction from making up your own ID is that Houdini tracks these generated keys internally. If you were to reference the generated key in another mutation before the create resolves (say, to mark the new item as complete), the second mutation will block until the real ID comes back from the server.
+
+If your record's key is a custom scalar that Houdini can't generate, you'll need to supply the value manually in `optimisticResponse`.

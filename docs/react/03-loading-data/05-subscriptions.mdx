@@ -1,0 +1,96 @@
+---
+title: Subscriptions
+description: Real-time data with subscriptions in Houdini
+---
+
+Subscriptions let you listen for real-time updates from your server. The data flows into the same cache as queries and mutations, so any component watching the relevant fields updates automatically.
+
+## Client Setup
+
+Subscriptions require a WebSocket-capable transport. Install `graphql-ws` and wire it up in `+client.ts` using the `subscription` plugin:
+
+```bash
+npm install graphql-ws
+```
+
+```typescript title="src/+client.ts&typescriptToggle=true"
+import { HoudiniClient } from '$houdini'
+import { subscription } from '$houdini/plugins'
+import { createClient } from 'graphql-ws'
+
+export default new HoudiniClient({
+  plugins: [
+    subscription(() => createClient({ url: 'ws://localhost:4000/graphql' }))
+  ]
+})
+```
+
+## Basic Usage
+
+Use the `useSubscription` hook with a GraphQL subscription document and any required variables:
+
+```jsx title="src/lib/LiveComments.tsx&typescriptToggle=true"
+import { graphql, useSubscription } from '$houdini'
+
+export function LiveComments({ postId }: { postId: string }) {
+  const data = useSubscription(
+    graphql(`
+      subscription NewComment($postId: ID!) {
+        commentAdded(postId: $postId) {
+          id
+          body
+          author {
+            name
+          }
+        }
+      }
+    `),
+    { postId }
+  )
+
+  if (!data) return null
+
+  return <p>{data.commentAdded.author.name}: {data.commentAdded.body}</p>
+}
+```
+
+The subscription is active for as long as the component is mounted and tears down automatically on unmount.
+
+## Cache Integration
+
+Subscription bodies support the same list operations as mutations — `@append`, `@prepend`, `@remove`, and `@allLists`. This means a subscription can maintain a live list without any manual state management:
+
+```graphql
+subscription NewComment($postId: ID!) {
+  commentAdded(postId: $postId) {
+    ...Comment_comment @append(parentID: $postId)
+  }
+}
+```
+
+See [Updating Lists](~/updating-data/updating-lists) for the full list of operations.
+
+## Authentication
+
+The `subscription` plugin receives the current session, so you can pass auth tokens as connection parameters:
+
+```typescript title="src/+client.ts&typescriptToggle=true"
+import { HoudiniClient } from '$houdini'
+import { subscription } from '$houdini/plugins'
+import { createClient } from 'graphql-ws'
+
+export default new HoudiniClient({
+  plugins: [
+    subscription(({ session }) =>
+      createClient({
+        url: 'ws://localhost:4000/graphql',
+        connectionParams: {
+          Authorization: `Bearer ${session?.token}`
+        }
+      })
+    )
+  ]
+})
+```
+
+When the session changes, a new WebSocket client is created automatically.

@@ -1,0 +1,35 @@
+---
+title: File Conventions
+description: Special files in Houdini's React framework
+---
+
+Every file Houdini treats as special starts with `+`. Everything else — utility functions, shared components, stylesheets — is ignored by the router and can live wherever makes sense for your project. The `+` prefix might look a little odd at first, but it serves two purposes: it makes Houdini files instantly recognizable in any directory listing, and it lets Houdini add new reserved filenames in the future without any risk of colliding with files you've already created.
+
+## Route Files
+
+These files go inside `src/routes/` and can appear in any route directory.
+
+| File | Purpose |
+|---|---|
+| `+page.jsx` / `+page.tsx` | The component rendered at this route. Receives query results as props when a `+page.gql` is present. |
+| `+layout.jsx` / `+layout.tsx` | Wraps all child routes. Receives a `children` prop for the nested content, plus query results from `+layout.gql` if defined. |
+| `+page.gql` | GraphQL query (or queries) for this page. Each query's result is passed as a prop named after the query. |
+| `+layout.gql` | GraphQL query for this layout. Results are available to the layout component and all of its descendants. |
+
+## API Files
+
+These files go in `src/api/` and are only relevant if you're using a [local GraphQL server](~/loading-data/graphql-server).
+
+| File | Purpose |
+|---|---|
+| `+schema` | Exports an executable GraphQL schema. Houdini wraps it in a Yoga instance automatically. |
+| `+yoga` | Exports a custom Yoga instance — use this to inject context, add plugins, or customize behavior. Requires `+schema` to also be present. |
+
+## App-Level Files
+
+These go directly in `src/`, not inside `routes/`.
+
+| File | Purpose |
+|---|---|
+| `+index.tsx` | The root HTML document. Controls the `<html>`, `<head>`, and `<body>` shells that wrap every page. |
+| `+client.ts` | Exports the `HoudiniClient` instance used throughout the app. |

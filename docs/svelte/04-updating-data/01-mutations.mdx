@@ -1,0 +1,118 @@
+---
+title: Mutations
+description: Mutations in Houdini
+---
+
+import Dedupe from '@shared/_partials/dedupe.mdx'
+
+Send a mutation to the server and update your client-side cache with any changes.
+
+## Basic Usage
+
+```svelte
+<script>
+	import { graphql } from '$houdini'
+
+	const uncheckItem = graphql(`
+		mutation UncheckItem($id: ID!) {
+			uncheckItem(item: $id) {
+				item {
+					id
+					completed
+				}
+			}
+		}
+	`)
+</script>
+
+<button onclick={() => uncheckItem.mutate({ id: 'my-item' })}>
+	Uncheck Item
+</button>
+```
+
+`mutate` invokes the mutation with the variables passed as the first argument. The second argument configures its behavior:
+
+- `optimisticResponse` — a value to apply to the cache immediately, before the server responds. See [Optimistic Updates](~/updating-data/optimistic-updates).
+
+Mutations usually do best when combined with at least one fragment grabbing the information needed for the mutation — see [Updating Fields](#updating-fields) below for an example of this pattern.
+
+## SvelteKit Form Actions
+
+Using a mutation inside a form action looks the same as anywhere else. Pass the `RequestEvent` to `mutate` so SvelteKit's `fetch` handling works correctly (header forwarding, `handleFetch` hook, etc.):
+
+```typescript title="src/routes/+page.server.ts"
+import { graphql } from '$houdini'
+import { fail } from '@sveltejs/kit'
+import type { Actions } from './$types'
+
+export const actions: Actions = {
+	add: async (event) => {
+		const data = await event.request.formData()
+		const name = data.get('name')?.toString()
+
+		if (!name) {
+			return fail(403, { name: '*' })
+		}
+
+		const addUser = graphql(`
+			mutation AddUser($name: String!) {
+				addUser(name: $name) {
+					id
+					name
+				}
+			}
+		`)
+
+		return await addUser.mutate({ name }, { event })
+	}
+}
+```
+
+## Updating Fields
+
+When a mutation updates fields on existing records, Houdini handles the cache update automatically as long as you request the updated data alongside the record's `id`.
+
+Here's a typical pattern combining a fragment with a mutation in the same component:
+
+```svelte title="TodoItemRow.svelte"
+<script>
+	import { fragment, graphql } from '$houdini'
+	import type { TodoItemRow } from '$houdini'
+
+	let { item }: { item: TodoItemRow } = $props()
+
+	const data = $derived(fragment(item, graphql(`
+		fragment TodoItemRow on TodoItem {
+			id
+			text
+			completed
+		}
+	`)))
+
+	const checkItem = graphql(`
+		mutation CheckItem($id: ID!) {
+			checkItem(item: $id) {
+				item {
+					id
+					completed
+				}
+			}
+		}
+	`)
+</script>
+
+<li class:completed={$data.completed}>
+	<input
+		name={$data.text}
+		class="toggle"
+		type="checkbox"
+		checked={$data.completed}
+		onclick={() => checkItem.mutate({ id: $data.id })}
+	/>
+	<label for={$data.text}>{$data.text}</label>
+</li>
+```
+
+## Deduplication
+
+<Dedupe />

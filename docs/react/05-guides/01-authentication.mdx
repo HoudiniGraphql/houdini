@@ -1,52 +1,43 @@
 ---
 title: Authentication
-description: Documentation for Houdini's application framework
+description: Handling authentication in Houdini's React framework
 ---
 
-## Authentication
+The challenge when building user sessions in a modern app is how to share that information between the server and client. Really, there is only one answer once security starts mattering: `httpOnly` cookies. While traditionally apps could use local storage for this, the initial request (the one that gets rendered on the server) doesn't have access to the client's local storage and so we must rely on something that's automatically included in the initial response.
 
-The challenge when building user sessions in a modern app is how to share that information between
-the server and client. Really, there is only one answer once security starts mattering: `httpOnly` cookies. While traditionally
-apps could use local storage for this, the initial request (the one that gets rendered on the server) doesn't have access to
-the client's local storage and so we must rely on something that's automatically included in the initial response.
+Wiring up everything up by hand is possible in Houdini but it can be cumbersome and error prone. In order to help, Houdini provides a few strategies out of the box that we hope covers most situations. Once you have configured your strategy, you can use the session in your client as shown here.
 
-Wiring up everything up by hand _is_ possible in Houdini but it can be cumbersome and error prone. In order to help, Houdini
-provides a few strategies out of the box that we hope covers most situations. Once you have configured your strategy, you
-can use the session in your client as shown [here](/react/api/client).
+- **Redirect Based Authentication** - Users authorize with a third party provider which then redirects the user back to the Houdini application with any number of query parameters that define the session
+- **Mutation Based Authentication** (not yet implemented) - Users authorize by sending a mutation to the api. The session is defined by one of the fields in the response
 
-- [Redirect Based Authentication](#redirect-based-authentication) - Users authorize with a third party provider which then redirects the user back to
-the Houdini application with any number of query parameters that define the session
-- Mutation Based Authentication (not yet implemented) - Users authorize by sending a mutation to the api. The session is
-defined by one of the fields in the response
+## Redirect Based Authentication
 
-### Redirect Based Authentication
+To configure your application to use a redirect-based strategy, you must set the `auth` field of the router config to an object like so:
 
-To configure your application to use a redirect-based strategy, you must set the `auth` field of the router config to an object
-like so:
-
-```javascript title="vite.config.js"
+```js title="vite.config.js"
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	router: {
+    router: {
         auth: {
             // the URL that the user will be redirected to by the third-party provider
             redirect: '/auth/token',
             // the secret to use for signing/unsigning the session
             sessionKeys: ['supersecret'],
         },
-	},
+    },
 }
 
 export default config
 ```
 
+## Reading Session Data
+
 To access the current session, you can use the `useSession` hook:
 
-```javascript
+```js
 import { useSession } from '$houdini'
 
 const [ session, setSession ] = useSession()
 ```
 
-Calling `setSession` updates the client-side session as well as perists the new values in the application
-cookie so that its available on the next load.
+Calling `setSession` updates the client-side session as well as perists the new values in the application cookie so that its available on the next load.

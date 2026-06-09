@@ -1,0 +1,28 @@
+---
+title: Navigation
+description: Linking between pages in Houdini's React framework
+---
+
+Links use standard `<a>` tags. No wrapper component needed:
+
+```jsx
+<a href="/shows">All Shows</a>
+```
+
+## Preloading
+
+Add `data-houdini-preload` to a link and Houdini will begin fetching when the user hovers, before they click:
+
+```html
+<a href="/shows" data-houdini-preload>All Shows</a>
+```
+
+By default this fetches both the page component and its data. You can narrow it:
+
+- `"data"` — only the GraphQL data
+- `"component"` — only the JavaScript bundle
+- `"page"` — both (default)
+
+```html
+<a href="/shows" data-houdini-preload="data">All Shows</a>
+```

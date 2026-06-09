@@ -1,0 +1,164 @@
+---
+title: Pagination
+description: Incrementally loading large lists in Houdini
+---
+
+Most APIs window large lists rather than returning everything at once, leaving it to the client to load more as needed. Houdini supports two pagination strategies that cover the approaches you'll encounter in practice.
+
+## Cursor-based Pagination
+
+Cursor-based pagination is the approach popularized by GraphQL's [Relay connection model](https://relay.dev/graphql/connections.htm). Instead of page numbers, the server returns a cursor — an opaque pointer into the list — that you pass with the next request to pick up where you left off.
+
+A field that supports cursor-based pagination returns a connection type with `edges`, `pageInfo`, and usually a `totalCount`:
+
+```graphql
+type UserConnection {
+	edges: [UserEdge!]!
+	pageInfo: PageInfo!
+}
+
+type UserEdge {
+	cursor: String
+	node: User
+}
+
+type PageInfo {
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String
+	endCursor: String
+}
+```
+
+Mark the field with `@paginate` and Houdini handles the cursor management automatically:
+
+```graphql title="+page.gql"
+query UserList {
+	users(first: 10) @paginate(name: "User_List") {
+		edges {
+			node {
+				id
+				name
+			}
+		}
+	}
+}
+```
+
+```svelte title="+page.svelte"
+<script>
+	import { UserListStore } from '$houdini'
+
+	const store = new UserListStore()
+</script>
+
+{#await store.fetch()}
+	Loading...
+{:then}
+	{#each $store.data.users.edges as { node }}
+		<p>{node.name}</p>
+	{/each}
+
+	{#if $store.pageInfo.hasNextPage}
+		<button onclick={() => store.loadNextPage()}>
+			Load more
+		</button>
+	{/if}
+{/await}
+```
+
+Houdini automatically includes the `pageInfo` fields — you don't need to select them yourself. The store gains:
+
+```ts
+type UserListStore = QueryStore & {
+	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
+	loadPreviousPage(pageCount?: number, before?: string | number): Promise<void>
+	pageInfo: Readable<PageInfo>
+}
+```
+
+## Offset/Limit Pagination
+
+If your API uses `limit` and `offset` arguments instead of cursors, Houdini supports that too:
+
+```graphql title="+page.gql"
+query UserList {
+	users(limit: 10) @paginate(name: "User_List") {
+		id
+		name
+	}
+}
+```
+
+```svelte title="+page.svelte"
+<script>
+	import { UserListStore } from '$houdini'
+
+	const store = new UserListStore()
+</script>
+
+{#await store.fetch()}
+	Loading...
+{:then}
+	{#each $store.data.users as user}
+		<p>{user.name}</p>
+	{/each}
+
+	<button onclick={() => store.loadNextPage()}>
+		Load more
+	</button>
+{/await}
+```
+
+The store gains:
+
+```ts
+type UserListStore = QueryStore & {
+	loadNextPage(limit?: number, offset?: number): Promise<void>
+}
+```
+
+## Paginated Fragments
+
+Fragments can also paginate. Use `paginatedFragment` instead of `fragment` and mark the field with `@paginate`:
+
+```svelte
+<script>
+	import { paginatedFragment, graphql } from '$houdini'
+	import type { UserWithFriends } from '$houdini'
+
+	let { user }: { user: UserWithFriends } = $props()
+
+	const friendList = $derived(paginatedFragment(user, graphql(`
+		fragment UserWithFriends on User {
+			friends(first: 10) @paginate {
+				edges {
+					node {
+						name
+					}
+				}
+			}
+		}
+	`)))
+</script>
+
+{#each $friendList.data.friends.edges as { node }}
+	<div>{node.name}</div>
+{/each}
+
+<button onclick={() => friendList.loadNextPage()}>
+	load more
+</button>
+```
+
+`paginatedFragment` returns a store with the following fields:
+
+- `data` — the fragment's data
+- `loading` — `true` while a pagination request is in flight
+- `pageInfo` — current page info (`hasNextPage`, `hasPreviousPage`, etc.). Only valid for cursor-based pagination.
+- `partial` — `true` if the result is a partial cache hit
+
+And one of the following methods depending on the pagination direction:
+
+- `loadNextPage(pageSize?)` — loads the next page
+- `loadPreviousPage(pageSize?)` — loads the previous page

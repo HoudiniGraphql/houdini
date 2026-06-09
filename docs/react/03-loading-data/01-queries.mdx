@@ -1,0 +1,143 @@
+---
+title: Queries
+description: Loading data in Houdini's React framework
+---
+
+import Dedupe from '@shared/_partials/dedupe.mdx'
+import RuntimeScalars from '@shared/_partials/runtime-scalars.mdx'
+
+The core idea behind Houdini's data loading model is that queries live next to the routes that use them. A `+page.gql` file defines what data a route needs, and Houdini handles the fetching, caching, and prop-threading before your component ever renders.
+
+Fetching starts at the moment navigation begins — not when the component mounts. This follows the [render-as-you-fetch](https://react.dev/reference/rsc/server-components) pattern recommended by the React docs: by the time your component renders for the first time, the data is already in the cache and arrives as props with no loading state needed.
+
+## Basic Usage
+
+Define a query in `+page.gql`:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowList {
+  shows {
+    id
+    title
+  }
+}
+```
+
+The result arrives as a prop named after the query. Destructure it directly in the function signature:
+
+```jsx title="src/routes/shows/+page.jsx"
+export default function ShowsPage({ ShowList }) {
+  return (
+    <ul>
+      {ShowList.shows.map((show) => (
+        <li key={show.id}>{show.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+The prop name matches the query name exactly — `ShowList` not `data` or `props.ShowList`. Houdini enforces this through static analysis, so it needs to appear in the destructuring pattern in the function signature.
+
+## Layout Queries
+
+A `+layout.gql` works the same way as `+page.gql`, but its results are available to the layout component and every route nested beneath it.
+
+```graphql title="src/routes/+layout.gql"
+query AppShell {
+  viewer {
+    name
+    plan
+  }
+}
+```
+
+```jsx title="src/routes/+layout.jsx"
+export default function RootLayout({ AppShell, children }) {
+  return (
+    <div>
+      <nav>{AppShell.viewer.name}</nav>
+      {children}
+    </div>
+  )
+}
+```
+
+All queries in the chain — the page query, the layout query, any ancestor layout queries — run in parallel before the route renders. Child pages don't need to re-fetch this data either; it's already in the cache from the layout's load.
+
+## Query Variables
+
+If a query variable name matches a route parameter, Houdini wires them automatically. Given a route at `src/routes/shows/[id]/`:
+
+```graphql title="src/routes/shows/[id]/+page.gql"
+query ShowDetail($id: ID!) {
+  show(id: $id) {
+    title
+    description
+  }
+}
+```
+
+The `$id` variable is populated from the `[id]` segment with no extra configuration.
+
+## Runtime Scalars
+
+<RuntimeScalars />
+
+## Imperative Handles
+
+Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. For these cases, destructure the handle alongside the query result:
+
+```jsx title="src/routes/shows/+page.jsx"
+export default function ShowsPage({ ShowList, ShowList$handle }) {
+  return (
+    <div>
+      <ul>
+        {ShowList.shows.map((show) => (
+          <li key={show.id}>{show.title}</li>
+        ))}
+      </ul>
+      <button onClick={() => ShowList$handle.fetch()}>Refresh</button>
+    </div>
+  )
+}
+```
+
+The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details.
+
+## TypeScript
+
+Every route gets a generated `./$types` module that exports typed props for that file. Import `PageProps` in a `+page.tsx` and your query results, handles, and route params are all typed automatically:
+
+```tsx title="src/routes/shows/+page.tsx"
+import type { PageProps } from './$types'
+
+export default function ShowsPage({ ShowList }: PageProps) {
+  return (
+    <ul>
+      {ShowList.shows.map((show) => (
+        <li key={show.id}>{show.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+Layout components use `LayoutProps` from the same module, which includes `children` alongside any layout query results:
+
+```tsx title="src/routes/+layout.tsx"
+import type { LayoutProps } from './$types'
+
+export default function RootLayout({ AppShell, children }: LayoutProps) {
+  return (
+    <div>
+      <nav>{AppShell.viewer.name}</nav>
+      {children}
+    </div>
+  )
+}
+```
+
+## Deduplication
+
+<Dedupe />

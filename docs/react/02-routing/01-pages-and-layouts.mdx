@@ -1,0 +1,57 @@
+---
+title: Pages and Layouts
+description: File-based routing in Houdini's React framework
+---
+
+Houdini uses a filesystem-based router. Routes live in `src/routes`, and the path of a file maps directly to the URL it handles.
+
+## Pages and Layouts
+
+A route is defined by a `+page.jsx` (or `.tsx`) file. The default export is the component that renders at that URL:
+
+```
+src/routes/+page.jsx           → /
+src/routes/shows/+page.jsx     → /shows
+src/routes/show/[id]/+page.jsx → /show/:id
+```
+
+```jsx title="src/routes/+page.tsx&typescriptToggle=true"
+export default () => <div>Hello Houdini!</div>
+```
+
+Layouts wrap routes. A `+layout.jsx` applies to every page in its directory and all subdirectories, and receives the nested content as `children`:
+
+```jsx title="src/routes/+layout.tsx&typescriptToggle=true"
+export default ({ children }) => (
+  <>
+    <NavBar />
+    {children}
+  </>
+)
+```
+
+A page at `/shows/1` will render inside any layout files found at `src/routes/` and `src/routes/shows/`, nested outermost-first.
+
+## Route Groups
+
+Routes can be grouped into a shared layout without affecting the URL structure by wrapping the directory name in parentheses:
+
+```
+src/routes/(app)/shows/+page.jsx   → /shows
+src/routes/(app)/show/+page.jsx    → /show
+src/routes/(auth)/login/+page.jsx  → /login
+```
+
+The `(app)` and `(auth)` segments are invisible to the router — they exist purely to let you share a `+layout.jsx` across a subset of routes without that grouping appearing in the URL.
+
+## Route Parameters
+
+Dynamic segments are marked with square brackets:
+
+- `src/routes/show/[id]/+page.jsx` — matches `/show/1`, `/show/abc`, etc.
+- `src/routes/assets/[...filepath]/+page.jsx` — rest syntax, matches any number of segments
+- `src/routes/[[lang]]/home/+page.jsx` — double brackets mark an optional parameter
+
+Optional parameters cannot follow rest parameters — the rest segment is greedy and will consume everything after it.
+
+

@@ -1,0 +1,312 @@
+---
+title: Plugin API Reference (Golang)
+description: API reference for Houdini's Go plugin utilities
+---
+
+## Database
+
+Houdini's pipeline stores everything — documents, schema types, validation results, project config — in a shared SQLite database. Every plugin gets access to it through `p.DB`, a `DatabasePool[PluginConfig]` that the runtime injects before any hooks fire.
+
+### Why the abstraction
+
+The pipeline runs in two environments that need different SQLite drivers: native binaries use `zombiezen.com/go/sqlite` (a connection pool built on CGo), while WASM builds require a pure-Go driver that works inside a WASI sandbox. Rather than scattering build-tag conditionals through plugin code, the `plugins` package exposes three small interfaces — `Row`, `Stmt`, and `Conn` — and the right driver is wired in at compile time. Plugin code should never import a SQLite driver directly; it only ever sees these interfaces.
+
+### Checking out connections
+
+`DatabasePool` manages a pool of connections. Acquire one with `Take`, use it, and return it with `Put`:
+
+```go
+conn, err := p.DB.Take(ctx)
+if err != nil {
+    return err
+}
+defer p.DB.Put(conn)
+
+stmt, err := conn.Prepare(`SELECT id, name FROM documents WHERE type = $type`)
+if err != nil {
+    return err
+}
+defer stmt.Finalize()
+```
+
+For most queries you won't need to manage connections manually — the higher-level helpers do it for you.
+
+### Querying rows
+
+`StepQuery` is the standard way to read data. It checks out a connection, prepares the query, binds parameters, iterates over rows, and cleans up — all in one call:
+
+```go
+err := p.DB.StepQuery(ctx, `
+    SELECT name, raw_document
+    FROM documents
+    WHERE type = $type
+`, map[string]any{
+    "type": "query",
+}, func(row plugins.Row) {
+    name := row.GetText("name")
+    body := row.GetText("raw_document")
+    // ...
+})
+```
+
+Parameters are named with a `$` prefix and passed as `map[string]any`. Supported value types are `string`, `int`, `int64`, `bool`, `nil`, and `[]string` (which is JSON-encoded automatically).
+
+### Writing data
+
+`ExecQuery` runs a single write statement:
+
+```go
+err := p.DB.ExecQuery(ctx, `
+    INSERT INTO errors (filepath, message)
+    VALUES ($filepath, $message)
+`, map[string]any{
+    "filepath": doc.Filepath,
+    "message":  "unknown directive",
+})
+```
+
+When you need to write many rows in a loop, prepare the statement once and call `ExecStatement` for each row — this avoids reparsing the SQL on every iteration:
+
+```go
+conn, err := p.DB.Take(ctx)
+if err != nil {
+    return err
+}
+defer p.DB.Put(conn)
+
+stmt, err := conn.Prepare(`INSERT INTO errors (filepath, message) VALUES ($filepath, $message)`)
+if err != nil {
+    return err
+}
+defer stmt.Finalize()
+
+for _, problem := range problems {
+    if err := p.DB.ExecStatement(stmt, map[string]any{
+        "filepath": problem.Filepath,
+        "message":  problem.Message,
+    }); err != nil {
+        return err
+    }
+}
+```
+
+### Transactions
+
+Use `Transaction` to wrap a block of writes in a single commit. The returned function is designed to be deferred — it commits on success and rolls back if the error pointer is non-nil:
+
+```go
+conn, err := p.DB.Take(ctx)
+if err != nil {
+    return err
+}
+defer p.DB.Put(conn)
+
+end := p.DB.Transaction(conn)
+defer end(&err)
+
+// all writes here are part of one transaction
+```
+
+### Reading config
+
+Two helpers expose the configs that were loaded before hooks started:
+
+```go
+projectConfig, err := p.DB.ProjectConfig(ctx)  // houdini.config.js values
+pluginConfig, err  := p.DB.PluginConfig(ctx)    // your plugin's config block
+```
+
+## Errors
+
+Validation hooks signal problems by returning a `*plugins.Error` or a `*plugins.ErrorList`. The structured type lets the CLI surface file locations and line numbers alongside the message.
+
+```go
+func (p *MyPlugin) Validate(ctx context.Context) error {
+    errs := &plugins.ErrorList{}
+
+    err := p.DB.StepQuery(ctx, `SELECT filepath, name FROM documents`, nil,
+        func(row plugins.Row) {
+            if row.GetText("name") == "" {
+                errs.Append(&plugins.Error{
+                    Message: "document must have a name",
+                    Locations: []*plugins.ErrorLocation{{
+                        Filepath: row.GetText("filepath"),
+                    }},
+                    Kind: plugins.ErrorKindValidation,
+                })
+            }
+        },
+    )
+    if err != nil {
+        return err
+    }
+
+    if errs.Len() > 0 {
+        return errs
+    }
+    return nil
+}
+```
+
+A few helpers cover the common wrapping cases: `plugins.Errorf(format, args...)` constructs a `*plugins.Error` from a format string; `plugins.WrapError(err)` promotes a plain `error`; `plugins.WrapFilepathError(filepath, err)` does the same and attaches a file location.
+
+## GraphQL Constants
+
+The `plugins/graphql` package exports named constants for every directive and list operation suffix Houdini defines internally — use these instead of hardcoding strings:
+
+```go
+import gql "code.houdinigraphql.com/plugins/graphql"
+
+// directive names
+gql.ListDirective        // "list"
+gql.PaginationDirective  // "paginate"
+gql.RequiredDirective    // "required"
+gql.LoadingDirective     // "loading"
+gql.ArgumentsDirective   // "arguments"
+// ... and more
+
+// list operation suffixes
+gql.ListOperationSuffixInsert  // "_insert"
+gql.ListOperationSuffixRemove  // "_remove"
+gql.ListOperationSuffixToggle  // "_toggle"
+gql.ListOperationSuffixDelete  // "_delete"
+```
+
+It also exports helpers like `gql.ComponentFieldFragmentName(typ, field)` and `gql.FragmentPaginationQueryName(fragmentName)` for constructing derived names that follow Houdini's conventions.
+
+## Path Helpers
+
+`ProjectConfig` (returned by `p.DB.ProjectConfig(ctx)`) exposes path helpers for writing files to the right locations:
+
+```go
+config, _ := p.DB.ProjectConfig(ctx)
+
+config.ArtifactPath("MyQuery")              // .houdini/artifacts/MyQuery.ts
+config.ArtifactDirectory()                  // .houdini/artifacts/
+config.PluginRuntimeDirectory("my-plugin")  // .houdini/plugins/my-plugin/runtime/
+config.PluginDirectory("my-plugin")         // .houdini/plugins/my-plugin/
+config.DefinitionsDirectory()               // path to schema.graphql / documents.gql outputs
+```
+
+## Filesystem Utilities
+
+`plugins.RecursiveCopy(ctx, fs, from, to, transform)` copies a directory tree in parallel, applying a transform function to each file's contents before writing. It only writes files whose content has changed and returns the list of paths that were updated — this is what the runtime uses internally when a plugin implements `IncludeRuntime`. Useful if your `GenerateRuntime` hook needs to copy and patch a set of template files.
+
+`PluginDirFromContext(ctx)` returns the absolute path to the directory containing your plugin binary. Use it to resolve assets or templates that you bundle alongside the binary.
+
+## Testing
+
+The `plugins/tests` package provides a table-driven test harness that spins up a full in-memory pipeline — schema, extraction, parsing, and validation — and then hands control to your plugin.
+
+### RunTable
+
+`RunTable` is the entry point. You describe a table of inputs and expected outcomes; the harness runs them each as a sub-test:
+
+```go
+func TestMyPlugin(t *testing.T) {
+    tests.RunTable(t, tests.Table[MyPluginConfig, *MyPlugin]{
+        Schema: `
+            type Query {
+                user(id: ID!): User
+            }
+            type User {
+                id: ID!
+                name: String!
+            }
+        `,
+        Tests: []tests.Test[MyPluginConfig]{
+            {
+                Name:  "valid query passes",
+                Pass:  true,
+                Input: []string{`query GetUser($id: ID!) { user(id: $id) { name } }`},
+            },
+            {
+                Name:  "invalid query fails",
+                Pass:  false,
+                Input: []string{`query GetUser { unknownField }`},
+            },
+        },
+    })
+}
+```
+
+The harness creates an in-memory SQLite database, loads the schema, extracts and parses the input documents through `houdini-core`, and then instantiates your plugin with the same database. By default it runs `Validate`, `AfterValidate`, `GenerateDocuments`, and `GenerateRuntime` in sequence, checking that the error/success matches `test.Pass`.
+
+### Customising behaviour
+
+Three optional hooks on `Table` let you override any phase:
+
+- `SetupTest` — runs after the database is populated but before your plugin executes. Use it to insert additional rows or configure state.
+- `PerformTest` — replaces the default execution sequence entirely. Use it when you only want to test a single hook (e.g. just `Validate`) or when you need to assert on error details.
+- `VerifyTest` — replaces the default assertion. By default it calls `ValidateExpectedDocuments`; override it to make custom assertions against the database.
+
+```go
+tests.RunTable(t, tests.Table[MyPluginConfig, *MyPlugin]{
+    Schema: `...`,
+    PerformTest: func(t *testing.T, plugin *MyPlugin, test tests.Test[MyPluginConfig]) {
+        err := plugin.Validate(context.Background())
+        if test.Pass {
+            require.NoError(t, err)
+        } else {
+            require.Error(t, err)
+        }
+    },
+    Tests: []tests.Test[MyPluginConfig]{ /* ... */ },
+})
+```
+
+### Per-test config
+
+Each `Test` can override the project config for that case alone:
+
+```go
+{
+    Name: "custom id key",
+    Pass: true,
+    Input: []string{`query Q { user { name } }`},
+    ProjectConfig: func(cfg *plugins.ProjectConfig) {
+        cfg.DefaultKeys = []string{"_id"}
+    },
+},
+```
+
+## Glob Walking
+
+The `plugins/glob` package provides a parallel filesystem walker that understands picomatch-style glob patterns — the same format used in `houdini.config.js`'s `include` and `exclude` fields.
+
+### Basic usage
+
+```go
+import "code.houdinigraphql.com/plugins/glob"
+
+walker := glob.NewWalker()
+walker.AddInclude("src/**/*.{ts,tsx,graphql}")
+walker.AddExclude("**/node_modules/**")
+
+err := walker.Walk(ctx, afero.NewOsFs(), "/project", func(relPath string) error {
+    fmt.Println(relPath)
+    return nil
+})
+```
+
+`Walk` traverses the filesystem in parallel using a worker pool sized to the number of CPUs. Excluded directories are pruned early so their subtrees are never visited. The `onFile` callback receives a forward-slash path relative to the root.
+
+### Pattern support
+
+The walker supports the same glob syntax used by Vite and picomatch:
+
+- `*` — any characters within a single path segment
+- `**` — any number of path segments (globstar)
+- `?` — any single character
+- `[abc]` — character class
+- `{a,b,c}` — brace expansion (expanded at `AddInclude`/`AddExclude` time)
+
+### Checking a single path
+
+If you just need to test whether a path matches the current include/exclude patterns without walking the filesystem:
+
+```go
+if walker.Matches("src/routes/+page.ts") {
+    // ...
+}
+```

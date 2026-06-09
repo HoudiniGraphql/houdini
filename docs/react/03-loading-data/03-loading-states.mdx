@@ -1,0 +1,45 @@
+---
+title: Loading States
+description: Building loading states in Houdini's React framework
+---
+
+import LoadingStates from '@shared/_partials/loading-states.mdx'
+
+The naive approach to loading states is a top-level check: if the query is fetching, render a skeleton; otherwise render the real UI. The problem is that you end up building your layout twice — and any component that owns its own loading shape has to expose that structure to its parent.
+
+Houdini solves this with the `@loading` directive. Rather than a separate skeleton branch, the data object itself carries pending placeholders. Components can check their own fields and render accordingly, without the route knowing anything about their internals.
+
+## The @loading Directive
+
+<LoadingStates />
+
+## Checking for Pending Values in React
+
+Use `isPending` from `$houdini` to check whether a value is a placeholder. Do not compare directly against `PendingValue` — that pattern is incompatible with React 18's concurrent rendering:
+
+```jsx meta="typescriptToggle=true"
+import { graphql, useFragment, isPending } from '$houdini'
+import type { ShowCard_show } from '$houdini'
+
+export function ShowCard({ show }: { show: ShowCard_show }) {
+  const data = useFragment(show, graphql(`
+    fragment ShowCard_show on Show {
+      title @loading
+      posterUrl @loading
+    }
+  `))
+
+  return (
+    <div>
+      <img src={isPending(data.posterUrl) ? '/placeholder.png' : data.posterUrl} alt="" />
+      <h2>{isPending(data.title) ? <span className="skeleton" /> : data.title}</h2>
+    </div>
+  )
+}
+```
+
+`isPending` is a type guard — TypeScript narrows the type correctly on both branches.
+
+## Suspense
+
+When a query includes `@loading`, Houdini automatically wraps the view in a Suspense boundary. There's nothing to configure — the pending values are available as soon as the component renders.

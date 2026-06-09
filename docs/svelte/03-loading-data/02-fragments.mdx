@@ -1,0 +1,115 @@
+---
+title: Fragment
+description: Fragments in Houdini
+---
+
+Specify the data requirements for a component.
+
+## Basic Usage
+
+```svelte
+<script>
+	import { fragment, graphql } from '$houdini'
+	import type { UserAvatar } from '$houdini'
+
+	let { user }: { user: UserAvatar } = $props()
+
+	const data = $derived(fragment(user, graphql(`
+		fragment UserAvatar on User {
+			profilePicture
+		}
+	`)))
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+## Inline Fragments
+
+Inline fragments are defined using `fragment` imported from `$houdini`.
+
+### Inputs
+
+1. The prop containing the fragment reference (passed by a parent component that mixed in the fragment)
+2. A string tagged with `graphql` containing a single fragment document
+
+### Return Value
+
+`fragment` returns a store containing the fragment values. The store updates automatically as mutations, subscriptions, and other queries bring in new data.
+
+## External Documents
+
+Fragment stores can also be created from external `.gql` files by using the `.get` method on the generated store class:
+
+```svelte
+<script>
+	import { UserAvatarStore } from '$houdini'
+	import type { UserAvatar } from '$houdini'
+
+	let { user }: { user: UserAvatar } = $props()
+
+	const data = $derived(new UserAvatarStore().get(user))
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+## Fragment Arguments
+
+In some situations it's necessary to configure the documents inside of a fragment. For example,
+you might want to extend the `UserAvatar` component to allow for different sized profile pictures.
+To support this, houdini provides two directives `@arguments` and `@with` which declare arguments
+for a fragment and provide values, respectively.
+
+Default values can be provided to fragment arguments with the `default` key:
+
+```graphql
+fragment UserAvatar on User @arguments(width: { type: "Int", default: 50 }) {
+	profilePicture(width: $width)
+}
+```
+
+In order to mark an argument as required, pass the type with a `!` at the end.
+If no value is provided, an error will be thrown when generating your runtime.
+
+```graphql
+fragment UserAvatar on User @arguments(width: { type: "Int!" }) {
+	profilePicture(width: $width)
+}
+```
+
+Providing values for fragments is done with the `@with` decorator:
+
+```graphql
+query AllUsers {
+	users {
+		...UserAvatar @with(width: 100)
+	}
+}
+```
+
+> Keep in mind, if you are using fragment variables inside of a field flagged for
+> list operations, you'll have to pass a value for the variable when performing the operation
+
+For paginated fragments, see the [Pagination](~/loading-data/pagination) guide.
+
+## Fragment Masking
+
+Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.
+
+By default fields from a fragment are not included in a query to encourage separation of concerns.
+You can override this default behavior with the config option `defaultFragmentMasking: "disable"` for all fragment usages or individually per fragment:
+
+```graphql
+query CurrentUser {
+	me {
+		uuid
+		...UserProfile @mask_disable
+		...UserMeta
+	}
+}
+```
+
+With this directive in place, you can access all fields from the `UserProfile` fragment directly on the `me` object together with `uuid`. All fields from `UserMeta` stay masked.
+
+This individual setting does not apply recursively unless the fragments inside `UserProfile` also carry the directive.

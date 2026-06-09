@@ -1,0 +1,76 @@
+The `@loading` directive marks fields whose values should be replaced with a pending placeholder while the query is in flight. Rather than receiving `null` or `undefined` during a load, the data object always has a predictable shape you can render against.
+
+Place `@loading` on any field in your query:
+
+```graphql
+query ShowList {
+  shows @loading {
+    title
+  }
+}
+```
+
+Houdini walks the query from the top down. Intermediate nodes keep their type (objects stay objects, lists stay lists). The deepest field tagged with `@loading` becomes the pending value:
+
+```graphql
+query ShowList {
+  shows @loading {
+    title @loading
+    genre
+  }
+}
+```
+
+In this case `shows` is always an array and `title` is the pending value — so we can safely iterate over `shows` and check `title` to know whether the data has arrived.
+
+### List Placeholders
+
+When `@loading` appears on a list field, use the `count` argument to control how many placeholder items appear:
+
+```graphql
+query ShowList {
+  shows @loading(count: 4) {
+    title @loading
+  }
+}
+```
+
+This produces an array of four items while loading, each with a pending `title`. The default is `3` if `count` is omitted.
+
+### Cascade and Document-Level Loading
+
+If you want every field in a subtree to be part of the loading shape, use `cascade`:
+
+```graphql
+query ShowList {
+  shows @loading(cascade: true) {
+    title
+    genre
+  }
+}
+```
+
+This is equivalent to putting `@loading` on every field under `shows`. For the entire query at once, put `@loading` on the operation itself:
+
+```graphql
+query ShowList @loading {
+  shows {
+    title
+    genre
+  }
+}
+```
+
+### Composing Through Fragments
+
+Fragment spreads can carry `@loading` too, which lets the component that owns the fragment define its own loading shape without the route knowing anything about it:
+
+```graphql
+query ShowList {
+  shows @loading(count: 4) {
+    ...ShowCard_show @loading
+  }
+}
+```
+
+The fragment then handles its own pending checks internally. The route stays decoupled from the loading structure of its children.

@@ -1,0 +1,67 @@
+---
+title: Your GraphQL Server
+description: Co-locating your GraphQL API with your Houdini app
+---
+
+If your backend lives in the same codebase — or doesn't exist yet — Houdini includes a built-in GraphQL server. Export a schema, and Houdini wraps it in a [Yoga](https://the-guild.dev/graphql/yoga-server) instance, serves it at `/_api`, and points the client at it automatically. No URL configuration required.
+
+## Setup
+
+Export an executable schema from `src/api/+schema`:
+
+```typescript title="src/api/+schema.ts&typescriptToggle=true"
+import { makeExecutableSchema } from '@graphql-tools/schema'
+
+export default makeExecutableSchema({
+  typeDefs: `
+    type Query {
+      hello: String!
+    }
+  `,
+  resolvers: {
+    Query: {
+      hello: () => 'world'
+    }
+  }
+})
+```
+
+That's the entire setup. Houdini configures the endpoint and wires the client — don't set `url` in your client config or `watchSchema` in `houdini.config.js`, since Houdini and Vite handle those respectively.
+
+## Custom Yoga Instance
+
+To inject context, add plugins, or otherwise customize the server, export a Yoga instance from `src/api/+yoga`. The `+schema` file is still required for codegen:
+
+```typescript title="src/api/+yoga.ts&typescriptToggle=true"
+import { createYoga } from 'graphql-yoga'
+import { schema } from './+schema'
+import { db } from '../db'
+
+export default createYoga({
+  schema,
+  context: async ({ request }) => ({
+    db,
+    user: await getUserFromRequest(request)
+  })
+})
+```
+
+## A True BFF
+
+This isn't just a co-deployed service — during SSR, queries resolve in-process with no network hop. The server renders the page and fulfills the GraphQL requests from the same runtime, which means your resolvers have direct access to the session, your database, and any internal services without exposing them to the outside world.
+
+## Security
+
+Because resolvers run exclusively on the server, there's no risk of leaking sensitive information to the client. API keys, database credentials, and internal service tokens stay in the server environment — the client only ever receives the fields your queries explicitly ask for. The schema itself never has to be publicly reachable at all.
+
+## Configuration
+
+To change the default `/_api` endpoint, set `apiEndpoint` in `houdini.config.js`:
+
+```javascript title="houdini.config.js"
+export default {
+  router: {
+    apiEndpoint: '/_graphql'
+  }
+}
+```

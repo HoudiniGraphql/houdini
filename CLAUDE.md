@@ -22,6 +22,17 @@
 
 Canonical example: `packages/houdini-core/plugin/validate_test.go`. TypeScript test helpers: `testConfig()` / `testConfigFile()` in `packages/houdini/src/test/index.ts`.
 
+## Documentation
+
+Docs live in `/docs` — framework-specific content under `/docs/svelte` and `/docs/react`, shared content (reference, extending-houdini, meta) under `/docs/shared`.
+
+When making changes, update the relevant doc pages alongside the code. This includes:
+- New features or config options → add or expand the relevant page
+- Changed behavior or API shape → update any pages that describe it
+- New adapters or plugins → add an entry to the relevant reference page
+
+The marketing site at `../marketing` symlinks directly into these directories, so doc changes are reflected immediately in the local dev server.
+
 ## Tutorial sync
 
 Fixes to tutorial shim/Go files must also update the houdini source templates: `shim.cjs`, `postInstall.js`, `db_ncruces.go`. No automated check enforces this.

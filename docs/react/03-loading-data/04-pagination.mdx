@@ -1,0 +1,114 @@
+---
+title: Pagination
+description: Paginating data in Houdini's React framework
+---
+
+Add `@paginate` to any list field and Houdini handles the cursor management, cache merging, and page tracking. The handle gives you the controls. Houdini supports both cursor-based and offset/limit pagination — the directive is the same either way, Houdini detects the strategy from the field's arguments.
+
+## Cursor-Based Pagination
+
+Mark the paginated field with `@paginate` and include `first` as an argument:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowList {
+  shows(first: 10) @paginate {
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}
+```
+
+Then use the handle to load more pages and check pagination state:
+
+```jsx title="src/routes/shows/+page.tsx&typescriptToggle=true"
+import type { PageProps } from './$types'
+
+export default function ShowsPage({ ShowList, ShowList$handle }: PageProps) {
+  const handle = ShowList$handle
+  const shows = ShowList.shows.edges.map((e) => e.node)
+
+  return (
+    <div>
+      <ul>
+        {shows.map((show) => (
+          <li key={show.id}>{show.title}</li>
+        ))}
+      </ul>
+      {handle.pageInfo.hasNextPage && (
+        <button onClick={() => handle.loadNext()}>
+          Load more
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+Each call to `loadNext()` appends the next page to the existing list in the cache. `loadPrevious()` works the same way in the other direction.
+
+## pageInfo
+
+The handle's `pageInfo` object tracks the current position in the list:
+
+| Field | Type | Description |
+|---|---|---|
+| `hasNextPage` | `boolean` | Whether there are more items after the current page |
+| `hasPreviousPage` | `boolean` | Whether there are more items before the current page |
+| `startCursor` | `string \| null` | Cursor of the first item in the current page |
+| `endCursor` | `string \| null` | Cursor of the last item in the current page |
+
+## Offset/Limit Pagination
+
+For APIs that use `limit` and `offset` instead of cursors, the setup is the same — just use `limit` as the argument:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowList {
+  shows(limit: 10) @paginate {
+    id
+    title
+  }
+}
+```
+
+`loadNext()` advances by `limit` items. The handle still exposes `pageInfo` for tracking whether more pages exist.
+
+## Fragment Pagination
+
+Pagination can live in a fragment rather than the page query. Use `useFragmentHandle` instead of `useFragment` — it returns an object with the data and handle methods merged together:
+
+```jsx title="src/lib/ShowEpisodes.tsx&typescriptToggle=true"
+import { graphql, useFragmentHandle } from '$houdini'
+import type { ShowEpisodes_show } from '$houdini'
+
+export function ShowEpisodes({ show }: { show: ShowEpisodes_show }) {
+  const { data, loadNext, pageInfo } = useFragmentHandle(show, graphql(`
+    fragment ShowEpisodes_show on Show {
+      episodes(first: 5) @paginate {
+        edges {
+          node {
+            id
+            title
+          }
+        }
+      }
+    }
+  `))
+
+  return (
+    <div>
+      <ul>
+        {data.episodes.edges.map(({ node }) => (
+          <li key={node.id}>{node.title}</li>
+        ))}
+      </ul>
+      {pageInfo.hasNextPage && (
+        <button onClick={() => loadNext()}>More episodes</button>
+      )}
+    </div>
+  )
+}
+```

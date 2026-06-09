@@ -1,0 +1,205 @@
+---
+title: Fragments
+description: Reusable data shapes in Houdini
+---
+
+Fragments let each component declare exactly the data it needs, without coupling it to the query that fetches it. The parent query spreads the fragment; the component reads it back through `useFragment`.
+
+## Basic Usage
+
+Define a fragment inside the component that uses it:
+
+```jsx title="src/lib/ShowCard.jsx"
+import { graphql, useFragment } from '$houdini'
+
+export function ShowCard({ show }) {
+  const data = useFragment(show, graphql(`
+    fragment ShowCardInfo on Show {
+      title
+      posterUrl
+    }
+  `))
+
+  return (
+    <div>
+      <img src={data.posterUrl} alt={data.title} />
+      <h2>{data.title}</h2>
+    </div>
+  )
+}
+```
+
+The parent query spreads the fragment and passes the result down:
+
+```graphql title="src/routes/shows/+page.gql"
+query ShowList {
+  shows {
+    ...ShowCardInfo
+  }
+}
+```
+
+```jsx title="src/routes/shows/+page.jsx"
+import { ShowCard } from '../../lib/ShowCard'
+
+export default function ShowsPage({ ShowList }) {
+  return (
+    <ul>
+      {ShowList.shows.map((show) => (
+        <ShowCard key={show.id} show={show} />
+      ))}
+    </ul>
+  )
+}
+```
+
+The `show` prop passed to `ShowCard` is an opaque reference — `useFragment` unwraps it into the typed data the component actually needs.
+
+## Fragment Arguments
+
+When a component needs to parameterize its data requirements — for example, requesting a profile picture at a specific size — use `@arguments` to declare the parameters and `@with` to pass values when spreading the fragment.
+
+Default values are provided with the `default` key:
+
+```graphql
+fragment UserAvatar on User @arguments(size: { type: "Int", default: 50 }) {
+  avatarURL(size: $size)
+}
+```
+
+To mark an argument as required, add `!` to the type. An error will be thrown at codegen time if no value is provided:
+
+```graphql
+fragment UserAvatar on User @arguments(size: { type: "Int!" }) {
+  avatarURL(size: $size)
+}
+```
+
+Provide values when spreading the fragment using `@with`:
+
+```graphql
+query AllUsers {
+  users {
+    ...UserAvatar @with(size: 100)
+  }
+}
+```
+
+> If you use fragment arguments on a field that is also marked for list operations, you must pass the variable value when performing the operation.
+
+## Fragment Masking
+
+Fragment masking keeps components properly encapsulated by ensuring they can only access the fields they explicitly declared — not fields pulled in by sibling fragments. For a deeper look at why this matters, see the [Fragment Colocation guide](https://gql-tada.0no.co/guides/fragment-colocation) from gql.tada.
+
+By default, fields selected by a fragment are not accessible directly on the parent object. You can disable masking globally with `defaultFragmentMasking: "disable"` in your config, or per-fragment with `@mask_disable`:
+
+```graphql
+query CurrentUser {
+  me {
+    uuid
+    ...UserProfile @mask_disable
+    ...UserMeta
+  }
+}
+```
+
+With `@mask_disable`, all fields from `UserProfile` are accessible directly on `me` alongside `uuid`. `UserMeta` fields remain masked. This does not apply recursively unless inner fragments also carry the directive.
+
+{/* TODO: wire up the TS/JS toggle for the Component Fields examples — the JS version uses graphql() + prop param, not derivable by simple transformation */}
+
+## Component Fields
+
+Component fields let components register themselves as fields directly on GraphQL types, eliminating the need for explicit imports and prop threading in the route.
+
+Define the component's data requirements using the `@componentField` directive. In TypeScript, use the `GraphQL` type utility:
+
+```tsx title="src/lib/UserAvatar.tsx"
+import type { GraphQL } from '$houdini'
+
+type Props = {
+  user: GraphQL<`{
+    ... on User @componentField(field: "Avatar") {
+      avatarURL
+    }
+  }`>
+}
+
+export default function UserAvatar({ user }: Props) {
+  return <img src={user.avatarURL} />
+}
+```
+
+In JavaScript, call `graphql()` at the module level with the `prop` parameter:
+
+```jsx title="src/lib/UserAvatar.jsx"
+import { graphql } from '$houdini'
+
+graphql(`{
+  ... on User @componentField(field: "Avatar", prop: "user") {
+    avatarURL
+  }
+}`)
+
+export default function UserAvatar({ user }) {
+  return <img src={user.avatarURL} />
+}
+```
+
+The registered field can then be used directly in queries and rendered as a component — no imports needed in the route:
+
+```graphql
+query Profile {
+  currentUser {
+    Avatar
+  }
+}
+```
+
+```tsx
+export default function ProfilePage({ Profile }: PageProps) {
+  return <Profile.currentUser.Avatar />
+}
+```
+
+#### Arguments
+
+Combine `@componentField` with `@arguments` to accept field arguments:
+
+```tsx
+type Props = {
+  user: GraphQL<`{
+    ... on User
+      @componentField(field: "Avatar")
+      @arguments(size: { type: "Int" })
+    {
+      avatarURL(size: $size)
+    }
+  }`>
+}
+```
+
+```graphql
+query Profile {
+  currentUser {
+    Avatar(size: 150)
+  }
+}
+```
+
+#### Named Exports
+
+For named exports rather than default exports, add the `export` parameter:
+
+```tsx
+type Props = {
+  user: GraphQL<`{
+    ... on User @componentField(field: "Avatar", export: "UserAvatar") {
+      avatarURL
+    }
+  }`>
+}
+
+export function UserAvatar({ user }: Props) {
+  return <img src={user.avatarURL} />
+}
+```

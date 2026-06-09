@@ -1,0 +1,24 @@
+There are 2 ways you can handle errors in GraphQL: you can either have documents throw an exception if an
+`error` key is located in the payload (and is a list with at least one member) or they can fail silently
+and rely on application level code to function.
+
+By default, Houdini will behave "silently" and not throw any exceptions if an error in the query response is
+seen. If you want to turn on exceptions, you can specify the details in the `throwOnError` field of your client config:
+
+```typescript title="src/client.ts"
+export default new HoudiniClient({
+    url: '...',
+    throwOnError: {
+        // can be any combination of
+        // query, mutation, subscription, and all
+        operations: ['all'],
+        // the function to call
+        error: (errors, ctx) => new Error(
+            `(${ctx.artifact.name}): ` +
+            errors.map((err) => err.message).join('. ') + '.'
+        )
+    }
+})
+```
+
+Note that mutations always throw on error regardless of the `throwOnError` configuration. The thrown value is a `RuntimeGraphQLError` with a `.raw` field containing the full error payload from the server.
