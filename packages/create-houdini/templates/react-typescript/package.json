@@ -10,8 +10,8 @@
 	},
 	"dependencies": {
 		"houdini": "^HOUDINI_VERSION",
-		"houdini-react": "^HOUDINI_VERSION",
-		"houdini-adapter-auto": "^HOUDINI_VERSION",
+		"houdini-react": "^HOUDINI_REACT_VERSION",
+		"houdini-adapter-auto": "^HOUDINI_ADAPTER_VERSION",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"graphql-yoga": "^5.21.1",

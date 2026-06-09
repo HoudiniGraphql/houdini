@@ -16,16 +16,23 @@ let projectName = projectDir
 const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url), 'utf-8'))
 console.log(`${grey(`create-houdini version ${version}`)}\n`)
 
-// derive the dist-tag from our own version, then resolve it to a real version from the registry
+// derive the dist-tag from our own version, then resolve each package to its actual published version
+// independently — packages can be at different versions across a release cycle
 const distTag = version.includes('-') ? version.split('-')[1].split('.')[0] : 'latest'
-let houdiniVersion = version
-try {
-	const { execSync } = await import('node:child_process')
-	const resolved = execSync(`npm view houdini@${distTag} version`, { encoding: 'utf-8' }).trim()
-	if (resolved) houdiniVersion = resolved
-} catch {
-	// offline or registry unavailable — fall back to create-houdini's own version
+const { execSync } = await import('node:child_process')
+
+function resolveVersion(pkg) {
+	try {
+		const resolved = execSync(`npm view ${pkg}@${distTag} version`, { encoding: 'utf-8' }).trim()
+		return resolved || version
+	} catch {
+		return version
+	}
 }
+
+const houdiniVersion = resolveVersion('houdini')
+const houdiniReactVersion = resolveVersion('houdini-react')
+const houdiniAdapterVersion = resolveVersion('houdini-adapter-auto')
 
 // prepare options
 const templatesDir = sourcePath(`./templates`)
@@ -217,6 +224,8 @@ copy(
 		API_URL: apiUrl,
 		PROJECT_NAME: projectName,
 		HOUDINI_VERSION: houdiniVersion,
+		HOUDINI_REACT_VERSION: houdiniReactVersion,
+		HOUDINI_ADAPTER_VERSION: houdiniAdapterVersion,
 		["'CLIENT_CONFIG'"]: clientConfig,
 		["'CONFIG_FILE'"]: configFile,
 	},
