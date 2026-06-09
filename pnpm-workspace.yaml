@@ -1,5 +1,4 @@
 packages:
-  - 'site'
   - 'e2e/*'
   - 'packages/*'
   - 'example'
