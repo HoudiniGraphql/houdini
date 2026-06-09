@@ -343,13 +343,13 @@ importers:
 
   packages/adapter-auto:
     dependencies:
-      houdini:
-        specifier: workspace:^
-        version: link:../houdini
       import-meta-resolve:
         specifier: ^4.2.0
         version: 4.2.0
     devDependencies:
+      houdini:
+        specifier: workspace:^
+        version: link:../houdini
       scripts:
         specifier: workspace:^
         version: link:../_scripts
@@ -358,14 +358,13 @@ importers:
         version: 8.5.1(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
 
   packages/adapter-cloudflare:
-    dependencies:
-      houdini:
-        specifier: workspace:^
-        version: link:../houdini
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260605.1
         version: 4.20260606.1
+      houdini:
+        specifier: workspace:^
+        version: link:../houdini
       scripts:
         specifier: workspace:^
         version: link:../_scripts
@@ -374,11 +373,10 @@ importers:
         version: 8.5.1(postcss@8.5.15)(typescript@6.0.3)(yaml@2.9.0)
 
   packages/adapter-node:
-    dependencies:
+    devDependencies:
       houdini:
         specifier: workspace:^
         version: link:../houdini
-    devDependencies:
       scripts:
         specifier: workspace:^
         version: link:../_scripts
@@ -388,9 +386,6 @@ importers:
 
   packages/adapter-static:
     dependencies:
-      houdini:
-        specifier: workspace:^
-        version: link:../houdini
       react:
         specifier: ^19.2.7
         version: 19.2.7
@@ -410,6 +405,9 @@ importers:
       csstype:
         specifier: ^3.2.3
         version: 3.2.3
+      houdini:
+        specifier: workspace:^
+        version: link:../houdini
       scripts:
         specifier: workspace:^
         version: link:../_scripts
