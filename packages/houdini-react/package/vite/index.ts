@@ -253,6 +253,19 @@ mount_static_app(App, manifest)
 		async configureServer(server) {
 			devServer = true
 
+			// Pre-warm: load the Shell entry so CSS imports populate the module
+			// graph before the first browser request arrives.
+			server.httpServer?.once('listening', () => {
+				const root = ctx.config.root_dir
+				server
+					.ssrLoadModule(path.join(root, 'src', '+index.tsx'))
+					.catch(() =>
+						server
+							.ssrLoadModule(path.join(root, 'src', '+index.jsx'))
+							.catch(() => {})
+					)
+			})
+
 			server.middlewares.use(async (req, res, next) => {
 				if (!req.url) {
 					next()
@@ -304,6 +317,20 @@ mount_static_app(App, manifest)
 					// fall back to the Vite client script only
 				}
 
+				// Collect CSS file URLs from loaded modules so React 19 can hoist
+				// <link rel="stylesheet"> into <head> and prevent FOUC in dev.
+				const cssLinks: string[] = []
+				for (const [url] of server.moduleGraph.urlToModuleMap) {
+					const cleanUrl = url.split('?')[0]
+					if (
+						!cleanUrl.includes('node_modules') &&
+						cleanUrl.endsWith('.css') &&
+						!cleanUrl.endsWith('.module.css')
+					) {
+						cssLinks.push(cleanUrl)
+					}
+				}
+
 				try {
 					const result: Response = await createServerAdapter({
 						production: false,
@@ -311,6 +338,7 @@ mount_static_app(App, manifest)
 						assetPrefix: '/virtual:houdini',
 						pipe: res,
 						documentPremable,
+						cssLinks,
 					})(request)
 					if (result && result.status === 404) {
 						return next()

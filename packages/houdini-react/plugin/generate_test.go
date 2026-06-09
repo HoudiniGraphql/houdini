@@ -537,10 +537,13 @@ import React from 'react'
 
 import Shell from '../../../../../src/+index'
 
-export default (props) => (
-	<Shell>
-		<Router {...props} />
-	</Shell>
+export default ({ cssLinks, ...props }) => (
+	<>
+		{(cssLinks || []).map(href => <link key={href} rel="stylesheet" href={href} />)}
+		<Shell>
+			<Router {...props} />
+		</Shell>
+	</>
 )
 `,
 						"render/config.js": `import { createServerAdapter as createAdapter } from './server'
