@@ -26,10 +26,11 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260605.1",
+    "houdini": "workspace:^",
     "scripts": "workspace:^",
     "tsup": "^8.5.1"
   },
-  "dependencies": {
+  "peerDependencies": {
     "houdini": "workspace:^"
   },
   "files": [

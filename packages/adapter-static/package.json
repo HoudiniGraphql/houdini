@@ -27,17 +27,18 @@
     "@types/node": "^25.9.1",
     "@types/react-dom": "^19.2.3",
     "csstype": "^3.2.3",
+    "houdini": "workspace:^",
     "scripts": "workspace:^",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "undici-types": "^8.3.0"
   },
   "dependencies": {
-    "houdini": "workspace:^",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "peerDependencies": {
+    "houdini": "workspace:^",
     "vite": "^8.0.0"
   },
   "files": [

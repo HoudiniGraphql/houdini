@@ -26,12 +26,15 @@
     "build:build": "pnpm build: && pnpm build"
   },
   "devDependencies": {
+    "houdini": "workspace:^",
     "scripts": "workspace:^",
     "tsup": "^8.5.1"
   },
   "dependencies": {
-    "houdini": "workspace:^",
     "import-meta-resolve": "^4.2.0"
+  },
+  "peerDependencies": {
+    "houdini": "workspace:^"
   },
   "files": [
     "build"

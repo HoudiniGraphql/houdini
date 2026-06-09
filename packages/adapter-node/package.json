@@ -24,10 +24,11 @@
     "build:build": "pnpm build: && pnpm build"
   },
   "devDependencies": {
+    "houdini": "workspace:^",
     "scripts": "workspace:^",
     "tsup": "^8.5.1"
   },
-  "dependencies": {
+  "peerDependencies": {
     "houdini": "workspace:^"
   },
   "files": [
