@@ -26,9 +26,9 @@ func TestRuntimeTransform_extraConfig(t *testing.T) {
 			defer plugin.DB.Put(conn)
 
 			insertPlugin, err := conn.Prepare(`
-				INSERT INTO plugins 
+				INSERT INTO plugins
 					(name, port, hooks, plugin_order, config_module)
-				VALUES 
+				VALUES
 					('test', 1234, '["ANYTHING"]', 'core', 'test1'),
 				  ('test2', 1235, '["ANYTHING"]', 'core', 'test2')
 			`)
@@ -70,9 +70,9 @@ func TestRuntimeTransform_injectedPlugins(t *testing.T) {
 			defer plugin.DB.Put(conn)
 
 			insertPlugin, err := conn.Prepare(`
-				INSERT INTO plugins 
+				INSERT INTO plugins
 					(name, port, hooks, plugin_order, client_plugins)
-				VALUES 
+				VALUES
 					('test', 1234, '["ANYTHING"]', 'core', '{"foo": {"bar": "baz"}}'),
 				  ('test2', 1235, '["ANYTHING"]', 'core', '{"bing": {"bar": 1}, "quz": 1}')
 			`)
@@ -94,6 +94,47 @@ const plugins = [
 plugin0({"bar":1}),
 plugin1({"bar":"baz"}),
 plugin2(1)
+]
+
+export default plugins
+`
+			require.Equal(t, expected, result)
+		},
+	})
+}
+
+func TestRuntimeTransform_injectedPlugins_nullConfig(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `type Query { hello: String }`,
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "calls plugin with no args when config is null",
+			},
+		},
+		PerformTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			conn, err := plugin.DB.Take(context.Background())
+			require.Nil(t, err)
+			defer plugin.DB.Put(conn)
+
+			insertPlugin, err := conn.Prepare(`
+				INSERT INTO plugins
+					(name, port, hooks, plugin_order, client_plugins)
+				VALUES
+					('test', 1234, '["ANYTHING"]', 'core', '{"myplugin": null}')
+			`)
+			require.Nil(t, err)
+			defer insertPlugin.Finalize()
+
+			err = plugin.DB.ExecStatement(insertPlugin, map[string]any{})
+			require.Nil(t, err)
+
+			result, err := runtime.InjectPlugins(context.Background(), "old", plugin.DB)
+			require.Nil(t, err)
+
+			expected := `import plugin0 from "myplugin"
+
+const plugins = [
+plugin0()
 ]
 
 export default plugins

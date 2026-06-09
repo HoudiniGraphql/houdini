@@ -174,7 +174,11 @@ func InjectPlugins(
 	for i, key := range keys {
 		value := plugins[key]
 		imports = append(imports, fmt.Sprintf(`import plugin%v from "%s"`, i, key))
-		values = append(values, fmt.Sprintf(`plugin%v(%s)`, i, value))
+		if value == "null" || value == "" {
+			values = append(values, fmt.Sprintf(`plugin%v()`, i))
+		} else {
+			values = append(values, fmt.Sprintf(`plugin%v(%s)`, i, value))
+		}
 	}
 	// build up the content
 	result := fmt.Sprintf(`%s
