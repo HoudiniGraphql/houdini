@@ -36,6 +36,7 @@
     "dep-bump-houdini",
     "eleven-parents-rest",
     "fix-bin-object-plugin-resolution",
+    "fix-create-houdini-version-resolution",
     "fix-fragment-abstract-types",
     "gitignore-schema-path",
     "go-compiler-features",
