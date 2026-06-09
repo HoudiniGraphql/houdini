@@ -75,7 +75,6 @@ export function plugin(config: NodePluginConfig): void {
 // ─── stdio transport ──────────────────────────────────────────────────────────
 
 async function runStdio(config: NodePluginConfig, databasePath: string, pluginKey: string): Promise<void> {
-	const db = await openDb(databasePath || ':memory:')
 	const { pending, invokeCounter, rl } = makeStdioChannel()
 
 	const reg: Record<string, any> = {
@@ -90,7 +89,12 @@ async function runStdio(config: NodePluginConfig, databasePath: string, pluginKe
 
 	stdioWrite(reg)
 
+	// Start opening the db but don't await yet — the line handler awaits it per-message
+	// so that the register write and rl listener setup both happen synchronously.
+	const dbPromise = openDb(databasePath || ':memory:')
+
 	rl.on('line', async (line) => {
+		const db = await dbPromise
 		let msg: any
 		try {
 			msg = JSON.parse(line)
@@ -110,6 +114,8 @@ async function runStdio(config: NodePluginConfig, databasePath: string, pluginKe
 			resolveInvoke(pending, msg)
 		}
 	})
+
+	const db = await dbPromise
 
 	rl.on('close', () => {
 		for (const { reject } of pending.values()) {
