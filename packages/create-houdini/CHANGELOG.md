@@ -1,5 +1,11 @@
 # create-houdini
 
+## 2.0.0-next.14
+
+### Patch Changes
+
+- [`68d7de4`](https://github.com/HoudiniGraphql/houdini/commit/68d7de47bfd264a8eb33fe79443d90d95d5712d4) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Resolve each template package version independently to avoid stamping versions that haven't been published yet
+
 ## 2.0.0-next.13
 
 ### Patch Changes
