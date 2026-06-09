@@ -33,3 +33,14 @@ These go directly in `src/`, not inside `routes/`.
 |---|---|
 | `+index.tsx` | The root HTML document. Controls the `<html>`, `<head>`, and `<body>` shells that wrap every page. |
 | `+client.ts` | Exports the `HoudiniClient` instance used throughout the app. |
+
+## Path Aliases
+
+Houdini configures a `~` alias that resolves to your project's `src/` directory. Use it anywhere to avoid brittle relative import paths:
+
+```tsx
+import { Button } from '~/components'
+import { formatDate } from '~/lib/utils'
+```
+
+Both lines above resolve relative to `src/`, regardless of how deeply nested the importing file is.

@@ -51,6 +51,8 @@ You're already starting to see some of the very exciting things Houdini offers. 
 
 The data for the query is passed as a prop that matches the query's name (in this case `Info`). We used it to render some basic information about Bulbasaur using components that were provided in the project's `components` directory.
 
+You might have noticed the `~/components` import. Houdini configures a `~` path alias that points to your project's `src/` directory, so `~/components` is equivalent to `src/components`. You can use it anywhere in your project to avoid long relative import paths.
+
 <AsideAccordion variant="note" title="GraphQL: Queries">
 
 A GraphQL query is a string that describes what information you want from the API. For example, the following defines a query named `QueryUserInfo`. In Houdini, all documents like queries must be named for reasons that will become more clear later.

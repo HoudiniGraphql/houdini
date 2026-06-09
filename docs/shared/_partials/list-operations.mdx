@@ -14,7 +14,23 @@ Some things worth mentioning:
 
 - It's recommended to name these lists with a different casing convention than the rest of your
   application to distinguish the generated fragments from those in your codebase.
-- Sometimes the runtime needs a little help to hunt down the list you want to mutate. For more information on how to use `@parentID` to help, [see the GraphQL docs](/svelte/api/directives/#parentidvalue-string).
+- Sometimes the runtime needs a little help to hunt down the list you want to mutate. See [`@parentID`](#parentid) below.
+
+## `@parentID`
+
+When the same list name appears under multiple parent records — for example, `friends @list(name: "User_Friends")` loaded for several different users — the runtime can't tell which parent's list a mutation should target. Pass `@parentID` on the fragment spread to identify the specific parent:
+
+```graphql
+mutation AddFriend($friendID: ID!, $userID: ID!) {
+    addFriend(friendID: $friendID) {
+        friend {
+            ...User_Friends_insert @parentID(value: $userID)
+        }
+    }
+}
+```
+
+The `value` argument must be the ID of the parent record that owns the list. Without it, Houdini will update every instance of that list in the cache.
 
 ## Operations
 
