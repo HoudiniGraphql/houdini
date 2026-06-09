@@ -56,7 +56,12 @@ export async function plugin_path(
 			throw new Error('There is no bin defined.')
 		}
 
-		const native_bin = path.join(plugin_dir, package_json.bin)
+		// npm normalizes `"bin": "path"` to `{"pkg-name": "path"}` at publish time
+		const bin_value =
+			typeof package_json.bin === 'string'
+				? package_json.bin
+				: (Object.values(package_json.bin)[0] as string)
+		const native_bin = path.join(plugin_dir, bin_value)
 
 		if (preferWasm) {
 			try {

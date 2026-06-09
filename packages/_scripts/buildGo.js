@@ -121,6 +121,8 @@ export default async function () {
 			name: wasmModuleName,
 			version: packageJSON.version,
 			bin: `bin/${packageJSON.name}.wasm`,
+			os: ['wasi'],
+			cpu: ['wasm32'],
 			repository: packageJSON.repository,
 			license: packageJSON.license,
 			author: packageJSON.author,
