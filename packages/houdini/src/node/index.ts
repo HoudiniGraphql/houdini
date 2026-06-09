@@ -74,7 +74,11 @@ export function plugin(config: NodePluginConfig): void {
 
 // ─── stdio transport ──────────────────────────────────────────────────────────
 
-async function runStdio(config: NodePluginConfig, databasePath: string, pluginKey: string): Promise<void> {
+async function runStdio(
+	config: NodePluginConfig,
+	databasePath: string,
+	pluginKey: string
+): Promise<void> {
 	const { pending, invokeCounter, rl } = makeStdioChannel()
 
 	const reg: Record<string, any> = {
