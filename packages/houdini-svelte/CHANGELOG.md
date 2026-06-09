@@ -1,5 +1,11 @@
 # houdini-svelte
 
+## 3.0.0-next.32
+
+### Patch Changes
+
+- [`bb2944a`](https://github.com/HoudiniGraphql/houdini/commit/bb2944a76c8c65efdb5cac76bc7ff838cb34ceec) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix plugin resolution when npm normalizes bin field to object form
+
 ## 3.0.0-next.31
 
 ### Patch Changes
