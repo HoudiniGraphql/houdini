@@ -248,7 +248,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 										? module_path.replace('$houdini', generatedDir)
 										: module_path
 									const mods = [
-										...(server.moduleGraph.getModulesByFile(resolvedPath) ?? []),
+										...(server.moduleGraph.getModulesByFile(resolvedPath) ??
+											[]),
 									]
 									return mods.flatMap((mod) => {
 										if (seenUrls.has(mod.url)) return []
@@ -590,11 +591,7 @@ export function createDebounceHmr(debounceMs: number = 50) {
 	}
 
 	return {
-		queueUpdate(
-			ctx: HmrContext,
-			preReadContent: string | null,
-			callback: BatchCallback
-		): void {
+		queueUpdate(ctx: HmrContext, preReadContent: string | null, callback: BatchCallback): void {
 			// Add file and its content (or read function) to queue. Don't overwrite an
 			// existing entry for the same file — Vite 8 fires hotUpdate once per environment
 			// (client + ssr) and the second env's content may be empty for newly-created
