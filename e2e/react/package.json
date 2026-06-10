@@ -48,6 +48,7 @@
 	"devDependencies": {
 		"@playwright/test": "^1.60.0",
 		"@tailwindcss/postcss": "^4.3.0",
+		"@tailwindcss/vite": "^4.3.0",
 		"@types/react": "^19.2.16",
 		"@types/react-dom": "^19.2.3",
 		"@typescript-eslint/eslint-plugin": "^8.60.1",
