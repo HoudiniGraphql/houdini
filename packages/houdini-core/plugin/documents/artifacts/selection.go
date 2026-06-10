@@ -1259,18 +1259,24 @@ func stringifyFieldSelection(
 	}
 
 	updateStr := ""
-	// dont add any updates if there aren't any, the field isn't paginated or if the
-	// field is not pageInfo, __typename, startCursor, or endCursor
 	if len(updates) > 0 && *selection.Alias != "pageInfo" && *selection.Alias != "__typename" &&
-		*selection.Alias != "startCursor" && *selection.Alias != "endCursor" &&
-		(selection.List == nil || (selection.List != nil &&
-			!selection.List.Connection)) {
-		updateVals := []string{}
-		for _, update := range updates {
-			updateVals = append(updateVals, `"`+update+`"`)
+		(selection.List == nil || (selection.List != nil && !selection.List.Connection)) {
+		// cursors only update in one direction: endCursor on append, startCursor on prepend
+		effectiveUpdates := updates
+		switch *selection.Alias {
+		case "endCursor":
+			effectiveUpdates = filterUpdates(updates, "append")
+		case "startCursor":
+			effectiveUpdates = filterUpdates(updates, "prepend")
 		}
-		updateStr = fmt.Sprintf(`
+		if len(effectiveUpdates) > 0 {
+			updateVals := make([]string, len(effectiveUpdates))
+			for i, u := range effectiveUpdates {
+				updateVals[i] = `"` + u + `"`
+			}
+			updateStr = fmt.Sprintf(`
 %s"updates": [%s],`, indent4, strings.Join(updateVals, ", "))
+		}
 	}
 
 	result += fmt.Sprintf(`%s"%s": {
@@ -1342,6 +1348,16 @@ func findUsedTypes(docs *collected.Documents, variables []*collected.OperationVa
 		found = append(found, key)
 	}
 	return found
+}
+
+func filterUpdates(updates []string, keep string) []string {
+	result := []string{}
+	for _, u := range updates {
+		if u == keep {
+			result = append(result, u)
+		}
+	}
+	return result
 }
 
 func stringifyOperations(

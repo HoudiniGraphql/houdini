@@ -1895,6 +1895,7 @@ export type TestQuery$artifact = typeof artifact
                                                 "endCursor": {
                                                     "type": "String",
                                                     "keyRaw": "endCursor",
+                                                    "updates": ["append"],
                                                     "nullable": true,
                                                     "visible": true,
                                                 },
