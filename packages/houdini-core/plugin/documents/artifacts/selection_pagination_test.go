@@ -248,7 +248,7 @@ func TestPaginationArtifacts(t *testing.T) {
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -256,21 +256,21 @@ func TestPaginationArtifacts(t *testing.T) {
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -474,7 +474,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -482,21 +482,21 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -886,7 +886,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                                 "endCursor": {
                                                     "type": "String",
                                                     "keyRaw": "endCursor",
-                                                    "updates": ["append", "prepend"],
+                                                    "updates": ["append"],
                                                     "nullable": true,
                                                     "visible": true,
                                                 },
@@ -894,21 +894,21 @@ export type PaginatedFragment$artifact = typeof artifact
                                                 "hasNextPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasNextPage",
-                                                    "updates": ["append", "prepend"],
+                                                    "updates": ["append"],
                                                     "visible": true,
                                                 },
 
                                                 "hasPreviousPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasPreviousPage",
-                                                    "updates": ["append", "prepend"],
+                                                    "updates": ["prepend"],
                                                     "visible": true,
                                                 },
 
                                                 "startCursor": {
                                                     "type": "String",
                                                     "keyRaw": "startCursor",
-                                                    "updates": ["append", "prepend"],
+                                                    "updates": ["prepend"],
                                                     "nullable": true,
                                                     "visible": true,
                                                 },
@@ -1362,7 +1362,7 @@ export type ScalarPagination$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1370,21 +1370,21 @@ export type ScalarPagination$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1625,7 +1625,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1633,21 +1633,21 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["append", "prepend"],
+                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },

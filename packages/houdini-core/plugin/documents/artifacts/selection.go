@@ -1257,13 +1257,21 @@ func stringifyFieldSelection(
 	updateStr := ""
 	if len(updates) > 0 && *selection.Alias != "pageInfo" && *selection.Alias != "__typename" &&
 		(selection.List == nil || (selection.List != nil && !selection.List.Connection)) {
-		// cursors only update in one direction: endCursor on append, startCursor on prepend
+		// pageInfo fields update in only one direction
 		effectiveUpdates := updates
 		switch *selection.Alias {
-		case "endCursor":
+		case "endCursor", "hasNextPage":
 			effectiveUpdates = filterUpdates(updates, "append")
 		case "startCursor":
 			effectiveUpdates = filterUpdates(updates, "prepend")
+		case "hasPreviousPage":
+			// in bidirectional mode filter to prepend-only; in forward-only keep
+			// the full ["append"] so the runtime's gate logic still fires and
+			// prevents the server's per-page hasPreviousPage from overwriting
+			// the accumulated value (which should stay false from the start).
+			if len(updates) >= 2 {
+				effectiveUpdates = filterUpdates(updates, "prepend")
+			}
 		}
 		if len(effectiveUpdates) > 0 {
 			updateVals := make([]string, len(effectiveUpdates))

@@ -412,6 +412,7 @@ CREATE INDEX IF NOT EXISTS idx_documents_name_kind ON documents(name, kind);
 
 -- raw_documents
 CREATE INDEX IF NOT EXISTS idx_raw_documents_current_task ON raw_documents(current_task);
+CREATE INDEX IF NOT EXISTS idx_raw_documents_filepath ON raw_documents(filepath);
 
 -- selections
 CREATE INDEX IF NOT EXISTS idx_selections_type ON selections(type);
