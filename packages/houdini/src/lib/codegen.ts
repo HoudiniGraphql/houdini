@@ -61,8 +61,8 @@ process.exit(0);}
 
 import * as conventions from '../router/conventions.js'
 import type { Config } from './config.js'
-import { openDb, type Db } from './db.js'
 import { create_schema, write_config } from './database.js'
+import { type Db, openDb } from './db.js'
 import type { HookError } from './error.js'
 import { format_hook_error } from './error.js'
 import * as fs from './fs.js'
@@ -136,6 +136,8 @@ export type CompilerProxy = {
 	run_pipeline: (
 		options: RunPipelineOptions
 	) => Promise<Record<PipelineHook, Record<string, any>>>
+	/** Serializes concurrent pipeline runs (HMR vs schema watcher) via a promise chain. */
+	pipeline_lock: <T>(fn: () => Promise<T>) => Promise<T>
 }
 
 // codegen_setup sets up the codegen pipe before we start generating files. this primarily means starting
@@ -158,7 +160,7 @@ export async function codegen_setup(
 ): Promise<CompilerProxy> {
 	// _db is the same object as the caller's db (ctx.db). reload() mutates it
 	// in-place so the caller always sees the latest state without reassignment.
-	let _db = db
+	const _db = db
 	const logger = new Logger(config.config_file.logLevel ?? LogLevel.Summary)
 
 	// We need the root dir before we get to the exciting stuff
@@ -671,10 +673,20 @@ export async function codegen_setup(
 	// add any plugin-specifics to our schema
 	await trigger_hook('Schema')
 
+	let pipelineQueue: Promise<void> = Promise.resolve()
+
 	return {
 		database_path: db_file,
 		trigger_hook,
 		run_pipeline: (options: RunPipelineOptions) => run_pipeline(trigger_hook, options),
+		pipeline_lock: <T>(fn: () => Promise<T>): Promise<T> => {
+			const result = pipelineQueue.then(fn)
+			pipelineQueue = result.then(
+				() => {},
+				() => {}
+			)
+			return result
+		},
 		close: async () => {
 			// close ws connections first, this will trigger plugin processes to exit gracefully
 			for (const [name, ws] of wsConnections.entries()) {

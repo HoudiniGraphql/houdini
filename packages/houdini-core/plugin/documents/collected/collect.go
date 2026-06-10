@@ -273,11 +273,7 @@ func collectDoc(
 				listName := statements.Search.GetText("list_name")
 				listType := statements.Search.GetText("list_type")
 				listConnection := statements.Search.GetBool("list_connection")
-				listPaginatedText := statements.Search.GetText("list_paginated")
-				// paginate field is TEXT containing direction strings like "forward", "backward" for @paginate queries
-				// For @list queries, this field is empty/null, so they are not paginated
-				// Only @paginate queries get the paginate field set by the UPDATE statement in validatePaginateArgs
-				listPaginated := listPaginatedText != ""
+				listPaginated := statements.Search.GetText("list_paginated") != ""
 				listPageSize := statements.Search.GetInt64("list_page_size")
 				listTargetType := statements.Search.GetText("list_target_type")
 				listEmbedded := statements.Search.GetBool("list_embedded")
@@ -419,7 +415,7 @@ func collectDoc(
 							Name:             listName,
 							Type:             listType,
 							Connection:       listConnection,
-							Paginated:        listPaginated, // true if this field has @paginate directive
+							Paginated:        listPaginated,
 							SupportsForward:  listSupportsForward,
 							SupportsBackward: listSupportsBackward,
 							PageSize:         int(listPageSize),
@@ -429,40 +425,6 @@ func collectDoc(
 							CursorType:       listCursorType,
 						}
 
-						// if this is a paginated field, set document-level refetch
-						if listPaginated { // indicates this field has @paginate directive
-							// TODO: path building will be handled in artifact generation
-							currentPath := []string{}
-
-							// determine pagination method
-							method := "offset"
-							if listConnection {
-								method = "cursor"
-							}
-
-							// determine direction
-							direction := "forward"
-							if listSupportsForward && listSupportsBackward {
-								direction = "both"
-							} else if listSupportsBackward {
-								direction = "backward"
-							}
-
-							// find the document this selection belongs to
-							doc := documents[documentName]
-							if doc != nil && doc.Refetch == nil {
-								doc.Refetch = &DocumentRefetch{
-									Path:       currentPath,
-									Method:     method,
-									PageSize:   int(listPageSize),
-									Mode:       listMode,
-									TargetType: listTargetType,
-									Embedded:   listEmbedded,
-									Paginated:  true,
-									Direction:  direction,
-								}
-							}
-						}
 					}
 
 					// save the ID in the selection map

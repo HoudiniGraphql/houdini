@@ -953,7 +953,8 @@ func stringifyFieldSelection(
 			updates = append(updates, "prepend")
 		}
 
-		if selection.List != nil {
+		// @paginate always wins over @list when both appear in the same document
+		if flags.Refetch == nil || selection.List.Paginated {
 			// use the computed path for list operations (both paginated and non-paginated)
 			currentPath := pathBuilder.Current()
 
@@ -965,8 +966,8 @@ func stringifyFieldSelection(
 			}
 
 			flags.Refetch = &RefetchSpec{
-				Path:       fullPath,                 // use the corrected path
-				Paginated:  selection.List.Paginated, // true for @paginate, false for @list
+				Path:       fullPath,
+				Paginated:  selection.List.Paginated,
 				PageSize:   selection.List.PageSize,
 				Mode:       RefetchMode(selection.List.Mode),
 				TargetType: selection.List.TargetType,
@@ -1247,13 +1248,15 @@ func stringifyFieldSelection(
 	updateStr := ""
 	if len(updates) > 0 && *selection.Alias != "pageInfo" && *selection.Alias != "__typename" &&
 		(selection.List == nil || (selection.List != nil && !selection.List.Connection)) {
-		// cursors only update in one direction: endCursor on append, startCursor on prepend
+		// pageInfo fields update in only one direction
 		effectiveUpdates := updates
 		switch *selection.Alias {
-		case "endCursor":
+		case "endCursor", "hasNextPage":
 			effectiveUpdates = filterUpdates(updates, "append")
 		case "startCursor":
 			effectiveUpdates = filterUpdates(updates, "prepend")
+		case "hasPreviousPage":
+			effectiveUpdates = []string{"prepend"}
 		}
 		if len(effectiveUpdates) > 0 {
 			updateVals := make([]string, len(effectiveUpdates))

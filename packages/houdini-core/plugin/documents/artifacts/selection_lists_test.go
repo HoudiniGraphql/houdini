@@ -1,11 +1,14 @@
 package artifacts_test
 
 import (
+	"strings"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-core/plugin"
 	"code.houdinigraphql.com/plugins/tests"
+	"github.com/spf13/afero"
+	"github.com/stretchr/testify/require"
 )
 
 func TestListArtifacts(t *testing.T) {
@@ -503,8 +506,8 @@ export type TestQuery$artifact = typeof artifact
         "pageSize": 10,
         "embedded": false,
         "targetType": "Query",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "Infinite"
     },
 
@@ -537,7 +540,7 @@ export type TestQuery$artifact = typeof artifact
         "fields": {
             "usersByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)",
+                "keyRaw": "usersByCursor::paginated",
 
                 "directives": [{
                     "name": "paginate",
@@ -565,6 +568,7 @@ export type TestQuery$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
+                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -621,6 +625,7 @@ export type TestQuery$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
+                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -628,18 +633,21 @@ export type TestQuery$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
+                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
+                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
+                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -764,8 +772,8 @@ export type TestQuery$artifact = typeof artifact
         "pageSize": 10,
         "embedded": false,
         "targetType": "Query",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "SinglePage"
     },
 
@@ -798,7 +806,7 @@ export type TestQuery$artifact = typeof artifact
         "fields": {
             "usersByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)",
+                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
 
                 "directives": [{
                     "name": "paginate",
@@ -830,6 +838,7 @@ export type TestQuery$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
+                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -886,6 +895,7 @@ export type TestQuery$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
+                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -893,18 +903,21 @@ export type TestQuery$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
+                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
+                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
+                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1909,6 +1922,104 @@ export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=efc384927733daadaff58ef5818480ea7db4f0448a7fa733179fdbfad50b067b"`),
 				},
+			},
+		},
+	})
+}
+
+// TestPaginatePathWinsOverListPath verifies that when a document contains both a @paginate
+// field and a @list field, the refetch path points to the @paginate field.
+func TestPaginatePathWinsOverListPath(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+      type Query {
+        users: [User!]!
+        usersByCursor(first: Int, last: Int, after: String, before: String): UserConnection!
+      }
+
+      type User implements Node {
+        id: ID!
+        firstName: String!
+        name: String!
+      }
+
+      type UserConnection {
+        edges: [UserEdge!]!
+        pageInfo: PageInfo!
+      }
+
+      type UserEdge {
+        node: User
+        cursor: String!
+      }
+
+      type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+    `,
+		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			performArtifactTest(t, p, test)
+
+			if !test.Pass {
+				return
+			}
+
+			projectConfig, err := p.DB.ProjectConfig(t.Context())
+			require.NoError(t, err)
+
+			artifactPath := projectConfig.ArtifactPath("TestQuery")
+			file, err := p.Fs.Open(artifactPath)
+			require.NoError(t, err)
+			content, err := afero.ReadAll(file)
+			require.NoError(t, err)
+
+			artifact := string(content)
+			require.True(t, strings.Contains(artifact, `"path": ["usersByCursor"]`),
+				"refetch path should point to @paginate field, got artifact:\n%s", artifact)
+			require.False(t, strings.Contains(artifact, `"path": ["users"]`),
+				"refetch path must not point to @list field")
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "paginate path wins when @list comes after @paginate in same document",
+				Pass: true,
+				Input: []string{`query TestQuery {
+  usersByCursor(first: 10) @paginate(name: "All_Users") {
+    edges {
+      node {
+        firstName
+      }
+    }
+  }
+  users @list(name: "User_List") {
+    id
+    name
+  }
+}`},
+			},
+			{
+				Name: "paginate path wins when @list comes before @paginate in same document",
+				Pass: true,
+				Input: []string{`query TestQuery {
+  users @list(name: "User_List") {
+    id
+    name
+  }
+  usersByCursor(first: 10) @paginate(name: "All_Users") {
+    edges {
+      node {
+        firstName
+      }
+    }
+  }
+}`},
 			},
 		},
 	})

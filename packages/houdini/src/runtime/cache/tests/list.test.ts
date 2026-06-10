@@ -880,7 +880,7 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", () => {
 													type: 'Boolean',
 													visible: true,
 													keyRaw: 'hasNextPage',
-													updates: ['prepend'],
+													updates: ['append'],
 												},
 												hasPreviousPage: {
 													type: 'Boolean',
@@ -898,7 +898,7 @@ test("prepending update doesn't overwrite endCursor and hasNext Page", () => {
 													type: 'String',
 													visible: true,
 													keyRaw: 'endCursor',
-													updates: ['prepend'],
+													updates: ['append'],
 												},
 											},
 										},
@@ -1098,13 +1098,13 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", () => {
 													type: 'Boolean',
 													visible: true,
 													keyRaw: 'hasPreviousPage',
-													updates: ['append'],
+													updates: ['prepend'],
 												},
 												startCursor: {
 													type: 'String',
 													visible: true,
 													keyRaw: 'startCursor',
-													updates: ['append'],
+													updates: ['prepend'],
 												},
 												endCursor: {
 													type: 'String',
@@ -1259,6 +1259,328 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", () => {
 								firstName: 'jane3',
 							},
 						},
+					],
+				},
+			},
+		},
+	})
+})
+
+test('forward-only append preserves hasPreviousPage', () => {
+	// forward-only cursor pagination: hasPreviousPage carries updates:["prepend"]
+	// so the runtime gate fires on append and keeps the accumulated false,
+	// even though the server returns true for intermediate pages.
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: { name: 'All_Users', connection: true, type: 'User' },
+							selection: {
+								fields: {
+									pageInfo: {
+										type: 'PageInfo',
+										visible: true,
+										keyRaw: 'pageInfo',
+										selection: {
+											fields: {
+												hasNextPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasNextPage',
+													updates: ['append'],
+												},
+												hasPreviousPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasPreviousPage',
+													updates: ['prepend'],
+												},
+												startCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'startCursor',
+												},
+												endCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'endCursor',
+													updates: ['append'],
+												},
+											},
+										},
+									},
+									edges: {
+										type: 'UserEdge',
+										visible: true,
+										keyRaw: 'edges',
+										updates: ['append'],
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													visible: true,
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the first page (start of list, hasPreviousPage is false)
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: false,
+						hasNextPage: true,
+						startCursor: 'a',
+						endCursor: 'b',
+					},
+					edges: [{ node: { __typename: 'User', id: '2', firstName: 'jane' } }],
+				},
+			},
+		},
+	})
+
+	// append the second page — server correctly reports hasPreviousPage:true for this
+	// page, but the accumulated view must keep false
+	cache.write({
+		selection,
+		applyUpdates: ['append'],
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: false,
+						startCursor: 'b',
+						endCursor: 'c',
+					},
+					edges: [{ node: { __typename: 'User', id: '3', firstName: 'bob' } }],
+				},
+			},
+		},
+	})
+
+	expect(cache.read({ selection })).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: false, // preserved — accumulated list starts at page 1
+						hasNextPage: false, // updated — no more forward pages
+						startCursor: 'b', // updated — no gate on startCursor in forward-only
+						endCursor: 'c', // updated — moved to end of new page
+					},
+					edges: [
+						{ node: { __typename: 'User', id: '2', firstName: 'jane' } },
+						{ node: { __typename: 'User', id: '3', firstName: 'bob' } },
+					],
+				},
+			},
+		},
+	})
+})
+
+test('backward-only prepend preserves hasNextPage and endCursor', () => {
+	// backward-only cursor pagination: hasNextPage and endCursor carry updates:["append"]
+	// so the runtime gate fires on prepend and keeps the accumulated false/null,
+	// even though the server returns values for intermediate pages.
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: { name: 'All_Users', connection: true, type: 'User' },
+							selection: {
+								fields: {
+									pageInfo: {
+										type: 'PageInfo',
+										visible: true,
+										keyRaw: 'pageInfo',
+										selection: {
+											fields: {
+												hasNextPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasNextPage',
+													updates: ['append'],
+												},
+												hasPreviousPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasPreviousPage',
+													updates: ['prepend'],
+												},
+												startCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'startCursor',
+													updates: ['prepend'],
+												},
+												endCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'endCursor',
+												},
+											},
+										},
+									},
+									edges: {
+										type: 'UserEdge',
+										visible: true,
+										keyRaw: 'edges',
+										updates: ['prepend'],
+										selection: {
+											fields: {
+												node: {
+													type: 'Node',
+													visible: true,
+													keyRaw: 'node',
+													abstract: true,
+													selection: {
+														fields: {
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write the last page (end of list, hasNextPage is false)
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: false,
+						startCursor: 'b',
+						endCursor: 'c',
+					},
+					edges: [{ node: { __typename: 'User', id: '3', firstName: 'bob' } }],
+				},
+			},
+		},
+	})
+
+	// prepend the previous page — server correctly reports hasNextPage:true for this
+	// page, but the accumulated view must keep false
+	cache.write({
+		selection,
+		applyUpdates: ['prepend'],
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: false,
+						hasNextPage: true,
+						startCursor: 'a',
+						endCursor: 'b',
+					},
+					edges: [{ node: { __typename: 'User', id: '2', firstName: 'jane' } }],
+				},
+			},
+		},
+	})
+
+	expect(cache.read({ selection })).toEqual({
+		partial: false,
+		stale: false,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					pageInfo: {
+						hasPreviousPage: false, // updated — no more backward pages
+						hasNextPage: false, // preserved — accumulated list ends at last page
+						startCursor: 'a', // updated — moved to start of new page
+						endCursor: 'b', // updated — no gate on endCursor in backward-only
+					},
+					edges: [
+						{ node: { __typename: 'User', id: '2', firstName: 'jane' } },
+						{ node: { __typename: 'User', id: '3', firstName: 'bob' } },
 					],
 				},
 			},
