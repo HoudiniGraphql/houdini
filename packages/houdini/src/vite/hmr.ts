@@ -100,7 +100,11 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			}
 			return debounceHmr.queueUpdate(opts as unknown as HmrContext, batchCallback)
 
-			async function batchCallback(files: Record<string, string>, deletedFiles: string[], task_id: string) {
+			async function batchCallback(
+				files: Record<string, string>,
+				deletedFiles: string[],
+				task_id: string
+			) {
 				// Remove DB entries for deleted files. FK cascade cleans up documents/selections.
 				if (deletedFiles.length > 0) {
 					const delClause = deletedFiles.map(() => 'filepath = ?').join(' OR ')
@@ -352,7 +356,11 @@ export function createDebounceHmr(debounceMs: number = 50) {
 			updateTimer = null
 
 			if (isProcessing) {
-				pendingBatch = { files: filesToProcess, deletedFiles: filesToDelete, batchId: currentBatchId }
+				pendingBatch = {
+					files: filesToProcess,
+					deletedFiles: filesToDelete,
+					batchId: currentBatchId,
+				}
 				return
 			}
 
@@ -377,7 +385,11 @@ export function createDebounceHmr(debounceMs: number = 50) {
 				}
 
 				while (pendingBatch) {
-					const { files: nextFiles, deletedFiles: nextDeleted, batchId: nextBatchId } = pendingBatch
+					const {
+						files: nextFiles,
+						deletedFiles: nextDeleted,
+						batchId: nextBatchId,
+					} = pendingBatch
 					pendingBatch = null
 
 					const nextFilesWithContent: Record<string, string> = {}
@@ -390,7 +402,11 @@ export function createDebounceHmr(debounceMs: number = 50) {
 					)
 
 					try {
-						await callback(nextFilesWithContent, [...nextDeleted], nextBatchId.toString())
+						await callback(
+							nextFilesWithContent,
+							[...nextDeleted],
+							nextBatchId.toString()
+						)
 					} catch (err) {
 						console.error('[houdini] HMR pipeline error:', err)
 					}
