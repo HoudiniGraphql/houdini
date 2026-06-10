@@ -136,8 +136,8 @@ func TestPaginationArtifacts(t *testing.T) {
         "pageSize": 10,
         "embedded": true,
         "targetType": "User",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "Infinite"
     },
 
@@ -177,7 +177,7 @@ func TestPaginationArtifacts(t *testing.T) {
 
             "friendsByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "friendsByCursor(filter: \"hello\", first: 10)",
+                "keyRaw": "friendsByCursor(filter: \"hello\")::paginated",
                 "nullable": true,
 
                 "directives": [{
@@ -196,6 +196,7 @@ func TestPaginationArtifacts(t *testing.T) {
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
+                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -247,6 +248,7 @@ func TestPaginationArtifacts(t *testing.T) {
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -254,18 +256,21 @@ func TestPaginationArtifacts(t *testing.T) {
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -352,8 +357,8 @@ export type PaginatedFragment$artifact = typeof artifact
         "pageSize": 10,
         "embedded": true,
         "targetType": "User",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "SinglePage"
     },
 
@@ -393,7 +398,7 @@ export type PaginatedFragment$artifact = typeof artifact
 
             "friendsByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "friendsByCursor(filter: \"hello\", first: 10)",
+                "keyRaw": "friendsByCursor(filter: \"hello\", first: 10)::paginated",
                 "nullable": true,
 
                 "directives": [{
@@ -417,6 +422,7 @@ export type PaginatedFragment$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
+                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -468,6 +474,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -475,18 +482,21 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -693,8 +703,8 @@ export type PaginatedFragment$artifact = typeof artifact
         "pageSize": 10,
         "embedded": false,
         "targetType": "Query",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "Infinite"
     },
 
@@ -751,7 +761,7 @@ export type PaginatedFragment$artifact = typeof artifact
 
                         "friendsByCursorScalar": {
                             "type": "UserConnection",
-                            "keyRaw": "friendsByCursorScalar(after: $after, before: $before, filter: \"hello\", first: $first, last: $last)",
+                            "keyRaw": "friendsByCursorScalar(filter: \"hello\")::paginated",
 
                             "directives": [{
                                 "name": "paginate",
@@ -769,6 +779,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "edges": {
                                         "type": "UserEdge",
                                         "keyRaw": "edges",
+                                        "updates": ["append", "prepend"],
 
                                         "selection": {
                                             "fields": {
@@ -875,6 +886,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                                 "endCursor": {
                                                     "type": "String",
                                                     "keyRaw": "endCursor",
+                                                    "updates": ["append", "prepend"],
                                                     "nullable": true,
                                                     "visible": true,
                                                 },
@@ -882,18 +894,21 @@ export type PaginatedFragment$artifact = typeof artifact
                                                 "hasNextPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasNextPage",
+                                                    "updates": ["append", "prepend"],
                                                     "visible": true,
                                                 },
 
                                                 "hasPreviousPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasPreviousPage",
+                                                    "updates": ["append", "prepend"],
                                                     "visible": true,
                                                 },
 
                                                 "startCursor": {
                                                     "type": "String",
                                                     "keyRaw": "startCursor",
+                                                    "updates": ["append", "prepend"],
                                                     "nullable": true,
                                                     "visible": true,
                                                 },
@@ -1039,8 +1054,8 @@ export type ScalarPagination$artifact = typeof artifact
         "pageSize": 10,
         "embedded": true,
         "targetType": "User",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "Infinite"
     },
 
@@ -1221,7 +1236,7 @@ export type ScalarPagination$artifact = typeof artifact
 
             "friendsByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "friendsByCursor(filter: \"hello\", first: 10)",
+                "keyRaw": "friendsByCursor(filter: \"hello\")::paginated",
                 "nullable": true,
 
                 "directives": [{
@@ -1240,6 +1255,7 @@ export type ScalarPagination$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
+                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -1346,6 +1362,7 @@ export type ScalarPagination$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1353,18 +1370,21 @@ export type ScalarPagination$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1472,8 +1492,8 @@ export type PaginatedFragment$artifact = typeof artifact
         "pageSize": 10,
         "embedded": false,
         "targetType": "Query",
-        "paginated": false,
-        "direction": "forward",
+        "paginated": true,
+        "direction": "both",
         "mode": "Infinite"
     },
 
@@ -1509,7 +1529,7 @@ export type PaginatedFragment$artifact = typeof artifact
         "fields": {
             "entitiesByCursor": {
                 "type": "EntityConnection",
-                "keyRaw": "entitiesByCursor(after: $after, before: $before, first: $first, last: $last)",
+                "keyRaw": "entitiesByCursor::paginated",
 
                 "directives": [{
                     "name": "paginate",
@@ -1537,6 +1557,7 @@ export type PaginatedFragment$artifact = typeof artifact
                         "edges": {
                             "type": "EntityEdge",
                             "keyRaw": "edges",
+                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -1604,6 +1625,7 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -1611,18 +1633,21 @@ export type PaginatedFragment$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
+                                        "updates": ["append", "prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
+                                        "updates": ["append", "prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },

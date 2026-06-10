@@ -988,12 +988,12 @@ func validatePaginateArgs(
 
 	// if we discover a connection-based pagination we should update the discovered list with the direction
 	updateList, err := conn.Prepare(`
-		UPDATE discovered_lists SET 
-      paginate = $paginate, 
-      supports_forward = $supports_forward, 
+		UPDATE discovered_lists SET
+      paginate = $paginate,
+      supports_forward = $supports_forward,
       supports_backward = $supports_backward,
       cursor_type = $cursor_type
-    WHERE id = $id
+    WHERE list_field = $list_field
 	`)
 	if err != nil {
 		errs.Append(plugins.WrapError(err))
@@ -1032,7 +1032,7 @@ func validatePaginateArgs(
 		listName := usageQuery.GetText("discovered_list_name")
 		directive := usageQuery.GetText("directive")
 		typeModifiers := usageQuery.GetText("type_modifiers")
-		listID := usageQuery.GetInt64("discovered_list_id")
+		selectionID := usageQuery.GetInt64("selection_id")
 		cursorType := usageQuery.GetText("cursor_type")
 
 		// Ensure that the list name is unique
@@ -1148,7 +1148,7 @@ func validatePaginateArgs(
 			}
 
 			err = db.ExecStatement(updateList, map[string]any{
-				"id":                listID,
+				"list_field":        selectionID,
 				"paginate":          direction,
 				"supports_forward":  forwardPagination,
 				"supports_backward": backwardsPagination,
@@ -1159,7 +1159,7 @@ func validatePaginateArgs(
 			}
 		} else {
 			err = db.ExecStatement(updateList, map[string]any{
-				"id":               listID,
+				"list_field":       selectionID,
 				"paginate":         "forward",
 				"supports_forward": true,
 			})
