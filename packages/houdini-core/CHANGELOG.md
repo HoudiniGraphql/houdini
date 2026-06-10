@@ -1,5 +1,13 @@
 # houdini-core
 
+## 2.0.0-next.19
+
+### Patch Changes
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix TS2554 in generated injectedPlugins.ts by omitting arguments when a client plugin's config is null
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix several bugs in paginated connection artifact generation: `@paginate` on a nested field no longer produces an empty refetch path; `hasNextPage`/`hasPreviousPage` updates now propagate correctly; `endCursor`/`startCursor` no longer receive wrong-direction updates; and cache updates no longer leak to grandchildren of paginated connections
+
 ## 2.0.0-next.18
 
 ### Patch Changes

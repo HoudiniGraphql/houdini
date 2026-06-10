@@ -1,5 +1,13 @@
 # houdini
 
+## 2.0.0-next.31
+
+### Patch Changes
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Handle `.gql` file deletions and moves in the HMR pipeline so removing or renaming a GraphQL file no longer leaves stale artifacts
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Write .houdini/tsconfig.json stub in the Vite config hook so TypeScript tools don't warn about a missing extended config before the Go pipeline runs for the first time
+
 ## 2.0.0-next.30
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # houdini-adapter-node
 
+## 2.0.0-next.29
+
+### Patch Changes
+
+- [#1637](https://github.com/HoudiniGraphql/houdini/pull/1637) [`8143ab7`](https://github.com/HoudiniGraphql/houdini/commit/8143ab76558aa6d1ac44fa80729d98cf10624bfd) Thanks [@github-actions](https://github.com/apps/github-actions)! - Move houdini from dependencies to peerDependencies to prevent duplicate installs when adapter and houdini versions differ
+
+- Updated dependencies [[`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2), [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2)]:
+  - houdini@2.0.0-next.31
+
 ## 2.0.0-next.28
 
 ### Patch Changes
