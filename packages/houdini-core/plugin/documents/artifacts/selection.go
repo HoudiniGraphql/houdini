@@ -953,17 +953,8 @@ func stringifyFieldSelection(
 			updates = append(updates, "prepend")
 		}
 
-		// Detect @paginate via directives since List.Paginated may not be set yet for cursor-based fields
-		fieldIsPaginated := false
-		for _, d := range selection.Directives {
-			if d.Name == graphql.PaginationDirective {
-				fieldIsPaginated = true
-				break
-			}
-		}
-
 		// @paginate always wins over @list when both appear in the same document
-		if flags.Refetch == nil || fieldIsPaginated {
+		if flags.Refetch == nil || selection.List.Paginated {
 			// use the computed path for list operations (both paginated and non-paginated)
 			currentPath := pathBuilder.Current()
 
