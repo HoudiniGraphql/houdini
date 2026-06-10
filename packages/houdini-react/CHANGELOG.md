@@ -1,5 +1,17 @@
 # houdini-react
 
+## 2.0.0-next.33
+
+### Patch Changes
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix FOUC in dev mode by collecting CSS from the Vite module graph and passing them as React 19 stylesheet links that get hoisted to <head> during SSR
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix TS2304 error in generated useFragmentHandle.ts by importing DocumentHandle type from useDocumentHandle
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix TS2554 in generated injectedPlugins.ts by omitting arguments when a client plugin's config is null
+
+- [#1638](https://github.com/HoudiniGraphql/houdini/pull/1638) [`d3856da`](https://github.com/HoudiniGraphql/houdini/commit/d3856daaae60cd73f4daae83e809a103ff14c5f2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix SSR middleware intercepting Vite module requests and missing Content-Type header; fix FOUC by enforcing correct CSS link precedence and deduplicating links; silence pre-warm noise by checking file existence before ssrLoadModule; set HOUDINI_PORT on server listen
+
 ## 2.0.0-next.32
 
 ### Patch Changes
