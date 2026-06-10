@@ -83,6 +83,9 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 		// (type === 'create') would be silently ignored without this hook.
 		// Async so we can read file content eagerly to determine ownership before debouncing.
 		async hotUpdate(opts) {
+			// configureServer may not have run yet if watcher fires during startup
+			if (!generatedDir) return
+
 			// Sweep stale own-write entries to prevent unbounded map growth.
 			const now = Date.now()
 			for (const [fp, ts] of ownWrites.entries()) {
@@ -111,63 +114,7 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 						)?.count ?? 0
 					if (rowCount === 0) return
 				}
-				await compiler.pipeline_lock(async () => {
-					ctx.db.run('DELETE FROM raw_documents WHERE filepath = ?', [relPath])
-					ctx.db.run(`
-						UPDATE selections AS s
-						SET field_name = s.fragment_ref
-						WHERE s.fragment_ref IS NOT NULL
-						  AND s.kind = 'fragment'
-						  AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
-					`)
-					ctx.db.run(`
-						WITH orphan_selections AS (
-						  SELECT s.id FROM selections s
-						  LEFT JOIN selection_refs rp ON rp.parent_id = s.id
-						  LEFT JOIN selection_refs rc ON rc.child_id = s.id
-						  WHERE rp.id IS NULL AND rc.id IS NULL
-						)
-						DELETE FROM selections WHERE id IN (SELECT id FROM orphan_selections)
-					`)
-					try {
-						const results = await run_pipeline(compiler.trigger_hook, {
-							after: 'AfterExtract',
-						})
-						const updated_modules = [
-							...Object.values(results.GenerateDocuments || {}).flat(),
-							...Object.values(results.GenerateRuntime || {}).flat(),
-						] as Array<string>
-						const seenUrls = new Set<string>()
-						const updates = updated_modules.flatMap((module_path) => {
-							// GenerateDocuments returns '$houdini/...' import aliases; resolve them
-							// to absolute paths so Vite's module graph lookups work.
-							const resolvedPath = module_path.startsWith('$houdini/')
-								? module_path.replace('$houdini', generatedDir)
-								: module_path
-							const mods = [
-								...(server.moduleGraph.getModulesByFile(resolvedPath) ?? []),
-							]
-							return mods.flatMap((mod) => {
-								if (seenUrls.has(mod.url)) return []
-								seenUrls.add(mod.url)
-								server.moduleGraph.invalidateModule(mod)
-								return [
-									{
-										type: 'js-update' as const,
-										path: mod.url,
-										acceptedPath: mod.url,
-										timestamp: Date.now(),
-									},
-								]
-							})
-						})
-						if (updates.length > 0) {
-							server.ws.send({ type: 'update', updates })
-						}
-					} catch (err) {
-						console.error('[houdini] pipeline error after .gql deletion:', err)
-					}
-				})
+				debounceHmr.queueDelete(relPath, batchCallback)
 				return []
 			}
 
@@ -204,8 +151,23 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			// Returning undefined lets Vite apply its normal per-module HMR for the
 			// source file immediately. After the pipeline completes, we send targeted
 			// js-update messages for whichever artifact modules changed.
-			debounceHmr(opts as unknown as HmrContext, preReadContent, async (files, task_id) => {
+			debounceHmr.queueUpdate(opts as unknown as HmrContext, preReadContent, batchCallback)
+
+			async function batchCallback(
+				files: Record<string, string>,
+				deletedFiles: string[],
+				task_id: string
+			) {
+				// hotUpdate can fire before configureServer completes during startup
+				if (!compiler) return
 				await compiler.pipeline_lock(async () => {
+					// Remove DB entries for deleted files first so extraction and cleanup
+					// see a consistent state for both deletions and updates in the same batch.
+					if (deletedFiles.length > 0) {
+						const delClause = deletedFiles.map(() => 'filepath = ?').join(' OR ')
+						ctx.db.run(`DELETE FROM raw_documents WHERE ${delClause}`, deletedFiles)
+					}
+
 					// look for all relevant files that have houdini dependencies
 					const filepaths: Array<string> = []
 					const relativePaths: Array<string> = []
@@ -248,7 +210,67 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 							}
 						}
 					}
+
 					if (filepaths.length === 0) {
+						// Pure deletion batch — no files to extract. Clean up dangling DB
+						// state and regenerate artifacts without the removed documents.
+						if (deletedFiles.length > 0) {
+							console.log(
+								`🎩 Detected ${deletedFiles.length} deleted ${deletedFiles.length === 1 ? 'file' : 'files'}, re-running compiler`
+							)
+							ctx.db.run(`
+								UPDATE selections AS s
+								SET field_name = s.fragment_ref
+								WHERE s.fragment_ref IS NOT NULL
+								  AND s.kind = 'fragment'
+								  AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.name = s.field_name)
+							`)
+							ctx.db.run(`
+								WITH orphan_selections AS (
+								  SELECT s.id FROM selections s
+								  LEFT JOIN selection_refs rp ON rp.parent_id = s.id
+								  LEFT JOIN selection_refs rc ON rc.child_id = s.id
+								  WHERE rp.id IS NULL AND rc.id IS NULL
+								)
+								DELETE FROM selections WHERE id IN (SELECT id FROM orphan_selections)
+							`)
+							try {
+								const results = await run_pipeline(compiler.trigger_hook, {
+									after: 'AfterExtract',
+								})
+								const updated_modules = [
+									...Object.values(results.GenerateDocuments || {}).flat(),
+									...Object.values(results.GenerateRuntime || {}).flat(),
+								] as Array<string>
+								const seenUrls = new Set<string>()
+								const updates = updated_modules.flatMap((module_path) => {
+									const resolvedPath = module_path.startsWith('$houdini/')
+										? module_path.replace('$houdini', generatedDir)
+										: module_path
+									const mods = [
+										...(server.moduleGraph.getModulesByFile(resolvedPath) ?? []),
+									]
+									return mods.flatMap((mod) => {
+										if (seenUrls.has(mod.url)) return []
+										seenUrls.add(mod.url)
+										server.moduleGraph.invalidateModule(mod)
+										return [
+											{
+												type: 'js-update' as const,
+												path: mod.url,
+												acceptedPath: mod.url,
+												timestamp: Date.now(),
+											},
+										]
+									})
+								})
+								if (updates.length > 0) {
+									server.ws.send({ type: 'update', updates })
+								}
+							} catch (err) {
+								console.error('[houdini] pipeline error after deletion:', err)
+							}
+						}
 						return
 					}
 
@@ -449,13 +471,14 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 						server.ws.send({ type: 'update', updates })
 					}
 				})
-			})
+			}
 		},
 	}
 }
 
 type BatchCallback = (
 	filesWithContent: Record<string, string>,
+	deletedFiles: string[],
 	batchId: string
 ) => void | Promise<void>
 
@@ -463,39 +486,27 @@ type ReadFnOrContent = string | (() => string | Promise<string>)
 
 export function createDebounceHmr(debounceMs: number = 50) {
 	const updateQueue = new Map<string, ReadFnOrContent>()
+	const deleteQueue = new Set<string>()
 	let updateTimer: NodeJS.Timeout | null = null
 	let batchId = 0
 	let isProcessing = false
 	let pendingBatch: {
 		files: Map<string, ReadFnOrContent>
+		deletedFiles: Set<string>
 		batchId: number
 	} | null = null
 
-	return function debounceHmr(
-		ctx: HmrContext,
-		preReadContent: string | null,
-		callback: BatchCallback
-	): void {
-		// Add file and its content (or read function) to queue. Don't overwrite an
-		// existing entry for the same file — Vite 8 fires hotUpdate once per environment
-		// (client + ssr) and the second env's content may be empty for newly-created
-		// files. Keeping the first content/readFn is safe because the debounce window
-		// (50ms) is far longer than the microsecond gap between env calls.
-		if (!updateQueue.has(ctx.file)) {
-			updateQueue.set(ctx.file, preReadContent !== null ? preReadContent : ctx.read)
-		}
-
-		// Clear existing timer
+	function scheduleFlush(callback: BatchCallback) {
 		if (updateTimer) {
 			clearTimeout(updateTimer)
 		}
 
-		// Set new timer
 		updateTimer = setTimeout(async () => {
-			// Capture current queue and increment batch ID
 			const filesToProcess = new Map(updateQueue)
+			const filesToDelete = new Set(deleteQueue)
 			const currentBatchId = ++batchId
 			updateQueue.clear()
+			deleteQueue.clear()
 			updateTimer = null
 
 			// Handle overlapping batches: merge instead of overwriting so no
@@ -505,9 +516,16 @@ export function createDebounceHmr(debounceMs: number = 50) {
 					for (const [fp, entry] of filesToProcess.entries()) {
 						pendingBatch.files.set(fp, entry) // newer content wins for same path
 					}
+					for (const relPath of filesToDelete) {
+						pendingBatch.deletedFiles.add(relPath)
+					}
 					pendingBatch.batchId = currentBatchId
 				} else {
-					pendingBatch = { files: filesToProcess, batchId: currentBatchId }
+					pendingBatch = {
+						files: filesToProcess,
+						deletedFiles: filesToDelete,
+						batchId: currentBatchId,
+					}
 				}
 				return
 			}
@@ -529,14 +547,18 @@ export function createDebounceHmr(debounceMs: number = 50) {
 				)
 
 				try {
-					await callback(filesWithContent, currentBatchId.toString())
+					await callback(filesWithContent, [...filesToDelete], currentBatchId.toString())
 				} catch (err) {
 					console.error('[houdini] HMR pipeline error:', err)
 				}
 
 				// Drain any pending batches that accumulated while we were processing
 				while (pendingBatch) {
-					const { files: nextFiles, batchId: nextBatchId } = pendingBatch
+					const {
+						files: nextFiles,
+						deletedFiles: nextDeleted,
+						batchId: nextBatchId,
+					} = pendingBatch
 					pendingBatch = null
 
 					const nextFilesWithContent: Record<string, string> = {}
@@ -552,7 +574,11 @@ export function createDebounceHmr(debounceMs: number = 50) {
 					)
 
 					try {
-						await callback(nextFilesWithContent, nextBatchId.toString())
+						await callback(
+							nextFilesWithContent,
+							[...nextDeleted],
+							nextBatchId.toString()
+						)
 					} catch (err) {
 						console.error('[houdini] HMR pipeline error:', err)
 					}
@@ -561,5 +587,27 @@ export function createDebounceHmr(debounceMs: number = 50) {
 				isProcessing = false
 			}
 		}, debounceMs)
+	}
+
+	return {
+		queueUpdate(
+			ctx: HmrContext,
+			preReadContent: string | null,
+			callback: BatchCallback
+		): void {
+			// Add file and its content (or read function) to queue. Don't overwrite an
+			// existing entry for the same file — Vite 8 fires hotUpdate once per environment
+			// (client + ssr) and the second env's content may be empty for newly-created
+			// files. Keeping the first content/readFn is safe because the debounce window
+			// (50ms) is far longer than the microsecond gap between env calls.
+			if (!updateQueue.has(ctx.file)) {
+				updateQueue.set(ctx.file, preReadContent !== null ? preReadContent : ctx.read)
+			}
+			scheduleFlush(callback)
+		},
+		queueDelete(relativePath: string, callback: BatchCallback): void {
+			deleteQueue.add(relativePath)
+			scheduleFlush(callback)
+		},
 	}
 }
