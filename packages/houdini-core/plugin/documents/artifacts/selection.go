@@ -624,7 +624,8 @@ func stringifySelection(
 					"hasNextPage",
 					"hasPreviousPage",
 					"startCursor",
-					"endCursor":
+					"endCursor",
+					"__typename":
 				default:
 					updates = []string{}
 				}
@@ -1259,8 +1260,9 @@ func stringifyFieldSelection(
 
 	updateStr := ""
 	// dont add any updates if there aren't any, the field isn't paginated or if the
-	// field is not pageInfo or __typename
+	// field is not pageInfo, __typename, startCursor, or endCursor
 	if len(updates) > 0 && *selection.Alias != "pageInfo" && *selection.Alias != "__typename" &&
+		*selection.Alias != "startCursor" && *selection.Alias != "endCursor" &&
 		(selection.List == nil || (selection.List != nil &&
 			!selection.List.Connection)) {
 		updateVals := []string{}

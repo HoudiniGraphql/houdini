@@ -23,7 +23,7 @@ func TestPaginationArtifacts(t *testing.T) {
       type Species {
         id: Int!
         name: String!
-        moves(first: Int, after: String, last: Int, before: String): SpeciesMoveConnection!
+        moves(first: Int, after: String): SpeciesMoveConnection!
       }
 
       type SpeciesMoveConnection {
@@ -1751,7 +1751,7 @@ export type TestQuery$artifact = typeof artifact
 					"Info": tests.Dedent(`const artifact = {
     "name": "Info",
     "kind": "HoudiniQuery",
-    "hash": "56bf6f344e25bf6a8c12980815e0ffe386b2821aa95b126192087c8cf57ee6ee",
+    "hash": "8c477355428da3ad46b8438259e16cda72a336392b61e06b7130fa99bf103631",
 
     "refetch": {
         "path": ["species","moves"],
@@ -1759,15 +1759,15 @@ export type TestQuery$artifact = typeof artifact
         "pageSize": 1,
         "embedded": false,
         "targetType": "Query",
-        "paginated": false,
+        "paginated": true,
         "direction": "forward",
         "mode": "SinglePage"
     },
 
-    "raw": ` + "`" + `query Info($after: String, $before: String, $first: Int = 1, $id: Int = 1, $last: Int) {
+    "raw": ` + "`" + `query Info($after: String, $first: Int = 1, $id: Int = 1) {
     species(id: $id) {
         id
-        moves(after: $after, before: $before, first: $first, last: $last) {
+        moves(after: $after, first: $first) {
             edges {
                 node {
                     id
@@ -1815,7 +1815,7 @@ export type TestQuery$artifact = typeof artifact
 
                         "moves": {
                             "type": "SpeciesMoveConnection",
-                            "keyRaw": "moves(after: $after, before: $before, first: $first, last: $last)",
+                            "keyRaw": "moves(after: $after, first: $first)::paginated",
 
                             "directives": [{
                                 "name": "paginate",
@@ -1838,6 +1838,7 @@ export type TestQuery$artifact = typeof artifact
                                     "edges": {
                                         "type": "SpeciesMoveEdge",
                                         "keyRaw": "edges",
+                                        "updates": ["append"],
 
                                         "selection": {
                                             "fields": {
@@ -1901,12 +1902,14 @@ export type TestQuery$artifact = typeof artifact
                                                 "hasNextPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasNextPage",
+                                                    "updates": ["append"],
                                                     "visible": true,
                                                 },
 
                                                 "hasPreviousPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasPreviousPage",
+                                                    "updates": ["append"],
                                                     "visible": true,
                                                 },
 
@@ -1944,10 +1947,8 @@ export type TestQuery$artifact = typeof artifact
     "input": {
         "fields": {
             "after": "String",
-            "before": "String",
             "first": "Int",
             "id": "Int",
-            "last": "Int",
         },
 
         "types": {},
@@ -1993,15 +1994,13 @@ export type Info$result = {
 
 export type Info$input = {
 	after?: string | null;
-	before?: string | null;
 	first?: number | null;
 	id?: number | null;
-	last?: number | null;
 };
 
 export type Info$artifact = typeof artifact
 
-"HoudiniHash=56bf6f344e25bf6a8c12980815e0ffe386b2821aa95b126192087c8cf57ee6ee"`),
+"HoudiniHash=8c477355428da3ad46b8438259e16cda72a336392b61e06b7130fa99bf103631"`),
 				},
 			},
 		},
