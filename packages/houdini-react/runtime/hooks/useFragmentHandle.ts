@@ -5,7 +5,7 @@ import type {
 	GraphQLVariables,
 } from 'houdini/runtime'
 
-import { useDocumentHandle } from './useDocumentHandle.js'
+import { useDocumentHandle, type DocumentHandle } from './useDocumentHandle.js'
 import { useDocumentStore } from './useDocumentStore.js'
 import { fragmentReference, useFragment } from './useFragment.js'
 

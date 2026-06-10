@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import houdini from 'houdini/vite'
 import adapter from 'houdini-adapter-node'
@@ -8,5 +9,5 @@ export default defineConfig({
 	server: {
 		port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
 	},
-	plugins: [houdini({ adapter }), react()],
+	plugins: [houdini({ adapter }), react(), tailwindcss()],
 })

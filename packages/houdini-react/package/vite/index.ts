@@ -8,6 +8,7 @@ import {
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
+import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import type * as React from 'react'
 import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
@@ -253,8 +254,48 @@ mount_static_app(App, manifest)
 		async configureServer(server) {
 			devServer = true
 
+			// Keep the dev server alive through SSR errors (e.g. bad PostCSS config,
+			// missing local schema). Vite's HMR recovers naturally once the file is fixed.
+			const onUnhandledRejection = (err: unknown) => {
+				console.error('\n[houdini] dev server error (server still running):\n', err, '\n')
+			}
+			process.on('unhandledRejection', onUnhandledRejection)
+			server.httpServer?.once('close', () =>
+				process.off('unhandledRejection', onUnhandledRejection)
+			)
+
+			// Pre-warm: load the Shell entry so CSS imports populate the module
+			// graph before the first browser request arrives.
+			server.httpServer?.once('listening', () => {
+				const addr = server.httpServer?.address()
+				if (addr && typeof addr === 'object') {
+					process.env.HOUDINI_PORT = String(addr.port)
+				}
+
+				const root = ctx.config.root_dir
+				const entry = ['+index.tsx', '+index.jsx']
+					.map((f) => path.join(root, 'src', f))
+					.find((f) => existsSync(f))
+				if (entry) {
+					server.ssrLoadModule(entry).catch(() => {})
+				}
+			})
+
 			server.middlewares.use(async (req, res, next) => {
 				if (!req.url) {
+					next()
+					return
+				}
+
+				// Let Vite handle anything that isn't a page navigation — module scripts,
+				// assets, Vite internals, and virtual modules all need to pass through.
+				const url = req.url.split('?')[0]
+				if (
+					url.startsWith('/@') ||
+					url.startsWith('/virtual:') ||
+					url.startsWith('/node_modules/') ||
+					/\.[a-z]+$/i.test(url)
+				) {
 					next()
 					return
 				}
@@ -304,6 +345,23 @@ mount_static_app(App, manifest)
 					// fall back to the Vite client script only
 				}
 
+				// Collect CSS file URLs from loaded modules so React 19 can hoist
+				// <link rel="stylesheet"> into <head> and prevent FOUC in dev.
+				const cssLinkSet = new Set<string>()
+				for (const [url] of server.moduleGraph.urlToModuleMap) {
+					const cleanUrl = url.split('?')[0]
+					if (
+						!cleanUrl.includes('node_modules') &&
+						cleanUrl.endsWith('.css') &&
+						!cleanUrl.endsWith('.module.css')
+					) {
+						cssLinkSet.add(cleanUrl)
+					}
+				}
+				const cssLinks = [...cssLinkSet]
+
+				res.setHeader('Content-Type', 'text/html; charset=utf-8')
+
 				try {
 					const result: Response = await createServerAdapter({
 						production: false,
@@ -311,6 +369,7 @@ mount_static_app(App, manifest)
 						assetPrefix: '/virtual:houdini',
 						pipe: res,
 						documentPremable,
+						cssLinks,
 					})(request)
 					if (result && result.status === 404) {
 						return next()

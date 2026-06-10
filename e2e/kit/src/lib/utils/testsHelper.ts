@@ -210,6 +210,22 @@ export async function expect_to_be(
 }
 
 /**
+ * @param selector @default div[id=result]
+ */
+export async function expect_to_be_json(
+	page: Page,
+	toBe: unknown,
+	selector = 'div[id=result]',
+	trimed = true
+) {
+	const timeout = process.env.CI ? 5000 : 2000
+	const result = await page.locator(selector).textContent({ timeout })
+	const text = trimed ? result?.trim() : result
+	const parsed = JSON.parse(text ?? 'null')
+	expect(parsed, `element "${selector}" must deep equal 👇`).toEqual(toBe)
+}
+
+/**
  * @param selector @default div[id=pageInfo]
  */
 export async function expectToContain(page: Page, toBe: string, selector = 'div[id=pageInfo]') {

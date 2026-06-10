@@ -226,7 +226,6 @@ func GenerateSelectionDocument(
 		sortKeys,
 		flags,
 		&SelectionFlags{},
-		nil,
 		[]string{},
 		pathBuilder,
 		forceLoading,
@@ -328,8 +327,15 @@ func GenerateSelectionDocument(
 	if documentData.Refetch != nil {
 		direction := RefetchDirection(documentData.Refetch.Direction)
 
+		// Prefer the PathBuilder-computed path from flags.Refetch: collect.go sets Path to []
+		// as a placeholder (see its TODO comment) and the real path is computed here.
+		path := documentData.Refetch.Path
+		if flags.Refetch != nil && len(flags.Refetch.Path) > 0 {
+			path = flags.Refetch.Path
+		}
+
 		refetchSpec = &RefetchSpec{
-			Path:       documentData.Refetch.Path,
+			Path:       path,
 			Method:     RefetchMethod(documentData.Refetch.Method),
 			PageSize:   documentData.Refetch.PageSize,
 			Mode:       RefetchMode(documentData.Refetch.Mode),
@@ -569,7 +575,6 @@ func stringifySelection(
 	sortKeys bool,
 	flags *ArtifactFlags,
 	parentSelectionFlags *SelectionFlags,
-	paginatedMode *string,
 	updates []string,
 	pathBuilder *PathBuilder,
 	forceLoading bool,
@@ -607,20 +612,6 @@ func stringifySelection(
 
 			if fieldsBuilder.Len() > 0 {
 				fieldsBuilder.WriteRune('\n')
-			}
-
-			// we only want to keep the updates alive if we run into a pagination field
-			if paginatedMode == nil {
-				switch *selection.Alias {
-				case "edges",
-					"pageInfo",
-					"hasNextPage",
-					"hasPreviousPage",
-					"startCursor",
-					"endCursor":
-				default:
-					updates = []string{}
-				}
 			}
 
 			// push current field to path, process, then pop
@@ -1065,9 +1056,13 @@ func stringifyFieldSelection(
 	var subSelectionBuilder strings.Builder
 	if len(selection.Children) > 0 {
 		subSelUpdates := updates
-		// if there are updates and the paginated list is a non-connection
-		// then we don't want to apply any updates to the children
-		if selection.List != nil && !selection.List.Connection {
+		switch {
+		case selection.List != nil && !selection.List.Connection:
+			// offset-paginated field: its children don't inherit updates
+			subSelUpdates = []string{}
+		case paginatedMode == nil && *selection.Alias != "pageInfo":
+			// not the connection field itself, and not pageInfo (whose children need updates):
+			// stop updates from leaking into grandchildren of the connection
 			subSelUpdates = []string{}
 		}
 
@@ -1085,7 +1080,6 @@ func stringifyFieldSelection(
 				sortKeys,
 				flags,
 				selectionFlags,
-				paginatedMode,
 				subSelUpdates,
 				pathBuilder,
 				forceLoading,
@@ -1251,17 +1245,24 @@ func stringifyFieldSelection(
 	}
 
 	updateStr := ""
-	// dont add any updates if there aren't any, the field isn't paginated or if the
-	// field is not pageInfo or __typename
 	if len(updates) > 0 && *selection.Alias != "pageInfo" && *selection.Alias != "__typename" &&
-		(selection.List == nil || (selection.List != nil &&
-			!selection.List.Connection)) {
-		updateVals := []string{}
-		for _, update := range updates {
-			updateVals = append(updateVals, `"`+update+`"`)
+		(selection.List == nil || (selection.List != nil && !selection.List.Connection)) {
+		// cursors only update in one direction: endCursor on append, startCursor on prepend
+		effectiveUpdates := updates
+		switch *selection.Alias {
+		case "endCursor":
+			effectiveUpdates = filterUpdates(updates, "append")
+		case "startCursor":
+			effectiveUpdates = filterUpdates(updates, "prepend")
 		}
-		updateStr = fmt.Sprintf(`
+		if len(effectiveUpdates) > 0 {
+			updateVals := make([]string, len(effectiveUpdates))
+			for i, u := range effectiveUpdates {
+				updateVals[i] = `"` + u + `"`
+			}
+			updateStr = fmt.Sprintf(`
 %s"updates": [%s],`, indent4, strings.Join(updateVals, ", "))
+		}
 	}
 
 	result += fmt.Sprintf(`%s"%s": {
@@ -1333,6 +1334,16 @@ func findUsedTypes(docs *collected.Documents, variables []*collected.OperationVa
 		found = append(found, key)
 	}
 	return found
+}
+
+func filterUpdates(updates []string, keep string) []string {
+	result := []string{}
+	for _, u := range updates {
+		if u == keep {
+			result = append(result, u)
+		}
+	}
+	return result
 }
 
 func stringifyOperations(

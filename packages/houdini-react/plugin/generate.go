@@ -392,10 +392,13 @@ import React from 'react'
 
 import Shell from '%s/src/+index'
 
-export default (props) => (
-	<Shell>
-		<Router {...props} />
-	</Shell>
+export default ({ cssLinks, ...props }) => (
+	<>
+		{(cssLinks || []).map(href => <link key={href} rel="stylesheet" href={href} precedence="default" />)}
+		<Shell>
+			<Router {...props} />
+		</Shell>
+	</>
 )
 `, rootRel)
 
@@ -423,7 +426,7 @@ import router_manifest from '$houdini/plugins/houdini-react/runtime/manifest'
 import config from '%s/houdini.config.js'
 
 export const on_render =
-	({ assetPrefix, pipe, production, documentPremable }) =>
+	({ assetPrefix, pipe, production, documentPremable, cssLinks }) =>
 	async ({
 		url,
 		match,
@@ -457,6 +460,7 @@ export const on_render =
 				session: session,
 				assetPrefix: assetPrefix,
 				manifest: manifest,
+				cssLinks: cssLinks || [],
 				...router_cache()
 			}),
 			{ webStream: production, userAgent: 'Vite' }

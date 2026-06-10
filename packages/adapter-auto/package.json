@@ -1,61 +1,61 @@
 {
-  "name": "houdini-adapter-auto",
-  "version": "2.0.0-next.29",
-  "description": "An adapter for deploying your Houdini application according to the build environment ",
-  "keywords": [
-    "houdini",
-    "adpter",
-    "cloudflare",
-    "workers",
-    "node"
-  ],
-  "homepage": "https://github.com/HoudiniGraphql/houdini",
-  "funding": "https://github.com/sponsors/HoudiniGraphql",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HoudiniGraphql/houdini.git"
-  },
-  "license": "MIT",
-  "type": "module",
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "tsup src/* --format esm,cjs  --external vite --minify --dts --clean --out-dir build",
-    "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
-    "build:build": "pnpm build: && pnpm build"
-  },
-  "devDependencies": {
-    "houdini": "workspace:^",
-    "scripts": "workspace:^",
-    "tsup": "^8.5.1"
-  },
-  "dependencies": {
-    "import-meta-resolve": "^4.2.0"
-  },
-  "peerDependencies": {
-    "houdini": "workspace:^"
-  },
-  "files": [
-    "build"
-  ],
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "import": "./build/index.js",
-      "require": "./build/index.cjs"
+    "name": "houdini-adapter-auto",
+    "version": "2.0.0-next.29",
+    "description": "An adapter for deploying your Houdini application according to the build environment ",
+    "keywords": [
+        "houdini",
+        "adpter",
+        "cloudflare",
+        "workers",
+        "node"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "funding": "https://github.com/sponsors/HoudiniGraphql",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
     },
-    "./app": {
-      "import": "./build/app.js",
-      "require": "./build/app.cjs"
+    "license": "MIT",
+    "type": "module",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsup src/* --format esm,cjs  --external vite --minify --dts --clean --out-dir build",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build"
+    },
+    "devDependencies": {
+        "houdini": "workspace:^",
+        "scripts": "workspace:^",
+        "tsup": "^8.5.1"
+    },
+    "dependencies": {
+        "import-meta-resolve": "^4.2.0"
+    },
+    "peerDependencies": {
+        "houdini": "workspace:^"
+    },
+    "files": [
+        "build"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": "./build/index.js",
+            "require": "./build/index.cjs"
+        },
+        "./app": {
+            "import": "./build/app.js",
+            "require": "./build/app.cjs"
+        }
+    },
+    "types": "./build/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "app": [
+                "./build/app.d.ts"
+            ]
+        }
     }
-  },
-  "types": "./build/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "app": [
-        "./build/app.d.ts"
-      ]
-    }
-  }
 }

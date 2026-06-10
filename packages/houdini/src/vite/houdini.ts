@@ -1,3 +1,4 @@
+import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { ResolvedConfig, ConfigEnv as ViteEnv, Plugin as VitePlugin } from 'vite'
 
@@ -5,6 +6,48 @@ import type { VitePluginContext } from './index.js'
 import { codegen_setup } from '../lib/codegen.js'
 import * as fs from '../lib/fs.js'
 import type { CompilerProxy } from '../lib/index.js'
+
+// Matches GenerateTsConfig in packages/houdini-react/plugin/runtime.go — keep in sync.
+const REACT_TSCONFIG_STUB = `{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "$houdini": ["."],
+            "$houdini/*": ["./*"],
+            "~": ["../src"],
+            "~/*": ["../src/*"]
+        },
+        "rootDirs": ["..", "./types"],
+        "target": "ESNext",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": false,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx"
+    },
+    "include": [
+        "ambient.d.ts",
+        "./types/**/$types.d.ts",
+        "../vite.config.ts",
+        "../src/**/*.js",
+        "../src/**/*.ts",
+        "../src/**/*.jsx",
+        "../src/**/*.tsx",
+        "../src/+app.d.ts"
+    ],
+    "exclude": ["../node_modules/**", "./[!ambient.d.ts]**"]
+}
+`
 
 export let compiler: CompilerProxy
 let alreadyBuilt = false
@@ -34,6 +77,20 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 				ctx.config.root_dir,
 				ctx.config.config_file.runtimeDir ?? '.houdini'
 			)
+
+			// Write a stub tsconfig before any other plugin reads tsconfig.json.
+			// The Go pipeline overwrites it with the real content on first compile.
+			const tsconfigPath = path.join(runtimeDir, 'tsconfig.json')
+			if (
+				!fs.existsSync(tsconfigPath) &&
+				ctx.config.plugins.some((p) => p.name === 'houdini-react')
+			) {
+				try {
+					mkdirSync(runtimeDir, { recursive: true })
+					writeFileSync(tsconfigPath, REACT_TSCONFIG_STUB)
+				} catch {}
+			}
+
 			// add the necessary values for the houdini imports to resolve
 			// In vite 8 the aliases can be an object or an array of objects,
 			// so we'll have to add our own aliases accordingly
