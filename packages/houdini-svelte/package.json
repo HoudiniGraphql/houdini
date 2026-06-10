@@ -1,26 +1,26 @@
 {
-  "name": "houdini-svelte",
-  "version": "3.0.0-next.32",
-  "scripts": {
-    "compile": "scripts build-go",
-    "typedefs": "scripts typedefs --plugin --go-package"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HoudiniGraphql/houdini.git"
-  },
-  "dependencies": {
-    "@sveltejs/kit": "^2.63.0",
-    "estree-walker": "^3.0.3",
-    "houdini": "workspace:^",
-    "rollup": "^4.61.1",
-    "svelte": "^5.56.2",
-    "vite": "^8.0.16"
-  },
-  "devDependencies": {
-    "@sveltejs/kit": "^2.63.0",
-    "ast-types": "^0.16.1",
-    "scripts": "workspace:^",
-    "svelte": "^5.19.0"
-  }
+    "name": "houdini-svelte",
+    "version": "3.0.0-next.32",
+    "scripts": {
+        "compile": "scripts build-go",
+        "typedefs": "scripts typedefs --plugin --go-package"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "dependencies": {
+        "@sveltejs/kit": "^2.63.0",
+        "estree-walker": "^3.0.3",
+        "houdini": "workspace:^",
+        "rollup": "^4.61.1",
+        "svelte": "^5.56.2",
+        "vite": "^8.0.16"
+    },
+    "devDependencies": {
+        "@sveltejs/kit": "^2.63.0",
+        "ast-types": "^0.16.1",
+        "scripts": "workspace:^",
+        "svelte": "^5.19.0"
+    }
 }

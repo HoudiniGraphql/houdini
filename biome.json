@@ -1,83 +1,83 @@
 {
-  "files": {
-    "includes": [
-      "packages/*/src/**",
-      "packages/*/runtime/**",
-      "packages/*/package.json",
-      "!!**/node_modules",
-      "!!**/build",
-      "!!**/dist"
-    ]
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "tab",
-    "indentWidth": 4,
-    "lineWidth": 100
-  },
-  "javascript": {
+    "files": {
+        "includes": [
+            "packages/*/src/**",
+            "packages/*/runtime/**",
+            "packages/*/package.json",
+            "!!**/node_modules",
+            "!!**/build",
+            "!!**/dist"
+        ]
+    },
     "formatter": {
-      "semicolons": "asNeeded",
-      "quoteStyle": "single",
-      "trailingCommas": "es5",
-      "arrowParentheses": "always"
-    }
-  },
-  "json": {
-    "formatter": {
-      "indentStyle": "space",
-      "indentWidth": 2
-    }
-  },
-  "assist": {
-    "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  },
-  "overrides": [
-    {
-      "includes": ["packages/houdini/src/**"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "useImportExtensions": {
-              "level": "error",
-              "options": {
-                "extensionMappings": {
-                  "ts": "js",
-                  "tsx": "js"
-                }
-              }
-            }
-          }
+        "enabled": true,
+        "indentStyle": "tab",
+        "indentWidth": 4,
+        "lineWidth": 100
+    },
+    "javascript": {
+        "formatter": {
+            "semicolons": "asNeeded",
+            "quoteStyle": "single",
+            "trailingCommas": "es5",
+            "arrowParentheses": "always"
         }
-      }
+    },
+    "json": {
+        "formatter": {
+            "indentStyle": "space",
+            "indentWidth": 4
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": ["packages/houdini/src/**"],
+            "linter": {
+                "rules": {
+                    "correctness": {
+                        "useImportExtensions": {
+                            "level": "error",
+                            "options": {
+                                "extensionMappings": {
+                                    "ts": "js",
+                                    "tsx": "js"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "correctness": {
+                "noUnusedImports": "error"
+            },
+            "suspicious": {
+                "noExportsInTest": "off",
+                "noControlCharactersInRegex": "off",
+                "noExplicitAny": "off"
+            },
+            "style": {
+                "noNonNullAssertion": "off",
+                "useImportType": "error"
+            },
+            "complexity": {
+                "noBannedTypes": "off"
+            },
+            "performance": {
+                "noAccumulatingSpread": "off"
+            }
+        }
     }
-  ],
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "correctness": {
-        "noUnusedImports": "error"
-      },
-      "suspicious": {
-        "noExportsInTest": "off",
-        "noControlCharactersInRegex": "off",
-        "noExplicitAny": "off"
-      },
-      "style": {
-        "noNonNullAssertion": "off",
-        "useImportType": "error"
-      },
-      "complexity": {
-        "noBannedTypes": "off"
-      },
-      "performance": {
-        "noAccumulatingSpread": "off"
-      }
-    }
-  }
 }
