@@ -287,6 +287,19 @@ mount_static_app(App, manifest)
 					return
 				}
 
+				// Let Vite handle anything that isn't a page navigation — module scripts,
+				// assets, Vite internals, and virtual modules all need to pass through.
+				const url = req.url.split('?')[0]
+				if (
+					url.startsWith('/@') ||
+					url.startsWith('/virtual:') ||
+					url.startsWith('/node_modules/') ||
+					/\.[a-z]+$/i.test(url)
+				) {
+					next()
+					return
+				}
+
 				const { default: router_manifest } = (await server.ssrLoadModule(
 					path.join(plugin_dir(ctx.config, 'houdini-react'), 'runtime', 'manifest.ts')
 				)) as { default: RouterManifest<React.Component> }
@@ -346,6 +359,8 @@ mount_static_app(App, manifest)
 					}
 				}
 				const cssLinks = [...cssLinkSet]
+
+				res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
 				try {
 					const result: Response = await createServerAdapter({
