@@ -62,9 +62,7 @@ describe('plugin_path npm package resolution', () => {
 	})
 
 	test('resolves bin as string', async () => {
-		mockReadFile.mockResolvedValue(
-			JSON.stringify({ name: 'my-plugin', bin: 'bin/my-plugin' })
-		)
+		mockReadFile.mockResolvedValue(JSON.stringify({ name: 'my-plugin', bin: 'bin/my-plugin' }))
 		const result = await plugin_path('my-plugin', '/project/houdini.config.js')
 		expect(result.executable).toBe('/fake/node_modules/my-plugin/bin/my-plugin')
 		expect(result.directory).toBe('/fake/node_modules/my-plugin')
@@ -81,8 +79,8 @@ describe('plugin_path npm package resolution', () => {
 
 	test('throws when bin is missing', async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({ name: 'my-plugin' }))
-		await expect(
-			plugin_path('my-plugin', '/project/houdini.config.js')
-		).rejects.toThrow('Could not find plugin: my-plugin')
+		await expect(plugin_path('my-plugin', '/project/houdini.config.js')).rejects.toThrow(
+			'Could not find plugin: my-plugin'
+		)
 	})
 })
