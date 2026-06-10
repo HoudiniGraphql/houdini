@@ -253,6 +253,16 @@ mount_static_app(App, manifest)
 		async configureServer(server) {
 			devServer = true
 
+			// Keep the dev server alive through SSR errors (e.g. bad PostCSS config,
+			// missing local schema). Vite's HMR recovers naturally once the file is fixed.
+			const onUnhandledRejection = (err: unknown) => {
+				console.error('\n[houdini] dev server error (server still running):\n', err, '\n')
+			}
+			process.on('unhandledRejection', onUnhandledRejection)
+			server.httpServer?.once('close', () =>
+				process.off('unhandledRejection', onUnhandledRejection)
+			)
+
 			// Pre-warm: load the Shell entry so CSS imports populate the module
 			// graph before the first browser request arrives.
 			server.httpServer?.once('listening', () => {
