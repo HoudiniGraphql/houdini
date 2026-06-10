@@ -1256,11 +1256,6 @@ func stringifyFieldSelection(
 		case "startCursor":
 			effectiveUpdates = filterUpdates(updates, "prepend")
 		case "hasPreviousPage":
-			// ["prepend"] means "only update during backward pagination."
-			// During forward-only scroll applyUpdates is always ["append"], which is not
-			// in ["prepend"], so the runtime keeps the old value — preserving the
-			// accumulated hasPreviousPage:false even when the server returns true for
-			// intermediate pages.
 			effectiveUpdates = []string{"prepend"}
 		}
 		if len(effectiveUpdates) > 0 {
