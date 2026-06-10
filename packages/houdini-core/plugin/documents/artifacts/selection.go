@@ -226,7 +226,6 @@ func GenerateSelectionDocument(
 		sortKeys,
 		flags,
 		&SelectionFlags{},
-		nil,
 		[]string{},
 		pathBuilder,
 		forceLoading,
@@ -576,7 +575,6 @@ func stringifySelection(
 	sortKeys bool,
 	flags *ArtifactFlags,
 	parentSelectionFlags *SelectionFlags,
-	paginatedMode *string,
 	updates []string,
 	pathBuilder *PathBuilder,
 	forceLoading bool,
@@ -614,21 +612,6 @@ func stringifySelection(
 
 			if fieldsBuilder.Len() > 0 {
 				fieldsBuilder.WriteRune('\n')
-			}
-
-			// we only want to keep the updates alive if we run into a pagination field
-			if paginatedMode == nil {
-				switch *selection.Alias {
-				case "edges",
-					"pageInfo",
-					"hasNextPage",
-					"hasPreviousPage",
-					"startCursor",
-					"endCursor",
-					"__typename":
-				default:
-					updates = []string{}
-				}
 			}
 
 			// push current field to path, process, then pop
@@ -1073,9 +1056,13 @@ func stringifyFieldSelection(
 	var subSelectionBuilder strings.Builder
 	if len(selection.Children) > 0 {
 		subSelUpdates := updates
-		// if there are updates and the paginated list is a non-connection
-		// then we don't want to apply any updates to the children
-		if selection.List != nil && !selection.List.Connection {
+		switch {
+		case selection.List != nil && !selection.List.Connection:
+			// offset-paginated field: its children don't inherit updates
+			subSelUpdates = []string{}
+		case paginatedMode == nil && *selection.Alias != "pageInfo":
+			// not the connection field itself, and not pageInfo (whose children need updates):
+			// stop updates from leaking into grandchildren of the connection
 			subSelUpdates = []string{}
 		}
 
@@ -1093,7 +1080,6 @@ func stringifyFieldSelection(
 				sortKeys,
 				flags,
 				selectionFlags,
-				paginatedMode,
 				subSelUpdates,
 				pathBuilder,
 				forceLoading,
