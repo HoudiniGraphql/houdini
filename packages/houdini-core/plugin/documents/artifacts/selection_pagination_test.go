@@ -17,6 +17,28 @@ func TestPaginationArtifacts(t *testing.T) {
         users: [User!]!
         user: User!
 				entitiesByCursor(first: Int, after: String, last: Int, before: String): EntityConnection!
+        species(id: Int!): Species
+      }
+
+      type Species {
+        id: Int!
+        name: String!
+        moves(first: Int, after: String, last: Int, before: String): SpeciesMoveConnection!
+      }
+
+      type SpeciesMoveConnection {
+        edges: [SpeciesMoveEdge!]!
+        pageInfo: PageInfo!
+      }
+
+      type SpeciesMoveEdge {
+        node: SpeciesMove
+        cursor: String!
+      }
+
+      type SpeciesMove {
+        id: Int!
+        name: String!
       }
 
       type User implements  Node {
@@ -1702,6 +1724,284 @@ export type TestQuery$input = {
 export type TestQuery$artifact = typeof artifact
 
 "HoudiniHash=0d0fa55060035d4eb6ae7de938bdcfe8703aecff0becc0a479b6e29ffa999e4b"`),
+				},
+			},
+			{
+				Name: "paginate on nested field with argument-bearing parent has correct path",
+				Input: []string{
+					`
+					query Info($id: Int = 1) {
+						species(id: $id) {
+							id
+							moves(first: 1) @paginate(mode: SinglePage) {
+								edges {
+									node { id }
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+								}
+							}
+						}
+					}
+					`,
+				},
+				Pass: true,
+				Extra: map[string]any{
+					"Info": tests.Dedent(`const artifact = {
+    "name": "Info",
+    "kind": "HoudiniQuery",
+    "hash": "56bf6f344e25bf6a8c12980815e0ffe386b2821aa95b126192087c8cf57ee6ee",
+
+    "refetch": {
+        "path": ["species","moves"],
+        "method": "cursor",
+        "pageSize": 1,
+        "embedded": false,
+        "targetType": "Query",
+        "paginated": false,
+        "direction": "forward",
+        "mode": "SinglePage"
+    },
+
+    "raw": ` + "`" + `query Info($after: String, $before: String, $first: Int = 1, $id: Int = 1, $last: Int) {
+    species(id: $id) {
+        id
+        moves(after: $after, before: $before, first: $first, last: $last) {
+            edges {
+                node {
+                    id
+                    __typename
+                }
+                __typename
+                cursor
+            }
+            pageInfo {
+                hasNextPage
+                hasPreviousPage
+                __typename
+                startCursor
+                endCursor
+            }
+            __typename
+        }
+        __typename
+    }
+}
+` + "`" + `,
+
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "species": {
+                "type": "Species",
+                "keyRaw": "species(id: $id)",
+                "nullable": true,
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "id": {
+                            "type": "Int",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+
+                        "moves": {
+                            "type": "SpeciesMoveConnection",
+                            "keyRaw": "moves(after: $after, before: $before, first: $first, last: $last)",
+
+                            "directives": [{
+                                "name": "paginate",
+                                "arguments": {
+                                    "mode": {
+                                        "kind": "EnumValue",
+                                        "value": "SinglePage"
+                                    }
+                                }
+                            }],
+
+
+                            "selection": {
+                                "fields": {
+                                    "__typename": {
+                                        "type": "String",
+                                        "keyRaw": "__typename",
+                                    },
+
+                                    "edges": {
+                                        "type": "SpeciesMoveEdge",
+                                        "keyRaw": "edges",
+
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
+
+                                                "cursor": {
+                                                    "type": "String",
+                                                    "keyRaw": "cursor",
+                                                    "visible": true,
+                                                },
+
+                                                "node": {
+                                                    "type": "SpeciesMove",
+                                                    "keyRaw": "node",
+                                                    "nullable": true,
+
+                                                    "selection": {
+                                                        "fields": {
+                                                            "__typename": {
+                                                                "type": "String",
+                                                                "keyRaw": "__typename",
+                                                            },
+
+                                                            "id": {
+                                                                "type": "Int",
+                                                                "keyRaw": "id",
+                                                                "visible": true,
+                                                            },
+                                                        },
+                                                    },
+
+                                                    "visible": true,
+                                                },
+                                            },
+                                        },
+
+                                        "visible": true,
+                                    },
+
+                                    "pageInfo": {
+                                        "type": "PageInfo",
+                                        "keyRaw": "pageInfo",
+
+                                        "selection": {
+                                            "fields": {
+                                                "__typename": {
+                                                    "type": "String",
+                                                    "keyRaw": "__typename",
+                                                },
+
+                                                "endCursor": {
+                                                    "type": "String",
+                                                    "keyRaw": "endCursor",
+                                                    "nullable": true,
+                                                    "visible": true,
+                                                },
+
+                                                "hasNextPage": {
+                                                    "type": "Boolean",
+                                                    "keyRaw": "hasNextPage",
+                                                    "visible": true,
+                                                },
+
+                                                "hasPreviousPage": {
+                                                    "type": "Boolean",
+                                                    "keyRaw": "hasPreviousPage",
+                                                    "visible": true,
+                                                },
+
+                                                "startCursor": {
+                                                    "type": "String",
+                                                    "keyRaw": "startCursor",
+                                                    "nullable": true,
+                                                    "visible": true,
+                                                },
+                                            },
+                                        },
+
+                                        "visible": true,
+                                    },
+                                },
+                            },
+
+                            "visible": true,
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "dedupe": {
+        "cancel": "last",
+        "match": "Variables"
+    },
+
+    "input": {
+        "fields": {
+            "after": "String",
+            "before": "String",
+            "first": "Int",
+            "id": "Int",
+            "last": "Int",
+        },
+
+        "types": {},
+
+        "defaults": {
+            "first": 1,
+            "id": 1,
+        },
+
+        "runtimeScalars": {},
+    },
+
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type Info = {
+	readonly "input": Info$input;
+	readonly "result": Info$result | undefined;
+};
+
+export type Info$result = {
+	readonly species: {
+		readonly id: number;
+		readonly moves: {
+			readonly edges: ({
+				readonly node: {
+					readonly id: number;
+				} | null;
+				readonly cursor: string;
+			})[];
+			readonly pageInfo: {
+				readonly hasNextPage: boolean;
+				readonly hasPreviousPage: boolean;
+				readonly startCursor: string | null;
+				readonly endCursor: string | null;
+			};
+		};
+	} | null;
+};
+
+export type Info$input = {
+	after?: string | null;
+	before?: string | null;
+	first?: number | null;
+	id?: number | null;
+	last?: number | null;
+};
+
+export type Info$artifact = typeof artifact
+
+"HoudiniHash=56bf6f344e25bf6a8c12980815e0ffe386b2821aa95b126192087c8cf57ee6ee"`),
 				},
 			},
 		},

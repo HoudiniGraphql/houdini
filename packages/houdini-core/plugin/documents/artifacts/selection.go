@@ -328,8 +328,15 @@ func GenerateSelectionDocument(
 	if documentData.Refetch != nil {
 		direction := RefetchDirection(documentData.Refetch.Direction)
 
+		// Prefer the PathBuilder-computed path from flags.Refetch: collect.go sets Path to []
+		// as a placeholder (see its TODO comment) and the real path is computed here.
+		path := documentData.Refetch.Path
+		if flags.Refetch != nil && len(flags.Refetch.Path) > 0 {
+			path = flags.Refetch.Path
+		}
+
 		refetchSpec = &RefetchSpec{
-			Path:       documentData.Refetch.Path,
+			Path:       path,
 			Method:     RefetchMethod(documentData.Refetch.Method),
 			PageSize:   documentData.Refetch.PageSize,
 			Mode:       RefetchMode(documentData.Refetch.Mode),
