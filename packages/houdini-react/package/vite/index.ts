@@ -267,6 +267,11 @@ mount_static_app(App, manifest)
 			// Pre-warm: load the Shell entry so CSS imports populate the module
 			// graph before the first browser request arrives.
 			server.httpServer?.once('listening', () => {
+				const addr = server.httpServer?.address()
+				if (addr && typeof addr === 'object') {
+					process.env.HOUDINI_PORT = String(addr.port)
+				}
+
 				const root = ctx.config.root_dir
 				const entry = ['+index.tsx', '+index.jsx']
 					.map((f) => path.join(root, 'src', f))
@@ -329,7 +334,7 @@ mount_static_app(App, manifest)
 
 				// Collect CSS file URLs from loaded modules so React 19 can hoist
 				// <link rel="stylesheet"> into <head> and prevent FOUC in dev.
-				const cssLinks: string[] = []
+				const cssLinkSet = new Set<string>()
 				for (const [url] of server.moduleGraph.urlToModuleMap) {
 					const cleanUrl = url.split('?')[0]
 					if (
@@ -337,9 +342,10 @@ mount_static_app(App, manifest)
 						cleanUrl.endsWith('.css') &&
 						!cleanUrl.endsWith('.module.css')
 					) {
-						cssLinks.push(cleanUrl)
+						cssLinkSet.add(cleanUrl)
 					}
 				}
+				const cssLinks = [...cssLinkSet]
 
 				try {
 					const result: Response = await createServerAdapter({

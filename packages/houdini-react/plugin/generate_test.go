@@ -539,7 +539,7 @@ import Shell from '../../../../../src/+index'
 
 export default ({ cssLinks, ...props }) => (
 	<>
-		{(cssLinks || []).map(href => <link key={href} rel="stylesheet" href={href} />)}
+		{(cssLinks || []).map(href => <link key={href} rel="stylesheet" href={href} precedence="default" />)}
 		<Shell>
 			<Router {...props} />
 		</Shell>
