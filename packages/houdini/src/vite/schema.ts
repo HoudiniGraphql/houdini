@@ -1,13 +1,12 @@
-import * as graphql from 'graphql'
-import type { GraphQLSchema } from 'graphql'
 import path from 'node:path'
-import type { PluginOption, ModuleNode } from 'vite'
-
-import type { VitePluginContext } from './index.js'
-import { get_config, fs, run_pipeline } from '../lib/index.js'
+import type { GraphQLSchema } from 'graphql'
+import * as graphql from 'graphql'
+import type { ModuleNode, PluginOption } from 'vite'
+import { fs, get_config, run_pipeline } from '../lib/index.js'
 import { pull_schema } from '../lib/schema.js'
 import { sleep } from '../lib/sleep.js'
 import { compiler } from './hmr.js'
+import type { VitePluginContext } from './index.js'
 
 /*
  * The schema watching support is made up of 3 parts:
@@ -47,7 +46,9 @@ export function refresh_on_schema(_ctx: VitePluginContext): PluginOption {
 			// trigger_hook handles flush before Go runs and reload after.
 			// The Schema hook itself clears stale type_fields before re-inserting.
 			try {
-				await run_pipeline(compiler.trigger_hook, { start: 'Schema' })
+				await compiler.pipeline_lock(() =>
+					run_pipeline(compiler.trigger_hook, { start: 'Schema' })
+				)
 			} catch (e) {
 				console.error(e)
 			}
@@ -197,7 +198,9 @@ export function watch_local_schema(_ctx: VitePluginContext): PluginOption {
 			// The Schema hook itself clears stale type_fields before re-inserting.
 			if (!compiler) return
 			try {
-				await run_pipeline(compiler.trigger_hook, { start: 'Schema' })
+				await compiler.pipeline_lock(() =>
+					run_pipeline(compiler.trigger_hook, { start: 'Schema' })
+				)
 			} catch (e) {
 				console.error(e)
 			}
