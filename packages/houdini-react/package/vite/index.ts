@@ -8,6 +8,7 @@ import {
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
+import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import type * as React from 'react'
 import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
@@ -267,13 +268,12 @@ mount_static_app(App, manifest)
 			// graph before the first browser request arrives.
 			server.httpServer?.once('listening', () => {
 				const root = ctx.config.root_dir
-				server
-					.ssrLoadModule(path.join(root, 'src', '+index.tsx'))
-					.catch(() =>
-						server
-							.ssrLoadModule(path.join(root, 'src', '+index.jsx'))
-							.catch(() => {})
-					)
+				const entry = ['+index.tsx', '+index.jsx']
+					.map((f) => path.join(root, 'src', f))
+					.find((f) => existsSync(f))
+				if (entry) {
+					server.ssrLoadModule(entry).catch(() => {})
+				}
 			})
 
 			server.middlewares.use(async (req, res, next) => {
