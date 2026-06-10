@@ -536,25 +536,9 @@ class CacheInternal {
 					}
 				}
 
-				// we need to handle pageInfo's contents specially. For now, they have an
-				// update tagged on them which we will interpret here to indicate if we want the new value
-				// or the old one
-
-				// in a prepend update we want to use the old values for endCursor and hasNextPage
-				if (
-					updates &&
-					applyUpdates?.includes('prepend') &&
-					['endCursor', 'hasNextPage'].includes(key)
-				) {
-					newValue = previousValue
-				}
-
-				// in an append update we want to use the old values for startCursor and hasPreviousPage
-				else if (
-					updates &&
-					applyUpdates?.includes('append') &&
-					['startCursor', 'hasPreviousPage'].includes(key)
-				) {
+				// if the field's updates array doesn't include one of the applied operations,
+				// keep the old value — the artifact encodes which direction each field tracks
+				if (updates && applyUpdates?.some((op) => !updates.includes(op))) {
 					newValue = previousValue
 				}
 

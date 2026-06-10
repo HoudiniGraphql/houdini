@@ -1265,12 +1265,10 @@ func stringifyFieldSelection(
 		case "startCursor":
 			effectiveUpdates = filterUpdates(updates, "prepend")
 		case "hasPreviousPage":
-			// in bidirectional mode filter to prepend-only; in forward-only keep
-			// the full ["append"] so the runtime's gate logic still fires and
-			// prevents the server's per-page hasPreviousPage from overwriting
-			// the accumulated value (which should stay false from the start).
-			if len(updates) >= 2 {
-				effectiveUpdates = filterUpdates(updates, "prepend")
+			// always ["prepend"]: in forward-only mode applyUpdates never contains
+			// "prepend", so the runtime gate fires and preserves the accumulated false
+			if len(updates) > 0 {
+				effectiveUpdates = []string{"prepend"}
 			}
 		}
 		if len(effectiveUpdates) > 0 {

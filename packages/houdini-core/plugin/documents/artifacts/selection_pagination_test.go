@@ -1935,7 +1935,7 @@ export type TestQuery$artifact = typeof artifact
                                                 "hasPreviousPage": {
                                                     "type": "Boolean",
                                                     "keyRaw": "hasPreviousPage",
-                                                    "updates": ["append"],
+                                                    "updates": ["prepend"],
                                                     "visible": true,
                                                 },
 
