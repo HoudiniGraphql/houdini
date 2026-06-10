@@ -1270,9 +1270,7 @@ func stringifyFieldSelection(
 			// in ["prepend"], so the runtime keeps the old value — preserving the
 			// accumulated hasPreviousPage:false even when the server returns true for
 			// intermediate pages.
-			if len(updates) > 0 {
-				effectiveUpdates = []string{"prepend"}
-			}
+			effectiveUpdates = []string{"prepend"}
 		}
 		if len(effectiveUpdates) > 0 {
 			updateVals := make([]string, len(effectiveUpdates))
