@@ -1266,7 +1266,6 @@ test("append update doesn't overwrite startCursor and hasPrevious Page", () => {
 	})
 })
 
-
 test('forward-only append preserves hasPreviousPage', () => {
 	// forward-only cursor pagination: hasPreviousPage carries updates:["prepend"]
 	// so the runtime gate fires on append and keeps the accumulated false,
@@ -1295,10 +1294,29 @@ test('forward-only append preserves hasPreviousPage', () => {
 										keyRaw: 'pageInfo',
 										selection: {
 											fields: {
-												hasNextPage: { type: 'Boolean', visible: true, keyRaw: 'hasNextPage', updates: ['append'] },
-												hasPreviousPage: { type: 'Boolean', visible: true, keyRaw: 'hasPreviousPage', updates: ['prepend'] },
-												startCursor: { type: 'String', visible: true, keyRaw: 'startCursor' },
-												endCursor: { type: 'String', visible: true, keyRaw: 'endCursor', updates: ['append'] },
+												hasNextPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasNextPage',
+													updates: ['append'],
+												},
+												hasPreviousPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasPreviousPage',
+													updates: ['prepend'],
+												},
+												startCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'startCursor',
+												},
+												endCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'endCursor',
+													updates: ['append'],
+												},
 											},
 										},
 									},
@@ -1316,9 +1334,21 @@ test('forward-only append preserves hasPreviousPage', () => {
 													abstract: true,
 													selection: {
 														fields: {
-															__typename: { type: 'String', visible: true, keyRaw: '__typename' },
-															id: { type: 'ID', visible: true, keyRaw: 'id' },
-															firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
 														},
 													},
 												},
@@ -1341,7 +1371,12 @@ test('forward-only append preserves hasPreviousPage', () => {
 			viewer: {
 				id: '1',
 				friends: {
-					pageInfo: { hasPreviousPage: false, hasNextPage: true, startCursor: 'a', endCursor: 'b' },
+					pageInfo: {
+						hasPreviousPage: false,
+						hasNextPage: true,
+						startCursor: 'a',
+						endCursor: 'b',
+					},
 					edges: [{ node: { __typename: 'User', id: '2', firstName: 'jane' } }],
 				},
 			},
@@ -1357,7 +1392,12 @@ test('forward-only append preserves hasPreviousPage', () => {
 			viewer: {
 				id: '1',
 				friends: {
-					pageInfo: { hasPreviousPage: true, hasNextPage: false, startCursor: 'b', endCursor: 'c' },
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: false,
+						startCursor: 'b',
+						endCursor: 'c',
+					},
 					edges: [{ node: { __typename: 'User', id: '3', firstName: 'bob' } }],
 				},
 			},
@@ -1373,9 +1413,9 @@ test('forward-only append preserves hasPreviousPage', () => {
 				friends: {
 					pageInfo: {
 						hasPreviousPage: false, // preserved — accumulated list starts at page 1
-						hasNextPage: false,     // updated — no more forward pages
-						startCursor: 'b',       // updated — no gate on startCursor in forward-only
-						endCursor: 'c',         // updated — moved to end of new page
+						hasNextPage: false, // updated — no more forward pages
+						startCursor: 'b', // updated — no gate on startCursor in forward-only
+						endCursor: 'c', // updated — moved to end of new page
 					},
 					edges: [
 						{ node: { __typename: 'User', id: '2', firstName: 'jane' } },
@@ -1415,10 +1455,29 @@ test('backward-only prepend preserves hasNextPage and endCursor', () => {
 										keyRaw: 'pageInfo',
 										selection: {
 											fields: {
-												hasNextPage: { type: 'Boolean', visible: true, keyRaw: 'hasNextPage', updates: ['append'] },
-												hasPreviousPage: { type: 'Boolean', visible: true, keyRaw: 'hasPreviousPage', updates: ['prepend'] },
-												startCursor: { type: 'String', visible: true, keyRaw: 'startCursor', updates: ['prepend'] },
-												endCursor: { type: 'String', visible: true, keyRaw: 'endCursor' },
+												hasNextPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasNextPage',
+													updates: ['append'],
+												},
+												hasPreviousPage: {
+													type: 'Boolean',
+													visible: true,
+													keyRaw: 'hasPreviousPage',
+													updates: ['prepend'],
+												},
+												startCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'startCursor',
+													updates: ['prepend'],
+												},
+												endCursor: {
+													type: 'String',
+													visible: true,
+													keyRaw: 'endCursor',
+												},
 											},
 										},
 									},
@@ -1436,9 +1495,21 @@ test('backward-only prepend preserves hasNextPage and endCursor', () => {
 													abstract: true,
 													selection: {
 														fields: {
-															__typename: { type: 'String', visible: true, keyRaw: '__typename' },
-															id: { type: 'ID', visible: true, keyRaw: 'id' },
-															firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+															__typename: {
+																type: 'String',
+																visible: true,
+																keyRaw: '__typename',
+															},
+															id: {
+																type: 'ID',
+																visible: true,
+																keyRaw: 'id',
+															},
+															firstName: {
+																type: 'String',
+																visible: true,
+																keyRaw: 'firstName',
+															},
 														},
 													},
 												},
@@ -1461,7 +1532,12 @@ test('backward-only prepend preserves hasNextPage and endCursor', () => {
 			viewer: {
 				id: '1',
 				friends: {
-					pageInfo: { hasPreviousPage: true, hasNextPage: false, startCursor: 'b', endCursor: 'c' },
+					pageInfo: {
+						hasPreviousPage: true,
+						hasNextPage: false,
+						startCursor: 'b',
+						endCursor: 'c',
+					},
 					edges: [{ node: { __typename: 'User', id: '3', firstName: 'bob' } }],
 				},
 			},
@@ -1477,7 +1553,12 @@ test('backward-only prepend preserves hasNextPage and endCursor', () => {
 			viewer: {
 				id: '1',
 				friends: {
-					pageInfo: { hasPreviousPage: false, hasNextPage: true, startCursor: 'a', endCursor: 'b' },
+					pageInfo: {
+						hasPreviousPage: false,
+						hasNextPage: true,
+						startCursor: 'a',
+						endCursor: 'b',
+					},
 					edges: [{ node: { __typename: 'User', id: '2', firstName: 'jane' } }],
 				},
 			},
@@ -1492,10 +1573,10 @@ test('backward-only prepend preserves hasNextPage and endCursor', () => {
 				id: '1',
 				friends: {
 					pageInfo: {
-						hasPreviousPage: false,  // updated — no more backward pages
-						hasNextPage: false,      // preserved — accumulated list ends at last page
-						startCursor: 'a',        // updated — moved to start of new page
-						endCursor: 'b',          // updated — no gate on endCursor in backward-only
+						hasPreviousPage: false, // updated — no more backward pages
+						hasNextPage: false, // preserved — accumulated list ends at last page
+						startCursor: 'a', // updated — moved to start of new page
+						endCursor: 'b', // updated — no gate on endCursor in backward-only
 					},
 					edges: [
 						{ node: { __typename: 'User', id: '2', firstName: 'jane' } },
@@ -1506,7 +1587,6 @@ test('backward-only prepend preserves hasNextPage and endCursor', () => {
 		},
 	})
 })
-
 
 test('append in connection', () => {
 	// instantiate a cache
