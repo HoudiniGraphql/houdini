@@ -1,20 +1,19 @@
 import React from 'react'
 
 import { clearRequests, getSnapshot, subscribe } from './store'
-import './styles.css'
 import type { DevToolRequest } from './type'
 
 function StatusDot({ status }: { status: string }) {
 	return <span className={`hdt-dot hdt-dot--${status}`} />
 }
 
-type DetailTab = 'timeline' | 'variables' | 'data' | 'errors'
+type DetailTab = 'variables' | 'data' | 'errors'
 
 export function HoudiniDevtools() {
 	const snapshot = React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 	const [open, setOpen] = React.useState(false)
 	const [selectedId, setSelectedId] = React.useState<string | null>(null)
-	const [detailTab, setDetailTab] = React.useState<DetailTab>('timeline')
+	const [detailTab, setDetailTab] = React.useState<DetailTab>('variables')
 
 	const latest = snapshot.requests[0]
 	const selected = snapshot.requests.find((request) => request.id === selectedId) ?? latest
@@ -77,9 +76,6 @@ export function HoudiniDevtools() {
 										{selected.status === 'success' ? <span className="hdt-pill">{selected.result.source}</span> : null}
 									</div>
 									<div className="hdt-tabs">
-										<TabButton active={detailTab === 'timeline'} onClick={() => setDetailTab('timeline')}>
-											Timeline
-										</TabButton>
 										<TabButton active={detailTab === 'variables'} onClick={() => setDetailTab('variables')}>
 											Variables
 										</TabButton>
@@ -91,7 +87,6 @@ export function HoudiniDevtools() {
 										</TabButton>
 									</div>
 
-									{detailTab === 'timeline' ? <Timeline request={selected} /> : null}
 									{detailTab === 'variables' ? <Section title="Variables" value={selected.ctx.variables} /> : null}
 									{detailTab === 'data' ? <Section title="Data" value={selected.status === 'success' ? selected.result.data : null} /> : null}
 									{detailTab === 'errors' ? (
@@ -145,28 +140,11 @@ function displayKind(kind: DevToolRequest['kind']) {
 }
 
 function getDurationMs(request: DevToolRequest) {
-	const finishedAt = request.status === 'pending' ? performance.now() : request.finishedAt
-	return Math.round(finishedAt - request.startedAt)
+	return Math.round(getFinishedAt(request) - request.startedAt)
 }
 
-function Timeline({ request }: { request: DevToolRequest }) {
-	return (
-		<div className="hdt-section">
-			<div className="hdt-section-title">Timeline</div>
-			<ol className="hdt-timeline">
-				{request.events.map((event) => (
-					<li
-						key={event.id}
-						className={`hdt-timeline-item hdt-timeline-item--${event.phase === 'catch' ? 'error' : request.status}`}
-					>
-						<span>{event.phase}</span>
-						<span className="hdt-timeline-time">+{Math.round(event.timestamp - request.startedAt)}ms</span>
-						<span className="hdt-timeline-rule" />
-					</li>
-				))}
-			</ol>
-		</div>
-	)
+function getFinishedAt(request: DevToolRequest) {
+	return request.status === 'pending' ? performance.now() : request.finishedAt
 }
 
 function Section({ title, value }: { title: string; value: unknown }) {
