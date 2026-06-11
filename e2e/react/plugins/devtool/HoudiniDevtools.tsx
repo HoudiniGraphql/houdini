@@ -57,9 +57,10 @@ export function HoudiniDevtools() {
 									<div className="hdt-row-title">
 										<StatusDot status={request.status} />
 										<span className="hdt-name">{request.ctx.name}</span>
+										<span className="hdt-row-kind">{displayKind(request.kind)}</span>
 									</div>
 									<div className="hdt-row-meta">
-										{displayKind(request.kind)} • {request.status} • {getDurationMs(request)}ms
+										{getRequestSource(request) ?? 'unknown'} • {getDurationMs(request)}ms
 									</div>
 								</button>
 							))}
@@ -68,12 +69,14 @@ export function HoudiniDevtools() {
 						<div className="hdt-detail">
 							{selected ? (
 								<>
-									<h3 className="hdt-heading">{selected.ctx.name}</h3>
-									<div className="hdt-pills">
-										<span className="hdt-pill">{displayKind(selected.kind)}</span>
-										<span className="hdt-pill">{selected.status}</span>
-										<span className="hdt-pill">{getDurationMs(selected)}ms</span>
-										{selected.status === 'success' ? <span className="hdt-pill">{selected.result.source}</span> : null}
+									<div className="hdt-detail-header">
+										<div className="hdt-heading-row">
+											<h3 className="hdt-heading">{selected.ctx.name}</h3>
+										</div>
+										<div className="hdt-summary">
+											{getRequestSource(selected) ? <SourceBadge source={getRequestSource(selected)!} /> : null}
+											<span className="hdt-summary-badge">{selected.events.length} events</span>
+										</div>
 									</div>
 									<div className="hdt-tabs">
 										<TabButton active={detailTab === 'variables'} onClick={() => setDetailTab('variables')}>
@@ -135,6 +138,14 @@ function TabButton({
 	)
 }
 
+function SourceBadge({ source }: { source: string }) {
+	return <span className={`hdt-source hdt-source--${source}`}>{source}</span>
+}
+
+function getRequestSource(request: DevToolRequest) {
+	return request.status === 'success' ? request.result.source : null
+}
+
 function displayKind(kind: DevToolRequest['kind']) {
 	return kind.replace('Houdini', '').toLowerCase()
 }
@@ -148,10 +159,24 @@ function getFinishedAt(request: DevToolRequest) {
 }
 
 function Section({ title, value }: { title: string; value: unknown }) {
+	const [copied, setCopied] = React.useState(false)
+	const text = JSON.stringify(value ?? null, null, 2)
+
+	const copy = async () => {
+		await navigator.clipboard.writeText(text)
+		setCopied(true)
+		window.setTimeout(() => setCopied(false), 1200)
+	}
+
 	return (
 		<div className="hdt-section">
-			<div className="hdt-section-title">{title}</div>
-			<pre className="hdt-pre">{JSON.stringify(value ?? null, null, 2)}</pre>
+			<div className="hdt-section-head">
+				<div className="hdt-section-title">{title}</div>
+				<button className="hdt-copy" onClick={copy}>
+					{copied ? 'Copied' : 'Copy'}
+				</button>
+			</div>
+			<pre className="hdt-pre">{text}</pre>
 		</div>
 	)
 }
