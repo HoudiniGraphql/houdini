@@ -1,8 +1,11 @@
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import http from 'node:http'
+import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline'
+import { WebSocketServer } from 'ws'
+
 import { openDb, type Db } from '../lib/db.js'
 export type { Db } from '../lib/db.js'
-import { WebSocketServer } from 'ws'
 
 export type PipelineHook =
 	| 'config'
@@ -17,6 +20,8 @@ export type PipelineHook =
 	| 'generateDocuments'
 	| 'generateRuntime'
 	| 'afterGenerate'
+	| 'environment'
+	| 'indexFile'
 
 export type PluginContext = {
 	taskId: string
@@ -29,16 +34,26 @@ export type PluginContext = {
 	): Promise<Record<string, any>>
 }
 
+export type TransformFn = (source: string, content: string) => Promise<string> | string
+
 export type HookHandler = (
 	ctx: PluginContext,
 	payload: Record<string, any>
-) => Promise<Record<string, any> | undefined> | Record<string, any> | undefined
+) =>
+	| Promise<Record<string, any> | string[] | string | undefined>
+	| Record<string, any>
+	| string[]
+	| string
+	| undefined
 
 export type NodePluginConfig = {
 	name: string
 	order: 'before' | 'after' | 'core'
 	hooks: Partial<Record<PipelineHook, HookHandler>>
 	includeRuntime?: string
+	staticRuntime?: string
+	transformRuntime?: TransformFn
+	transformStaticRuntime?: TransformFn
 	configModule?: string
 	clientPlugins?: Record<string, any>
 }
@@ -79,15 +94,18 @@ async function runStdio(
 	databasePath: string,
 	pluginKey: string
 ): Promise<void> {
+	const resolvedName = pluginKey || config.name
 	const { pending, invokeCounter, rl } = makeStdioChannel()
 
+	const wireHooks = registeredHookNames(config).map(toWireName)
 	const reg: Record<string, any> = {
 		type: 'register',
-		name: pluginKey || config.name,
-		hooks: hookKeys(config).map(toWireName),
+		name: resolvedName,
+		hooks: wireHooks,
 		order: config.order,
 	}
 	if (config.includeRuntime !== undefined) reg.includeRuntime = config.includeRuntime
+	if (config.staticRuntime !== undefined) reg.includeStaticRuntime = config.staticRuntime
 	if (config.configModule !== undefined) reg.configModule = config.configModule
 	if (config.clientPlugins !== undefined) reg.clientPlugins = JSON.stringify(config.clientPlugins)
 
@@ -113,7 +131,7 @@ async function runStdio(
 				db,
 				invokeHook: makeInvokeHook(pending, invokeCounter, msg.taskId ?? ''),
 			}
-			await dispatch(config, msg, ctx, (response) => stdioWrite(response))
+			await dispatch(config, resolvedName, msg, ctx, (response) => stdioWrite(response))
 		} else if (msg.type === 'invoke_result') {
 			resolveInvoke(pending, msg)
 		}
@@ -143,8 +161,9 @@ async function runWebSocket(
 		process.exit(1)
 	}
 
+	const resolvedName = pluginKey || config.name
 	const db = await openDb(databasePath)
-	const wireHooks = hookKeys(config).map(toWireName)
+	const wireHooks = registeredHookNames(config).map(toWireName)
 
 	const wsInvokeHook: PluginContext['invokeHook'] = () => {
 		throw new Error('invokeHook is not supported in websocket transport')
@@ -177,7 +196,7 @@ async function runWebSocket(
 				invokeHook: wsInvokeHook,
 			}
 
-			await dispatch(config, msg, ctx, (response) => {
+			await dispatch(config, resolvedName, msg, ctx, (response) => {
 				if (response.error) {
 					res.writeHead(500, { 'Content-Type': 'application/json' })
 					res.end(JSON.stringify(response.error))
@@ -217,7 +236,9 @@ async function runWebSocket(
 				db,
 				invokeHook: wsInvokeHook,
 			}
-			await dispatch(config, msg, ctx, (response) => ws.send(JSON.stringify(response)))
+			await dispatch(config, resolvedName, msg, ctx, (response) =>
+				ws.send(JSON.stringify(response))
+			)
 		})
 
 		ws.on('close', () => {
@@ -236,14 +257,15 @@ async function runWebSocket(
 
 		// Write to the DB so the orchestrator (and Go plugins) can find us.
 		db.run(
-			`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
-			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO plugins (name, hooks, port, plugin_order, include_runtime, include_static_runtime, config_module, client_plugins)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
-				pluginKey || config.name,
+				resolvedName,
 				JSON.stringify(wireHooks),
 				port,
 				config.order,
 				config.includeRuntime ?? null,
+				config.staticRuntime ?? null,
 				config.configModule ?? null,
 				config.clientPlugins ? JSON.stringify(config.clientPlugins) : null,
 			]
@@ -253,6 +275,243 @@ async function runWebSocket(
 
 	process.on('SIGINT', () => shutdown(db, server))
 	process.on('SIGTERM', () => shutdown(db, server))
+}
+
+// ─── hook dispatch ────────────────────────────────────────────────────────────
+
+async function dispatch(
+	config: NodePluginConfig,
+	pluginName: string,
+	msg: {
+		id: string
+		hook: string
+		payload: Record<string, any>
+		taskId: string
+		pluginDirectory: string
+	},
+	ctx: PluginContext,
+	send: (response: Record<string, any>) => void
+): Promise<void> {
+	const normalized = msg.hook.toLowerCase()
+	const payload = msg.payload ?? {}
+
+	try {
+		let result: any
+
+		switch (normalized) {
+			case 'config': {
+				// Always handled. Equivalent to Go's DefaultConfig: return plugin config defaults.
+				const handler = config.hooks.config
+				result = handler ? await handler(ctx, payload) : undefined
+				break
+			}
+			case 'afterload': {
+				result = await dispatchAfterLoad(config, pluginName, ctx, payload)
+				break
+			}
+			case 'generateruntime': {
+				result = await dispatchGenerateRuntime(config, pluginName, ctx, payload)
+				break
+			}
+			case 'indexfile': {
+				await dispatchIndexFile(config, pluginName, ctx, payload)
+				result = undefined
+				break
+			}
+			default: {
+				const hookKey = (Object.keys(config.hooks) as PipelineHook[]).find(
+					(k) => k.toLowerCase() === normalized
+				)
+				const handler = hookKey ? config.hooks[hookKey] : undefined
+				if (!handler) {
+					send({
+						id: msg.id,
+						type: 'response',
+						error: { message: `no handler for hook ${msg.hook}` },
+					})
+					return
+				}
+				result = await handler(ctx, payload)
+			}
+		}
+
+		send({ id: msg.id, type: 'response', result: result ?? {} })
+	} catch (err) {
+		send({ id: msg.id, type: 'response', error: serializeError(err) })
+	}
+}
+
+// Equivalent to Go's handleAfterLoad:
+// 1. DefaultConfig (config hook) → UPDATE plugins SET config in DB
+// 2. StaticRuntime (staticRuntime field) → copy static files into plugins/<name>/static
+// 3. AfterLoad (afterLoad hook) → call user hook
+async function dispatchAfterLoad(
+	config: NodePluginConfig,
+	pluginName: string,
+	ctx: PluginContext,
+	payload: Record<string, any>
+): Promise<Record<string, any> | undefined> {
+	if (config.hooks.config) {
+		const defaults = await config.hooks.config(ctx, payload)
+		if (defaults !== undefined) {
+			ctx.db.run('UPDATE plugins SET config = $config WHERE name = $name', {
+				$config: JSON.stringify(defaults),
+				$name: pluginName,
+			})
+		}
+	}
+
+	if (config.staticRuntime) {
+		const { projectRoot, runtimeDir } = readProjectConfig(ctx.db)
+		const src = join(ctx.pluginDirectory, config.staticRuntime)
+		const dst = pluginStaticRuntimeDir(projectRoot, runtimeDir, pluginName)
+		await recursiveCopy(src, dst, config.transformStaticRuntime)
+	}
+
+	if (config.hooks.afterLoad) {
+		return (await config.hooks.afterLoad(ctx, payload)) as Record<string, any> | undefined
+	}
+
+	return undefined
+}
+
+// Equivalent to Go's handleGenerateRuntime:
+// 1. IncludeRuntime (includeRuntime field) → copy runtime files into plugins/<name>/runtime
+// 2. GenerateRuntime (generateRuntime hook) → call user hook, collect file paths
+// Returns the list of written file paths ([]string equivalent).
+async function dispatchGenerateRuntime(
+	config: NodePluginConfig,
+	pluginName: string,
+	ctx: PluginContext,
+	payload: Record<string, any>
+): Promise<string[]> {
+	const paths: string[] = []
+
+	if (config.includeRuntime !== undefined) {
+		const { projectRoot, runtimeDir } = readProjectConfig(ctx.db)
+		const src = join(ctx.pluginDirectory, config.includeRuntime)
+		const dst = pluginRuntimeDir(projectRoot, runtimeDir, pluginName)
+		const copied = await recursiveCopy(src, dst, config.transformRuntime)
+		paths.push(...copied)
+	}
+
+	if (config.hooks.generateRuntime) {
+		const result = await config.hooks.generateRuntime(ctx, payload)
+		if (Array.isArray(result)) {
+			paths.push(...result)
+		}
+	}
+
+	return paths
+}
+
+// Equivalent to Go's handleIndexFile:
+// 1. Derive the index.ts path from project config
+// 2. Call the user's indexFile hook to get content to append
+// 3. Read existing content, append, write back
+async function dispatchIndexFile(
+	config: NodePluginConfig,
+	pluginName: string,
+	ctx: PluginContext,
+	payload: Record<string, any>
+): Promise<void> {
+	if (!config.hooks.indexFile) return
+
+	const { projectRoot, runtimeDir } = readProjectConfig(ctx.db)
+	const targetPath = join(projectRoot, runtimeDir, 'index.ts')
+
+	const content = await config.hooks.indexFile(ctx, { ...payload, filepath: targetPath })
+	if (typeof content === 'string' && content) {
+		const existing = existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : ''
+		mkdirSync(dirname(targetPath), { recursive: true })
+		writeFileSync(targetPath, existing + '\n' + content, 'utf8')
+	}
+}
+
+// ─── project config helpers ───────────────────────────────────────────────────
+
+function readProjectConfig(db: Db): { projectRoot: string; runtimeDir: string } {
+	const row = db.get<{ project_root: string; runtime_dir: string }>(
+		'SELECT project_root, runtime_dir FROM config LIMIT 1'
+	)
+	return { projectRoot: row?.project_root ?? '', runtimeDir: row?.runtime_dir ?? '' }
+}
+
+// Mirrors Go's ProjectConfig.PluginRuntimeDirectory.
+function pluginRuntimeDir(projectRoot: string, runtimeDir: string, name: string): string {
+	if (name === 'houdini-core') {
+		return join(projectRoot, runtimeDir, 'runtime')
+	}
+	return join(projectRoot, runtimeDir, 'plugins', name, 'runtime')
+}
+
+// Mirrors Go's ProjectConfig.PluginStaticRuntimeDirectory.
+function pluginStaticRuntimeDir(projectRoot: string, runtimeDir: string, name: string): string {
+	return join(projectRoot, runtimeDir, 'plugins', name, 'static')
+}
+
+// Mirrors Go's RecursiveCopy: walks src, copies each file to dst, applying transform.
+async function recursiveCopy(
+	src: string,
+	dst: string,
+	transform?: TransformFn
+): Promise<string[]> {
+	const written: string[] = []
+	if (!existsSync(src)) return written
+
+	const walk = async (srcDir: string, dstDir: string) => {
+		mkdirSync(dstDir, { recursive: true })
+		for (const entry of readdirSync(srcDir)) {
+			const srcPath = join(srcDir, entry)
+			const dstPath = join(dstDir, entry)
+			if (statSync(srcPath).isDirectory()) {
+				await walk(srcPath, dstPath)
+			} else {
+				let content = readFileSync(srcPath, 'utf8')
+				if (transform) content = await transform(srcPath, content)
+				mkdirSync(dirname(dstPath), { recursive: true })
+				writeFileSync(dstPath, content, 'utf8')
+				written.push(dstPath)
+			}
+		}
+	}
+
+	await walk(src, dst)
+	return written
+}
+
+// ─── registered hook names ────────────────────────────────────────────────────
+
+// Mirrors Go's registerPluginHooks registration conditions.
+function registeredHookNames(config: NodePluginConfig): string[] {
+	const names = new Set<string>()
+
+	// Config is always registered (Go registers it unconditionally).
+	names.add('config')
+
+	// AfterLoad: staticRuntime (StaticRuntime) OR afterLoad hook (AfterLoad) OR config hook (DefaultConfig).
+	if (config.staticRuntime || config.hooks.afterLoad || config.hooks.config) {
+		names.add('afterLoad')
+	}
+
+	// GenerateRuntime: includeRuntime (IncludeRuntime) OR generateRuntime hook (GenerateRuntime) OR configModule (Config).
+	if (
+		config.includeRuntime !== undefined ||
+		config.hooks.generateRuntime ||
+		config.configModule !== undefined
+	) {
+		names.add('generateRuntime')
+	}
+
+	// All other user-provided hooks (including environment, indexFile, and any that
+	// were already added above — Set deduplicates).
+	for (const key of Object.keys(config.hooks) as PipelineHook[]) {
+		if (typeof config.hooks[key] === 'function') {
+			names.add(key)
+		}
+	}
+
+	return Array.from(names)
 }
 
 // ─── shared helpers ───────────────────────────────────────────────────────────
@@ -306,47 +565,6 @@ function shutdown(db: Db, server: http.Server): void {
 	} catch {}
 	server.close()
 	process.exit(0)
-}
-
-async function dispatch(
-	config: NodePluginConfig,
-	msg: {
-		id: string
-		hook: string
-		payload: Record<string, any>
-		taskId: string
-		pluginDirectory: string
-	},
-	ctx: PluginContext,
-	send: (response: Record<string, any>) => void
-): Promise<void> {
-	const normalizedHook = msg.hook.toLowerCase()
-	const hookKey = (Object.keys(config.hooks) as PipelineHook[]).find(
-		(k) => k.toLowerCase() === normalizedHook
-	)
-	const handler = hookKey ? config.hooks[hookKey] : undefined
-
-	if (!handler) {
-		send({
-			id: msg.id,
-			type: 'response',
-			error: { message: `no handler for hook ${msg.hook}` },
-		})
-		return
-	}
-
-	try {
-		const result = await handler(ctx, msg.payload ?? {})
-		send({ id: msg.id, type: 'response', result: result ?? {} })
-	} catch (err) {
-		send({ id: msg.id, type: 'response', error: serializeError(err) })
-	}
-}
-
-function hookKeys(config: NodePluginConfig): string[] {
-	return Object.keys(config.hooks).filter(
-		(k) => typeof config.hooks[k as PipelineHook] === 'function'
-	)
 }
 
 function parseArgs(): { transport: string; database: string; pluginKey: string } {

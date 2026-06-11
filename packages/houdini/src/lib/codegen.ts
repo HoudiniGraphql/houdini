@@ -295,14 +295,15 @@ export async function codegen_setup(
 						// WebSocket plugins insert themselves into the DB; for stdio plugins (port=0)
 						// we do it here. INSERT OR IGNORE avoids a duplicate-key error either way.
 						_db.run(
-							`INSERT OR IGNORE INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
-							 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+							`INSERT OR IGNORE INTO plugins (name, hooks, port, plugin_order, include_runtime, include_static_runtime, config_module, client_plugins)
+							 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 							[
 								spec.name,
 								JSON.stringify([...spec.hooks]),
 								spec.port,
 								spec.order,
 								msg.includeRuntime ?? null,
+								msg.includeStaticRuntime ?? null,
 								msg.configModule ?? null,
 								msg.clientPlugins ?? null,
 							]

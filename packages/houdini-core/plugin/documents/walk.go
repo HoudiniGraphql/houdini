@@ -57,14 +57,23 @@ func Walk[PluginConfig any](
 	defer pluginSearch.Finalize()
 	err = db.StepStatement(ctx, pluginSearch, func() {
 		name := pluginSearch.GetText("name")
-		err = walker.AddInclude(fmt.Sprintf("%s/**", config.PluginStaticRuntimeDirectory(name)))
+		// The walker computes file paths relative to config.ProjectRoot, so the
+		// include pattern must also be relative — not the absolute path returned
+		// by PluginStaticRuntimeDirectory.
+		relDir := filepath.ToSlash(filepath.Join(config.RuntimeDir, "plugins", name, "static"))
+		err = walker.AddInclude(relDir + "/**")
 	})
 	if err != nil {
 		return err
 	}
 
+	// The walker returns paths relative to config.ProjectRoot, but ProcessFile opens them
+	// from the filesystem. Use a BasePathFs so that opening a relative path correctly
+	// resolves against the project root on any afero backend (including MemMapFs in tests).
+	rootedFs := afero.NewBasePathFs(fs, config.ProjectRoot)
+
 	// and extract the documents that the walker finds
-	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
+	return extractDocuments(ctx, db, rootedFs, func(filePathsCh chan string) error {
 		return walker.Walk(ctx, fs, config.ProjectRoot, func(fp string) error {
 			// in case the context is canceled, stop early.
 			select {
@@ -104,9 +113,10 @@ func ExtractFromFilepaths[PluginConfig any](
 	}
 
 	root := config.ProjectRoot
+	rootedFs := afero.NewBasePathFs(fs, root)
 
 	// and extract the documents that the walker finds
-	return extractDocuments(ctx, db, fs, func(filePathsCh chan string) error {
+	return extractDocuments(ctx, db, rootedFs, func(filePathsCh chan string) error {
 		for _, fp := range files {
 			rel, err := filepath.Rel(root, fp)
 			if err != nil {

@@ -121,7 +121,7 @@ describe('runPlugin stdio — register message', () => {
 		expect(reg.hooks).not.toContain('afterLoad')
 	})
 
-	test('only lists hooks that are functions', () => {
+	test('always includes Config and only lists hooks that are functions', () => {
 		const { lines, restore } = captureStdout()
 
 		runPlugin({
@@ -136,7 +136,10 @@ describe('runPlugin stdio — register message', () => {
 		restore()
 
 		const reg = lines[0]
-		expect(reg.hooks).toEqual(['Schema'])
+		// Config is always registered; schema is the only user-provided hook here
+		expect(reg.hooks).toContain('Config')
+		expect(reg.hooks).toContain('Schema')
+		expect(reg.hooks).not.toContain('Validate')
 	})
 })
 
