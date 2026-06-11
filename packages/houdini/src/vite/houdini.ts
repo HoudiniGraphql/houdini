@@ -120,6 +120,12 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 						...userConfig.server?.fs,
 						allow: ['.'].concat(userConfig.server?.fs?.allow || []),
 					},
+					watch: {
+						...userConfig.server?.watch,
+						ignored: ['**/*.houdini_tmp'].concat(
+							(userConfig.server?.watch?.ignored as string[]) || []
+						),
+					},
 				},
 			}
 		},
