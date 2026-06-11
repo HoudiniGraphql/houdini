@@ -161,7 +161,7 @@ export async function codegen_setup(
 	// _db is the same object as the caller's db (ctx.db). reload() mutates it
 	// in-place so the caller always sees the latest state without reassignment.
 	const _db = db
-	const logger = new Logger(config.config_file.logLevel ?? LogLevel.Summary)
+	const logger = new Logger(config.config_file.logLevel ?? LogLevel.ShortSummary)
 
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(conventions.houdini_root(config))

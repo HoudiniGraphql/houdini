@@ -1,29 +1,23 @@
 ---
 title: Houdini's Architecture
-description: A high-level overview of Houdini's compiler, runtime client, generated artifacts, and framework plugins.
+description: A high-level overview of Houdini's compiler, runtime client, generated artifacts, and plugin system.
 ---
 
-import OutOfDate from '@shared/_partials/out-of-date.mdx'
-
-<OutOfDate />
-
-Houdini is built around a compiler-first model. You write GraphQL documents in your app, Houdini reads them at build time, validates them against your schema, and generates the runtime code and TypeScript types your framework integration needs.
-
-The goal is to move as much work as possible out of the browser and into code generation.
+Houdini is built around a compiler-first model. We write GraphQL documents in our app, and Houdini reads them at build time, validates them against our schema, and generates the runtime code and TypeScript types our framework integration needs. The goal is to move as much work as possible out of the browser and into code generation.
 
 ## The three main pieces
 
 Houdini has three major parts:
 
-- **Houdini Client**: the runtime client used by your application. It manages network requests, normalized caching, optimistic updates, pagination, subscriptions, and document behavior.
+- **Houdini Client**: the runtime client used by our application. It manages network requests, normalized caching, optimistic updates, pagination, subscriptions, and document behavior.
 - **Code generation**: the compiler pipeline that reads GraphQL documents, validates them, and writes generated files into `$houdini`.
-- **Framework plugins**: integrations such as Svelte/SvelteKit that turn generated artifacts into framework-native APIs.
+- **Framework plugins**: integrations that turn generated artifacts into framework-native APIs. Each plugin implements the same codegen hooks and outputs whatever files its framework needs.
 
-The core compiler understands GraphQL and Houdini's runtime model. The framework plugin decides how that model should feel inside your app.
+The core compiler understands GraphQL and Houdini's runtime model. Framework plugins decide how that model should feel inside a given app.
 
 ## Compile-time work
 
-When you write a GraphQL document, Houdini can know a lot before your app ever runs:
+When we write a GraphQL document, Houdini can know a lot before our app ever runs:
 
 - the operation name
 - the result shape
@@ -35,9 +29,7 @@ When you write a GraphQL document, Houdini can know a lot before your app ever r
 
 That lets Houdini generate strongly typed code instead of shipping a large GraphQL interpretation layer to the browser.
 
-## Example
-
-In a Svelte component you might write:
+For example, in a Svelte component we might write:
 
 ```svelte
 <script lang="ts">
@@ -55,56 +47,49 @@ In a Svelte component you might write:
 {$UserList.data?.users?.map((user) => user.name).join(', ')}
 ```
 
-This looks small, but Houdini uses it to do several things:
+From that single tagged template literal, Houdini generates the `UserList` result and variable types, a store for loading the query, and cache metadata for every selected field. The important idea is that the document is the source of truth — everything else is derived.
 
-- parse and validate the `UserList` query
-- generate the `UserList` result and variable types
-- generate a store for loading the query
-- create cache metadata for the selected fields
-- transform framework code where needed
+## How the compiler works
 
-A simplified generated version looks like this:
+This is where things get interesting. The compiler has to satisfy two constraints that pull in different directions: it's deeply integrated with Vite, which means there will always be a Node.js layer involved. But parsing and validating thousands of GraphQL documents in a hot-reload loop is the kind of work that really wants a compiled language.
 
-```svelte
-<script lang="ts">
-  import { UserListStore } from '$houdini'
+The solution is a process-per-plugin model with a Node.js orchestrator. Node handles Vite integration, pipeline sequencing, and spawning. The heavy pipeline work — extraction, validation, codegen — runs in Go plugins (or any compiled binary).
 
-  const UserList = new UserListStore()
+### Plugins as long-running processes
 
-  onMount(() => {
-    UserList.fetch()
-  })
-</script>
+When the compiler starts, it spawns each plugin as a child process and keeps it alive. During `houdini generate`, that means the processes persist for the duration of one run. During `vite dev`, they persist for the entire dev session — startup cost is paid once, and each incremental build is just the orchestrator sending hook invocations to already-running processes.
 
-{$UserList.data?.users?.map((user) => user.name).join(', ')}
-```
+Each plugin registers itself with its name, the hooks it implements, and how it wants to be ordered relative to other plugins. After that, the orchestrator knows exactly which processes to call for each stage of the pipeline.
 
-The real generated output is more involved, but the important idea is that Houdini turns GraphQL documents into typed framework APIs.
+### WebSocket communication
 
-## What the Svelte/SvelteKit plugin does
+The orchestrator and plugins communicate over WebSockets. The persistent connection means there's no per-call handshake overhead — we connect once and send hook invocations over the open socket for as long as the session runs. When the orchestrator goes away (Vite restarts, process killed, `generate` finishes), the connection close propagates to every plugin and they exit cleanly. No orphaned processes to hunt down.
 
-The Svelte/SvelteKit integration is responsible for making Houdini feel native in Svelte apps. It can:
+### SQLite as shared memory
 
-- generate Svelte stores
-- wire route queries into SvelteKit load behavior
-- provide `$houdini` types for route data
-- transform inline `graphql` calls
-- support Svelte 5 runes-specific patterns
+Plugin processes need to share data — schema definitions, extracted documents, artifact metadata — across process boundaries and across language runtimes. We use a single SQLite database file for this. The path is passed to every plugin as a flag at startup, and each plugin connects directly.
 
-The Houdini core still handles the GraphQL document model, cache, network behavior, and generated metadata. The plugin wraps that core in Svelte conventions.
+SQLite in WAL mode supports concurrent reads without blocking, which matters for hooks like `Validate` and `GenerateDocuments` that are independent of each other and can run in parallel. More broadly, the database schema is the contract between the orchestrator and every plugin. A plugin written in Go, Rust, or anything else just needs to open the same file — no serialization layer, no bespoke protocol for state transfer.
+
+### Vite's role during dev
+
+During development, Vite drives the compiler. When source files change, Vite's HMR pipeline calls the orchestrator, which triggers an incremental pipeline run starting from the appropriate hook. Because plugins are already running and the database already has the previous build's state, only the work that's actually stale gets redone. The orchestrator also serializes concurrent triggers — if a schema watcher and a file watcher fire at the same time, they queue rather than racing.
+
+During `houdini generate`, the same pipeline runs end-to-end once and exits.
 
 ## Why this architecture matters
 
-This split gives Houdini a few important properties:
+The process model gives us a few things that would be difficult to get any other way:
 
-- **small runtime**: expensive GraphQL analysis happens during generation
-- **typed APIs**: generated types match your schema and documents
-- **framework-native APIs**: each integration can expose the right mental model
-- **plugin extensibility**: codegen and runtime behavior can be extended
+- **Speed**: the heavy pipeline work runs in compiled code, not in Node's event loop
+- **Extensibility**: any language that can open a SQLite file and speak WebSocket can be a plugin
+- **Resilience**: liveness connections mean clean shutdown instead of orphaned processes
+- **Parallelism**: independent hooks read from a shared database concurrently without coordination overhead
 
 ## Related docs
 
-- [GraphQL Documents](/svelte/graphql-documents/)
-- [Configuration](/svelte/configuration/)
-- [Client Plugins](/svelte/api/client-plugins/)
-- [Codegen Plugins](/svelte/api/codegen-plugins/)
+- [Configuration](/api/config)
+- [CLI](/api/cli)
+- [Client Plugins](/extending-houdini/client-plugins)
+- [Codegen Plugins (Go)](/extending-houdini/codegen-plugins-golang)
+- [Codegen Plugins (Node)](/extending-houdini/codegen-plugins-node)

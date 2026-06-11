@@ -126,7 +126,7 @@ func (p *HoudiniReact) UpdateIndexFiles(ctx context.Context) ([]string, error) {
 		return []string{}, nil
 	}
 
-	if err := afero.WriteFile(p.Filesystem(), targetPath, []byte(result), 0644); err != nil {
+	if err := plugins.WriteFile(p.Filesystem(), targetPath, []byte(result), 0644); err != nil {
 		return nil, err
 	}
 	return []string{targetPath}, nil
@@ -228,7 +228,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
 		return nil, err
 	}
-	if err := afero.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
+	if err := plugins.WriteFile(p.Filesystem(), manifestPath, []byte(content), 0644); err != nil {
 		return nil, err
 	}
 
@@ -414,7 +414,7 @@ func (p *HoudiniReact) AddGraphQLType(ctx context.Context) ([]string, error) {
 		"\nexport type GraphQL<_Document extends string> = " +
 		typeChain.String() + "never\n"
 
-	if err := afero.WriteFile(p.Filesystem(), targetPath, []byte(appended), 0644); err != nil {
+	if err := plugins.WriteFile(p.Filesystem(), targetPath, []byte(appended), 0644); err != nil {
 		return nil, err
 	}
 	return []string{targetPath}, nil
@@ -490,7 +490,7 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 
 		result := top.String() + existingStr[:insertPos] + before.String() + existingStr[insertPos:]
 
-		if err := afero.WriteFile(p.Filesystem(), fp, []byte(result), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), fp, []byte(result), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, fp)
@@ -778,7 +778,7 @@ func (p *HoudiniReact) InjectComponentFieldArtifactTypes(ctx context.Context) ([
 			modified = reactImport + modified
 		}
 
-		if err := afero.WriteFile(p.Filesystem(), artPath, []byte(modified), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), artPath, []byte(modified), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, artPath)
@@ -826,7 +826,7 @@ declare module 'houdini/runtime' {
 		if err := p.Filesystem().MkdirAll(runtimeDir, 0755); err != nil {
 			return nil, err
 		}
-		if err := afero.WriteFile(p.Filesystem(), augPath, []byte(augContent), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), augPath, []byte(augContent), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, augPath)
@@ -843,7 +843,7 @@ declare module 'houdini/runtime' {
 	sideEffect := `import './componentFieldTypes'`
 	if !strings.Contains(indexStr, sideEffect) {
 		patched := sideEffect + "\n" + indexStr
-		if err := afero.WriteFile(p.Filesystem(), indexPath, []byte(patched), 0644); err != nil {
+		if err := plugins.WriteFile(p.Filesystem(), indexPath, []byte(patched), 0644); err != nil {
 			return nil, err
 		}
 		changed = append(changed, indexPath)
