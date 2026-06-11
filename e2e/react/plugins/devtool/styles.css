@@ -193,28 +193,6 @@
 	text-overflow: ellipsis;
 }
 
-.hdt-source {
-	flex: 0 0 auto;
-	padding: 1px 6px;
-	border: 1px solid var(--hdt-line);
-	border-radius: 4px;
-	font-size: 11px;
-	font-weight: 700;
-	line-height: 1.5;
-}
-
-.hdt-source--network {
-	border-color: rgba(127, 180, 255, 0.34);
-	background: rgba(127, 180, 255, 0.1);
-	color: var(--hdt-blue);
-}
-
-.hdt-source--cache {
-	border-color: rgba(215, 180, 90, 0.34);
-	background: rgba(215, 180, 90, 0.1);
-	color: var(--hdt-warn);
-}
-
 .hdt-detail {
 	padding: 20px 24px 28px;
 	background: var(--hdt-bg);

@@ -74,8 +74,7 @@ export function HoudiniDevtools() {
 											<h3 className="hdt-heading">{selected.ctx.name}</h3>
 										</div>
 										<div className="hdt-summary">
-											{getRequestSource(selected) ? <SourceBadge source={getRequestSource(selected)!} /> : null}
-											<span className="hdt-summary-badge">{selected.events.length} events</span>
+											<span className="hdt-summary-badge">{selected.events.length} lifecycle events</span>
 										</div>
 									</div>
 									<div className="hdt-tabs">
@@ -136,10 +135,6 @@ function TabButton({
 			{children}
 		</button>
 	)
-}
-
-function SourceBadge({ source }: { source: string }) {
-	return <span className={`hdt-source hdt-source--${source}`}>{source}</span>
 }
 
 function getRequestSource(request: DevToolRequest) {
