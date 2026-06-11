@@ -236,7 +236,7 @@ func generateSchemaFile(
 		return plugins.WrapError(err)
 	}
 
-	err = afero.WriteFile(fs, schemaFileLocation, []byte(schemaString.String()), 0o644)
+	err = plugins.WriteFile(fs, schemaFileLocation, []byte(schemaString.String()), 0o644)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
@@ -284,7 +284,7 @@ func generateDocumentsFile(
 		return plugins.WrapError(err)
 	}
 
-	err = afero.WriteFile(fs, documentsFileLocation, []byte(documentString.String()), 0o644)
+	err = plugins.WriteFile(fs, documentsFileLocation, []byte(documentString.String()), 0o644)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
@@ -397,7 +397,7 @@ func generateEnumFiles(
 		return plugins.WrapError(err)
 	}
 
-	err = afero.WriteFile(fs, enumsFileLocation, []byte(enumString.String()), 0o644)
+	err = plugins.WriteFile(fs, enumsFileLocation, []byte(enumString.String()), 0o644)
 	if err != nil {
 		return plugins.WrapError(err)
 	}
@@ -405,7 +405,7 @@ func generateEnumFiles(
 	indexJsContent := "\nexport * from './enums.js'\n\n"
 	indexJsLocation := projectConfig.DefinitionsIndexJs()
 
-	err = afero.WriteFile(fs, indexJsLocation, []byte(indexJsContent), 0o644)
+	err = plugins.WriteFile(fs, indexJsLocation, []byte(indexJsContent), 0o644)
 	if err != nil {
 		return plugins.WrapError(err)
 	}

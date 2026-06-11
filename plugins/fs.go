@@ -177,12 +177,34 @@ func writeFileIfChanged(
 		return false, err
 	}
 
-	// Write file using afero (simplified atomic write for filesystem abstraction)
-	// For in-memory filesystems, this is effectively atomic
-	// For OS filesystem, afero.WriteFile handles the basic write operation
-	if err := afero.WriteFile(filesystem, dst, data, mode); err != nil {
+	if err := WriteFile(filesystem, dst, data, mode); err != nil {
 		return false, err
 	}
 
 	return true, nil
+}
+
+// WriteFile is a drop-in replacement for afero.WriteFile that writes atomically.
+//
+// It writes data to a sibling temp file first, then renames it into place.
+// On POSIX (Linux/macOS) rename is a single atomic syscall, so concurrent readers
+// (e.g. Vite's dev server loading a hot-updated module) always see either the
+// complete old content or the complete new content — never a partial write.
+// On in-memory afero filesystems (used in tests) Rename is mutex-protected and
+// equally safe. On Windows, os.Rename replaces the destination atomically when
+// the destination is not open; that is sufficient for our use-case.
+//
+// Use this instead of afero.WriteFile for any file in the generated output
+// directory that Vite may load concurrently while the pipeline is running.
+func WriteFile(filesystem afero.Fs, dst string, data []byte, mode iofs.FileMode) error {
+	tmp := dst + ".houdini_tmp"
+	if err := afero.WriteFile(filesystem, tmp, data, mode); err != nil {
+		_ = filesystem.Remove(tmp)
+		return err
+	}
+	if err := filesystem.Rename(tmp, dst); err != nil {
+		_ = filesystem.Remove(tmp)
+		return err
+	}
+	return nil
 }

@@ -5,10 +5,21 @@ description: Loading data in Houdini's React framework
 
 import Dedupe from '@shared/_partials/dedupe.mdx'
 import RuntimeScalars from '@shared/_partials/runtime-scalars.mdx'
+import AsideAccordion from "@components/docs/AsideAccordion.astro"
 
 The core idea behind Houdini's data loading model is that queries live next to the routes that use them. A `+page.gql` file defines what data a route needs, and Houdini handles the fetching, caching, and prop-threading before your component ever renders.
 
 Fetching starts at the moment navigation begins — not when the component mounts. This follows the [render-as-you-fetch](https://react.dev/reference/rsc/server-components) pattern recommended by the React docs: by the time your component renders for the first time, the data is already in the cache and arrives as props with no loading state needed.
+
+<AsideAccordion title="What about query colocation?">
+
+The prevailing wisdom is that queries should live inside the components that use them. Houdini agrees with the principle (we still colocate fragments in our component source, after all) but disagrees about where the boundary should sit.
+
+The problem is timing. By the time JavaScript is running, it's too late to start a network request without a waterfall. The only way to avoid it is to start fetching before any JavaScript runs, which means the router needs to know what a route needs from the URL alone. A query defined inside a component can't be discovered until that component's bundle has loaded and run: navigate → download JS → parse → run component → discover query → fetch → render. That's a waterfall with an entire JavaScript bundle sitting in the middle of it.
+
+The `.gql` file still lives next to the `.jsx` file — colocation by directory rather than by file. The router operates at the directory level, so that's where the query should live.
+
+</AsideAccordion>
 
 ## Basic Usage
 
@@ -86,14 +97,14 @@ The `$id` variable is populated from the `[id]` segment with no extra configurat
 
 ## Imperative Handles
 
-Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. For these cases, destructure the handle alongside the query result:
+Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. The `$handle` prop gives you an imperative handle for the query:
 
 ```jsx title="src/routes/shows/+page.jsx"
-export default function ShowsPage({ ShowList, ShowList$handle }) {
+export default function ShowsPage({ ShowList$handle }) {
   return (
     <div>
       <ul>
-        {ShowList.shows.map((show) => (
+        {ShowList$handle.data.shows.map((show) => (
           <li key={show.id}>{show.title}</li>
         ))}
       </ul>
@@ -102,6 +113,8 @@ export default function ShowsPage({ ShowList, ShowList$handle }) {
   )
 }
 ```
+
+If you'd rather avoid the `.data` accessor, destructure both props and use them side by side.
 
 The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details.
 

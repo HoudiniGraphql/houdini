@@ -5,12 +5,6 @@ description: How to write custom plugins that hook into Houdini's request pipeli
 
 Client plugins let us customize the runtime behavior of our application's documents — integrating with a logging service, adding retry logic, or even adding support for entirely new network capabilities like [Live Queries](https://the-guild.dev/blog/subscriptions-and-live-queries-real-time-with-graphql).
 
-:::caution[Unstable API]
-
-The client plugin API is still considered unstable. We reserve the ability to change its structure with any minor version update. By building a plugin, you acknowledge this and accept the responsibility of not breaking your users' projects.
-
-:::
-
 ## Overview
 
 Every document in a Houdini app is backed by an observable value called a "Document Store". The store holds the latest value of the document and sends new queries to update its state. Client plugins modify this structure by hooking into five phases of the request pipeline:

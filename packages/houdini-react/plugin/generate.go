@@ -42,7 +42,7 @@ func writeIfChanged(fs afero.Fs, path, content string) (bool, error) {
 	if err := fs.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return false, err
 	}
-	return true, afero.WriteFile(fs, path, []byte(content), 0644)
+	return true, plugins.WriteFile(fs, path, []byte(content), 0644)
 }
 
 // ---- unit file generation ----

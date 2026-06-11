@@ -80,7 +80,7 @@ describe('plugin_path npm package resolution', () => {
 	test('throws when bin is missing', async () => {
 		mockReadFile.mockResolvedValue(JSON.stringify({ name: 'my-plugin' }))
 		await expect(plugin_path('my-plugin', '/project/houdini.config.js')).rejects.toThrow(
-			'Could not find plugin: my-plugin'
+			"Found package 'my-plugin' but it has no bin field"
 		)
 	})
 })

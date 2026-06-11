@@ -58,7 +58,7 @@ func writeSelectionDocument(
 	}
 
 	// write the file to disk
-	err = afero.WriteFile(fs, artifactPath, []byte(artifact), 0644)
+	err = plugins.WriteFile(fs, artifactPath, []byte(artifact), 0644)
 	if err != nil {
 		return "", err
 	}

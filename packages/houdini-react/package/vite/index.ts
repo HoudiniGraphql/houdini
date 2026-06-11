@@ -128,6 +128,12 @@ export default function (ctx: VitePluginContext): PluginOption {
 			return id.substring(id.indexOf('virtual:houdini'))
 		},
 
+		hotUpdate() {
+			// Clear after every HMR cycle so the next transform re-queries the DB.
+			// Safe because transform is only called after the pipeline has finished.
+			cfCache = null
+		},
+
 		async transform(code: string, filepath: string) {
 			filepath = path.posixify(filepath)
 
@@ -209,7 +215,14 @@ export default function (ctx: VitePluginContext): PluginOption {
 			const pageName = parsedPath ? parsedPath.name : ''
 
 			if (which === 'pages') {
-				const page = manifest.pages[pageName]
+				let page = manifest.pages[pageName]
+				if (!page) {
+					// Manifest may be stale after HMR regenerated it on disk — reload and retry.
+					try {
+						manifest = await load_manifest({ config: ctx.config })
+						page = manifest.pages[pageName]
+					} catch {}
+				}
 				if (!page) {
 					throw new Error('unknown page' + pageName)
 				}

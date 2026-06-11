@@ -161,7 +161,7 @@ export async function codegen_setup(
 	// _db is the same object as the caller's db (ctx.db). reload() mutates it
 	// in-place so the caller always sees the latest state without reassignment.
 	const _db = db
-	const logger = new Logger(config.config_file.logLevel ?? LogLevel.Summary)
+	const logger = new Logger(config.config_file.logLevel ?? LogLevel.ShortSummary)
 
 	// We need the root dir before we get to the exciting stuff
 	await fs.mkdirpSync(conventions.houdini_root(config))
@@ -295,14 +295,15 @@ export async function codegen_setup(
 						// WebSocket plugins insert themselves into the DB; for stdio plugins (port=0)
 						// we do it here. INSERT OR IGNORE avoids a duplicate-key error either way.
 						_db.run(
-							`INSERT OR IGNORE INTO plugins (name, hooks, port, plugin_order, include_runtime, config_module, client_plugins)
-							 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+							`INSERT OR IGNORE INTO plugins (name, hooks, port, plugin_order, include_runtime, include_static_runtime, config_module, client_plugins)
+							 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 							[
 								spec.name,
 								JSON.stringify([...spec.hooks]),
 								spec.port,
 								spec.order,
 								msg.includeRuntime ?? null,
+								msg.includeStaticRuntime ?? null,
 								msg.configModule ?? null,
 								msg.clientPlugins ?? null,
 							]

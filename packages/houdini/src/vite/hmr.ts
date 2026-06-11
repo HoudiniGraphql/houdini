@@ -37,6 +37,12 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 	// Tracked so the debounce callback can still pass them to the pipeline for artifact cleanup.
 	const cleanupFiles = new Set<string>()
 
+	// Any file whose basename starts with '+' is a special route file (pages, layouts,
+	// API handlers, etc.) that affects the manifest even without $houdini content.
+	function isManifestFile(filepath: string): boolean {
+		return (filepath.split('/').pop() ?? '').startsWith('+')
+	}
+
 	return {
 		name: 'houdini',
 
@@ -104,9 +110,9 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 			// Handle file deletions that may contain graphql documents.
 			if (opts.type === 'delete') {
 				const relPath = opts.file.substring(rootPrefix.length)
-				// For non-.gql files, only proceed if the DB has rows for this path.
-				// This avoids a pipeline run when deleting unrelated source files.
-				if (!opts.file.endsWith('.gql')) {
+				// For non-.gql files, only proceed if the DB has rows for this path or
+				// it's a route view file (whose deletion must update the manifest).
+				if (!opts.file.endsWith('.gql') && !isManifestFile(opts.file)) {
 					const rowCount =
 						ctx.db.get<{ count: number }>(
 							'SELECT COUNT(*) as count FROM raw_documents WHERE filepath = ?',
@@ -135,16 +141,19 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					return
 				}
 				if (!preReadContent.includes('$houdini')) {
-					// Check whether this file previously had graphql documents in the DB.
-					// If so, fall through so the pipeline can delete the stale artifacts.
-					const relPath = opts.file.substring(rootPrefix.length)
-					const rowCount =
-						ctx.db.get<{ count: number }>(
-							'SELECT COUNT(*) as count FROM raw_documents WHERE filepath = ?',
-							[relPath]
-						)?.count ?? 0
-					if (rowCount === 0) return // not a Houdini file — let Vite handle it normally
-					cleanupFiles.add(opts.file)
+					// Route view files must trigger manifest regeneration even without $houdini.
+					if (!isManifestFile(opts.file)) {
+						// Check whether this file previously had graphql documents in the DB.
+						// If so, fall through so the pipeline can delete the stale artifacts.
+						const relPath = opts.file.substring(rootPrefix.length)
+						const rowCount =
+							ctx.db.get<{ count: number }>(
+								'SELECT COUNT(*) as count FROM raw_documents WHERE filepath = ?',
+								[relPath]
+							)?.count ?? 0
+						if (rowCount === 0) return // not a Houdini file — let Vite handle it normally
+						cleanupFiles.add(opts.file)
+					}
 				}
 			}
 
@@ -180,7 +189,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 							!filepath.includes(generatedDir) &&
 							(filepath.endsWith('.gql') ||
 								content.includes('$houdini') ||
-								cleanupFiles.delete(filepath))
+								cleanupFiles.delete(filepath) ||
+								isManifestFile(filepath))
 						) {
 							const relPath = filepath.substring(rootPrefix.length)
 							relativePaths.push(relPath)
@@ -361,11 +371,10 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					])
 					const changes = ctx.db.rowsModified()
 
-					// Skip only if there were no documents before and none were found now.
-					// If savedDocs had rows but nothing was re-extracted (changes === 0), the user
-					// removed all graphql calls — still need the pipeline to clean up stale artifacts.
+					// Skip only if there were no documents before and none were found now,
+					// and no route view files are involved (those require manifest regeneration).
 					if (changes === 0 && savedDocs.length === 0) {
-						return
+						if (!filepaths.some(isManifestFile)) return
 					}
 
 					// trigger_hook handles flush before AfterExtract and reload after

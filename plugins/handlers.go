@@ -350,7 +350,7 @@ func handleIndexFile[PluginConfig any](plugin HoudiniPlugin[PluginConfig]) HookH
 		}
 
 		newContent := string(existingContent) + "\n" + content
-		return nil, afero.WriteFile(plugin.Filesystem(), targetPath, []byte(newContent), 0644)
+		return nil, WriteFile(plugin.Filesystem(), targetPath, []byte(newContent), 0644)
 	}
 }
 

@@ -25,7 +25,6 @@ func GenerateRuntimeIndexFile(
 	// we are going to populate the runtime index
 	indexPath := filepath.Join(config.ProjectRoot, config.RuntimeDir, "index.ts")
 
-	_ = fs.Remove(indexPath)
 
 	definitionsRelative, err := filepath.Rel(config.RuntimeDir, config.DefinitionsDirectory())
 	if err != nil {
@@ -107,7 +106,7 @@ export * from './%s'
 	)
 
 	// if we got this far then we need to update the file
-	err = afero.WriteFile(fs, indexPath, []byte(indexContent), 0644)
+	err = plugins.WriteFile(fs, indexPath, []byte(indexContent), 0644)
 	if err != nil {
 		return err
 	}

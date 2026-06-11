@@ -55,7 +55,7 @@ SvelteKit application, you can use `+page.gql` to define the query for your rout
 The data for the query is passed as a store that's available in a key that matches its name (in this case its `Info`). We used the store to render some basic information about Bulbasaur using some components that
 were provided in the project's `component` directory.
 
-<AsideAccordion variant="note" title="GraphQL: Queries">
+<AsideAccordion variant="graphql" title="GraphQL: Queries">
 
 A GraphQL query is a string that describes what information you want from the API. For example, the following defines a query named `QueryUserInfo`. In Houdini, all documents like queries must be named for reasons that will become more clear later.
 
@@ -151,7 +151,7 @@ cd src/routes && mkdir "[[id]]" && mv +page.* "./[[id]]"
 The double braces might seem strange but that will let us have an optional parameter in the url so we can
 render the same view for both `/` and `/1`.
 
-<AsideAccordion variant="note" title="GraphQL: Query Variables">
+<AsideAccordion variant="graphql" title="GraphQL: Query Variables">
 
 All of the queries we've seen so far have had static arguments. However, most of the time
 you will need to want to give an argument a dynamic value based on something in your application.
