@@ -1323,6 +1323,7 @@ export type Friends$artifact = typeof artifact
               boolValue: true,
               floatValue: 1.2,
               intValue: 1,
+              filter: { name: $value }
             ) @list(name: "All_Users") {
               firstName
             }
@@ -1346,7 +1347,7 @@ export type Friends$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query TestQuery($value: String!) {
-    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+    users(boolValue: true, filter: {name: $value}, floatValue: 1.2, intValue: 1, stringValue: $value) {
         firstName
         __typename
         id
@@ -1361,7 +1362,7 @@ export type Friends$artifact = typeof artifact
         "fields": {
             "users": {
                 "type": "User",
-                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+                "keyRaw": "users(boolValue: true, filter: {name: $value}, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
                 "directives": [{
                     "name": "list",
@@ -1403,6 +1404,15 @@ export type Friends$artifact = typeof artifact
                     "boolValue": {
                         "kind": "Boolean",
                         "value": true
+                    },
+                    "filter": {
+                        "kind": "Object",
+                        "value": {
+                            name: {
+                                "kind": "Variable",
+                                "value": "value"
+                            }
+                        }
                     },
                     "floatValue": {
                         "kind": "Float",
