@@ -3,9 +3,15 @@ title: Contributing
 description: A guide for contributing to Houdini.
 ---
 
-Thanks for the interest in contributing to Houdini.
+First off, thanks for the interest in contributing to Houdini.
+
+This document should provide some guidance for working on the project, including tips for local development and an introduction to the internal architecture and relevant files.
 
 Before diving in, the [architecture guide](/api/architecture) is worth a read — it explains how the compiler's process model works, how plugins communicate, and how the shared database fits together. That context makes the rest of this document a lot easier to follow.
+
+## General Introduction
+
+At a high level, Houdini is broken up into a few parts. The core compiler pipeline lives in [packages/houdini-core](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-core) and handles document extraction, validation, and artifact generation. The shared plugin runtime library lives in [packages/houdini](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini) and provides the cache, Vite plugin, and utilities for building extensions. Apart from that, Houdini has framework-specific packages that take the generated artifacts and deliver an experience tailored to each framework. The Svelte bindings live in [packages/houdini-svelte](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-svelte) and the React bindings in [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react).
 
 ## Local Development
 
