@@ -451,11 +451,7 @@ function pluginStaticRuntimeDir(projectRoot: string, runtimeDir: string, name: s
 }
 
 // Mirrors Go's RecursiveCopy: walks src, copies each file to dst, applying transform.
-async function recursiveCopy(
-	src: string,
-	dst: string,
-	transform?: TransformFn
-): Promise<string[]> {
+async function recursiveCopy(src: string, dst: string, transform?: TransformFn): Promise<string[]> {
 	const written: string[] = []
 	if (!existsSync(src)) return written
 
