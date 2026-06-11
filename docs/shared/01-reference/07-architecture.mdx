@@ -3,7 +3,7 @@ title: Houdini's Architecture
 description: A high-level overview of Houdini's compiler, runtime client, generated artifacts, and plugin system.
 ---
 
-Houdini is built around a compiler-first model. We write GraphQL documents in our app, and Houdini reads them at build time, validates them against our schema, and generates the runtime code and TypeScript types our framework integration needs. The goal is to move as much work as possible out of the browser and into code generation.
+Houdini is built around a compiler-first model. We write GraphQL documents in our app, and Houdini reads them at build time, validates them against our schema, and generates the runtime code and TypeScript types our framework integrations need. The goal is to move as much work as possible out of the browser and into code generation.
 
 ## The three main pieces
 
@@ -36,12 +36,14 @@ For example, in a Svelte component we might write:
   import { graphql } from '$houdini'
 
   const UserList = graphql(`
-    query UserList @load {
+    query UserList {
       users {
         name
       }
     }
   `)
+
+  // trigger UserList.fetch() somewhere
 </script>
 
 {$UserList.data?.users?.map((user) => user.name).join(', ')}
