@@ -13,19 +13,6 @@ please open an issue or discussion on GitHub so we can try to figure out if ther
 is something that Houdini could be doing better. This should be considered an advanced
 escape hatch for one-off situations.
 
-## Enabling the API
-
-The imperative cache API is disabled by default. Enable it in your config file:
-
-```javascript title="houdini.config.js"
-export default {
-    // ...
-	features: {
-		imperativeCache: true,
-	}
-}
-```
-
 ## Records
 
 The primary unit of the cache api is the `Record`. It acts as a proxy for interacting with entities in Houdini's cache
