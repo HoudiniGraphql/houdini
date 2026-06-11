@@ -3,7 +3,17 @@ title: Fragments
 description: Fragments in Houdini
 ---
 
+import AsideAccordion from "@components/docs/AsideAccordion.astro";
+
 Specify the data requirements for a component.
+
+<AsideAccordion variant="tip" title="Fragments are your building blocks">
+
+Rather than leaving it up to coincidence that the right fields happen to be in the route's query, we give each component its own fragment — and the parent query just spreads them in. As a component library grows, this keeps the coupling loose: adding a field to `UserAvatar` means updating `UserAvatar`'s fragment, not hunting down every query that renders it.
+
+Think of fragments as the primary way to describe component data requirements in Houdini. A `UserAvatar` that starts out needing just initials can quietly grow to need an email and a favorite color without touching any of its callers.
+
+</AsideAccordion>
 
 ## Basic Usage
 
