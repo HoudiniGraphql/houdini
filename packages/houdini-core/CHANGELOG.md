@@ -1,5 +1,13 @@
 # houdini-core
 
+## 2.0.0-next.20
+
+### Patch Changes
+
+- [#1639](https://github.com/HoudiniGraphql/houdini/pull/1639) [`b3798cd`](https://github.com/HoudiniGraphql/houdini/commit/b3798cde406da0f4160ee64e6026817162e61959) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix cursor pagination: @paginate path now wins over @list, listPaginated and direction are correctly computed for bidirectional cursor fields
+
+- [#1639](https://github.com/HoudiniGraphql/houdini/pull/1639) [`b3798cd`](https://github.com/HoudiniGraphql/houdini/commit/b3798cde406da0f4160ee64e6026817162e61959) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - encode per-field pagination direction in pageInfo updates arrays; runtime now drives cache behavior from the artifact instead of hardcoded field names
+
 ## 2.0.0-next.19
 
 ### Patch Changes

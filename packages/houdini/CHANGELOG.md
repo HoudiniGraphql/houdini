@@ -1,5 +1,19 @@
 # houdini
 
+## 2.0.0-next.32
+
+### Patch Changes
+
+- [`7e775ca`](https://github.com/HoudiniGraphql/houdini/commit/7e775ca4aa532e69559d19ae38403f964463c6ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - write generated files atomically to prevent partial-read parse errors when Vite loads a module mid-pipeline
+
+- [`7e775ca`](https://github.com/HoudiniGraphql/houdini/commit/7e775ca4aa532e69559d19ae38403f964463c6ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix HMR not regenerating the router manifest when a new `+page` or `+layout` file is added; invalidate component fields cache after each HMR cycle
+
+- [#1639](https://github.com/HoudiniGraphql/houdini/pull/1639) [`b3798cd`](https://github.com/HoudiniGraphql/houdini/commit/b3798cde406da0f4160ee64e6026817162e61959) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix HMR pipeline: targeted js-update instead of full-reload, handle file deletions and cleanup files, serialize concurrent pipeline runs
+
+- [#1639](https://github.com/HoudiniGraphql/houdini/pull/1639) [`b3798cd`](https://github.com/HoudiniGraphql/houdini/commit/b3798cde406da0f4160ee64e6026817162e61959) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - encode per-field pagination direction in pageInfo updates arrays; runtime now drives cache behavior from the artifact instead of hardcoded field names
+
+- [`7e775ca`](https://github.com/HoudiniGraphql/houdini/commit/7e775ca4aa532e69559d19ae38403f964463c6ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - show a clear error when a plugin is found but has no bin field, calling out local monorepo packages as the likely cause
+
 ## 2.0.0-next.31
 
 ### Patch Changes

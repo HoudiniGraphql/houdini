@@ -1,5 +1,13 @@
 # houdini-react
 
+## 2.0.0-next.34
+
+### Patch Changes
+
+- [`7e775ca`](https://github.com/HoudiniGraphql/houdini/commit/7e775ca4aa532e69559d19ae38403f964463c6ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - write generated files atomically to prevent partial-read parse errors when Vite loads a module mid-pipeline
+
+- [`7e775ca`](https://github.com/HoudiniGraphql/houdini/commit/7e775ca4aa532e69559d19ae38403f964463c6ae) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix HMR not regenerating the router manifest when a new `+page` or `+layout` file is added; invalidate component fields cache after each HMR cycle
+
 ## 2.0.0-next.33
 
 ### Patch Changes
