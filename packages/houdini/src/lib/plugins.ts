@@ -23,66 +23,68 @@ export async function plugin_path(
 		return { executable, directory: path.dirname(executable) }
 	}
 
+	// check if we are in a PnP environment
+	if (process.versions.pnp) {
+		// retrieve the PnP API (Yarn injects the `findPnpApi` into `node:module` builtin module in runtime)
+		const { findPnpApi } = require('node:module')
+
+		// this will traverse the file system to find the closest `.pnp.cjs` file and return the PnP API based on it
+		// normally it will reside at the same level with `houdini.config.js` file, so it is unlikely that traversing the whole file system will happen
+		const pnp = findPnpApi(config_path)
+
+		// this directly returns the ESM export of the corresponding module, thanks to the PnP API
+		// it will throw if the module isn't found in the project's dependencies
+		return pnp.resolveRequest(plugin_name, config_path, {
+			conditions: new Set(['import']),
+		})
+	}
+
+	// resolve the package directory — if this throws, the package isn't installed
+	let plugin_dir: string
 	try {
-		// check if we are in a PnP environment
-		if (process.versions.pnp) {
-			// retrieve the PnP API (Yarn injects the `findPnpApi` into `node:module` builtin module in runtime)
-			const { findPnpApi } = require('node:module')
-
-			// this will traverse the file system to find the closest `.pnp.cjs` file and return the PnP API based on it
-			// normally it will reside at the same level with `houdini.config.js` file, so it is unlikely that traversing the whole file system will happen
-			const pnp = findPnpApi(config_path)
-
-			// this directly returns the ESM export of the corresponding module, thanks to the PnP API
-			// it will throw if the module isn't found in the project's dependencies
-			return pnp.resolveRequest(plugin_name, config_path, {
-				conditions: new Set(['import']),
-			})
-		}
-
-		// otherwise we have to hunt the module down relative to the current path
-		// use Node.js's built-in module resolution which handles all package managers correctly
-		const plugin_dir = find_module(plugin_name, config_path)
-
-		// load up the package json
-		const package_json_src = await fs.readFile(path.join(plugin_dir, 'package.json'))
-		if (!package_json_src) {
-			throw new Error('There is no package.json.')
-		}
-		const package_json = JSON.parse(package_json_src)
-
-		// a plugin is an executable so it must have a bin field
-		if (!package_json.bin) {
-			throw new Error('There is no bin defined.')
-		}
-
-		// npm normalizes `"bin": "path"` to `{"pkg-name": "path"}` at publish time
-		const bin_value =
-			typeof package_json.bin === 'string'
-				? package_json.bin
-				: (Object.values(package_json.bin)[0] as string)
-		const native_bin = path.join(plugin_dir, bin_value)
-
-		if (preferWasm) {
-			try {
-				const wasm_dir = find_module(`${plugin_name}-wasm`, config_path)
-				return {
-					executable: path.join(wasm_dir, 'bin', `${plugin_name}.wasm`),
-					directory: plugin_dir,
-				}
-			} catch {}
-		}
-
-		return {
-			executable: native_bin,
-			directory: plugin_dir,
-		}
+		plugin_dir = find_module(plugin_name, config_path)
 	} catch (e) {
-		const err = new Error(
-			`Could not find plugin: ${plugin_name}. Are you sure its installed? If so, please open a ticket on GitHub. ${e}`
+		throw new Error(
+			`Could not find plugin: ${plugin_name}. Are you sure it's installed? If so, please open a ticket on GitHub. ${e}`
 		)
+	}
 
-		throw err
+	// load up the package json
+	const package_json_src = await fs.readFile(path.join(plugin_dir, 'package.json'))
+	if (!package_json_src) {
+		throw new Error(`Found package '${plugin_name}' but could not read its package.json at ${plugin_dir}.`)
+	}
+	const package_json = JSON.parse(package_json_src)
+
+	// a plugin is an executable so it must have a bin field
+	if (!package_json.bin) {
+		throw new Error(
+			`Found package '${plugin_name}' but it has no bin field in its package.json. ` +
+			`Houdini plugins are executables — add a "bin" entry pointing to the plugin's entry point. ` +
+			`If this is a local monorepo package, this is the most likely cause.`
+		)
+	}
+
+	// npm normalizes `"bin": "path"` to `{"pkg-name": "path"}` at publish time
+	const bin_value =
+		typeof package_json.bin === 'string'
+			? package_json.bin
+			: (Object.values(package_json.bin)[0] as string)
+	const native_bin = path.join(plugin_dir, bin_value)
+
+	if (preferWasm) {
+		try {
+			const wasm_dir = find_module(`${plugin_name}-wasm`, config_path)
+			return {
+				executable: path.join(wasm_dir, 'bin', `${plugin_name}.wasm`),
+				directory: plugin_dir,
+			}
+		} catch {}
+	}
+
+	return {
+		executable: native_bin,
+		directory: plugin_dir,
 	}
 }
 

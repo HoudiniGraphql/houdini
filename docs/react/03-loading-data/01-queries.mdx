@@ -97,14 +97,14 @@ The `$id` variable is populated from the `[id]` segment with no extra configurat
 
 ## Imperative Handles
 
-Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. For these cases, destructure the handle alongside the query result:
+Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. The `$handle` prop gives you an imperative handle for the query:
 
 ```jsx title="src/routes/shows/+page.jsx"
-export default function ShowsPage({ ShowList, ShowList$handle }) {
+export default function ShowsPage({ ShowList$handle }) {
   return (
     <div>
       <ul>
-        {ShowList.shows.map((show) => (
+        {ShowList$handle.data.shows.map((show) => (
           <li key={show.id}>{show.title}</li>
         ))}
       </ul>
@@ -113,6 +113,8 @@ export default function ShowsPage({ ShowList, ShowList$handle }) {
   )
 }
 ```
+
+If you'd rather avoid the `.data` accessor, destructure both props and use them side by side.
 
 The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details.
 
