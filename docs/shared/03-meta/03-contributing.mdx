@@ -25,7 +25,7 @@ Make sure you're using Node.js and pnpm versions compatible with the `engines` c
 
 ## Code Generation
 
-Houdini's code generation pipeline is written in Go and lives in the [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins) directory. It is ultimately responsible for generating the artifacts that describe every document in a project — those artifacts save the runtime from parsing user documents and enable features like compiling fragments and queries into a single string sent to the API.
+Houdini's code generation pipeline is written in Go. The core pipeline logic lives in [packages/houdini-core](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-core), with framework-specific codegen in the corresponding package (e.g. [packages/houdini-react](https://github.com/HoudiniGraphQL/houdini/tree/main/packages/houdini-react)). The shared library for building plugins lives in [plugins/](https://github.com/HoudiniGraphQL/houdini/tree/main/plugins). Each plugin runs as a long-running process and communicates with the Node.js orchestrator over WebSocket, sharing state through a common SQLite database — see the [architecture guide](/api/architecture) for the full picture.
 
 The pipeline tasks fall into three categories:
 
