@@ -52,7 +52,9 @@ export async function plugin_path(
 	// load up the package json
 	const package_json_src = await fs.readFile(path.join(plugin_dir, 'package.json'))
 	if (!package_json_src) {
-		throw new Error(`Found package '${plugin_name}' but could not read its package.json at ${plugin_dir}.`)
+		throw new Error(
+			`Found package '${plugin_name}' but could not read its package.json at ${plugin_dir}.`
+		)
 	}
 	const package_json = JSON.parse(package_json_src)
 
@@ -60,8 +62,8 @@ export async function plugin_path(
 	if (!package_json.bin) {
 		throw new Error(
 			`Found package '${plugin_name}' but it has no bin field in its package.json. ` +
-			`Houdini plugins are executables — add a "bin" entry pointing to the plugin's entry point. ` +
-			`If this is a local monorepo package, this is the most likely cause.`
+				`Houdini plugins are executables — add a "bin" entry pointing to the plugin's entry point. ` +
+				`If this is a local monorepo package, this is the most likely cause.`
 		)
 	}
 
