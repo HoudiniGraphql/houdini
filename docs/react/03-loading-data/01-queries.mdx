@@ -91,10 +91,6 @@ query ShowDetail($id: ID!) {
 
 The `$id` variable is populated from the `[id]` segment with no extra configuration.
 
-## Runtime Scalars
-
-<RuntimeScalars />
-
 ## Imperative Handles
 
 Sometimes you need to do more than display the initial data — trigger a refetch, load the next page, or respond to user input. The `$handle` prop gives you an imperative handle for the query:
@@ -150,6 +146,10 @@ export default function RootLayout({ AppShell, children }: LayoutProps) {
   )
 }
 ```
+
+## Runtime Scalars
+
+<RuntimeScalars />
 
 ## Deduplication
 

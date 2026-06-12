@@ -122,6 +122,38 @@ The root package's `bin` field points to a small Node.js shim rather than a bina
 
 The shim also supports a `HOUDINI_PLATFORM` environment variable, which lets callers force a specific platform — useful in CI environments where the host architecture doesn't match the target.
 
+## Static Runtimes
+
+The `StaticRuntime` interface lets a plugin copy a directory of files into the project during the `afterLoad` phase — before document discovery and codegen run.
+
+```go
+func (p *MyPlugin) StaticRuntime(ctx context.Context) (string, error) {
+	return filepath.Join(p.PluginDirectory(ctx), "static"), nil
+}
+```
+
+Because the copy happens before document discovery, any `.graphql` files in that directory are treated as project documents. That makes `StaticRuntime` the right place to ship fragments or queries that users can reference directly in their own operations:
+
+```graphql title="static/UserFields.graphql"
+fragment UserFields on User {
+	id
+	name
+	email
+}
+```
+
+A user can then spread `...UserFields` in their own queries without defining the fragment themselves. The plugin owns the definition; the project just consumes it.
+
+If you need to rewrite file contents during the copy (to inject the project's schema URL, for example), implement `TransformStaticRuntime` alongside it:
+
+```go
+func (p *MyPlugin) TransformStaticRuntime(ctx context.Context, source string, content string) (string, error) {
+	return strings.ReplaceAll(content, "__SCHEMA_URL__", p.config.SchemaURL), nil
+}
+```
+
+The main distinction from `IncludeRuntime` is timing: `IncludeRuntime` is copied during the `generateRuntime` phase (after documents are already collected), so its `.graphql` files arrive too late to be discovered. Use `StaticRuntime` whenever the content needs to participate in the document graph, and `IncludeRuntime` for TypeScript runtime code that doesn't.
+
 ### Houdini's Implementation
 
 Rather than maintaining these files by hand, Houdini generates everything through a build script. The templates and tooling live at:
