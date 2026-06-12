@@ -73,7 +73,7 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache, data_cache } = useRouterContext()
+	const { component_cache, data_cache, ssr_signals } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	// if we got this far then we're past suspense
