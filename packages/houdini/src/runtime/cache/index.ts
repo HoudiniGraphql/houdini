@@ -334,11 +334,20 @@ export class Cache {
 		this.#notifySubscribers(subSpecs)
 	}
 
+	// returns the current notification generation; fragment references carry this value
+	// so hooks can detect which epoch of data they were rendered with
+	getEpoch(): number {
+		return this._internal_unstable.epoch
+	}
+
 	#notifySubscribers(subs: SubscriptionSpec[]) {
 		// if there's no one to notify, its a no-op
 		if (subs.length === 0) {
 			return
 		}
+		// advance the epoch before stamping fragment references so every reference
+		// produced during this flush carries the new generation number
+		this._internal_unstable.epoch++
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
 		const notified: SubscriptionSpec['set'][] = []
@@ -363,6 +372,10 @@ export class Cache {
 class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	disabled = false
+
+	// monotonically increasing counter incremented on every cache notification flush;
+	// threaded into fragment references so hooks know which generation of data they hold
+	epoch = 0
 
 	_config?: ConfigFile
 	storage: InMemoryStorage

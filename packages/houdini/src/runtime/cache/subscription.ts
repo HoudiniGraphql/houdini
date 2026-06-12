@@ -238,7 +238,11 @@ export class InMemorySubscriptions {
 					selection: innerSelection,
 					list,
 					filters,
+					visible,
 				} = selection
+				if (!visible) {
+					continue
+				}
 				const key = evaluateKey(keyRaw, variables)
 
 				// figure out the selection for the field we are writing

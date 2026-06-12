@@ -794,6 +794,83 @@ func TestPaginationDocumentGeneration(t *testing.T) {
 						)),
 				},
 			},
+			{
+				Name: "fragment with non-paginated siblings strips sibling fields from pagination query",
+				Pass: true,
+				Input: []string{
+					`
+						fragment Friends on User {
+							firstName
+							friends(first: 10) @paginate {
+								edges {
+									node {
+										firstName
+									}
+								}
+							}
+						}
+					`,
+				},
+				Expected: []tests.ExpectedDocument{
+					tests.ExpectedDoc(`
+						fragment Friends_paginated_c9Zhk on User {
+							__typename
+							friends(first: $first, after: $after, last: $last, before: $before) @paginate {
+								edges {
+									node {
+										firstName
+										__typename
+										id
+									}
+									cursor
+									__typename
+								}
+								pageInfo {
+									hasNextPage
+									hasPreviousPage
+									startCursor
+									endCursor
+								}
+								__typename
+							}
+							id
+						}
+					`).WithVariables(
+						tests.ExpectedOperationVariable{
+							Name: "first",
+							Type: "Int",
+							DefaultValue: &tests.ExpectedArgumentValue{
+								Kind: "Int",
+								Raw:  "10",
+							},
+						},
+						tests.ExpectedOperationVariable{
+							Name: "after",
+							Type: "String",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "last",
+							Type: "Int",
+						},
+						tests.ExpectedOperationVariable{
+							Name: "before",
+							Type: "String",
+						},
+					),
+					tests.ExpectedDoc(
+						fmt.Sprintf(`
+							query %s($first: Int = 10, $after: String, $before: String, $last: Int, $id: ID!) @dedupe(match: Variables) {
+								node(id: $id) {
+									...Friends_paginated_c9Zhk @with(first: $first, after: $after, before: $before, last: $last)
+									__typename
+									id
+								}
+							}
+						`,
+							graphql.FragmentPaginationQueryName("Friends"),
+						)),
+				},
+			},
 		},
 	})
 }

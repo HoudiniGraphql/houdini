@@ -73,7 +73,7 @@ export function Router({
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
-	const { component_cache, data_cache } = useRouterContext()
+	const { component_cache, data_cache, ssr_signals } = useRouterContext()
 	const PageComponent = component_cache.get(page.id)!
 
 	// if we got this far then we're past suspense
@@ -107,6 +107,8 @@ export function Router({
 	const goto = (url: string) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		data_cache.clear()
+		// clear pending signals so the next render starts fresh load_query calls
+		ssr_signals.clear()
 
 		// perform the navigation
 		setCurrentURL(url)
@@ -333,17 +335,20 @@ function usePageData({
 						</script>
 					`)
 
+					ssr_signals.delete(id)
 					resolve()
 				})
-				.catch(reject)
+				.catch((err) => {
+					ssr_signals.delete(id)
+					reject(err)
+				})
 		})
 
-		// if we are on the server, we need to save a signal that we can use to
-		// communicate with the client when we're done
+		// register the pending signal on both client and server so that concurrent React renders
+		// (concurrent mode / strict mode) that call load_query before data_cache is populated
+		// find the existing signal and don't create a duplicate observer+send
 		const resolvable = { ...promise, resolve, reject }
-		if (!globalThis.window) {
-			ssr_signals.set(id, resolvable)
-		}
+		ssr_signals.set(id, resolvable)
 
 		// we're done
 		return resolvable
@@ -378,6 +383,7 @@ function usePageData({
 			// before we can compare we need to only look at the variables that the artifact cares about
 			if (Object.keys(usedVariables ?? {}).length > 0 && !deepEquals(last, usedVariables)) {
 				data_cache.delete(artifact)
+				ssr_signals.delete(artifact)
 			}
 		}
 
@@ -583,6 +589,7 @@ export function useSession(): [App.Session, (newSession: Partial<App.Session>) =
 	const updateSession = (newSession: Partial<App.Session>) => {
 		// clear the data cache so that we refetch queries with the new session (will force a cache-lookup)
 		ctx.data_cache.clear()
+		ctx.ssr_signals.clear()
 
 		// update the local state
 		ctx.setSession(newSession)
