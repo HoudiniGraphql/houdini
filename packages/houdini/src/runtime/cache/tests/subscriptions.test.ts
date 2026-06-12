@@ -3456,3 +3456,81 @@ test('reference count garbage collection requires totally empty garbage', () => 
 	// make sure the subscribers object is empty
 	expect(cache._internal_unstable.subscriptions.size).toEqual(2)
 })
+
+test('addMany skips external (visible: false) fields on new linked records', () => {
+	const cache = new Cache(config)
+
+	// Query selection: viewer → User with one visible field and one external field
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							visible: true,
+							keyRaw: 'firstName',
+						},
+						// external field owned by a fragment — should never trigger this query's subscriber
+						bio: {
+							type: 'String',
+							visible: false,
+							keyRaw: 'bio',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write initial data pointing viewer at User:1
+	cache.write({
+		selection,
+		data: { viewer: { id: '1', firstName: 'alice', bio: 'hello' } },
+	})
+
+	const set = vi.fn()
+	cache.subscribe({ rootType: 'Query', selection, set })
+
+	// change viewer to User:2 — this triggers addMany to propagate subscribers onto User:2
+	cache.write({
+		selection,
+		data: { viewer: { id: '2', firstName: 'bob', bio: 'world' } },
+	})
+
+	// set called once for the linked-object change
+	expect(set).toHaveBeenCalledTimes(1)
+	set.mockClear()
+
+	// write only the external field on User:2 — query subscriber must NOT fire
+	cache.write({
+		selection: {
+			fields: {
+				bio: { type: 'String', visible: false, keyRaw: 'bio' },
+			},
+		},
+		data: { bio: 'updated bio' },
+		parent: 'User:2',
+	})
+	expect(set).not.toHaveBeenCalled()
+
+	// write a visible field on User:2 — query subscriber MUST fire
+	cache.write({
+		selection: {
+			fields: {
+				firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+			},
+		},
+		data: { firstName: 'robert' },
+		parent: 'User:2',
+	})
+	expect(set).toHaveBeenCalledTimes(1)
+})
