@@ -1,5 +1,10 @@
 import { fragmentKey } from 'houdini/runtime'
-import type { GraphQLObject, GraphQLVariables, FragmentArtifact } from 'houdini/runtime'
+import type {
+	GraphQLObject,
+	GraphQLVariables,
+	FragmentArtifact,
+	QueryResult,
+} from 'houdini/runtime'
 import * as React from 'react'
 
 import { useRouterContext } from '../routing/index.js'
@@ -14,23 +19,16 @@ export function useFragment<
 	document: { artifact: FragmentArtifact }
 ): _Data | null {
 	const { cache } = useRouterContext()
-
-	// get the fragment reference info
 	const { parent, variables, loading } = fragmentReference<_Data, _Input, _ReferenceType>(
 		reference,
 		document
 	)
 
-	// Track the last parent we've fully committed to. While the parent has changed (new record,
-	// observer hasn't caught up yet) we return cachedValue; once effects fire and the observer
-	// is current we fall through to storeValue.data.
-	const [lastParent, setLastParent] = React.useState<string | undefined>(undefined)
-	const parentChanged = parent !== lastParent
-
-	// Read from cache only when the parent (or loading state) changes — not on every render.
-	// For embedded records the parent path encodes the cursor, so it uniquely identifies
-	// which page's data we need; variables are passed through for non-embedded fragments.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: variables intentionally excluded (parent encodes effective key)
+	// Read from cache whenever the parent or loading state changes. The parent
+	// path uniquely identifies which cache record this fragment is bound to, so
+	// variables are excluded from the dep array — they are forwarded to
+	// observer.send() separately and don't affect which record we read.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: variables intentionally excluded
 	const cachedValue = React.useMemo(() => {
 		if (reference && parent) {
 			return cache.read({
@@ -43,12 +41,32 @@ export function useFragment<
 		return reference as _Data | null
 	}, [parent, loading])
 
-	// we're ready to setup the live document
+	// Stable initialState derived from cachedValue. useDocumentStore uses this to
+	// seed box.current synchronously during render when the parent changes, so
+	// storeValue.data is immediately correct without waiting for the subscription
+	// effect to fire. Must be memoized (reference-stable) so the store doesn't
+	// re-seed on every render.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: variables changes don't require re-seeding
+	const initialState = React.useMemo(
+		(): QueryResult<_Data, _Input> | undefined =>
+			cachedValue !== null
+				? {
+						data: cachedValue,
+						errors: null,
+						fetching: false,
+						partial: false,
+						stale: false,
+						source: null,
+						variables: variables ?? null,
+				  }
+				: undefined,
+		[cachedValue]
+	)
+
 	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
 		artifact: document.artifact,
 		variables,
 		initialValue: cachedValue,
-		// dont subscribe to anything if we are loading
 		disabled: loading,
 		send: {
 			stuff: {
@@ -56,35 +74,17 @@ export function useFragment<
 			},
 			setup: true,
 		},
-		// Passed outside send so it doesn't participate in the deep-equals dep comparison.
-		// Seeds the setup:true backward pass with the correct data for the current parent
-		// rather than stale this.state from a previous parent.
-		initialState: cachedValue !== null
-			? {
-				data: cachedValue,
-				errors: null,
-				fetching: false,
-				partial: false,
-				stale: false,
-				source: null,
-				variables: variables ?? null,
-			}
-			: undefined,
+		initialState,
 	})
 
-	// Advance lastParent after the subscription effect fires so that on the next render
-	// storeValue.data (now correct, because initialState seeded the backward pass) is used.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: setLastParent is stable
-	React.useEffect(() => {
-		if (parentChanged) setLastParent(parent)
-	}, [parent])
-
-	// Return cachedValue when the parent just changed (before the observer has caught up),
-	// otherwise defer to the live storeValue.
-	return parentChanged ? cachedValue : storeValue.data
+	return storeValue.data
 }
 
-export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(
+export function fragmentReference<
+	_Data extends GraphQLObject,
+	_Input,
+	_ReferenceType extends {},
+>(
 	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
 ): { variables: _Input; parent: string; loading: boolean } {

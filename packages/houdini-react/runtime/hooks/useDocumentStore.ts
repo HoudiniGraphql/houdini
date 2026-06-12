@@ -18,6 +18,10 @@ export type UseDocumentStoreParams<
 > = {
 	artifact: _Artifact
 	observer?: DocumentStore<_Data, _Input>
+	// Optional synchronous seed for box.current. When provided, box.current is updated
+	// during render so useSyncExternalStore's snapshot is immediately correct (e.g. on
+	// fragment parent change). Must be memoized by the caller — tracked by reference.
+	initialState?: QueryResult<_Data, _Input>
 } & Partial<ObserveParams<_Data, DocumentArtifact, _Input>>
 
 export function useDocumentStore<
@@ -27,6 +31,7 @@ export function useDocumentStore<
 >({
 	artifact,
 	observer: obs,
+	initialState,
 	...observeParams
 }: UseDocumentStoreParams<_Artifact, _Data, _Input>): [
 	QueryResult<_Data, _Input>,
@@ -51,6 +56,17 @@ export function useDocumentStore<
 	if (obs && obs !== observer) {
 		box.current = obs.state
 		setObserver(obs)
+	}
+
+	// Relay-style synchronous seeding: when initialState changes (i.e., the fragment
+	// parent changed), update box.current immediately during this render so
+	// useSyncExternalStore's getSnapshot returns the correct data without waiting for
+	// the subscription effect to fire. Tracked by reference — if provided, callers
+	// must memoize initialState to avoid spurious reseeds on every render.
+	const prevInitialStateRef = React.useRef<QueryResult<_Data, _Input> | undefined>(undefined)
+	if (initialState !== undefined && initialState !== prevInitialStateRef.current) {
+		prevInitialStateRef.current = initialState
+		box.current = initialState
 	}
 
 	// the function that registers a new subscription for the observer

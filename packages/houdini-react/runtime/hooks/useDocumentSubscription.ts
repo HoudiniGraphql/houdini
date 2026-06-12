@@ -25,13 +25,10 @@ export function useDocumentSubscription<
 	variables: _Input
 	disabled?: boolean
 	send?: Partial<Omit<SendParams, 'initialState'>>
-	// passed directly to observer.send() and intentionally excluded from the dep
-	// comparison — it changes in lockstep with send.stuff.parentID so including it
-	// would add a large data object to the deep-equals check for no benefit
-	initialState?: SendParams['initialState']
 }): [QueryResult<_Data, _Input> & { parent?: string | null }, DocumentStore<_Data, _Input>] {
 	const [storeValue, observer] = useDocumentStore<_Data, _Input>({
 		artifact,
+		initialState,
 		...observeParams,
 	})
 
