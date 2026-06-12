@@ -1970,8 +1970,10 @@ func TestIncludeListID(t *testing.T) {
 			artifact := string(content)
 			require.True(t, strings.Contains(artifact, `"includeListID": true`),
 				"artifact should contain includeListID: true, got:\n%s", artifact)
-			require.False(t, strings.Contains(artifact, `includeListID`+"`"+` in raw query`),
-				"__listID should not appear in the raw query string")
+			// @includeListID is an internal directive; it must be stripped from the raw query
+			// sent to the server — only the selection metadata should carry it
+			require.NotContains(t, artifact, "@includeListID",
+				"@includeListID should be stripped from the raw query, got:\n%s", artifact)
 		},
 		Tests: []tests.Test[config.PluginConfig]{
 			{
@@ -2007,6 +2009,72 @@ func TestIncludeListID(t *testing.T) {
     name
   }
 }`},
+			},
+		},
+	})
+}
+
+// TestListIDMutation verifies that @listID on a fragment spread is serialized into the mutation
+// artifact's operations so the runtime can resolve the list via the opaque key from __listID.
+func TestListIDMutation(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+      type Mutation {
+          addUser(name: String!): User
+      }
+
+      type Query {
+          users: [User!]!
+      }
+
+      type User implements Node {
+          id: ID!
+          name: String!
+      }
+
+      interface Node {
+          id: ID!
+      }
+    `,
+		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			performArtifactTest(t, p, test)
+			if !test.Pass {
+				return
+			}
+
+			projectConfig, err := p.DB.ProjectConfig(t.Context())
+			require.NoError(t, err)
+
+			artifactPath := projectConfig.ArtifactPath("TestMutation")
+			file, err := p.Fs.Open(artifactPath)
+			require.NoError(t, err)
+			content, err := afero.ReadAll(file)
+			require.NoError(t, err)
+
+			artifact := string(content)
+			require.Contains(t, artifact, `"listID"`,
+				"mutation artifact should contain listID in operations, got:\n%s", artifact)
+			// @listID is internal; it should not appear in the raw mutation sent to the server
+			require.NotContains(t, artifact, "@listID",
+				"@listID should be stripped from the raw query, got:\n%s", artifact)
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "@listID on fragment spread produces listID field in mutation artifact operations",
+				Pass: true,
+				Input: []string{
+					`query TestQuery {
+  users @list(name: "All_Users") @includeListID {
+    id
+    name
+  }
+}`,
+					`mutation TestMutation($listId: ID!) {
+  addUser(name: "Test") {
+    ...All_Users_insert @listID(value: $listId)
+  }
+}`,
+				},
 			},
 		},
 	})

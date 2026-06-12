@@ -4,6 +4,10 @@ import type { Cache } from './index.js'
 import type { Layer } from './storage.js'
 import { rootID } from './stuff.js'
 
+export function opaqueListID(parentID: string, listName: string): string {
+	return `${parentID}::${listName}`
+}
+
 export class ListManager {
 	rootID: string
 	cache: Cache
@@ -18,7 +22,7 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	// indexed by the opaque list ID exposed as __listID (format: "listName::parentCacheKey")
+	// indexed by the opaque list ID exposed as __listID
 	private listsByOpaqueID: Map<string, ListCollection> = new Map()
 
 	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
@@ -99,7 +103,7 @@ export class ListManager {
 	remove(listName: string, id: string) {
 		const parentID = id || this.rootID
 		this.lists.get(listName)?.delete(parentID)
-		this.listsByOpaqueID.delete(`${listName}::${parentID}`)
+		this.listsByOpaqueID.delete(opaqueListID(parentID, listName))
 	}
 
 	add(list: {
@@ -150,7 +154,7 @@ export class ListManager {
 		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
 
 		// register the opaque ID lookup (format matches what getSelection injects as __listID)
-		this.listsByOpaqueID.set(`${name}::${parentID}`, this.lists.get(name)!.get(parentID)!)
+		this.listsByOpaqueID.set(opaqueListID(parentID, name), this.lists.get(name)!.get(parentID)!)
 	}
 
 	removeIDFromAllLists(id: string, layer?: Layer) {
@@ -177,7 +181,7 @@ export class ListManager {
 			this.lists.get(list.name)?.get(list.recordID)?.deleteListWithKey(field)
 			if (this.lists.get(list.name)?.get(list.recordID)?.lists.length === 0) {
 				this.lists.get(list.name)?.delete(list.recordID)
-				this.listsByOpaqueID.delete(`${list.name}::${list.recordID}`)
+				this.listsByOpaqueID.delete(opaqueListID(list.recordID, list.name))
 			}
 		}
 

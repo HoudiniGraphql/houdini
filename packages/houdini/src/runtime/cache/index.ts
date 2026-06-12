@@ -18,7 +18,7 @@ import type {
 import { fragmentKey } from '../types.js'
 import { GarbageCollector } from './gc.js'
 import type { ListCollection } from './lists.js'
-import { ListManager } from './lists.js'
+import { ListManager, opaqueListID } from './lists.js'
 import { StaleManager } from './staleManager.js'
 import type { Layer, LayerID } from './storage.js'
 import { InMemoryStorage } from './storage.js'
@@ -1280,7 +1280,7 @@ class CacheInternal {
 			// user can pass it to @listID on a mutation to target this specific list instance.
 			// the format matches what ListManager.listsByOpaqueID uses as its key.
 			if (list?.includeListID && fieldTarget[attributeName] != null) {
-				;(fieldTarget[attributeName] as any).__listID = `${list.name}::${parent}`
+				;(fieldTarget[attributeName] as any).__listID = opaqueListID(parent, list.name)
 			}
 
 			// if we are generating a loading value then we might need to wrap up the result

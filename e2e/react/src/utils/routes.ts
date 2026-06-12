@@ -18,4 +18,5 @@ export const routes = {
 	pagination_query_offset_variable: '/pagination/query/offset-variable/2',
 	optimistic_keys: '/optimistic-keys',
 	node_plugin: '/node-plugin',
+	list_id: '/list-id',
 } as const

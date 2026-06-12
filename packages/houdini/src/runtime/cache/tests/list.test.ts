@@ -4,6 +4,7 @@ import { testConfigFile } from '../../../test/index.js'
 import type { SubscriptionSelection } from '../../types.js'
 import { RefetchUpdateMode } from '../../types.js'
 import { Cache } from '../index.js'
+import { opaqueListID } from '../lists.js'
 
 const config = testConfigFile()
 
@@ -6033,4 +6034,303 @@ test("two operations referencing the same list don't commit twice", () => {
 			},
 		],
 	})
+})
+
+test('@includeListID attaches opaque key to plain list array', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								selection: {
+									fields: {
+										id: { type: 'ID', visible: true, keyRaw: 'id' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '2' }] } },
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: { name: 'All_Users', connection: false, type: 'User', includeListID: true },
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+						},
+					},
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const parentKey = cache._internal_unstable.id('User', '1')
+	expect((result.data?.friends as any).__listID).toBe(opaqueListID(parentKey!, 'All_Users'))
+})
+
+test('@includeListID attaches opaque key to connection object', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friendsConnection: {
+								type: 'UserConnection',
+								visible: true,
+								keyRaw: 'friendsConnection',
+								selection: {
+									fields: {
+										edges: {
+											type: 'UserEdge',
+											visible: true,
+											keyRaw: 'edges',
+											selection: {
+												fields: {
+													node: {
+														type: 'User',
+														visible: true,
+														keyRaw: 'node',
+														nullable: true,
+														selection: {
+															fields: {
+																id: { type: 'ID', visible: true, keyRaw: 'id' },
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friendsConnection: { edges: [{ node: { id: '2' } }] } } },
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friendsConnection: {
+					type: 'UserConnection',
+					visible: true,
+					keyRaw: 'friendsConnection',
+					list: { name: 'Friends_Conn', connection: true, type: 'User', includeListID: true },
+					selection: {
+						fields: {
+							edges: {
+								type: 'UserEdge',
+								visible: true,
+								keyRaw: 'edges',
+								selection: {
+									fields: {
+										node: {
+											type: 'User',
+											visible: true,
+											keyRaw: 'node',
+											nullable: true,
+											selection: {
+												fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } },
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const parentKey = cache._internal_unstable.id('User', '1')
+	// the connection object (not an array) gets __listID
+	expect((result.data?.friendsConnection as any)?.__listID).toBe(opaqueListID(parentKey!, 'Friends_Conn'))
+})
+
+test('@includeListID generates distinct keys for two lists on the same parent', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+							},
+							followers: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'followers',
+								selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '2' }], followers: [{ id: '3' }] } },
+	})
+
+	const result = cache.read({
+		selection: {
+			fields: {
+				friends: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'friends',
+					list: { name: 'My_Friends', connection: false, type: 'User', includeListID: true },
+					selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+				},
+				followers: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'followers',
+					list: { name: 'My_Followers', connection: false, type: 'User', includeListID: true },
+					selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+				},
+			},
+		},
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const parentKey = cache._internal_unstable.id('User', '1')
+	const friendsListID = (result.data?.friends as any).__listID
+	const followersListID = (result.data?.followers as any).__listID
+
+	// same parent, but different list names → different opaque IDs
+	expect(friendsListID).toBe(opaqueListID(parentKey!, 'My_Friends'))
+	expect(followersListID).toBe(opaqueListID(parentKey!, 'My_Followers'))
+	expect(friendsListID).not.toBe(followersListID)
+})
+
+test('@listID operation inserts into the correct list via opaque key', () => {
+	const cache = new Cache(config)
+
+	const friendsSelection: SubscriptionSelection = {
+		fields: {
+			friends: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'friends',
+				list: { name: 'All_Users', connection: false, type: 'User', includeListID: true },
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							...friendsSelection.fields,
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '2', firstName: 'Jean' }] } },
+	})
+
+	// subscribing registers the list in listsByOpaqueID
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: friendsSelection,
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// read to obtain the __listID value
+	const readResult = cache.read({
+		selection: friendsSelection,
+		parent: cache._internal_unstable.id('User', '1')!,
+	})
+
+	const opaqueID = (readResult.data?.friends as any).__listID as string
+	expect(opaqueID).toBe(opaqueListID(cache._internal_unstable.id('User', '1')!, 'All_Users'))
+
+	// use the opaque key in a mutation operation
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							listID: { kind: 'String', value: opaqueID },
+						},
+					],
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+						},
+					},
+				},
+			},
+		},
+		data: { newUser: { id: '3', firstName: 'New User' } },
+	})
+
+	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
 })

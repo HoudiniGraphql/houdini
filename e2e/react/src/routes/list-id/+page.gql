@@ -1,0 +1,8 @@
+query ListIDTest {
+	userNodes(snapshot: "ListIDTest") {
+		nodes @list(name: "ListID_Users") @includeListID {
+			id
+			name
+		}
+	}
+}
