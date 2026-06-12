@@ -1,5 +1,11 @@
 # houdini-core
 
+## 2.0.0-next.21
+
+### Patch Changes
+
+- [`fec6727`](https://github.com/HoudiniGraphql/houdini/commit/fec672700d142c0e300da0529f7404b3e8521a09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - strip sibling fields from generated pagination query documents so only the paginated field is included
+
 ## 2.0.0-next.20
 
 ### Patch Changes

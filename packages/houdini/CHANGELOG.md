@@ -1,5 +1,15 @@
 # houdini
 
+## 2.0.0-next.33
+
+### Patch Changes
+
+- [`fec6727`](https://github.com/HoudiniGraphql/houdini/commit/fec672700d142c0e300da0529f7404b3e8521a09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix addMany ignoring field visibility when subscribing, preventing hidden fields from leaking into list updates
+
+- [`fec6727`](https://github.com/HoudiniGraphql/houdini/commit/fec672700d142c0e300da0529f7404b3e8521a09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - prevent unnecessary re-renders on fragments by stabilizing returned values and skipping subscription updates when data hasn't changed
+
+- [`fec6727`](https://github.com/HoudiniGraphql/houdini/commit/fec672700d142c0e300da0529f7404b3e8521a09) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix gaps in pagination request deduplication: stale inflight entries no longer block new requests, and ssr_signals now covers client-side concurrent renders to prevent duplicate observer/send pairs
+
 ## 2.0.0-next.32
 
 ### Patch Changes
