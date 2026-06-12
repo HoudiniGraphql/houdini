@@ -1,11 +1,9 @@
 import { useMutation, graphql } from '$houdini'
-import React from 'react'
-
 import { PageProps } from './$types'
 
 export default function ListIDTestView({ ListIDTest }: PageProps) {
 	const nodes = ListIDTest?.userNodes.nodes
-	const listId = (nodes as any)?.__listID as string | undefined
+	const listId = nodes?.__listID
 
 	const [, addUser] = useMutation(
 		graphql(`
