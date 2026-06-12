@@ -58,7 +58,7 @@ export function useFragment<
 						stale: false,
 						source: null,
 						variables: variables ?? null,
-				  }
+					}
 				: undefined,
 		[cachedValue]
 	)
@@ -80,11 +80,7 @@ export function useFragment<
 	return storeValue.data
 }
 
-export function fragmentReference<
-	_Data extends GraphQLObject,
-	_Input,
-	_ReferenceType extends {},
->(
+export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(
 	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
 ): { variables: _Input; parent: string; loading: boolean } {

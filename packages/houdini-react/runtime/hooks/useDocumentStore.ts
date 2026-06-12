@@ -77,8 +77,7 @@ export function useDocumentStore<
 				// Preserve object identity for unchanged subtrees so React.memo on
 				// fragment components can bail out when their data wasn't touched.
 				const stableData = recycleNodesInto(prev?.data, val.data)
-				const next =
-					stableData === val.data ? val : { ...val, data: stableData }
+				const next = stableData === val.data ? val : { ...val, data: stableData }
 
 				// Skip the re-render entirely if the new state is semantically identical
 				// to what React already has (e.g. an idempotent cache write).
