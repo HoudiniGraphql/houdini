@@ -3,6 +3,8 @@ title: Rendering Long Lists
 description: The fourth part of the Houdini intro focusing on how to render long lists of data
 ---
 
+import AsideAccordion from "@components/docs/AsideAccordion.astro";
+
 You'll often run into the situation where you want to render a long list of data.
 It's also common for that list to be much too long to query or even render on the screen.
 In order to address this, most APIs will accept a set of arguments on the field designed to window
@@ -13,8 +15,7 @@ into two categories: cursor-based pagination and offset-based pagination.
 Houdini supports both but since our API relies on cursor-based pagination that's what we're going to show here.
 If you want to read more about pagination, head over to the [pagination guide](/svelte/pagination/).
 
-:::note[GraphQL: Cursor-Based Pagination]
-
+<AsideAccordion variant="graphql">
 
 If you are familiar with cursor-based pagination you can safely skip this section.
 
@@ -159,8 +160,7 @@ query {
 
 For more information on the Connection model, check out [this blog post](https://www.apollographql.com/blog/graphql/explaining-graphql-connections/).
 
-
-:::
+</AsideAccordion>
 
 ## Paginated Queries
 

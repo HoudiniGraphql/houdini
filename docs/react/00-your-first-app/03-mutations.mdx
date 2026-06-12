@@ -3,12 +3,13 @@ title: Handling Updates
 description: The third part of the Houdini intro focusing on how to update the client side cache
 ---
 
+import AsideAccordion from "@components/docs/AsideAccordion.astro";
+
 Thanks for making it this far! We really appreciate the time you are spending to learn Houdini.
 
 So far we've only covered how to read data from our server. Clearly this is only one part of the picture since most projects need to be able to update the server's state.
 
-:::note[GraphQL: Mutations]
-
+<AsideAccordion variant="graphql">
 
 In GraphQL, requests to update the server are defined by a different document type than `query` and are known as "mutations". They look something like this:
 
@@ -24,8 +25,7 @@ mutation SetFavorite {
 
 This example defines a mutation document named `SetFavorite` that invokes the `toggleFavorite` mutation on the server to flag Bulbasaur as one of our favorites. Every mutation in GraphQL has a return type that we can use to look up the values that have been updated in response to the mutation. Since we know that this mutation updates the `favorite` field we made sure to ask for the `favorite` field of the species.
 
-
-:::
+</AsideAccordion>
 
 ## Updating Field Values
 
