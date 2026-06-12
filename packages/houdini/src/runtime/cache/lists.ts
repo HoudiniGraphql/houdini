@@ -18,9 +18,12 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>, rawParentID?: string) {
+	// indexed by the opaque list ID exposed as __listID (format: "listName::parentCacheKey")
+	private listsByOpaqueID: Map<string, ListCollection> = new Map()
+
+	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
 		// get the list collection
-		const lists = this.getLists(listName, id, allLists, rawParentID)
+		const lists = this.getLists(listName, id, allLists)
 		if (!lists) {
 			return null
 		}
@@ -33,7 +36,17 @@ export class ListManager {
 		}
 	}
 
-	getLists(listName: string, id?: string, allLists?: boolean, rawParentID?: string) {
+	// look up a list by the opaque ID that was attached as __listID
+	getByOpaqueID(opaqueID: string, skipMatches?: Set<string>): ListCollection | null {
+		const collection = this.listsByOpaqueID.get(opaqueID)
+		if (!collection) return null
+		if (skipMatches) {
+			return new ListCollection(collection.lists.filter((list) => !skipMatches.has(list.fieldRef)))
+		}
+		return collection
+	}
+
+	getLists(listName: string, id?: string, allLists?: boolean) {
 		const matches = this.lists.get(listName)
 
 		// if we don't have a list by that name, we're done
@@ -50,19 +63,16 @@ export class ListManager {
 
 		const head = [...matches.values()][0]
 
-		// rawParentID is already the full cache key (from __id field), use it directly.
-		// Otherwise compute the internal ID from the record type and provided id.
+		// compute the internal ID from the record type and provided id
 		const { recordType } = head.lists[0]
-		const parentID = rawParentID
-			? rawParentID
-			: id
-				? this.cache._internal_unstable.id(recordType || '', id)!
-				: this.rootID
+		const parentID = id
+			? this.cache._internal_unstable.id(recordType || '', id)!
+			: this.rootID
 
 		// if there is only one list with that name, return it
 		if (matches?.size === 1) {
 			// if there is no provided id, just use the first one
-			if (!id && !rawParentID) {
+			if (!id) {
 				return head
 			}
 
@@ -74,7 +84,7 @@ export class ListManager {
 		// have provided an id. If they meant to refer to the root object
 		// it would have been caught in the size === 1 check above since
 		// root's ID is fixed
-		if (!id && !rawParentID) {
+		if (!id) {
 			console.error(
 				`Found multiple instances of "${listName}". Please provide one of @parentID, @listID, or @allLists directives to ` +
 					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `
@@ -87,7 +97,9 @@ export class ListManager {
 	}
 
 	remove(listName: string, id: string) {
-		this.lists.get(listName)?.delete(id || this.rootID)
+		const parentID = id || this.rootID
+		this.lists.get(listName)?.delete(parentID)
+		this.listsByOpaqueID.delete(`${listName}::${parentID}`)
 	}
 
 	add(list: {
@@ -136,6 +148,9 @@ export class ListManager {
 		// add the list to the collection
 		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
 		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
+
+		// register the opaque ID lookup (format matches what getSelection injects as __listID)
+		this.listsByOpaqueID.set(`${name}::${parentID}`, this.lists.get(name)!.get(parentID)!)
 	}
 
 	removeIDFromAllLists(id: string, layer?: Layer) {
@@ -162,6 +177,7 @@ export class ListManager {
 			this.lists.get(list.name)?.get(list.recordID)?.deleteListWithKey(field)
 			if (this.lists.get(list.name)?.get(list.recordID)?.lists.length === 0) {
 				this.lists.get(list.name)?.delete(list.recordID)
+				this.listsByOpaqueID.delete(`${list.name}::${list.recordID}`)
 			}
 		}
 
@@ -172,6 +188,7 @@ export class ListManager {
 	reset() {
 		this.lists.clear()
 		this.listsByField.clear()
+		this.listsByOpaqueID.clear()
 	}
 }
 
