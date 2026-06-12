@@ -155,13 +155,14 @@ export class DocumentStore<
 			// just use an empty object
 			const dedupeKey = this.controllerKey(variables)
 
-			// if there is already a pending request
-			if (inflightRequests[dedupeKey]) {
+			// if there is already a live pending request
+			const existingRequest = inflightRequests[dedupeKey]
+			if (existingRequest && !existingRequest.controller.signal.aborted) {
 				if (this.artifact.dedupe.cancel === 'first') {
 					// cancel the existing one
-					inflightRequests[dedupeKey].controller.abort()
+					existingRequest.controller.abort()
 					// and register the new one
-					inflightRequests[dedupeKey].controller = abortController
+					existingRequest.controller = abortController
 				}
 				// otherwise we have to abort this one
 				else {
@@ -235,14 +236,12 @@ export class DocumentStore<
 			this.#step('forward', state)
 		})
 
-		// fire off the chain
-		const response = await promise
-
-		// after the whole plugin chain, we need to clean up the in flight tracking
-		delete inflightRequests[this.controllerKey(variables)]
-
-		// we're done
-		return response
+		// fire off the chain — always clean up the inflight entry regardless of outcome
+		try {
+			return await promise
+		} finally {
+			delete inflightRequests[this.controllerKey(variables)]
+		}
 	}
 
 	async cleanup() {
