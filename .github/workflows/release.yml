@@ -3,9 +3,7 @@ name: Release
 # Trigger releases on pushes to release branches
 # Supports both regular releases and prereleases based on .changeset/pre.json
 on:
-    workflow_run:
-        workflows: ["CI Checks"]
-        types: [completed]
+    push:
         branches:
             - houdini-2.0
             - go
@@ -18,7 +16,6 @@ jobs:
     publish:
         name: Publish Release Version
         runs-on: ubuntu-22.04
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         environment: production  # requires manual approval before secrets are issued
         permissions:
           id-token: write
@@ -28,7 +25,7 @@ jobs:
             - name: Checkout source
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
               with:
-                  ref: ${{ github.event.workflow_run.head_sha }}
+                  ref: ${{ github.ref }}
 
             - name: Install Node.js
               uses: actions/setup-node@v4
