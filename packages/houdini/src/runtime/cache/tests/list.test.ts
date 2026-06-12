@@ -6074,7 +6074,12 @@ test('@includeListID attaches opaque key to plain list array', () => {
 					type: 'User',
 					visible: true,
 					keyRaw: 'friends',
-					list: { name: 'All_Users', connection: false, type: 'User', includeListID: true },
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+						includeListID: true,
+					},
 					selection: {
 						fields: {
 							id: { type: 'ID', visible: true, keyRaw: 'id' },
@@ -6122,7 +6127,11 @@ test('@includeListID attaches opaque key to connection object', () => {
 														nullable: true,
 														selection: {
 															fields: {
-																id: { type: 'ID', visible: true, keyRaw: 'id' },
+																id: {
+																	type: 'ID',
+																	visible: true,
+																	keyRaw: 'id',
+																},
 															},
 														},
 													},
@@ -6147,7 +6156,12 @@ test('@includeListID attaches opaque key to connection object', () => {
 					type: 'UserConnection',
 					visible: true,
 					keyRaw: 'friendsConnection',
-					list: { name: 'Friends_Conn', connection: true, type: 'User', includeListID: true },
+					list: {
+						name: 'Friends_Conn',
+						connection: true,
+						type: 'User',
+						includeListID: true,
+					},
 					selection: {
 						fields: {
 							edges: {
@@ -6162,7 +6176,9 @@ test('@includeListID attaches opaque key to connection object', () => {
 											keyRaw: 'node',
 											nullable: true,
 											selection: {
-												fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } },
+												fields: {
+													id: { type: 'ID', visible: true, keyRaw: 'id' },
+												},
 											},
 										},
 									},
@@ -6178,7 +6194,9 @@ test('@includeListID attaches opaque key to connection object', () => {
 
 	const parentKey = cache._internal_unstable.id('User', '1')
 	// the connection object (not an array) gets __listID
-	expect((result.data?.friendsConnection as any)?.__listID).toBe(opaqueListID(parentKey!, 'Friends_Conn'))
+	expect((result.data?.friendsConnection as any)?.__listID).toBe(
+		opaqueListID(parentKey!, 'Friends_Conn')
+	)
 })
 
 test('@includeListID generates distinct keys for two lists on the same parent', () => {
@@ -6198,13 +6216,17 @@ test('@includeListID generates distinct keys for two lists on the same parent', 
 								type: 'User',
 								visible: true,
 								keyRaw: 'friends',
-								selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+								selection: {
+									fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } },
+								},
 							},
 							followers: {
 								type: 'User',
 								visible: true,
 								keyRaw: 'followers',
-								selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
+								selection: {
+									fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } },
+								},
 							},
 						},
 					},
@@ -6221,14 +6243,24 @@ test('@includeListID generates distinct keys for two lists on the same parent', 
 					type: 'User',
 					visible: true,
 					keyRaw: 'friends',
-					list: { name: 'My_Friends', connection: false, type: 'User', includeListID: true },
+					list: {
+						name: 'My_Friends',
+						connection: false,
+						type: 'User',
+						includeListID: true,
+					},
 					selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
 				},
 				followers: {
 					type: 'User',
 					visible: true,
 					keyRaw: 'followers',
-					list: { name: 'My_Followers', connection: false, type: 'User', includeListID: true },
+					list: {
+						name: 'My_Followers',
+						connection: false,
+						type: 'User',
+						includeListID: true,
+					},
 					selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' } } },
 				},
 			},

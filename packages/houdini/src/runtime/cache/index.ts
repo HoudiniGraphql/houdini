@@ -910,7 +910,12 @@ class CacheInternal {
 					) {
 						const insertList = opaqueListID
 							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
-							: this.cache.list(operation.list, parentID, operation.target === 'all', processedOperations)
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
 						insertList
 							.when(operation.when)
 							.addToList(
@@ -931,16 +936,19 @@ class CacheInternal {
 					) {
 						const toggleList = opaqueListID
 							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
-							: this.cache.list(operation.list, parentID, operation.target === 'all', processedOperations)
-						toggleList
-							.when(operation.when)
-							.toggleElement({
-								selection: fieldSelection,
-								data: target,
-								variables,
-								where: operation.position || 'last',
-								layer,
-							})
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						toggleList.when(operation.when).toggleElement({
+							selection: fieldSelection,
+							data: target,
+							variables,
+							where: operation.position || 'last',
+							layer,
+						})
 					}
 
 					// remove object from list
@@ -952,10 +960,13 @@ class CacheInternal {
 					) {
 						const removeList = opaqueListID
 							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
-							: this.cache.list(operation.list, parentID, operation.target === 'all', processedOperations)
-						removeList
-							.when(operation.when)
-							.remove(target, variables, layer)
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						removeList.when(operation.when).remove(target, variables, layer)
 					}
 
 					// delete the target

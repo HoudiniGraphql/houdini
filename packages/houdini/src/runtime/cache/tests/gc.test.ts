@@ -440,5 +440,7 @@ test('ticks of gc clean up listsByOpaqueID', () => {
 		cache._internal_unstable.collectGarbage()
 	}
 
-	expect(cache._internal_unstable.lists.getByOpaqueID(opaqueListID('User:1', 'All_Users'))).toBeNull()
+	expect(
+		cache._internal_unstable.lists.getByOpaqueID(opaqueListID('User:1', 'All_Users'))
+	).toBeNull()
 })

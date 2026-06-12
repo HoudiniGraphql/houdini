@@ -45,7 +45,9 @@ export class ListManager {
 		const collection = this.listsByOpaqueID.get(opaqueID)
 		if (!collection) return null
 		if (skipMatches) {
-			return new ListCollection(collection.lists.filter((list) => !skipMatches.has(list.fieldRef)))
+			return new ListCollection(
+				collection.lists.filter((list) => !skipMatches.has(list.fieldRef))
+			)
 		}
 		return collection
 	}
@@ -69,9 +71,7 @@ export class ListManager {
 
 		// compute the internal ID from the record type and provided id
 		const { recordType } = head.lists[0]
-		const parentID = id
-			? this.cache._internal_unstable.id(recordType || '', id)!
-			: this.rootID
+		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
 
 		// if there is only one list with that name, return it
 		if (matches?.size === 1) {
