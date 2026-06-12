@@ -1032,7 +1032,6 @@ class CacheInternal {
 							{
 								parent,
 								variables: evaluateVariables(value.arguments, variables ?? {}),
-								epoch: this.cache.getEpoch(),
 							},
 						])
 				),

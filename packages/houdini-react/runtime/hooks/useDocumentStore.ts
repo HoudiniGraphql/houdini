@@ -9,6 +9,7 @@ import * as React from 'react'
 
 import { useClient } from '../routing/index.js'
 import { useIsMountedRef } from './useIsMounted.js'
+import { recycleNodesInto } from './recycleNodesInto.js'
 
 export type UseDocumentStoreParams<
 	_Artifact extends DocumentArtifact,
@@ -56,7 +57,27 @@ export function useDocumentStore<
 	const subscribe: any = React.useCallback(
 		(fn: () => void) => {
 			return observer.subscribe((val) => {
-				box.current = val
+				const prev = box.current
+				// Preserve object identity for unchanged subtrees so React.memo on
+				// fragment components can bail out when their data wasn't touched.
+				const stableData = recycleNodesInto(prev?.data, val.data)
+				const next =
+					stableData === val.data ? val : { ...val, data: stableData }
+
+				// Skip the re-render entirely if the new state is semantically identical
+				// to what React already has (e.g. an idempotent cache write).
+				if (
+					next === prev ||
+					(stableData === prev?.data &&
+						val.fetching === prev?.fetching &&
+						val.errors === prev?.errors &&
+						val.source === prev?.source &&
+						val.stale === prev?.stale)
+				) {
+					return
+				}
+
+				box.current = next
 				if (isMountedRef.current) {
 					fn()
 				}

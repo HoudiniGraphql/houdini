@@ -16,15 +16,14 @@ export function useFragment<
 	const { cache } = useRouterContext()
 
 	// get the fragment reference info
-	const { parent, variables, loading, epoch } = fragmentReference<_Data, _Input, _ReferenceType>(
+	const { parent, variables, loading } = fragmentReference<_Data, _Input, _ReferenceType>(
 		reference,
 		document
 	)
 
 	// Track the last parent we've fully committed to. While the parent has changed (new record,
 	// observer hasn't caught up yet) we return cachedValue; once effects fire and the observer
-	// is current we fall through to storeValue.data. Parent is the right signal here — epoch
-	// increments on every cache flush and would cause unnecessary extra cycles.
+	// is current we fall through to storeValue.data.
 	const [lastParent, setLastParent] = React.useState<string | undefined>(undefined)
 	const parentChanged = parent !== lastParent
 
@@ -88,11 +87,11 @@ export function useFragment<
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(
 	reference: _Data | { ' $fragments': _ReferenceType } | null,
 	document: { artifact: FragmentArtifact }
-): { variables: _Input; parent: string; loading: boolean; epoch: number } {
+): { variables: _Input; parent: string; loading: boolean } {
 	// @ts-expect-error: typescript can't guarantee that the fragment key is defined
 	// but if its not, then the fragment wasn't mixed into the right thing
 	// the variables for the fragment live on the initial value's $fragment key
-	const { variables, parent, epoch } = reference?.[fragmentKey]?.values?.[document.artifact.name] ?? {}
+	const { variables, parent } = reference?.[fragmentKey]?.values?.[document.artifact.name] ?? {}
 	if (reference && fragmentKey in reference && (!variables || !parent)) {
 		console.warn(
 			`⚠️ Parent does not contain the information for this fragment. Something is wrong.
@@ -102,5 +101,5 @@ Please ensure that you have passed a record that has ${document.artifact.name} m
 	// @ts-expect-error
 	const loading = Boolean(reference?.[fragmentKey]?.loading)
 
-	return { variables, parent, loading, epoch: epoch ?? 0 }
+	return { variables, parent, loading }
 }
