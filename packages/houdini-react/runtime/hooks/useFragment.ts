@@ -22,22 +22,24 @@ export function useFragment<
 		document
 	)
 
-	// if we got this far then we are safe to use the fields on the object
-	let cachedValue = reference as _Data | null
-
-	// on the client, we want to ensure that we apply masking to the initial value by
-	// loading the value from cache
-	if (reference && parent) {
-		cachedValue = cache.read({
-			selection: document.artifact.selection,
-			parent,
-			variables,
-			loading,
-		}).data as _Data
-	}
+	// Read from cache only when the parent (or loading state) changes — not on every render.
+	// For embedded records the parent path encodes the cursor, so it uniquely identifies
+	// which page's data we need; variables are passed through for non-embedded fragments.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: variables intentionally excluded (parent encodes effective key)
+	const cachedValue = React.useMemo(() => {
+		if (reference && parent) {
+			return cache.read({
+				selection: document.artifact.selection,
+				parent,
+				variables,
+				loading,
+			}).data as _Data
+		}
+		return reference as _Data | null
+	}, [parent, loading])
 
 	// we're ready to setup the live document
-	const [storeValue] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
+	const [storeValue, observer] = useDocumentSubscription<FragmentArtifact, _Data, _Input>({
 		artifact: document.artifact,
 		variables,
 		initialValue: cachedValue,
@@ -51,25 +53,45 @@ export function useFragment<
 		},
 	})
 
-	// the parent has changed, we need to use initialValue for this render
-	// if we don't, then there is a very brief flash where we will show the old data
-	// before the store has had a chance to update
+	// Relay's "handleMissedUpdates" pattern: the setup:true backward pass uses this.state
+	// which may be stale (old parent's data). Cache data for the new parent may also have
+	// been written before the subscription was established. This effect runs after
+	// useDocumentSubscription's effect (guaranteed by hook registration order) and corrects
+	// any stale observer state by reading from cache once for the new parent.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: cache and observer are stable; variables captured via closure
+	React.useEffect(() => {
+		if (!parent || loading) return
+		const result = cache.read({
+			selection: document.artifact.selection,
+			parent,
+			variables,
+			loading,
+		})
+		if (result.data !== null) {
+			observer.set({
+				data: result.data as _Data,
+				errors: null,
+				fetching: false,
+				partial: false,
+				stale: false,
+				source: null,
+				variables: variables ?? null,
+			})
+		}
+	}, [parent, loading])
+
+	// On a parent change, return cachedValue immediately so the component shows fresh data
+	// before the subscription catches up. Once the missed-updates effect above has fired and
+	// the observer reflects the new parent, storeValue.data is authoritative.
 	const lastReference = React.useRef<{ parent: string; variables: _Input } | null>(null)
 	return React.useMemo(() => {
-		// if the parent reference has changed we need to always prefer the cached value
-		const parentChange =
-			storeValue.parent !== parent ||
-			!deepEquals({ parent, variables }, lastReference.current)
+		const parentChange = !deepEquals({ parent, variables }, lastReference.current)
 		if (parentChange) {
-			// make sure we keep track of the last reference we used
 			lastReference.current = { parent, variables: { ...variables } }
-
-			// and use the cached value
 			return cachedValue
 		}
-
 		return storeValue.data
-	}, [variables, parent, storeValue.parent, storeValue.data, cachedValue])
+	}, [variables, parent, storeValue.data, cachedValue])
 }
 
 export function fragmentReference<_Data extends GraphQLObject, _Input, _ReferenceType extends {}>(

@@ -36,14 +36,16 @@ function isPrimitive(val: unknown) {
  */
 export function useDeepCompareMemoize<T>(value: T) {
 	const ref = React.useRef<T>(value)
-	const signalRef = React.useRef<number>(0)
 
 	if (!deepEquals(value, ref.current)) {
 		ref.current = value
-		signalRef.current += 1
 	}
 
-	return React.useMemo(() => ref.current, [])
+	// Return ref.current directly so React.useEffect sees a new reference only
+	// when the deep value actually changes — matching the original use-deep-compare-effect.
+	// The useMemo(() => ref.current, []) wrapper that was here previously was incorrect:
+	// it froze the returned value at mount time, preventing effects from ever re-firing.
+	return ref.current
 }
 
 function useDeepCompareEffect(
