@@ -1004,9 +1004,13 @@ func stringifyFieldSelection(
 	hasRequiredDirective := false
 	hasLoading := forceLoading
 	loadingCount := 3
+	includeListID := false
 
 	for _, directive := range selection.Directives {
 		switch directive.Name {
+		case graphql.IncludeListIDDirective:
+			includeListID = true
+			continue
 		case graphql.OptimisticKeyDirective:
 			optimisticKey = fmt.Sprintf(`
 %s"optimisticKey": true,`, indent4)
@@ -1208,12 +1212,17 @@ func stringifyFieldSelection(
 	list := ""
 	filters := ""
 	if selection.List != nil && selection.List.Name != "" {
+		includeListIDStr := ""
+		if includeListID {
+			includeListIDStr = fmt.Sprintf(`,
+%s"includeListID": true`, indent5)
+		}
 		// we need to record the list specification
 		list = fmt.Sprintf(`
 %s"list": {
 %s"name": "%s",
 %s"connection": %v,
-%s"type": "%s"
+%s"type": "%s"%s
 %s},`,
 			indent4,
 			indent5,
@@ -1222,6 +1231,7 @@ func stringifyFieldSelection(
 			selection.List.Connection,
 			indent5,
 			selection.List.Type,
+			includeListIDStr,
 			indent4,
 		)
 
@@ -1407,11 +1417,17 @@ func stringifyOperations(
 
 %s"parentID": %s`, indent5, operation.ParentID)
 		}
+		listID := ""
+		if operation.ListID != "" {
+			listID = fmt.Sprintf(`,
+
+%s"listID": %s`, indent5, operation.ListID)
+		}
 
 		fmt.Fprintf(&operationStringBuilder, `{
-%s"action": "%s"%s%s%s%s%s%s
+%s"action": "%s"%s%s%s%s%s%s%s
 %s},
-`, indent5, operation.Action, list, typ, position, target, when, parentID, indent4)
+`, indent5, operation.Action, list, typ, position, target, when, parentID, listID, indent4)
 
 	}
 	if operationStringBuilder.Len() > 0 {
@@ -1436,6 +1452,8 @@ func extractOperation(
 	when := ""
 	// along with a parentID specification
 	parentID := ""
+	// along with a listID specification (raw cache key, bypasses id(type,value) lookup)
+	listID := ""
 	for _, directive := range selection.Directives {
 		switch directive.Name {
 		// if we encounter a when directive
@@ -1475,6 +1493,9 @@ func extractOperation(
 			// parentID directive
 		case graphql.ParentIDDirective:
 			parentID = serializeFragmentArgument(directive.Arguments[0].Value, level-1)
+		// listID directive — raw cache key, bypasses the id(type, value) lookup
+		case graphql.ListIDDirective:
+			listID = serializeFragmentArgument(directive.Arguments[0].Value, level-1)
 		}
 	}
 
@@ -1492,6 +1513,7 @@ func extractOperation(
 					Action:   "delete",
 					When:     when,
 					ParentID: parentID,
+					ListID:   listID,
 				}
 			}
 		}
@@ -1552,6 +1574,7 @@ func extractOperation(
 			Target:   target,
 			When:     when,
 			ParentID: parentID,
+			ListID:   listID,
 		}
 	}
 
@@ -1566,6 +1589,7 @@ type CollectedOperation struct {
 	Type     string
 	When     string
 	ParentID string
+	ListID   string
 }
 
 func stripSuffix(s string, suffix string) string {

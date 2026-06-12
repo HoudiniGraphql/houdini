@@ -137,9 +137,10 @@ export class Cache {
 		name: string,
 		parentID?: string,
 		allLists?: boolean,
-		skipMatches?: Set<string>
+		skipMatches?: Set<string>,
+		rawParentID?: string
 	): ListCollection {
-		const handler = this._internal_unstable.lists.get(name, parentID, allLists, skipMatches)
+		const handler = this._internal_unstable.lists.get(name, parentID, allLists, skipMatches, rawParentID)
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
@@ -876,10 +877,24 @@ class CacheInternal {
 					}
 				}
 
+				// listID is an opaque cache key from __listID/@includeListID — use directly
+				let rawParentID: string | undefined
+				if (operation.listID) {
+					if (operation.listID.kind !== 'Variable') {
+						rawParentID = operation.listID.value
+					} else {
+						const id = variables[operation.listID.value]
+						if (typeof id !== 'string') {
+							throw new Error('listID value must be a string')
+						}
+						rawParentID = id
+					}
+				}
+
 				// if the necessary list doesn't exist, don't do anything
 				if (
 					operation.list &&
-					!this.lists.get(operation.list, parentID, operation.target === 'all')
+					!this.lists.get(operation.list, parentID, operation.target === 'all', undefined, rawParentID)
 				) {
 					continue
 				}
@@ -899,7 +914,8 @@ class CacheInternal {
 								operation.list,
 								parentID,
 								operation.target === 'all',
-								processedOperations
+								processedOperations,
+								rawParentID
 							)
 							.when(operation.when)
 							.addToList(
@@ -923,7 +939,8 @@ class CacheInternal {
 								operation.list,
 								parentID,
 								operation.target === 'all',
-								processedOperations
+								processedOperations,
+								rawParentID
 							)
 							.when(operation.when)
 							.toggleElement({
@@ -947,7 +964,8 @@ class CacheInternal {
 								operation.list,
 								parentID,
 								operation.target === 'all',
-								processedOperations
+								processedOperations,
+								rawParentID
 							)
 							.when(operation.when)
 							.remove(target, variables, layer)
@@ -975,7 +993,9 @@ class CacheInternal {
 					const matchingLists = this.cache.list(
 						operation.list,
 						parentID,
-						operation.target === 'all'
+						operation.target === 'all',
+						undefined,
+						rawParentID
 					)
 					for (const list of matchingLists.lists) {
 						processedOperations.add(list.fieldRef)
@@ -1271,6 +1291,12 @@ class CacheInternal {
 				if (objectFields.hasData) {
 					hasData = true
 				}
+			}
+
+			// if the list requested an opaque key, attach it to the hydrated value so the
+			// user can pass it to @listID on a mutation to target this specific list instance
+			if (list?.includeListID && fieldTarget[attributeName] != null) {
+				;(fieldTarget[attributeName] as any).__listID = parent
 			}
 
 			// if we are generating a loading value then we might need to wrap up the result

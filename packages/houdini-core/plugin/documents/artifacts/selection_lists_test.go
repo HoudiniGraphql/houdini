@@ -1917,6 +1917,101 @@ export type TestQuery$artifact = typeof artifact
 	})
 }
 
+func TestIncludeListID(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+      type Query {
+        users: [User!]!
+        usersByCursor(first: Int, last: Int, after: String, before: String): UserConnection!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+      }
+
+      type UserConnection {
+        edges: [UserEdge!]!
+        pageInfo: PageInfo!
+      }
+
+      type UserEdge {
+        node: User
+        cursor: String!
+      }
+
+      type PageInfo {
+        hasNextPage: Boolean!
+        hasPreviousPage: Boolean!
+        startCursor: String
+        endCursor: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+    `,
+		PerformTest: func(t *testing.T, p *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			performArtifactTest(t, p, test)
+
+			if !test.Pass {
+				return
+			}
+
+			projectConfig, err := p.DB.ProjectConfig(t.Context())
+			require.NoError(t, err)
+
+			artifactPath := projectConfig.ArtifactPath("TestQuery")
+			file, err := p.Fs.Open(artifactPath)
+			require.NoError(t, err)
+			content, err := afero.ReadAll(file)
+			require.NoError(t, err)
+
+			artifact := string(content)
+			require.True(t, strings.Contains(artifact, `"includeListID": true`),
+				"artifact should contain includeListID: true, got:\n%s", artifact)
+			require.False(t, strings.Contains(artifact, `includeListID`+"`"+` in raw query`),
+				"__listID should not appear in the raw query string")
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "non-connection list with @includeListID emits includeListID in artifact",
+				Pass: true,
+				Input: []string{`query TestQuery {
+  users @list(name: "All_Users") @includeListID {
+    id
+    name
+  }
+}`},
+			},
+			{
+				Name: "connection list with @paginate and @includeListID emits includeListID in artifact",
+				Pass: true,
+				Input: []string{`query TestQuery {
+  usersByCursor(first: 10) @paginate(name: "All_Users") @includeListID {
+    edges {
+      node {
+        id
+        name
+      }
+    }
+  }
+}`},
+			},
+			{
+				Name: "@includeListID without @list or @paginate fails validation",
+				Pass: false,
+				Input: []string{`query TestQuery {
+  users @includeListID {
+    id
+    name
+  }
+}`},
+			},
+		},
+	})
+}
+
 // TestPaginatePathWinsOverListPath verifies that when a document contains both a @paginate
 // field and a @list field, the refetch path points to the @paginate field.
 func TestPaginatePathWinsOverListPath(t *testing.T) {

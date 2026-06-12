@@ -87,6 +87,12 @@ directive @allLists on FRAGMENT_SPREAD
 """@parentID is used to provide a parentID without specifying position or in situations where it doesn't make sense (eg when deleting a node.)"""
 directive @parentID(value: ID!) on FRAGMENT_SPREAD
 
+"""@includeListID exposes an opaque __listID value on the list that can be passed to @listID on a mutation to target a specific list instance."""
+directive @includeListID on FIELD
+
+"""@listID is used to identify a list by the opaque key obtained from __listID (via @includeListID)."""
+directive @listID(value: ID!) on FRAGMENT_SPREAD
+
 """@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)"""
 directive @when on FRAGMENT_SPREAD
 
@@ -224,7 +230,7 @@ fragment theList_toggle on CustomIdType {
 				},
 				Extra: map[string]any{
 					"runGenerationTwice": true,
-					"directiveCount":     1,
+					"directiveCount":     2, // @list and @listID both match "directive @list"
 				},
 			},
 		},

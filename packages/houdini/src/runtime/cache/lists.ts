@@ -18,9 +18,9 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
+	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>, rawParentID?: string) {
 		// get the list collection
-		const lists = this.getLists(listName, id, allLists)
+		const lists = this.getLists(listName, id, allLists, rawParentID)
 		if (!lists) {
 			return null
 		}
@@ -33,7 +33,7 @@ export class ListManager {
 		}
 	}
 
-	getLists(listName: string, id?: string, allLists?: boolean) {
+	getLists(listName: string, id?: string, allLists?: boolean, rawParentID?: string) {
 		const matches = this.lists.get(listName)
 
 		// if we don't have a list by that name, we're done
@@ -50,15 +50,19 @@ export class ListManager {
 
 		const head = [...matches.values()][0]
 
-		// the provided id won't match the cache's ID so we have to compute the internal ID, using
-		// one of the matches to figure out the type of the list element
+		// rawParentID is already the full cache key (from __id field), use it directly.
+		// Otherwise compute the internal ID from the record type and provided id.
 		const { recordType } = head.lists[0]
-		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
+		const parentID = rawParentID
+			? rawParentID
+			: id
+				? this.cache._internal_unstable.id(recordType || '', id)!
+				: this.rootID
 
 		// if there is only one list with that name, return it
 		if (matches?.size === 1) {
 			// if there is no provided id, just use the first one
-			if (!id) {
+			if (!id && !rawParentID) {
 				return head
 			}
 
@@ -70,9 +74,9 @@ export class ListManager {
 		// have provided an id. If they meant to refer to the root object
 		// it would have been caught in the size === 1 check above since
 		// root's ID is fixed
-		if (!id) {
+		if (!id && !rawParentID) {
 			console.error(
-				`Found multiple instances of "${listName}". Please provide one of @parentID or @allLists directives to ` +
+				`Found multiple instances of "${listName}". Please provide one of @parentID, @listID, or @allLists directives to ` +
 					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `
 			)
 			return null

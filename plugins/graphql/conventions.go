@@ -20,6 +20,10 @@ const AllListsDirective = "allLists"
 
 const ParentIDDirective = "parentID"
 
+const IncludeListIDDirective = "includeListID"
+
+const ListIDDirective = "listID"
+
 const WhenDirective = "when"
 
 const WhenNotDirective = "when_not"

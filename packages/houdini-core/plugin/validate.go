@@ -49,6 +49,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		lists.DiscoverListsThenValidate,
 		lists.ValidateConflictingParentIDAllLists,
 		lists.ValidateConflictingPrependAppend,
+		lists.ValidateIncludeListID,
 		lists.ValidatePaginateTypeCondition,
 		lists.ValidateSinglePaginateDirective,
 		lists.ValidateParentID,
