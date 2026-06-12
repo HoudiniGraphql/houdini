@@ -140,6 +140,7 @@ export class DocumentStore<
 		stuff,
 		cacheParams,
 		setup = false,
+		initialState,
 		silenceEcho = false,
 		abortController = new AbortController(),
 	}: SendParams = {}) {
@@ -211,6 +212,7 @@ export class DocumentStore<
 			// the initial state of the iterator
 			const state: IteratorState = {
 				setup,
+				initialState,
 				currentStep: 0,
 				index: 0,
 				silenceEcho,
@@ -456,7 +458,7 @@ export class DocumentStore<
 						currentStep: 0,
 						index: this.#plugins.length,
 					},
-					this.state
+					ctx.initialState ?? this.state
 				)
 				return
 			}
@@ -667,6 +669,7 @@ type IteratorState = {
 	context: ClientPluginContextWrapper
 	index: number
 	setup: boolean
+	initialState?: unknown
 	currentStep: number
 	silenceEcho: boolean
 	promise: {
@@ -764,6 +767,9 @@ export type SendParams = {
 	stuff?: Partial<App.Stuff>
 	cacheParams?: ClientPluginContext['cacheParams']
 	setup?: boolean
+	// when setup:true, the backward pass normally uses this.state (which may carry stale data
+	// from a previous parent). Pass initialState to override it with the correct initial value.
+	initialState?: QueryResult
 	silenceEcho?: boolean
 	abortController?: AbortController
 }
