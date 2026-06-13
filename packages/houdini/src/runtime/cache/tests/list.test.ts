@@ -6914,7 +6914,7 @@ test('upsert list inserts when not present', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -6999,7 +6999,7 @@ test('upsert list does not duplicate when already present', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -7066,7 +7066,7 @@ test('upsert list updates record data when already present', () => {
 		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
 	})
 
-	const set = vi.fn()
+	const onMessage = vi.fn()
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -7082,7 +7082,7 @@ test('upsert list updates record data when already present', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set,
+			onMessage,
 		},
 		{}
 	)
@@ -7105,11 +7105,14 @@ test('upsert list updates record data when already present', () => {
 
 	// list unchanged, but subscriber was called with updated data
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
-	expect(set).toHaveBeenCalledWith(
+	expect(onMessage).toHaveBeenCalledWith(
 		expect.objectContaining({
-			friends: expect.arrayContaining([
-				expect.objectContaining({ firstName: 'Alice Updated' }),
-			]),
+			kind: 'update',
+			data: expect.objectContaining({
+				friends: expect.arrayContaining([
+					expect.objectContaining({ firstName: 'Alice Updated' }),
+				]),
+			}),
 		})
 	)
 })

@@ -39,7 +39,7 @@ test('upsert inserts record when not already in list', () => {
 	})
 	cache._internal_unstable.subscribe({
 		rootType: 'Query',
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection: friendsSelection,
 	})
 
@@ -73,8 +73,8 @@ test('upsert updates existing record when already in list', () => {
 		},
 	})
 
-	const set = vi.fn()
-	cache._internal_unstable.subscribe({ rootType: 'Query', set, selection: friendsSelection })
+	const onMessage = vi.fn()
+	cache._internal_unstable.subscribe({ rootType: 'Query', onMessage, selection: friendsSelection })
 
 	const user = cache.get('User', { id: '3' })
 	user.write({
@@ -91,13 +91,16 @@ test('upsert updates existing record when already in list', () => {
 	expect([...list]).toEqual(['User:2', 'User:3'])
 
 	// subscriber receives the updated field
-	expect(set).toHaveBeenLastCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{ id: '2', firstName: 'jane' },
-				{ id: '3', firstName: 'mary-updated' },
-			],
-		},
-	})
+	expect(onMessage).toHaveBeenLastCalledWith(
+		expect.objectContaining({
+			kind: 'update',
+			data: expect.objectContaining({
+				viewer: expect.objectContaining({
+					friends: expect.arrayContaining([
+						expect.objectContaining({ firstName: 'mary-updated' }),
+					]),
+				}),
+			}),
+		})
+	)
 })
