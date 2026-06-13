@@ -6666,3 +6666,192 @@ test('@listID operation inserts into the correct list via opaque key', () => {
 
 	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
 })
+test('writing the same data with connections should not cause additional links to be inserted', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			user: {
+				keyRaw: 'user(id: $id, snapshot: "testing")',
+				type: 'User',
+				visible: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'ID',
+							visible: true,
+						},
+						friendsConnection: {
+							keyRaw: 'friendsConnection',
+							type: 'UserConnection',
+							visible: true,
+							selection: {
+								fields: {
+									edges: {
+										keyRaw: 'edges',
+										type: 'UserEdge',
+										visible: true,
+										selection: {
+											fields: {
+												node: {
+													keyRaw: 'node',
+													nullable: true,
+													type: 'User',
+													visible: true,
+													selection: {
+														fields: {
+															id: {
+																keyRaw: 'id',
+																type: 'ID',
+																visible: true,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [
+						{ node: { id: '1' } },
+						{ node: { id: '2' } },
+						{ node: { id: '3' } },
+						{ node: { id: '4' } },
+					],
+				},
+			},
+		},
+	})
+
+	const pre = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	// We'll write the same selection again. This shouldn't affect the amount of links stored in the cache.
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [
+						{ node: { id: '1' } },
+						{ node: { id: '2' } },
+						{ node: { id: '3' } },
+						{ node: { id: '4' } },
+					],
+				},
+			},
+		},
+	})
+
+	const post = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	expect(post).toBe(pre)
+})
+
+test('shrinking a connection cleans up the orphaned edge records', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			user: {
+				keyRaw: 'user(id: $id, snapshot: "testing")',
+				type: 'User',
+				visible: true,
+				selection: {
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'ID',
+							visible: true,
+						},
+						friendsConnection: {
+							keyRaw: 'friendsConnection',
+							type: 'UserConnection',
+							visible: true,
+							selection: {
+								fields: {
+									edges: {
+										keyRaw: 'edges',
+										type: 'UserEdge',
+										visible: true,
+										selection: {
+											fields: {
+												node: {
+													keyRaw: 'node',
+													nullable: true,
+													type: 'User',
+													visible: true,
+													selection: {
+														fields: {
+															id: {
+																keyRaw: 'id',
+																type: 'ID',
+																visible: true,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off with a connection holding 4 edges
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [
+						{ node: { id: '1' } },
+						{ node: { id: '2' } },
+						{ node: { id: '3' } },
+						{ node: { id: '4' } },
+					],
+				},
+			},
+		},
+	})
+
+	const pre = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	// write the same connection with only 2 edges. the records for the 2 lost
+	// edges should be cleaned up
+	cache.write({
+		selection,
+		data: {
+			user: {
+				friendsConnection: {
+					edges: [{ node: { id: '1' } }, { node: { id: '2' } }],
+				},
+			},
+		},
+	})
+
+	const post = Object.keys(cache._internal_unstable.storage.data[0].links).length
+
+	expect(post).toBe(pre - 2)
+})

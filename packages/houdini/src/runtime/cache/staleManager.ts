@@ -99,6 +99,11 @@ export class StaleManager {
 		}
 	}
 
+	// remove every entry associated with a record
+	deleteRecord(id: string) {
+		this.fieldsTime.delete(id)
+	}
+
 	// clean up the stale manager
 	delete(id: string, field: string) {
 		if (this.fieldsTime.has(id)) {

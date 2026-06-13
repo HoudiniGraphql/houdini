@@ -18,6 +18,10 @@ export class GarbageCollector {
 		this.lifetimes.clear()
 	}
 
+	delete(id: string) {
+		this.lifetimes.delete(id)
+	}
+
 	resetLifetime(id: string, field: string) {
 		// if this is the first time we've seen the id
 		if (!this.lifetimes.get(id)) {
