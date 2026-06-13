@@ -533,6 +533,58 @@ export class Layer {
 				}
 			}
 
+			// Each mutation writes to an optimistic layer that gets resolved (merged) into
+			// the base layer here. If a toggle fires twice — insert in M1, remove in M2 —
+			// both operations end up in the base after their layers resolve. A third mutation
+			// (insert again) would then be cancelled by the stale remove from M2, so the
+			// list appears stuck. We fix this by compacting the merged operation list:
+			// for each ID, compute the net count (inserts minus removes) and keep only that
+			// many operations, favouring the newest ones (layer's ops come first in the array).
+			for (const [fieldName, ops] of Object.entries(fields)) {
+				// count how many times each ID is inserted and removed across both layers
+				const insertCount = new Map<string, number>()
+				const removeCount = new Map<string, number>()
+				for (const op of ops) {
+					if (isInsertOperation(op)) insertCount.set(op.id, (insertCount.get(op.id) ?? 0) + 1)
+					else if (isRemoveOperation(op)) removeCount.set(op.id, (removeCount.get(op.id) ?? 0) + 1)
+				}
+
+				// net > 0 means the ID should end up inserted that many more times than removed,
+				// net < 0 means it should end up removed that many more times than inserted,
+				// net = 0 means the operations cancel completely and nothing should be stored
+				const net = new Map<string, number>()
+				for (const [id, n] of insertCount) net.set(id, n)
+				for (const [id, n] of removeCount) net.set(id, (net.get(id) ?? 0) - n)
+
+				// walk the ops array (newest first) and keep only as many inserts/removes
+				// as the net dictates, discarding the excess older ones
+				const keptInserts = new Map<string, number>()
+				const keptRemoves = new Map<string, number>()
+				fields[fieldName] = ops.filter((op) => {
+					if (isInsertOperation(op)) {
+						const n = net.get(op.id) ?? 0
+						// net is zero or negative — no inserts survive
+						if (n <= 0) return false
+						const kept = keptInserts.get(op.id) ?? 0
+						// already kept enough newer inserts
+						if (kept >= n) return false
+						keptInserts.set(op.id, kept + 1)
+						return true
+					}
+					if (isRemoveOperation(op)) {
+						const n = net.get(op.id) ?? 0
+						// net is zero or positive — no removes survive
+						if (n >= 0) return false
+						const kept = keptRemoves.get(op.id) ?? 0
+						// already kept enough newer removes
+						if (kept >= -n) return false
+						keptRemoves.set(op.id, kept + 1)
+						return true
+					}
+					return true
+				})
+			}
+
 			// only copy a field key if there is something
 			if (Object.keys(fields).length > 0) {
 				this.operations[id] = {

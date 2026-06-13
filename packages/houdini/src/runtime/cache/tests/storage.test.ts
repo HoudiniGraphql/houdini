@@ -544,5 +544,107 @@ describe('in memory layers', () => {
 		)
 
 		test.todo('an optimistic layer after a stack non-optimistic survives resolution')
+
+		test('resolving insert then remove cancels both operations', () => {
+			const storage = new InMemoryStorage()
+
+			// base list starts empty
+			const baseID = storage.writeLink('User:1', 'friends', [])
+
+			// first mutation: insert User:3 via optimistic layer
+			const layer1 = storage.createLayer(true)
+			layer1.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			storage.resolveLayer(layer1.id)
+
+			// after resolving, User:3 should be in the list
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3'],
+				displayLayers: [baseID],
+				kind: 'link',
+			})
+
+			// second mutation: remove User:3 via optimistic layer
+			const layer2 = storage.createLayer(true)
+			layer2.remove('User:1', 'friends', 'User:3')
+			storage.resolveLayer(layer2.id)
+
+			// after resolving, list should be empty — the insert and remove cancel out
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: [],
+				displayLayers: [baseID],
+				kind: 'link',
+			})
+		})
+
+		test('re-inserting after an insert+remove cycle works correctly', () => {
+			const storage = new InMemoryStorage()
+
+			// base list starts empty
+			const baseID = storage.writeLink('User:1', 'friends', [])
+
+			// cycle 1: insert then remove
+			const layer1 = storage.createLayer(true)
+			layer1.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			storage.resolveLayer(layer1.id)
+
+			const layer2 = storage.createLayer(true)
+			layer2.remove('User:1', 'friends', 'User:3')
+			storage.resolveLayer(layer2.id)
+
+			// list is empty after cycle 1
+			expect(storage.get('User:1', 'friends').value).toEqual([])
+
+			// cycle 2: insert again — must not be cancelled by the old remove
+			const layer3 = storage.createLayer(true)
+			layer3.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			storage.resolveLayer(layer3.id)
+
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3'],
+				displayLayers: [baseID],
+				kind: 'link',
+			})
+
+			// cycle 3: remove again
+			const layer4 = storage.createLayer(true)
+			layer4.remove('User:1', 'friends', 'User:3')
+			storage.resolveLayer(layer4.id)
+
+			expect(storage.get('User:1', 'friends').value).toEqual([])
+
+			// cycle 4: insert once more for good measure
+			const layer5 = storage.createLayer(true)
+			layer5.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			storage.resolveLayer(layer5.id)
+
+			expect(storage.get('User:1', 'friends')).toEqual({
+				value: ['User:3'],
+				displayLayers: [baseID],
+				kind: 'link',
+			})
+		})
+
+		test('net operations are preserved when counts differ', () => {
+			const storage = new InMemoryStorage()
+
+			storage.writeLink('User:1', 'friends', [])
+
+			// insert User:3 twice, remove once — net: one insert should survive
+			const layer1 = storage.createLayer(true)
+			layer1.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			storage.resolveLayer(layer1.id)
+
+			const layer2 = storage.createLayer(true)
+			layer2.insert('User:1', 'friends', OperationLocation.end, 'User:3')
+			storage.resolveLayer(layer2.id)
+
+			const layer3 = storage.createLayer(true)
+			layer3.remove('User:1', 'friends', 'User:3')
+			storage.resolveLayer(layer3.id)
+
+			// one insert and one remove cancel; the second insert remains
+			const result = storage.get('User:1', 'friends')
+			expect(result.value).toEqual(['User:3'])
+		})
 	})
 })
