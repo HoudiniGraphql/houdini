@@ -279,7 +279,7 @@ export type FetchQueryResult<_Data> = {
 export type GraphQLError = {
 	message: string
 	locations?: readonly { line: number; column: number }[]
-	path?: (string | number)[]
+	path?: readonly (string | number)[]
 	extensions?: App.GraphQLErrorExtensions
 }
 
