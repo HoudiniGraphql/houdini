@@ -42,6 +42,12 @@ func validArgumentValue(value argumentValueCheck) bool {
 		return true
 	}
 
+	// @when/@when_not arguments match against list filters, not schema types —
+	// there is nothing to validate them against
+	if value.ExpectedType == whenPassthroughType {
+		return true
+	}
+
 	switch value.Kind {
 	case "Variable":
 		// undefined variables are reported by ValidateUndefinedVariables

@@ -1,6 +1,12 @@
 import { flatten } from '../flatten.js'
 import { getFieldsForType } from '../selection.js'
-import type { GraphQLValue, SubscriptionSelection, SubscriptionSpec, NestedList } from '../types.js'
+import type {
+	GraphQLValue,
+	ListFilter,
+	SubscriptionSelection,
+	SubscriptionSpec,
+	NestedList,
+} from '../types.js'
 import type { Cache } from './index.js'
 import { evaluateKey, rootID } from './stuff.js'
 
@@ -192,7 +198,7 @@ export class InMemorySubscriptions {
 		// add this version of the key if we need to
 		this.keyVersions[key].add(key)
 
-		if (!selections.some(([{ onMessage }]) => onMessage === spec.onMessage)) {
+		if (!referenceCounts.has(spec.onMessage)) {
 			selections.push([spec, selection[1]])
 		}
 
@@ -230,10 +236,10 @@ export class InMemorySubscriptions {
 			listType: list.type,
 			key,
 			selection: selection,
-			filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
+			filters: Object.entries(filters || {}).reduce((acc, [key, filter]) => {
 				return {
 					...acc,
-					[key]: kind !== 'Variable' ? value : variables[value as string],
+					[key]: filterValue(filter, variables),
 				}
 			}, {}),
 		})
@@ -412,9 +418,12 @@ export class InMemorySubscriptions {
 			this.subscribers.delete(id)
 		}
 
-		// Get list of all SubscriptionSpecs of subscribers
+		// Get list of all SubscriptionSpecs of subscribers (including masked parents so
+		// that documents holding records only behind fragment boundaries are also notified)
 		const subscriptionSpecs = subscribers.flatMap(([_id, fields]) =>
-			[...fields.values()].flatMap((field) => field.selections.map(([spec]) => spec))
+			[...fields.values()].flatMap((field) =>
+				field.selections.concat(field.maskedParentSelections).map(([spec]) => spec)
+			)
 		)
 
 		return subscriptionSpecs
@@ -588,4 +597,21 @@ export class InMemorySubscriptions {
 
 		return selections
 	}
+}
+
+// resolve a list filter to its concrete value, looking up variables
+// (including ones nested inside object and list values)
+export function filterValue(filter: ListFilter, variables: Record<string, any>): any {
+	if (filter.kind === 'Variable') {
+		return variables[filter.value as string]
+	}
+	if (filter.kind === 'Object') {
+		return Object.fromEntries(
+			Object.entries(filter.value).map(([key, value]) => [key, filterValue(value, variables)])
+		)
+	}
+	if (filter.kind === 'List') {
+		return filter.value.map((value) => filterValue(value, variables))
+	}
+	return filter.value
 }

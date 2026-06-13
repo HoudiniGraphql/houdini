@@ -2497,6 +2497,137 @@ test('list filter - must negative', () => {
 	expect(set).not.toHaveBeenCalled()
 })
 
+test('list filter - object value with nested variable', () => {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+							},
+							filters: {
+								filter: {
+									kind: 'Object',
+									value: {
+										name: {
+											kind: 'Variable',
+											value: 'value',
+										},
+									},
+								},
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+									firstName: {
+										type: 'String',
+										visible: true,
+										keyRaw: 'firstName',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		variables: { value: 'bar' },
+	})
+
+	// a function to spy on that will play the role of set
+	const set = vi.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			onMessage: (msg) => {
+				if (msg.kind === 'update') set(msg.data)
+			},
+			selection,
+		},
+		{ value: 'bar' }
+	)
+
+	const insert = (id: string, name: string) =>
+		cache
+			.list('All_Users')
+			.when({ must: { filter: { name } } })
+			.prepend({
+				selection: {
+					fields: {
+						id: { visible: true, type: 'ID', keyRaw: 'id' },
+						firstName: { visible: true, type: 'String', keyRaw: 'firstName' },
+					},
+				},
+				data: {
+					id,
+					firstName: 'mary',
+				},
+			})
+
+	// a when condition that matches the resolved object filter applies
+	insert('3', 'bar')
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+
+	// one that doesn't match is skipped
+	set.mockClear()
+	insert('4', 'not-bar')
+	expect(set).not.toHaveBeenCalled()
+})
+
 test('remove from list', () => {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -3341,7 +3472,10 @@ test('append when operation', () => {
 							list: 'All_Users',
 							when: {
 								must: {
-									value: 'not-foo',
+									value: {
+										kind: 'String',
+										value: 'not-foo',
+									},
 								},
 							},
 						},
@@ -3367,6 +3501,127 @@ test('append when operation', () => {
 
 	// make sure we just added to the list
 	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
+})
+
+test('when operation with variable condition', () => {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: {
+								type: 'ID',
+								visible: true,
+								keyRaw: 'id',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						filters: {
+							value: {
+								kind: 'String',
+								value: 'foo',
+							},
+						},
+						selection: {
+							fields: {
+								id: {
+									type: 'ID',
+									visible: true,
+									keyRaw: 'id',
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			onMessage: vi.fn(),
+		},
+		{}
+	)
+
+	// the selection for a mutation whose when condition points to a variable
+	const mutationSelection: SubscriptionSelection = {
+		fields: {
+			newUser: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						list: 'All_Users',
+						when: {
+							must: {
+								value: {
+									kind: 'Variable',
+									value: 'target',
+								},
+							},
+						},
+					},
+				],
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// a write whose variable doesn't match the list's filters gets skipped
+	cache.write({
+		selection: mutationSelection,
+		data: { newUser: { id: '3' } },
+		variables: { target: 'not-foo' },
+	})
+	expect([...cache.list('All_Users', '1')]).toHaveLength(0)
+
+	// one whose variable matches the filter applies
+	cache.write({
+		selection: mutationSelection,
+		data: { newUser: { id: '3' } },
+		variables: { target: 'foo' },
+	})
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
 })
 
 test('prepend when operation', () => {
@@ -3460,7 +3715,10 @@ test('prepend when operation', () => {
 							position: 'first',
 							when: {
 								must: {
-									value: 'not-foo',
+									value: {
+										kind: 'String',
+										value: 'not-foo',
+									},
 								},
 							},
 						},

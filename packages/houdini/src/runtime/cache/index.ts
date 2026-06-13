@@ -9,6 +9,9 @@ import { PendingValue } from '../types.js'
 import type {
 	GraphQLObject,
 	GraphQLValue,
+	ListFilter,
+	ListWhen,
+	MutationOperation,
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
@@ -23,7 +26,7 @@ import { StaleManager } from './staleManager.js'
 import type { Layer, LayerID } from './storage.js'
 import { InMemoryStorage } from './storage.js'
 import { evaluateKey, rootID } from './stuff.js'
-import { InMemorySubscriptions, type FieldSelection } from './subscription.js'
+import { filterValue, InMemorySubscriptions, type FieldSelection } from './subscription.js'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -207,13 +210,13 @@ export class Cache {
 
 		// a document can be subscribed to multiple fields of the record so make
 		// sure we only send the message once per set
-		const notified: SubscriptionSpec['onMessage'][] = []
+		const notified = new Set<SubscriptionSpec['onMessage']>()
 		for (const recordID of recordIDs) {
 			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
 				includeMaskedParents: true,
 			})) {
-				if (!notified.includes(spec.onMessage)) {
-					notified.push(spec.onMessage)
+				if (!notified.has(spec.onMessage)) {
+					notified.add(spec.onMessage)
 					spec.onMessage({ kind: 'refetch' })
 				}
 			}
@@ -374,11 +377,11 @@ export class Cache {
 		this._internal_unstable.epoch++
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
-		const notified: SubscriptionSpec['onMessage'][] = []
+		const notified = new Set<SubscriptionSpec['onMessage']>()
 		for (const spec of subs) {
 			// if we haven't added the set yet
-			if (!notified.includes(spec.onMessage)) {
-				notified.push(spec.onMessage)
+			if (!notified.has(spec.onMessage)) {
+				notified.add(spec.onMessage)
 				// trigger the update
 				spec.onMessage({
 					kind: 'update',
@@ -966,7 +969,7 @@ class CacheInternal {
 									processedOperations
 								)
 						insertList
-							.when(operation.when)
+							.when(resolveWhen(operation.when, variables))
 							.addToList(
 								fieldSelection,
 								target,
@@ -991,7 +994,7 @@ class CacheInternal {
 									operation.target === 'all',
 									processedOperations
 								)
-						toggleList.when(operation.when).toggleElement({
+						toggleList.when(resolveWhen(operation.when, variables)).toggleElement({
 							selection: fieldSelection,
 							data: target,
 							variables,
@@ -1015,7 +1018,9 @@ class CacheInternal {
 									operation.target === 'all',
 									processedOperations
 								)
-						removeList.when(operation.when).remove(target, variables, layer)
+						removeList
+							.when(resolveWhen(operation.when, variables))
+							.remove(target, variables, layer)
 					}
 
 					// delete the target
@@ -1689,6 +1694,27 @@ export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLVal
 			}),
 			{}
 		)
+	}
+}
+
+// resolve the variable references inside of an operation's when conditions
+// so they can be compared against the list's filters
+function resolveWhen(
+	when: MutationOperation['when'],
+	variables: Record<string, GraphQLValue>
+): ListWhen | undefined {
+	if (!when) {
+		return undefined
+	}
+
+	const resolve = (conditions: Record<string, ListFilter>) =>
+		Object.fromEntries(
+			Object.entries(conditions).map(([key, value]) => [key, filterValue(value, variables)])
+		)
+
+	return {
+		...(when.must ? { must: resolve(when.must) } : {}),
+		...(when.must_not ? { must_not: resolve(when.must_not) } : {}),
 	}
 }
 

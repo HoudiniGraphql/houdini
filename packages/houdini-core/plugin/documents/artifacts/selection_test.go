@@ -1323,6 +1323,7 @@ export type Friends$artifact = typeof artifact
               boolValue: true,
               floatValue: 1.2,
               intValue: 1,
+              filter: { name: $value }
             ) @list(name: "All_Users") {
               firstName
             }
@@ -1332,7 +1333,7 @@ export type Friends$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
+    "hash": "cf9a1b37522817318bc0893e797a289dc9ff66bee13544171839bd1b685ad514",
 
     "refetch": {
         "path": ["users"],
@@ -1346,7 +1347,7 @@ export type Friends$artifact = typeof artifact
     },
 
     "raw": ` + "`" + `query TestQuery($value: String!) {
-    users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value) {
+    users(boolValue: true, filter: {name: $value}, floatValue: 1.2, intValue: 1, stringValue: $value) {
         firstName
         __typename
         id
@@ -1361,7 +1362,7 @@ export type Friends$artifact = typeof artifact
         "fields": {
             "users": {
                 "type": "User",
-                "keyRaw": "users(boolValue: true, floatValue: 1.2, intValue: 1, stringValue: $value)",
+                "keyRaw": "users(boolValue: true, filter: {name: $value}, floatValue: 1.2, intValue: 1, stringValue: $value)",
 
                 "directives": [{
                     "name": "list",
@@ -1403,6 +1404,15 @@ export type Friends$artifact = typeof artifact
                     "boolValue": {
                         "kind": "Boolean",
                         "value": true
+                    },
+                    "filter": {
+                        "kind": "Object",
+                        "value": {
+                            "name": {
+                                "kind": "Variable",
+                                "value": "value"
+                            }
+                        }
                     },
                     "floatValue": {
                         "kind": "Float",
@@ -1459,7 +1469,7 @@ export type TestQuery$input = {
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"`),
+"HoudiniHash=cf9a1b37522817318bc0893e797a289dc9ff66bee13544171839bd1b685ad514"`),
 				},
 			},
 			{

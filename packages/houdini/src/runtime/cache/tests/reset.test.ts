@@ -135,6 +135,52 @@ test('make sure the cache lists were reset', () => {
 	expect(() => cache.list('All_Users')).toThrowError('Cannot find list with name')
 })
 
+test('cache.reset notifies documents holding records only behind masked boundaries', () => {
+	const cache = new Cache(config)
+
+	// viewer is visible but everything on the user is masked (simulates a fragment spread)
+	const maskedSelection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection: maskedSelection,
+		data: { viewer: { id: '1', firstName: 'bob' } },
+	})
+
+	const onMessage = vi.fn()
+	cache.subscribe({ rootType: 'Query', selection: maskedSelection, onMessage })
+
+	// a masked-field write must NOT notify the subscriber
+	cache.write({
+		selection: maskedSelection,
+		data: { viewer: { id: '1', firstName: 'alice' } },
+	})
+	expect(onMessage).not.toHaveBeenCalled()
+
+	// reset MUST notify the subscriber even though its fields are masked
+	cache.reset()
+	expect(onMessage).toHaveBeenCalledTimes(1)
+})
+
 test('make sure the cache subscribers were reset', () => {
 	const cache = new Cache(config)
 

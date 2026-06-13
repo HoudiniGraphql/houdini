@@ -1237,15 +1237,8 @@ func stringifyFieldSelection(
 
 		// we also need to record which filters are currently being applied to the list field
 		for _, arg := range selection.Arguments {
-			value := stringifyValue(arg.Value, map[string]bool{})
-			if arg.Value.Kind == "Variable" {
-				value = `"` + arg.Value.Raw + `"`
-			}
 			filters += fmt.Sprintf(`
-%s"%s": {
-%s"kind": "%s",
-%s"value": %s
-%s},`, indent5, arg.Name, indent6, arg.Value.Kind, indent6, value, indent5)
+%s"%s": %s,`, indent5, arg.Name, serializeListFilter(arg.Value, level+4))
 		}
 
 		if filters != "" {
@@ -1466,7 +1459,7 @@ func extractOperation(
 %s"%s": %s,`,
 					indent2,
 					arg.Name,
-					stringifyValue(arg.Value, map[string]bool{}),
+					serializeListFilter(arg.Value, level+1),
 				)
 			}
 			when += fmt.Sprintf(`
@@ -1483,7 +1476,7 @@ func extractOperation(
 %s"%s": %s,`,
 					indent2,
 					arg.Name,
-					stringifyValue(arg.Value, map[string]bool{}),
+					serializeListFilter(arg.Value, level+1),
 				)
 			}
 			when += fmt.Sprintf(`
@@ -1597,6 +1590,52 @@ func stripSuffix(s string, suffix string) string {
 		return s[:i]
 	}
 	return s
+}
+
+// serializeListFilter generates the {kind, value} entry for an argument applied
+// to a @list field. object and list values nest their children as filter entries
+// so that variable references stay structured instead of being printed as raw
+// graphql text (which isn't valid javascript)
+func serializeListFilter(value *collected.ArgumentValue, level int) string {
+	indent0 := strings.Repeat(spacing, level)
+	indent1 := strings.Repeat(spacing, level+1)
+
+	serialized := ""
+	switch value.Kind {
+	case "Variable":
+		serialized = fmt.Sprintf("%q", value.Raw)
+	case "Object":
+		indent2 := strings.Repeat(spacing, level+2)
+		fields := ""
+		for i, child := range value.Children {
+			if i > 0 {
+				fields += ","
+			}
+			fields += fmt.Sprintf(
+				"\n%s%q: %s",
+				indent2,
+				child.Name,
+				serializeListFilter(child.Value, level+2),
+			)
+		}
+		serialized = fmt.Sprintf("{%s\n%s}", fields, indent1)
+	case "List":
+		values := ""
+		for i, child := range value.Children {
+			if i > 0 {
+				values += ", "
+			}
+			values += serializeListFilter(child.Value, level+1)
+		}
+		serialized = "[" + values + "]"
+	default:
+		serialized = stringifyValue(value, map[string]bool{})
+	}
+
+	return fmt.Sprintf(`{
+%s"kind": "%s",
+%s"value": %s
+%s}`, indent1, value.Kind, indent1, serialized, indent0)
 }
 
 func serializeFragmentArgument(arg *collected.ArgumentValue, level int) string {

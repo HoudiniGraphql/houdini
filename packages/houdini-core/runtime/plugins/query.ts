@@ -12,6 +12,11 @@ export const query = (cache: Cache) =>
 		// remember the last variables we were called with
 		let lastVariables: Record<string, any> | null = null
 
+		// track the most recent session so that refetch requests triggered by
+		// record.refresh() use the current auth token, not the one from when the
+		// subscription was first created
+		let lastSession: App.Session | null | undefined = null
+
 		// the function to call when a query is sent
 		return {
 			start(ctx, { next }) {
@@ -46,6 +51,10 @@ export const query = (cache: Cache) =>
 			// patch subscriptions on the way out so that we don't get a cache update
 			// before the promise resolves
 			end(ctx, { resolve, marshalVariables, variablesChanged }) {
+				// always keep the session current so that a later record.refresh() call
+				// uses the auth token from the most recent send(), not from subscription time
+				lastSession = ctx.session
+
 				// if the variables have changed we need to setup a new subscription with the cache
 				if (variablesChanged(ctx) && !ctx.cacheParams?.disableSubscriptions) {
 					// if the variables changed we need to unsubscribe from the old fields and
@@ -69,7 +78,7 @@ export const query = (cache: Cache) =>
 							if (message.kind === 'refetch') {
 								ctx.documentStore.send({
 									policy: CachePolicy.NetworkOnly,
-									session: ctx.session,
+									session: lastSession,
 									metadata: ctx.metadata,
 								})
 								return
