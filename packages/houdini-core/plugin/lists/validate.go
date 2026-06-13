@@ -81,13 +81,12 @@ func ValidateIncludeListID(
 	  JOIN selection_refs ON selection_refs.child_id = sd.selection_id
 	  JOIN documents ON documents.id = selection_refs.document
 	  JOIN raw_documents ON raw_documents.id = documents.raw_document
+	  LEFT JOIN selection_directives sd2
+	    ON sd2.selection_id = sd.selection_id
+	    AND sd2.directive IN ($list, $paginate)
 	WHERE sd.directive = $includeListID
 	  AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
-	  AND NOT EXISTS (
-	    SELECT 1 FROM selection_directives sd2
-	    WHERE sd2.selection_id = sd.selection_id
-	      AND sd2.directive IN ($list, $paginate)
-	  )
+	  AND sd2.selection_id IS NULL
 	`
 	bindings := map[string]any{
 		"includeListID": graphql.IncludeListIDDirective,
