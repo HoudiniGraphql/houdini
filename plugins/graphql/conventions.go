@@ -38,6 +38,10 @@ const LoadingDirective = "loading"
 
 const RequiredDirective = "required"
 
+const IncludeDirective = "include"
+
+const SkipDirective = "skip"
+
 const ComponentFieldDirective = "componentField"
 
 const RuntimeScalarDirective = "__houdini__runtimeScalar"

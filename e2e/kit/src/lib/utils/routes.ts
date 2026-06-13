@@ -11,6 +11,7 @@ export const routes = {
 	abstractFragments: '/abstract-fragments',
 	abstractFragments_nestedConnection: '/abstract-fragments/nested-connection',
 	fragment_masking_partial: '/fragment-masking-partial',
+	conditional_fragment_spread: '/conditional-fragment-spread',
 	loading_state: '/loading-state',
 	required_field: '/required-field',
 

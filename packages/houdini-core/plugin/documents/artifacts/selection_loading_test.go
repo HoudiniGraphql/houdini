@@ -191,25 +191,21 @@ query MonkeyListQuery {
                                                 "id": {
                                                     "type": "ID",
                                                     "keyRaw": "id",
-                                                    "visible": true,
                                                 },
 
                                                 "name": {
                                                     "type": "String",
                                                     "keyRaw": "name",
-                                                    "visible": true,
                                                 },
                                             },
                                         },
 
                                         "abstract": true,
-                                        "visible": true,
                                     },
                                 },
                             },
 
                             "abstract": true,
-                            "visible": true,
                         },
 
                         "pageInfo": {
@@ -820,7 +816,6 @@ query Query {
                                     "loading": {
                                         "kind": "value",
                                     },
-                                    "visible": true,
                                 },
                                 "id": {
                                     "type": "ID",
