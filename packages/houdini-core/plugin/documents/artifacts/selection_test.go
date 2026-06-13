@@ -300,7 +300,6 @@ query TestQuery {
                         "firstName": {
                             "type": "String",
                             "keyRaw": "firstName",
-                            "visible": true,
                         },
 
                         "id": {
@@ -813,12 +812,10 @@ query TestQuery {
                                             "lastName": {
                                                 "type": "String",
                                                 "keyRaw": "lastName",
-                                                "visible": true,
                                             },
                                         },
                                     },
 
-                                    "visible": true,
                                 },
                                 "id": {
                                     "type": "ID",
@@ -1751,7 +1748,6 @@ fragment UserThings on User {
                                 "name": {
                                     "type": "String",
                                     "keyRaw": "name",
-                                    "visible": true,
                                 },
                             },
                         },
@@ -2034,7 +2030,6 @@ query TestQuery() {
                                     "type": "String",
                                     "keyRaw": "field(filter: \"Foo\")",
                                     "nullable": true,
-                                    "visible": true,
                                 },
                                 "id": {
                                     "type": "ID",
@@ -3460,7 +3455,6 @@ query EntityList {
                                               "name": {
                                                   "type": "String",
                                                   "keyRaw": "name",
-                                                  "visible": true,
                                               },
                                           },
                                           "User": {
@@ -3471,7 +3465,6 @@ query EntityList {
                                               "firstName": {
                                                   "type": "String",
                                                   "keyRaw": "firstName",
-                                                  "visible": true,
                                               },
                                               "id": {
                                                   "type": "ID",
@@ -3590,7 +3583,6 @@ query UserWithAvatar {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -3743,7 +3735,6 @@ query UserWithAvatar {
 							                            "type": "String",
 							                            "keyRaw": "field",
 							                            "nullable": true,
-							                            "visible": true,
 							                        },
 
 							                        "id": {
@@ -3754,7 +3745,6 @@ query UserWithAvatar {
 							                        "name": {
 							                            "type": "String",
 							                            "keyRaw": "name",
-							                            "visible": true,
 							                        },
 							                    },
 

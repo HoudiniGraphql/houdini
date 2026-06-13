@@ -225,7 +225,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -365,13 +364,11 @@ fragment All_Users_insert_kVR6H on User {
                                         "type": "String",
                                         "keyRaw": "field(filter: \"Hello World\")",
                                         "nullable": true,
-                                        "visible": true,
                                     },
 
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -520,7 +517,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -663,7 +659,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -809,7 +804,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -950,13 +944,11 @@ fragment All_Users_insert_kVR6H on User {
                                         "type": "String",
                                         "keyRaw": "field(filter: \"Hello World\")",
                                         "nullable": true,
-                                        "visible": true,
                                     },
 
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1212,7 +1204,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1478,7 +1469,6 @@ fragment All_Users_toggle on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1619,13 +1609,11 @@ fragment All_Users_toggle_kVR6H on User {
                                         "type": "String",
                                         "keyRaw": "field(filter: \"Hello World\")",
                                         "nullable": true,
-                                        "visible": true,
                                     },
 
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1772,7 +1760,6 @@ fragment All_Users_toggle on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -1912,7 +1899,6 @@ fragment All_Users_toggle on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
@@ -2503,7 +2489,6 @@ fragment All_Users_insert on User {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {

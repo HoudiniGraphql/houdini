@@ -1202,7 +1202,6 @@ fragment MonkeyList on MonkeyConnection {
                                                         "hasBanana": {
                                                             "type": "Boolean",
                                                             "keyRaw": "hasBanana",
-                                                            "visible": true,
                                                         },
 
                                                         "id": {
@@ -1213,7 +1212,6 @@ fragment MonkeyList on MonkeyConnection {
                                                         "name": {
                                                             "type": "String",
                                                             "keyRaw": "name",
-                                                            "visible": true,
                                                         },
                                                     },
 
@@ -1224,12 +1222,10 @@ fragment MonkeyList on MonkeyConnection {
                                                     },
                                                 },
 
-                                                "visible": true,
                                             },
                                         },
                                     },
 
-                                    "visible": true,
                                 },
                                 "pageInfo": {
                                     "type": "PageInfo",
@@ -1448,17 +1444,14 @@ fragment MonkeyFragment on Monkey {
                                                         "hasBanana": {
                                                             "type": "Boolean",
                                                             "keyRaw": "hasBanana",
-                                                            "visible": true,
                                                         },
                                                         "id": {
                                                             "type": "ID",
                                                             "keyRaw": "id",
-                                                            "visible": true,
                                                         },
                                                         "name": {
                                                             "type": "String",
                                                             "keyRaw": "name",
-                                                            "visible": true,
                                                         },
                                                     },
                                                 },
@@ -1474,13 +1467,11 @@ fragment MonkeyFragment on Monkey {
                                         },
 
                                         "abstract": true,
-                                        "visible": true,
                                     },
                                 },
                             },
 
                             "abstract": true,
-                            "visible": true,
                         },
                     },
 
@@ -1817,7 +1808,6 @@ fragment UserTest on User {
                                                 "firstName": {
                                                     "type": "String",
                                                     "keyRaw": "firstName",
-                                                    "visible": true,
                                                 },
 
                                                 "id": {

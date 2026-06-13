@@ -234,6 +234,26 @@ func (c *fieldCollection) Add(
 			return plugins.WrapError(errors.New("fragment not found"))
 		}
 
+		// figure out if the fragment's fields are masked in this document. explicit
+		// mask directives on the spread win, otherwise we fall back to the project's
+		// defaultFragmentMasking setting
+		childHidden := c.DefaultMask
+		for _, directive := range selection.Directives {
+			if directive.Name == graphql.DisableMaskDirective {
+				childHidden = false
+				break
+			}
+			if directive.Name == graphql.EnableMaskDirective {
+				childHidden = true
+				break
+			}
+		}
+		// a spread that is itself in a hidden context (eg inside a masked fragment)
+		// keeps its fields hidden no matter what
+		if external || selection.Internal {
+			childHidden = true
+		}
+
 		// if the spread is guarded by @include or @skip then the fields it inlines are
 		// conditional too. clone the fragment's selections and push the condition onto
 		// them so the runtime doesn't treat a missing value as a broken non-null field
@@ -252,7 +272,7 @@ func (c *fieldCollection) Add(
 		// we should just add every field directly
 		if definition.TypeCondition == c.ParentType || !abstractParent {
 			for _, sel := range fragmentSelections {
-				err := c.Add(sel, true, visibilityMask)
+				err := c.Add(sel, childHidden, visibilityMask)
 				if err != nil {
 					return err
 				}
@@ -271,7 +291,7 @@ func (c *fieldCollection) Add(
 			Visible:   !hidden,
 		}
 
-		return c.Add(inlineFragment, true, visibilityMask)
+		return c.Add(inlineFragment, childHidden, visibilityMask)
 	}
 
 	// its a field we don't recognize, we're done
@@ -458,9 +478,9 @@ func (c *fieldCollection) ToSelectionSet() []*collected.Selection {
 			if f.Selection != nil {
 				field.Children = f.Selection.ToSelectionSet()
 			}
-			if f.Visible {
-				field.Visible = true
-			}
+			// the visibility computed while flattening is authoritative — the flag on
+			// the source selection only says whether a user wrote the field somewhere
+			field.Visible = f.Visible
 			result = append(result, field)
 		}
 
@@ -491,9 +511,9 @@ func (c *fieldCollection) ToSelectionSet() []*collected.Selection {
 			if field.Selection != nil {
 				selectionField.Children = field.Selection.ToSelectionSet()
 			}
-			if field.Visible {
-				selectionField.Visible = true
-			}
+			// the visibility computed while flattening is authoritative — the flag on
+			// the source selection only says whether a user wrote the field somewhere
+			selectionField.Visible = field.Visible
 			result = append(result, selectionField)
 		}
 
