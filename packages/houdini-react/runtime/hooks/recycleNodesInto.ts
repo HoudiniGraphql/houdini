@@ -33,6 +33,13 @@ export function recycleNodesInto<T>(prev: T | null | undefined, next: T): T {
 		}
 
 		if (!changed && prevLen === nextLen) return prev as T
+
+		// Copy non-index own properties from next (e.g. __id from @includeListID)
+		for (const key of Object.keys(next as any)) {
+			if (isNaN(Number(key))) {
+				;(result as any)[key] = (next as any)[key]
+			}
+		}
 		return result as unknown as T
 	}
 
