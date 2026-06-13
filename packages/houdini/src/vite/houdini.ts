@@ -149,22 +149,25 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 			}
 		},
 
-		transform(code, id) {
-			// Inject the jsxImportSource pragma so @vitejs/plugin-react uses
-			// .houdini/jsx-runtime.ts instead of react/jsx-runtime. This makes
-			// the <a params={...}> interception actually run at runtime.
-			if (!/\.[jt]sx$/.test(id)) return null
+		resolveId(id, importer) {
+			// Redirect react/jsx-runtime and react/jsx-dev-runtime to the generated
+			// wrappers in .houdini/. This covers all callers — user .tsx files, MDX
+			// compiled output, anything — without requiring a per-file pragma injection.
+			// node_modules are excluded so component libraries keep using real React.
+			// The runtimeDir guard breaks the circular dependency: the generated
+			// jsx-runtime.ts itself imports react/jsx-runtime and must not be redirected.
 			if (!ctx.config.plugins.some((p) => p.name === 'houdini-react')) return null
-			if (id.includes('/node_modules/')) return null
+			if (importer?.includes('/node_modules/')) return null
 			const runtimeDir = path.join(
 				ctx.config.root_dir,
 				ctx.config.config_file.runtimeDir ?? '.houdini'
 			)
-			if (id.startsWith(runtimeDir + '/') || id.startsWith(runtimeDir + path.sep)) {
+			if (importer?.startsWith(runtimeDir + '/') || importer?.startsWith(runtimeDir + path.sep)) {
 				return null
 			}
-			if (code.includes('@jsxImportSource')) return null
-			return { code: '/** @jsxImportSource $houdini */\n' + code, map: null }
+			if (id === 'react/jsx-runtime') return path.join(runtimeDir, 'jsx-runtime.ts')
+			if (id === 'react/jsx-dev-runtime') return path.join(runtimeDir, 'jsx-dev-runtime.ts')
+			return null
 		},
 
 		async buildStart() {
