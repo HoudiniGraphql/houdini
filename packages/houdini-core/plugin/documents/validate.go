@@ -236,6 +236,51 @@ func ValidateFragmentOnScalar(
 	}
 }
 
+// ValidateUnknownVariableTypes makes sure that every operation variable and
+// fragment argument declares a type that actually exists in the schema. without
+// this, a typo'd type name would only surface as a confusing mismatch where the
+// variable is used (or not at all if it's only passed through @with)
+func ValidateUnknownVariableTypes(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+	errs *plugins.ErrorList,
+) {
+	queryStr := `
+		SELECT
+			document_variables.name,
+			document_variables.type,
+			raw_documents.filepath,
+			document_variables.row + raw_documents.offset_line,
+			document_variables.column + raw_documents.offset_column
+		FROM document_variables
+			JOIN documents ON document_variables.document = documents.id
+			JOIN raw_documents ON raw_documents.id = documents.raw_document
+			LEFT JOIN types ON document_variables.type = types.name
+		WHERE types.name IS NULL
+			AND (raw_documents.current_task = $task_id OR $task_id IS NULL)
+	`
+	err := db.StepQuery(ctx, queryStr, nil, func(row plugins.Row) {
+		errs.Append(&plugins.Error{
+			Message: fmt.Sprintf(
+				"Variable '$%s' uses unknown type '%s'",
+				row.ColumnText(0),
+				row.ColumnText(1),
+			),
+			Kind: plugins.ErrorKindValidation,
+			Locations: []*plugins.ErrorLocation{
+				{
+					Filepath: row.ColumnText(2),
+					Line:     row.ColumnInt(3),
+					Column:   row.ColumnInt(4),
+				},
+			},
+		})
+	})
+	if err != nil {
+		errs.Append(plugins.WrapError(err))
+	}
+}
+
 func ValidateOutputTypeAsInput(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],

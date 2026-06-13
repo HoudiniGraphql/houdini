@@ -23,6 +23,7 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateFragmentUnknownType,
 		documents.ValidateFragmentOnScalar,
 		documents.ValidateOutputTypeAsInput,
+		documents.ValidateUnknownVariableTypes,
 		documents.ValidateScalarWithSelection,
 		documents.ValidateUnknownField,
 		documents.ValidateIncompatibleFragmentSpread,

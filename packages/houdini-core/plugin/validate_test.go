@@ -1055,6 +1055,60 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "Variables cannot use unknown types",
+				Pass: false,
+				Input: []string{
+					`query Test($name: NotARealType!) {
+					user(name: $name) {
+						id
+					}
+				}`,
+				},
+			},
+			{
+				Name: "Fragment arguments cannot use unknown types",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "NotARealType" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(ids: "A")
+				}`,
+				},
+			},
+			{
+				Name: "Variables with unknown types are caught even when only passed through @with",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test($ids: NotARealType) {
+					...Fragment @with(ids: $ids)
+				}`,
+				},
+			},
+			{
+				Name: "Variables can use runtime scalar types",
+				Pass: true,
+				Input: []string{
+					`query Test($id: ViewerIDFromSession!) {
+					node(id: $id) {
+						id
+					}
+				}`,
+				},
+			},
+			{
 				Name: "No aliases for default keys",
 				Pass: false,
 				Input: []string{
