@@ -1,4 +1,9 @@
-import type { SubscriptionArtifact, GraphQLObject, GraphQLVariables, GraphQLError } from 'houdini/runtime'
+import type {
+	SubscriptionArtifact,
+	GraphQLObject,
+	GraphQLVariables,
+	GraphQLError,
+} from 'houdini/runtime'
 
 import { useDocumentSubscription } from './useDocumentSubscription.js'
 
