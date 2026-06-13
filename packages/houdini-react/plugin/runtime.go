@@ -870,7 +870,9 @@ func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectM
 	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	houdiniDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir)
 
-	routeUnion, err := buildRouteUnion(manifest)
+	scalars := projectConfig.Scalars
+
+	routeUnion, err := buildRouteUnion(manifest, scalars)
 	if err != nil {
 		return nil, err
 	}
@@ -902,24 +904,28 @@ func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectM
 
 // buildRouteUnion returns the TypeScript discriminated union body for all known
 // page routes, with a string & {} fallback for external or unknown hrefs.
-func buildRouteUnion(manifest ProjectManifest) (string, error) {
+func buildRouteUnion(manifest ProjectManifest, scalars map[string]plugins.ScalarConfig) (string, error) {
 	var parts []string
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 		cleanURL := stripRouteGroups(page.URL)
-		_, params, err := parsePagePattern(page.URL)
+		_, urlParams, err := parsePagePattern(page.URL)
 		if err != nil {
 			return "", fmt.Errorf("buildRouteUnion: %w", err)
 		}
-		if len(params) == 0 {
+		if len(urlParams) == 0 {
 			parts = append(parts, fmt.Sprintf("    | { href: %q; params?: never }", cleanURL))
 		} else {
 			var paramParts []string
-			for _, param := range params {
-				if param.Optional {
-					paramParts = append(paramParts, fmt.Sprintf("%s?: string", param.Name))
+			for _, urlParam := range urlParams {
+				tsType := "string"
+				if info, ok := page.Params[urlParam.Name]; ok {
+					tsType = gqlScalarToTS(info.Type, scalars)
+				}
+				if urlParam.Optional {
+					paramParts = append(paramParts, fmt.Sprintf("%s?: %s", urlParam.Name, tsType))
 				} else {
-					paramParts = append(paramParts, fmt.Sprintf("%s: string", param.Name))
+					paramParts = append(paramParts, fmt.Sprintf("%s: %s", urlParam.Name, tsType))
 				}
 			}
 			parts = append(parts, fmt.Sprintf(
@@ -929,8 +935,27 @@ func buildRouteUnion(manifest ProjectManifest) (string, error) {
 			))
 		}
 	}
-	parts = append(parts, "    | { href?: string & {}; params?: Record<string, string> }")
+	parts = append(parts, "    | { href?: string & {}; params?: Record<string, string | number | boolean> }")
 	return strings.Join(parts, "\n"), nil
+}
+
+// gqlScalarToTS maps a GraphQL scalar type name to its TypeScript equivalent.
+// Built-in scalars are mapped directly; custom scalars use the project scalar config's
+// Type field, falling back to string for unknown scalars.
+func gqlScalarToTS(gqlType string, scalars map[string]plugins.ScalarConfig) string {
+	switch gqlType {
+	case "Int", "Float":
+		return "number"
+	case "Boolean":
+		return "boolean"
+	case "String", "ID":
+		return "string"
+	default:
+		if cfg, ok := scalars[gqlType]; ok && cfg.Type != "" {
+			return cfg.Type
+		}
+		return "string"
+	}
 }
 
 // stripRouteGroups removes (group) segments from a URL, leaving only real path

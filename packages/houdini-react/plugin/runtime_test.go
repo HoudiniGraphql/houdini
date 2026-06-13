@@ -12,6 +12,7 @@ import (
 
 	coreConfig "code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-react/plugin"
+	plugins "code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -533,9 +534,12 @@ func TestGenerateJsxRuntime(t *testing.T) {
 
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
+			scalar DateTime
 			type Query {
 				id: ID
 				node(id: ID!): Node
+				intNode(count: Int!): Node
+				dateNode(at: DateTime!): Node
 			}
 			interface Node { id: ID! }
 		`,
@@ -592,7 +596,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 				Name: "no routes generates fallback-only union",
 				Pass: true,
 				Extra: map[string]any{
-					"union": "    | { href?: string & {}; params?: Record<string, string> }",
+					"union": "    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
 				},
 			},
 			{
@@ -605,7 +609,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 						"src/routes/+page.tsx": mockView([]string{"HomeQuery"}),
 					},
 					"union": "    | { href: \"/\"; params?: never }\n" +
-						"    | { href?: string & {}; params?: Record<string, string> }",
+						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
 				},
 			},
 			{
@@ -620,7 +624,43 @@ func TestGenerateJsxRuntime(t *testing.T) {
 						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
 					},
 					"union": "    | { href: \"/[id]\"; params: { id: string } }\n" +
-						"    | { href?: string & {}; params?: Record<string, string> }",
+						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+				},
+			},
+			{
+				Name: "Int param typed as number",
+				Pass: true,
+				Input: []string{
+					"query CountQuery($count: Int!) {\n\tintNode(count: $count) {\n\t\tid\n\t}\n}\n",
+				},
+				Filepaths: []string{"src/routes/[count]/+layout.gql"},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/[count]/+page.tsx": mockView([]string{"CountQuery"}),
+					},
+					"union": "    | { href: \"/[count]\"; params: { count: number } }\n" +
+						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+				},
+			},
+			{
+				Name: "custom scalar uses configured TypeScript type",
+				Pass: true,
+				Input: []string{
+					"query DateQuery($at: DateTime!) {\n\tdateNode(at: $at) {\n\t\tid\n\t}\n}\n",
+				},
+				Filepaths: []string{"src/routes/[at]/+layout.gql"},
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					if cfg.Scalars == nil {
+						cfg.Scalars = make(map[string]plugins.ScalarConfig)
+					}
+					cfg.Scalars["DateTime"] = plugins.ScalarConfig{Type: "Date"}
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/[at]/+page.tsx": mockView([]string{"DateQuery"}),
+					},
+					"union": "    | { href: \"/[at]\"; params: { at: Date } }\n" +
+						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
 				},
 			},
 			{
@@ -633,7 +673,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 						"src/routes/(auth)/users/+page.tsx": mockView([]string{"UsersQuery"}),
 					},
 					"union": "    | { href: \"/users\"; params?: never }\n" +
-						"    | { href?: string & {}; params?: Record<string, string> }",
+						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
 				},
 			},
 		},

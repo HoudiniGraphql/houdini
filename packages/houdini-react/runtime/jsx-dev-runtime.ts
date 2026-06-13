@@ -21,8 +21,8 @@ export declare namespace JSX {
     }
 }
 
-function resolveHref(href: string, params: Record<string, string>): string {
-    return href.replace(/\[([^\]]+)\]/g, (_, key: string) => params[key] ?? key)
+function resolveHref(href: string, params: Record<string, string | number | boolean>): string {
+    return href.replace(/\[([^\]]+)\]/g, (_, key: string) => String(params[key] ?? key))
 }
 
 export function jsxDEV(type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any): any {

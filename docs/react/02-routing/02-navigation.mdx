@@ -31,7 +31,7 @@ If `href` doesn't match any registered route, TypeScript falls back to accepting
 
 Most routers solve this with a `<Link>` component. We went a different direction: Houdini extends the built-in `<a>` tag itself, via a generated JSX runtime that intercepts the `params` prop and resolves it into the final `href` before React sees it.
 
-The motivation is compatibility. Tools like MDX, markdown processors, and component libraries all emit native `<a>` tags rather than calling into a framework-specific `<Link>`. Extending `<a>` means those contexts get the same type safety and param resolution without any adapter layer or special configuration.
+The motivation is compatibility and correctness. Tools like MDX, markdown processors, and component libraries all emit native `<a>` tags rather than calling into a framework-specific `<Link>`. Without intercepting those tags, any relative link they generate would cause a full page refresh instead of a client-side navigation — the router never sees them. Extending `<a>` ensures every link in your app, regardless of where it comes from, goes through the client-side router and gets the same type safety and param resolution without any adapter layer or special configuration.
 
 It is worth being honest that this is non-conventional. Houdini is reaching into the JSX transform layer to change what `<a>` means, which is not how the platform was designed to be extended. The generated `.houdini/jsx-runtime.ts` redirects any import of `react/jsx-runtime` in your project so every `<a>` anywhere in your source goes through the wrapper. That's a lot of machinery to carry for what amounts to one prop.
 
