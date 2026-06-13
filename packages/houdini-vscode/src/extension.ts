@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
 	if (!workspaceRoot) return
 
-	const serverPath = findLspBinary(workspaceRoot)
+	const serverPath = findLspBinary(workspaceRoot, context.extensionPath)
 	if (!serverPath) {
 		vscode.window.showWarningMessage(
 			'Houdini GraphQL: houdini-lsp not found. Add houdini-lsp to your devDependencies.'
@@ -49,16 +49,25 @@ export function deactivate(): Thenable<void> | undefined {
 	return client?.stop()
 }
 
-function findLspBinary(workspaceRoot: string): string | null {
-	// Prefer the project-local install so the binary version matches houdini
+function findLspBinary(workspaceRoot: string, extensionPath: string): string | null {
 	const isWindows = process.platform === 'win32'
 	const binName = isWindows ? 'houdini-lsp.cmd' : 'houdini-lsp'
-	const localBin = path.join(workspaceRoot, 'node_modules', '.bin', binName)
-	if (fs.existsSync(localBin)) return localBin
 
-	// Also check pnpm's .bin location one level up (monorepo root)
-	const parentBin = path.join(workspaceRoot, '..', 'node_modules', '.bin', binName)
-	if (fs.existsSync(parentBin)) return parentBin
+	// Check the extension's own node_modules first (covers the dep-bundled case
+	// and the development host where houdini-vscode depends on houdini-lsp).
+	const extBin = path.join(extensionPath, 'node_modules', '.bin', binName)
+	if (fs.existsSync(extBin)) return extBin
+
+	// Walk up from the workspace root so we find the bin regardless of whether
+	// houdini-lsp is installed locally or hoisted to a monorepo root.
+	let dir = workspaceRoot
+	while (true) {
+		const candidate = path.join(dir, 'node_modules', '.bin', binName)
+		if (fs.existsSync(candidate)) return candidate
+		const parent = path.dirname(dir)
+		if (parent === dir) break
+		dir = parent
+	}
 
 	return null
 }
