@@ -122,9 +122,11 @@ func (p *typeParser) parseType() (*ast.Type, error) {
 // validateValue recursively validates an AST value against a parsed GraphQL type.
 // It handles non-null, list, and named types.
 func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
-	// If the type is non-null, the value must be non-nil.
+	isNull := val == nil || val.Kind == ast.NullValue
+
+	// If the type is non-null, the value must be non-null.
 	if t.NonNull {
-		if val == nil {
+		if isNull {
 			return false, nil
 		}
 		// Remove the non-null requirement for nested validation.
@@ -133,16 +135,16 @@ func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
 		return validateValue(&tCopy, val)
 	}
 
-	// For nullable types, a nil value (GraphQL null) is valid.
-	if val == nil {
+	// For nullable types, a null value is valid.
+	if isNull {
 		return true, nil
 	}
 
 	// Handle list types.
 	if t.Elem != nil {
-		// The value must be a list.
+		// a single value is coerced to a one-element list
 		if val.Kind != ast.ListValue {
-			return false, nil
+			return validateValue(t.Elem, val)
 		}
 		// Recursively validate each element of the list.
 		for _, child := range val.Children {
@@ -157,25 +159,28 @@ func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
 		return true, nil
 	}
 
-	// For named types, determine the expected AST value kind.
-	expectedKind, err := expectedKindForNamedType(t.NamedType)
-	if err != nil {
-		return false, err
-	}
-	return val.Kind == expectedKind, nil
+	return valueKindMatches(t.NamedType, val.Kind), nil
 }
 
-// expectedKindForNamedType maps a GraphQL named type (e.g. "Int", "String", "Boolean")
-// to its expected AST value kind.
-func expectedKindForNamedType(name string) (ast.ValueKind, error) {
+// valueKindMatches reports whether a literal of the given AST kind can coerce
+// to the named type, following the spec's input coercion rules
+func valueKindMatches(name string, kind ast.ValueKind) bool {
 	switch name {
 	case "Int":
-		return ast.IntValue, nil
+		return kind == ast.IntValue
+	case "Float":
+		// the spec coerces integer literals to Float
+		return kind == ast.IntValue || kind == ast.FloatValue
 	case "String":
-		return ast.StringValue, nil
+		return kind == ast.StringValue || kind == ast.BlockValue
 	case "Boolean":
-		return ast.BooleanValue, nil
+		return kind == ast.BooleanValue
+	case "ID":
+		// the spec coerces both strings and integers to ID
+		return kind == ast.StringValue || kind == ast.IntValue
 	default:
-		return ast.StringValue, fmt.Errorf("unknown named type: %s", name)
+		// enums, custom scalars, and input objects can't be checked from the
+		// type name alone so trust the value
+		return true
 	}
 }

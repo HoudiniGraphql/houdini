@@ -35,7 +35,6 @@ func (p *HoudiniCore) Validate(ctx context.Context) error {
 		documents.ValidateDuplicateArgumentInField,
 		documents.ValidateWrongTypesToArg,
 		documents.ValidateMissingRequiredArgument,
-		documents.ValidateFieldArgumentIncompatibleType,
 		documents.ValidateConflictingSelections,
 		documents.ValidateDuplicateKeysInInputObject,
 		// Houdini-specific validation rules

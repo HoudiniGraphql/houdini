@@ -325,9 +325,14 @@ func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType, modifiers 
 
 	// If the modifier contains a ']', then we expect a list.
 	if strings.Contains(modifiers, "]") {
-		// If a non-null list is required (modifier ends with '!'), ensure the list is nonempty.
-		if strings.HasSuffix(modifiers, "!") && len(arg.Children) == 0 {
-			return false
+		// a single value is coerced to a one-element list so check it against
+		// the innermost type
+		if arg.Kind != "List" && len(arg.Children) == 0 {
+			base := ""
+			if strings.HasPrefix(modifiers, "!") {
+				base = "!"
+			}
+			return checkTypeCompatibility(arg, expectedType, base)
 		}
 		// Recursively validate each child with one layer of list notation stripped.
 		newModifiers := stripOneLayer(modifiers)
