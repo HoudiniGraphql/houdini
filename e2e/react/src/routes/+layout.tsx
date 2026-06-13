@@ -17,7 +17,7 @@ export default function ({ children }: LayoutProps) {
 	return (
 		<>
 			<div className="flex flex-row gap-2 mb-4 w-full flex-wrap">
-				{Object.entries(routes).map(([route, url]) => {
+				{Object.entries(routes).map(([route, url]: [string, string]) => {
 					return (
 						<a
 							className="border-solid border-[var(--links)] border-2 p-2"
