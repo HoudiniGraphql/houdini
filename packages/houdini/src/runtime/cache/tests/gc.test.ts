@@ -116,7 +116,7 @@ test("subscribed data shouldn't be garbage collected", () => {
 				},
 			},
 		},
-		set: vi.fn(),
+		onMessage: vi.fn(),
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
@@ -203,7 +203,7 @@ test('resubscribing to fields marked for garbage collection resets counter', () 
 				},
 			},
 		},
-		set,
+		onMessage: set,
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
@@ -232,7 +232,7 @@ test('resubscribing to fields marked for garbage collection resets counter', () 
 				},
 			},
 		},
-		set,
+		onMessage: set,
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
@@ -351,7 +351,7 @@ test('ticks of gc delete list handlers', () => {
 	cache.subscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: set,
 			selection,
 		},
 		{
@@ -362,7 +362,7 @@ test('ticks of gc delete list handlers', () => {
 	cache.unsubscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: set,
 			selection,
 		},
 		{

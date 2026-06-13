@@ -446,7 +446,7 @@ test('missing cursor of item in connection from operation should not trigger nul
 	})
 
 	cache.subscribe({
-		set: vi.fn(),
+		onMessage: vi.fn(),
 		selection,
 		rootType: 'Query',
 	})

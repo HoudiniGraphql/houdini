@@ -239,6 +239,22 @@ const user = cache.get('User', { id: '1' })
 user.delete()
 ```
 
+## Refreshing Records
+
+If you want to reload a record's values from your API (for example, after a mutation
+that you know changed data on the server), you can use the `refresh` method. Every
+document whose data contains the record will refetch itself over the network —
+including documents that only include the record through a fragment spread:
+
+```typescript
+const user = cache.get('User', { id: '1' })
+
+user.refresh()
+```
+
+Unlike `markStale` (which waits for the next fetch to reload the data), `refresh`
+triggers the network requests immediately.
+
 ## Lists
 
 Another primitive provided by the `cache` instance is `List` and it provide a programatic

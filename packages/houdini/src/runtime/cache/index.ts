@@ -196,6 +196,30 @@ export class Cache {
 		}
 	}
 
+	// ask every document whose data contains the record to refetch itself.
+	// this includes documents that only contain the record behind a masked
+	// boundary (a fragment spread) thanks to their masked parent subscriptions
+	refresh(id: string) {
+		// when an optimistic key resolves we might know the record by two ids
+		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
+			Boolean
+		) as string[]
+
+		// a document can be subscribed to multiple fields of the record so make
+		// sure we only send the message once per set
+		const notified: SubscriptionSpec['onMessage'][] = []
+		for (const recordID of recordIDs) {
+			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
+				includeMaskedParents: true,
+			})) {
+				if (!notified.includes(spec.onMessage)) {
+					notified.push(spec.onMessage)
+					spec.onMessage({ kind: 'refetch' })
+				}
+			}
+		}
+	}
+
 	markRecordStale(id: string, options: { field?: string; when?: {} }) {
 		if (options.field) {
 			const key = computeKey({ field: options.field, args: options.when ?? {} })
@@ -350,20 +374,21 @@ export class Cache {
 		this._internal_unstable.epoch++
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
-		const notified: SubscriptionSpec['set'][] = []
+		const notified: SubscriptionSpec['onMessage'][] = []
 		for (const spec of subs) {
 			// if we haven't added the set yet
-			if (!notified.includes(spec.set)) {
-				notified.push(spec.set)
+			if (!notified.includes(spec.onMessage)) {
+				notified.push(spec.onMessage)
 				// trigger the update
-				spec.set(
-					this._internal_unstable.getSelection({
+				spec.onMessage({
+					kind: 'update',
+					data: this._internal_unstable.getSelection({
 						parent: spec.parentID || rootID,
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
 						ignoreMasking: false,
-					}).data
-				)
+					}).data,
+				})
 			}
 		}
 	}
@@ -500,9 +525,15 @@ class CacheInternal {
 				linkedType = value.__typename as string
 			}
 
-			// the current set of subscribers
+			// the current set of subscribers. the masked parent ones belong to documents
+			// whose data contains this record behind a masked boundary — they never
+			// get notified but they do need their subscriptions propagated when
+			// links change so containment lookups (cache.refresh) stay accurate
 			const currentSubscribers = this.subscriptions.get(parent, key)
-			const specs = currentSubscribers.map((sub) => sub[0])
+			const maskedParentSubscribers = this.subscriptions.getMaskedParents(parent, key)
+			const specs = currentSubscribers
+				.map((sub) => sub[0])
+				.concat(maskedParentSubscribers.map((sub) => sub[0]))
 
 			// look up the previous value
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
@@ -631,6 +662,15 @@ class CacheInternal {
 						variables,
 						parentType: linkedType,
 					})
+					if (maskedParentSubscribers.length > 0) {
+						this.subscriptions.addMany({
+							parent: linkedID,
+							subscribers: maskedParentSubscribers,
+							variables,
+							parentType: linkedType,
+							masked: true,
+						})
+					}
 
 					toNotify.push(...currentSubscribers)
 				}
@@ -849,6 +889,15 @@ class CacheInternal {
 						variables,
 						parentType: linkedType,
 					})
+					if (maskedParentSubscribers.length > 0) {
+						this.subscriptions.addMany({
+							parent: id,
+							subscribers: maskedParentSubscribers,
+							variables,
+							parentType: linkedType,
+							masked: true,
+						})
+					}
 				}
 			}
 

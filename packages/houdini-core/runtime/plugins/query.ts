@@ -1,6 +1,6 @@
 import type { RuntimeScalarPayload } from 'houdini'
 import type { Cache } from 'houdini/runtime/cache'
-import { type SubscriptionSpec, ArtifactKind, DataSource } from 'houdini/runtime/types'
+import { type SubscriptionSpec, ArtifactKind, CachePolicy, DataSource } from 'houdini/runtime/types'
 
 import { documentPlugin } from './utils/index.js'
 
@@ -63,9 +63,20 @@ export const query = (cache: Cache) =>
 						rootType: ctx.artifact.rootType,
 						selection: ctx.artifact.selection,
 						variables: () => variables,
-						set: (newValue) => {
+						onMessage: (message) => {
+							// if the cache asked us to refetch, kick off a brand new request
+							// through the full pipeline so the document reloads from the API
+							if (message.kind === 'refetch') {
+								ctx.documentStore.send({
+									policy: CachePolicy.NetworkOnly,
+									session: ctx.session,
+									metadata: ctx.metadata,
+								})
+								return
+							}
+
 							resolve(ctx, {
-								data: newValue,
+								data: message.data,
 								errors: null,
 								fetching: false,
 								partial: false,

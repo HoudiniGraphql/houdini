@@ -262,10 +262,22 @@ export type SubscriptionSelection = Readonly<{
 	}
 }>
 
+// the cache communicates with subscribers using tagged messages so that
+// it can push more than just new data (for example, asking the document
+// to refetch itself)
+export type CacheMessage<_Data = any> =
+	| {
+			kind: 'update'
+			data: _Data
+	  }
+	| {
+			kind: 'refetch'
+	  }
+
 export type SubscriptionSpec = Readonly<{
 	rootType: string
 	selection: SubscriptionSelection
-	set: (data: any) => void
+	onMessage: (message: CacheMessage) => void
 	parentID?: string
 	variables?: () => any
 }>

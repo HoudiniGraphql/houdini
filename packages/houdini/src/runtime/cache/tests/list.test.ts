@@ -260,7 +260,7 @@ test('append in list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -280,18 +280,21 @@ test('append in list', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+				],
+			},
 		},
 	})
 })
@@ -365,7 +368,7 @@ test('prepend in list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -385,18 +388,21 @@ test('prepend in list', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -506,7 +512,7 @@ test('remove from connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -518,18 +524,21 @@ test('remove from connection', () => {
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -645,7 +654,7 @@ test('element removed from list can be added back', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -677,25 +686,28 @@ test('element removed from list can be added back', () => {
 	})
 
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane2',
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -799,7 +811,7 @@ test('append in connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -819,25 +831,28 @@ test('append in connection', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'mary',
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -1693,7 +1708,7 @@ test('append in connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -1713,27 +1728,30 @@ test('append in connection', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						__typename: 'UserEdge',
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							__typename: 'UserEdge',
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						__typename: 'UserEdge',
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'mary',
+						{
+							__typename: 'UserEdge',
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -1872,7 +1890,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -1986,25 +2004,28 @@ test('inserting data with an update overwrites a record inserted with list.appen
 
 	// make sure the duplicate has been removed
 	expect(set).toHaveBeenNthCalledWith(2, {
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							__typename: 'User',
-							id: '2',
-							firstName: 'jane',
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							__typename: 'User',
-							id: '3',
-							firstName: 'mary',
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -2117,7 +2138,7 @@ test('list filter - must_not positive', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2140,18 +2161,21 @@ test('list filter - must_not positive', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -2231,7 +2255,7 @@ test('list filter - must_not negative', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2331,7 +2355,7 @@ test('list filter - must positive', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2354,18 +2378,21 @@ test('list filter - must positive', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					firstName: 'mary',
-					id: '3',
-				},
-				{
-					firstName: 'jane',
-					id: '2',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						firstName: 'mary',
+						id: '3',
+					},
+					{
+						firstName: 'jane',
+						id: '2',
+					},
+				],
+			},
 		},
 	})
 })
@@ -2445,7 +2472,7 @@ test('list filter - must negative', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2539,7 +2566,7 @@ test('remove from list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2551,9 +2578,12 @@ test('remove from list', () => {
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
 		},
 	})
 
@@ -2630,7 +2660,7 @@ test('delete node', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2643,9 +2673,12 @@ test('delete node', () => {
 
 	// we should have been updated with an empty list
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
 		},
 	})
 
@@ -2751,7 +2784,7 @@ test('delete node from connection', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -2764,10 +2797,13 @@ test('delete node from connection', () => {
 
 	// we should have been updated with an empty list
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [],
+				},
 			},
 		},
 	})
@@ -2840,7 +2876,7 @@ test('append operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -2947,7 +2983,7 @@ test('append from list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3077,7 +3113,7 @@ test('toggle list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3181,7 +3217,7 @@ test('toggle list survives multiple on-off cycles through mutation layers', () =
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3285,7 +3321,7 @@ test('append when operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3403,7 +3439,7 @@ test('prepend when operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3541,7 +3577,7 @@ test('prepend operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3669,7 +3705,7 @@ test('remove operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3799,7 +3835,7 @@ test('remove operation from list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -3924,7 +3960,7 @@ test('delete operation', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -4053,7 +4089,7 @@ test('delete operation with non-string id', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', 1)!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -4185,7 +4221,7 @@ test('delete operation from list', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -4370,7 +4406,7 @@ test('delete operation from connection', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5060,7 +5096,7 @@ test('when conditions look for all matching lists', () => {
 	cache.subscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: set,
 			selection,
 		},
 		{
@@ -5070,7 +5106,7 @@ test('when conditions look for all matching lists', () => {
 	cache.subscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: set,
 			selection,
 		},
 		{
@@ -5188,7 +5224,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5199,7 +5235,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '2')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5368,7 +5404,7 @@ test('append in abstract list', () => {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -5389,21 +5425,24 @@ test('append in abstract list', () => {
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			__typename: 'User',
-			friends: [
-				{
-					firstName: 'jane',
-					id: '2',
-					__typename: 'User',
-				},
-				{
-					firstName: 'mary',
-					id: '3',
-					__typename: 'User',
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				__typename: 'User',
+				friends: [
+					{
+						firstName: 'jane',
+						id: '2',
+						__typename: 'User',
+					},
+					{
+						firstName: 'mary',
+						id: '3',
+						__typename: 'User',
+					},
+				],
+			},
 		},
 	})
 })
@@ -5527,7 +5566,7 @@ test('list operations on interface fields without a well defined parent update t
 	// subscribe to the fields (create the list handler)
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -5560,38 +5599,41 @@ test('list operations on interface fields without a well defined parent update t
 	})
 
 	expect(set).toHaveBeenCalledWith({
-		viewer: {
-			id: '1',
-			__typename: 'User',
-			friends: [
-				{
-					id: '2',
-					__typename: 'User',
-					notFriends: [
-						{
-							id: '3',
-							firstName: 'jane',
-							__typename: 'User',
-						},
-					],
-				},
-				{
-					id: '3',
-					__typename: 'User',
-					notFriends: [
-						{
-							id: '4',
-							firstName: 'jane',
-							__typename: 'User',
-						},
-						{
-							id: '5',
-							firstName: 'Billy',
-							__typename: 'User',
-						},
-					],
-				},
-			],
+		kind: 'update',
+		data: {
+			viewer: {
+				id: '1',
+				__typename: 'User',
+				friends: [
+					{
+						id: '2',
+						__typename: 'User',
+						notFriends: [
+							{
+								id: '3',
+								firstName: 'jane',
+								__typename: 'User',
+							},
+						],
+					},
+					{
+						id: '3',
+						__typename: 'User',
+						notFriends: [
+							{
+								id: '4',
+								firstName: 'jane',
+								__typename: 'User',
+							},
+							{
+								id: '5',
+								firstName: 'Billy',
+								__typename: 'User',
+							},
+						],
+					},
+				],
+			},
 		},
 	})
 })
@@ -5660,7 +5702,7 @@ test("parentID ignores single lists that don't match", () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5771,7 +5813,7 @@ test('inserting in list at a specific layer affects just that layer', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5920,7 +5962,7 @@ test("two operations referencing the same list don't commit twice", () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -5958,7 +6000,7 @@ test("two operations referencing the same list don't commit twice", () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -6323,7 +6365,7 @@ test('@listID operation inserts into the correct list via opaque key', () => {
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)

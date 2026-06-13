@@ -95,6 +95,14 @@ export class Record<Def extends CacheTypeDef, Type extends ValidTypes<Def>> {
 	}
 
 	/**
+	 * Ask every document whose data contains this record to refetch itself
+	 * so the record's values are reloaded from the API.
+	 */
+	refresh() {
+		this.#cache._internal_unstable.refresh(this.#id)
+	}
+
+	/**
 	 * Mark some elements of the record stale in the cache.
 	 * @param field
 	 * @param when

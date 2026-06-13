@@ -36,8 +36,14 @@ export class GarbageCollector {
 		// look at every field of every record we know about
 		for (const [id, fieldMap] of this.lifetimes.entries()) {
 			for (const [field, lifetime] of fieldMap.entries()) {
-				// if there is an active subscriber for the field move on
-				if (this.cache._internal_unstable.subscriptions.get(id, field).length > 0) {
+				// if there is an active subscriber for the field move on. masked parent
+				// subscriptions count too — a masked field is still part of some
+				// document's active data even if no one is notified when it changes
+				if (
+					this.cache._internal_unstable.subscriptions.get(id, field).length > 0 ||
+					this.cache._internal_unstable.subscriptions.getMaskedParents(id, field).length >
+						0
+				) {
 					continue
 				}
 
