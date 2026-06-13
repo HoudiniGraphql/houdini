@@ -51,7 +51,7 @@ export const fragment = (cache: Cache) =>
 						onMessage: (message) => {
 							// fragments can't issue network requests. refetch messages are
 							// handled by the query that owns this data — it holds its own
-							// (silent) subscription on the same records
+							// masked parent subscription on the same records
 							if (message.kind !== 'update') {
 								return
 							}

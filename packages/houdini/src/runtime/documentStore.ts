@@ -182,7 +182,7 @@ export class DocumentStore<
 		let context = new ClientPluginContextWrapper({
 			abortController,
 			config: this.#configFile,
-			documentStore: this as unknown as DocumentStore<GraphQLObject, GraphQLVariables>,
+			documentStore: this,
 			name: this.artifact.name,
 			text: this.artifact.raw,
 			hash: this.artifact.hash,
@@ -701,7 +701,7 @@ export type ClientPluginContext = {
 	hash: string
 	// a reference to the document store driving the pipeline so that plugins
 	// can kick off a brand new request (eg when the cache asks for a refetch)
-	documentStore: DocumentStore<GraphQLObject, GraphQLVariables>
+	documentStore: DocumentStore<any, any>
 	artifact: DocumentArtifact
 	policy?: CachePolicies
 	fetch?: Fetch
