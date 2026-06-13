@@ -751,7 +751,7 @@ export type TestQuery$artifact = typeof artifact
 				Pass: true,
 				Input: []string{
 					`query TestQuery {
-            usersByCursor(first: 10) @paginate(name: "All_Users", mode: "SinglePage") {
+            usersByCursor(first: 10) @paginate(name: "All_Users", mode: SinglePage) {
               edges {
                 node {
                   firstName
@@ -816,7 +816,7 @@ export type TestQuery$artifact = typeof artifact
                             "value": "All_Users"
                         },
                         "mode": {
-                            "kind": "StringValue",
+                            "kind": "EnumValue",
                             "value": "SinglePage"
                         }
                     }

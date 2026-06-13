@@ -3,6 +3,7 @@ package runtime_test
 import (
 	"context"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
@@ -108,6 +109,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 		Tests: []tests.Test[config.PluginConfig]{
 			{
 				Name: "happy path",
+				Pass: true,
 				Input: []string{
 					`query TestQuery {
 							users(
@@ -146,193 +148,245 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 
 			expected := tests.Dedent(`
 				import type { Record } from "./public/record";
-				import { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
-				import { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
-				import type { ValueOf } from "$houdini/runtime/lib/types";
-				import type { MyEnum } from "$houdini/graphql/enums";
-				import { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
-				import { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
-				import { UserInfo$data } from "../artifacts/UserInfo";
-
-				type NestedUserFilter = {
-						id: string;
-						firstName: string;
-						admin?: boolean | null | undefined;
-						age?: number | null | undefined;
-						weight?: number | null | undefined;
-				};
-
-				type UserFilter = {
-						middle?: NestedUserFilter | null | undefined;
-						listRequired: (string)[];
-						nullList?: (string | null | undefined)[] | null | undefined;
-						recursive?: UserFilter | null | undefined;
-						enum?: ValueOf<typeof MyEnum> | null | undefined;
-				};
+				import type { TestQuery$result, TestQuery$input } from "../artifacts/TestQuery";
+				import type { TestQueryNoArgs$result, TestQueryNoArgs$input } from "../artifacts/TestQueryNoArgs";
+				import type { MyEnum$options } from "$houdini/graphql/enums";
+				import type { NestedUserFilter } from "$houdini/graphql/inputs";
+				import type { UserFilter } from "$houdini/graphql/inputs";
+				import type { UserInfo$data } from "../artifacts/UserInfo";
+				import type { UserInfoWithArguments$input } from "../artifacts/UserInfoWithArguments";
+				import type { UserInfoWithArguments$data } from "../artifacts/UserInfoWithArguments";
 
 				export declare type CacheTypeDef = {
 						types: {
-								__ROOT__: {
-										idFields: {};
-										fields: {
-												user: {
-														type: Record<CacheTypeDef, "User"> | null;
-														args: {
-																id?: string | null | undefined;
-																filter?: UserFilter | null | undefined;
-																filterList?: (UserFilter)[] | null | undefined;
-																enumArg?: ValueOf<typeof MyEnum> | null | undefined;
-														};
-												};
-												users: {
-														type: ((Record<CacheTypeDef, "User"> | null))[] | null;
-														args: {
-																filter?: UserFilter | null | undefined;
-																list: (UserFilter)[];
-																id: string;
-																firstName: string;
-																admin?: boolean | null | undefined;
-																age?: number | null | undefined;
-																weight?: number | null | undefined;
-														};
-												};
-												nodes: {
-														type: (Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User">)[];
-														args: never;
-												};
-												entities: {
-														type: ((Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat"> | null))[] | null;
-														args: never;
-												};
-												entity: {
-														type: Record<CacheTypeDef, "User"> | Record<CacheTypeDef, "Cat">;
-														args: never;
-												};
-												listOfLists: {
-														type: ((((Record<CacheTypeDef, "User"> | null))[] | null))[];
-														args: never;
-												};
-												node: {
-														type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User"> | null;
-														args: {
-																id: string;
-														};
-												};
+							__ROOT__: {
+								idFields: {};
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									entities: {
+										type: (Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "User"> | null)[] | null;
+										args: never;
+									};
+									entity: {
+										type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "User">;
+										args: never;
+									};
+									listOfLists: {
+										type: ((Record<CacheTypeDef, "User"> | null)[] | null)[];
+										args: never;
+									};
+									node: {
+										type: Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User"> | null;
+										args: {
+											id: string | number;
 										};
-										fragments: [];
+									};
+									nodes: {
+										type: (Record<CacheTypeDef, "Cat"> | Record<CacheTypeDef, "Ghost"> | Record<CacheTypeDef, "User">)[];
+										args: never;
+									};
+									user: {
+										type: Record<CacheTypeDef, "User"> | null;
+										args: {
+											enumArg?: MyEnum$options | null | undefined;
+											filter?: UserFilter | null | undefined;
+											filterList?: (UserFilter)[] | null | undefined;
+											id?: string | number | null | undefined;
+										};
+									};
+									users: {
+										type: (Record<CacheTypeDef, "User"> | null)[] | null;
+										args: {
+											admin?: boolean | null | undefined;
+											age?: number | null | undefined;
+											filter?: UserFilter | null | undefined;
+											firstName: string;
+											id: string | number;
+											list: (UserFilter)[];
+											weight?: number | null | undefined;
+										};
+									};
 								};
-								Cat: {
-										idFields: {
-												id: string;
-										};
-										fields: {
-												id: {
-														type: string;
-														args: never;
-												};
-												kitty: {
-														type: boolean;
-														args: never;
-												};
-												isAnimal: {
-														type: boolean;
-														args: never;
-												};
-												names: {
-														type: ((string | null))[];
-														args: never;
-												};
-										};
-										fragments: [];
+								fragments: [];
+							};
+							Animal: {
+								idFields: never;
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									isAnimal: {
+										type: boolean;
+										args: never;
+									};
 								};
-								Ghost: {
-										idFields: {
-												name: string;
-												aka: string;
-										};
-										fields: {
-												id: {
-														type: string;
-														args: never;
-												};
-												aka: {
-														type: string;
-														args: never;
-												};
-												name: {
-														type: string;
-														args: never;
-												};
-										};
-										fragments: [];
+								fragments: [];
+							};
+							Cat: {
+								idFields: {
+									id: any;
 								};
-								User: {
-										idFields: {
-												id: string;
-										};
-										fields: {
-												id: {
-														type: string;
-														args: never;
-												};
-												firstName: {
-														type: string;
-														args: {
-																pattern?: string | null | undefined;
-														};
-												};
-												nickname: {
-														type: string | null;
-														args: never;
-												};
-												parent: {
-														type: Record<CacheTypeDef, "User"> | null;
-														args: never;
-												};
-												friends: {
-														type: ((Record<CacheTypeDef, "User"> | null))[] | null;
-														args: never;
-												};
-												enumValue: {
-														type: MyEnum | null;
-														args: never;
-												};
-												admin: {
-														type: boolean | null;
-														args: never;
-												};
-												age: {
-														type: number | null;
-														args: never;
-												};
-												weight: {
-														type: number | null;
-														args: never;
-												};
-										};
-										fragments: [[any, UserInfo$data, never], [any, UserInfoWithArguments$data, UserInfoWithArguments$input]];
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									id: {
+										type: string;
+										args: never;
+									};
+									isAnimal: {
+										type: boolean;
+										args: never;
+									};
+									kitty: {
+										type: boolean;
+										args: never;
+									};
+									names: {
+										type: (string | null)[];
+										args: never;
+									};
 								};
+								fragments: [];
+							};
+							Ghost: {
+								idFields: {
+									id: any;
+								};
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									aka: {
+										type: string;
+										args: never;
+									};
+									id: {
+										type: string;
+										args: never;
+									};
+									name: {
+										type: string;
+										args: never;
+									};
+								};
+								fragments: [];
+							};
+							Mutation: {
+								idFields: never;
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									doThing: {
+										type: Record<CacheTypeDef, "User"> | null;
+										args: {
+											admin?: boolean | null | undefined;
+											age?: number | null | undefined;
+											filter?: UserFilter | null | undefined;
+											firstName: string;
+											id: string | number;
+											list: (UserFilter)[];
+											weight?: number | null | undefined;
+										};
+									};
+								};
+								fragments: [];
+							};
+							Node: {
+								idFields: {
+									id: any;
+								};
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									id: {
+										type: string;
+										args: never;
+									};
+								};
+								fragments: [];
+							};
+							User: {
+								idFields: {
+									id: any;
+								};
+								fields: {
+									__typename: {
+										type: string;
+										args: never;
+									};
+									admin: {
+										type: boolean | null;
+										args: never;
+									};
+									age: {
+										type: number | null;
+										args: never;
+									};
+									enumValue: {
+										type: MyEnum$options | null;
+										args: never;
+									};
+									firstName: {
+										type: string;
+										args: {
+											pattern?: string | null | undefined;
+										};
+									};
+									friends: {
+										type: (Record<CacheTypeDef, "User"> | null)[] | null;
+										args: never;
+									};
+									id: {
+										type: string;
+										args: never;
+									};
+									nickname: {
+										type: string | null;
+										args: never;
+									};
+									parent: {
+										type: Record<CacheTypeDef, "User"> | null;
+										args: never;
+									};
+									weight: {
+										type: number | null;
+										args: never;
+									};
+								};
+								fragments: [[any, UserInfo$data, never], [any, UserInfoWithArguments$data, UserInfoWithArguments$input]];
+							};
 						};
 						lists: {
-								All_Users: {
-										types: "User";
-										filters: {
-												filter?: UserFilter | null | undefined;
-												list?: (UserFilter)[];
-												id?: string;
-												firstName?: string;
-												admin?: boolean | null | undefined;
-												age?: number | null | undefined;
-												weight?: number | null | undefined;
-										};
+							All_Users: {
+								types: "User";
+								filters: {
+									admin?: boolean | null | undefined;
+									age?: number | null | undefined;
+									filter?: UserFilter | null | undefined;
+									firstName?: string;
+									id?: string | number;
+									list?: (UserFilter)[];
+									weight?: number | null | undefined;
 								};
-								NoArgs: {
-										types: "User" | "Cat";
-										filters: never;
-								};
+							};
+							NoArgs: {
+								types: "Cat" | "User";
+								filters: never;
+							};
 						};
 						queries: [[any, TestQuery$result, TestQuery$input], [any, TestQueryNoArgs$result, TestQueryNoArgs$input]];
-						scalars: number | boolean | string
+						scalars: number | boolean | string;
 				};
 			`)
 
@@ -341,7 +395,7 @@ func TestGenerateImperativeCacheTypeDefs(t *testing.T) {
 				filepath.Join(config.ProjectRoot, config.RuntimeDir, "runtime", "generated.ts"),
 			)
 			require.NoError(t, err)
-			require.Equal(t, expected, contents)
+			require.Equal(t, expected, strings.TrimSpace(string(contents)))
 		},
 	})
 }

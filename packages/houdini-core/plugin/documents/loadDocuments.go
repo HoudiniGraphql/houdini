@@ -614,7 +614,15 @@ func LoadPendingQuery(
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
 				// look for the type of the argument
-				argTypeWithModifiers, _ := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+				argTypeWithModifiers, ok := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+				// the top level of @with and @arguments can accept any argument
+				if !ok && (directive.Name == graphql.WithDirective ||
+					directive.Name == graphql.ArgumentsDirective) {
+					argTypeWithModifiers = TypeWithModifiers{
+						Type:      schema.ArgumentSpecificationType,
+						Modifiers: "!",
+					}
+				}
 				argType := argTypeWithModifiers.Type
 				argTypeModifiers := argTypeWithModifiers.Modifiers
 
@@ -737,7 +745,15 @@ func LoadPendingQuery(
 			docDirID := conn.LastInsertRowID()
 			for _, arg := range directive.Arguments {
 				// look for the type of the argument
-				argTypeWithModifiers, _ := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+				argTypeWithModifiers, ok := typeCache.DirectiveArguments[fmt.Sprintf("%s.%s", directive.Name, arg.Name)]
+				// the top level of @with and @arguments can accept any argument
+				if !ok && (directive.Name == graphql.WithDirective ||
+					directive.Name == graphql.ArgumentsDirective) {
+					argTypeWithModifiers = TypeWithModifiers{
+						Type:      schema.ArgumentSpecificationType,
+						Modifiers: "!",
+					}
+				}
 				argType := argTypeWithModifiers.Type
 				argTypeModifiers := argTypeWithModifiers.Modifiers
 
@@ -842,6 +858,7 @@ func LoadPendingQuery(
 					// first, lets look for type information
 					var argType string
 					var argTypeModifiers string
+					var argTypeRaw string
 					for _, field := range arg.Value.Children {
 						if field.Name != "type" {
 							continue
@@ -860,7 +877,8 @@ func LoadPendingQuery(
 							}
 						}
 
-						argType, argTypeModifiers = schema.ParseFieldType(field.Value.Raw)
+						argTypeRaw = field.Value.Raw
+						argType, argTypeModifiers = schema.ParseFieldType(argTypeRaw)
 					}
 
 					if argType == "" {
@@ -928,8 +946,8 @@ func LoadPendingQuery(
 					}
 
 					// before we insert the argument definition we need to confirm that the default value is valid
-					if argDefault != 0 {
-						match, err := schema.ValueMatchesType(argType, argDefaultValue)
+					if argDefaultValue != nil {
+						match, err := schema.ValueMatchesType(argTypeRaw, argDefaultValue)
 						if err != nil {
 							return plugins.WrapError(err)
 						}
@@ -1277,7 +1295,7 @@ func processDirectives[PluginConfig any](
 				if directive.Name == graphql.WithDirective ||
 					directive.Name == graphql.ArgumentsDirective {
 					dArgType = TypeWithModifiers{
-						Type:      "ArgumentSpecification",
+						Type:      schema.ArgumentSpecificationType,
 						Modifiers: "!",
 					}
 				} else if directive.Name == graphql.WhenDirective ||
@@ -1417,23 +1435,12 @@ func processArgumentValue[PluginConfig any](
 	typ := expectedType
 	typeModifier := expectedTypeModifiers
 
-	// list types retain their parents type
+	// list values keep the full expected modifiers; their items get whatever
+	// remains after stripping the outermost list wrapper
+	listItemModifiers := expectedTypeModifiers
 	if valueKind == "List" {
-		typ = expectedType
-		listModifier := ""
-		if expectedTypeModifiers != "" {
-			if expectedTypeModifiers[len(expectedTypeModifiers)-1] == '!' {
-				listModifier = "!"
-				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
-			}
-			if expectedTypeModifiers != "" &&
-				expectedTypeModifiers[len(expectedTypeModifiers)-1] == ']' {
-				listModifier = "]" + listModifier
-				expectedTypeModifiers = expectedTypeModifiers[:len(expectedTypeModifiers)-1]
-			}
-		}
-
-		typeModifier = listModifier
+		listItemModifiers = strings.TrimSuffix(listItemModifiers, "!")
+		listItemModifiers = strings.TrimSuffix(listItemModifiers, "]")
 	}
 	line, column := 0, 0
 	if value.Position != nil {
@@ -1497,14 +1504,8 @@ func processArgumentValue[PluginConfig any](
 
 			}
 
-			// if the type is a list then we need to strip away the outer brackets
 			if valueKind == "List" {
-				if strings.HasSuffix(childModifiers, "!") {
-					childModifiers = childModifiers[:len(childModifiers)-1]
-				}
-				if strings.HasSuffix(childModifiers, "]") {
-					childModifiers = childModifiers[:len(childModifiers)-1]
-				}
+				childModifiers = listItemModifiers
 			}
 
 			// Recursively process the child value.

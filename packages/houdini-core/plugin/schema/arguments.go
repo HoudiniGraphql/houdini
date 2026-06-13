@@ -122,9 +122,11 @@ func (p *typeParser) parseType() (*ast.Type, error) {
 // validateValue recursively validates an AST value against a parsed GraphQL type.
 // It handles non-null, list, and named types.
 func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
-	// If the type is non-null, the value must be non-nil.
+	isNull := val == nil || val.Kind == ast.NullValue
+
+	// If the type is non-null, the value must be non-null.
 	if t.NonNull {
-		if val == nil {
+		if isNull {
 			return false, nil
 		}
 		// Remove the non-null requirement for nested validation.
@@ -133,16 +135,16 @@ func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
 		return validateValue(&tCopy, val)
 	}
 
-	// For nullable types, a nil value (GraphQL null) is valid.
-	if val == nil {
+	// For nullable types, a null value is valid.
+	if isNull {
 		return true, nil
 	}
 
 	// Handle list types.
 	if t.Elem != nil {
-		// The value must be a list.
+		// a single value is coerced to a one-element list
 		if val.Kind != ast.ListValue {
-			return false, nil
+			return validateValue(t.Elem, val)
 		}
 		// Recursively validate each element of the list.
 		for _, child := range val.Children {
@@ -157,25 +159,35 @@ func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
 		return true, nil
 	}
 
-	// For named types, determine the expected AST value kind.
-	expectedKind, err := expectedKindForNamedType(t.NamedType)
-	if err != nil {
-		return false, err
-	}
-	return val.Kind == expectedKind, nil
+	return valueKindMatches(t.NamedType, val.Kind), nil
 }
 
-// expectedKindForNamedType maps a GraphQL named type (e.g. "Int", "String", "Boolean")
-// to its expected AST value kind.
-func expectedKindForNamedType(name string) (ast.ValueKind, error) {
-	switch name {
-	case "Int":
-		return ast.IntValue, nil
-	case "String":
-		return ast.StringValue, nil
-	case "Boolean":
-		return ast.BooleanValue, nil
+// valueKindMatches reports whether a literal of the given AST kind can coerce
+// to the named type, following the spec's input coercion rules
+func valueKindMatches(name string, kind ast.ValueKind) bool {
+	var literal string
+	switch kind {
+	case ast.IntValue:
+		literal = "Int"
+	case ast.FloatValue:
+		literal = "Float"
+	case ast.StringValue:
+		literal = "String"
+	case ast.BlockValue:
+		literal = "Block"
+	case ast.BooleanValue:
+		literal = "Boolean"
+	case ast.EnumValue:
+		literal = "Enum"
 	default:
-		return ast.StringValue, fmt.Errorf("unknown named type: %s", name)
+		literal = "Object"
 	}
+
+	assignable, known := LiteralKindAssignable(name, literal)
+	if !known {
+		// enums, custom scalars, and input objects can't be checked from the
+		// type name alone so trust the value
+		return true
+	}
+	return assignable
 }
