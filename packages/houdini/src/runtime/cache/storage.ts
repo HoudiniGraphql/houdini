@@ -545,8 +545,10 @@ export class Layer {
 				const insertCount = new Map<string, number>()
 				const removeCount = new Map<string, number>()
 				for (const op of ops) {
-					if (isInsertOperation(op)) insertCount.set(op.id, (insertCount.get(op.id) ?? 0) + 1)
-					else if (isRemoveOperation(op)) removeCount.set(op.id, (removeCount.get(op.id) ?? 0) + 1)
+					if (isInsertOperation(op))
+						insertCount.set(op.id, (insertCount.get(op.id) ?? 0) + 1)
+					else if (isRemoveOperation(op))
+						removeCount.set(op.id, (removeCount.get(op.id) ?? 0) + 1)
 				}
 
 				// net > 0 means the ID should end up inserted that many more times than removed,
