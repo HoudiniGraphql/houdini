@@ -34,6 +34,11 @@ func TestValidArgumentValue(t *testing.T) {
 			true,
 		},
 		{
+			"string for ID",
+			argumentValueCheck{Kind: "String", ExpectedType: "ID", ExpectedTypeKind: "SCALAR"},
+			true,
+		},
+		{
 			"block string for String",
 			argumentValueCheck{Kind: "Block", ExpectedType: "String", ExpectedTypeKind: "SCALAR"},
 			true,
