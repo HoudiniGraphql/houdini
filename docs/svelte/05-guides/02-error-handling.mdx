@@ -3,12 +3,13 @@ title: "Error Handling"
 description: "Handle GraphQL and network errors."
 ---
 
-There are 2 ways you can handle errors in GraphQL: you can either have documents throw an exception if an
-`error` key is located in the payload (and is a list with at least one member) or they can fail silently
-and rely on application level code to function.
+import ErrorHandling from '@shared/_partials/error-handling.mdx'
 
-By default, Houdini will behave "silently" and not throw any exceptions if an error is the query response is
-seen. If you want to turn on exceptions, you can specify the details in the `throwOnError` field:
+<ErrorHandling />
+
+## SvelteKit Integration
+
+In SvelteKit, use the `error` helper from `@sveltejs/kit` inside `throwOnError` to produce proper HTTP error responses:
 
 ```typescript title="src/client.ts&typescriptToggle=true"
 import { error } from '@sveltejs/kit'
@@ -16,10 +17,7 @@ import { error } from '@sveltejs/kit'
 export default new HoudiniClient({
     url: '...',
     throwOnError: {
-        // can be any combination of
-        // query, mutation, subscription, and all
         operations: ['all'],
-        // the function to call
         error: (errors, ctx) => error(500,
             `(${ctx.artifact.name}): ` +
             errors.map((err) => err.message).join('. ') + '.'
