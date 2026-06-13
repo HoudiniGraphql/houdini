@@ -450,10 +450,8 @@ export class List {
 
 		// get the list of specs that are subscribing to the list
 		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
-		const maskedParentSubscribers = this.cache._internal_unstable.subscriptions.getMaskedParents(
-			this.recordID,
-			this.key
-		)
+		const maskedParentSubscribers =
+			this.cache._internal_unstable.subscriptions.getMaskedParents(this.recordID, this.key)
 
 		// if we are unsubscribing from a connection, the fields we care about
 		// are tucked away under edges

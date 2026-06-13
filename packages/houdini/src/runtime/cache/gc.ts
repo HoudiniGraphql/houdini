@@ -41,7 +41,8 @@ export class GarbageCollector {
 				// document's active data even if no one is notified when it changes
 				if (
 					this.cache._internal_unstable.subscriptions.get(id, field).length > 0 ||
-					this.cache._internal_unstable.subscriptions.getMaskedParents(id, field).length > 0
+					this.cache._internal_unstable.subscriptions.getMaskedParents(id, field).length >
+						0
 				) {
 					continue
 				}

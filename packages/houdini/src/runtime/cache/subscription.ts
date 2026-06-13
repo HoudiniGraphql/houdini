@@ -177,7 +177,9 @@ export class InMemorySubscriptions {
 
 		// masked parent subscriptions get tracked separately so they never participate
 		// in update notifications
-		const selections = masked ? subscriberField.maskedParentSelections : subscriberField.selections
+		const selections = masked
+			? subscriberField.maskedParentSelections
+			: subscriberField.selections
 		const referenceCounts = masked
 			? subscriberField.maskedParentReferenceCounts
 			: subscriberField.referenceCounts
@@ -500,7 +502,9 @@ export class InMemorySubscriptions {
 		// get the list of subscriptions specs for the id if we didn't provide a specific list
 		if (!targets) {
 			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((fieldSub) =>
-				fieldSub.selections.concat(fieldSub.maskedParentSelections).flatMap((sel) => sel[0]!)
+				fieldSub.selections
+					.concat(fieldSub.maskedParentSelections)
+					.flatMap((sel) => sel[0]!)
 			)
 		}
 
