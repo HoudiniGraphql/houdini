@@ -327,11 +327,11 @@ var hookSpecs = []hookSpec{
 		},
 		overloads: func(name string) string {
 			return fmt.Sprintf(
-				"export function useMutation(document: { artifact: %s$artifact }): [boolean, MutationHandler<%s$result, %s$input, %s$optimistic>]\n",
+				"export function useMutation(document: { artifact: %s$artifact }): [MutationHandler<%s$result, %s$input, %s$optimistic>, boolean]\n",
 				name, name, name, name,
 			)
 		},
-		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [boolean, MutationHandler<_Result, _Input, _Optimistic>]",
+		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]",
 	},
 	{
 		file:   "useSubscription.ts",

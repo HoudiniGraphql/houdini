@@ -237,8 +237,8 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useMutation.ts": "import type { MyMutation$result, MyMutation$artifact, MyMutation$input, MyMutation$optimistic } from '$houdini/artifacts/MyMutation'\n" +
 							"\n" +
 							"import type { MutationArtifact } from 'houdini/runtime'\n\n" +
-							"export function useMutation(document: { artifact: MyMutation$artifact }): [boolean, MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>]\n" +
-							"export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [boolean, MutationHandler<_Result, _Input, _Optimistic>]\n" +
+							"export function useMutation(document: { artifact: MyMutation$artifact }): [MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>, boolean]\n" +
+							"export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]\n" +
 							"export function useMutation<_A>(doc: any): any {}\n",
 					},
 				},
