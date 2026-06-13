@@ -7,6 +7,7 @@ export default defineConfig({
 		include: [
 			'./packages/*/src/**/*.test.{ts,js}',
 			'./packages/houdini-react/runtime/**/*.test.{ts,js}',
+			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
 			'./site/**/*.test.{ts,js}',
 		],
 		setupFiles: [path.resolve('./vitest.setup.ts')],
@@ -15,6 +16,7 @@ export default defineConfig({
 			'houdini/test': path.resolve('./packages/houdini/legacy/test'),
 			'houdini/vite': path.resolve('./packages/houdini/src/vite'),
 			'houdini/codegen': path.resolve('./packages/houdini/src/codegen'),
+			'houdini/runtime': path.resolve('./packages/houdini/src/runtime'),
 			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
 		coverage: {

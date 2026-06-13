@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest'
 
-import type { SubscriptionSelection } from '../../lib'
+import type { SubscriptionSelection } from 'houdini/runtime/types'
 import { testCache, testFragment } from './test.js'
 
 test('list.append accepts record proxies', () => {
