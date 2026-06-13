@@ -2,7 +2,9 @@ package plugin_test
 
 import (
 	"context"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -513,6 +515,125 @@ func TestInjectComponentFieldArtifactTypes(t *testing.T) {
 						// HelloWorld has no component field — must not be modified
 						"HelloWorld.ts": "export type HelloWorld$result",
 					},
+				},
+			},
+		},
+	})
+}
+
+func TestGenerateJsxRuntime(t *testing.T) {
+	prodTemplate, err := os.ReadFile("../runtime/jsx-runtime.ts")
+	require.NoError(t, err)
+	devTemplate, err := os.ReadFile("../runtime/jsx-dev-runtime.ts")
+	require.NoError(t, err)
+
+	applyUnion := func(tmpl []byte, union string) string {
+		return strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION", union)
+	}
+
+	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
+		Schema: `
+			type Query {
+				id: ID
+				node(id: ID!): Node
+			}
+			interface Node { id: ID! }
+		`,
+		SetupAlwaysPasses: true,
+
+		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			cfg, err := p.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+			runtimeDir := cfg.PluginRuntimeDirectory(p.Name())
+			require.NoError(t, p.Filesystem().MkdirAll(runtimeDir, 0755))
+			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-runtime.ts"), prodTemplate, 0644))
+			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-dev-runtime.ts"), devTemplate, 0644))
+
+			views, ok := test.Extra["views"].(map[string]string)
+			if !ok {
+				return
+			}
+			for fp, content := range views {
+				abs := filepath.Join("/project", fp)
+				require.NoError(t, p.Filesystem().MkdirAll(filepath.Dir(abs), 0755))
+				require.NoError(t, afero.WriteFile(p.Filesystem(), abs, []byte(content), 0644))
+			}
+		},
+
+		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			ctx := context.Background()
+			cfg, err := p.DB.ProjectConfig(ctx)
+			require.NoError(t, err)
+
+			manifest, err := p.LoadManifest(ctx)
+			require.NoError(t, err)
+
+			_, err = p.GenerateJsxRuntime(ctx, manifest)
+			require.NoError(t, err)
+
+			union, ok := test.Extra["union"].(string)
+			if !ok {
+				return
+			}
+
+			houdiniDir := filepath.Join(cfg.ProjectRoot, cfg.RuntimeDir)
+
+			gotProd, err := afero.ReadFile(p.Filesystem(), filepath.Join(houdiniDir, "jsx-runtime.ts"))
+			require.NoError(t, err)
+			require.Equal(t, applyUnion(prodTemplate, union), string(gotProd))
+
+			gotDev, err := afero.ReadFile(p.Filesystem(), filepath.Join(houdiniDir, "jsx-dev-runtime.ts"))
+			require.NoError(t, err)
+			require.Equal(t, applyUnion(devTemplate, union), string(gotDev))
+		},
+
+		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "no routes generates fallback-only union",
+				Pass: true,
+				Extra: map[string]any{
+					"union": "    | { href?: string & {}; params?: Record<string, string> }",
+				},
+			},
+			{
+				Name: "static route",
+				Pass: true,
+				Input: []string{mockQuery("HomeQuery", false)},
+				Filepaths: []string{"src/routes/+page.gql"},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx": mockView([]string{"HomeQuery"}),
+					},
+					"union": "    | { href: \"/\"; params?: never }\n" +
+						"    | { href?: string & {}; params?: Record<string, string> }",
+				},
+			},
+			{
+				Name: "parameterized route",
+				Pass: true,
+				Input: []string{
+					"query MyQuery($id: ID!) {\n\tnode(id: $id) {\n\t\tid\n\t}\n}\n",
+				},
+				Filepaths: []string{"src/routes/[id]/+layout.gql"},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
+					},
+					"union": "    | { href: \"/[id]\"; params: { id: string } }\n" +
+						"    | { href?: string & {}; params?: Record<string, string> }",
+				},
+			},
+			{
+				Name: "route group stripped from href",
+				Pass: true,
+				Input: []string{mockQuery("UsersQuery", false)},
+				Filepaths: []string{"src/routes/(auth)/users/+page.gql"},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/(auth)/users/+page.tsx": mockView([]string{"UsersQuery"}),
+					},
+					"union": "    | { href: \"/users\"; params?: never }\n" +
+						"    | { href?: string & {}; params?: Record<string, string> }",
 				},
 			},
 		},

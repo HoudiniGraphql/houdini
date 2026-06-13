@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "$houdini": ["."],
+            "$houdini/*": ["./*"],
+            "~": ["../src"],
+            "~/*": ["../src/*"]
+        },
+        "rootDirs": ["..", "./types"],
+        "target": "ESNext",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": false,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "$houdini"
+    },
+    "include": [
+        "ambient.d.ts",
+        "./types/**/$types.d.ts",
+        "../vite.config.ts",
+        "../src/**/*.js",
+        "../src/**/*.ts",
+        "../src/**/*.jsx",
+        "../src/**/*.tsx",
+        "../src/+app.d.ts"
+    ],
+    "exclude": ["../node_modules/**", "./[!ambient.d.ts]**"]
+}
