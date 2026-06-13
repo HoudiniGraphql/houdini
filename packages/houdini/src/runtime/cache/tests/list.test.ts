@@ -2579,7 +2579,9 @@ test('list filter - object value with nested variable', () => {
 	cache.subscribe(
 		{
 			rootType: 'Query',
-			set,
+			onMessage: (msg) => {
+				if (msg.kind === 'update') set(msg.data)
+			},
 			selection,
 		},
 		{ value: 'bar' }
@@ -3566,7 +3568,7 @@ test('when operation with variable condition', () => {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)

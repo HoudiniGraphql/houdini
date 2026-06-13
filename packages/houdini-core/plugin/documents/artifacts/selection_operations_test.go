@@ -520,7 +520,6 @@ mutation B {
                                     "firstName": {
                                         "type": "String",
                                         "keyRaw": "firstName",
-                                        "visible": true,
                                     },
 
                                     "id": {
