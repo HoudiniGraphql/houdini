@@ -1537,6 +1537,9 @@ func extractOperation(
 		case strings.Contains(selection.FieldName, graphql.ListOperationSuffixToggle):
 			listName = stripSuffix(selection.FieldName, graphql.ListOperationSuffixToggle)
 			action = "toggle"
+		case strings.Contains(selection.FieldName, graphql.ListOperationSuffixUpsert):
+			listName = stripSuffix(selection.FieldName, graphql.ListOperationSuffixUpsert)
+			action = "upsert"
 
 		default:
 			// the fragment doesn't end in one of the magic prefixes

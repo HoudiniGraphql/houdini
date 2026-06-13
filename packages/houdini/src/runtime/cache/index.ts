@@ -1031,6 +1031,32 @@ class CacheInternal {
 						})
 					}
 
+					// upsert: insert if not present, update if already in list
+					else if (
+						operation.action === 'upsert' &&
+						target instanceof Object &&
+						fieldSelection &&
+						operation.list
+					) {
+						const upsertList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						upsertList
+							.when(operation.when)
+							.upsertInList(
+								fieldSelection,
+								target,
+								variables,
+								operation.position || 'last',
+								layer
+							)
+					}
+
 					// remove object from list
 					else if (
 						operation.action === 'remove' &&

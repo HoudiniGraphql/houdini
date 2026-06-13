@@ -282,8 +282,8 @@ func InsertOperationDocuments(
 		// let's collect the documents we inserted so we can copy the argument values over to both documents
 		copyTargets := []int64{}
 
-		// _insert and _toggle both get the full selection set
-		for _, suffixes := range []string{graphql.ListOperationSuffixInsert, graphql.ListOperationSuffixToggle} {
+		// _insert, _toggle, _upsert, and _update all get the full selection set
+		for _, suffixes := range []string{graphql.ListOperationSuffixInsert, graphql.ListOperationSuffixToggle, graphql.ListOperationSuffixUpsert, graphql.ListOperationSuffixUpdate} {
 			err := db.ExecStatement(insertDocument, map[string]any{
 				"name":           fmt.Sprintf("%s%s", name, suffixes),
 				"kind":           "fragment",
