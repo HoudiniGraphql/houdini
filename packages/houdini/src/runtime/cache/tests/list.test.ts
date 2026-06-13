@@ -3120,6 +3120,100 @@ test('toggle list', () => {
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
 })
 
+test('toggle list survives multiple on-off cycles through mutation layers', () => {
+	const cache = new Cache(config)
+
+	// shared selections
+	const friendsSelection: SubscriptionSelection = {
+		fields: {
+			friends: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'friends',
+				list: {
+					name: 'All_Users',
+					connection: false,
+					type: 'User',
+				},
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+					},
+				},
+			},
+		},
+	}
+
+	const toggleSelection: SubscriptionSelection = {
+		fields: {
+			newUser: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'newUser',
+				operations: [{ action: 'toggle', list: 'All_Users' }],
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+					},
+				},
+			},
+		},
+	}
+
+	// write the initial query result and subscribe so the list is registered
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: friendsSelection,
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [] } },
+	})
+
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: friendsSelection,
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	// simulate a mutation by writing through an optimistic layer then resolving it,
+	// matching the lifecycle the mutation plugin uses in production
+	const mutate = (data: Record<string, unknown>) => {
+		const layer = cache._internal_unstable.storage.createLayer(true)
+		cache.write({ selection: toggleSelection, data, layer: layer.id })
+		cache._internal_unstable.storage.resolveLayer(layer.id)
+	}
+
+	// cycle 1 — on
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
+
+	// cycle 1 — off
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual([])
+
+	// cycle 2 — on (this is where the stale remove op used to re-cancel the insert)
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
+
+	// cycle 2 — off
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual([])
+
+	// cycle 3 — on
+	mutate({ newUser: { id: '3' } })
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:3'])
+})
+
 test('append when operation', () => {
 	// instantiate a cache
 	const cache = new Cache(config)

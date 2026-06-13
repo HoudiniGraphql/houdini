@@ -5,13 +5,13 @@ description: Sending mutations in Houdini's React framework
 
 import Dedupe from '@shared/_partials/dedupe.mdx'
 
-The `useMutation` hook wraps a GraphQL mutation and returns a tuple of `[pending, mutate]`. Call `mutate` with your variables to execute it.
+The `useMutation` hook wraps a GraphQL mutation and returns a tuple of `[mutate, pending]`. Call `mutate` with your variables to execute it.
 
 ```jsx meta="typescriptToggle=true"
 import { graphql, useMutation } from '$houdini'
 
 export function AddCommentForm({ postId }: { postId: string }) {
-  const [pending, mutate] = useMutation(graphql(`
+  const [mutate, pending] = useMutation(graphql(`
     mutation AddComment($postId: ID!, $body: String!) {
       addComment(postId: $postId, body: $body) {
         id
@@ -47,7 +47,7 @@ Mutations always throw on error — unlike queries, there's no opt-in. Wrap call
 ```jsx
 import { graphql, useMutation, RuntimeGraphQLError } from '$houdini'
 
-const [pending, mutate] = useMutation(graphql(`...`))
+const [mutate, pending] = useMutation(graphql(`...`))
 
 try {
   await mutate({ variables: { ... } })

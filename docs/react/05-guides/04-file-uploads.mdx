@@ -15,7 +15,7 @@ Pass a `File` directly as a mutation variable. Houdini detects it and switches t
 import { graphql, useMutation } from '$houdini'
 
 export function UploadForm() {
-  const [pending, mutate] = useMutation(graphql(`
+  const [mutate, pending] = useMutation(graphql(`
     mutation UploadFile($file: File!) {
       uploadImage(file: $file)
     }

@@ -74,7 +74,7 @@ const [, toggleFavorite] = useMutation(graphql(`
 `))
 ```
 
-`useMutation` returns a tuple of `[pending, mutate]`. `pending` is `true` while the server request is in flight; `mutate` is the function you call to execute the mutation. With that in place, we can now configure the button we added earlier:
+`useMutation` returns a tuple of `[mutate, pending]`. `mutate` is the function you call to execute the mutation; `pending` is `true` while the server request is in flight. With that in place, we can now configure the button we added earlier:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
 <button id="favorite" onClick={() => toggleFavorite({

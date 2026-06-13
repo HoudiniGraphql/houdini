@@ -10,7 +10,7 @@ An optimistic update applies an immediate change to the cache before the server 
 Pass `optimisticResponse` to `mutate` with the shape you expect back:
 
 ```jsx
-const [pending, mutate] = useMutation(graphql(`
+const [mutate, pending] = useMutation(graphql(`
   mutation ToggleLike($id: ID!) {
     toggleLike(id: $id) {
       id
