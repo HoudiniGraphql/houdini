@@ -33,6 +33,10 @@ When making changes, update the relevant doc pages alongside the code. This incl
 
 The marketing site at `../marketing` symlinks directly into these directories, so doc changes are reflected immediately in the local dev server.
 
+## Changesets
+
+Every change needs a changeset. Keep the description to one or two sentences — no bullet lists.
+
 ## Tutorial sync
 
 Fixes to tutorial shim/Go files must also update the houdini source templates: `shim.cjs`, `postInstall.js`, `db_ncruces.go`. No automated check enforces this.
