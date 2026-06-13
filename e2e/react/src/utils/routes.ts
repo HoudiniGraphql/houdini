@@ -14,6 +14,7 @@ export const routes = {
 	pagination_query_offset: '/pagination/query/offset',
 	pagination_dedupe: '/pagination/query/dedupe',
 	pagination_query_offset_singlepage: '/pagination/query/offset-singlepage',
+	pagination_query_bidirectional_cursor_singlepage: '/pagination/query/connection-bidirectional-singlepage',
 	pagination_query_offset_variable: '/pagination/query/offset-variable/2',
 	optimistic_keys: '/optimistic-keys',
 	node_plugin: '/node-plugin',

@@ -1,0 +1,14 @@
+query BidirectionalCursorSinglePagePaginationQuery {
+	user(id: "1", snapshot: "nested-bidirectional-cursor-single-page-user") {
+		usersConnectionSnapshot(
+			first: 2
+			snapshot: "nested-bidirectional-cursor-single-page"
+		) @paginate(mode: SinglePage) {
+			edges {
+				node {
+					name
+				}
+			}
+		}
+	}
+}

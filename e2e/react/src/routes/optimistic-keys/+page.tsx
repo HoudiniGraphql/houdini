@@ -6,7 +6,7 @@ import { PageProps } from './$types'
 export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) {
 	const [error, setError] = React.useState('')
 
-	const [_, update] = useMutation(
+	const [update, _] = useMutation(
 		graphql(`
 			mutation OptimisticKeyTestUpdateMutation($id: ID!, $avatarURL: String!) {
 				updateUserByID(
@@ -22,7 +22,7 @@ export default function OptimisticKeyTestView({ OptimisticKeyTest }: PageProps) 
 		`)
 	)
 
-	const [__, create] = useMutation(
+	const [create, __] = useMutation(
 		graphql(`
 			mutation OptimisticKeyTestCreateMutation($name: String!, $birthDate: DateTime!) {
 				addUser(
