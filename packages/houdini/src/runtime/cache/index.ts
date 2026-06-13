@@ -210,13 +210,13 @@ export class Cache {
 
 		// a document can be subscribed to multiple fields of the record so make
 		// sure we only send the message once per set
-		const notified: SubscriptionSpec['onMessage'][] = []
+		const notified = new Set<SubscriptionSpec['onMessage']>()
 		for (const recordID of recordIDs) {
 			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
 				includeMaskedParents: true,
 			})) {
-				if (!notified.includes(spec.onMessage)) {
-					notified.push(spec.onMessage)
+				if (!notified.has(spec.onMessage)) {
+					notified.add(spec.onMessage)
 					spec.onMessage({ kind: 'refetch' })
 				}
 			}
@@ -377,11 +377,11 @@ export class Cache {
 		this._internal_unstable.epoch++
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
-		const notified: SubscriptionSpec['onMessage'][] = []
+		const notified = new Set<SubscriptionSpec['onMessage']>()
 		for (const spec of subs) {
 			// if we haven't added the set yet
-			if (!notified.includes(spec.onMessage)) {
-				notified.push(spec.onMessage)
+			if (!notified.has(spec.onMessage)) {
+				notified.add(spec.onMessage)
 				// trigger the update
 				spec.onMessage({
 					kind: 'update',
