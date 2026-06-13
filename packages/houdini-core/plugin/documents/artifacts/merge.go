@@ -63,6 +63,9 @@ type fieldCollectionField struct {
 	Field      *collected.Selection
 	Selection  *fieldCollection
 	Directives []*collected.Directive
+	// true once the field has been requested through at least one path that isn't
+	// guarded by a conditional directive inherited from a fragment spread
+	Unconditional bool
 }
 
 type fieldCollection struct {
@@ -118,6 +121,16 @@ func (c *fieldCollection) Add(
 			}
 		}
 
+		// figure out if this occurrence of the field is guarded by a conditional
+		// directive inherited from a fragment spread
+		unconditional := true
+		for _, dir := range selection.Directives {
+			if isPropagatedConditional(dir) {
+				unconditional = false
+				break
+			}
+		}
+
 		// if we've seen the field before then we need to make sure some metadata
 		// overlaps correctly
 		if sel, ok := c.Fields[*selection.Alias]; ok {
@@ -125,12 +138,23 @@ func (c *fieldCollection) Add(
 				sel.Visible = true
 			}
 
+			// an occurrence that isn't guarded by a spread conditional means the field
+			// is always requested so drop any conditionals inherited from other spreads
+			if unconditional && !sel.Unconditional {
+				sel.Unconditional = true
+				sel.Directives = withoutPropagatedConditionals(sel.Directives)
+				sel.Field.Directives = withoutPropagatedConditionals(sel.Field.Directives)
+			}
+
 			// only append directives we haven't seen yet
 			// but skip @required directive when merging from external fragments that are masked
 			// to prevent it from affecting parent query
 			for _, dir := range selection.Directives {
 				shouldSkipRequired := external && dir.Name == graphql.RequiredDirective && hidden
-				if !containsDirective(sel.Field.Directives, dir) && !shouldSkipRequired {
+				// an inherited conditional can't override a field that is requested unconditionally
+				shouldSkipConditional := sel.Unconditional && isPropagatedConditional(dir)
+				if !containsDirective(sel.Field.Directives, dir) && !shouldSkipRequired &&
+					!shouldSkipConditional {
 					sel.Directives = append(sel.Field.Directives, dir)
 				}
 			}
@@ -155,7 +179,8 @@ func (c *fieldCollection) Add(
 					selection.FieldType,
 					c.SortKeys,
 				),
-				Visible: !hidden,
+				Visible:       !hidden,
+				Unconditional: unconditional,
 			}
 		}
 
@@ -209,11 +234,24 @@ func (c *fieldCollection) Add(
 			return plugins.WrapError(errors.New("fragment not found"))
 		}
 
+		// if the spread is guarded by @include or @skip then the fields it inlines are
+		// conditional too. clone the fragment's selections and push the condition onto
+		// them so the runtime doesn't treat a missing value as a broken non-null field
+		fragmentSelections := definition.Selections
+		if conditionals := spreadConditionals(selection.Directives); len(conditionals) > 0 {
+			fragmentSelections = make([]*collected.Selection, len(definition.Selections))
+			for i, sel := range definition.Selections {
+				clone := sel.Clone(true)
+				attachConditionals(clone, conditionals)
+				fragmentSelections[i] = clone
+			}
+		}
+
 		_, abstractParent := c.CollectedDocuments.PossibleTypes[c.ParentType]
 		// if the selections parent type is the same as the fragment type condition then
 		// we should just add every field directly
 		if definition.TypeCondition == c.ParentType || !abstractParent {
-			for _, sel := range definition.Selections {
+			for _, sel := range fragmentSelections {
 				err := c.Add(sel, true, visibilityMask)
 				if err != nil {
 					return err
@@ -229,7 +267,7 @@ func (c *fieldCollection) Add(
 			Kind:      "inline_fragment",
 			FieldName: definition.TypeCondition,
 			FieldType: definition.TypeCondition,
-			Children:  definition.Selections,
+			Children:  fragmentSelections,
 			Visible:   !hidden,
 		}
 
@@ -515,4 +553,71 @@ func containsDirective(list []*collected.Directive, dir *collected.Directive) bo
 		}
 	}
 	return false
+}
+
+// spreadConditionals extracts the @include and @skip directives applied to a
+// fragment spread. the copies are marked internal so that merging can tell them
+// apart from conditionals the user wrote on a field directly
+func spreadConditionals(directives []*collected.Directive) []*collected.Directive {
+	result := []*collected.Directive{}
+	for _, directive := range directives {
+		if directive.Name == graphql.IncludeDirective || directive.Name == graphql.SkipDirective {
+			clone := *directive
+			clone.Internal = 1
+			result = append(result, &clone)
+		}
+	}
+	return result
+}
+
+// isPropagatedConditional returns true if the directive is an @include or @skip
+// that was inherited from a fragment spread rather than written on the field
+func isPropagatedConditional(directive *collected.Directive) bool {
+	return directive.Internal == 1 &&
+		(directive.Name == graphql.IncludeDirective || directive.Name == graphql.SkipDirective)
+}
+
+// withoutPropagatedConditionals filters out conditionals inherited from fragment
+// spreads. the original slice is left untouched since it might be shared with the
+// collected document
+func withoutPropagatedConditionals(
+	directives []*collected.Directive,
+) []*collected.Directive {
+	propagated := false
+	for _, dir := range directives {
+		if isPropagatedConditional(dir) {
+			propagated = true
+			break
+		}
+	}
+	if !propagated {
+		return directives
+	}
+
+	result := make([]*collected.Directive, 0, len(directives))
+	for _, dir := range directives {
+		if !isPropagatedConditional(dir) {
+			result = append(result, dir)
+		}
+	}
+	return result
+}
+
+// attachConditionals records the conditional directives from a fragment spread on
+// every selection it inlines so the runtime knows the fields might be missing from
+// the response. fields and nested spreads carry the condition directly while inline
+// fragments pass it through to their children
+func attachConditionals(selection *collected.Selection, conditionals []*collected.Directive) {
+	switch selection.Kind {
+	case "field", "fragment":
+		for _, directive := range conditionals {
+			if !containsDirective(selection.Directives, directive) {
+				selection.Directives = append(selection.Directives, directive)
+			}
+		}
+	case "inline_fragment":
+		for _, child := range selection.Children {
+			attachConditionals(child, conditionals)
+		}
+	}
 }
