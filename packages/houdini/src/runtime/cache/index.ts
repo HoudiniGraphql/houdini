@@ -1018,7 +1018,9 @@ class CacheInternal {
 									operation.target === 'all',
 									processedOperations
 								)
-						removeList.when(resolveWhen(operation.when, variables)).remove(target, variables, layer)
+						removeList
+							.when(resolveWhen(operation.when, variables))
+							.remove(target, variables, layer)
 					}
 
 					// delete the target

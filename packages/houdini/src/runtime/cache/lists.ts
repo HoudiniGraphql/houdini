@@ -1,6 +1,12 @@
 import { deepEquals } from '../deepEquals.js'
 import { flatten } from '../flatten.js'
-import type { Filter, SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../types.js'
+import type {
+	Filter,
+	SubscriptionSelection,
+	ListWhen,
+	SubscriptionSpec,
+	NestedList,
+} from '../types.js'
 import type { Cache } from './index.js'
 import type { Layer } from './storage.js'
 import { rootID } from './stuff.js'
