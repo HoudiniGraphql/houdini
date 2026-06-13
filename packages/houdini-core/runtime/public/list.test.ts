@@ -37,11 +37,17 @@ test('upsert inserts record when not already in list', () => {
 		selection: friendsSelection,
 		data: { viewer: { id: '1', friends: [{ id: '2', firstName: 'jane' }] } },
 	})
-	cache._internal_unstable.subscribe({ rootType: 'Query', set: vi.fn(), selection: friendsSelection })
+	cache._internal_unstable.subscribe({
+		rootType: 'Query',
+		set: vi.fn(),
+		selection: friendsSelection,
+	})
 
 	const user = cache.get('User', { id: '3' })
 	user.write({
-		fragment: testFragment({ fields: { firstName: { type: 'String', visible: true, keyRaw: 'firstName' } } }),
+		fragment: testFragment({
+			fields: { firstName: { type: 'String', visible: true, keyRaw: 'firstName' } },
+		}),
 		data: { firstName: 'mary' },
 	})
 
@@ -72,7 +78,9 @@ test('upsert updates existing record when already in list', () => {
 
 	const user = cache.get('User', { id: '3' })
 	user.write({
-		fragment: testFragment({ fields: { firstName: { type: 'String', visible: true, keyRaw: 'firstName' } } }),
+		fragment: testFragment({
+			fields: { firstName: { type: 'String', visible: true, keyRaw: 'firstName' } },
+		}),
 		data: { firstName: 'mary-updated' },
 	})
 
