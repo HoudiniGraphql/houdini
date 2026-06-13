@@ -74,7 +74,11 @@ test('upsert updates existing record when already in list', () => {
 	})
 
 	const onMessage = vi.fn()
-	cache._internal_unstable.subscribe({ rootType: 'Query', onMessage, selection: friendsSelection })
+	cache._internal_unstable.subscribe({
+		rootType: 'Query',
+		onMessage,
+		selection: friendsSelection,
+	})
 
 	const user = cache.get('User', { id: '3' })
 	user.write({
