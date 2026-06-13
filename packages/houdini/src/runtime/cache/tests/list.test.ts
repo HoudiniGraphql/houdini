@@ -3217,7 +3217,7 @@ test('toggle list survives multiple on-off cycles through mutation layers', () =
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
@@ -6365,7 +6365,7 @@ test('@listID operation inserts into the correct list via opaque key', () => {
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: vi.fn(),
+			onMessage: vi.fn(),
 		},
 		{}
 	)
