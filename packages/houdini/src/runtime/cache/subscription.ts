@@ -607,10 +607,7 @@ export function filterValue(filter: ListFilter, variables: Record<string, any>):
 	}
 	if (filter.kind === 'Object') {
 		return Object.fromEntries(
-			Object.entries(filter.value).map(([key, value]) => [
-				key,
-				filterValue(value, variables),
-			])
+			Object.entries(filter.value).map(([key, value]) => [key, filterValue(value, variables)])
 		)
 	}
 	if (filter.kind === 'List') {
