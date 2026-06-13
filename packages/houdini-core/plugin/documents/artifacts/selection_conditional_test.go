@@ -298,6 +298,138 @@ export type TestQuery$artifact = typeof artifact
 "HoudiniHash=2bc145fc0631e7f8e71fa91c1b77afc0b2aba93ca8fe5f39dc4dbfeceb158063"`),
 				},
 			},
+			{
+				Name: "masked spread with @include does not propagate condition to inlined fields",
+				Pass: true,
+				Input: []string{
+					`query TestQuery($show: Boolean!) {
+            user(id: "1") {
+              id
+              ...UserDetails @include(if: $show)
+            }
+          }`,
+					`fragment UserDetails on User {
+            firstName
+          }`,
+				},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`const artifact = {
+    "name": "TestQuery",
+    "kind": "HoudiniQuery",
+    "hash": "4d664747270e4504bff250185fc0abd5a6778f75b203cbc5e8dca84aa8c36d93",
+    "raw": ` + "`" + `query TestQuery($show: Boolean!) {
+    user(id: "1") {
+        id
+        ...UserDetails @include(if: $show)
+        __typename
+    }
+}
+
+fragment UserDetails on User {
+    firstName
+    __typename
+    id
+}
+` + "`" + `,
+
+    "rootType": "Query",
+    "stripVariables": [] as Array<string>,
+
+    "selection": {
+        "fields": {
+            "user": {
+                "type": "User",
+                "keyRaw": "user(id: \"1\")",
+
+                "selection": {
+                    "fields": {
+                        "__typename": {
+                            "type": "String",
+                            "keyRaw": "__typename",
+                        },
+
+                        "firstName": {
+                            "type": "String",
+                            "keyRaw": "firstName",
+
+                            "directives": [{
+                                "name": "include",
+                                "arguments": {
+                                    "if": {
+                                        "kind": "Variable",
+                                        name: {
+                                            "kind": "Name",
+                                            "value": "show",
+                                        },
+                                        "value": "show"
+                                    }
+                                }
+                            }],
+
+                        },
+
+                        "id": {
+                            "type": "ID",
+                            "keyRaw": "id",
+                            "visible": true,
+                        },
+                    },
+
+                    "fragments": {
+                        "UserDetails": {
+                            "arguments": {}
+                        },
+                    },
+                },
+
+                "visible": true,
+            },
+        },
+    },
+
+    "pluginData": {},
+
+    "input": {
+        "fields": {
+            "show": "Boolean",
+        },
+
+        "types": {},
+
+        "defaults": {},
+
+        "runtimeScalars": {},
+    },
+
+    "policy": "CacheOrNetwork",
+    "partial": false
+} as const
+
+export default artifact
+
+export type TestQuery = {
+	readonly "input": TestQuery$input;
+	readonly "result": TestQuery$result | undefined;
+};
+
+export type TestQuery$result = {
+	readonly user: {
+		readonly id: string;
+		readonly " $fragments": {
+			UserDetails: {};
+		};
+	};
+};
+
+export type TestQuery$input = {
+	show: boolean;
+};
+
+export type TestQuery$artifact = typeof artifact
+
+"HoudiniHash=4d664747270e4504bff250185fc0abd5a6778f75b203cbc5e8dca84aa8c36d93"`),
+				},
+			},
 		},
 	})
 }
