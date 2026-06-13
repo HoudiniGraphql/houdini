@@ -36,7 +36,3 @@ The marketing site at `../marketing` symlinks directly into these directories, s
 ## Changesets
 
 Every change needs a changeset. Keep the description to one or two sentences — no bullet lists.
-
-## Tutorial sync
-
-Fixes to tutorial shim/Go files must also update the houdini source templates: `shim.cjs`, `postInstall.js`, `db_ncruces.go`. No automated check enforces this.
