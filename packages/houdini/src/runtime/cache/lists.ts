@@ -4,6 +4,10 @@ import type { Cache } from './index.js'
 import type { Layer } from './storage.js'
 import { rootID } from './stuff.js'
 
+export function opaqueListID(parentID: string, listName: string): string {
+	return `${parentID}::${listName}`
+}
+
 export class ListManager {
 	rootID: string
 	cache: Cache
@@ -18,6 +22,9 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
+	// indexed by the opaque list ID exposed as __id
+	private listsByOpaqueID: Map<string, ListCollection> = new Map()
+
 	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
 		// get the list collection
 		const lists = this.getLists(listName, id, allLists)
@@ -31,6 +38,18 @@ export class ListManager {
 		} else {
 			return lists
 		}
+	}
+
+	// look up a list by the opaque ID that was attached as __id
+	getByOpaqueID(opaqueID: string, skipMatches?: Set<string>): ListCollection | null {
+		const collection = this.listsByOpaqueID.get(opaqueID)
+		if (!collection) return null
+		if (skipMatches) {
+			return new ListCollection(
+				collection.lists.filter((list) => !skipMatches.has(list.fieldRef))
+			)
+		}
+		return collection
 	}
 
 	getLists(listName: string, id?: string, allLists?: boolean) {
@@ -50,8 +69,7 @@ export class ListManager {
 
 		const head = [...matches.values()][0]
 
-		// the provided id won't match the cache's ID so we have to compute the internal ID, using
-		// one of the matches to figure out the type of the list element
+		// compute the internal ID from the record type and provided id
 		const { recordType } = head.lists[0]
 		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
 
@@ -72,7 +90,7 @@ export class ListManager {
 		// root's ID is fixed
 		if (!id) {
 			console.error(
-				`Found multiple instances of "${listName}". Please provide one of @parentID or @allLists directives to ` +
+				`Found multiple instances of "${listName}". Please provide one of @parentID, @listID, or @allLists directives to ` +
 					`help identify which list you want modify. For more information, visit this guide: https://www.houdinigraphql.com/api/graphql#parentidvalue-string `
 			)
 			return null
@@ -83,7 +101,9 @@ export class ListManager {
 	}
 
 	remove(listName: string, id: string) {
-		this.lists.get(listName)?.delete(id || this.rootID)
+		const parentID = id || this.rootID
+		this.lists.get(listName)?.delete(parentID)
+		this.listsByOpaqueID.delete(opaqueListID(parentID, listName))
 	}
 
 	add(list: {
@@ -132,6 +152,9 @@ export class ListManager {
 		// add the list to the collection
 		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
 		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
+
+		// register the opaque ID lookup (format matches what getSelection injects as __id)
+		this.listsByOpaqueID.set(opaqueListID(parentID, name), this.lists.get(name)!.get(parentID)!)
 	}
 
 	removeIDFromAllLists(id: string, layer?: Layer) {
@@ -158,6 +181,7 @@ export class ListManager {
 			this.lists.get(list.name)?.get(list.recordID)?.deleteListWithKey(field)
 			if (this.lists.get(list.name)?.get(list.recordID)?.lists.length === 0) {
 				this.lists.get(list.name)?.delete(list.recordID)
+				this.listsByOpaqueID.delete(opaqueListID(list.recordID, list.name))
 			}
 		}
 
@@ -168,6 +192,7 @@ export class ListManager {
 	reset() {
 		this.lists.clear()
 		this.listsByField.clear()
+		this.listsByOpaqueID.clear()
 	}
 }
 

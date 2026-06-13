@@ -753,6 +753,49 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
+	// @includeListID on FIELD_DEFINITION — exposes __id on the list for use with @listID
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.IncludeListIDDirective,
+		"description": "@includeListID exposes an opaque __id value on the list that can be passed to @listID on a mutation to target a specific list instance.",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.IncludeListIDDirective,
+		"location":  "FIELD",
+	})
+	if err != nil {
+		return err
+	}
+
+	// @listID(value: ID!) on FRAGMENT_SPREAD
+	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
+		"name":        graphql.ListIDDirective,
+		"description": "@listID is used to identify a list by the opaque key obtained from __id (via @includeListID).",
+		"visible":     true,
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveLocation, map[string]any{
+		"directive": graphql.ListIDDirective,
+		"location":  "FRAGMENT_SPREAD",
+	})
+	if err != nil {
+		return err
+	}
+	err = db.ExecStatement(statements.InsertDirectiveArgument, map[string]any{
+		"directive":      graphql.ListIDDirective,
+		"name":           "value",
+		"type":           "ID",
+		"type_modifiers": "!",
+	})
+	if err != nil {
+		return err
+	}
+
 	// @when on FRAGMENT_SPREAD
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.WhenDirective,

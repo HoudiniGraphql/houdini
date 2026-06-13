@@ -285,3 +285,56 @@ func TestTypescriptFragmentMasking(t *testing.T) {
 		},
 	})
 }
+
+// @includeListID stamps an opaque __id onto the list value so the client can
+// pass it back via @listID; the generated type must reflect that intersection
+func TestTypescriptIncludeListID(t *testing.T) {
+	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
+		Schema: `
+			type Query {
+				users: [User!]!
+			}
+
+			type User implements Node {
+				id: ID!
+				name: String!
+			}
+
+			interface Node {
+				id: ID!
+			}
+		`,
+		VerifyTest: func(t *testing.T, plugin *plugin.HoudiniCore, test tests.Test[config.PluginConfig]) {
+			config, err := plugin.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+
+			for docName, expected := range test.Extra {
+				typeDefs, err := afero.ReadFile(plugin.Fs, config.ArtifactTypePath(docName))
+				require.NoError(t, err)
+				require.Contains(t, string(typeDefs), expected)
+			}
+		},
+		Tests: []tests.Test[config.PluginConfig]{
+			{
+				Name: "@includeListID intersects __id onto the list type",
+				Pass: true,
+				Input: []string{`query TestQuery {
+					users @list(name: "All_Users") @includeListID {
+						id
+						name
+					}
+				}`},
+				Extra: map[string]any{
+					"TestQuery": tests.Dedent(`
+						export type TestQuery$result = {
+							readonly users: ({
+								readonly id: string;
+								readonly name: string;
+							})[] & { __id: string };
+						};
+					`),
+				},
+			},
+		},
+	})
+}

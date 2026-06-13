@@ -327,11 +327,11 @@ var hookSpecs = []hookSpec{
 		},
 		overloads: func(name string) string {
 			return fmt.Sprintf(
-				"export function useMutation(document: { artifact: %s$artifact }): [boolean, MutationHandler<%s$result, %s$input, %s$optimistic>]\n",
+				"export function useMutation(document: { artifact: %s$artifact }): [MutationHandler<%s$result, %s$input, %s$optimistic>, boolean]\n",
 				name, name, name, name,
 			)
 		},
-		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [boolean, MutationHandler<_Result, _Input, _Optimistic>]",
+		passthrough: "export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]",
 	},
 	{
 		file:   "useSubscription.ts",
@@ -404,7 +404,7 @@ func (p *HoudiniReact) AddGraphQLType(ctx context.Context) ([]string, error) {
 	var typeChain strings.Builder
 
 	for _, cf := range cfs {
-		preamble.WriteString(fmt.Sprintf("import type { %s } from '$houdini'\n", cf.fragment))
+		preamble.WriteString(fmt.Sprintf("import type { %s } from '../artifacts/%s'\n", cf.fragment, cf.fragment))
 		typeChain.WriteString(fmt.Sprintf("_Document extends `%s` ? Required<%s>['shape'] : ", cf.content, cf.fragment))
 	}
 

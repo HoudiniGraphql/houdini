@@ -3,6 +3,7 @@ import { test, vi, expect } from 'vitest'
 import { testConfigFile } from '../../../test/index.js'
 import type { SubscriptionSelection } from '../../types.js'
 import { Cache } from '../index.js'
+import { opaqueListID } from '../lists.js'
 
 const config = testConfigFile()
 config.cacheBufferSize! = 10
@@ -376,4 +377,70 @@ test('ticks of gc delete list handlers', () => {
 
 	// make sure we dont have a handler for the list
 	expect(cache._internal_unstable.lists.get('All_Users')).toBeNull()
+})
+
+test('ticks of gc clean up listsByOpaqueID', () => {
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: {
+							type: 'ID',
+							visible: true,
+							keyRaw: 'id',
+						},
+						friends: {
+							type: 'User',
+							visible: true,
+							keyRaw: 'friends',
+							list: {
+								name: 'All_Users',
+								connection: false,
+								type: 'User',
+								includeListID: true,
+							},
+							selection: {
+								fields: {
+									id: {
+										type: 'ID',
+										visible: true,
+										keyRaw: 'id',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '2' }],
+			},
+		},
+	})
+
+	const set = vi.fn()
+
+	cache.subscribe({ rootType: 'Query', set, selection }, {})
+	cache.unsubscribe({ rootType: 'Query', set, selection }, {})
+
+	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
+		cache._internal_unstable.collectGarbage()
+	}
+
+	expect(
+		cache._internal_unstable.lists.getByOpaqueID(opaqueListID('User:1', 'All_Users'))
+	).toBeNull()
 })

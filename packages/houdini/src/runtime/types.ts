@@ -174,6 +174,10 @@ export type MutationOperation = {
 		kind: string
 		value: string
 	}
+	listID?: {
+		kind: string
+		value: string
+	}
 	position?: 'first' | 'last'
 	target?: 'all'
 	when?: ListWhen
@@ -220,6 +224,7 @@ export type SubscriptionSelection = Readonly<{
 				name: string
 				connection: boolean
 				type: string
+				includeListID?: boolean
 			}
 			loading?: LoadingSpec
 			directives?: readonly { name: string; arguments: ValueMap }[]

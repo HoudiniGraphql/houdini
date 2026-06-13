@@ -29,7 +29,8 @@
 		"tw": "npx tailwindcss -i ./src/styles.css -o ./public/assets/output.css --watch",
 		"preview": "vite dev",
 		"preinstall": "node preInstall.js",
-		"lint": "eslint ."
+		"lint": "eslint .",
+		"check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20260605.1",

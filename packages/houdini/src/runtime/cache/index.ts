@@ -18,7 +18,7 @@ import type {
 import { fragmentKey } from '../types.js'
 import { GarbageCollector } from './gc.js'
 import type { ListCollection } from './lists.js'
-import { ListManager } from './lists.js'
+import { ListManager, opaqueListID } from './lists.js'
 import { StaleManager } from './staleManager.js'
 import type { Layer, LayerID } from './storage.js'
 import { InMemoryStorage } from './storage.js'
@@ -876,12 +876,26 @@ class CacheInternal {
 					}
 				}
 
+				// resolve the opaque list ID from @listID (the value of __id set by @includeListID)
+				let opaqueListID: string | undefined
+				if (operation.listID) {
+					if (operation.listID.kind !== 'Variable') {
+						opaqueListID = operation.listID.value
+					} else {
+						const id = variables[operation.listID.value]
+						if (typeof id !== 'string') {
+							throw new Error('listID value must be a string')
+						}
+						opaqueListID = id
+					}
+				}
+
 				// if the necessary list doesn't exist, don't do anything
-				if (
-					operation.list &&
-					!this.lists.get(operation.list, parentID, operation.target === 'all')
-				) {
-					continue
+				if (operation.list) {
+					const exists = opaqueListID
+						? this.lists.getByOpaqueID(opaqueListID)
+						: this.lists.get(operation.list, parentID, operation.target === 'all')
+					if (!exists) continue
 				}
 
 				// there could be a list of elements to perform the operation on
@@ -894,13 +908,15 @@ class CacheInternal {
 						fieldSelection &&
 						operation.list
 					) {
-						this.cache
-							.list(
-								operation.list,
-								parentID,
-								operation.target === 'all',
-								processedOperations
-							)
+						const insertList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						insertList
 							.when(operation.when)
 							.addToList(
 								fieldSelection,
@@ -918,21 +934,21 @@ class CacheInternal {
 						fieldSelection &&
 						operation.list
 					) {
-						this.cache
-							.list(
-								operation.list,
-								parentID,
-								operation.target === 'all',
-								processedOperations
-							)
-							.when(operation.when)
-							.toggleElement({
-								selection: fieldSelection,
-								data: target,
-								variables,
-								where: operation.position || 'last',
-								layer,
-							})
+						const toggleList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						toggleList.when(operation.when).toggleElement({
+							selection: fieldSelection,
+							data: target,
+							variables,
+							where: operation.position || 'last',
+							layer,
+						})
 					}
 
 					// remove object from list
@@ -942,15 +958,15 @@ class CacheInternal {
 						fieldSelection &&
 						operation.list
 					) {
-						this.cache
-							.list(
-								operation.list,
-								parentID,
-								operation.target === 'all',
-								processedOperations
-							)
-							.when(operation.when)
-							.remove(target, variables, layer)
+						const removeList = opaqueListID
+							? this.lists.getByOpaqueID(opaqueListID, processedOperations)!
+							: this.cache.list(
+									operation.list,
+									parentID,
+									operation.target === 'all',
+									processedOperations
+								)
+						removeList.when(operation.when).remove(target, variables, layer)
 					}
 
 					// delete the target
@@ -972,11 +988,9 @@ class CacheInternal {
 
 				if (operation.list) {
 					// figure out the field referenced by the list
-					const matchingLists = this.cache.list(
-						operation.list,
-						parentID,
-						operation.target === 'all'
-					)
+					const matchingLists = opaqueListID
+						? this.lists.getByOpaqueID(opaqueListID)!
+						: this.cache.list(operation.list, parentID, operation.target === 'all')
 					for (const list of matchingLists.lists) {
 						processedOperations.add(list.fieldRef)
 					}
@@ -1271,6 +1285,13 @@ class CacheInternal {
 				if (objectFields.hasData) {
 					hasData = true
 				}
+			}
+
+			// if the list requested an opaque key, attach it to the hydrated value so the
+			// user can pass it to @listID on a mutation to target this specific list instance.
+			// the format matches what ListManager.listsByOpaqueID uses as its key.
+			if (list?.includeListID && fieldTarget[attributeName] != null) {
+				;(fieldTarget[attributeName] as any).__id = opaqueListID(parent, list.name)
 			}
 
 			// if we are generating a loading value then we might need to wrap up the result

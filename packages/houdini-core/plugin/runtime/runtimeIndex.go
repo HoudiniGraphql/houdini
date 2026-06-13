@@ -42,11 +42,11 @@ func GenerateRuntimeIndexFile(
 	defer db.Put(conn)
 
 	documentSearch, err := conn.Prepare(`
-		SELECT 
-			name 
-		FROM documents 
+		SELECT
+			name
+		FROM documents
 		JOIN raw_documents ON documents.raw_document = raw_documents.id
-		WHERE printed IS NOT NULL and internal = 0 
+		WHERE internal = 0
 		ORDER BY name ASC
 	`)
 	if err != nil {

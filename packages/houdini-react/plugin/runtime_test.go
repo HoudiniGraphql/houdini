@@ -237,8 +237,8 @@ func TestUpdateHookFiles(t *testing.T) {
 						"useMutation.ts": "import type { MyMutation$result, MyMutation$artifact, MyMutation$input, MyMutation$optimistic } from '$houdini/artifacts/MyMutation'\n" +
 							"\n" +
 							"import type { MutationArtifact } from 'houdini/runtime'\n\n" +
-							"export function useMutation(document: { artifact: MyMutation$artifact }): [boolean, MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>]\n" +
-							"export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [boolean, MutationHandler<_Result, _Input, _Optimistic>]\n" +
+							"export function useMutation(document: { artifact: MyMutation$artifact }): [MutationHandler<MyMutation$result, MyMutation$input, MyMutation$optimistic>, boolean]\n" +
+							"export function useMutation<_Result extends GraphQLObject, _Input extends GraphQLVariables, _Optimistic extends GraphQLObject>(document: { artifact: MutationArtifact }): [MutationHandler<_Result, _Input, _Optimistic>, boolean]\n" +
 							"export function useMutation<_A>(doc: any): any {}\n",
 					},
 				},
@@ -352,7 +352,7 @@ func TestAddGraphQLType(t *testing.T) {
 						},
 					},
 					// preamble (fragment imports) go BEFORE existing content, type appended at end
-					"expected": "import type { UserAvatar } from '$houdini'\n" +
+					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
@@ -374,7 +374,7 @@ func TestAddGraphQLType(t *testing.T) {
 						{"filepath": "src/components/Avatar.tsx", "type": "User", "field": "Avatar", "prop": "user", "fragment": "UserAvatar", "content": "fragment UserAvatar on User { avatar }"},
 					},
 					"call_twice": true,
-					"expected": "import type { UserAvatar } from '$houdini'\n" +
+					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
