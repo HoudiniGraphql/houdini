@@ -1,6 +1,7 @@
 import { deepEquals } from 'houdini/runtime'
 import type { ClientPluginContext } from 'houdini/runtime/documentStore'
 import { ArtifactKind, DataSource } from 'houdini/runtime/types'
+import type { GraphQLError } from 'houdini/runtime/types'
 
 import { documentPlugin } from './utils/index.js'
 
@@ -110,7 +111,7 @@ export type SubscriptionClient = {
 			extensions?: Record<'persistedQuery', string> | Record<string, unknown>
 		},
 		handlers: {
-			next: (payload: { data?: {} | null; errors?: readonly { message: string }[] }) => void
+			next: (payload: { data?: {} | null; errors?: readonly GraphQLError[] }) => void
 			error: (data: {}) => void
 			complete: () => void
 		}

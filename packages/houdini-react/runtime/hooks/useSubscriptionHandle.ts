@@ -1,10 +1,10 @@
-import type { SubscriptionArtifact, GraphQLObject, GraphQLVariables } from 'houdini/runtime'
+import type { SubscriptionArtifact, GraphQLObject, GraphQLVariables, GraphQLError } from 'houdini/runtime'
 
 import { useDocumentSubscription } from './useDocumentSubscription.js'
 
 export type SubscriptionHandle<_Result extends GraphQLObject, _Input extends GraphQLVariables> = {
 	data: _Result | null
-	errors: { message: string }[] | null
+	errors: GraphQLError[] | null
 	variables: _Input
 	listen: (args: { variables?: _Input }) => void
 	unlisten: () => void

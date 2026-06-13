@@ -18,6 +18,7 @@ declare global {
 	namespace App {
 		interface Session {}
 		interface Metadata {}
+		interface GraphQLErrorExtensions {}
 		interface Stuff {
 			inputs: {
 				init: boolean
@@ -275,9 +276,16 @@ export type FetchQueryResult<_Data> = {
 	source: DataSources | null
 }
 
+export type GraphQLError = {
+	message: string
+	locations?: { line: number; column: number }[]
+	path?: (string | number)[]
+	extensions?: App.GraphQLErrorExtensions
+}
+
 export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undefined> = {
 	data: _Data | null
-	errors: { message: string }[] | null
+	errors: GraphQLError[] | null
 	fetching: boolean
 	partial: boolean
 	stale: boolean
@@ -287,11 +295,7 @@ export type QueryResult<_Data = GraphQLObject, _Input = GraphQLVariables | undef
 
 export type RequestPayload<GraphQLObject = any> = {
 	data: GraphQLObject | null
-	errors:
-		| {
-				message: string
-		  }[]
-		| null
+	errors: GraphQLError[] | null
 }
 
 export type NestedList<_Result = string> = (_Result | null | NestedList<_Result>)[]
