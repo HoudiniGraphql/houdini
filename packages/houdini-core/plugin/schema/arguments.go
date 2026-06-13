@@ -165,22 +165,29 @@ func validateValue(t *ast.Type, val *ast.Value) (bool, error) {
 // valueKindMatches reports whether a literal of the given AST kind can coerce
 // to the named type, following the spec's input coercion rules
 func valueKindMatches(name string, kind ast.ValueKind) bool {
-	switch name {
-	case "Int":
-		return kind == ast.IntValue
-	case "Float":
-		// the spec coerces integer literals to Float
-		return kind == ast.IntValue || kind == ast.FloatValue
-	case "String":
-		return kind == ast.StringValue || kind == ast.BlockValue
-	case "Boolean":
-		return kind == ast.BooleanValue
-	case "ID":
-		// the spec coerces both strings and integers to ID
-		return kind == ast.StringValue || kind == ast.IntValue
+	var literal string
+	switch kind {
+	case ast.IntValue:
+		literal = "Int"
+	case ast.FloatValue:
+		literal = "Float"
+	case ast.StringValue:
+		literal = "String"
+	case ast.BlockValue:
+		literal = "Block"
+	case ast.BooleanValue:
+		literal = "Boolean"
+	case ast.EnumValue:
+		literal = "Enum"
 	default:
+		literal = "Object"
+	}
+
+	assignable, known := LiteralKindAssignable(name, literal)
+	if !known {
 		// enums, custom scalars, and input objects can't be checked from the
 		// type name alone so trust the value
 		return true
 	}
+	return assignable
 }

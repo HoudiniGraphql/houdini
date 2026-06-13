@@ -859,6 +859,74 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@with values must match the fragment argument type",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					offset: { type: "Int" }
+				) {
+					friends(offset: $offset) {
+						id
+					}
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: "five")
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with values matching the fragment argument type",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on User @arguments(
+					offset: { type: "Int" }
+				) {
+					friends(offset: $offset) {
+						id
+					}
+				}`,
+					`query Test {
+					user(name: "foo") {
+						...Fragment @with(offset: 5)
+					}
+				}`,
+				},
+			},
+			{
+				Name: "@with cannot pass null to non-null fragment arguments",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(ids: null)
+				}`,
+				},
+			},
+			{
+				Name: "@with can pass empty lists to non-null list arguments",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					ids: { type: "[ID!]!" }
+				) {
+					nodes(ids: $ids) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(ids: [])
+				}`,
+				},
+			},
+			{
 				Name: "No aliases for default keys",
 				Pass: false,
 				Input: []string{

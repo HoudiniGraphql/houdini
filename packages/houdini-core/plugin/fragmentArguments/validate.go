@@ -9,6 +9,7 @@ import (
 	
 
 	"code.houdinigraphql.com/packages/houdini-core/config"
+	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 	"code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/graphql"
 )
@@ -282,7 +283,7 @@ func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentV
 		}
 
 		// Validate the argument's value against the expected type and type modifiers.
-		if !checkTypeCompatibility(arg.Value, opVar.Type, opVar.TypeModifiers) {
+		if !checkTypeCompatibility(arg.Value, opVar.Type, schema.ParseTypeRef(opVar.TypeModifiers)) {
 			return fmt.Errorf("argument %s value does not match expected type %s with modifiers %s",
 				arg.Name, opVar.Type, opVar.TypeModifiers)
 		}
@@ -302,63 +303,49 @@ func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentV
 }
 
 // checkTypeCompatibility recursively validates that the ArgNode value matches
-// the expected type (as a string) and its type modifiers.
-// For our purposes:
-//   - An empty modifier string indicates a scalar (no children, non-empty raw value).
-//   - If the modifiers contain a ']', we expect a list.
-//   - A trailing '!' indicates that the list (or scalar) is non-null.
-//
-// This function follows GraphQL type compatibility rules where non-null values
-// can be passed to nullable parameters.
-func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType, modifiers string) bool {
-	// Special case: if the argument is a variable reference, it's always compatible
-	// because the actual type compatibility will be validated elsewhere when the
-	// variable is used in the schema field.
-	if arg.Kind == "Variable" {
+// the expected type and its type modifiers, following the spec's "Values of
+// Correct Type" rule plus input coercion: a non-list value is accepted at a
+// list location (single-value coercion), and a literal's own non-nullness
+// satisfies any '!' wrappers, so for literals only the base types need to be
+// compared.
+func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType string, ref *schema.TypeRef) bool {
+	switch arg.Kind {
+	case "Variable":
+		// variable usages are validated where the variable is applied to a
+		// schema field
 		return true
-	}
 
-	// No modifiers: expect a scalar value.
-	if modifiers == "" {
-		return len(arg.Children) == 0 && arg.Raw != ""
-	}
+	case "Null":
+		return !ref.NonNull
 
-	// If the modifier contains a ']', then we expect a list.
-	if strings.Contains(modifiers, "]") {
-		// a single value is coerced to a one-element list so check it against
-		// the innermost type
-		if arg.Kind != "List" && len(arg.Children) == 0 {
-			base := ""
-			if strings.HasPrefix(modifiers, "!") {
-				base = "!"
-			}
-			return checkTypeCompatibility(arg, expectedType, base)
+	case "List":
+		if !ref.IsList {
+			return false
 		}
-		// Recursively validate each child with one layer of list notation stripped.
-		newModifiers := stripOneLayer(modifiers)
 		for _, child := range arg.Children {
-			if !checkTypeCompatibility(child, expectedType, newModifiers) {
+			if !checkTypeCompatibility(child, expectedType, ref.Inner) {
 				return false
 			}
 		}
 		return true
-	}
 
-	// Fallback: treat as scalar.
-	return arg.Raw != ""
-}
+	case "Object":
+		// objects can only satisfy non-builtin types; we don't have the schema
+		// information here to check input object fields
+		_, builtin := schema.LiteralKindAssignable(expectedType, arg.Kind)
+		return !builtin
 
-// stripOneLayer removes one layer of list notation from the modifiers string.
-// For example, given a modifiers string like "]!]!", it will remove up to and including
-// the first ']' and then, if the next character is '!', remove that as well.
-func stripOneLayer(modifiers string) string {
-	idx := strings.Index(modifiers, "]")
-	if idx == -1 {
-		return modifiers
+	case "Int", "Float", "String", "Block", "Boolean", "Enum":
+		assignable, known := schema.LiteralKindAssignable(expectedType, arg.Kind)
+		if !known {
+			// enums and custom scalars can't be checked from the type name alone
+			return true
+		}
+		return assignable
+
+	default:
+		// fallback nodes constructed from raw values don't carry a kind we can
+		// check
+		return true
 	}
-	newStr := modifiers[idx+1:]
-	if strings.HasPrefix(newStr, "!") {
-		newStr = newStr[1:]
-	}
-	return newStr
 }

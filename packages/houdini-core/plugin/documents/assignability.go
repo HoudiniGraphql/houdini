@@ -6,106 +6,6 @@ import (
 	"code.houdinigraphql.com/packages/houdini-core/plugin/schema"
 )
 
-// Type modifiers are stored as strings read inner→outer: a leading '!' marks the
-// base type non-null, and every ']' opens a list level whose own non-null flag is
-// the '!' immediately following it. For example:
-//
-//	type     | modifiers
-//	---------+----------
-//	ID       | ``
-//	ID!      | `!`
-//	[ID]     | `]`
-//	[ID]!    | `]!`
-//	[ID!]    | `!]`
-//	[ID!]!   | `!]!`
-//	[[ID]!]  | `]!]`
-//
-// typeRef decodes that encoding into one node per level, outermost first, so the
-// assignability rules below can walk the type the way the spec describes them.
-type typeRef struct {
-	nonNull bool
-	isList  bool
-	inner   *typeRef // nil for the base type
-}
-
-func parseTypeRef(modifiers string) *typeRef {
-	ref := &typeRef{}
-	i := 0
-	if i < len(modifiers) && modifiers[i] == '!' {
-		ref.nonNull = true
-		i++
-	}
-	for ; i < len(modifiers); i++ {
-		if modifiers[i] != ']' {
-			continue
-		}
-		wrapper := &typeRef{isList: true, inner: ref}
-		if i+1 < len(modifiers) && modifiers[i+1] == '!' {
-			wrapper.nonNull = true
-			i++
-		}
-		ref = wrapper
-	}
-	return ref
-}
-
-// typeCompatible reports whether a value of the variable's shape can flow into
-// the location's shape, assuming the base types already match. It implements the
-// spec's AreTypesCompatible: at every level a non-null variable satisfies a
-// nullable location but not the other way around, and list depths must line up.
-//
-//	variable | location | compatible
-//	---------+----------+-----------
-//	         |          | true
-//	!        |          | true
-//	!        | !        | true
-//	         | !        | false
-//	]        | ]        | true
-//	]!       | ]        | true
-//	!]       | ]        | true
-//	!]!      | ]        | true
-//	]        | ]!       | false
-//	]!       | ]!       | true
-//	!]       | ]!       | false
-//	!]!      | ]!       | true
-//	]        | !]       | false
-//	]!       | !]       | false
-//	!]       | !]       | true
-//	!]!      | !]       | true
-//	]        | !]!      | false
-//	]!       | !]!      | false
-//	!]       | !]!      | false
-//	!]!      | !]!      | true
-func typeCompatible(variable, location *typeRef) bool {
-	for {
-		if location.nonNull && !variable.nonNull {
-			return false
-		}
-		if location.isList != variable.isList {
-			return false
-		}
-		if !location.isList {
-			return true
-		}
-		variable, location = variable.inner, location.inner
-	}
-}
-
-// variableTypeCompatible implements the spec's IsVariableUsageAllowed: a nullable
-// variable can fill a non-null location if the variable declares a non-null
-// default value, but only at the outermost level.
-func variableTypeCompatible(variable, location *typeRef, hasNonNullDefault bool) bool {
-	if location.nonNull && !variable.nonNull {
-		if !hasNonNullDefault {
-			return false
-		}
-		unwrapped := *location
-		unwrapped.nonNull = false
-		location = &unwrapped
-	}
-	return typeCompatible(variable, location)
-}
-
 // argumentValueCheck carries everything needed to decide whether a single
 // argument value row is assignable to its expected type.
 type argumentValueCheck struct {
@@ -151,9 +51,9 @@ func validArgumentValue(value argumentValueCheck) bool {
 		if value.VariableType != value.ExpectedType {
 			return false
 		}
-		return variableTypeCompatible(
-			parseTypeRef(value.VariableModifiers),
-			parseTypeRef(value.ExpectedModifiers),
+		return schema.VariableTypeCompatible(
+			schema.ParseTypeRef(value.VariableModifiers),
+			schema.ParseTypeRef(value.ExpectedModifiers),
 			value.VariableHasNonNullDefault,
 		)
 
@@ -161,43 +61,25 @@ func validArgumentValue(value argumentValueCheck) bool {
 		return !strings.HasSuffix(value.ExpectedModifiers, "!")
 
 	case "List":
-		return parseTypeRef(value.ExpectedModifiers).isList
+		return schema.ParseTypeRef(value.ExpectedModifiers).IsList
 
 	case "Object":
 		// single-value coercion lets an object literal fill a list location of
 		// any depth, so only the base type matters
-		return value.ExpectedTypeKind == "INPUT" ||
-			value.ExpectedType == schema.ArgumentSpecificationType
+		return value.ExpectedTypeKind == "INPUT"
 
 	case "Enum":
 		return value.ExpectedTypeKind == "ENUM" && value.EnumValueOK
 
 	default:
 		// scalar literals: Int, Float, String, Block, Boolean
-		literal := value.Kind
-		if literal == "Block" {
-			literal = "String"
-		}
-
 		switch value.ExpectedTypeKind {
 		case "SCALAR":
-			switch value.ExpectedType {
-			case "Int":
-				return literal == "Int"
-			case "Float":
-				// the spec coerces integer literals to Float
-				return literal == "Int" || literal == "Float"
-			case "String":
-				return literal == "String"
-			case "Boolean":
-				return literal == "Boolean"
-			case "ID":
-				// the spec coerces both strings and integers to ID
-				return literal == "String" || literal == "Int"
-			default:
-				// custom scalars accept whatever their config allows
-				return value.ScalarInputOK
+			if assignable, known := schema.LiteralKindAssignable(value.ExpectedType, value.Kind); known {
+				return assignable
 			}
+			// custom scalars accept whatever their config allows
+			return value.ScalarInputOK
 		case "ENUM", "INPUT":
 			return false
 		default:
