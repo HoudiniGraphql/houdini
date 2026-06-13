@@ -1,6 +1,12 @@
 import { flatten } from '../flatten.js'
 import { getFieldsForType } from '../selection.js'
-import type { GraphQLValue, SubscriptionSelection, SubscriptionSpec, NestedList } from '../types.js'
+import type {
+	GraphQLValue,
+	ListFilter,
+	SubscriptionSelection,
+	SubscriptionSpec,
+	NestedList,
+} from '../types.js'
 import type { Cache } from './index.js'
 import { evaluateKey, rootID } from './stuff.js'
 
@@ -230,10 +236,10 @@ export class InMemorySubscriptions {
 			listType: list.type,
 			key,
 			selection: selection,
-			filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
+			filters: Object.entries(filters || {}).reduce((acc, [key, filter]) => {
 				return {
 					...acc,
-					[key]: kind !== 'Variable' ? value : variables[value as string],
+					[key]: filterValue(filter, variables),
 				}
 			}, {}),
 		})
@@ -588,4 +594,24 @@ export class InMemorySubscriptions {
 
 		return selections
 	}
+}
+
+// resolve a list filter to its concrete value, looking up variables
+// (including ones nested inside object and list values)
+export function filterValue(filter: ListFilter, variables: Record<string, any>): any {
+	if (filter.kind === 'Variable') {
+		return variables[filter.value as string]
+	}
+	if (filter.kind === 'Object') {
+		return Object.fromEntries(
+			Object.entries(filter.value).map(([key, value]) => [
+				key,
+				filterValue(value, variables),
+			])
+		)
+	}
+	if (filter.kind === 'List') {
+		return filter.value.map((value) => filterValue(value, variables))
+	}
+	return filter.value
 }

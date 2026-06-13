@@ -20,6 +20,13 @@ import (
 	"code.houdinigraphql.com/plugins/graphql"
 )
 
+// whenPassthroughType marks the expected_type of @when/@when_not arguments.
+// those directives accept whatever filters the target @list field defines, so
+// there is no schema type to validate their values against. the double
+// underscore prefix is reserved by graphql for introspection, which guarantees
+// the sentinel can never collide with a user-defined type
+const whenPassthroughType = "__HOUDINI__PASSTHROUGH__"
+
 func LoadDocuments(
 	ctx context.Context,
 	db plugins.DatabasePool[config.PluginConfig],
@@ -1301,7 +1308,7 @@ func processDirectives[PluginConfig any](
 				} else if directive.Name == graphql.WhenDirective ||
 					directive.Name == graphql.WhenNotDirective {
 					dArgType = TypeWithModifiers{
-						Type: "__HOUDINI__PASSTHROUGH__",
+						Type: whenPassthroughType,
 					}
 				} else {
 					return &plugins.Error{

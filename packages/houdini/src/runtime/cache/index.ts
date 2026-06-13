@@ -9,6 +9,9 @@ import { PendingValue } from '../types.js'
 import type {
 	GraphQLObject,
 	GraphQLValue,
+	ListFilter,
+	ListWhen,
+	MutationOperation,
 	NestedList,
 	SubscriptionSelection,
 	SubscriptionSpec,
@@ -23,7 +26,7 @@ import { StaleManager } from './staleManager.js'
 import type { Layer, LayerID } from './storage.js'
 import { InMemoryStorage } from './storage.js'
 import { evaluateKey, rootID } from './stuff.js'
-import { InMemorySubscriptions, type FieldSelection } from './subscription.js'
+import { filterValue, InMemorySubscriptions, type FieldSelection } from './subscription.js'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -966,7 +969,7 @@ class CacheInternal {
 									processedOperations
 								)
 						insertList
-							.when(operation.when)
+							.when(resolveWhen(operation.when, variables))
 							.addToList(
 								fieldSelection,
 								target,
@@ -991,7 +994,7 @@ class CacheInternal {
 									operation.target === 'all',
 									processedOperations
 								)
-						toggleList.when(operation.when).toggleElement({
+						toggleList.when(resolveWhen(operation.when, variables)).toggleElement({
 							selection: fieldSelection,
 							data: target,
 							variables,
@@ -1015,7 +1018,7 @@ class CacheInternal {
 									operation.target === 'all',
 									processedOperations
 								)
-						removeList.when(operation.when).remove(target, variables, layer)
+						removeList.when(resolveWhen(operation.when, variables)).remove(target, variables, layer)
 					}
 
 					// delete the target
@@ -1689,6 +1692,27 @@ export function variableValue(value: ValueNode, args: GraphQLObject): GraphQLVal
 			}),
 			{}
 		)
+	}
+}
+
+// resolve the variable references inside of an operation's when conditions
+// so they can be compared against the list's filters
+function resolveWhen(
+	when: MutationOperation['when'],
+	variables: Record<string, GraphQLValue>
+): ListWhen | undefined {
+	if (!when) {
+		return undefined
+	}
+
+	const resolve = (conditions: Record<string, ListFilter>) =>
+		Object.fromEntries(
+			Object.entries(conditions).map(([key, value]) => [key, filterValue(value, variables)])
+		)
+
+	return {
+		...(when.must ? { must: resolve(when.must) } : {}),
+		...(when.must_not ? { must_not: resolve(when.must_not) } : {}),
 	}
 }
 

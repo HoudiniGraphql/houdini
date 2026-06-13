@@ -1333,7 +1333,7 @@ export type Friends$artifact = typeof artifact
 					"TestQuery": tests.Dedent(`const artifact = {
     "name": "TestQuery",
     "kind": "HoudiniQuery",
-    "hash": "dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004",
+    "hash": "cf9a1b37522817318bc0893e797a289dc9ff66bee13544171839bd1b685ad514",
 
     "refetch": {
         "path": ["users"],
@@ -1408,7 +1408,7 @@ export type Friends$artifact = typeof artifact
                     "filter": {
                         "kind": "Object",
                         "value": {
-                            name: {
+                            "name": {
                                 "kind": "Variable",
                                 "value": "value"
                             }
@@ -1469,7 +1469,7 @@ export type TestQuery$input = {
 
 export type TestQuery$artifact = typeof artifact
 
-"HoudiniHash=dc502dd533f31553a3c311a7aaa782d82f81d7f7a8816d5095f96584a7600004"`),
+"HoudiniHash=cf9a1b37522817318bc0893e797a289dc9ff66bee13544171839bd1b685ad514"`),
 				},
 			},
 			{

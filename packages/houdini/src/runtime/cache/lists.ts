@@ -1,5 +1,6 @@
+import { deepEquals } from '../deepEquals.js'
 import { flatten } from '../flatten.js'
-import type { SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../types.js'
+import type { Filter, SubscriptionSelection, ListWhen, SubscriptionSpec, NestedList } from '../types.js'
 import type { Cache } from './index.js'
 import type { Layer } from './storage.js'
 import { rootID } from './stuff.js'
@@ -204,7 +205,7 @@ export class List {
 	private cache: Cache
 	readonly selection: SubscriptionSelection
 	private _when?: ListWhen
-	private filters?: { [key: string]: number | boolean | string }
+	private filters?: Filter
 	readonly name: string
 	private connection: boolean
 	private manager: ListManager
@@ -527,7 +528,7 @@ export class List {
 			// check must's first
 			if (filters.must && targets) {
 				ok = Object.entries(filters.must).reduce<boolean>(
-					(prev, [key, value]) => Boolean(prev && targets[key] === value),
+					(prev, [key, value]) => Boolean(prev && deepEquals(targets[key], value)),
 					ok
 				)
 			}
@@ -536,7 +537,7 @@ export class List {
 				ok =
 					!targets ||
 					Object.entries(filters.must_not).reduce<boolean>(
-						(prev, [key, value]) => Boolean(prev && targets[key] !== value),
+						(prev, [key, value]) => Boolean(prev && !deepEquals(targets[key], value)),
 						ok
 					)
 			}

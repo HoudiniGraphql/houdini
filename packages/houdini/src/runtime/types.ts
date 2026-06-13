@@ -142,7 +142,15 @@ export type FetchContext = {
 	session: App.Session | null
 }
 
-type Filter = { [key: string]: string | boolean | number }
+export type FilterValue =
+	| string
+	| boolean
+	| number
+	| null
+	| readonly FilterValue[]
+	| { [key: string]: FilterValue }
+
+export type Filter = { [key: string]: FilterValue }
 
 export type ListWhen = {
 	must?: Filter
@@ -180,7 +188,12 @@ export type MutationOperation = {
 	}
 	position?: 'first' | 'last'
 	target?: 'all'
-	when?: ListWhen
+	// when conditions are encoded as filter nodes so that variable references
+	// can be resolved when the operation is applied
+	when?: {
+		must?: Record<string, ListFilter>
+		must_not?: Record<string, ListFilter>
+	}
 }
 
 export type GraphQLObject = { [key: string]: GraphQLValue }
@@ -208,6 +221,14 @@ export type LoadingSpec =
 	| { kind: 'continue'; list?: { depth: number; count: number } }
 	| { kind: 'value'; value?: any; list?: { depth: number; count: number } }
 
+export type ListFilter =
+	| {
+			kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Enum' | 'Variable'
+			value: string | number | boolean
+	  }
+	| { kind: 'Object'; value: Record<string, ListFilter> }
+	| { kind: 'List'; value: readonly ListFilter[] }
+
 export type SubscriptionSelection = Readonly<{
 	loadingTypes?: string[]
 	fragments?: Record<string, { arguments: ValueMap; loading?: boolean }>
@@ -230,13 +251,7 @@ export type SubscriptionSelection = Readonly<{
 			directives?: readonly { name: string; arguments: ValueMap }[]
 			updates?: readonly string[]
 			visible?: boolean
-			filters?: Record<
-				string,
-				{
-					kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
-					value: string | number | boolean
-				}
-			>
+			filters?: Record<string, ListFilter>
 			selection?: SubscriptionSelection
 			abstract?: boolean
 			// If set, this is an abstract type with at least one abstract field made non-nullable by
