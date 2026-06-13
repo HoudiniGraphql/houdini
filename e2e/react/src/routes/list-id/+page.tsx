@@ -5,7 +5,7 @@ export default function ListIDTestView({ ListIDTest }: PageProps) {
 	const nodes = ListIDTest?.userNodes.nodes
 	const listId = nodes?.__id
 
-	const [, addUser] = useMutation(
+	const [addUser] = useMutation(
 		graphql(`
 			mutation ListIDAddUser($name: String!, $birthDate: DateTime!, $listId: ID!) {
 				addUser(snapshot: "ListIDTest", name: $name, birthDate: $birthDate) {
