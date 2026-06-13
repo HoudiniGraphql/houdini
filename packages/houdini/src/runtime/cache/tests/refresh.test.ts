@@ -408,3 +408,58 @@ test('refresh on an unknown record is a no-op', () => {
 	// nothing to assert beyond it not throwing
 	cache.refresh('User:999')
 })
+
+test('refresh notifies a document exactly once even when subscribed to many fields', () => {
+	// regression for the O(n²) dedup: the handler must fire once regardless of how
+	// many fields of the record the document is subscribed to
+	const cache = new Cache(config)
+
+	const wideSelection: SubscriptionSelection = {
+		fields: {
+			viewer: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'viewer',
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+						lastName: { type: 'String', visible: true, keyRaw: 'lastName' },
+						email: { type: 'String', visible: true, keyRaw: 'email' },
+					},
+				},
+			},
+		},
+	}
+
+	cache.write({
+		selection: wideSelection,
+		data: { viewer: { id: '1', firstName: 'bob', lastName: 'smith', email: 'b@b.com' } },
+	})
+
+	const onMessage = vi.fn()
+	cache.subscribe({ rootType: 'Query', selection: wideSelection, onMessage })
+
+	cache.refresh('User:1')
+
+	// subscribed to 4 fields on the record — must still only get one message
+	expect(onMessage).toHaveBeenCalledTimes(1)
+	expect(onMessage).toHaveBeenCalledWith({ kind: 'refetch' })
+})
+
+test('refresh after unsubscribe does not notify removed handler', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: visibleSelection,
+		data: { viewer: { id: '1', firstName: 'bob' } },
+	})
+
+	const onMessage = vi.fn()
+	const spec = { rootType: 'Query', selection: visibleSelection, onMessage }
+	cache.subscribe(spec)
+	cache.unsubscribe(spec)
+
+	cache.refresh('User:1')
+	expect(onMessage).not.toHaveBeenCalled()
+})
