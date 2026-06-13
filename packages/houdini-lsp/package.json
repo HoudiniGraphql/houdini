@@ -1,0 +1,46 @@
+{
+    "name": "houdini-lsp",
+    "version": "2.0.0-next.33",
+    "description": "Language server for Houdini GraphQL",
+    "keywords": [
+        "houdini",
+        "graphql",
+        "lsp"
+    ],
+    "homepage": "https://github.com/HoudiniGraphql/houdini",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "license": "MIT",
+    "type": "module",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsup src/index.ts --format esm --no-dts --clean --out-dir build --external houdini --external graphql",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build"
+    },
+    "devDependencies": {
+        "@types/node": "^25.9.1",
+        "houdini": "workspace:^",
+        "scripts": "workspace:^",
+        "tsup": "^8.5.1"
+    },
+    "peerDependencies": {
+        "houdini": "workspace:^"
+    },
+    "dependencies": {
+        "graphql-language-service": "^5.5.1",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-textdocument": "^1.0.12"
+    },
+    "files": [
+        "build"
+    ],
+    "bin": "./build/index.js",
+    "exports": {
+        "./package.json": "./package.json"
+    }
+}
