@@ -4,15 +4,3 @@ query UpdateFragmentTest {
 		name
 	}
 }
-
-mutation UpdateExisting($id: ID!, $name: String!) {
-	updateUserByID(id: $id, snapshot: "UpdateFragmentTest", name: $name) {
-		...UpdateFragmentTest_update
-	}
-}
-
-mutation UpdateNonMember($name: String!, $birthDate: DateTime!) {
-	addUser(snapshot: "UpdateFragmentTest", name: $name, birthDate: $birthDate) {
-		...UpdateFragmentTest_update
-	}
-}
