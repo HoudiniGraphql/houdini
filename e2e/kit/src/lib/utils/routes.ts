@@ -14,6 +14,7 @@ export const routes = {
 	conditional_fragment_spread: '/conditional-fragment-spread',
 	loading_state: '/loading-state',
 	required_field: '/required-field',
+	Cache_Refresh: '/cache/refresh',
 
 	Lists_fragment: '/lists/fragment',
 	Lists_mutation_insert: '/lists/mutation-insert',

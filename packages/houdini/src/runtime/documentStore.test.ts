@@ -1163,6 +1163,48 @@ test('track variable changes for fragments', async () => {
 	expect(spy).toHaveBeenNthCalledWith(4, false)
 })
 
+test('plugins can kick off a brand new request through ctx.documentStore', async () => {
+	let count = 0
+	let captured: DocumentStore<GraphQLObject, Record<string, any>> | null = null
+
+	const fakeFetch: ClientPlugin = () => ({
+		network(ctx, { resolve }) {
+			// hold onto the document store reference like the cache's refetch
+			// handling does
+			captured = ctx.documentStore
+			count++
+			resolve(ctx, {
+				data: { count },
+				errors: null,
+				fetching: false,
+				partial: false,
+				stale: false,
+				source: DataSource.Network,
+				variables: null,
+			})
+		},
+	})
+
+	const store = createStore([fakeFetch])
+	const fn = vi.fn()
+	store.subscribe(fn)
+
+	await store.send()
+	expect(count).toBe(1)
+
+	// a plugin holding the reference can restart the pipeline from the very beginning
+	const result = await captured!.send()
+	expect(count).toBe(2)
+	expect(result.data).toEqual({ count: 2 })
+
+	// and the store's subscribers see the new value
+	expect(fn).toHaveBeenLastCalledWith(
+		expect.objectContaining({
+			data: { count: 2 },
+		})
+	)
+})
+
 export function createStore(
 	plugins: ClientPlugin[],
 	fetching: boolean | undefined = undefined

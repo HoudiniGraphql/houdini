@@ -48,9 +48,16 @@ export const fragment = (cache: Cache) =>
 						selection: ctx.artifact.selection,
 						variables: () => variables,
 						parentID: ctx.stuff.parentID,
-						set: (newValue) => {
+						onMessage: (message) => {
+							// fragments can't issue network requests. refetch messages are
+							// handled by the query that owns this data — it holds its own
+							// (silent) subscription on the same records
+							if (message.kind !== 'update') {
+								return
+							}
+
 							resolve(ctx, {
-								data: newValue,
+								data: message.data,
 								errors: null,
 								fetching: false,
 								partial: false,

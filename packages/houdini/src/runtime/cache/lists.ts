@@ -450,16 +450,36 @@ export class List {
 
 		// get the list of specs that are subscribing to the list
 		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
+		const silentSubscribers = this.cache._internal_unstable.subscriptions.getSilent(
+			this.recordID,
+			this.key
+		)
+
+		// if we are unsubscribing from a connection, the fields we care about
+		// are tucked away under edges
+		const targetSelection = this.connection
+			? this.selection.fields!.edges.selection!
+			: this.selection
 
 		// disconnect record from any subscriptions associated with the list
 		this.cache._internal_unstable.subscriptions.remove(
 			targetID,
-			// if we are unsubscribing from a connection, the fields we care about
-			// are tucked away under edges
-			this.connection ? this.selection.fields!.edges.selection! : this.selection,
+			targetSelection,
 			subscribers.map((sub) => sub[0]),
 			variables
 		)
+		// documents that contain the list behind a masked boundary registered
+		// everything below it silently
+		if (silentSubscribers.length > 0) {
+			this.cache._internal_unstable.subscriptions.remove(
+				targetID,
+				targetSelection,
+				silentSubscribers.map((sub) => sub[0]),
+				variables,
+				[],
+				true
+			)
+		}
 
 		// remove the target from the parent
 		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID, layer)
@@ -467,14 +487,15 @@ export class List {
 		// notify the subscribers about the change
 		for (const [spec] of subscribers) {
 			// trigger the update
-			spec.set(
-				this.cache._internal_unstable.getSelection({
+			spec.onMessage({
+				kind: 'update',
+				data: this.cache._internal_unstable.getSelection({
 					parent: spec.parentID || this.manager.rootID,
 					selection: spec.selection,
 					variables: spec.variables?.() || {},
 					ignoreMasking: false,
-				}).data
-			)
+				}).data,
+			})
 		}
 
 		// return true if we deleted something

@@ -23,7 +23,14 @@ export class InMemorySubscriptions {
 			string,
 			{
 				selections: FieldSelection[]
-				referenceCounts: Map<SubscriptionSpec['set'], number>
+				referenceCounts: Map<SubscriptionSpec['onMessage'], number>
+				// silent subscriptions track documents whose data contains this record
+				// behind a masked boundary (eg a fragment spread). they are never
+				// notified when a value changes but they do participate in containment
+				// lookups (cache.refresh) and write-path propagation so that we always
+				// know every document whose data contains a given record
+				silentSelections: FieldSelection[]
+				silentReferenceCounts: Map<SubscriptionSpec['onMessage'], number>
 			}
 		>
 	>()
@@ -44,12 +51,16 @@ export class InMemorySubscriptions {
 		selection,
 		variables,
 		parentType,
+		silent = false,
 	}: {
 		parent: string
 		parentType?: string
 		spec: SubscriptionSpec
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
+		// when true, every subscription we register is silent regardless of the
+		// field's visibility. this happens when the walk crosses a masked boundary
+		silent?: boolean
 	}) {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
@@ -66,9 +77,9 @@ export class InMemorySubscriptions {
 				filters,
 				visible,
 			} = fieldSelection
-			if (!visible) {
-				continue
-			}
+
+			// once we cross a masked boundary everything below it is silent
+			const fieldSilent = silent || !visible
 
 			const key = evaluateKey(keyRaw, variables)
 
@@ -85,9 +96,10 @@ export class InMemorySubscriptions {
 				key,
 				selection: [spec, targetSelection],
 				type,
+				silent: fieldSilent,
 			})
 
-			if (list) {
+			if (list && !fieldSilent) {
 				this.registerList({
 					list,
 					filters,
@@ -123,6 +135,7 @@ export class InMemorySubscriptions {
 						selection: innerSelection,
 						variables,
 						parentType: type,
+						silent: fieldSilent,
 					})
 				}
 			}
@@ -134,11 +147,13 @@ export class InMemorySubscriptions {
 		key,
 		selection,
 		type: _type,
+		silent = false,
 	}: {
 		id: string
 		key: string
 		selection: FieldSelection
 		type: string
+		silent?: boolean
 	}) {
 		const spec = selection[0]
 
@@ -153,10 +168,19 @@ export class InMemorySubscriptions {
 			subscriber.set(key, {
 				selections: [],
 				referenceCounts: new Map(),
+				silentSelections: [],
+				silentReferenceCounts: new Map(),
 			})
 		}
 
 		const subscriberField = subscriber.get(key)!
+
+		// silent subscriptions get tracked separately so they never participate
+		// in update notifications
+		const selections = silent ? subscriberField.silentSelections : subscriberField.selections
+		const referenceCounts = silent
+			? subscriberField.silentReferenceCounts
+			: subscriberField.referenceCounts
 
 		// if this is the first time we've seen the raw key
 		if (!this.keyVersions[key]) {
@@ -166,15 +190,12 @@ export class InMemorySubscriptions {
 		// add this version of the key if we need to
 		this.keyVersions[key].add(key)
 
-		if (!subscriberField.selections.some(([{ set }]) => set === spec.set)) {
-			subscriberField.selections.push([spec, selection[1]])
+		if (!selections.some(([{ onMessage }]) => onMessage === spec.onMessage)) {
+			selections.push([spec, selection[1]])
 		}
 
 		// we're going to increment the current value by one
-		subscriberField.referenceCounts.set(
-			spec.set,
-			(subscriberField.referenceCounts.get(spec.set) || 0) + 1
-		)
+		referenceCounts.set(spec.onMessage, (referenceCounts.get(spec.onMessage) || 0) + 1)
 
 		// reset the lifetime for the key
 		this.cache._internal_unstable.lifetimes.resetLifetime(id, key)
@@ -222,11 +243,16 @@ export class InMemorySubscriptions {
 		variables,
 		subscribers,
 		parentType,
+		silent = false,
 	}: {
 		parent: string
 		variables: {}
 		subscribers: FieldSelection[]
 		parentType: string
+		// when true, every subscription we register is silent regardless of the
+		// field's visibility. this happens when the batch we are propagating was
+		// already behind a masked boundary
+		silent?: boolean
 	}) {
 		// every subscriber specifies a different selection set to add to the parent
 		for (const [spec, targetSelection] of subscribers) {
@@ -240,9 +266,10 @@ export class InMemorySubscriptions {
 					filters,
 					visible,
 				} = selection
-				if (!visible) {
-					continue
-				}
+
+				// once we cross a masked boundary everything below it is silent
+				const fieldSilent = silent || !visible
+
 				const key = evaluateKey(keyRaw, variables)
 
 				// figure out the selection for the field we are writing
@@ -255,9 +282,10 @@ export class InMemorySubscriptions {
 					key,
 					selection: [spec, fieldSelection],
 					type: linkedType,
+					silent: fieldSilent,
 				})
 
-				if (list) {
+				if (list && !fieldSilent) {
 					this.registerList({
 						list,
 						filters,
@@ -296,6 +324,7 @@ export class InMemorySubscriptions {
 							variables,
 							subscribers: subscribers.map(([sub]) => [sub, targetSelection]),
 							parentType: linkedType,
+							silent: fieldSilent,
 						})
 					}
 				}
@@ -307,9 +336,15 @@ export class InMemorySubscriptions {
 		return this.subscribers.get(id)?.get(field)?.selections || []
 	}
 
-	getAll(id: string): FieldSelection[] {
-		return [...(this.subscribers.get(id)?.values() || [])].flatMap(
-			(fieldSub) => fieldSub.selections
+	getSilent(id: string, field: string): FieldSelection[] {
+		return this.subscribers.get(id)?.get(field)?.silentSelections || []
+	}
+
+	getAll(id: string, { includeSilent = false }: { includeSilent?: boolean } = {}) {
+		return [...(this.subscribers.get(id)?.values() || [])].flatMap((fieldSub) =>
+			includeSilent
+				? fieldSub.selections.concat(fieldSub.silentSelections)
+				: fieldSub.selections
 		)
 	}
 
@@ -318,12 +353,13 @@ export class InMemorySubscriptions {
 		selection: SubscriptionSelection,
 		targets: SubscriptionSpec[],
 		variables: {},
-		visited: string[] = []
+		visited: string[] = [],
+		silent: boolean = false
 	) {
 		visited.push(id)
 
 		// walk down to every record we know about
-		const linkedIDs: [string, SubscriptionSelection][] = []
+		const linkedIDs: [string, SubscriptionSelection, boolean][] = []
 
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
@@ -334,8 +370,12 @@ export class InMemorySubscriptions {
 		for (const fieldSelection of Object.values(targetSelection || {})) {
 			const key = evaluateKey(fieldSelection.keyRaw, variables)
 
+			// mirror the walk that added the subscriptions: once we cross a masked
+			// boundary everything below it was registered silently
+			const fieldSilent = silent || !fieldSelection.visible
+
 			// remove the subscribers for the field
-			this.removeSubscribers(id, key, targets)
+			this.removeSubscribers(id, key, targets, fieldSilent)
 
 			// if there is no subselection it doesn't point to a link, move on
 			if (!fieldSelection.selection) {
@@ -351,13 +391,13 @@ export class InMemorySubscriptions {
 
 			for (const link of links) {
 				if (link !== null) {
-					linkedIDs.push([link, fieldSelection.selection || {}])
+					linkedIDs.push([link, fieldSelection.selection || {}, fieldSilent])
 				}
 			}
 		}
 
-		for (const [linkedRecordID, linkFields] of linkedIDs) {
-			this.remove(linkedRecordID, linkFields, targets, visited)
+		for (const [linkedRecordID, linkFields, linkSilent] of linkedIDs) {
+			this.remove(linkedRecordID, linkFields, targets, variables, visited, linkSilent)
 		}
 	}
 
@@ -378,45 +418,76 @@ export class InMemorySubscriptions {
 		return subscriptionSpecs
 	}
 
-	private removeSubscribers(id: string, fieldName: string, specs: SubscriptionSpec[]) {
+	private removeSubscribers(
+		id: string,
+		fieldName: string,
+		specs: SubscriptionSpec[],
+		preferSilent: boolean = false
+	) {
 		// build up a list of the sets we actually need to remove after
 		// checking reference counts
-		const targets: SubscriptionSpec['set'][] = []
+		const targets: SubscriptionSpec['onMessage'][] = []
+		const silentTargets: SubscriptionSpec['onMessage'][] = []
 
 		const subscriber = this.subscribers.get(id)
 		if (!subscriber) {
 			return
 		}
 		const subscriberField = subscriber.get(fieldName)
+		if (!subscriberField) {
+			return
+		}
+
 		for (const spec of specs) {
-			const counts = subscriberField?.referenceCounts
+			// each removal visit accounts for a single reference that flowed through
+			// this link path. we prefer the count map that matches the visibility of
+			// the walk that got us here but fall back to the other one so that mixed
+			// paths (the same field reached both masked and unmasked) still clean up
+			const ordered: Array<
+				[Map<SubscriptionSpec['onMessage'], number>, SubscriptionSpec['onMessage'][]]
+			> = preferSilent
+				? [
+						[subscriberField.silentReferenceCounts, silentTargets],
+						[subscriberField.referenceCounts, targets],
+					]
+				: [
+						[subscriberField.referenceCounts, targets],
+						[subscriberField.silentReferenceCounts, silentTargets],
+					]
 
 			// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
-			if (!counts?.has(spec.set)) {
+			const match = ordered.find(([counts]) => counts.has(spec.onMessage))
+			if (!match) {
 				continue
 			}
-			const newVal = (counts.get(spec.set) || 0) - 1
+			const [counts, removed] = match
+
+			const newVal = (counts.get(spec.onMessage) || 0) - 1
 
 			// decrement the reference of every field
-			counts.set(spec.set, newVal)
+			counts.set(spec.onMessage, newVal)
 			// if that was the last reference we knew of
 			if (newVal <= 0) {
-				targets.push(spec.set)
+				removed.push(spec.onMessage)
 				// remove the reference to the set function
-				counts.delete(spec.set)
-			}
-
-			// if we have no more references to the field, we need to remove it from the map
-			if (counts.size === 0) {
-				subscriber.delete(fieldName)
+				counts.delete(spec.onMessage)
 			}
 		}
 
-		// we do need to remove the set from the list
-		if (subscriberField) {
-			subscriberField.selections = this.get(id, fieldName).filter(
-				([{ set }]) => !targets.includes(set)
-			)
+		// we do need to remove the set from the lists
+		subscriberField.selections = subscriberField.selections.filter(
+			([{ onMessage }]) => !targets.includes(onMessage)
+		)
+		subscriberField.silentSelections = subscriberField.silentSelections.filter(
+			([{ onMessage }]) => !silentTargets.includes(onMessage)
+		)
+
+		// if we have no more references to the field, we need to remove it from the map
+		if (
+			subscriberField.referenceCounts.size === 0 &&
+			subscriberField.silentReferenceCounts.size === 0
+		) {
+			subscriber.delete(fieldName)
 		}
 
 		// if we got this far and there are no subscribers on the field, we need to clean things up
@@ -428,8 +499,8 @@ export class InMemorySubscriptions {
 	removeAllSubscribers(id: string, targets?: SubscriptionSpec[]) {
 		// get the list of subscriptions specs for the id if we didn't provide a specific list
 		if (!targets) {
-			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((spec) =>
-				spec.selections.flatMap((sel) => sel[0]!)
+			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((fieldSub) =>
+				fieldSub.selections.concat(fieldSub.silentSelections).flatMap((sel) => sel[0]!)
 			)
 		}
 

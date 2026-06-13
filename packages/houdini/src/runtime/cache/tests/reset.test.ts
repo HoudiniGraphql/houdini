@@ -122,7 +122,7 @@ test('make sure the cache lists were reset', () => {
 	const set = vi.fn()
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
@@ -186,7 +186,7 @@ test('make sure the cache subscribers were reset', () => {
 	const set = vi.fn()
 	cache.subscribe({
 		rootType: 'Query',
-		set,
+		onMessage: set,
 		selection,
 	})
 
