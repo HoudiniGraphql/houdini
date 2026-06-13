@@ -6388,7 +6388,11 @@ test('upsert list inserts when not present', () => {
 								selection: {
 									fields: {
 										id: { type: 'ID', visible: true, keyRaw: 'id' },
-										firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+										firstName: {
+											type: 'String',
+											visible: true,
+											keyRaw: 'firstName',
+										},
 									},
 								},
 							},
@@ -6469,7 +6473,11 @@ test('upsert list does not duplicate when already present', () => {
 								selection: {
 									fields: {
 										id: { type: 'ID', visible: true, keyRaw: 'id' },
-										firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+										firstName: {
+											type: 'String',
+											visible: true,
+											keyRaw: 'firstName',
+										},
 									},
 								},
 							},
@@ -6524,7 +6532,10 @@ test('upsert list does not duplicate when already present', () => {
 	}
 
 	// upsert User:5 which is already in the list
-	cache.write({ selection: upsertSelection, data: { newUser: { id: '5', firstName: 'Alice Updated' } } })
+	cache.write({
+		selection: upsertSelection,
+		data: { newUser: { id: '5', firstName: 'Alice Updated' } },
+	})
 
 	// should still be length 1, no duplicate
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
@@ -6606,7 +6617,9 @@ test('upsert list updates record data when already present', () => {
 	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
 	expect(set).toHaveBeenCalledWith(
 		expect.objectContaining({
-			friends: expect.arrayContaining([expect.objectContaining({ firstName: 'Alice Updated' })]),
+			friends: expect.arrayContaining([
+				expect.objectContaining({ firstName: 'Alice Updated' }),
+			]),
 		})
 	)
 })
