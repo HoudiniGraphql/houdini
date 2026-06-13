@@ -24,13 +24,13 @@ export class InMemorySubscriptions {
 			{
 				selections: FieldSelection[]
 				referenceCounts: Map<SubscriptionSpec['onMessage'], number>
-				// silent subscriptions track documents whose data contains this record
+				// masked parent subscriptions track documents whose data contains this record
 				// behind a masked boundary (eg a fragment spread). they are never
 				// notified when a value changes but they do participate in containment
 				// lookups (cache.refresh) and write-path propagation so that we always
 				// know every document whose data contains a given record
-				silentSelections: FieldSelection[]
-				silentReferenceCounts: Map<SubscriptionSpec['onMessage'], number>
+				maskedParentSelections: FieldSelection[]
+				maskedParentReferenceCounts: Map<SubscriptionSpec['onMessage'], number>
 			}
 		>
 	>()
@@ -51,16 +51,16 @@ export class InMemorySubscriptions {
 		selection,
 		variables,
 		parentType,
-		silent = false,
+		masked = false,
 	}: {
 		parent: string
 		parentType?: string
 		spec: SubscriptionSpec
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
-		// when true, every subscription we register is silent regardless of the
+		// when true, every subscription we register is a masked parent regardless of the
 		// field's visibility. this happens when the walk crosses a masked boundary
-		silent?: boolean
+		masked?: boolean
 	}) {
 		// figure out the correct selection
 		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
@@ -78,8 +78,8 @@ export class InMemorySubscriptions {
 				visible,
 			} = fieldSelection
 
-			// once we cross a masked boundary everything below it is silent
-			const fieldSilent = silent || !visible
+			// once we cross a masked boundary everything below it is a masked parent
+			const fieldMasked = masked || !visible
 
 			const key = evaluateKey(keyRaw, variables)
 
@@ -96,10 +96,10 @@ export class InMemorySubscriptions {
 				key,
 				selection: [spec, targetSelection],
 				type,
-				silent: fieldSilent,
+				masked: fieldMasked,
 			})
 
-			if (list && !fieldSilent) {
+			if (list && !fieldMasked) {
 				this.registerList({
 					list,
 					filters,
@@ -135,7 +135,7 @@ export class InMemorySubscriptions {
 						selection: innerSelection,
 						variables,
 						parentType: type,
-						silent: fieldSilent,
+						masked: fieldMasked,
 					})
 				}
 			}
@@ -147,13 +147,13 @@ export class InMemorySubscriptions {
 		key,
 		selection,
 		type: _type,
-		silent = false,
+		masked = false,
 	}: {
 		id: string
 		key: string
 		selection: FieldSelection
 		type: string
-		silent?: boolean
+		masked?: boolean
 	}) {
 		const spec = selection[0]
 
@@ -168,18 +168,18 @@ export class InMemorySubscriptions {
 			subscriber.set(key, {
 				selections: [],
 				referenceCounts: new Map(),
-				silentSelections: [],
-				silentReferenceCounts: new Map(),
+				maskedParentSelections: [],
+				maskedParentReferenceCounts: new Map(),
 			})
 		}
 
 		const subscriberField = subscriber.get(key)!
 
-		// silent subscriptions get tracked separately so they never participate
+		// masked parent subscriptions get tracked separately so they never participate
 		// in update notifications
-		const selections = silent ? subscriberField.silentSelections : subscriberField.selections
-		const referenceCounts = silent
-			? subscriberField.silentReferenceCounts
+		const selections = masked ? subscriberField.maskedParentSelections : subscriberField.selections
+		const referenceCounts = masked
+			? subscriberField.maskedParentReferenceCounts
 			: subscriberField.referenceCounts
 
 		// if this is the first time we've seen the raw key
@@ -243,16 +243,16 @@ export class InMemorySubscriptions {
 		variables,
 		subscribers,
 		parentType,
-		silent = false,
+		masked = false,
 	}: {
 		parent: string
 		variables: {}
 		subscribers: FieldSelection[]
 		parentType: string
-		// when true, every subscription we register is silent regardless of the
+		// when true, every subscription we register is a masked parent regardless of the
 		// field's visibility. this happens when the batch we are propagating was
 		// already behind a masked boundary
-		silent?: boolean
+		masked?: boolean
 	}) {
 		// every subscriber specifies a different selection set to add to the parent
 		for (const [spec, targetSelection] of subscribers) {
@@ -267,8 +267,8 @@ export class InMemorySubscriptions {
 					visible,
 				} = selection
 
-				// once we cross a masked boundary everything below it is silent
-				const fieldSilent = silent || !visible
+				// once we cross a masked boundary everything below it is a masked parent
+				const fieldMasked = masked || !visible
 
 				const key = evaluateKey(keyRaw, variables)
 
@@ -282,10 +282,10 @@ export class InMemorySubscriptions {
 					key,
 					selection: [spec, fieldSelection],
 					type: linkedType,
-					silent: fieldSilent,
+					masked: fieldMasked,
 				})
 
-				if (list && !fieldSilent) {
+				if (list && !fieldMasked) {
 					this.registerList({
 						list,
 						filters,
@@ -324,7 +324,7 @@ export class InMemorySubscriptions {
 							variables,
 							subscribers: subscribers.map(([sub]) => [sub, targetSelection]),
 							parentType: linkedType,
-							silent: fieldSilent,
+							masked: fieldMasked,
 						})
 					}
 				}
@@ -336,14 +336,14 @@ export class InMemorySubscriptions {
 		return this.subscribers.get(id)?.get(field)?.selections || []
 	}
 
-	getSilent(id: string, field: string): FieldSelection[] {
-		return this.subscribers.get(id)?.get(field)?.silentSelections || []
+	getMaskedParents(id: string, field: string): FieldSelection[] {
+		return this.subscribers.get(id)?.get(field)?.maskedParentSelections || []
 	}
 
-	getAll(id: string, { includeSilent = false }: { includeSilent?: boolean } = {}) {
+	getAll(id: string, { includeMaskedParents = false }: { includeMaskedParents?: boolean } = {}) {
 		return [...(this.subscribers.get(id)?.values() || [])].flatMap((fieldSub) =>
-			includeSilent
-				? fieldSub.selections.concat(fieldSub.silentSelections)
+			includeMaskedParents
+				? fieldSub.selections.concat(fieldSub.maskedParentSelections)
 				: fieldSub.selections
 		)
 	}
@@ -354,7 +354,7 @@ export class InMemorySubscriptions {
 		targets: SubscriptionSpec[],
 		variables: {},
 		visited: string[] = [],
-		silent: boolean = false
+		masked: boolean = false
 	) {
 		visited.push(id)
 
@@ -372,10 +372,10 @@ export class InMemorySubscriptions {
 
 			// mirror the walk that added the subscriptions: once we cross a masked
 			// boundary everything below it was registered silently
-			const fieldSilent = silent || !fieldSelection.visible
+			const fieldMasked = masked || !fieldSelection.visible
 
 			// remove the subscribers for the field
-			this.removeSubscribers(id, key, targets, fieldSilent)
+			this.removeSubscribers(id, key, targets, fieldMasked)
 
 			// if there is no subselection it doesn't point to a link, move on
 			if (!fieldSelection.selection) {
@@ -391,13 +391,13 @@ export class InMemorySubscriptions {
 
 			for (const link of links) {
 				if (link !== null) {
-					linkedIDs.push([link, fieldSelection.selection || {}, fieldSilent])
+					linkedIDs.push([link, fieldSelection.selection || {}, fieldMasked])
 				}
 			}
 		}
 
-		for (const [linkedRecordID, linkFields, linkSilent] of linkedIDs) {
-			this.remove(linkedRecordID, linkFields, targets, variables, visited, linkSilent)
+		for (const [linkedRecordID, linkFields, linkMasked] of linkedIDs) {
+			this.remove(linkedRecordID, linkFields, targets, variables, visited, linkMasked)
 		}
 	}
 
@@ -422,12 +422,12 @@ export class InMemorySubscriptions {
 		id: string,
 		fieldName: string,
 		specs: SubscriptionSpec[],
-		preferSilent: boolean = false
+		preferMasked: boolean = false
 	) {
 		// build up a list of the sets we actually need to remove after
 		// checking reference counts
 		const targets: SubscriptionSpec['onMessage'][] = []
-		const silentTargets: SubscriptionSpec['onMessage'][] = []
+		const maskedParentTargets: SubscriptionSpec['onMessage'][] = []
 
 		const subscriber = this.subscribers.get(id)
 		if (!subscriber) {
@@ -445,14 +445,14 @@ export class InMemorySubscriptions {
 			// paths (the same field reached both masked and unmasked) still clean up
 			const ordered: Array<
 				[Map<SubscriptionSpec['onMessage'], number>, SubscriptionSpec['onMessage'][]]
-			> = preferSilent
+			> = preferMasked
 				? [
-						[subscriberField.silentReferenceCounts, silentTargets],
+						[subscriberField.maskedParentReferenceCounts, maskedParentTargets],
 						[subscriberField.referenceCounts, targets],
 					]
 				: [
 						[subscriberField.referenceCounts, targets],
-						[subscriberField.silentReferenceCounts, silentTargets],
+						[subscriberField.maskedParentReferenceCounts, maskedParentTargets],
 					]
 
 			// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
@@ -478,14 +478,14 @@ export class InMemorySubscriptions {
 		subscriberField.selections = subscriberField.selections.filter(
 			([{ onMessage }]) => !targets.includes(onMessage)
 		)
-		subscriberField.silentSelections = subscriberField.silentSelections.filter(
-			([{ onMessage }]) => !silentTargets.includes(onMessage)
+		subscriberField.maskedParentSelections = subscriberField.maskedParentSelections.filter(
+			([{ onMessage }]) => !maskedParentTargets.includes(onMessage)
 		)
 
 		// if we have no more references to the field, we need to remove it from the map
 		if (
 			subscriberField.referenceCounts.size === 0 &&
-			subscriberField.silentReferenceCounts.size === 0
+			subscriberField.maskedParentReferenceCounts.size === 0
 		) {
 			subscriber.delete(fieldName)
 		}
@@ -500,7 +500,7 @@ export class InMemorySubscriptions {
 		// get the list of subscriptions specs for the id if we didn't provide a specific list
 		if (!targets) {
 			targets = [...(this.subscribers.get(id)?.values() || [])].flatMap((fieldSub) =>
-				fieldSub.selections.concat(fieldSub.silentSelections).flatMap((sel) => sel[0]!)
+				fieldSub.selections.concat(fieldSub.maskedParentSelections).flatMap((sel) => sel[0]!)
 			)
 		}
 

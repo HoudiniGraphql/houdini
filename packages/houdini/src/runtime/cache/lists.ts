@@ -450,7 +450,7 @@ export class List {
 
 		// get the list of specs that are subscribing to the list
 		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
-		const silentSubscribers = this.cache._internal_unstable.subscriptions.getSilent(
+		const maskedParentSubscribers = this.cache._internal_unstable.subscriptions.getMaskedParents(
 			this.recordID,
 			this.key
 		)
@@ -470,11 +470,11 @@ export class List {
 		)
 		// documents that contain the list behind a masked boundary registered
 		// everything below it silently
-		if (silentSubscribers.length > 0) {
+		if (maskedParentSubscribers.length > 0) {
 			this.cache._internal_unstable.subscriptions.remove(
 				targetID,
 				targetSelection,
-				silentSubscribers.map((sub) => sub[0]),
+				maskedParentSubscribers.map((sub) => sub[0]),
 				variables,
 				[],
 				true

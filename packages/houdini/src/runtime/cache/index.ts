@@ -198,7 +198,7 @@ export class Cache {
 
 	// ask every document whose data contains the record to refetch itself.
 	// this includes documents that only contain the record behind a masked
-	// boundary (a fragment spread) thanks to their silent subscriptions
+	// boundary (a fragment spread) thanks to their masked parent subscriptions
 	refresh(id: string) {
 		// when an optimistic key resolves we might know the record by two ids
 		const recordIDs = [this._internal_unstable.storage.idMaps[id], id].filter(
@@ -210,7 +210,7 @@ export class Cache {
 		const notified: SubscriptionSpec['onMessage'][] = []
 		for (const recordID of recordIDs) {
 			for (const [spec] of this._internal_unstable.subscriptions.getAll(recordID, {
-				includeSilent: true,
+				includeMaskedParents: true,
 			})) {
 				if (!notified.includes(spec.onMessage)) {
 					notified.push(spec.onMessage)
@@ -525,15 +525,15 @@ class CacheInternal {
 				linkedType = value.__typename as string
 			}
 
-			// the current set of subscribers. the silent ones belong to documents
+			// the current set of subscribers. the masked parent ones belong to documents
 			// whose data contains this record behind a masked boundary — they never
 			// get notified but they do need their subscriptions propagated when
 			// links change so containment lookups (cache.refresh) stay accurate
 			const currentSubscribers = this.subscriptions.get(parent, key)
-			const silentSubscribers = this.subscriptions.getSilent(parent, key)
+			const maskedParentSubscribers = this.subscriptions.getMaskedParents(parent, key)
 			const specs = currentSubscribers
 				.map((sub) => sub[0])
-				.concat(silentSubscribers.map((sub) => sub[0]))
+				.concat(maskedParentSubscribers.map((sub) => sub[0]))
 
 			// look up the previous value
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
@@ -662,13 +662,13 @@ class CacheInternal {
 						variables,
 						parentType: linkedType,
 					})
-					if (silentSubscribers.length > 0) {
+					if (maskedParentSubscribers.length > 0) {
 						this.subscriptions.addMany({
 							parent: linkedID,
-							subscribers: silentSubscribers,
+							subscribers: maskedParentSubscribers,
 							variables,
 							parentType: linkedType,
-							silent: true,
+							masked: true,
 						})
 					}
 
@@ -889,13 +889,13 @@ class CacheInternal {
 						variables,
 						parentType: linkedType,
 					})
-					if (silentSubscribers.length > 0) {
+					if (maskedParentSubscribers.length > 0) {
 						this.subscriptions.addMany({
 							parent: id,
-							subscribers: silentSubscribers,
+							subscribers: maskedParentSubscribers,
 							variables,
 							parentType: linkedType,
-							silent: true,
+							masked: true,
 						})
 					}
 				}
