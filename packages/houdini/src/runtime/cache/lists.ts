@@ -571,6 +571,57 @@ export class List {
 		}
 	}
 
+	upsertInList(
+		selection: SubscriptionSelection,
+		data: {},
+		variables: {} = {},
+		where: 'first' | 'last',
+		layer?: Layer
+	) {
+		const listType = this.listType(data)
+		const dataID = this.cache._internal_unstable.id(listType, data)
+
+		if (!this.validateWhen() || !dataID) {
+			return
+		}
+
+		// check if the item is already in the list
+		let isInList = false
+		if (this.connection) {
+			const { value: embeddedConnection } = this.cache._internal_unstable.storage.get(
+				this.recordID,
+				this.key
+			)
+			if (embeddedConnection) {
+				const { value: edges } = this.cache._internal_unstable.storage.get(
+					embeddedConnection as string,
+					'edges'
+				)
+				for (const edge of flatten(edges as NestedList) || []) {
+					if (!edge) continue
+					const { value: nodeID } = this.cache._internal_unstable.storage.get(
+						edge as string,
+						'node'
+					)
+					if (nodeID === dataID) {
+						isInList = true
+						break
+					}
+				}
+			}
+		} else {
+			const { value } = this.cache._internal_unstable.storage.get(this.recordID, this.key)
+			isInList = !!(value as NestedList)?.includes(dataID)
+		}
+
+		if (isInList) {
+			// item already in list — just write to update the record data
+			this.cache.write({ selection, data, variables, layer: layer?.id })
+		} else {
+			this.addToList(selection, data, variables, where, layer)
+		}
+	}
+
 	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
@@ -644,6 +695,12 @@ export class ListCollection {
 	toggleElement(...args: Parameters<List['toggleElement']>) {
 		this.lists.forEach((list) => {
 			list.toggleElement(...args)
+		})
+	}
+
+	upsertInList(...args: Parameters<List['upsertInList']>) {
+		this.lists.forEach((list) => {
+			list.upsertInList(...args)
 		})
 	}
 

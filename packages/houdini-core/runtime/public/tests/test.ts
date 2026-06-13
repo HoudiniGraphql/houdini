@@ -1,11 +1,11 @@
 import { testConfigFile } from '../../../../houdini/src/test/index.js'
-import { Cache as _Cache } from '../../cache/cache'
+import { Cache as _Cache } from '../../../../houdini/src/runtime/cache/index.js'
 import {
 	ArtifactKind,
 	type SubscriptionSelection,
 	type FragmentArtifact,
 	type QueryArtifact,
-} from '../../lib'
+} from '../../../../houdini/src/runtime/types.js'
 import { Cache } from '../cache.js'
 import type { Record } from '../record.js'
 

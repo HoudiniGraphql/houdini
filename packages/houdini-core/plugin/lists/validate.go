@@ -436,7 +436,7 @@ func ValidateParentID(
 
 		-- Define a table of acceptable suffixes
 		suffixes(sfx) AS (
-			VALUES ($insert_prefix), ($toggle_prefix), ($remove_prefix)
+			VALUES ($insert_prefix), ($toggle_prefix), ($remove_prefix), ($upsert_prefix), ($update_prefix)
 		),
 
 		-- precompute the list of operation names that could refer to a constrainted list
@@ -470,6 +470,8 @@ func ValidateParentID(
 		"insert_prefix":      graphql.ListOperationSuffixInsert,
 		"toggle_prefix":      graphql.ListOperationSuffixToggle,
 		"remove_prefix":      graphql.ListOperationSuffixRemove,
+		"upsert_prefix":      graphql.ListOperationSuffixUpsert,
+		"update_prefix":      graphql.ListOperationSuffixUpdate,
 		"parentID_directive": graphql.ParentIDDirective,
 		"allLists_directive": graphql.AllListsDirective,
 	}
@@ -920,7 +922,7 @@ func validateFragmentSpreads(
 	// we need a query that looks for references to fragments in selection that don't exist in the database
 	query := `
 		WITH suffixes(sfx) AS (
-			VALUES ($insert_prefix), ($remove_prefix), ($toggle_prefix)
+			VALUES ($insert_prefix), ($remove_prefix), ($toggle_prefix), ($upsert_prefix), ($update_prefix)
 		),
 		discovered_fragments AS (
 			SELECT
@@ -948,6 +950,8 @@ func validateFragmentSpreads(
 		"insert_prefix": graphql.ListOperationSuffixInsert,
 		"remove_prefix": graphql.ListOperationSuffixRemove,
 		"toggle_prefix": graphql.ListOperationSuffixToggle,
+		"upsert_prefix": graphql.ListOperationSuffixUpsert,
+		"update_prefix": graphql.ListOperationSuffixUpdate,
 	}
 
 	err := db.StepQuery(ctx, query, bindings, func(stmt plugins.Row) {

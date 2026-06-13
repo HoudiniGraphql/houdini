@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { ArtifactKind, type FragmentArtifact } from '../../lib'
+import { ArtifactKind, type FragmentArtifact } from 'houdini/runtime/types'
 import type { Cache } from '../cache.js'
 import { type CacheTypeDefTest, testCache } from './test.js'
 
