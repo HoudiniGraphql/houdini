@@ -1,0 +1,38 @@
+{
+    "name": "houdini-graphql",
+    "displayName": "Houdini GraphQL",
+    "description": "GraphQL intelligence for Houdini projects",
+    "version": "2.0.0-next.33",
+    "publisher": "houdini-graphql",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HoudiniGraphql/houdini.git"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": ["Programming Languages", "Linters"],
+    "keywords": ["graphql", "houdini"],
+    "activationEvents": [
+        "workspaceContains:**/houdini.config.js",
+        "workspaceContains:**/houdini.config.ts"
+    ],
+    "main": "./build/extension.js",
+    "scripts": {
+        "build": "tsup src/extension.ts --format cjs --external vscode --no-dts --clean --out-dir build",
+        "build:": "cd ../../ && ((run build && cd -) || (cd - && exit 1))",
+        "build:build": "pnpm build: && pnpm build"
+    },
+    "devDependencies": {
+        "@types/node": "^25.9.1",
+        "@types/vscode": "^1.85.0",
+        "tsup": "^8.5.1"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1"
+    },
+    "files": [
+        "build"
+    ]
+}
