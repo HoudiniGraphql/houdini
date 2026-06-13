@@ -352,7 +352,7 @@ func TestAddGraphQLType(t *testing.T) {
 						},
 					},
 					// preamble (fragment imports) go BEFORE existing content, type appended at end
-					"expected": "import type { UserAvatar } from '$houdini'\n" +
+					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +
@@ -374,7 +374,7 @@ func TestAddGraphQLType(t *testing.T) {
 						{"filepath": "src/components/Avatar.tsx", "type": "User", "field": "Avatar", "prop": "user", "fragment": "UserAvatar", "content": "fragment UserAvatar on User { avatar }"},
 					},
 					"call_twice": true,
-					"expected": "import type { UserAvatar } from '$houdini'\n" +
+					"expected": "import type { UserAvatar } from '../artifacts/UserAvatar'\n" +
 						indexStub +
 						"\nexport type GraphQL<_Document extends string> = " +
 						"_Document extends `fragment UserAvatar on User { avatar }` ? Required<UserAvatar>['shape'] : " +

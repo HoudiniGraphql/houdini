@@ -1003,7 +1003,20 @@ func generateOptimisticType(
 
 		visibleSelections = append(visibleSelections, sel)
 		if sel.FieldName != "__typename" {
-			explicitFieldCount++
+			// @optimisticKey fields are server-generated; the caller can never provide them,
+			// so they don't count as "explicit" — without this, a selection like
+			// { id @optimisticKey ...Frag } would suppress fragment expansion and produce
+			// a broken `Frag?: null` optimistic type instead of inlining the fragment fields.
+			isOptimisticKey := false
+			for _, d := range sel.Directives {
+				if d.Name == graphql.OptimisticKeyDirective {
+					isOptimisticKey = true
+					break
+				}
+			}
+			if !isOptimisticKey {
+				explicitFieldCount++
+			}
 		}
 	}
 

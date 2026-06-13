@@ -404,7 +404,7 @@ func (p *HoudiniReact) AddGraphQLType(ctx context.Context) ([]string, error) {
 	var typeChain strings.Builder
 
 	for _, cf := range cfs {
-		preamble.WriteString(fmt.Sprintf("import type { %s } from '$houdini'\n", cf.fragment))
+		preamble.WriteString(fmt.Sprintf("import type { %s } from '../artifacts/%s'\n", cf.fragment, cf.fragment))
 		typeChain.WriteString(fmt.Sprintf("_Document extends `%s` ? Required<%s>['shape'] : ", cf.content, cf.fragment))
 	}
 
