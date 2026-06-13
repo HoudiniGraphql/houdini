@@ -58,6 +58,22 @@ export class InMemoryStorage {
 		return this.topLayer.deleteField(id, field)
 	}
 
+	// embedded records are only ever referenced by the field that wrote them so once
+	// that reference is gone the data can be physically removed. any embedded
+	// descendants are left for the garbage collector
+	removeEmbeddedRecord(id: string) {
+		for (const layer of this.data) {
+			// optimistic layers hold their own copy of the data and get rolled back
+			// or merged wholesale so we leave them alone
+			if (layer.optimistic) {
+				continue
+			}
+
+			delete layer.fields[id]
+			delete layer.links[id]
+		}
+	}
+
 	getLayer(id: number): Layer {
 		for (const layer of this.data) {
 			if (layer.id === id) {

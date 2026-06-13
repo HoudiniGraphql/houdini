@@ -737,6 +737,16 @@ class CacheInternal {
 				// build up the list of linked ids
 				let linkedIDs: NestedList = []
 
+				// if we are applying an append/prepend update the new entries get concatenated
+				// with the previous ones so they can't take over the previous embedded keys.
+				// a normal write replaces the field's links so embedded entries can reuse the
+				// key of the record they replace instead of generating a new one every write
+				const insertingUpdates = Boolean(
+					applyUpdates?.some(
+						(update) => update !== 'replace' && updates?.includes(update)
+					)
+				)
+
 				// it could be a list of lists, in order to recreate the list of lists we need
 				// we need to track two sets of IDs, the ids of the embedded records and
 				// then the full structure of embedded lists. we'll use the flat list to add
@@ -754,6 +764,10 @@ class CacheInternal {
 					fields: fieldSelection,
 					layer,
 					forceNotify,
+					previousIDs:
+						!insertingUpdates && Array.isArray(previousValue)
+							? (previousValue as NestedList)
+							: null,
 				})
 
 				// we have to do something different if we are writing to an optimistic layer or not
@@ -873,6 +887,20 @@ class CacheInternal {
 					}
 
 					this.subscriptions.remove(lostID, fieldSelection, specs, variables)
+
+					// embedded records can only be referenced by the field that wrote them
+					// so once they fall out of the list their data can be cleaned up. if
+					// we're writing to an optimistic layer the old values have to survive
+					// a potential rollback so we leave them for the garbage collector
+					if (
+						!layer.optimistic &&
+						typeof lostID === 'string' &&
+						lostID.startsWith(`${parent}.${key}[`)
+					) {
+						this.storage.removeEmbeddedRecord(lostID)
+						this.lifetimes.delete(lostID)
+						this.staleManager.deleteRecord(lostID)
+					}
 				}
 
 				// if there was a change in the list
@@ -1542,6 +1570,7 @@ class CacheInternal {
 		specs,
 		layer,
 		forceNotify,
+		previousIDs,
 	}: {
 		value: GraphQLValue[]
 		recordID: string
@@ -1554,6 +1583,7 @@ class CacheInternal {
 		fields: SubscriptionSelection
 		layer: Layer
 		forceNotify?: boolean
+		previousIDs?: NestedList | null
 	}): { nestedIDs: NestedList; newIDs: (string | null)[] } {
 		// build up the two lists
 		const nestedIDs: NestedList = []
@@ -1563,6 +1593,7 @@ class CacheInternal {
 			// if we found another list
 			if (Array.isArray(entry)) {
 				// compute the nested list of ids
+				const previousEntry = previousIDs?.[i]
 				const inner = this.extractNestedListIDs({
 					value: entry as GraphQLValue[],
 					abstract,
@@ -1575,6 +1606,7 @@ class CacheInternal {
 					specs,
 					layer,
 					forceNotify,
+					previousIDs: Array.isArray(previousEntry) ? previousEntry : null,
 				})
 
 				// add the list of new ids to our list
@@ -1594,8 +1626,14 @@ class CacheInternal {
 			// we know now that entry is an object
 			const entryObj = entry as GraphQLObject
 
-			// start off building up the embedded id
-			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
+			// start off building up the embedded id. if the previous write left an
+			// embedded record at this position, take over its key so that rewriting
+			// a list doesn't leave orphaned records behind
+			const previousID = previousIDs?.[i]
+			let linkedID =
+				typeof previousID === 'string' && previousID.startsWith(`${recordID}.${key}[`)
+					? previousID
+					: `${recordID}.${key}[${this.storage.nextRank}]`
 			let innerType = linkedType
 
 			const typename = entryObj.__typename as string | undefined
