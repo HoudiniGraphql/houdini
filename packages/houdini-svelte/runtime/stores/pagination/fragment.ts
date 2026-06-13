@@ -8,6 +8,7 @@ import type {
 	CachePolicies,
 	FragmentArtifact,
 	GraphQLObject,
+	GraphQLError,
 	HoudiniFetchContext,
 	QueryArtifact,
 	PageInfo,
@@ -270,7 +271,7 @@ export class FragmentStoreOffset<
 export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readable<{
 	data: _Data
 	fetching: boolean
-	errors: { message: string }[] | null
+	errors: GraphQLError[] | null
 	pageInfo: PageInfo
 }> & {
 	fetch(params?: { policy?: CachePolicies }): Promise<void>
@@ -289,5 +290,5 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readab
 export type FragmentPaginatedResult<_Data, _ExtraFields = {}> = {
 	data: _Data | null
 	fetching: boolean
-	errors: { message: string }[] | null
+	errors: GraphQLError[] | null
 } & _ExtraFields

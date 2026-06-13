@@ -22,3 +22,18 @@ export default new HoudiniClient({
 ```
 
 Note that mutations always throw on error regardless of the `throwOnError` configuration. The thrown value is a `RuntimeGraphQLError` with a `.raw` field containing the full error payload from the server.
+
+## Typing Error Extensions
+
+The GraphQL spec allows servers to include an `extensions` field on errors with arbitrary data (error codes, stack traces, etc.). Houdini passes these through at runtime, and you can type them by augmenting `App.GraphQLErrorExtensions` in your app's type declarations:
+
+```typescript title="src/app.d.ts"
+declare namespace App {
+    interface GraphQLErrorExtensions {
+        code: string
+        timestamp: string
+    }
+}
+```
+
+Once declared, `errors[n].extensions` will be typed as `App.GraphQLErrorExtensions` everywhere Houdini exposes errors — query results, mutation responses, subscriptions, and the `throwOnError` callback.

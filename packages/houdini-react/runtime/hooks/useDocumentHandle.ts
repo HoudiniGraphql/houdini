@@ -4,6 +4,7 @@ import { ArtifactKind } from 'houdini/runtime'
 import type {
 	GraphQLObject,
 	GraphQLVariables,
+	GraphQLError,
 	CursorHandlers,
 	OffsetHandlers,
 	PageInfo,
@@ -205,7 +206,7 @@ export type DocumentHandle<
 	data: _Data
 	partial: boolean
 	fetching: boolean
-	errors: { message: string }[] | null
+	errors: GraphQLError[] | null
 	fetch: FetchFn<_Data, Partial<_Input>>
 	variables: _Input
 } & RefetchHandlers<_Artifact, _Data, _Input>
