@@ -162,7 +162,10 @@ export function houdini(ctx: VitePluginContext): VitePlugin {
 				ctx.config.root_dir,
 				ctx.config.config_file.runtimeDir ?? '.houdini'
 			)
-			if (importer?.startsWith(runtimeDir + '/') || importer?.startsWith(runtimeDir + path.sep)) {
+			if (
+				importer?.startsWith(runtimeDir + '/') ||
+				importer?.startsWith(runtimeDir + path.sep)
+			) {
 				return null
 			}
 			if (id === 'react/jsx-runtime') return path.join(runtimeDir, 'jsx-runtime.ts')
