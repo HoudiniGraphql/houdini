@@ -927,6 +927,134 @@ func TestValidate_Houdini(t *testing.T) {
 				},
 			},
 			{
+				Name: "@with accepts known enum values",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					role: { type: "UserRole" }
+				) {
+					usersByRole(role: $role) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(role: ADMIN)
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects unknown enum values",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					role: { type: "UserRole" }
+				) {
+					usersByRole(role: $role) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(role: SUPERADMIN)
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects strings for enum arguments",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					role: { type: "UserRole" }
+				) {
+					usersByRole(role: $role) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(role: "ADMIN")
+				}`,
+				},
+			},
+			{
+				Name: "@with accepts valid input objects",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					filter: { type: "UserFilter" }
+				) {
+					users(filter: $filter) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(filter: { and: [{ firstName: "x" }] })
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects unknown fields on input objects",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					filter: { type: "UserFilter" }
+				) {
+					users(filter: $filter) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(filter: { bogus: "x" })
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects mistyped fields nested in input objects",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					filter: { type: "UserFilter" }
+				) {
+					users(filter: $filter) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(filter: { and: [{ firstName: 1 }] })
+				}`,
+				},
+			},
+			{
+				Name: "@with accepts configured custom scalar inputs",
+				Pass: true,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					birthday: { type: "Date" }
+				) {
+					user(name: "foo", birthday: $birthday) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(birthday: "2024-01-01")
+				}`,
+				},
+			},
+			{
+				Name: "@with rejects custom scalar inputs outside the config",
+				Pass: false,
+				Input: []string{
+					`fragment Fragment on Query @arguments(
+					birthday: { type: "Date" }
+				) {
+					user(name: "foo", birthday: $birthday) {
+						id
+					}
+				}`,
+					`query Test {
+					...Fragment @with(birthday: true)
+				}`,
+				},
+			},
+			{
 				Name: "No aliases for default keys",
 				Pass: false,
 				Input: []string{

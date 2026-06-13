@@ -75,13 +75,14 @@ func ValidateFragmentArgumentValues(
 	// --- STEP 1. Build a flat map of argument values for the 'with' directive ---
 	flatNodes := make(map[int]*DirectiveArgValueNode)
 	flatTreeQuery := `
-		WITH RECURSIVE arg_tree(id, kind, raw, parent) AS (
+		WITH RECURSIVE arg_tree(id, kind, raw, parent, name) AS (
 			-- Base case: argument_values directly referenced by a @with directive.
 			SELECT
 				av.id,
 				av.kind,
 				av.raw,
-				avc.parent
+				avc.parent,
+				avc.name
 			FROM argument_values av
 			JOIN selection_directive_arguments sda ON sda.value = av.id
 			JOIN selection_directives sd ON sd.id = sda.parent
@@ -94,12 +95,13 @@ func ValidateFragmentArgumentValues(
 				child.id,
 				child.kind,
 				child.raw,
-				avc.parent
+				avc.parent,
+				avc.name
 			FROM arg_tree
 			JOIN argument_value_children avc ON avc.parent = arg_tree.id
 			JOIN argument_values child ON child.id = avc.value
 		)
-		SELECT id, kind, raw, parent FROM arg_tree
+		SELECT id, kind, raw, parent, name FROM arg_tree
 	`
 
 	bindings := map[string]any{"with_directive": graphql.WithDirective}
@@ -118,6 +120,7 @@ func ValidateFragmentArgumentValues(
 			Kind:     kind,
 			Raw:      raw,
 			Parent:   parent,
+			Name:     stmt.ColumnText(4),
 			Children: []*DirectiveArgValueNode{},
 		}
 	})
@@ -133,6 +136,18 @@ func ValidateFragmentArgumentValues(
 				parentNode.Children = append(parentNode.Children, node)
 			}
 		}
+	}
+
+	// if there are values to check we need the schema context (enum values,
+	// input object fields, scalar config) to validate them against
+	var info *schemaInfo
+	if len(flatNodes) > 0 {
+		loaded, err := loadSchemaInfo(ctx, db)
+		if err != nil {
+			errs.Append(plugins.WrapError(err))
+			return
+		}
+		info = loaded
 	}
 
 	// --- STEP 2. Run the main query that returns fragment info and directive arguments ---
@@ -211,7 +226,7 @@ func ValidateFragmentArgumentValues(
 			documentVariables = []DocumentVariables{}
 		}
 
-		if err := validateWithArguments(directiveArgs, documentVariables); err != nil {
+		if err := validateWithArguments(info, directiveArgs, documentVariables); err != nil {
 			errs.Append(&plugins.Error{
 				Message: err.Error(),
 				Kind:    plugins.ErrorKindValidation,
@@ -233,10 +248,12 @@ func ValidateFragmentArgumentValues(
 
 // DirectiveArgValueNode represents a node in the argument value tree.
 type DirectiveArgValueNode struct {
-	ID       int                      `json:"id"`
-	Kind     string                   `json:"kind"`
-	Raw      string                   `json:"raw"`
-	Parent   *int                     `json:"parent,omitempty"`
+	ID     int    `json:"id"`
+	Kind   string `json:"kind"`
+	Raw    string `json:"raw"`
+	Parent *int   `json:"parent,omitempty"`
+	// Name is set when this node is a field of an input object literal
+	Name     string                   `json:"name,omitempty"`
 	Children []*DirectiveArgValueNode `json:"children"`
 }
 
@@ -261,7 +278,11 @@ type DocumentVariables struct {
 // validateWithArguments loops through the directive arguments, validates
 // each one against its corresponding operation variable, and ensures that every
 // required argument is passed (i.e. every opVar whose TypeModifiers ends with '!')
-func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentVariables) error {
+func validateWithArguments(
+	info *schemaInfo,
+	directiveArgs []DirectiveArgument,
+	opVars []DocumentVariables,
+) error {
 	// Create a map of passed directive argument names.
 	passedArgs := make(map[string]bool)
 
@@ -283,7 +304,7 @@ func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentV
 		}
 
 		// Validate the argument's value against the expected type and type modifiers.
-		if !checkTypeCompatibility(arg.Value, opVar.Type, schema.ParseTypeRef(opVar.TypeModifiers)) {
+		if !checkTypeCompatibility(info, arg.Value, opVar.Type, schema.ParseTypeRef(opVar.TypeModifiers)) {
 			return fmt.Errorf("argument %s value does not match expected type %s with modifiers %s",
 				arg.Name, opVar.Type, opVar.TypeModifiers)
 		}
@@ -302,13 +323,97 @@ func validateWithArguments(directiveArgs []DirectiveArgument, opVars []DocumentV
 	return nil
 }
 
+// schemaInfo carries the schema lookups needed to validate literal values
+// against fragment argument types
+type schemaInfo struct {
+	// typeKinds maps a type name to its kind (SCALAR, ENUM, INPUT, ...)
+	typeKinds map[string]string
+	// enumValues maps an enum name to the set of its values
+	enumValues map[string]map[string]bool
+	// inputFields maps "Parent.field" to the field's type
+	inputFields map[string]inputFieldDef
+	// scalarInputs maps a custom scalar to the literal kinds its config allows
+	scalarInputs map[string]map[string]bool
+}
+
+type inputFieldDef struct {
+	Type      string
+	Modifiers string
+}
+
+func loadSchemaInfo(
+	ctx context.Context,
+	db plugins.DatabasePool[config.PluginConfig],
+) (*schemaInfo, error) {
+	info := &schemaInfo{
+		typeKinds:    map[string]string{},
+		enumValues:   map[string]map[string]bool{},
+		inputFields:  map[string]inputFieldDef{},
+		scalarInputs: map[string]map[string]bool{},
+	}
+
+	err := db.StepQuery(ctx, `SELECT name, kind FROM types`, nil, func(stmt plugins.Row) {
+		info.typeKinds[stmt.ColumnText(0)] = stmt.ColumnText(1)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.StepQuery(ctx, `SELECT parent, value FROM enum_values`, nil, func(stmt plugins.Row) {
+		parent := stmt.ColumnText(0)
+		if info.enumValues[parent] == nil {
+			info.enumValues[parent] = map[string]bool{}
+		}
+		info.enumValues[parent][stmt.ColumnText(1)] = true
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.StepQuery(ctx, `
+		SELECT type_fields.parent, type_fields.name, type_fields.type, type_fields.type_modifiers
+		FROM type_fields
+			JOIN types ON type_fields.parent = types.name
+		WHERE types.kind = 'INPUT'
+	`, nil, func(stmt plugins.Row) {
+		info.inputFields[stmt.ColumnText(0)+"."+stmt.ColumnText(1)] = inputFieldDef{
+			Type:      stmt.ColumnText(2),
+			Modifiers: stmt.ColumnText(3),
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.StepQuery(ctx, `
+		SELECT scalar_config.name, input_types.value
+		FROM scalar_config, json_each(scalar_config.input_types) AS input_types
+	`, nil, func(stmt plugins.Row) {
+		name := stmt.ColumnText(0)
+		if info.scalarInputs[name] == nil {
+			info.scalarInputs[name] = map[string]bool{}
+		}
+		info.scalarInputs[name][stmt.ColumnText(1)] = true
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
 // checkTypeCompatibility recursively validates that the ArgNode value matches
 // the expected type and its type modifiers, following the spec's "Values of
 // Correct Type" rule plus input coercion: a non-list value is accepted at a
 // list location (single-value coercion), and a literal's own non-nullness
 // satisfies any '!' wrappers, so for literals only the base types need to be
 // compared.
-func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType string, ref *schema.TypeRef) bool {
+func checkTypeCompatibility(
+	info *schemaInfo,
+	arg *DirectiveArgValueNode,
+	expectedType string,
+	ref *schema.TypeRef,
+) bool {
 	switch arg.Kind {
 	case "Variable":
 		// variable usages are validated where the variable is applied to a
@@ -323,25 +428,55 @@ func checkTypeCompatibility(arg *DirectiveArgValueNode, expectedType string, ref
 			return false
 		}
 		for _, child := range arg.Children {
-			if !checkTypeCompatibility(child, expectedType, ref.Inner) {
+			if !checkTypeCompatibility(info, child, expectedType, ref.Inner) {
 				return false
 			}
 		}
 		return true
 
 	case "Object":
-		// objects can only satisfy non-builtin types; we don't have the schema
-		// information here to check input object fields
-		_, builtin := schema.LiteralKindAssignable(expectedType, arg.Kind)
-		return !builtin
+		switch info.typeKinds[expectedType] {
+		case "INPUT":
+			for _, child := range arg.Children {
+				field, ok := info.inputFields[expectedType+"."+child.Name]
+				if !ok {
+					return false
+				}
+				if !checkTypeCompatibility(info, child, field.Type, schema.ParseTypeRef(field.Modifiers)) {
+					return false
+				}
+			}
+			return true
+		case "":
+			// the declared type isn't in the schema; that's someone else's error
+			return true
+		default:
+			return false
+		}
 
-	case "Int", "Float", "String", "Block", "Boolean", "Enum":
-		assignable, known := schema.LiteralKindAssignable(expectedType, arg.Kind)
-		if !known {
-			// enums and custom scalars can't be checked from the type name alone
+	case "Enum":
+		if info.typeKinds[expectedType] == "" {
 			return true
 		}
-		return assignable
+		return info.typeKinds[expectedType] == "ENUM" && info.enumValues[expectedType][arg.Raw]
+
+	case "Int", "Float", "String", "Block", "Boolean":
+		if assignable, known := schema.LiteralKindAssignable(expectedType, arg.Kind); known {
+			return assignable
+		}
+		switch info.typeKinds[expectedType] {
+		case "SCALAR":
+			// custom scalars accept whatever their config allows
+			kind := arg.Kind
+			if kind == "Block" {
+				kind = "String"
+			}
+			return info.scalarInputs[expectedType][kind]
+		case "ENUM", "INPUT":
+			return false
+		default:
+			return true
+		}
 
 	default:
 		// fallback nodes constructed from raw values don't carry a kind we can
