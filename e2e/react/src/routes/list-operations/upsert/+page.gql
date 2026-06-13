@@ -1,0 +1,18 @@
+query UpsertFragmentTest {
+	usersList(snapshot: "UpsertFragmentTest") @list(name: "UpsertFragmentTest") {
+		id
+		name
+	}
+}
+
+mutation UpsertExisting($id: ID!, $name: String!) {
+	updateUserByID(id: $id, snapshot: "UpsertFragmentTest", name: $name) {
+		...UpsertFragmentTest_upsert
+	}
+}
+
+mutation UpsertNew($name: String!, $birthDate: DateTime!) {
+	addUser(snapshot: "UpsertFragmentTest", name: $name, birthDate: $birthDate) {
+		...UpsertFragmentTest_upsert @prepend
+	}
+}

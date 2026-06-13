@@ -129,28 +129,24 @@ mutation ToggleItem($input: ToggleItemInput!) {
 
 ### Updating a record
 
-Use `_update` when you only want to write new field values to an existing cached record without touching list membership. This is useful when a subscription fires for a record you know is already in the cache.
+Use `_update` when you only want to write new field values to an existing cached record without touching list membership. This is useful when an update comes in for a record you know is already in the cache.
 
 ```graphql
-subscription MessageUpdated {
-	messageUpdated {
-		message {
-			...All_Messages_update
-		}
+mutation UpdateMessage($id: ID!) {
+	updateMessage(id: $id) {
+		...All_Messages_update
 	}
 }
 ```
 
 ### Upserting a record
 
-Use `_upsert` when you want to insert a record if it isn't already in the list, or update its data in place if it is. This is useful for real-time subscriptions where the same event can fire for both new and existing records.
+Use `_upsert` when you want to insert a record if it isn't already in the list, or update its data in place if it is. This avoids duplicates when the same update can apply to both new and existing records.
 
 ```graphql
-subscription MessageUpserted {
-	messageUpserted {
-		message {
-			...All_Messages_upsert
-		}
+mutation UpsertMessage($input: MessageInput!) {
+	upsertMessage(input: $input) {
+		...All_Messages_upsert
 	}
 }
 ```
