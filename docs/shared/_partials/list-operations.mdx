@@ -69,7 +69,7 @@ Unlike `@parentID`, `@listID` works even when the parent has no usable ID in the
 
 ## Operations
 
-Once a list is tagged, Houdini generates a set of fragments named after the list — `All_Items_insert`, `All_Items_remove`, `All_Items_toggle` — that you spread into mutation responses to tell the cache what to do. The cache updates immediately on the client without waiting for a refetch.
+Once a list is tagged, Houdini generates a set of fragments named after the list — `All_Items_insert`, `All_Items_remove`, `All_Items_toggle`, `All_Items_upsert`, `All_Items_update` — that you spread into mutation responses to tell the cache what to do. The cache updates immediately on the client without waiting for a refetch.
 
 ### Inserting a record
 
@@ -122,6 +122,34 @@ mutation ToggleItem($input: ToggleItemInput!) {
 	toggleItem(input: $input) {
 		item {
 			...All_Items_toggle
+		}
+	}
+}
+```
+
+### Updating a record
+
+Use `_update` when you only want to write new field values to an existing cached record without touching list membership. This is useful when a subscription fires for a record you know is already in the cache.
+
+```graphql
+subscription MessageUpdated {
+	messageUpdated {
+		message {
+			...All_Messages_update
+		}
+	}
+}
+```
+
+### Upserting a record
+
+Use `_upsert` when you want to insert a record if it isn't already in the list, or update its data in place if it is. This is useful for real-time subscriptions where the same event can fire for both new and existing records.
+
+```graphql
+subscription MessageUpserted {
+	messageUpserted {
+		message {
+			...All_Messages_upsert
 		}
 	}
 }

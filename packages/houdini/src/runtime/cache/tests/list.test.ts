@@ -6366,3 +6366,247 @@ test('@listID operation inserts into the correct list via opaque key', () => {
 
 	expect([...cache.list('All_Users', '1')]).toHaveLength(2)
 })
+
+test('upsert list inserts when not present', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								list: { name: 'All_Users', connection: false, type: 'User' },
+								selection: {
+									fields: {
+										id: { type: 'ID', visible: true, keyRaw: 'id' },
+										firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
+	})
+
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: { name: 'All_Users', connection: false, type: 'User' },
+						selection: {
+							fields: {
+								id: { type: 'ID', visible: true, keyRaw: 'id' },
+								firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [{ action: 'upsert', list: 'All_Users' }],
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+						},
+					},
+				},
+			},
+		},
+		data: { newUser: { id: '3', firstName: 'Bob' } },
+	})
+
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5', 'User:3'])
+})
+
+test('upsert list does not duplicate when already present', () => {
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								list: { name: 'All_Users', connection: false, type: 'User' },
+								selection: {
+									fields: {
+										id: { type: 'ID', visible: true, keyRaw: 'id' },
+										firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
+	})
+
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: { name: 'All_Users', connection: false, type: 'User' },
+						selection: {
+							fields: {
+								id: { type: 'ID', visible: true, keyRaw: 'id' },
+								firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: vi.fn(),
+		},
+		{}
+	)
+
+	const upsertSelection: SubscriptionSelection = {
+		fields: {
+			newUser: {
+				type: 'User',
+				visible: true,
+				keyRaw: 'newUser',
+				operations: [{ action: 'upsert', list: 'All_Users' }],
+				selection: {
+					fields: {
+						id: { type: 'ID', visible: true, keyRaw: 'id' },
+						firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+					},
+				},
+			},
+		},
+	}
+
+	// upsert User:5 which is already in the list
+	cache.write({ selection: upsertSelection, data: { newUser: { id: '5', firstName: 'Alice Updated' } } })
+
+	// should still be length 1, no duplicate
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
+})
+
+test('upsert list updates record data when already present', () => {
+	const cache = new Cache(config)
+
+	const friendsField: SubscriptionSelection = {
+		fields: {
+			id: { type: 'ID', visible: true, keyRaw: 'id' },
+			firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+		},
+	}
+
+	cache.write({
+		selection: {
+			fields: {
+				viewer: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'viewer',
+					selection: {
+						fields: {
+							id: { type: 'ID', visible: true, keyRaw: 'id' },
+							friends: {
+								type: 'User',
+								visible: true,
+								keyRaw: 'friends',
+								list: { name: 'All_Users', connection: false, type: 'User' },
+								selection: friendsField,
+							},
+						},
+					},
+				},
+			},
+		},
+		data: { viewer: { id: '1', friends: [{ id: '5', firstName: 'Alice' }] } },
+	})
+
+	const set = vi.fn()
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				fields: {
+					friends: {
+						type: 'User',
+						visible: true,
+						keyRaw: 'friends',
+						list: { name: 'All_Users', connection: false, type: 'User' },
+						selection: friendsField,
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set,
+		},
+		{}
+	)
+
+	// upsert an existing user with updated data
+	cache.write({
+		selection: {
+			fields: {
+				newUser: {
+					type: 'User',
+					visible: true,
+					keyRaw: 'newUser',
+					operations: [{ action: 'upsert', list: 'All_Users' }],
+					selection: friendsField,
+				},
+			},
+		},
+		data: { newUser: { id: '5', firstName: 'Alice Updated' } },
+	})
+
+	// list unchanged, but subscriber was called with updated data
+	expect([...cache.list('All_Users', '1')]).toEqual(['User:5'])
+	expect(set).toHaveBeenCalledWith(
+		expect.objectContaining({
+			friends: expect.arrayContaining([expect.objectContaining({ firstName: 'Alice Updated' })]),
+		})
+	)
+})

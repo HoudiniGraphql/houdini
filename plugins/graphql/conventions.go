@@ -58,6 +58,10 @@ const ListOperationSuffixToggle = "_toggle"
 
 const ListOperationSuffixDelete = "_delete"
 
+const ListOperationSuffixUpsert = "_upsert"
+
+const ListOperationSuffixUpdate = "_update"
+
 const PaginationModeInfinite = "Infinite"
 
 const PaginationModeSinglePage = "SinglePage"

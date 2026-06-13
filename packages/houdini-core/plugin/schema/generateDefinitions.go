@@ -263,6 +263,8 @@ func generateDocumentsFile(
 		    WHERE d.name = dl.name || '_insert'
 		       OR d.name = dl.name || '_toggle'
 		       OR d.name = dl.name || '_remove'
+		       OR d.name = dl.name || '_upsert'
+		       OR d.name = dl.name || '_update'
 		  )
 		ORDER BY d.name
 	`, nil, func(stmt plugins.Row) {
