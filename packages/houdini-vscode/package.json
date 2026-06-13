@@ -30,6 +30,7 @@
         "tsup": "^8.5.1"
     },
     "dependencies": {
+        "houdini-lsp": "workspace:^",
         "vscode-languageclient": "^9.0.1"
     },
     "files": [

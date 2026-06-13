@@ -687,6 +687,9 @@ importers:
 
   packages/houdini-vscode:
     dependencies:
+      houdini-lsp:
+        specifier: workspace:^
+        version: link:../houdini-lsp
       vscode-languageclient:
         specifier: ^9.0.1
         version: 9.0.1
