@@ -22,7 +22,7 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	// indexed by the opaque list ID exposed as __listID
+	// indexed by the opaque list ID exposed as __id
 	private listsByOpaqueID: Map<string, ListCollection> = new Map()
 
 	get(listName: string, id?: string, allLists?: boolean, skipMatches?: Set<string>) {
@@ -40,7 +40,7 @@ export class ListManager {
 		}
 	}
 
-	// look up a list by the opaque ID that was attached as __listID
+	// look up a list by the opaque ID that was attached as __id
 	getByOpaqueID(opaqueID: string, skipMatches?: Set<string>): ListCollection | null {
 		const collection = this.listsByOpaqueID.get(opaqueID)
 		if (!collection) return null
@@ -153,7 +153,7 @@ export class ListManager {
 		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
 		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
 
-		// register the opaque ID lookup (format matches what getSelection injects as __listID)
+		// register the opaque ID lookup (format matches what getSelection injects as __id)
 		this.listsByOpaqueID.set(opaqueListID(parentID, name), this.lists.get(name)!.get(parentID)!)
 	}
 

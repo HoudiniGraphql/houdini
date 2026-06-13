@@ -2015,7 +2015,7 @@ func TestIncludeListID(t *testing.T) {
 }
 
 // TestListIDMutation verifies that @listID on a fragment spread is serialized into the mutation
-// artifact's operations so the runtime can resolve the list via the opaque key from __listID.
+// artifact's operations so the runtime can resolve the list via the opaque key from __id.
 func TestListIDMutation(t *testing.T) {
 	tests.RunTable(t, tests.Table[config.PluginConfig, *plugin.HoudiniCore]{
 		Schema: `

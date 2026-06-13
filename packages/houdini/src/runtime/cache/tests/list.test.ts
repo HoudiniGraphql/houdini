@@ -6092,7 +6092,7 @@ test('@includeListID attaches opaque key to plain list array', () => {
 	})
 
 	const parentKey = cache._internal_unstable.id('User', '1')
-	expect((result.data?.friends as any).__listID).toBe(opaqueListID(parentKey!, 'All_Users'))
+	expect((result.data?.friends as any).__id).toBe(opaqueListID(parentKey!, 'All_Users'))
 })
 
 test('@includeListID attaches opaque key to connection object', () => {
@@ -6193,8 +6193,8 @@ test('@includeListID attaches opaque key to connection object', () => {
 	})
 
 	const parentKey = cache._internal_unstable.id('User', '1')
-	// the connection object (not an array) gets __listID
-	expect((result.data?.friendsConnection as any)?.__listID).toBe(
+	// the connection object (not an array) gets __id
+	expect((result.data?.friendsConnection as any)?.__id).toBe(
 		opaqueListID(parentKey!, 'Friends_Conn')
 	)
 })
@@ -6269,8 +6269,8 @@ test('@includeListID generates distinct keys for two lists on the same parent', 
 	})
 
 	const parentKey = cache._internal_unstable.id('User', '1')
-	const friendsListID = (result.data?.friends as any).__listID
-	const followersListID = (result.data?.followers as any).__listID
+	const friendsListID = (result.data?.friends as any).__id
+	const followersListID = (result.data?.followers as any).__id
 
 	// same parent, but different list names → different opaque IDs
 	expect(friendsListID).toBe(opaqueListID(parentKey!, 'My_Friends'))
@@ -6328,13 +6328,13 @@ test('@listID operation inserts into the correct list via opaque key', () => {
 		{}
 	)
 
-	// read to obtain the __listID value
+	// read to obtain the __id value
 	const readResult = cache.read({
 		selection: friendsSelection,
 		parent: cache._internal_unstable.id('User', '1')!,
 	})
 
-	const opaqueID = (readResult.data?.friends as any).__listID as string
+	const opaqueID = (readResult.data?.friends as any).__id as string
 	expect(opaqueID).toBe(opaqueListID(cache._internal_unstable.id('User', '1')!, 'All_Users'))
 
 	// use the opaque key in a mutation operation

@@ -588,10 +588,10 @@ func generateSelectionType(
 			fieldType = convertLeafType(ctx, selection.FieldType, selection.TypeModifiers, collectedDocs)
 		}
 
-		// @includeListID attaches an opaque __listID to the runtime value; reflect that in the type
+		// @includeListID attaches an opaque __id to the runtime value; reflect that in the type
 		for _, directive := range selection.Directives {
 			if directive.Name == graphql.IncludeListIDDirective {
-				fieldType = fieldType + " & { __listID: string }"
+				fieldType = fieldType + " & { __id: string }"
 				break
 			}
 		}

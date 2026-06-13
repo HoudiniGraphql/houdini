@@ -36,7 +36,7 @@ The `value` argument must be the ID of the parent record that owns the list. Wit
 
 `@parentID` requires knowing the parent record's ID at mutation time, but that isn't always possible — the parent type may not expose an ID field, or the ID may not appear anywhere in the query document. `@includeListID` and `@listID` solve this by letting the cache identify the list for you.
 
-Add `@includeListID` to the list field alongside `@list` or `@paginate`. The cache will stamp an opaque `__listID` value directly onto the returned list, and the generated TypeScript type will include `__listID: string` so you can read it without any casting:
+Add `@includeListID` to the list field alongside `@list` or `@paginate`. The cache will stamp an opaque `__id` value directly onto the returned list, and the generated TypeScript type will include `__id: string` so you can read it without any casting:
 
 ```graphql
 query AllItems {
@@ -50,7 +50,7 @@ query AllItems {
 
 ```tsx
 const items = data?.userNodes.items
-const listId = items?.__listID  // string | undefined — typed by codegen
+const listId = items?.__id  // string | undefined — typed by codegen
 ```
 
 Then pass that value to `@listID` on the mutation fragment spread instead of `@parentID`:

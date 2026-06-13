@@ -753,10 +753,10 @@ then the request will never be deduplicated.`,
 		return err
 	}
 
-	// @includeListID on FIELD_DEFINITION — exposes __listID on the list for use with @listID
+	// @includeListID on FIELD_DEFINITION — exposes __id on the list for use with @listID
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.IncludeListIDDirective,
-		"description": "@includeListID exposes an opaque __listID value on the list that can be passed to @listID on a mutation to target a specific list instance.",
+		"description": "@includeListID exposes an opaque __id value on the list that can be passed to @listID on a mutation to target a specific list instance.",
 		"visible":     true,
 	})
 	if err != nil {
@@ -773,7 +773,7 @@ then the request will never be deduplicated.`,
 	// @listID(value: ID!) on FRAGMENT_SPREAD
 	err = db.ExecStatement(statements.InsertInternalDirective, map[string]any{
 		"name":        graphql.ListIDDirective,
-		"description": "@listID is used to identify a list by the opaque key obtained from __listID (via @includeListID).",
+		"description": "@listID is used to identify a list by the opaque key obtained from __id (via @includeListID).",
 		"visible":     true,
 	})
 	if err != nil {

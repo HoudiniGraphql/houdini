@@ -876,7 +876,7 @@ class CacheInternal {
 					}
 				}
 
-				// resolve the opaque list ID from @listID (the value of __listID set by @includeListID)
+				// resolve the opaque list ID from @listID (the value of __id set by @includeListID)
 				let opaqueListID: string | undefined
 				if (operation.listID) {
 					if (operation.listID.kind !== 'Variable') {
@@ -1291,7 +1291,7 @@ class CacheInternal {
 			// user can pass it to @listID on a mutation to target this specific list instance.
 			// the format matches what ListManager.listsByOpaqueID uses as its key.
 			if (list?.includeListID && fieldTarget[attributeName] != null) {
-				;(fieldTarget[attributeName] as any).__listID = opaqueListID(parent, list.name)
+				;(fieldTarget[attributeName] as any).__id = opaqueListID(parent, list.name)
 			}
 
 			// if we are generating a loading value then we might need to wrap up the result

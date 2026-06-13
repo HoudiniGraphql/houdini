@@ -3,7 +3,7 @@ import { PageProps } from './$types'
 
 export default function ListIDTestView({ ListIDTest }: PageProps) {
 	const nodes = ListIDTest?.userNodes.nodes
-	const listId = nodes?.__listID
+	const listId = nodes?.__id
 
 	const [, addUser] = useMutation(
 		graphql(`

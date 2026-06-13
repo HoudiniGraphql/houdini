@@ -289,8 +289,8 @@ func printSelection(
 	var resultBuilder strings.Builder
 
 	for _, selection := range selections {
-		// __listID is a synthetic field resolved by the cache; never send it to the server
-		if selection.Kind == "field" && selection.FieldName == "__listID" {
+		// __id is a synthetic field resolved by the cache; never send it to the server
+		if selection.Kind == "field" && selection.FieldName == "__id" {
 			continue
 		}
 
