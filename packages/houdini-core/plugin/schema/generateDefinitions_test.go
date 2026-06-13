@@ -170,6 +170,14 @@ fragment Friends_toggle on User {
     id
 }
 
+fragment Friends_update on User {
+    id
+}
+
+fragment Friends_upsert on User {
+    id
+}
+
 `,
 				},
 			},
@@ -204,6 +212,14 @@ fragment Friends_toggle on User {
     id
 }
 
+fragment Friends_update on User {
+    id
+}
+
+fragment Friends_upsert on User {
+    id
+}
+
 fragment theList_insert on CustomIdType {
     foo
     bar
@@ -215,6 +231,16 @@ fragment theList_remove on CustomIdType {
 }
 
 fragment theList_toggle on CustomIdType {
+    foo
+    bar
+}
+
+fragment theList_update on CustomIdType {
+    foo
+    bar
+}
+
+fragment theList_upsert on CustomIdType {
     foo
     bar
 }
