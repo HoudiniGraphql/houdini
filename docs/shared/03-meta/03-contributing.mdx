@@ -59,6 +59,56 @@ Subscriptions keep stores up to date as values change. The cache walks a given s
 
 The best way to verify a feature is to write a test that simulates the user's experience. These live in the [e2e/](https://github.com/HoudiniGraphQL/houdini/tree/main/e2e) directory at the root of the repository. The general pattern is to create a route in one of the test applications that showcases a specific behavior, then use [Playwright](https://playwright.dev/) to simulate a user interacting with the UI.
 
+## Test Scripts
+
+There are three layers of testing, each with its own set of scripts.
+
+### TypeScript unit tests (root)
+
+Run from the repo root using [Vitest](https://vitest.dev/):
+
+```sh
+pnpm tests            # run all TypeScript unit tests
+pnpm tests:ui         # run with the Vitest browser UI + coverage report
+```
+
+These cover the runtime cache, client plugins, and other TypeScript-only logic that doesn't require a full pipeline run.
+
+### Go pipeline tests (per package)
+
+The Go pipeline tests live in `plugin/` subdirectories of each package (e.g. `packages/houdini-core/plugin/`, `packages/houdini-react/plugin/`). Run them with the standard Go toolchain from the package root:
+
+```sh
+go test ./...
+```
+
+Each test uses `tests.RunTable` from `plugins/tests/` — it spins up an in-memory SQLite database, runs the pipeline steps (extract → validate → generate), and asserts on the resulting artifacts. These are the right tests to write when you change Go plugin logic.
+
+### Playwright e2e tests (e2e apps)
+
+The `e2e/kit/` (SvelteKit) and `e2e/react/` apps each have a family of scripts for running the full Playwright suite. The key ones:
+
+| Script | What it does |
+|---|---|
+| `build:` | Rebuilds all packages from the repo root (`pnpm run build`) |
+| `build:test` | `build:` then runs Playwright (`pnpm test`) — use this to verify changes against a fresh build |
+| `build:build` | `build:` then builds the e2e app itself (produces a static output) |
+| `build:tests` | `build:build` then runs Playwright — use this when you also need the app compiled |
+| `build:dev` | `build:` then starts the dev server |
+| `build:generate` | `build:` then runs `houdini generate` |
+| `tests` / `test` | Playwright only, no rebuild — use when packages are already built |
+
+For faster iteration when only one package changed, the `compile:*` variants recompile a single package without doing a full root build:
+
+```sh
+pnpm compile:core      # recompile houdini-core only
+pnpm compile:houdini   # recompile houdini only
+pnpm compile:svelte    # recompile houdini-svelte only (kit app)
+pnpm compile:react     # recompile houdini-react only (react app)
+```
+
+Each of these has `:dev`, `:generate`, and `:dev` suffixes that chain into the next step after compiling.
+
 ## Piecing It All Together
 
 When thinking about adding a feature, a few questions help frame the work:
