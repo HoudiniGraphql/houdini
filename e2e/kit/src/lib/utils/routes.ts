@@ -81,6 +81,8 @@ export const routes = {
 	Stores_Layouts: '/layouts',
 	Stores_Layouts_page2: '/layouts/page2',
 
+	Bug_RefetchCacheLinksLeak: '/bug/refetch-cache-links-leak',
+
 	Svelte5_Runes_Simple_SSR: '/svelte5-runes/simple-ssr',
 	Svelte5_Runes_Pagination: '/svelte5-runes/pagination',
 	Svelte5_Runes_Fragment: '/svelte5-runes/fragment',
