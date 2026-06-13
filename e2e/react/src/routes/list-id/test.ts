@@ -14,8 +14,12 @@ test('@listID inserts into an embedded list with no natural parent ID', async ({
 	await sleep(300)
 
 	expect(await rows.count()).toBe(initialCount + 1)
+	expect(await rows.last().textContent()).toContain('New User')
 
-	// the new user should appear in the list
-	const lastRow = rows.last()
-	expect(await lastRow.textContent()).toContain('New User')
+	// second insert: __id must survive the re-render caused by the first insert
+	await page.click('[data-test-action="add"]')
+	await sleep(300)
+
+	expect(await rows.count()).toBe(initialCount + 2)
+	expect(await rows.last().textContent()).toContain('New User')
 })
