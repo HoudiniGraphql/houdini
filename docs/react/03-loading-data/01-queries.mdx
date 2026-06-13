@@ -40,7 +40,7 @@ export default function ShowsPage({ ShowList }) {
 
 The prop name matches the query name exactly — `ShowList` not `data` or `props.ShowList`. Houdini enforces this through static analysis, so it needs to appear in the destructuring pattern in the function signature.
 
-<AsideAccordion title="What about query colocation?">
+<AsideAccordion variant="design" title="What About Query Colocation?">
 
 The prevailing wisdom is that queries should live inside the components that use them. Houdini agrees with the principle (we still colocate fragments in our component source, after all) but disagrees about where the boundary should sit.
 

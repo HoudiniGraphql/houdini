@@ -3,11 +3,41 @@ title: Navigation
 description: Linking between pages in Houdini's React framework
 ---
 
+import AsideAccordion from "@components/docs/AsideAccordion.astro";
+
 Links use standard `<a>` tags. No wrapper component needed:
 
 ```jsx
 <a href="/shows">All Shows</a>
 ```
+
+## Typed Routes
+
+Houdini knows every valid route in your application, so `href` is type-checked at compile time. For parameterized routes, pass a `params` object alongside the pattern and Houdini resolves it at render time:
+
+```tsx
+// static route — TypeScript enforces that "/shows" exists
+<a href="/shows">All Shows</a>
+
+// parameterized route — TypeScript requires params.id
+<a href="/shows/[id]" params={{ id: show.id }}>
+    {show.title}
+</a>
+```
+
+If `href` doesn't match any registered route, TypeScript falls back to accepting any string so external links still work without ceremony.
+
+<AsideAccordion variant="design" title="Why no custom <Link />">
+
+Most routers solve this with a `<Link>` component. We went a different direction: Houdini extends the built-in `<a>` tag itself, via a generated JSX runtime that intercepts the `params` prop and resolves it into the final `href` before React sees it.
+
+The motivation is compatibility. Tools like MDX, markdown processors, and component libraries all emit native `<a>` tags rather than calling into a framework-specific `<Link>`. Extending `<a>` means those contexts get the same type safety and param resolution without any adapter layer or special configuration.
+
+It is worth being honest that this is non-conventional. Houdini is reaching into the JSX transform layer to change what `<a>` means, which is not how the platform was designed to be extended. The generated `.houdini/jsx-runtime.ts` redirects any import of `react/jsx-runtime` in your project so every `<a>` anywhere in your source goes through the wrapper. That's a lot of machinery to carry for what amounts to one prop.
+
+We think the compatibility story is worth it, and the machinery is invisible in practice. But we'd rather name the tradeoff than pretend it isn't there.
+
+</AsideAccordion>
 
 ## Preloading
 
