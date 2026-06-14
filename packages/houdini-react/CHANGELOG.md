@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.37
+
+### Minor Changes
+
+- [#1655](https://github.com/HoudiniGraphql/houdini/pull/1655) [`2c796b8`](https://github.com/HoudiniGraphql/houdini/commit/2c796b82878d96da1d38e90b6eb46e1639c2c9f3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add a `<Link>` component with a typed `to` prop checked at compile time against your app's route manifest, with `params` interpolation and custom scalar support.
+
 ## 2.0.0-next.36
 
 ### Patch Changes
