@@ -43,13 +43,13 @@ const skip = (...cats: string[]) =>
 // of the per-bench options — enough to catch crashes and gross regressions.
 const QUICK = process.env.BENCH_QUICK === '1'
 const b: typeof bench = QUICK
-	? ((name, fn, _opts?) =>
+	? (((name, fn, _opts?) =>
 			bench(name, fn as () => void, {
 				time: 0,
 				iterations: 3,
 				warmupTime: 0,
 				warmupIterations: 1,
-			})) as unknown as typeof bench
+			})) as unknown as typeof bench)
 	: bench
 
 const config = testConfigFile()
