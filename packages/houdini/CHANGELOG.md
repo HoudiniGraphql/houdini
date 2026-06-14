@@ -1,5 +1,11 @@
 # houdini
 
+## 2.0.0-next.35
+
+### Patch Changes
+
+- [`1cd7883`](https://github.com/HoudiniGraphql/houdini/commit/1cd78837960b7e9937ca3265415ea77d8a744acf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix document change count in hmr
+
 ## 2.0.0-next.34
 
 ### Minor Changes
