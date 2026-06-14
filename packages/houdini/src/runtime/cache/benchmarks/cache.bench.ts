@@ -156,6 +156,27 @@ const wideData100 = makeWideData(100)
 const wideData1000 = makeWideData(1000)
 const wideData10000 = makeWideData(10000)
 
+// Reusable single-record selection — used by GC, stale, and disjoint benchmarks.
+// Module-level so the WeakMap in getFieldsForType hits on every call.
+const idFirstNameSelection: SubscriptionSelection = {
+    fields: {
+        id: { type: 'ID', visible: true, keyRaw: 'id' },
+        firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+    },
+}
+
+// 100 per-field selections for the overlapping-specs benchmark.
+// Pre-generated so the same object references are reused across bench iterations.
+const overlappingSelections100: SubscriptionSelection[] = Array.from(
+    { length: 100 },
+    (_, i): SubscriptionSelection => ({
+        fields: {
+            id: { type: 'ID', visible: true, keyRaw: 'id' },
+            [`field${i}`]: { type: 'String', visible: true, keyRaw: `field${i}` },
+        },
+    })
+)
+
 // A list of wide records: rows items each with cols scalar fields.
 // Total data volume = rows * cols, letting us compare shapes at the same total size.
 function makeWideListSelection(cols: number): SubscriptionSelection {
@@ -568,16 +589,10 @@ describe.skipIf(skip('multi-doc'))('overlapping vs disjoint selections (N=100)',
 	b('overlapping: N specs, same record, different fields', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: wideSelection100, data: wideData100 })
-		const specs = Array.from({ length: 100 }, (_, i) => {
-			const sel: SubscriptionSelection = {
-				fields: {
-					id: { type: 'ID', visible: true, keyRaw: 'id' },
-					[`field${i}`]: { type: 'String', visible: true, keyRaw: `field${i}` },
-				},
-			}
+		const specs = overlappingSelections100.map((sel) => {
 			const spec = { rootType: 'Query', selection: sel, onMessage: () => {} }
 			cache.subscribe(spec, {})
-			return { spec, sel }
+			return { spec }
 		})
 		cache.write({ selection: wideSelection100, data: wideData100 })
 		for (const { spec } of specs) cache.unsubscribe(spec)
@@ -587,28 +602,13 @@ describe.skipIf(skip('multi-doc'))('overlapping vs disjoint selections (N=100)',
 	b('disjoint: N specs, N different records, same field', () => {
 		const cache = new Cache(config)
 		const specs = Array.from({ length: 100 }, (_, i) => {
-			const sel: SubscriptionSelection = {
-				fields: {
-					id: { type: 'ID', visible: true, keyRaw: 'id' },
-					firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
-				},
-			}
-			cache.write({ selection: sel, data: { id: String(i + 1), firstName: `User${i}` }, parent: `User:${i + 1}` })
-			const spec = { rootType: 'Query', selection: sel, onMessage: () => {} }
+			cache.write({ selection: idFirstNameSelection, data: { id: String(i + 1), firstName: `User${i}` }, parent: `User:${i + 1}` })
+			const spec = { rootType: 'Query', selection: idFirstNameSelection, onMessage: () => {} }
 			cache.subscribe(spec, {})
-			return { spec, sel, i }
+			return { spec }
 		})
 		// Write to one record — should only notify 1 of the 100 subscribers
-		cache.write({
-			selection: {
-				fields: {
-					id: { type: 'ID', visible: true, keyRaw: 'id' },
-					firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
-				},
-			},
-			data: { id: '1', firstName: 'Alice' },
-			parent: 'User:1',
-		})
+		cache.write({ selection: idFirstNameSelection, data: { id: '1', firstName: 'Alice' }, parent: 'User:1' })
 		for (const { spec } of specs) cache.unsubscribe(spec)
 	})
 })
@@ -851,11 +851,7 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 	b('100 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 100; i++) {
-			cache.write({
-				selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' }, firstName: { type: 'String', visible: true, keyRaw: 'firstName' } } },
-				data: { id: String(i), firstName: `User${i}` },
-				parent: `User:${i}`,
-			})
+			cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
 		}
 		cache._internal_unstable.collectGarbage()
 	})
@@ -863,11 +859,7 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 	b('1000 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 1000; i++) {
-			cache.write({
-				selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' }, firstName: { type: 'String', visible: true, keyRaw: 'firstName' } } },
-				data: { id: String(i), firstName: `User${i}` },
-				parent: `User:${i}`,
-			})
+			cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
 		}
 		cache._internal_unstable.collectGarbage()
 	})
@@ -875,11 +867,7 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 	b('10000 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 10000; i++) {
-			cache.write({
-				selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' }, firstName: { type: 'String', visible: true, keyRaw: 'firstName' } } },
-				data: { id: String(i), firstName: `User${i}` },
-				parent: `User:${i}`,
-			})
+			cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
 		}
 		cache._internal_unstable.collectGarbage()
 	})
@@ -892,11 +880,7 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 function populatedCache(n: number): Cache {
 	const cache = new Cache(config)
 	for (let i = 0; i < n; i++) {
-		cache.write({
-			selection: { fields: { id: { type: 'ID', visible: true, keyRaw: 'id' }, firstName: { type: 'String', visible: true, keyRaw: 'firstName' } } },
-			data: { id: String(i), firstName: `User${i}` },
-			parent: `User:${i}`,
-		})
+		cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
 	}
 	return cache
 }

@@ -11,6 +11,8 @@ export class InMemoryStorage {
 	private idCount = 1
 	private rank = 0
 	idMaps: Record<string, string> = {}
+	// fast lookup: record id → __typename, maintained alongside normal field writes
+	typenames: Map<string, string> = new Map()
 
 	constructor() {
 		this.data = []
@@ -72,6 +74,7 @@ export class InMemoryStorage {
 			delete layer.fields[id]
 			delete layer.links[id]
 		}
+		this.typenames.delete(id)
 	}
 
 	getLayer(id: number): Layer {
@@ -89,6 +92,8 @@ export class InMemoryStorage {
 		for (const layer of this.data) {
 			layer.replaceID(replacement)
 		}
+		const typename = this.typenames.get(replacement.from)
+		if (typename) this.typenames.set(replacement.to, typename)
 	}
 	get(
 		targetID: string,
@@ -348,8 +353,19 @@ export class InMemoryStorage {
 		layer.links = links
 	}
 
+	// fast typename lookup with lazy-populate fallback for records written via hydrate()
+	getTypename(id: string): string | undefined {
+		let typename = this.typenames.get(id)
+		if (typename === undefined) {
+			typename = this.get(id, '__typename').value as string | undefined
+			if (typename !== undefined) this.typenames.set(id, typename)
+		}
+		return typename
+	}
+
 	reset() {
 		this.data = []
+		this.typenames.clear()
 	}
 }
 
