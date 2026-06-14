@@ -1,5 +1,30 @@
 # houdini
 
+## 2.0.0-next.34
+
+### Minor Changes
+
+- [#1646](https://github.com/HoudiniGraphql/houdini/pull/1646) [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `record.refresh()` to refetch every document that contains a given cache record, including those that reference it only through a fragment spread.
+
+- [#1653](https://github.com/HoudiniGraphql/houdini/pull/1653) [`8f4a044`](https://github.com/HoudiniGraphql/houdini/commit/8f4a044487b9e042cc6dd162430ff6bdf741e0aa) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add `_upsert` list operation (insert if absent, update in place if present) and `_update` fragment (write field values to an existing cached record without affecting list membership)
+
+### Patch Changes
+
+- [#1654](https://github.com/HoudiniGraphql/houdini/pull/1654) [`6d40af6`](https://github.com/HoudiniGraphql/houdini/commit/6d40af6dac5490ff7046fef5fd48cb15941bfcd1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - GraphQL errors now expose `locations`, `path`, and `extensions` per the spec; augment `App.GraphQLErrorExtensions` to type your server's extensions.
+
+- [#1647](https://github.com/HoudiniGraphql/houdini/pull/1647) [`3b5e7d6`](https://github.com/HoudiniGraphql/houdini/commit/3b5e7d661503b2102c0af20a7029102646ca2aa6) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix null cascade when combining @mask_disable with @include/@skip ([#1550](https://github.com/HoudiniGraphQL/houdini/issues/1550)), and restore correct runtime masking behavior in artifacts
+
+- [#1649](https://github.com/HoudiniGraphql/houdini/pull/1649) [`8bd7291`](https://github.com/HoudiniGraphql/houdini/commit/8bd72911a7a022ccb68e7c3b5047f144077c3e4c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix list filters and @when conditions that contain object values or variable references nested inside objects
+
+- [#1650](https://github.com/HoudiniGraphql/houdini/pull/1650) [`03aba94`](https://github.com/HoudiniGraphql/houdini/commit/03aba94e0b473ed4aedd1f16ddb96d2cd64c0549) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix `useMutation` to return `[mutate, pending]` instead of `[pending, mutate]`, and fix list toggle operations accumulating across resolved optimistic mutation layers causing subsequent toggles to appear stuck.
+
+- [#1657](https://github.com/HoudiniGraphql/houdini/pull/1657) [`961a019`](https://github.com/HoudiniGraphql/houdini/commit/961a019e2ca2c9f202ec340e17e07eb6143966c0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix cache link leak when refetching connections — embedded edge records now reuse their existing keys on write instead of generating new ones, and records that fall out of the list are cleaned up immediately.
+
+- [#1655](https://github.com/HoudiniGraphql/houdini/pull/1655) [`b8b757a`](https://github.com/HoudiniGraphql/houdini/commit/b8b757a8c0b5c1db67a65af33cf9c684efab04a5) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Prevent panic in the presence of concurrent writes to dev server websocket
+
+- Updated dependencies [[`8bd7291`](https://github.com/HoudiniGraphql/houdini/commit/8bd72911a7a022ccb68e7c3b5047f144077c3e4c), [`f40e510`](https://github.com/HoudiniGraphql/houdini/commit/f40e510e0e67cd4ecc444f01662e3163fe45e736), [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c), [`5f3fd63`](https://github.com/HoudiniGraphql/houdini/commit/5f3fd635199681ef36ecb90a16df2e109a354c22)]:
+  - houdini-core@2.0.0-next.22
+
 ## 2.0.0-next.33
 
 ### Patch Changes
