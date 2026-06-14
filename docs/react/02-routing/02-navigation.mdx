@@ -3,80 +3,54 @@ title: Navigation
 description: Linking between pages in Houdini's React framework
 ---
 
-import AsideAccordion from "@components/docs/AsideAccordion.astro";
+Use the `<Link>` component to navigate between pages. It renders a plain `<a>` element and accepts all standard anchor attributes alongside a typed `to` prop:
 
-Links use standard `<a>` tags. No wrapper component needed:
+```tsx
+import { Link } from '$houdini'
 
-```jsx
-<a href="/shows">All Shows</a>
+<Link to="/shows">All Shows</Link>
 ```
 
-## Typed Routes
+## Typed routes
 
-Houdini knows every valid route in your application, so `href` is type-checked at compile time. For parameterized routes, pass a `params` object alongside the pattern and Houdini resolves it at render time:
+Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object and Houdini interpolates it into the URL at render time:
 
 ```tsx
 // static route — TypeScript verifies "/shows" is a real page
-<a href="/shows">All Shows</a>
+<Link to="/shows">All Shows</Link>
 
 // parameterized route — TypeScript requires params.id
-<a href="/shows/[id]" params={{ id: show.id }}>
+<Link to="/shows/[id]" params={{ id: show.id }}>
     {show.title}
-</a>
+</Link>
 ```
 
 TypeScript will error if:
-- `href` refers to a path that doesn't exist in your app
+- `to` refers to a path that doesn't exist in your app
 - `params` is missing for a parameterized route
 - `params` contains the wrong keys or incompatible value types
 
 ### Param types
 
-Param types come from the GraphQL variables of the query attached to that route. If `$id` is declared as `ID!`, the param accepts either a string or a number. Custom scalars defined in your Houdini config are reflected too — a route with a `DateTime` param will expect a `Date` value.
+Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too — a `DateTime` param expects a `Date` value.
 
 ### External links
 
-External URLs, fragments, relative paths, and other non-app links are accepted without any special handling:
+External URLs, fragments, relative paths, and other non-app hrefs are accepted without any special handling:
 
 ```tsx
-<a href="https://example.com">External</a>
-<a href="mailto:hello@example.com">Email</a>
-<a href="#section">Jump to section</a>
-<a href="./sibling">Relative</a>
+<Link to="https://example.com">External</Link>
+<Link to="mailto:hello@example.com">Email</Link>
+<Link to="#section">Jump to section</Link>
+<Link to="./sibling">Relative</Link>
 ```
-
-### Bypassing type checking
-
-For links where the `href` is computed at runtime and can't be statically verified — a navigation menu built from a list, a dynamic redirect, an API route — add `suppressHrefTypeCheck`:
-
-```tsx
-{routes.map(({ label, url }) => (
-    <a suppressHrefTypeCheck href={url} key={url}>
-        {label}
-    </a>
-))}
-```
-
-This keeps the full `<a>` API intact (all other props are still typed normally) while telling the type system to accept any string for `href`.
-
-<AsideAccordion variant="design" title="Why no custom <Link />">
-
-Most routers solve this with a `<Link>` component. We went a different direction: Houdini extends the built-in `<a>` tag itself, via a generated JSX runtime that intercepts the `params` prop and resolves it into the final `href` before React sees it.
-
-The motivation is compatibility and correctness. Tools like MDX, markdown processors, and component libraries all emit native `<a>` tags rather than calling into a framework-specific `<Link>`. Without intercepting those tags, any relative link they generate would cause a full page refresh instead of a client-side navigation — the router never sees them. Extending `<a>` ensures every link in your app, regardless of where it comes from, goes through the client-side router and gets the same type safety and param resolution without any adapter layer or special configuration.
-
-It is worth being honest that this is non-conventional. Houdini is reaching into the JSX transform layer to change what `<a>` means, which is not how the platform was designed to be extended. The generated `.houdini/jsx-runtime.ts` redirects any import of `react/jsx-runtime` in your project so every `<a>` anywhere in your source goes through the wrapper. That's a lot of machinery to carry for what amounts to one prop.
-
-We think the compatibility story is worth it, and the machinery is invisible in practice. But we'd rather name the tradeoff than pretend it isn't there.
-
-</AsideAccordion>
 
 ## Preloading
 
-Add `data-houdini-preload` to a link and Houdini will begin fetching when the user hovers, before they click:
+Add `data-houdini-preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
 
-```html
-<a href="/shows" data-houdini-preload>All Shows</a>
+```tsx
+<Link to="/shows" data-houdini-preload>All Shows</Link>
 ```
 
 By default this fetches both the page component and its data. You can narrow it:
@@ -85,6 +59,6 @@ By default this fetches both the page component and its data. You can narrow it:
 - `"component"` — only the JavaScript bundle
 - `"page"` — both (default)
 
-```html
-<a href="/shows" data-houdini-preload="data">All Shows</a>
+```tsx
+<Link to="/shows" data-houdini-preload="data">All Shows</Link>
 ```

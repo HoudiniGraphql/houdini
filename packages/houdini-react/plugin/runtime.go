@@ -210,12 +210,6 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	}
 	changed = append(changed, tsConfig...)
 
-	jsxRuntime, err := p.GenerateJsxRuntime(ctx, manifest)
-	if err != nil {
-		return nil, err
-	}
-	changed = append(changed, jsxRuntime...)
-
 	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	artifactDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
 
@@ -584,7 +578,7 @@ func formatManifest(
 	sb.WriteString("\t},\n")
 	sb.WriteString("} as const satisfies RouterManifest<any>\n")
 
-	// Export a name→TS-type map for custom scalars so jsx-runtime.ts can resolve
+	// Export a name→TS-type map for custom scalars so Link.tsx can resolve
 	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.
 	sb.WriteString("\nexport type RouteScalars = {\n")
 	for _, name := range sortedKeys(scalars) {
@@ -873,42 +867,6 @@ declare module 'houdini/runtime' {
 		changed = append(changed, indexPath)
 	}
 
-	return changed, nil
-}
-
-// GenerateJsxRuntime copies .houdini/jsx-runtime.ts and .houdini/jsx-dev-runtime.ts
-// verbatim from the plugin runtime directory (written there by IncludeRuntime).
-// Type information for typed anchor hrefs is derived at compile time from the manifest,
-// so no additional generation is needed here.
-func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectManifest) ([]string, error) {
-	projectConfig, err := p.DB.ProjectConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
-	houdiniDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir)
-
-	var changed []string
-	for _, name := range []string{"resolve-href.ts", "jsx-types.ts", "jsx-runtime.ts", "jsx-dev-runtime.ts"} {
-		src := filepath.Join(runtimeDir, name)
-		dst := filepath.Join(houdiniDir, name)
-		content, err := afero.ReadFile(p.Filesystem(), src)
-		if err != nil {
-			return nil, err
-		}
-		existing, _ := afero.ReadFile(p.Filesystem(), dst)
-		if string(existing) == string(content) {
-			continue
-		}
-		if err := p.Filesystem().MkdirAll(houdiniDir, 0755); err != nil {
-			return nil, err
-		}
-		if err := afero.WriteFile(p.Filesystem(), dst, content, 0644); err != nil {
-			return nil, err
-		}
-		changed = append(changed, dst)
-	}
 	return changed, nil
 }
 

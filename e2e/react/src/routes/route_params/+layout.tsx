@@ -1,15 +1,17 @@
+import { Link } from '$houdini'
+
 import { LayoutProps } from './$types'
 
 export default ({ children }: LayoutProps) => {
 	return (
 		<div>
 			<div className="flex flex-row gap-12">
-				<a id="user-link-1" href="/route_params/[id]" params={{ id: '1' }}>
+				<Link id="user-link-1" to="/route_params/[id]" params={{ id: 1 }}>
 					user 1
-				</a>
-				<a id="user-link-2" href="/route_params/[id]" params={{ id: '2' }}>
+				</Link>
+				<Link id="user-link-2" to="/route_params/[id]" params={{ id: 2 }}>
 					user 2
-				</a>
+				</Link>
 			</div>
 			{children}
 		</div>

@@ -7,6 +7,7 @@ import { Router as RouterImpl, type RouterCache, RouterContextProvider } from '.
 
 export * from './hooks/index.js'
 export { router_cache, useSession, useLocation, useRoute } from './routing/index.js'
+export * from './Link.js'
 
 export function Router({
 	cache,

@@ -1,59 +1,58 @@
-// Compile-time type assertions for anchor prop typing.
+// Compile-time type assertions for <Link> prop typing.
 // Verified by `tsc --noEmit` — not a Playwright test.
+
+import { Link } from '$houdini'
 
 export {}
 
 // ── valid usages ─────────────────────────────────────────────────────────────
 
-// known static route
-const _s1 = <a href="/">Home</a>
-const _s2 = <a href="/hello-world">Hello</a>
-// external links via _ExternalHref escape hatch
-const _s3 = <a href="https://example.com">HTTPS</a>
-const _s4 = <a href="mailto:hi@example.com">Email</a>
-const _s5 = <a href="#section">Fragment</a>
-const _s6 = <a href="./relative">Relative</a>
+// known static routes
+const _s1 = <Link to="/">Home</Link>
+const _s2 = <Link to="/hello-world">Hello</Link>
+// external links
+const _s3 = <Link to="https://example.com">HTTPS</Link>
+const _s4 = <Link to="mailto:hi@example.com">Email</Link>
+const _s5 = <Link to="#section">Fragment</Link>
+const _s6 = <Link to="./relative">Relative</Link>
 // parameterized route — GQL ID accepts string or number
-const _s7 = <a href="/route_params/[id]" params={{ id: '1' }}>User</a>
-const _s7b = <a href="/route_params/[id]" params={{ id: 1 }}>User</a>
+const _s7 = <Link to="/route_params/[id]" params={{ id: '1' }}>User</Link>
+const _s7b = <Link to="/route_params/[id]" params={{ id: 1 }}>User</Link>
 // data-houdini-preload on a known route
-const _s8 = <a href="/hello-world" data-houdini-preload>Preload</a>
+const _s8 = <Link to="/hello-world" data-houdini-preload>Preload</Link>
 // key prop works (from ClassAttributes via DetailedHTMLProps)
-const _s9 = <a href="/hello-world" key="nav">Nav</a>
+const _s9 = <Link to="/hello-world" key="nav">Nav</Link>
 // other standard attributes still work
-const _s10 = <a href="https://example.com" target="_blank" rel="noopener noreferrer">New tab</a>
-// suppressHrefTypeCheck opts out of validation entirely
-const _s11 = <a suppressHrefTypeCheck href="/anything-at-all">Dynamic</a>
-const _s12 = <a suppressHrefTypeCheck href="/api/endpoint" params={{ foo: 'bar' }}>API</a>
+const _s10 = <Link to="https://example.com" target="_blank" rel="noopener noreferrer">New tab</Link>
 
 // ── invalid usages ────────────────────────────────────────────────────────────
 
-// href must be a string
+// to must be a string
 const _e1 =
-    // @ts-expect-error -- number is not a valid href
-    <a href={42}>Bad</a>
+    // @ts-expect-error -- number is not a valid route
+    <Link to={42}>Bad</Link>
 
 // params must be a plain object, not a primitive
 const _e2 =
     // @ts-expect-error -- boolean is not a valid params value
-    <a href="/route_params/[id]" params={false}>Bad</a>
+    <Link to="/route_params/[id]" params={false}>Bad</Link>
 
 // params must be a plain object, not a string
 const _e3 =
     // @ts-expect-error -- string is not a valid params object
-    <a href="/route_params/[id]" params="id=1">Bad</a>
+    <Link to="/route_params/[id]" params="id=1">Bad</Link>
 
 // unknown internal routes are rejected (not in the manifest, not external)
 const _e4 =
     // @ts-expect-error -- unknown route not in the manifest
-    <a href="/not-a-real-route">Bad</a>
+    <Link to="/not-a-real-route">Bad</Link>
 
 // wrong param key for a known route
 const _e5 =
     // @ts-expect-error -- userId is not a valid param for /route_params/[id]
-    <a href="/route_params/[id]" params={{ userId: '1' }}>Bad</a>
+    <Link to="/route_params/[id]" params={{ userId: '1' }}>Bad</Link>
 
 // missing params entirely for a parameterized route
 const _e7 =
     // @ts-expect-error -- params required for parameterized route
-    <a href="/route_params/[id]">Bad</a>
+    <Link to="/route_params/[id]">Bad</Link>

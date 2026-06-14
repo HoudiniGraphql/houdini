@@ -521,97 +521,6 @@ func TestInjectComponentFieldArtifactTypes(t *testing.T) {
 	})
 }
 
-func TestGenerateJsxRuntime(t *testing.T) {
-	prodTemplate, err := os.ReadFile("../runtime/jsx-runtime.ts")
-	require.NoError(t, err)
-	devTemplate, err := os.ReadFile("../runtime/jsx-dev-runtime.ts")
-	require.NoError(t, err)
-	resolveHrefTemplate, err := os.ReadFile("../runtime/resolve-href.ts")
-	require.NoError(t, err)
-	jsxTypesTemplate, err := os.ReadFile("../runtime/jsx-types.ts")
-	require.NoError(t, err)
-
-	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
-		Schema: `
-			scalar DateTime
-			type Query {
-				id: ID
-				node(id: ID!): Node
-				intNode(count: Int!): Node
-				dateNode(at: DateTime!): Node
-			}
-			interface Node { id: ID! }
-		`,
-		SetupAlwaysPasses: true,
-
-		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
-			cfg, err := p.DB.ProjectConfig(context.Background())
-			require.NoError(t, err)
-			runtimeDir := cfg.PluginRuntimeDirectory(p.Name())
-			require.NoError(t, p.Filesystem().MkdirAll(runtimeDir, 0755))
-			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "resolve-href.ts"), resolveHrefTemplate, 0644))
-			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-types.ts"), jsxTypesTemplate, 0644))
-			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-runtime.ts"), prodTemplate, 0644))
-			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-dev-runtime.ts"), devTemplate, 0644))
-
-			views, ok := test.Extra["views"].(map[string]string)
-			if !ok {
-				return
-			}
-			for fp, content := range views {
-				abs := filepath.Join("/project", fp)
-				require.NoError(t, p.Filesystem().MkdirAll(filepath.Dir(abs), 0755))
-				require.NoError(t, afero.WriteFile(p.Filesystem(), abs, []byte(content), 0644))
-			}
-		},
-
-		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
-			ctx := context.Background()
-			cfg, err := p.DB.ProjectConfig(ctx)
-			require.NoError(t, err)
-
-			manifest, err := p.LoadManifest(ctx)
-			require.NoError(t, err)
-
-			_, err = p.GenerateJsxRuntime(ctx, manifest)
-			require.NoError(t, err)
-
-			houdiniDir := filepath.Join(cfg.ProjectRoot, cfg.RuntimeDir)
-
-			// jsx files must be copied verbatim — no substitution.
-			gotProd, err := afero.ReadFile(p.Filesystem(), filepath.Join(houdiniDir, "jsx-runtime.ts"))
-			require.NoError(t, err)
-			require.Equal(t, string(prodTemplate), string(gotProd), "jsx-runtime.ts must be copied verbatim")
-
-			gotDev, err := afero.ReadFile(p.Filesystem(), filepath.Join(houdiniDir, "jsx-dev-runtime.ts"))
-			require.NoError(t, err)
-			require.Equal(t, string(devTemplate), string(gotDev), "jsx-dev-runtime.ts must be copied verbatim")
-		},
-
-		Tests: []tests.Test[coreConfig.PluginConfig]{
-			{Name: "no routes", Pass: true},
-			{
-				Name:      "static route",
-				Pass:      true,
-				Input:     []string{mockQuery("HomeQuery", false)},
-				Filepaths: []string{"src/routes/+page.gql"},
-				Extra: map[string]any{
-					"views": map[string]string{"src/routes/+page.tsx": mockView([]string{"HomeQuery"})},
-				},
-			},
-			{
-				Name:      "parameterized route",
-				Pass:      true,
-				Input:     []string{"query MyQuery($id: ID!) {\n\tnode(id: $id) {\n\t\tid\n\t}\n}\n"},
-				Filepaths: []string{"src/routes/[id]/+layout.gql"},
-				Extra: map[string]any{
-					"views": map[string]string{"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"})},
-				},
-			},
-		},
-	})
-}
-
 func TestGenerateRuntime(t *testing.T) {
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
@@ -636,24 +545,6 @@ func TestGenerateRuntime(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, afero.WriteFile(p.Filesystem(),
 				filepath.Join(runtimeDir, "tsconfig.json"), tsconfigStub, 0644))
-
-			// GenerateJsxRuntime reads resolve-href.ts, jsx-types.ts, jsx-runtime.ts, jsx-dev-runtime.ts.
-			resolveHrefTemplate, err := os.ReadFile("../runtime/resolve-href.ts")
-			require.NoError(t, err)
-			jsxTypesTemplate, err := os.ReadFile("../runtime/jsx-types.ts")
-			require.NoError(t, err)
-			prodTemplate, err := os.ReadFile("../runtime/jsx-runtime.ts")
-			require.NoError(t, err)
-			devTemplate, err := os.ReadFile("../runtime/jsx-dev-runtime.ts")
-			require.NoError(t, err)
-			require.NoError(t, afero.WriteFile(p.Filesystem(),
-				filepath.Join(runtimeDir, "resolve-href.ts"), resolveHrefTemplate, 0644))
-			require.NoError(t, afero.WriteFile(p.Filesystem(),
-				filepath.Join(runtimeDir, "jsx-types.ts"), jsxTypesTemplate, 0644))
-			require.NoError(t, afero.WriteFile(p.Filesystem(),
-				filepath.Join(runtimeDir, "jsx-runtime.ts"), prodTemplate, 0644))
-			require.NoError(t, afero.WriteFile(p.Filesystem(),
-				filepath.Join(runtimeDir, "jsx-dev-runtime.ts"), devTemplate, 0644))
 
 			views, ok := test.Extra["views"].(map[string]string)
 			if !ok {
