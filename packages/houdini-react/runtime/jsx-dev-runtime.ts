@@ -3,35 +3,70 @@ import { jsxDEV as _jsxDEV, Fragment } from 'react/jsx-dev-runtime'
 import type { AnchorHTMLAttributes } from 'react'
 import type { JSX as ReactJSX } from 'react/jsx-runtime'
 
-type RouteAnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & (
-// HOUDINI_ROUTE_UNION
-    | { href?: string & {}; params?: Record<string, string | number | boolean> }
-)
+// These imports only resolve after codegen writes the manifest into .houdini/.
+// In the source package (template context) the path is absent — hence the suppression.
+// @ts-ignore
+import type rawManifest from './plugins/houdini-react/runtime/manifest.js'
+// @ts-ignore
+import type { RouteScalars } from './plugins/houdini-react/runtime/manifest.js'
+
+type _Pages = (typeof rawManifest)['pages']
+type _TSType<T extends string> = T extends keyof RouteScalars
+	? RouteScalars[T]
+	: T extends 'number'
+		? number
+		: T extends 'boolean'
+			? boolean
+			: string
+type _Param = { readonly name: string; readonly type: string; readonly optional: boolean }
+type _ParamObj<Ps extends readonly _Param[]> = {
+	[P in Ps[number] as P['name']]: P['optional'] extends true
+		? _TSType<P['type']> | undefined
+		: _TSType<P['type']>
+}
+type _ToAnchorProps<P> = P extends { readonly url: infer U extends string; readonly params: readonly [] }
+	? { href: U; params?: never }
+	: P extends { readonly url: infer U extends string; readonly params: infer Ps extends readonly _Param[] }
+		? { href: U; params: _ParamObj<Ps> }
+		: never
+
+type RouteAnchorProps =
+	| { href?: string & {}; params?: Record<string, string | number | boolean> }
+	| _ToAnchorProps<_Pages[keyof _Pages]>
+
+type AnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & RouteAnchorProps
 
 export declare namespace JSX {
-    type Element = ReactJSX.Element
-    type ElementType = ReactJSX.ElementType
-    type ElementClass = ReactJSX.ElementClass
-    type ElementAttributesProperty = ReactJSX.ElementAttributesProperty
-    type ElementChildrenAttribute = ReactJSX.ElementChildrenAttribute
-    type LibraryManagedAttributes<C, P> = ReactJSX.LibraryManagedAttributes<C, P>
-    type IntrinsicAttributes = ReactJSX.IntrinsicAttributes
-    type IntrinsicClassAttributes<T> = ReactJSX.IntrinsicClassAttributes<T>
-    type IntrinsicElements = Omit<ReactJSX.IntrinsicElements, 'a'> & {
-        a: RouteAnchorProps
-    }
+	type Element = ReactJSX.Element
+	type ElementType = ReactJSX.ElementType
+	type ElementClass = ReactJSX.ElementClass
+	type ElementAttributesProperty = ReactJSX.ElementAttributesProperty
+	type ElementChildrenAttribute = ReactJSX.ElementChildrenAttribute
+	type LibraryManagedAttributes<C, P> = ReactJSX.LibraryManagedAttributes<C, P>
+	type IntrinsicAttributes = ReactJSX.IntrinsicAttributes
+	type IntrinsicClassAttributes<T> = ReactJSX.IntrinsicClassAttributes<T>
+	type IntrinsicElements = Omit<ReactJSX.IntrinsicElements, 'a'> & {
+		a: AnchorProps
+	}
 }
 
 function resolveHref(href: string, params: Record<string, string | number | boolean>): string {
-    return href.replace(/\[([^\]]+)\]/g, (_, key: string) => String(params[key] ?? key))
+	return href.replace(/\[([^\]]+)\]/g, (_, key: string) => String(params[key] ?? key))
 }
 
-export function jsxDEV(type: any, props: any, key?: any, isStaticChildren?: boolean, source?: any, self?: any): any {
-    if (type === 'a' && props?.params != null) {
-        const { params, href, ...rest } = props
-        return _jsxDEV('a', { ...rest, href: resolveHref(href, params) }, key, isStaticChildren, source, self)
-    }
-    return _jsxDEV(type, props, key, isStaticChildren, source, self)
+export function jsxDEV(
+	type: any,
+	props: any,
+	key?: any,
+	isStaticChildren?: boolean,
+	source?: any,
+	self?: any
+): any {
+	if (type === 'a' && props?.params != null) {
+		const { params, href, ...rest } = props
+		return _jsxDEV('a', { ...rest, href: resolveHref(href, params) }, key, isStaticChildren ?? false, source, self)
+	}
+	return _jsxDEV(type, props, key, isStaticChildren ?? false, source, self)
 }
 
 export { Fragment }

@@ -15,6 +15,8 @@ export type RouteParam = {
 	optional: boolean
 	rest: boolean
 	chained: boolean
+	// resolved TypeScript type for this param (e.g. "string", "number", "boolean")
+	type?: string
 }
 
 export type ParamMatcher = (param: string) => boolean
@@ -197,7 +199,7 @@ export function get_route_segments(route: string) {
 	return route.slice(1).split('/').filter(affects_path)
 }
 
-export function exec(match: RegExpMatchArray, params: RouteParam[]) {
+export function exec(match: RegExpMatchArray, params: readonly RouteParam[]) {
 	const result: Record<string, string> = {}
 
 	const values = match.slice(1)

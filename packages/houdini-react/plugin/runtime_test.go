@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -528,13 +527,6 @@ func TestGenerateJsxRuntime(t *testing.T) {
 	devTemplate, err := os.ReadFile("../runtime/jsx-dev-runtime.ts")
 	require.NoError(t, err)
 
-	applyUnion := func(tmpl []byte, union string) string {
-		if union == "" {
-			return strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION\n", "")
-		}
-		return strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION", union)
-	}
-
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
 			scalar DateTime
@@ -578,100 +570,36 @@ func TestGenerateJsxRuntime(t *testing.T) {
 			_, err = p.GenerateJsxRuntime(ctx, manifest)
 			require.NoError(t, err)
 
-			union, ok := test.Extra["union"].(string)
-			if !ok {
-				return
-			}
-
 			houdiniDir := filepath.Join(cfg.ProjectRoot, cfg.RuntimeDir)
 
+			// jsx files must be copied verbatim — no substitution.
 			gotProd, err := afero.ReadFile(p.Filesystem(), filepath.Join(houdiniDir, "jsx-runtime.ts"))
 			require.NoError(t, err)
-			require.Equal(t, applyUnion(prodTemplate, union), string(gotProd))
+			require.Equal(t, string(prodTemplate), string(gotProd), "jsx-runtime.ts must be copied verbatim")
 
 			gotDev, err := afero.ReadFile(p.Filesystem(), filepath.Join(houdiniDir, "jsx-dev-runtime.ts"))
 			require.NoError(t, err)
-			require.Equal(t, applyUnion(devTemplate, union), string(gotDev))
+			require.Equal(t, string(devTemplate), string(gotDev), "jsx-dev-runtime.ts must be copied verbatim")
 		},
 
 		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{Name: "no routes", Pass: true},
 			{
-				Name: "no routes generates fallback-only union",
-				Pass: true,
-				Extra: map[string]any{
-					"union": "",
-				},
-			},
-			{
-				Name: "static route",
-				Pass: true,
-				Input: []string{mockQuery("HomeQuery", false)},
+				Name:      "static route",
+				Pass:      true,
+				Input:     []string{mockQuery("HomeQuery", false)},
 				Filepaths: []string{"src/routes/+page.gql"},
 				Extra: map[string]any{
-					"views": map[string]string{
-						"src/routes/+page.tsx": mockView([]string{"HomeQuery"}),
-					},
-					"union": "    | { href: \"/\"; params?: never }",
+					"views": map[string]string{"src/routes/+page.tsx": mockView([]string{"HomeQuery"})},
 				},
 			},
 			{
-				Name: "parameterized route",
-				Pass: true,
-				Input: []string{
-					"query MyQuery($id: ID!) {\n\tnode(id: $id) {\n\t\tid\n\t}\n}\n",
-				},
+				Name:      "parameterized route",
+				Pass:      true,
+				Input:     []string{"query MyQuery($id: ID!) {\n\tnode(id: $id) {\n\t\tid\n\t}\n}\n"},
 				Filepaths: []string{"src/routes/[id]/+layout.gql"},
 				Extra: map[string]any{
-					"views": map[string]string{
-						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
-					},
-					"union": "    | { href: \"/[id]\"; params: { id: string } }",
-				},
-			},
-			{
-				Name: "Int param typed as number",
-				Pass: true,
-				Input: []string{
-					"query CountQuery($count: Int!) {\n\tintNode(count: $count) {\n\t\tid\n\t}\n}\n",
-				},
-				Filepaths: []string{"src/routes/[count]/+layout.gql"},
-				Extra: map[string]any{
-					"views": map[string]string{
-						"src/routes/[count]/+page.tsx": mockView([]string{"CountQuery"}),
-					},
-					"union": "    | { href: \"/[count]\"; params: { count: number } }",
-				},
-			},
-			{
-				Name: "custom scalar uses configured TypeScript type",
-				Pass: true,
-				Input: []string{
-					"query DateQuery($at: DateTime!) {\n\tdateNode(at: $at) {\n\t\tid\n\t}\n}\n",
-				},
-				Filepaths: []string{"src/routes/[at]/+layout.gql"},
-				ProjectConfig: func(cfg *plugins.ProjectConfig) {
-					if cfg.Scalars == nil {
-						cfg.Scalars = make(map[string]plugins.ScalarConfig)
-					}
-					cfg.Scalars["DateTime"] = plugins.ScalarConfig{Type: "Date"}
-				},
-				Extra: map[string]any{
-					"views": map[string]string{
-						"src/routes/[at]/+page.tsx": mockView([]string{"DateQuery"}),
-					},
-					"union": "    | { href: \"/[at]\"; params: { at: Date } }",
-				},
-			},
-			{
-				Name: "route group stripped from href",
-				Pass: true,
-				Input: []string{mockQuery("UsersQuery", false)},
-				Filepaths: []string{"src/routes/(auth)/users/+page.gql"},
-				Extra: map[string]any{
-					"views": map[string]string{
-						"src/routes/(auth)/users/+page.tsx": mockView([]string{"UsersQuery"}),
-					},
-					"union": "    | { href: \"/users\"; params?: never }",
+					"views": map[string]string{"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"})},
 				},
 			},
 		},
@@ -755,7 +683,10 @@ func TestGenerateRuntime(t *testing.T) {
 						export default {
 							pages: {
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
 					`) + "\n",
 				},
 			},
@@ -787,6 +718,7 @@ func TestGenerateRuntime(t *testing.T) {
 							pages: {
 								"__subRoute__nested": {
 									id: "__subRoute__nested",
+									url: "/nested",
 									pattern: /^\/nested\/?$/,
 									params: [],
 									documents: {
@@ -804,7 +736,10 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__subRoute__nested"),
 								},
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
 					`) + "\n",
 				},
 			},
@@ -828,9 +763,10 @@ func TestGenerateRuntime(t *testing.T) {
 							pages: {
 								"__id_": {
 									id: "__id_",
+									url: "/[id]",
 									pattern: /^\/([^/]+?)\/?$/,
 									params: [
-										{ name: "id", matcher: "", optional: false, rest: false, chained: false }
+										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "string" }
 									],
 									documents: {
 										MyQuery: {
@@ -842,7 +778,34 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__id_"),
 								},
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
+				Name: "custom scalar emitted in RouteScalars",
+				Pass: true,
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					if cfg.Scalars == nil {
+						cfg.Scalars = make(map[string]plugins.ScalarConfig)
+					}
+					cfg.Scalars["DateTime"] = plugins.ScalarConfig{Type: "Date"}
+				},
+				Extra: map[string]any{
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+							DateTime: Date
+						}
 					`) + "\n",
 				},
 			},

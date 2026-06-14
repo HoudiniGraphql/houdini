@@ -6,9 +6,7 @@
             "packages/*/package.json",
             "!!**/node_modules",
             "!!**/build",
-            "!!**/dist",
-            "!!packages/houdini-react/runtime/jsx-runtime.ts",
-            "!!packages/houdini-react/runtime/jsx-dev-runtime.ts"
+            "!!**/dist"
         ]
     },
     "formatter": {

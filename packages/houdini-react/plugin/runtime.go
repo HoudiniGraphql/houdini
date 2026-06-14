@@ -219,7 +219,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	artifactDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
 
-	content, err := formatManifest(manifest, runtimeDir, artifactDir, projectConfig.ProjectRoot)
+	content, err := formatManifest(manifest, runtimeDir, artifactDir, projectConfig.ProjectRoot, projectConfig.Scalars)
 	if err != nil {
 		return nil, err
 	}
@@ -511,6 +511,7 @@ func formatManifest(
 	runtimeDir string,
 	artifactDir string,
 	projectRoot string,
+	scalars map[string]plugins.ScalarConfig,
 ) (string, error) {
 	// Build a lookup from query name → QueryManifest for artifact/loading/variable info.
 	queryByName := map[string]QueryManifest{}
@@ -529,6 +530,7 @@ func formatManifest(
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 
+		cleanURL := stripRouteGroups(page.URL)
 		pattern, params, err := parsePagePattern(page.URL)
 		if err != nil {
 			return "", fmt.Errorf("could not parse pattern for page %s: %w", id, err)
@@ -545,8 +547,9 @@ func formatManifest(
 
 		sb.WriteString(fmt.Sprintf("\t\t%q: {\n", id))
 		sb.WriteString(fmt.Sprintf("\t\t\tid: %q,\n", id))
+		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
-		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params)))
+		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params, scalars)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -579,7 +582,15 @@ func formatManifest(
 	}
 
 	sb.WriteString("\t},\n")
-	sb.WriteString("} satisfies RouterManifest<any>\n")
+	sb.WriteString("} as const satisfies RouterManifest<any>\n")
+
+	// Export a name→TS-type map for custom scalars so jsx-runtime.ts can resolve
+	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.
+	sb.WriteString("\nexport type RouteScalars = {\n")
+	for _, name := range sortedKeys(scalars) {
+		sb.WriteString(fmt.Sprintf("\t%s: %s\n", name, scalars[name].Type))
+	}
+	sb.WriteString("}\n")
 
 	return sb.String(), nil
 }
@@ -661,8 +672,9 @@ func regexEscape(s string) string {
 	return b.String()
 }
 
-// formatParams renders a []routeParam as a TypeScript array literal.
-func formatParams(params []routeParam) string {
+// formatParams renders a []routeParam as a TypeScript array literal, including a
+// resolved TypeScript type for each param so the manifest can drive type extraction.
+func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo, scalars map[string]plugins.ScalarConfig) string {
 	if len(params) == 0 {
 		return "[]"
 	}
@@ -672,9 +684,13 @@ func formatParams(params []routeParam) string {
 		if p.Matcher != "" {
 			matcher = p.Matcher
 		}
+		tsType := "string"
+		if info, ok := pageParams[p.Name]; ok && info != nil {
+			tsType = gqlScalarToTS(info.Type, scalars)
+		}
 		parts = append(parts, fmt.Sprintf(
-			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained,
+			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
+			p.Name, matcher, p.Optional, p.Rest, p.Chained, tsType,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -858,9 +874,10 @@ declare module 'houdini/runtime' {
 	return changed, nil
 }
 
-// GenerateJsxRuntime generates .houdini/jsx-runtime.ts and .houdini/jsx-dev-runtime.ts
-// by reading the template files from the plugin runtime directory (written there by
-// IncludeRuntime), substituting the route union, and copying to the houdini root.
+// GenerateJsxRuntime copies .houdini/jsx-runtime.ts and .houdini/jsx-dev-runtime.ts
+// verbatim from the plugin runtime directory (written there by IncludeRuntime).
+// Type information for typed anchor hrefs is derived at compile time from the manifest,
+// so no additional generation is needed here.
 func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectManifest) ([]string, error) {
 	projectConfig, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
@@ -870,80 +887,27 @@ func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectM
 	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	houdiniDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir)
 
-	scalars := projectConfig.Scalars
-
-	routeUnion, err := buildRouteUnion(manifest, scalars)
-	if err != nil {
-		return nil, err
-	}
-
 	var changed []string
-	for _, pair := range []struct{ src, dst string }{
-		{"jsx-runtime.ts", filepath.Join(houdiniDir, "jsx-runtime.ts")},
-		{"jsx-dev-runtime.ts", filepath.Join(houdiniDir, "jsx-dev-runtime.ts")},
-	} {
-		tmpl, err := afero.ReadFile(p.Filesystem(), filepath.Join(runtimeDir, pair.src))
+	for _, name := range []string{"jsx-runtime.ts", "jsx-dev-runtime.ts"} {
+		src := filepath.Join(runtimeDir, name)
+		dst := filepath.Join(houdiniDir, name)
+		content, err := afero.ReadFile(p.Filesystem(), src)
 		if err != nil {
 			return nil, err
 		}
-		// When there are no route-specific entries, remove the sentinel line entirely so
-		// the fallback member in the template stays as the only union branch. When there
-		// are entries, replace the sentinel with them (the template's fallback follows).
-		var content string
-		if routeUnion == "" {
-			content = strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION\n", "")
-		} else {
-			content = strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION", routeUnion)
-		}
-		existing, _ := afero.ReadFile(p.Filesystem(), pair.dst)
-		if string(existing) == content {
+		existing, _ := afero.ReadFile(p.Filesystem(), dst)
+		if string(existing) == string(content) {
 			continue
 		}
 		if err := p.Filesystem().MkdirAll(houdiniDir, 0755); err != nil {
 			return nil, err
 		}
-		if err := afero.WriteFile(p.Filesystem(), pair.dst, []byte(content), 0644); err != nil {
+		if err := afero.WriteFile(p.Filesystem(), dst, content, 0644); err != nil {
 			return nil, err
 		}
-		changed = append(changed, pair.dst)
+		changed = append(changed, dst)
 	}
 	return changed, nil
-}
-
-// buildRouteUnion returns the TypeScript discriminated union body for all known
-// page routes, with a string & {} fallback for external or unknown hrefs.
-func buildRouteUnion(manifest ProjectManifest, scalars map[string]plugins.ScalarConfig) (string, error) {
-	var parts []string
-	for _, id := range sortedKeys(manifest.Pages) {
-		page := manifest.Pages[id]
-		cleanURL := stripRouteGroups(page.URL)
-		_, urlParams, err := parsePagePattern(page.URL)
-		if err != nil {
-			return "", fmt.Errorf("buildRouteUnion: %w", err)
-		}
-		if len(urlParams) == 0 {
-			parts = append(parts, fmt.Sprintf("    | { href: %q; params?: never }", cleanURL))
-		} else {
-			var paramParts []string
-			for _, urlParam := range urlParams {
-				tsType := "string"
-				if info, ok := page.Params[urlParam.Name]; ok {
-					tsType = gqlScalarToTS(info.Type, scalars)
-				}
-				if urlParam.Optional {
-					paramParts = append(paramParts, fmt.Sprintf("%s?: %s", urlParam.Name, tsType))
-				} else {
-					paramParts = append(paramParts, fmt.Sprintf("%s: %s", urlParam.Name, tsType))
-				}
-			}
-			parts = append(parts, fmt.Sprintf(
-				"    | { href: %q; params: { %s } }",
-				cleanURL,
-				strings.Join(paramParts, "; "),
-			))
-		}
-	}
-	return strings.Join(parts, "\n"), nil
 }
 
 // gqlScalarToTS maps a GraphQL scalar type name to its TypeScript equivalent.
