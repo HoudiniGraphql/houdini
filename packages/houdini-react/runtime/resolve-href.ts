@@ -1,4 +1,7 @@
-export function resolveHref(href: string, params: Record<string, string | number | boolean>): string {
+export function resolveHref(
+	href: string,
+	params: Record<string, string | number | boolean>
+): string {
 	// optional [[param]] — strip the whole /[[param]] segment when the value is absent
 	href = href.replace(/\/\[\[([^\]]+)\]\]/g, (_, key: string) => {
 		const val = params[key]

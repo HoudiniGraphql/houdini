@@ -34,9 +34,9 @@ describe('resolveHref', () => {
 	})
 
 	test('handles mixed required, optional, and rest params', () => {
-		expect(resolveHref('/[lang]/docs/[[version]]/[...path]', { lang: 'en', path: 'guide' })).toBe(
-			'/en/docs/guide'
-		)
+		expect(
+			resolveHref('/[lang]/docs/[[version]]/[...path]', { lang: 'en', path: 'guide' })
+		).toBe('/en/docs/guide')
 		expect(
 			resolveHref('/[lang]/docs/[[version]]/[...path]', {
 				lang: 'en',
