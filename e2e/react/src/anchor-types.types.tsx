@@ -24,6 +24,9 @@ const _s8 = <Link to="/hello-world" data-houdini-preload>Preload</Link>
 const _s9 = <Link to="/hello-world" key="nav">Nav</Link>
 // other standard attributes still work
 const _s10 = <Link to="https://example.com" target="_blank" rel="noopener noreferrer">New tab</Link>
+// suppressTypeCheck opts out of route validation entirely
+const _s11 = <Link suppressTypeCheck to="/anything-at-all">Dynamic</Link>
+const _s12 = <Link suppressTypeCheck to="/api/endpoint" params={{ foo: 'bar' }}>API</Link>
 
 // ── invalid usages ────────────────────────────────────────────────────────────
 

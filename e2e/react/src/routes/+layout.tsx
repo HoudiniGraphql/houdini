@@ -1,4 +1,4 @@
-import { useCache } from '$houdini/plugins/houdini-react/runtime/routing'
+import { Link, useCache } from '$houdini'
 import React from 'react'
 import { routes } from '~/utils/routes'
 
@@ -19,14 +19,15 @@ export default function ({ children }: LayoutProps) {
 			<div className="flex flex-row gap-2 mb-4 w-full flex-wrap">
 				{Object.entries(routes).map(([route, url]: [string, string]) => {
 					return (
-						<a
+						<Link
+							suppressTypeCheck
 							className="border-solid border-[var(--links)] border-2 p-2"
 							key={url}
-							href={url}
+							to={url}
 							data-houdini-preload
 						>
 							{route}
-						</a>
+						</Link>
 					)
 				})}
 			</div>

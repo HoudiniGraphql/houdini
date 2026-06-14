@@ -61,13 +61,31 @@ type _PropsForRoute<H extends string> = [
 	? { to: H; params?: never }
 	: _ToRouteProps<Extract<_Pages[keyof _Pages], { readonly url: H }>>
 
-export type LinkProps<H extends string = RouteHrefs | _ExternalHref | (string & {})> = Omit<
+type _CheckedProps<H extends string> = Omit<
 	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
 	'href'
 > &
 	_PropsForRoute<H>
 
-export function Link<H extends string>({ to, params, ...rest }: LinkProps<H>): React.ReactElement {
+type _UncheckedProps = Omit<
+	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
+	'href'
+> & {
+	suppressTypeCheck: true
+	to: string
+	params?: Record<string, string | number | boolean>
+}
+
+export type LinkProps<H extends string = RouteHrefs | _ExternalHref> =
+	| _CheckedProps<H>
+	| _UncheckedProps
+
+export function Link<H extends string>({
+	to,
+	params,
+	suppressTypeCheck: _s,
+	...rest
+}: LinkProps<H> & { suppressTypeCheck?: true }): React.ReactElement {
 	const href =
 		params != null
 			? resolveHref(to as string, params as Record<string, string | number | boolean>)
