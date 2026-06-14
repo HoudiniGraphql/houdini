@@ -760,8 +760,12 @@ function usePreload({ preload }: { preload: (url: string, which: PreloadWhichVal
 				return
 			}
 
-			// if the anchor doesn't allow for preloading, don't do anything
-			const preloadWhichRaw = anchor.attributes.getNamedItem('data-houdini-preload')?.value
+			// if the anchor doesn't explicitly opt in to preloading, don't do anything
+			const preloadAttr = anchor.attributes.getNamedItem('data-houdini-preload')
+			if (!preloadAttr) {
+				return
+			}
+			const preloadWhichRaw = preloadAttr.value
 			const preloadWhich: PreloadWhichValue =
 				!preloadWhichRaw || preloadWhichRaw === 'true'
 					? 'page'
