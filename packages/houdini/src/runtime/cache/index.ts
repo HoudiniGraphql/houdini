@@ -881,8 +881,9 @@ class CacheInternal {
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
+				const linkedIDSet = new Set<string | null>((linkedIDs as (string | null)[]).flat(Infinity))
 				for (const lostID of oldIDs) {
-					if (linkedIDs.includes(lostID) || !lostID) {
+					if (!lostID || linkedIDSet.has(lostID)) {
 						continue
 					}
 
@@ -909,8 +910,9 @@ class CacheInternal {
 				}
 
 				// every new id that isn't a prevous relationship needs a new subscriber
-				for (const id of newIDs.filter((id) => !oldIDs.includes(id))) {
-					if (id == null) {
+				const oldIDSet = new Set(oldIDs)
+				for (const id of newIDs) {
+					if (id == null || oldIDSet.has(id)) {
 						continue
 					}
 

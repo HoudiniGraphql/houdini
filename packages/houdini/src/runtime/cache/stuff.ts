@@ -1,5 +1,8 @@
 // given a raw key and a set of variables, generate the fully qualified key
 export function evaluateKey(key: string, variables: Record<string, any> | null = null): string {
+	// fast path: no variable interpolation needed
+	if (!key.includes('$')) return key
+
 	// accumulate the evaluated key
 	let evaluated = ''
 	// accumulate a variable name that we're evaluating
@@ -11,7 +14,7 @@ export function evaluateKey(key: string, variables: Record<string, any> | null =
 		// if we are building up a variable
 		if (varName) {
 			// if we are looking at a valid variable character
-			if (varChars.includes(char)) {
+			if (varCharSet.has(char)) {
 				// add it to the variable name
 				varName += char
 				continue
@@ -50,7 +53,7 @@ export function evaluateKey(key: string, variables: Record<string, any> | null =
 }
 
 // the list of characters that make up a valid graphql variable name
-const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
+const varCharSet = new Set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789')
 
 // fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'

@@ -92,9 +92,6 @@ export class InMemorySubscriptions {
 			// add the subscriber to the field
 			let targetSelection: FieldSelection[1]
 			if (innerSelection) {
-				// figure out the correct selection
-				const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
-					.value as string
 				targetSelection = getFieldsForType(innerSelection, __typename, false)
 			}
 			this.addFieldSubscription({
