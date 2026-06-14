@@ -48,10 +48,10 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 
 ## Preloading
 
-Add `data-houdini-preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
+Add `preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
 
 ```tsx
-<Link to="/shows" data-houdini-preload>All Shows</Link>
+<Link to="/shows" preload>All Shows</Link>
 ```
 
 By default this fetches both the page component and its data. You can narrow it:
@@ -61,5 +61,5 @@ By default this fetches both the page component and its data. You can narrow it:
 - `"page"` — both (default)
 
 ```tsx
-<Link to="/shows" data-houdini-preload="data">All Shows</Link>
+<Link to="/shows" preload="data">All Shows</Link>
 ```

@@ -20,8 +20,9 @@ const _s7 = <Link to="/route_params/[id]" params={{ id: '1' }}>User</Link>
 const _s7b = <Link to="/route_params/[id]" params={{ id: 1 }}>User</Link>
 // parameterized route with number id
 const _s8 = <Link to="/route_params/[id]" params={{ id: 42 }}>User</Link>
-// data-houdini-preload on a known route
-const _s9 = <Link to="/hello-world" data-houdini-preload>Preload</Link>
+// preload prop on a known route
+const _s9 = <Link to="/hello-world" preload>Preload</Link>
+const _s9b = <Link to="/hello-world" preload="data">Preload</Link>
 // key prop works (from ClassAttributes via DetailedHTMLProps)
 const _s10 = <Link to="/hello-world" key="nav">Nav</Link>
 // other standard attributes still work
