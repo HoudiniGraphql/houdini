@@ -24,9 +24,15 @@ type _ParamObj<Ps extends readonly _Param[]> = {
 		? _TSType<P['type']> | undefined
 		: _TSType<P['type']>
 }
-type _ToAnchorProps<P> = P extends { readonly url: infer U extends string; readonly params: readonly [] }
+type _ToAnchorProps<P> = P extends {
+	readonly url: infer U extends string
+	readonly params: readonly []
+}
 	? { href: U; params?: never }
-	: P extends { readonly url: infer U extends string; readonly params: infer Ps extends readonly _Param[] }
+	: P extends {
+				readonly url: infer U extends string
+				readonly params: infer Ps extends readonly _Param[]
+			}
 		? { href: U; params: _ParamObj<Ps> }
 		: never
 
@@ -64,7 +70,14 @@ export function jsxDEV(
 ): any {
 	if (type === 'a' && props?.params != null) {
 		const { params, href, ...rest } = props
-		return _jsxDEV('a', { ...rest, href: resolveHref(href, params) }, key, isStaticChildren ?? false, source, self)
+		return _jsxDEV(
+			'a',
+			{ ...rest, href: resolveHref(href, params) },
+			key,
+			isStaticChildren ?? false,
+			source,
+			self
+		)
 	}
 	return _jsxDEV(type, props, key, isStaticChildren ?? false, source, self)
 }

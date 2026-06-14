@@ -24,9 +24,15 @@ type _ParamObj<Ps extends readonly _Param[]> = {
 		? _TSType<P['type']> | undefined
 		: _TSType<P['type']>
 }
-type _ToAnchorProps<P> = P extends { readonly url: infer U extends string; readonly params: readonly [] }
+type _ToAnchorProps<P> = P extends {
+	readonly url: infer U extends string
+	readonly params: readonly []
+}
 	? { href: U; params?: never }
-	: P extends { readonly url: infer U extends string; readonly params: infer Ps extends readonly _Param[] }
+	: P extends {
+				readonly url: infer U extends string
+				readonly params: infer Ps extends readonly _Param[]
+			}
 		? { href: U; params: _ParamObj<Ps> }
 		: never
 
