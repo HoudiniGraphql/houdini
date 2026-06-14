@@ -123,8 +123,8 @@ pnpm watch-bench core        # re-run core suite on every save
 To run the full suite at full statistical precision:
 
 ```sh
-pnpm bench                   # all categories, full run
-pnpm bench:core              # single category, full run
+pnpm bench                        # all categories, full run
+BENCH=core pnpm bench             # single category, full run
 ```
 
 A CI job runs automatically on any PR that touches `packages/houdini/src/runtime/cache/`. It benchmarks the base branch and the PR branch on the same runner and flags any benchmark that regressed beyond its noise band.
