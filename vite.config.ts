@@ -13,9 +13,6 @@ export default defineConfig({
 			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
 	},
-	benchmark: {
-		outputJson: './perf/benchmark.json',
-	},
 	test: {
 		include: [
 			'./packages/*/src/**/*.test.{ts,js}',

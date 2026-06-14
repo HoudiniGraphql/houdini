@@ -8,7 +8,7 @@
 		"tests": "vitest",
 		"tests:ui": "vitest --ui --coverage",
 		"test": "pnpm run tests",
-		"bench": "vitest bench packages/houdini/src/runtime/cache/benchmarks/",
+		"bench": "vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson perf/benchmark.json",
 		"bench:check": "vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson perf/benchmark.current.json && node perf/compare.js",
 		"bench:core": "BENCH=core vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson perf/benchmark.core.json",
 		"bench:subscriptions": "BENCH=subscriptions vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson perf/benchmark.subscriptions.json",
