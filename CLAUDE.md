@@ -33,6 +33,8 @@ When making changes, update the relevant doc pages alongside the code. This incl
 
 **Mandatory check**: before finishing any code task, run `grep -rn <changed symbol> /docs` to find pages that reference it and verify they reflect the change. Do not skip this step.
 
+**Internal links**: always use `~/path` (not `/path`) for cross-links between doc pages. Example: `[custom scalars](~/guides/custom-scalars)`.
+
 The marketing site at `../marketing` symlinks directly into these directories, so doc changes are reflected immediately in the local dev server.
 
 ## Changesets
