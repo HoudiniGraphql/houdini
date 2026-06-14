@@ -35,17 +35,8 @@ jobs:
             # ── PR branch ────────────────────────────────────────────────────
             - run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Benchmark PR branch (run 1/3)
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/pr-1.json
-
-            - name: Benchmark PR branch (run 2/3)
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/pr-2.json
-
-            - name: Benchmark PR branch (run 3/3)
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/pr-3.json
-
-            - name: Merge PR runs (median)
-              run: node perf/merge.js /tmp/benchmark.current.json /tmp/pr-1.json /tmp/pr-2.json /tmp/pr-3.json
+            - name: Benchmark PR branch
+              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.json
 
             # ── Base branch ──────────────────────────────────────────────────
             - name: Checkout base branch
@@ -53,17 +44,8 @@ jobs:
 
             - run: pnpm install --frozen-lockfile --prefer-offline
 
-            - name: Benchmark base branch (run 1/3)
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/base-1.json
-
-            - name: Benchmark base branch (run 2/3)
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/base-2.json
-
-            - name: Benchmark base branch (run 3/3)
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/base-3.json
-
-            - name: Merge base runs (median)
-              run: node perf/merge.js /tmp/benchmark.baseline.json /tmp/base-1.json /tmp/base-2.json /tmp/base-3.json
+            - name: Benchmark base branch
+              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.baseline.json
 
             # ── Compare ──────────────────────────────────────────────────────
             - name: Checkout PR branch

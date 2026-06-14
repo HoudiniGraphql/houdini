@@ -47,7 +47,13 @@ const b: typeof bench = QUICK
 			warmupTime: 0,
 			warmupIterations: 1,
 		})
-	: bench
+	: (name, fn, opts?) =>
+		bench(name, fn as () => void, {
+			time: 2000,
+			warmupTime: 500,
+			warmupIterations: 5,
+			...opts,
+		})
 
 const config = testConfigFile()
 
