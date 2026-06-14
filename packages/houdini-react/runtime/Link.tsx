@@ -61,7 +61,12 @@ export type LinkProps<H extends RouteHrefs | _ExternalHref = RouteHrefs | _Exter
 	'href'
 > & { to: H; preload?: boolean | 'data' | 'component' | 'page' } & _ParamsForRoute<H>
 
-export function Link<H extends RouteHrefs | _ExternalHref>({ to, params, preload, ...rest }: LinkProps<H>): React.ReactElement {
+export function Link<H extends RouteHrefs | _ExternalHref>({
+	to,
+	params,
+	preload,
+	...rest
+}: LinkProps<H>): React.ReactElement {
 	const href =
 		params != null
 			? resolveHref(to as string, params as Record<string, string | number | boolean>)
