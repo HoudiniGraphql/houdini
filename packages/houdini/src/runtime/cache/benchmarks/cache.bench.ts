@@ -42,21 +42,24 @@ const skip = (...cats: string[]) =>
 // In quick mode every bench is capped at 3 iterations (1 warmup) regardless
 // of the per-bench options — enough to catch crashes and gross regressions.
 const QUICK = process.env.BENCH_QUICK === '1'
-const b: typeof bench = (QUICK
-	? (name, fn, _opts?) =>
-			bench(name, fn as () => void, {
-				time: 0,
-				iterations: 3,
-				warmupTime: 0,
-				warmupIterations: 1,
-			})
-	: (name, fn, opts?) =>
-			bench(name, fn as () => void, {
-				time: 2000,
-				warmupTime: 500,
-				warmupIterations: 5,
-				...opts,
-			})) as unknown as typeof bench
+type BenchArgs = Parameters<typeof bench>
+const b: typeof bench = (
+	QUICK
+		? (name: BenchArgs[0], fn: BenchArgs[1], _opts?: BenchArgs[2]) =>
+				bench(name, fn as () => void, {
+					time: 0,
+					iterations: 3,
+					warmupTime: 0,
+					warmupIterations: 1,
+				})
+		: (name: BenchArgs[0], fn: BenchArgs[1], opts?: BenchArgs[2]) =>
+				bench(name, fn as () => void, {
+					time: 2000,
+					warmupTime: 500,
+					warmupIterations: 5,
+					...opts,
+				})
+) as unknown as typeof bench
 
 const config = testConfigFile()
 
@@ -219,7 +222,7 @@ function makeWideListSelection(cols: number): SubscriptionSelection {
 
 function makeWideListData(rows: number, cols: number) {
 	const items = Array.from({ length: rows }, (_, r) => {
-		const record: Record<string, unknown> = { id: String(r + 2) }
+		const record: Record<string, string> = { id: String(r + 2) }
 		for (let c = 0; c < cols; c++) {
 			record[`field${c}`] = `r${r}c${c}`
 		}
