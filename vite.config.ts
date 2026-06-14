@@ -3,14 +3,7 @@ import path from 'path'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-	test: {
-		include: [
-			'./packages/*/src/**/*.test.{ts,js}',
-			'./packages/houdini-react/runtime/**/*.test.{ts,js}',
-			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
-			'./site/**/*.test.{ts,js}',
-		],
-		setupFiles: [path.resolve('./vitest.setup.ts')],
+	resolve: {
 		alias: {
 			$houdini: path.resolve('./packages/houdini/src'),
 			'houdini/test': path.resolve('./packages/houdini/legacy/test'),
@@ -19,6 +12,15 @@ export default defineConfig({
 			'houdini/runtime': path.resolve('./packages/houdini/src/runtime'),
 			houdini: path.resolve('./packages/houdini/src/lib'),
 		},
+	},
+	test: {
+		include: [
+			'./packages/*/src/**/*.test.{ts,js}',
+			'./packages/houdini-react/runtime/**/*.test.{ts,js}',
+			'./packages/houdini-core/runtime/public/**/*.test.{ts,js}',
+			'./site/**/*.test.{ts,js}',
+		],
+		setupFiles: [path.resolve('./vitest.setup.ts')],
 		coverage: {
 			provider: 'v8',
 		},
