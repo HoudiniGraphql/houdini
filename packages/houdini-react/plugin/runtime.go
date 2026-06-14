@@ -549,7 +549,7 @@ func formatManifest(
 		sb.WriteString(fmt.Sprintf("\t\t\tid: %q,\n", id))
 		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
-		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params, scalars)))
+		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -674,7 +674,7 @@ func regexEscape(s string) string {
 
 // formatParams renders a []routeParam as a TypeScript array literal, including a
 // resolved TypeScript type for each param so the manifest can drive type extraction.
-func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo, scalars map[string]plugins.ScalarConfig) string {
+func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) string {
 	if len(params) == 0 {
 		return "[]"
 	}
@@ -684,13 +684,15 @@ func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo, sca
 		if p.Matcher != "" {
 			matcher = p.Matcher
 		}
-		tsType := "string"
+		// Emit the GQL type name so the manifest-driven _TSType<T> utility can resolve
+		// it against RouteScalars (custom scalars) and built-in GQL scalar names.
+		gqlType := "String"
 		if info, ok := pageParams[p.Name]; ok && info != nil {
-			tsType = gqlScalarToTS(info.Type, scalars)
+			gqlType = info.Type
 		}
 		parts = append(parts, fmt.Sprintf(
 			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained, tsType,
+			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -908,25 +910,6 @@ func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectM
 		changed = append(changed, dst)
 	}
 	return changed, nil
-}
-
-// gqlScalarToTS maps a GraphQL scalar type name to its TypeScript equivalent.
-// Built-in scalars are mapped directly; custom scalars use the project scalar config's
-// Type field, falling back to string for unknown scalars.
-func gqlScalarToTS(gqlType string, scalars map[string]plugins.ScalarConfig) string {
-	switch gqlType {
-	case "Int", "Float":
-		return "number"
-	case "Boolean":
-		return "boolean"
-	case "String", "ID":
-		return "string"
-	default:
-		if cfg, ok := scalars[gqlType]; ok && cfg.Type != "" {
-			return cfg.Type
-		}
-		return "string"
-	}
 }
 
 // stripRouteGroups removes (group) segments from a URL, leaving only real path

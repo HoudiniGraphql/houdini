@@ -766,7 +766,7 @@ func TestGenerateRuntime(t *testing.T) {
 									url: "/[id]",
 									pattern: /^\/([^/]+?)\/?$/,
 									params: [
-										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "string" }
+										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "ID" }
 									],
 									documents: {
 										MyQuery: {

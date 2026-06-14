@@ -13,9 +13,9 @@ import type { RouteScalars } from './plugins/houdini-react/runtime/manifest.js'
 type _Pages = (typeof rawManifest)['pages']
 type _TSType<T extends string> = T extends keyof RouteScalars
 	? RouteScalars[T]
-	: T extends 'number'
+	: T extends 'Int' | 'Float'
 		? number
-		: T extends 'boolean'
+		: T extends 'Boolean'
 			? boolean
 			: string
 type _Param = { readonly name: string; readonly type: string; readonly optional: boolean }
