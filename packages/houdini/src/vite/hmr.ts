@@ -436,7 +436,8 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 							[task_id]
 						)
 					}
-					const changedDocCount = Object.values(results.GenerateDocuments || {}).flat().length
+					const changedDocCount = Object.values(results.GenerateDocuments || {}).flat()
+						.length
 					console.log(
 						`🎩 Updated ${changedDocCount} ${changedDocCount === 1 ? 'document' : 'documents'}`
 					)

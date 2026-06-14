@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.38
+
+### Patch Changes
+
+- [`892411c`](https://github.com/HoudiniGraphql/houdini/commit/892411c2938c93265583fbea9dca25cb4af1d9c1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix preload conflicting with navigations
+
 ## 2.0.0-next.37
 
 ### Minor Changes
