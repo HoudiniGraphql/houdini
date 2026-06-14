@@ -39,6 +39,11 @@ const activeCategories = new Set(
 const skip = (...cats: string[]) =>
 	!activeCategories.has('all') && !cats.some((c) => activeCategories.has(c))
 
+// BENCH_MAX_N caps the largest-n benchmarks (default: unlimited).
+// Set to 1000 in CI to avoid timing out on the base branch before our O(n²) fix.
+const MAX_N = parseInt(process.env.BENCH_MAX_N ?? '0', 10)
+const skipN = (n: number) => MAX_N > 0 && n > MAX_N
+
 // In quick mode every bench is capped at 3 iterations (1 warmup) regardless
 // of the per-bench options — enough to catch crashes and gross regressions.
 const QUICK = process.env.BENCH_QUICK === '1'
@@ -54,6 +59,10 @@ function b(name: BenchArgs[0], fn: BenchArgs[1], opts?: BenchArgs[2]): void {
 	} else {
 		bench(name, fn as () => void, opts)
 	}
+}
+// Like b() but skipped when BENCH_MAX_N is set below n.
+function bN(n: number, name: BenchArgs[0], fn: BenchArgs[1], opts?: BenchArgs[2]): void {
+	if (!skipN(n)) b(name, fn, opts)
 }
 
 const config = testConfigFile()
@@ -266,7 +275,7 @@ describe.skipIf(skip('core'))('write', () => {
 		cache.write({ selection: nestedSelection, data: nestedData1000 })
 	})
 
-	b('nested list (10000 items)', () => {
+	bN(10000, 'nested list (10000 items)', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: nestedSelection, data: nestedData10000 })
 	})
@@ -286,7 +295,8 @@ describe.skipIf(skip('core'))('write', () => {
 		cache.write({ selection: wideSelection1000, data: wideData1000 })
 	})
 
-	b(
+	bN(
+		10000,
 		'wide record (10000 fields)',
 		() => {
 			const cache = new Cache(config)
@@ -316,17 +326,17 @@ describe.skipIf(skip('core'))('write — wide list (same total cells, different 
 		cache.write({ selection: wideList100x10Selection, data: wideList100x10Data })
 	})
 
-	b('~10000 cells: 10 rows × 1000 cols', () => {
+	bN(10000, '~10000 cells: 10 rows × 1000 cols', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: wideList10x1000Selection, data: wideList10x1000Data })
 	})
 
-	b('~10000 cells: 100 rows × 100 cols', () => {
+	bN(10000, '~10000 cells: 100 rows × 100 cols', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: wideList100x100Selection, data: wideList100x100Data })
 	})
 
-	b('~10000 cells: 1000 rows × 10 cols', () => {
+	bN(10000, '~10000 cells: 1000 rows × 10 cols', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: wideList1000x10Selection, data: wideList1000x10Data })
 	})
@@ -357,7 +367,8 @@ describe.skipIf(skip('core'))('read', () => {
 		cache.read({ selection: nestedSelection })
 	})
 
-	b(
+	bN(
+		10000,
 		'nested list (10000 items)',
 		() => {
 			const cache = new Cache(config)
@@ -442,11 +453,12 @@ describe.skipIf(skip('subscriptions'))('write → subscriber notification', () =
 		cacheNested1000.write({ selection: nestedSelection, data: nestedData1000 })
 	})
 
-	const cacheNested10000 = subscribedCache(nestedSelection, nestedData10000)
-	b(
+	const cacheNested10000 = skipN(10000) ? null : subscribedCache(nestedSelection, nestedData10000)
+	bN(
+		10000,
 		'nested list (10000 items)',
 		() => {
-			cacheNested10000.write({ selection: nestedSelection, data: nestedData10000 })
+			cacheNested10000!.write({ selection: nestedSelection, data: nestedData10000 })
 		},
 		{ time: 0, iterations: 10, warmupTime: 0, warmupIterations: 1 }
 	)
@@ -461,20 +473,24 @@ describe.skipIf(skip('subscriptions'))('write → subscriber notification', () =
 		cacheWide1000.write({ selection: wideSelection1000, data: wideData1000 })
 	})
 
-	const cacheWide10000 = subscribedCache(wideSelection10000, wideData10000)
-	b(
+	const cacheWide10000 = skipN(10000) ? null : subscribedCache(wideSelection10000, wideData10000)
+	bN(
+		10000,
 		'wide record (10000 fields)',
 		() => {
-			cacheWide10000.write({ selection: wideSelection10000, data: wideData10000 })
+			cacheWide10000!.write({ selection: wideSelection10000, data: wideData10000 })
 		},
 		{ time: 0, iterations: 5, warmupTime: 0, warmupIterations: 1 }
 	)
 
-	const cacheList10x1000 = subscribedCache(wideList10x1000Selection, wideList10x1000Data)
-	b(
+	const cacheList10x1000 = skipN(10000)
+		? null
+		: subscribedCache(wideList10x1000Selection, wideList10x1000Data)
+	bN(
+		10000,
 		'~10000 cells: 10 rows × 1000 cols',
 		() => {
-			cacheList10x1000.write({
+			cacheList10x1000!.write({
 				selection: wideList10x1000Selection,
 				data: wideList10x1000Data,
 			})
@@ -482,14 +498,18 @@ describe.skipIf(skip('subscriptions'))('write → subscriber notification', () =
 		{ time: 0, iterations: 5, warmupTime: 0, warmupIterations: 1 }
 	)
 
-	const cacheList100x100 = subscribedCache(wideList100x100Selection, wideList100x100Data)
-	b('~10000 cells: 100 rows × 100 cols', () => {
-		cacheList100x100.write({ selection: wideList100x100Selection, data: wideList100x100Data })
+	const cacheList100x100 = skipN(10000)
+		? null
+		: subscribedCache(wideList100x100Selection, wideList100x100Data)
+	bN(10000, '~10000 cells: 100 rows × 100 cols', () => {
+		cacheList100x100!.write({ selection: wideList100x100Selection, data: wideList100x100Data })
 	})
 
-	const cacheList1000x10 = subscribedCache(wideList1000x10Selection, wideList1000x10Data)
-	b('~10000 cells: 1000 rows × 10 cols', () => {
-		cacheList1000x10.write({ selection: wideList1000x10Selection, data: wideList1000x10Data })
+	const cacheList1000x10 = skipN(10000)
+		? null
+		: subscribedCache(wideList1000x10Selection, wideList1000x10Data)
+	bN(10000, '~10000 cells: 1000 rows × 10 cols', () => {
+		cacheList1000x10!.write({ selection: wideList1000x10Selection, data: wideList1000x10Data })
 	})
 })
 
@@ -990,7 +1010,7 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 		cache._internal_unstable.collectGarbage()
 	})
 
-	b('10000 records', () => {
+	bN(10000, '10000 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 10000; i++) {
 			cache.write({
@@ -1030,9 +1050,9 @@ describe.skipIf(skip('gc'))('stale marking', () => {
 		cache1000.markTypeStale()
 	})
 
-	const cache10000 = populatedCache(10000)
-	b('markAllStale (10000 records)', () => {
-		cache10000.markTypeStale()
+	const cache10000 = skipN(10000) ? null : populatedCache(10000)
+	bN(10000, 'markAllStale (10000 records)', () => {
+		cache10000!.markTypeStale()
 	})
 
 	b('markTypeStale User (100 records)', () => {

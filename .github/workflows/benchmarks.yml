@@ -9,6 +9,7 @@ jobs:
     benchmark:
         name: Benchmark
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         permissions:
             contents: read
         steps:
@@ -36,7 +37,7 @@ jobs:
             - run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Benchmark PR branch
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.json
+              run: BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.json
 
             # ── Base branch ──────────────────────────────────────────────────
             - name: Save benchmark suite from PR
@@ -53,7 +54,7 @@ jobs:
             - run: pnpm install --frozen-lockfile --prefer-offline
 
             - name: Benchmark base branch
-              run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.baseline.json
+              run: BENCH_MAX_N=1000 npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.baseline.json
 
             # ── Compare ──────────────────────────────────────────────────────
             - name: Checkout PR branch
