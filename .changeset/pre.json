@@ -20,6 +20,7 @@
   },
   "changesets": [
     "abort-controller",
+    "anchor-typed-hrefs",
     "angry-zoos-talk",
     "auth-header-fix",
     "clean-socks-explain",
