@@ -42,21 +42,23 @@ const skip = (...cats: string[]) =>
 // In quick mode every bench is capped at 3 iterations (1 warmup) regardless
 // of the per-bench options — enough to catch crashes and gross regressions.
 const QUICK = process.env.BENCH_QUICK === '1'
-const b: typeof bench = QUICK
-	? (name, fn, _opts?) =>
-			bench(name, fn as () => void, {
-				time: 0,
-				iterations: 3,
-				warmupTime: 0,
-				warmupIterations: 1,
-			})
-	: (name, fn, opts?) =>
-			bench(name, fn as () => void, {
-				time: 2000,
-				warmupTime: 500,
-				warmupIterations: 5,
-				...opts,
-			})
+const b: typeof bench = (
+	QUICK
+		? (name, fn, _opts?) =>
+				bench(name, fn as () => void, {
+					time: 0,
+					iterations: 3,
+					warmupTime: 0,
+					warmupIterations: 1,
+				})
+		: (name, fn, opts?) =>
+				bench(name, fn as () => void, {
+					time: 2000,
+					warmupTime: 500,
+					warmupIterations: 5,
+					...opts,
+				})
+) as unknown as typeof bench
 
 const config = testConfigFile()
 
@@ -148,7 +150,7 @@ function makeWideSelection(n: number): SubscriptionSelection {
 }
 
 function makeWideData(n: number) {
-	const record: Record<string, unknown> = { id: '1' }
+	const record: Record<string, string> = { id: '1' }
 	for (let i = 0; i < n; i++) {
 		record[`field${i}`] = `value${i}`
 	}
