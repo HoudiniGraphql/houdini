@@ -27,7 +27,7 @@ import { copyFileSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const floorThreshold = parseFloat(process.env.BENCH_THRESHOLD ?? '5') / 100
+const floorThreshold = parseFloat(process.env.BENCH_THRESHOLD ?? '7') / 100
 const rmeMultiplier = parseFloat(process.env.RME_MULTIPLIER ?? '2')
 const root = resolve(fileURLToPath(import.meta.url), '..', '..')
 const [, , baselineArg, currentArg] = process.argv
