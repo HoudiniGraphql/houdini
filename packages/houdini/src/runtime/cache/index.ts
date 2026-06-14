@@ -26,7 +26,7 @@ import { StaleManager } from './staleManager.js'
 import type { Layer, LayerID } from './storage.js'
 import { InMemoryStorage } from './storage.js'
 import { evaluateKey, rootID } from './stuff.js'
-import { filterValue, InMemorySubscriptions, type FieldSelection } from './subscription.js'
+import { filterValue, InMemorySubscriptions } from './subscription.js'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -83,10 +83,9 @@ export class Cache {
 			? this._internal_unstable.storage.getLayer(layerID)
 			: this._internal_unstable.storage.topLayer
 
-		// write any values that we run into and get a list of subscribers
-		const subscribers = this._internal_unstable
-			.writeSelection({ ...args, layer })
-			.map((sub) => sub[0])
+		// write any values that we run into and get a set of subscribers to notify
+		const toNotify = this._internal_unstable.writeSelection({ ...args, layer })
+		const subscribers = [...toNotify]
 
 		this.#notifySubscribers(subscribers.concat(notifySubscribers))
 
@@ -474,7 +473,7 @@ class CacheInternal {
 		parent = rootID,
 		applyUpdates,
 		layer,
-		toNotify = [],
+		toNotify = new Set(),
 		forceNotify,
 		forceStale,
 	}: {
@@ -484,14 +483,14 @@ class CacheInternal {
 		parent?: string
 		root?: string
 		layer: Layer
-		toNotify?: FieldSelection[]
+		toNotify?: Set<SubscriptionSpec>
 		applyUpdates?: string[]
 		forceNotify?: boolean
 		forceStale?: boolean
-	}): FieldSelection[] {
+	}): Set<SubscriptionSpec> {
 		// if the cache is disabled, dont do anything
 		if (this.disabled) {
-			return []
+			return toNotify
 		}
 
 		// which selection we need to walk down depends on the type of the data
@@ -595,11 +594,14 @@ class CacheInternal {
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
-					toNotify.push(...currentSubscribers)
+					for (const [sub] of currentSubscribers) toNotify.add(sub)
 				}
 
 				// write value to the layer
 				layer.writeField(parent, key, newValue)
+				if (key === '__typename' && typeof newValue === 'string') {
+					this.storage.typenames.set(parent, newValue)
+				}
 			}
 			// if we are writing `null` over a link
 			else if (value === null) {
@@ -617,7 +619,7 @@ class CacheInternal {
 				layer.writeLink(parent, key, null)
 
 				// add the list of subscribers for this field
-				toNotify.push(...currentSubscribers)
+				for (const [sub] of currentSubscribers) toNotify.add(sub)
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
@@ -675,7 +677,7 @@ class CacheInternal {
 						})
 					}
 
-					toNotify.push(...currentSubscribers)
+					for (const [sub] of currentSubscribers) toNotify.add(sub)
 				}
 
 				// if the link target points to another record in the cache we need to walk down its
@@ -877,12 +879,15 @@ class CacheInternal {
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
-					toNotify.push(...currentSubscribers)
+					for (const [sub] of currentSubscribers) toNotify.add(sub)
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
+				const linkedIDSet = new Set<string | null>(
+					(linkedIDs as (string | null)[]).flat(Infinity)
+				)
 				for (const lostID of oldIDs) {
-					if (linkedIDs.includes(lostID) || !lostID) {
+					if (!lostID || linkedIDSet.has(lostID)) {
 						continue
 					}
 
@@ -909,8 +914,9 @@ class CacheInternal {
 				}
 
 				// every new id that isn't a prevous relationship needs a new subscriber
-				for (const id of newIDs.filter((id) => !oldIDs.includes(id))) {
-					if (id == null) {
+				const oldIDSet = new Set(oldIDs)
+				for (const id of newIDs) {
+					if (id == null || oldIDSet.has(id)) {
 						continue
 					}
 
@@ -1084,11 +1090,11 @@ class CacheInternal {
 							continue
 						}
 
-						toNotify.push(
-							...this.subscriptions
-								.getAll(targetID)
-								.filter((sub) => sub[0].parentID !== targetID)
-						)
+						for (const [sub] of this.subscriptions
+							.getAll(targetID)
+							.filter((sub) => sub[0].parentID !== targetID)) {
+							toNotify.add(sub)
+						}
 
 						this.cache.delete(targetID, layer)
 					}
@@ -1173,7 +1179,7 @@ class CacheInternal {
 		let stale = false
 
 		// if we have abstract fields, grab the __typename and include them in the list
-		const typename = this.storage.get(parent, '__typename').value as string
+		const typename = this.storage.getTypename(parent)
 		// collect all of the fields that we need to write
 		const targetSelection = getFieldsForType(selection, typename, !!generateLoading)
 
@@ -1604,7 +1610,7 @@ class CacheInternal {
 		linkedType: string
 		abstract: boolean
 		variables: {}
-		specs: FieldSelection[]
+		specs: Set<SubscriptionSpec>
 		applyUpdates?: string[]
 		fields: SubscriptionSelection
 		layer: Layer

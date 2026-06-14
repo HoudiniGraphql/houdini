@@ -69,8 +69,7 @@ export class InMemorySubscriptions {
 		masked?: boolean
 	}) {
 		// figure out the correct selection
-		const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
-			.value as string
+		const __typename = this.cache._internal_unstable.storage.getTypename(parent)
 		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// walk down the selection
@@ -92,9 +91,6 @@ export class InMemorySubscriptions {
 			// add the subscriber to the field
 			let targetSelection: FieldSelection[1]
 			if (innerSelection) {
-				// figure out the correct selection
-				const __typename = this.cache._internal_unstable.storage.get(parent, '__typename')
-					.value as string
 				targetSelection = getFieldsForType(innerSelection, __typename, false)
 			}
 			this.addFieldSubscription({
@@ -230,9 +226,7 @@ export class InMemorySubscriptions {
 			name: list.name,
 			connection: list.connection,
 			recordID: id,
-			recordType:
-				(this.cache._internal_unstable.storage.get(id, '__typename')?.value as string) ||
-				parentType,
+			recordType: this.cache._internal_unstable.storage.getTypename(id) || parentType,
 			listType: list.type,
 			key,
 			selection: selection,
@@ -321,10 +315,8 @@ export class InMemorySubscriptions {
 						}
 
 						// figure out the correct selection
-						const __typename = this.cache._internal_unstable.storage.get(
-							linkedRecord,
-							'__typename'
-						).value as string
+						const __typename =
+							this.cache._internal_unstable.storage.getTypename(linkedRecord)
 						const targetSelection = getFieldsForType(childSelection, __typename, false)
 						// insert the subscriber
 						this.addMany({
@@ -370,8 +362,7 @@ export class InMemorySubscriptions {
 		const linkedIDs: [string, SubscriptionSelection, boolean][] = []
 
 		// figure out the correct selection
-		const __typename = this.cache._internal_unstable.storage.get(id, '__typename')
-			.value as string
+		const __typename = this.cache._internal_unstable.storage.getTypename(id)
 		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links
@@ -555,8 +546,7 @@ export class InMemorySubscriptions {
 		// the target id is embedded inside of the selection
 
 		// figure out the correct selection
-		const __typename = this.cache._internal_unstable.storage.get(parentID, '__typename')
-			.value as string
+		const __typename = this.cache._internal_unstable.storage.getTypename(parentID)
 		const targetSelection = getFieldsForType(selection, __typename, false)
 
 		// look at the fields for ones corresponding to links

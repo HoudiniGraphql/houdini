@@ -11,6 +11,8 @@ export class InMemoryStorage {
 	private idCount = 1
 	private rank = 0
 	idMaps: Record<string, string> = {}
+	// fast lookup: record id → __typename, maintained alongside normal field writes
+	typenames: Map<string, string> = new Map()
 
 	constructor() {
 		this.data = []
@@ -72,6 +74,7 @@ export class InMemoryStorage {
 			delete layer.fields[id]
 			delete layer.links[id]
 		}
+		this.typenames.delete(id)
 	}
 
 	getLayer(id: number): Layer {
@@ -89,6 +92,8 @@ export class InMemoryStorage {
 		for (const layer of this.data) {
 			layer.replaceID(replacement)
 		}
+		const typename = this.typenames.get(replacement.from)
+		if (typename) this.typenames.set(replacement.to, typename)
 	}
 	get(
 		targetID: string,
@@ -99,21 +104,17 @@ export class InMemoryStorage {
 		kind: 'link' | 'scalar' | 'unknown'
 		displayLayers: number[]
 	} {
-		// the list of operations for the field
-		const operations = {
-			[OperationKind.insert]: {
-				[OperationLocation.start]: [] as string[],
-				[OperationLocation.end]: [] as string[],
-			},
-			[OperationKind.remove]: new Set<string>(),
-		}
+		// Lazy accumulators — only allocated when we actually encounter list
+		// operations. Scalar reads (the common case) never touch these.
+		let insertStart: string[] | undefined
+		let insertEnd: string[] | undefined
+		let removeSet: Set<string> | undefined
+		let layerIDs: number[] | undefined
 
-		// the list of layers we used to build up the value
-		const layerIDs: number[] = []
-
-		// the record might be known by multiple ids and we  need to look at every layer
+		// the record might be known by multiple ids and we need to look at every layer
 		// in the correct order
-		const recordIDs = [this.idMaps[targetID], targetID].filter(Boolean) as string[]
+		const mappedID = this.idMaps[targetID]
+		const recordIDs = mappedID ? [mappedID, targetID] : [targetID]
 
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
@@ -122,17 +123,20 @@ export class InMemoryStorage {
 				const layer = this.data[i]
 				let [layerValue, kind] = layer.get(id, field)
 
-				const layerOperations = layer.getOperations(id, field) || []
-				layer.deletedIDs.forEach((v) => {
-					// if the layer wants to undo a delete for the id
-					if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
-						return
-					}
-					operations.remove.add(v)
-					if (this.idMaps[v]) {
-						operations.remove.add(this.idMaps[v])
-					}
-				})
+				const layerOperations = layer.getOperations(id, field)
+				if (layer.deletedIDs.size > 0) {
+					layer.deletedIDs.forEach((v) => {
+						// if the layer wants to undo a delete for the id
+						if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
+							return
+						}
+						if (!removeSet) removeSet = new Set()
+						removeSet.add(v)
+						if (this.idMaps[v]) {
+							removeSet.add(this.idMaps[v])
+						}
+					})
+				}
 
 				// if we don't have a value to return, we're done
 				if (typeof layerValue === 'undefined' && defaultValue) {
@@ -142,8 +146,9 @@ export class InMemoryStorage {
 				}
 
 				// if the layer does not contain a value for the field, move on
-				if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
+				if (typeof layerValue === 'undefined' && !layerOperations?.length) {
 					if (layer.deletedIDs.size > 0) {
+						if (!layerIDs) layerIDs = []
 						layerIDs.push(layer.id)
 					}
 					continue
@@ -160,23 +165,26 @@ export class InMemoryStorage {
 				}
 
 				// if the layer contains operations or values add it to the list of relevant layers
-				// add the layer to the list
+				if (!layerIDs) layerIDs = []
 				layerIDs.push(layer.id)
 
 				// if we have an operation
-				if (layerOperations.length > 0) {
+				if (layerOperations?.length) {
 					// process every operation
 					for (const op of layerOperations) {
 						// remove operation
 						if (isRemoveOperation(op)) {
-							operations.remove.add(op.id)
+							if (!removeSet) removeSet = new Set()
+							removeSet.add(op.id)
 						}
 						// inserts are sorted by location
 						if (isInsertOperation(op)) {
 							if (op.location === OperationLocation.end) {
-								operations.insert[op.location].unshift(op.id)
+								if (!insertEnd) insertEnd = []
+								insertEnd.unshift(op.id)
 							} else {
-								operations.insert[op.location].push(op.id)
+								if (!insertStart) insertStart = []
+								insertStart.push(op.id)
 							}
 						}
 						// if we found a delete operation, we're done
@@ -196,21 +204,15 @@ export class InMemoryStorage {
 				}
 
 				// if there are no operations, move along
-				if (
-					!operations.remove.size &&
-					!operations.insert.start.length &&
-					!operations.insert.end.length
-				) {
+				if (!removeSet?.size && !insertStart?.length && !insertEnd?.length) {
 					return { value: layerValue, displayLayers: layerIDs, kind: 'link' }
 				}
 
 				// we have operations to apply to the list
 				return {
-					value: [
-						...operations.insert.start,
-						...layerValue,
-						...operations.insert.end,
-					].filter((value) => !operations.remove.has(value as string)),
+					value: [...(insertStart ?? []), ...layerValue, ...(insertEnd ?? [])].filter(
+						(value) => !removeSet?.has(value as string)
+					),
 					displayLayers: layerIDs,
 					kind,
 				}
@@ -349,8 +351,19 @@ export class InMemoryStorage {
 		layer.links = links
 	}
 
+	// fast typename lookup with lazy-populate fallback for records written via hydrate()
+	getTypename(id: string): string | undefined {
+		let typename = this.typenames.get(id)
+		if (typename === undefined) {
+			typename = this.get(id, '__typename').value as string | undefined
+			if (typename !== undefined) this.typenames.set(id, typename)
+		}
+		return typename
+	}
+
 	reset() {
 		this.data = []
+		this.typenames.clear()
 	}
 }
 
@@ -379,26 +392,18 @@ export class Layer {
 	}
 
 	getOperations(id: string, field: string): Operation[] | undefined {
-		// if the id has been deleted
-		if (this.operations[id]?.deleted) {
-			return [
-				{
-					kind: OperationKind.delete,
-					target: id,
-				},
-			]
-		}
-
-		// there could be a mutation for the specific field
-		if (this.operations[id]?.fields?.[field]) {
-			return this.operations[id].fields[field]
-		}
+		const ops = this.operations[id]
+		if (!ops) return undefined
+		if (ops.deleted) return [{ kind: OperationKind.delete, target: id }]
+		return ops.fields?.[field]
 	}
 
 	writeField(id: string, field: string, value: GraphQLField): LayerID {
-		this.fields[id] = {
-			...this.fields[id],
-			[field]: value,
+		const record = this.fields[id]
+		if (record) {
+			record[field] = value
+		} else {
+			this.fields[id] = { [field]: value }
 		}
 
 		return this.id
@@ -431,20 +436,26 @@ export class Layer {
 			}
 		}
 
-		this.links[id] = {
-			...this.links[id],
-			[field]: value,
+		const linkRecord = this.links[id]
+		if (linkRecord) {
+			linkRecord[field] = value
+		} else {
+			this.links[id] = { [field]: value }
 		}
 
 		return this.id
 	}
 
 	isDisplayLayer(displayLayers: number[]) {
-		return (
-			displayLayers.length === 0 ||
-			displayLayers.includes(this.id) ||
-			Math.max(...displayLayers) < this.id
-		)
+		const n = displayLayers.length
+		if (n === 0) return true
+		let max = 0
+		for (let i = 0; i < n; i++) {
+			const d = displayLayers[i]
+			if (d === this.id) return true
+			if (d > max) max = d
+		}
+		return max < this.id
 	}
 
 	clear() {
