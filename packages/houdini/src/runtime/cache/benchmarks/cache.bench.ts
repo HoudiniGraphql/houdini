@@ -44,13 +44,13 @@ const skip = (...cats: string[]) =>
 const QUICK = process.env.BENCH_QUICK === '1'
 type BenchArgs = Parameters<typeof bench>
 const b: typeof bench = QUICK
-	? ((name: BenchArgs[0], fn: BenchArgs[1], _opts?: BenchArgs[2]) =>
+	? (((name: BenchArgs[0], fn: BenchArgs[1], _opts?: BenchArgs[2]) =>
 			bench(name, fn as () => void, {
 				time: 0,
 				iterations: 3,
 				warmupTime: 0,
 				warmupIterations: 1,
-			})) as unknown as typeof bench
+			})) as unknown as typeof bench)
 	: bench
 
 const config = testConfigFile()
