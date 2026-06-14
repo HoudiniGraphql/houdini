@@ -1,5 +1,19 @@
 # houdini-core
 
+## 2.0.0-next.22
+
+### Minor Changes
+
+- [#1646](https://github.com/HoudiniGraphql/houdini/pull/1646) [`bf966b9`](https://github.com/HoudiniGraphql/houdini/commit/bf966b9eaf35166628bb6b3ed0f35b8a42700b6c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `record.refresh()` to refetch every document that contains a given cache record, including those that reference it only through a fragment spread.
+
+### Patch Changes
+
+- [#1649](https://github.com/HoudiniGraphql/houdini/pull/1649) [`8bd7291`](https://github.com/HoudiniGraphql/houdini/commit/8bd72911a7a022ccb68e7c3b5047f144077c3e4c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix list filters and @when conditions that contain object values or variable references nested inside objects
+
+- [#1644](https://github.com/HoudiniGraphql/houdini/pull/1644) [`f40e510`](https://github.com/HoudiniGraphql/houdini/commit/f40e510e0e67cd4ecc444f01662e3163fe45e736) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for @includeListID directive
+
+- [#1648](https://github.com/HoudiniGraphql/houdini/pull/1648) [`5f3fd63`](https://github.com/HoudiniGraphql/houdini/commit/5f3fd635199681ef36ecb90a16df2e109a354c22) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Rework argument type validation to follow the GraphQL spec, fixing coercions, `@with` checks, and unknown type/enum reporting ([#1645](https://github.com/HoudiniGraphql/houdini/issues/1645)).
+
 ## 2.0.0-next.21
 
 ### Patch Changes
