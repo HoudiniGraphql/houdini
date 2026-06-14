@@ -26,17 +26,6 @@ type _ParamObj<Ps extends readonly _Param[]> = {
 } & {
 	[P in Ps[number] as P['optional'] extends true ? never : P['name']]: _TSType<P['type']>
 }
-type _ToRouteProps<P> = P extends {
-	readonly url: infer U extends string
-	readonly params: readonly []
-}
-	? { to: U; params?: never }
-	: P extends {
-				readonly url: infer U extends string
-				readonly params: infer Ps extends readonly _Param[]
-			}
-		? { to: U; params: _ParamObj<Ps> }
-		: never
 
 type _ExternalHref =
 	| `http://${string}`
@@ -55,37 +44,24 @@ export type RouteHrefs = _Pages[keyof _Pages] extends { readonly url: infer U ex
 	? U
 	: never
 
-type _PropsForRoute<H extends string> = [
-	Extract<_Pages[keyof _Pages], { readonly url: H }>,
-] extends [never]
-	? { to: H; params?: never }
-	: _ToRouteProps<Extract<_Pages[keyof _Pages], { readonly url: H }>>
+// Separate 'to' from 'params' so TypeScript evaluates them independently:
+// - 'to' completions show all routes (including parameterized) because 'to' itself is always valid
+// - 'params' is a separate intersection that errors when required but absent
+type _PageForRoute<H extends string> = Extract<_Pages[keyof _Pages], { readonly url: H }>
+type _ParamsForRoute<H extends string> = [_PageForRoute<H>] extends [never]
+	? { params?: never }
+	: _PageForRoute<H> extends { readonly params: readonly [] }
+		? { params?: never }
+		: _PageForRoute<H> extends { readonly params: infer Ps extends readonly _Param[] }
+			? { params: _ParamObj<Ps> }
+			: { params?: never }
 
-type _CheckedProps<H extends string> = Omit<
+export type LinkProps<H extends RouteHrefs | _ExternalHref = RouteHrefs | _ExternalHref> = Omit<
 	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
 	'href'
-> &
-	_PropsForRoute<H>
+> & { to: H } & _ParamsForRoute<H>
 
-type _UncheckedProps = Omit<
-	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
-	'href'
-> & {
-	suppressTypeCheck: true
-	to: string
-	params?: Record<string, string | number | boolean>
-}
-
-export type LinkProps<H extends string = RouteHrefs | _ExternalHref> =
-	| _CheckedProps<H>
-	| _UncheckedProps
-
-export function Link<H extends string>({
-	to,
-	params,
-	suppressTypeCheck: _s,
-	...rest
-}: LinkProps<H> & { suppressTypeCheck?: true }): React.ReactElement {
+export function Link<H extends RouteHrefs | _ExternalHref>({ to, params, ...rest }: LinkProps<H>): React.ReactElement {
 	const href =
 		params != null
 			? resolveHref(to as string, params as Record<string, string | number | boolean>)

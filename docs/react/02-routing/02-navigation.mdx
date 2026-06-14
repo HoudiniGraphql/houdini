@@ -45,19 +45,6 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 <Link to="./sibling">Relative</Link>
 ```
 
-### Bypassing type checking
-
-For links where `to` is computed at runtime and can't be statically verified, add `suppressTypeCheck`:
-
-```tsx
-{routes.map(({ label, url }) => (
-    <Link suppressTypeCheck to={url} key={url}>
-        {label}
-    </Link>
-))}
-```
-
-This keeps all other props typed normally while accepting any string for `to`.
 
 ## Preloading
 

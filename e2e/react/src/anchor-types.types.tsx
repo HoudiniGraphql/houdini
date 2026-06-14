@@ -18,15 +18,14 @@ const _s6 = <Link to="./relative">Relative</Link>
 // parameterized route — GQL ID accepts string or number
 const _s7 = <Link to="/route_params/[id]" params={{ id: '1' }}>User</Link>
 const _s7b = <Link to="/route_params/[id]" params={{ id: 1 }}>User</Link>
+// parameterized route with number id
+const _s8 = <Link to="/route_params/[id]" params={{ id: 42 }}>User</Link>
 // data-houdini-preload on a known route
-const _s8 = <Link to="/hello-world" data-houdini-preload>Preload</Link>
+const _s9 = <Link to="/hello-world" data-houdini-preload>Preload</Link>
 // key prop works (from ClassAttributes via DetailedHTMLProps)
-const _s9 = <Link to="/hello-world" key="nav">Nav</Link>
+const _s10 = <Link to="/hello-world" key="nav">Nav</Link>
 // other standard attributes still work
-const _s10 = <Link to="https://example.com" target="_blank" rel="noopener noreferrer">New tab</Link>
-// suppressTypeCheck opts out of route validation entirely
-const _s11 = <Link suppressTypeCheck to="/anything-at-all">Dynamic</Link>
-const _s12 = <Link suppressTypeCheck to="/api/endpoint" params={{ foo: 'bar' }}>API</Link>
+const _s11 = <Link to="https://example.com" target="_blank" rel="noopener noreferrer">New tab</Link>
 
 // ── invalid usages ────────────────────────────────────────────────────────────
 
@@ -34,6 +33,11 @@ const _s12 = <Link suppressTypeCheck to="/api/endpoint" params={{ foo: 'bar' }}>
 const _e1 =
     // @ts-expect-error -- number is not a valid route
     <Link to={42}>Bad</Link>
+
+// unknown route is rejected
+const _e4 =
+    // @ts-expect-error -- /not-a-real-route is not in the manifest
+    <Link to="/not-a-real-route">Bad</Link>
 
 // params must be a plain object, not a primitive
 const _e2 =
@@ -45,11 +49,6 @@ const _e3 =
     // @ts-expect-error -- string is not a valid params object
     <Link to="/route_params/[id]" params="id=1">Bad</Link>
 
-// unknown internal routes are rejected (not in the manifest, not external)
-const _e4 =
-    // @ts-expect-error -- unknown route not in the manifest
-    <Link to="/not-a-real-route">Bad</Link>
-
 // wrong param key for a known route
 const _e5 =
     // @ts-expect-error -- userId is not a valid param for /route_params/[id]
@@ -59,3 +58,4 @@ const _e5 =
 const _e7 =
     // @ts-expect-error -- params required for parameterized route
     <Link to="/route_params/[id]">Bad</Link>
+
