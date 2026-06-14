@@ -67,11 +67,7 @@ export type LinkProps<H extends string = RouteHrefs | _ExternalHref | (string & 
 > &
 	_PropsForRoute<H>
 
-export function Link<H extends string>({
-	to,
-	params,
-	...rest
-}: LinkProps<H>): React.ReactElement {
+export function Link<H extends string>({ to, params, ...rest }: LinkProps<H>): React.ReactElement {
 	const href =
 		params != null
 			? resolveHref(to as string, params as Record<string, string | number | boolean>)
