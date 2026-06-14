@@ -30,30 +30,30 @@ const _s12 = <a suppressHrefTypeCheck href="/api/endpoint" params={{ foo: 'bar' 
 
 // href must be a string
 const _e1 =
-    // @ts-expect-error
+    // @ts-expect-error -- number is not a valid href
     <a href={42}>Bad</a>
 
 // params must be a plain object, not a primitive
 const _e2 =
-    // @ts-expect-error
+    // @ts-expect-error -- boolean is not a valid params value
     <a href="/route_params/[id]" params={false}>Bad</a>
 
 // params must be a plain object, not a string
 const _e3 =
-    // @ts-expect-error
+    // @ts-expect-error -- string is not a valid params object
     <a href="/route_params/[id]" params="id=1">Bad</a>
 
 // unknown internal routes are rejected (not in the manifest, not external)
 const _e4 =
-    // @ts-expect-error
+    // @ts-expect-error -- unknown route not in the manifest
     <a href="/not-a-real-route">Bad</a>
 
 // wrong param key for a known route
 const _e5 =
-    // @ts-expect-error
+    // @ts-expect-error -- userId is not a valid param for /route_params/[id]
     <a href="/route_params/[id]" params={{ userId: '1' }}>Bad</a>
 
 // missing params entirely for a parameterized route
 const _e7 =
-    // @ts-expect-error
+    // @ts-expect-error -- params required for parameterized route
     <a href="/route_params/[id]">Bad</a>
