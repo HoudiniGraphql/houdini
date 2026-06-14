@@ -886,7 +886,15 @@ func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectM
 		if err != nil {
 			return nil, err
 		}
-		content := strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION", routeUnion)
+		// When there are no route-specific entries, remove the sentinel line entirely so
+		// the fallback member in the template stays as the only union branch. When there
+		// are entries, replace the sentinel with them (the template's fallback follows).
+		var content string
+		if routeUnion == "" {
+			content = strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION\n", "")
+		} else {
+			content = strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION", routeUnion)
+		}
 		existing, _ := afero.ReadFile(p.Filesystem(), pair.dst)
 		if string(existing) == content {
 			continue
@@ -935,7 +943,6 @@ func buildRouteUnion(manifest ProjectManifest, scalars map[string]plugins.Scalar
 			))
 		}
 	}
-	parts = append(parts, "    | { href?: string & {}; params?: Record<string, string | number | boolean> }")
 	return strings.Join(parts, "\n"), nil
 }
 

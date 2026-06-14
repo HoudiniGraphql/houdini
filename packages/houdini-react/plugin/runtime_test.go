@@ -529,6 +529,9 @@ func TestGenerateJsxRuntime(t *testing.T) {
 	require.NoError(t, err)
 
 	applyUnion := func(tmpl []byte, union string) string {
+		if union == "" {
+			return strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION\n", "")
+		}
 		return strings.ReplaceAll(string(tmpl), "// HOUDINI_ROUTE_UNION", union)
 	}
 
@@ -596,7 +599,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 				Name: "no routes generates fallback-only union",
 				Pass: true,
 				Extra: map[string]any{
-					"union": "    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+					"union": "",
 				},
 			},
 			{
@@ -608,8 +611,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/+page.tsx": mockView([]string{"HomeQuery"}),
 					},
-					"union": "    | { href: \"/\"; params?: never }\n" +
-						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+					"union": "    | { href: \"/\"; params?: never }",
 				},
 			},
 			{
@@ -623,8 +625,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/[id]/+page.tsx": mockView([]string{"MyQuery"}),
 					},
-					"union": "    | { href: \"/[id]\"; params: { id: string } }\n" +
-						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+					"union": "    | { href: \"/[id]\"; params: { id: string } }",
 				},
 			},
 			{
@@ -638,8 +639,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/[count]/+page.tsx": mockView([]string{"CountQuery"}),
 					},
-					"union": "    | { href: \"/[count]\"; params: { count: number } }\n" +
-						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+					"union": "    | { href: \"/[count]\"; params: { count: number } }",
 				},
 			},
 			{
@@ -659,8 +659,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/[at]/+page.tsx": mockView([]string{"DateQuery"}),
 					},
-					"union": "    | { href: \"/[at]\"; params: { at: Date } }\n" +
-						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+					"union": "    | { href: \"/[at]\"; params: { at: Date } }",
 				},
 			},
 			{
@@ -672,8 +671,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 					"views": map[string]string{
 						"src/routes/(auth)/users/+page.tsx": mockView([]string{"UsersQuery"}),
 					},
-					"union": "    | { href: \"/users\"; params?: never }\n" +
-						"    | { href?: string & {}; params?: Record<string, string | number | boolean> }",
+					"union": "    | { href: \"/users\"; params?: never }",
 				},
 			},
 		},
@@ -692,6 +690,29 @@ func TestGenerateRuntime(t *testing.T) {
 		SetupAlwaysPasses: true,
 
 		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			cfg, err := p.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+			runtimeDir := cfg.PluginRuntimeDirectory(p.Name())
+			require.NoError(t, p.Filesystem().MkdirAll(runtimeDir, 0755))
+
+			// GenerateTsConfig reads tsconfig.json from the plugin runtime dir (written
+			// there by IncludeRuntime in the real pipeline). Seed a minimal stub so the
+			// test doesn't fail on a missing file.
+			tsconfigStub, err := os.ReadFile("../runtime/tsconfig.json")
+			require.NoError(t, err)
+			require.NoError(t, afero.WriteFile(p.Filesystem(),
+				filepath.Join(runtimeDir, "tsconfig.json"), tsconfigStub, 0644))
+
+			// GenerateJsxRuntime reads jsx-runtime.ts and jsx-dev-runtime.ts.
+			prodTemplate, err := os.ReadFile("../runtime/jsx-runtime.ts")
+			require.NoError(t, err)
+			devTemplate, err := os.ReadFile("../runtime/jsx-dev-runtime.ts")
+			require.NoError(t, err)
+			require.NoError(t, afero.WriteFile(p.Filesystem(),
+				filepath.Join(runtimeDir, "jsx-runtime.ts"), prodTemplate, 0644))
+			require.NoError(t, afero.WriteFile(p.Filesystem(),
+				filepath.Join(runtimeDir, "jsx-dev-runtime.ts"), devTemplate, 0644))
+
 			views, ok := test.Extra["views"].(map[string]string)
 			if !ok {
 				return
