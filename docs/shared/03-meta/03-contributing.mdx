@@ -109,6 +109,26 @@ pnpm compile:react     # recompile houdini-react only (react app)
 
 Each of these has `:dev`, `:generate`, and `:dev` suffixes that chain into the next step after compiling.
 
+### Cache benchmarks
+
+The cache has a benchmark suite in `packages/houdini/src/runtime/cache/benchmarks/`. Benchmarks are grouped into categories (`core`, `subscriptions`, `lists`, `multi-doc`, `optimistic`, `gc`, `ssr`) and can be run selectively.
+
+For active work on the cache, `watch-bench` re-runs a category in fast mode (minimal iterations, just enough to catch regressions) every time a file changes:
+
+```sh
+pnpm watch-bench gc          # re-run gc suite on every save
+pnpm watch-bench core        # re-run core suite on every save
+```
+
+To run the full suite at full statistical precision:
+
+```sh
+pnpm bench                   # all categories, full run
+pnpm bench:core              # single category, full run
+```
+
+A CI job runs automatically on any PR that touches `packages/houdini/src/runtime/cache/`. It benchmarks the base branch and the PR branch on the same runner and flags any benchmark that regressed beyond its noise band.
+
 ## Piecing It All Together
 
 When thinking about adding a feature, a few questions help frame the work:
