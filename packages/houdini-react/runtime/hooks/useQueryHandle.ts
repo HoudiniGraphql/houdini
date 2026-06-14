@@ -107,7 +107,11 @@ export function useQueryHandle<
 		// when it resolves the cached value will be updated
 		// and it will be picked up in the next render
 		let resolve: () => void = () => {}
-		const loadPromise = new Promise<void>((r) => (resolve = r))
+		let reject: (reason?: any) => void = () => {}
+		const loadPromise = new Promise<void>((res, rej) => {
+			resolve = res
+			reject = rej
+		})
 
 		const suspenseUnit: QuerySuspenseUnit<_Data, _Input> = {
 			// biome-ignore lint/suspicious/noThenProperty: suspense protocol requires a thenable
@@ -140,6 +144,10 @@ export function useQueryHandle<
 				} as unknown as DocumentHandle<QueryArtifact, _Data, _Input>
 
 				suspenseUnit.resolve()
+			})
+			.catch((err) => {
+				promiseCache.delete(identifier)
+				reject(err)
 			})
 		suspenseTracker.current = true
 		throw suspenseUnit

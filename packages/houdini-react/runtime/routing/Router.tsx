@@ -340,6 +340,9 @@ function usePageData({
 				})
 				.catch((err) => {
 					ssr_signals.delete(id)
+					if (err?.name === 'AbortError') {
+						return
+					}
 					reject(err)
 				})
 		})
