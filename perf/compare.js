@@ -15,7 +15,7 @@
 //   0  all benchmarks within threshold
 //   1  one or more regressions detected
 
-import { readFileSync } from 'node:fs'
+import { copyFileSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -97,5 +97,7 @@ if (regressions.length > 0) {
     console.error()
     process.exit(1)
 } else {
-    console.log(`\nall ${rows.filter((r) => r.status !== 'new').length} benchmarks within ${(threshold * 100).toFixed(1)}% of baseline.\n`)
+    console.log(`\nall ${rows.filter((r) => r.status !== 'new').length} benchmarks within ${(threshold * 100).toFixed(1)}% of baseline.`)
+    copyFileSync(currentPath, baselinePath)
+    console.log(`baseline updated: ${baselinePath}\n`)
 }
