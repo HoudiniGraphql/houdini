@@ -58,7 +58,7 @@ jobs:
             # ── Compare ──────────────────────────────────────────────────────
             - name: Checkout PR branch
               run: |
-                  rm -rf packages/houdini/src/runtime/cache/benchmarks
+                  git stash --include-untracked
                   git checkout ${{ github.head_ref }}
 
             - name: Compare
