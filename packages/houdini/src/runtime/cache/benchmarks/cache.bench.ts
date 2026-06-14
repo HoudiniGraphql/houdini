@@ -41,7 +41,7 @@ const skip = (...cats: string[]) =>
 const QUICK = process.env.BENCH_QUICK === '1'
 const b: typeof bench = QUICK
 	? (name, fn, _opts?) =>
-		b(name, fn as () => void, {
+		bench(name, fn as () => void, {
 			time: 0,
 			iterations: 3,
 			warmupTime: 0,
