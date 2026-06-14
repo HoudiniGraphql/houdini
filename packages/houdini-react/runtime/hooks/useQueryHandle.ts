@@ -135,7 +135,7 @@ export function useQueryHandle<
 				suspenseUnit.resolved = {
 					...handle,
 					data: value.data,
-					partia: value.partial,
+					partial: value.partial,
 					artifact,
 				} as unknown as DocumentHandle<QueryArtifact, _Data, _Input>
 
