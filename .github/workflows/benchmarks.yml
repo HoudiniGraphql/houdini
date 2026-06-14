@@ -39,8 +39,16 @@ jobs:
               run: npx vitest bench packages/houdini/src/runtime/cache/benchmarks/ --outputJson /tmp/benchmark.current.json
 
             # ── Base branch ──────────────────────────────────────────────────
+            - name: Save benchmark suite from PR
+              run: cp -r packages/houdini/src/runtime/cache/benchmarks /tmp/houdini-benchmarks
+
             - name: Checkout base branch
               run: git checkout ${{ github.base_ref }}
+
+            - name: Restore benchmark suite onto base branch
+              run: |
+                  mkdir -p packages/houdini/src/runtime/cache/benchmarks
+                  cp -r /tmp/houdini-benchmarks/. packages/houdini/src/runtime/cache/benchmarks/
 
             - run: pnpm install --frozen-lockfile --prefer-offline
 
