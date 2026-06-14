@@ -40,7 +40,11 @@ type RouteAnchorProps =
 	| { href?: string & {}; params?: Record<string, string | number | boolean> }
 	| _ToAnchorProps<_Pages[keyof _Pages]>
 
-type AnchorProps = Omit<DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>, 'href'> & RouteAnchorProps
+type AnchorProps = Omit<
+	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
+	'href'
+> &
+	RouteAnchorProps
 
 export declare namespace JSX {
 	type Element = ReactJSX.Element
