@@ -57,7 +57,9 @@ jobs:
 
             # ── Compare ──────────────────────────────────────────────────────
             - name: Checkout PR branch
-              run: git checkout ${{ github.head_ref }}
+              run: |
+                  rm -rf packages/houdini/src/runtime/cache/benchmarks
+                  git checkout ${{ github.head_ref }}
 
             - name: Compare
               run: node perf/compare.js /tmp/benchmark.baseline.json /tmp/benchmark.current.json
