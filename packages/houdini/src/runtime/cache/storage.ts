@@ -210,11 +210,9 @@ export class InMemoryStorage {
 
 				// we have operations to apply to the list
 				return {
-					value: [
-						...(insertStart ?? []),
-						...layerValue,
-						...(insertEnd ?? []),
-					].filter((value) => !removeSet?.has(value as string)),
+					value: [...(insertStart ?? []), ...layerValue, ...(insertEnd ?? [])].filter(
+						(value) => !removeSet?.has(value as string)
+					),
 					displayLayers: layerIDs,
 					kind,
 				}

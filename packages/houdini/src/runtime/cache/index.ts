@@ -883,7 +883,9 @@ class CacheInternal {
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
-				const linkedIDSet = new Set<string | null>((linkedIDs as (string | null)[]).flat(Infinity))
+				const linkedIDSet = new Set<string | null>(
+					(linkedIDs as (string | null)[]).flat(Infinity)
+				)
 				for (const lostID of oldIDs) {
 					if (!lostID || linkedIDSet.has(lostID)) {
 						continue

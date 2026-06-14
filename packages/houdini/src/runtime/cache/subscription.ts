@@ -226,8 +226,7 @@ export class InMemorySubscriptions {
 			name: list.name,
 			connection: list.connection,
 			recordID: id,
-			recordType:
-				this.cache._internal_unstable.storage.getTypename(id) || parentType,
+			recordType: this.cache._internal_unstable.storage.getTypename(id) || parentType,
 			listType: list.type,
 			key,
 			selection: selection,
@@ -316,7 +315,8 @@ export class InMemorySubscriptions {
 						}
 
 						// figure out the correct selection
-						const __typename = this.cache._internal_unstable.storage.getTypename(linkedRecord)
+						const __typename =
+							this.cache._internal_unstable.storage.getTypename(linkedRecord)
 						const targetSelection = getFieldsForType(childSelection, __typename, false)
 						// insert the subscriber
 						this.addMany({

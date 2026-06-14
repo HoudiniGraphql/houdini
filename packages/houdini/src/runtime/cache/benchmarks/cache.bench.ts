@@ -31,7 +31,10 @@ import { Cache } from '../index.js'
 //   BENCH=core BENCH_QUICK=1 vitest bench ...
 // ---------------------------------------------------------------------------
 const activeCategories = new Set(
-	(process.env.BENCH ?? 'all').split(',').map((s) => s.trim()).filter(Boolean)
+	(process.env.BENCH ?? 'all')
+		.split(',')
+		.map((s) => s.trim())
+		.filter(Boolean)
 )
 const skip = (...cats: string[]) =>
 	!activeCategories.has('all') && !cats.some((c) => activeCategories.has(c))
@@ -41,19 +44,19 @@ const skip = (...cats: string[]) =>
 const QUICK = process.env.BENCH_QUICK === '1'
 const b: typeof bench = QUICK
 	? (name, fn, _opts?) =>
-		bench(name, fn as () => void, {
-			time: 0,
-			iterations: 3,
-			warmupTime: 0,
-			warmupIterations: 1,
-		})
+			bench(name, fn as () => void, {
+				time: 0,
+				iterations: 3,
+				warmupTime: 0,
+				warmupIterations: 1,
+			})
 	: (name, fn, opts?) =>
-		bench(name, fn as () => void, {
-			time: 2000,
-			warmupTime: 500,
-			warmupIterations: 5,
-			...opts,
-		})
+			bench(name, fn as () => void, {
+				time: 2000,
+				warmupTime: 500,
+				warmupIterations: 5,
+				...opts,
+			})
 
 const config = testConfigFile()
 
@@ -165,22 +168,22 @@ const wideData10000 = makeWideData(10000)
 // Reusable single-record selection — used by GC, stale, and disjoint benchmarks.
 // Module-level so the WeakMap in getFieldsForType hits on every call.
 const idFirstNameSelection: SubscriptionSelection = {
-    fields: {
-        id: { type: 'ID', visible: true, keyRaw: 'id' },
-        firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
-    },
+	fields: {
+		id: { type: 'ID', visible: true, keyRaw: 'id' },
+		firstName: { type: 'String', visible: true, keyRaw: 'firstName' },
+	},
 }
 
 // 100 per-field selections for the overlapping-specs benchmark.
 // Pre-generated so the same object references are reused across bench iterations.
 const overlappingSelections100: SubscriptionSelection[] = Array.from(
-    { length: 100 },
-    (_, i): SubscriptionSelection => ({
-        fields: {
-            id: { type: 'ID', visible: true, keyRaw: 'id' },
-            [`field${i}`]: { type: 'String', visible: true, keyRaw: `field${i}` },
-        },
-    })
+	{ length: 100 },
+	(_, i): SubscriptionSelection => ({
+		fields: {
+			id: { type: 'ID', visible: true, keyRaw: 'id' },
+			[`field${i}`]: { type: 'String', visible: true, keyRaw: `field${i}` },
+		},
+	})
 )
 
 // A list of wide records: rows items each with cols scalar fields.
@@ -285,10 +288,14 @@ describe.skipIf(skip('core'))('write', () => {
 		cache.write({ selection: wideSelection1000, data: wideData1000 })
 	})
 
-	b('wide record (10000 fields)', () => {
-		const cache = new Cache(config)
-		cache.write({ selection: wideSelection10000, data: wideData10000 })
-	}, { warmupIterations: 1, warmupTime: 0, iterations: 5 })
+	b(
+		'wide record (10000 fields)',
+		() => {
+			const cache = new Cache(config)
+			cache.write({ selection: wideSelection10000, data: wideData10000 })
+		},
+		{ warmupIterations: 1, warmupTime: 0, iterations: 5 }
+	)
 
 	b('repeated writes to same record', () => {
 		const cache = new Cache(config)
@@ -352,11 +359,15 @@ describe.skipIf(skip('core'))('read', () => {
 		cache.read({ selection: nestedSelection })
 	})
 
-	b('nested list (10000 items)', () => {
-		const cache = new Cache(config)
-		cache.write({ selection: nestedSelection, data: nestedData10000 })
-		cache.read({ selection: nestedSelection })
-	}, { warmupIterations: 1, warmupTime: 0, iterations: 5 })
+	b(
+		'nested list (10000 items)',
+		() => {
+			const cache = new Cache(config)
+			cache.write({ selection: nestedSelection, data: nestedData10000 })
+			cache.read({ selection: nestedSelection })
+		},
+		{ warmupIterations: 1, warmupTime: 0, iterations: 5 }
+	)
 })
 
 describe.skipIf(skip('subscriptions'))('write + notify subscribers', () => {
@@ -434,9 +445,13 @@ describe.skipIf(skip('subscriptions'))('write → subscriber notification', () =
 	})
 
 	const cacheNested10000 = subscribedCache(nestedSelection, nestedData10000)
-	b('nested list (10000 items)', () => {
-		cacheNested10000.write({ selection: nestedSelection, data: nestedData10000 })
-	}, { time: 0, iterations: 10, warmupTime: 0, warmupIterations: 1 })
+	b(
+		'nested list (10000 items)',
+		() => {
+			cacheNested10000.write({ selection: nestedSelection, data: nestedData10000 })
+		},
+		{ time: 0, iterations: 10, warmupTime: 0, warmupIterations: 1 }
+	)
 
 	const cacheWide100 = subscribedCache(wideSelection100, wideData100)
 	b('wide record (100 fields)', () => {
@@ -449,14 +464,25 @@ describe.skipIf(skip('subscriptions'))('write → subscriber notification', () =
 	})
 
 	const cacheWide10000 = subscribedCache(wideSelection10000, wideData10000)
-	b('wide record (10000 fields)', () => {
-		cacheWide10000.write({ selection: wideSelection10000, data: wideData10000 })
-	}, { time: 0, iterations: 5, warmupTime: 0, warmupIterations: 1 })
+	b(
+		'wide record (10000 fields)',
+		() => {
+			cacheWide10000.write({ selection: wideSelection10000, data: wideData10000 })
+		},
+		{ time: 0, iterations: 5, warmupTime: 0, warmupIterations: 1 }
+	)
 
 	const cacheList10x1000 = subscribedCache(wideList10x1000Selection, wideList10x1000Data)
-	b('~10000 cells: 10 rows × 1000 cols', () => {
-		cacheList10x1000.write({ selection: wideList10x1000Selection, data: wideList10x1000Data })
-	}, { time: 0, iterations: 5, warmupTime: 0, warmupIterations: 1 })
+	b(
+		'~10000 cells: 10 rows × 1000 cols',
+		() => {
+			cacheList10x1000.write({
+				selection: wideList10x1000Selection,
+				data: wideList10x1000Data,
+			})
+		},
+		{ time: 0, iterations: 5, warmupTime: 0, warmupIterations: 1 }
+	)
 
 	const cacheList100x100 = subscribedCache(wideList100x100Selection, wideList100x100Data)
 	b('~10000 cells: 100 rows × 100 cols', () => {
@@ -487,27 +513,30 @@ function fanOutCache(n: number): { cache: Cache; specs: SubscriptionSpec[] } {
 	return { cache, specs }
 }
 
-describe.skipIf(skip('multi-doc'))('fan-out: N documents watching same selection (100-item list)', () => {
-	const f1 = fanOutCache(1)
-	b('1 document', () => {
-		f1.cache.write({ selection: nestedSelection, data: nestedData100 })
-	})
+describe.skipIf(skip('multi-doc'))(
+	'fan-out: N documents watching same selection (100-item list)',
+	() => {
+		const f1 = fanOutCache(1)
+		b('1 document', () => {
+			f1.cache.write({ selection: nestedSelection, data: nestedData100 })
+		})
 
-	const f10 = fanOutCache(10)
-	b('10 documents', () => {
-		f10.cache.write({ selection: nestedSelection, data: nestedData100 })
-	})
+		const f10 = fanOutCache(10)
+		b('10 documents', () => {
+			f10.cache.write({ selection: nestedSelection, data: nestedData100 })
+		})
 
-	const f100 = fanOutCache(100)
-	b('100 documents', () => {
-		f100.cache.write({ selection: nestedSelection, data: nestedData100 })
-	})
+		const f100 = fanOutCache(100)
+		b('100 documents', () => {
+			f100.cache.write({ selection: nestedSelection, data: nestedData100 })
+		})
 
-	const f1000 = fanOutCache(1000)
-	b('1000 documents', () => {
-		f1000.cache.write({ selection: nestedSelection, data: nestedData100 })
-	})
-})
+		const f1000 = fanOutCache(1000)
+		b('1000 documents', () => {
+			f1000.cache.write({ selection: nestedSelection, data: nestedData100 })
+		})
+	}
+)
 
 // One record (User:1) appears as the target of N different query roots.
 // Each root has its own subscription spec. Writing User:1 notifies all N.
@@ -533,7 +562,10 @@ function sharedRecordCache(n: number): { cache: Cache; updateSelection: Subscrip
 				},
 			},
 		}
-		cache.write({ selection: sel, data: { [`query${i}`]: { id: '1', firstName: 'Bob', email: 'bob@example.com' } } })
+		cache.write({
+			selection: sel,
+			data: { [`query${i}`]: { id: '1', firstName: 'Bob', email: 'bob@example.com' } },
+		})
 		cache.subscribe({ rootType: 'Query', selection: sel, onMessage: () => {} })
 	}
 
@@ -551,22 +583,38 @@ function sharedRecordCache(n: number): { cache: Cache; updateSelection: Subscrip
 describe.skipIf(skip('multi-doc'))('shared record: User:1 referenced from N query roots', () => {
 	const s1 = sharedRecordCache(1)
 	b('1 query root', () => {
-		s1.cache.write({ selection: s1.updateSelection, data: { id: '1', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:1' })
+		s1.cache.write({
+			selection: s1.updateSelection,
+			data: { id: '1', firstName: 'Alice', email: 'alice@example.com' },
+			parent: 'User:1',
+		})
 	})
 
 	const s10 = sharedRecordCache(10)
 	b('10 query roots', () => {
-		s10.cache.write({ selection: s10.updateSelection, data: { id: '1', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:1' })
+		s10.cache.write({
+			selection: s10.updateSelection,
+			data: { id: '1', firstName: 'Alice', email: 'alice@example.com' },
+			parent: 'User:1',
+		})
 	})
 
 	const s100 = sharedRecordCache(100)
 	b('100 query roots', () => {
-		s100.cache.write({ selection: s100.updateSelection, data: { id: '1', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:1' })
+		s100.cache.write({
+			selection: s100.updateSelection,
+			data: { id: '1', firstName: 'Alice', email: 'alice@example.com' },
+			parent: 'User:1',
+		})
 	})
 
 	const s1000 = sharedRecordCache(1000)
 	b('1000 query roots', () => {
-		s1000.cache.write({ selection: s1000.updateSelection, data: { id: '1', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:1' })
+		s1000.cache.write({
+			selection: s1000.updateSelection,
+			data: { id: '1', firstName: 'Alice', email: 'alice@example.com' },
+			parent: 'User:1',
+		})
 	})
 })
 
@@ -608,13 +656,21 @@ describe.skipIf(skip('multi-doc'))('overlapping vs disjoint selections (N=100)',
 	b('disjoint: N specs, N different records, same field', () => {
 		const cache = new Cache(config)
 		const specs = Array.from({ length: 100 }, (_, i) => {
-			cache.write({ selection: idFirstNameSelection, data: { id: String(i + 1), firstName: `User${i}` }, parent: `User:${i + 1}` })
+			cache.write({
+				selection: idFirstNameSelection,
+				data: { id: String(i + 1), firstName: `User${i}` },
+				parent: `User:${i + 1}`,
+			})
 			const spec = { rootType: 'Query', selection: idFirstNameSelection, onMessage: () => {} }
 			cache.subscribe(spec, {})
 			return { spec }
 		})
 		// Write to one record — should only notify 1 of the 100 subscribers
-		cache.write({ selection: idFirstNameSelection, data: { id: '1', firstName: 'Alice' }, parent: 'User:1' })
+		cache.write({
+			selection: idFirstNameSelection,
+			data: { id: '1', firstName: 'Alice' },
+			parent: 'User:1',
+		})
 		for (const { spec } of specs) cache.unsubscribe(spec)
 	})
 })
@@ -626,7 +682,10 @@ function listPlusDetailCache(n: number): { cache: Cache; updateSel: Subscription
 	const friends = makeFriends(n)
 
 	// List query subscribing to all N items
-	cache.write({ selection: nestedSelection, data: { viewer: { id: '1', firstName: 'Bob', friends } } })
+	cache.write({
+		selection: nestedSelection,
+		data: { viewer: { id: '1', firstName: 'Bob', friends } },
+	})
 	cache.subscribe({ rootType: 'Query', selection: nestedSelection, onMessage: () => {} })
 
 	// Detail query for each item
@@ -638,7 +697,10 @@ function listPlusDetailCache(n: number): { cache: Cache; updateSel: Subscription
 		},
 	}
 	for (const friend of friends) {
-		cache.subscribe({ rootType: 'Query', selection: detailFields, onMessage: () => {} }, { parentID: `User:${friend.id}` })
+		cache.subscribe(
+			{ rootType: 'Query', selection: detailFields, onMessage: () => {} },
+			{ parentID: `User:${friend.id}` }
+		)
 	}
 
 	const updateSel: SubscriptionSelection = {
@@ -651,22 +713,37 @@ function listPlusDetailCache(n: number): { cache: Cache; updateSel: Subscription
 	return { cache, updateSel }
 }
 
-describe.skipIf(skip('multi-doc'))('list query + detail queries: write one item notifies both', () => {
-	const ld10 = listPlusDetailCache(10)
-	b('10-item list + 10 detail docs', () => {
-		ld10.cache.write({ selection: ld10.updateSel, data: { id: '2', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:2' })
-	})
+describe.skipIf(skip('multi-doc'))(
+	'list query + detail queries: write one item notifies both',
+	() => {
+		const ld10 = listPlusDetailCache(10)
+		b('10-item list + 10 detail docs', () => {
+			ld10.cache.write({
+				selection: ld10.updateSel,
+				data: { id: '2', firstName: 'Alice', email: 'alice@example.com' },
+				parent: 'User:2',
+			})
+		})
 
-	const ld100 = listPlusDetailCache(100)
-	b('100-item list + 100 detail docs', () => {
-		ld100.cache.write({ selection: ld100.updateSel, data: { id: '2', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:2' })
-	})
+		const ld100 = listPlusDetailCache(100)
+		b('100-item list + 100 detail docs', () => {
+			ld100.cache.write({
+				selection: ld100.updateSel,
+				data: { id: '2', firstName: 'Alice', email: 'alice@example.com' },
+				parent: 'User:2',
+			})
+		})
 
-	const ld1000 = listPlusDetailCache(1000)
-	b('1000-item list + 1000 detail docs', () => {
-		ld1000.cache.write({ selection: ld1000.updateSel, data: { id: '2', firstName: 'Alice', email: 'alice@example.com' }, parent: 'User:2' })
-	})
-})
+		const ld1000 = listPlusDetailCache(1000)
+		b('1000-item list + 1000 detail docs', () => {
+			ld1000.cache.write({
+				selection: ld1000.updateSel,
+				data: { id: '2', firstName: 'Alice', email: 'alice@example.com' },
+				parent: 'User:2',
+			})
+		})
+	}
+)
 
 describe.skipIf(skip('subscriptions'))('subscribe / unsubscribe', () => {
 	b('subscribe then unsubscribe (flat)', () => {
@@ -718,14 +795,28 @@ const appendSelection: SubscriptionSelection = {
 describe.skipIf(skip('lists'))('write — applyUpdates append (pagination)', () => {
 	b('append page of 10 to 100-item list', () => {
 		const cache = new Cache(config)
-		cache.write({ selection: appendSelection, data: { viewer: { id: '1', friends: makeFriends(100) } } })
-		cache.write({ selection: appendSelection, data: { viewer: { id: '1', friends: makeFriends(10) } }, applyUpdates: ['append'] })
+		cache.write({
+			selection: appendSelection,
+			data: { viewer: { id: '1', friends: makeFriends(100) } },
+		})
+		cache.write({
+			selection: appendSelection,
+			data: { viewer: { id: '1', friends: makeFriends(10) } },
+			applyUpdates: ['append'],
+		})
 	})
 
 	b('append page of 100 to 1000-item list', () => {
 		const cache = new Cache(config)
-		cache.write({ selection: appendSelection, data: { viewer: { id: '1', friends: makeFriends(1000) } } })
-		cache.write({ selection: appendSelection, data: { viewer: { id: '1', friends: makeFriends(100) } }, applyUpdates: ['append'] })
+		cache.write({
+			selection: appendSelection,
+			data: { viewer: { id: '1', friends: makeFriends(1000) } },
+		})
+		cache.write({
+			selection: appendSelection,
+			data: { viewer: { id: '1', friends: makeFriends(100) } },
+			applyUpdates: ['append'],
+		})
 	})
 })
 
@@ -769,7 +860,10 @@ const listItemSelection: SubscriptionSelection = {
 
 function makeListCache(n: number): Cache {
 	const cache = new Cache(config)
-	cache.write({ selection: listSelection, data: { viewer: { id: '1', friends: makeFriends(n) } } })
+	cache.write({
+		selection: listSelection,
+		data: { viewer: { id: '1', friends: makeFriends(n) } },
+	})
 	cache.subscribe({ rootType: 'Query', selection: listSelection, onMessage: () => {} })
 	return cache
 }
@@ -777,22 +871,30 @@ function makeListCache(n: number): Cache {
 describe.skipIf(skip('lists'))('list mutations', () => {
 	b('append to 10-item list', () => {
 		const cache = makeListCache(10)
-		cache.list('All_Users').append({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
+		cache
+			.list('All_Users')
+			.append({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
 	})
 
 	b('append to 100-item list', () => {
 		const cache = makeListCache(100)
-		cache.list('All_Users').append({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
+		cache
+			.list('All_Users')
+			.append({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
 	})
 
 	b('append to 1000-item list', () => {
 		const cache = makeListCache(1000)
-		cache.list('All_Users').append({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
+		cache
+			.list('All_Users')
+			.append({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
 	})
 
 	b('prepend to 100-item list', () => {
 		const cache = makeListCache(100)
-		cache.list('All_Users').prepend({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
+		cache
+			.list('All_Users')
+			.prepend({ selection: listItemSelection, data: { id: '9999', firstName: 'New' } })
 	})
 
 	b('remove from 10-item list', () => {
@@ -822,7 +924,19 @@ describe.skipIf(skip('optimistic'))('optimistic write + resolve', () => {
 		cache.subscribe({ rootType: 'Query', selection: flatSelection, onMessage: () => {} })
 
 		const layer = cache._internal_unstable.storage.createLayer(true)
-		cache.write({ selection: flatSelection, data: { viewer: { id: '1', firstName: 'Optimistic', lastName: 'Smith', email: 'o@example.com', age: 0 } }, layer: layer.id })
+		cache.write({
+			selection: flatSelection,
+			data: {
+				viewer: {
+					id: '1',
+					firstName: 'Optimistic',
+					lastName: 'Smith',
+					email: 'o@example.com',
+					age: 0,
+				},
+			},
+			layer: layer.id,
+		})
 		cache.clearLayer(layer.id)
 	})
 
@@ -857,7 +971,11 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 	b('100 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 100; i++) {
-			cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
+			cache.write({
+				selection: idFirstNameSelection,
+				data: { id: String(i), firstName: `User${i}` },
+				parent: `User:${i}`,
+			})
 		}
 		cache._internal_unstable.collectGarbage()
 	})
@@ -865,7 +983,11 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 	b('1000 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 1000; i++) {
-			cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
+			cache.write({
+				selection: idFirstNameSelection,
+				data: { id: String(i), firstName: `User${i}` },
+				parent: `User:${i}`,
+			})
 		}
 		cache._internal_unstable.collectGarbage()
 	})
@@ -873,7 +995,11 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 	b('10000 records', () => {
 		const cache = new Cache(config)
 		for (let i = 0; i < 10000; i++) {
-			cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
+			cache.write({
+				selection: idFirstNameSelection,
+				data: { id: String(i), firstName: `User${i}` },
+				parent: `User:${i}`,
+			})
 		}
 		cache._internal_unstable.collectGarbage()
 	})
@@ -886,7 +1012,11 @@ describe.skipIf(skip('gc'))('GC tick (unsubscribed records)', () => {
 function populatedCache(n: number): Cache {
 	const cache = new Cache(config)
 	for (let i = 0; i < n; i++) {
-		cache.write({ selection: idFirstNameSelection, data: { id: String(i), firstName: `User${i}` }, parent: `User:${i}` })
+		cache.write({
+			selection: idFirstNameSelection,
+			data: { id: String(i), firstName: `User${i}` },
+			parent: `User:${i}`,
+		})
 	}
 	return cache
 }
@@ -925,7 +1055,11 @@ describe.skipIf(skip('subscriptions'))('subscribe/unsubscribe churn', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: flatSelection, data: flatData })
 		for (let i = 0; i < 10; i++) {
-			const spec: SubscriptionSpec = { rootType: 'Query', selection: flatSelection, onMessage: () => {} }
+			const spec: SubscriptionSpec = {
+				rootType: 'Query',
+				selection: flatSelection,
+				onMessage: () => {},
+			}
 			cache.subscribe(spec)
 			cache.write({ selection: flatSelection, data: flatData })
 			cache.unsubscribe(spec)
@@ -936,7 +1070,11 @@ describe.skipIf(skip('subscriptions'))('subscribe/unsubscribe churn', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: flatSelection, data: flatData })
 		for (let i = 0; i < 100; i++) {
-			const spec: SubscriptionSpec = { rootType: 'Query', selection: flatSelection, onMessage: () => {} }
+			const spec: SubscriptionSpec = {
+				rootType: 'Query',
+				selection: flatSelection,
+				onMessage: () => {},
+			}
 			cache.subscribe(spec)
 			cache.write({ selection: flatSelection, data: flatData })
 			cache.unsubscribe(spec)
@@ -947,7 +1085,11 @@ describe.skipIf(skip('subscriptions'))('subscribe/unsubscribe churn', () => {
 		const cache = new Cache(config)
 		cache.write({ selection: nestedSelection, data: nestedData100 })
 		for (let i = 0; i < 10; i++) {
-			const spec: SubscriptionSpec = { rootType: 'Query', selection: nestedSelection, onMessage: () => {} }
+			const spec: SubscriptionSpec = {
+				rootType: 'Query',
+				selection: nestedSelection,
+				onMessage: () => {},
+			}
 			cache.subscribe(spec)
 			cache.write({ selection: nestedSelection, data: nestedData100 })
 			cache.unsubscribe(spec)
