@@ -15,7 +15,7 @@ export type RouteParam = {
 	optional: boolean
 	rest: boolean
 	chained: boolean
-	// resolved TypeScript type for this param (e.g. "string", "number", "boolean")
+	// GraphQL scalar name for this param (e.g. "ID", "String", "DateTime")
 	type?: string
 }
 

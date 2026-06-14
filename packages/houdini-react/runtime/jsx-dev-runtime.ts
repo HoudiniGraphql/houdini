@@ -2,6 +2,7 @@
 import { jsxDEV as _jsxDEV, Fragment } from 'react/jsx-dev-runtime'
 import type { AnchorHTMLAttributes, DetailedHTMLProps } from 'react'
 import type { JSX as ReactJSX } from 'react/jsx-runtime'
+import { resolveHref } from './resolve-href.js'
 
 // These imports only resolve after codegen writes the manifest into .houdini/.
 // In the source package (template context) the path is absent — hence the suppression.
@@ -15,14 +16,16 @@ type _TSType<T extends string> = T extends keyof RouteScalars
 	? RouteScalars[T]
 	: T extends 'Int' | 'Float'
 		? number
-		: T extends 'Boolean'
-			? boolean
-			: string
+		: T extends 'ID'
+			? string | number
+			: T extends 'Boolean'
+				? boolean
+				: string
 type _Param = { readonly name: string; readonly type: string; readonly optional: boolean }
 type _ParamObj<Ps extends readonly _Param[]> = {
-	[P in Ps[number] as P['name']]: P['optional'] extends true
-		? _TSType<P['type']> | undefined
-		: _TSType<P['type']>
+	[P in Ps[number] as P['optional'] extends true ? P['name'] : never]?: _TSType<P['type']>
+} & {
+	[P in Ps[number] as P['optional'] extends true ? never : P['name']]: _TSType<P['type']>
 }
 type _ToAnchorProps<P> = P extends {
 	readonly url: infer U extends string
@@ -36,8 +39,25 @@ type _ToAnchorProps<P> = P extends {
 		? { href: U; params: _ParamObj<Ps> }
 		: never
 
+// Non-route hrefs that are valid without a params object.
+type _ExternalHref =
+	| `http://${string}`
+	| `https://${string}`
+	| `mailto:${string}`
+	| `tel:${string}`
+	| `blob:${string}`
+	| `data:${string}`
+	| `//${string}`
+	| `#${string}`
+	| `./${string}`
+	| `../${string}`
+
 type RouteAnchorProps =
-	| { href?: string & {}; params?: Record<string, string | number | boolean> }
+	// Explicit opt-out: suppressHrefTypeCheck={true} accepts any href/params.
+	| { suppressHrefTypeCheck: true; href?: string; params?: Record<string, string | number | boolean> }
+	// External / non-routed hrefs (mailto, https, fragments, relative, …)
+	| { href?: _ExternalHref; params?: never }
+	// Known app routes — href and params are narrowed from the manifest.
 	| _ToAnchorProps<_Pages[keyof _Pages]>
 
 type AnchorProps = Omit<
@@ -60,9 +80,6 @@ export declare namespace JSX {
 	}
 }
 
-function resolveHref(href: string, params: Record<string, string | number | boolean>): string {
-	return href.replace(/\[([^\]]+)\]/g, (_, key: string) => String(params[key] ?? key))
-}
 
 export function jsxDEV(
 	type: any,
@@ -72,8 +89,10 @@ export function jsxDEV(
 	source?: any,
 	self?: any
 ): any {
-	if (type === 'a' && props?.params != null) {
-		const { params, href, ...rest } = props
+	if (type !== 'a') return _jsxDEV(type, props, key, isStaticChildren ?? false, source, self)
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { params, suppressHrefTypeCheck: _s, href, ...rest } = props ?? {}
+	if (params != null) {
 		return _jsxDEV(
 			'a',
 			{ ...rest, href: resolveHref(href, params) },
@@ -83,7 +102,7 @@ export function jsxDEV(
 			self
 		)
 	}
-	return _jsxDEV(type, props, key, isStaticChildren ?? false, source, self)
+	return _jsxDEV('a', { href, ...rest }, key, isStaticChildren ?? false, source, self)
 }
 
 export { Fragment }

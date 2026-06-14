@@ -22,6 +22,7 @@ export default function ({ children }: LayoutProps) {
 						<a
 							className="border-solid border-[var(--links)] border-2 p-2"
 							key={url}
+							suppressHrefTypeCheck
 							href={url}
 							data-houdini-preload
 						>

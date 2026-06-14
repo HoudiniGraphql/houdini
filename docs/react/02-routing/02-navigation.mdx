@@ -16,7 +16,7 @@ Links use standard `<a>` tags. No wrapper component needed:
 Houdini knows every valid route in your application, so `href` is type-checked at compile time. For parameterized routes, pass a `params` object alongside the pattern and Houdini resolves it at render time:
 
 ```tsx
-// static route — TypeScript enforces that "/shows" exists
+// static route — TypeScript verifies "/shows" is a real page
 <a href="/shows">All Shows</a>
 
 // parameterized route — TypeScript requires params.id
@@ -25,7 +25,39 @@ Houdini knows every valid route in your application, so `href` is type-checked a
 </a>
 ```
 
-If `href` doesn't match any registered route, TypeScript falls back to accepting any string so external links still work without ceremony.
+TypeScript will error if:
+- `href` refers to a path that doesn't exist in your app
+- `params` is missing for a parameterized route
+- `params` contains the wrong keys or incompatible value types
+
+### Param types
+
+Param types come from the GraphQL variables of the query attached to that route. If `$id` is declared as `ID!`, the param accepts either a string or a number. Custom scalars defined in your Houdini config are reflected too — a route with a `DateTime` param will expect a `Date` value.
+
+### External links
+
+External URLs, fragments, relative paths, and other non-app links are accepted without any special handling:
+
+```tsx
+<a href="https://example.com">External</a>
+<a href="mailto:hello@example.com">Email</a>
+<a href="#section">Jump to section</a>
+<a href="./sibling">Relative</a>
+```
+
+### Bypassing type checking
+
+For links where the `href` is computed at runtime and can't be statically verified — a navigation menu built from a list, a dynamic redirect, an API route — add `suppressHrefTypeCheck`:
+
+```tsx
+{routes.map(({ label, url }) => (
+    <a suppressHrefTypeCheck href={url} key={url}>
+        {label}
+    </a>
+))}
+```
+
+This keeps the full `<a>` API intact (all other props are still typed normally) while telling the type system to accept any string for `href`.
 
 <AsideAccordion variant="design" title="Why no custom <Link />">
 

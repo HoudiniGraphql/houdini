@@ -218,8 +218,14 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 		if info, ok := viewsByDir[dirKey]; ok && info.pageViewPath != "" {
 			claimedPageDocs[dirKey] = true
 			allQueries := clone(newLayoutQueries)
+			// Merge page query variables so param types from the page's own
+			// query (e.g. $id: ID!) are available when building the param map.
+			allVars := cloneVariables(newVariables)
 			if pageDoc, ok := pageDocByDir[dirKey]; ok {
 				allQueries = append(allQueries, pageDoc.name)
+				for k, v := range pageDoc.variables {
+					allVars[k] = v
+				}
 			}
 			pageURL := url
 			if len(url) > 1 && strings.HasSuffix(url, "/") {
@@ -233,7 +239,7 @@ func (p *HoudiniReact) LoadManifest(ctx context.Context) (ProjectManifest, error
 				URL:          pageURL,
 				Layouts:      clone(newLayoutIDs),
 				Path:         relPath,
-				Params:       buildParams(url, newVariables),
+				Params:       buildParams(url, allVars),
 			}
 		}
 
