@@ -890,7 +890,7 @@ func (p *HoudiniReact) GenerateJsxRuntime(ctx context.Context, manifest ProjectM
 	houdiniDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir)
 
 	var changed []string
-	for _, name := range []string{"resolve-href.ts", "jsx-runtime.ts", "jsx-dev-runtime.ts"} {
+	for _, name := range []string{"resolve-href.ts", "jsx-types.ts", "jsx-runtime.ts", "jsx-dev-runtime.ts"} {
 		src := filepath.Join(runtimeDir, name)
 		dst := filepath.Join(houdiniDir, name)
 		content, err := afero.ReadFile(p.Filesystem(), src)

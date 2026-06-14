@@ -528,6 +528,8 @@ func TestGenerateJsxRuntime(t *testing.T) {
 	require.NoError(t, err)
 	resolveHrefTemplate, err := os.ReadFile("../runtime/resolve-href.ts")
 	require.NoError(t, err)
+	jsxTypesTemplate, err := os.ReadFile("../runtime/jsx-types.ts")
+	require.NoError(t, err)
 
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
@@ -548,6 +550,7 @@ func TestGenerateJsxRuntime(t *testing.T) {
 			runtimeDir := cfg.PluginRuntimeDirectory(p.Name())
 			require.NoError(t, p.Filesystem().MkdirAll(runtimeDir, 0755))
 			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "resolve-href.ts"), resolveHrefTemplate, 0644))
+			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-types.ts"), jsxTypesTemplate, 0644))
 			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-runtime.ts"), prodTemplate, 0644))
 			require.NoError(t, afero.WriteFile(p.Filesystem(), filepath.Join(runtimeDir, "jsx-dev-runtime.ts"), devTemplate, 0644))
 
@@ -634,8 +637,10 @@ func TestGenerateRuntime(t *testing.T) {
 			require.NoError(t, afero.WriteFile(p.Filesystem(),
 				filepath.Join(runtimeDir, "tsconfig.json"), tsconfigStub, 0644))
 
-			// GenerateJsxRuntime reads resolve-href.ts, jsx-runtime.ts, jsx-dev-runtime.ts.
+			// GenerateJsxRuntime reads resolve-href.ts, jsx-types.ts, jsx-runtime.ts, jsx-dev-runtime.ts.
 			resolveHrefTemplate, err := os.ReadFile("../runtime/resolve-href.ts")
+			require.NoError(t, err)
+			jsxTypesTemplate, err := os.ReadFile("../runtime/jsx-types.ts")
 			require.NoError(t, err)
 			prodTemplate, err := os.ReadFile("../runtime/jsx-runtime.ts")
 			require.NoError(t, err)
@@ -643,6 +648,8 @@ func TestGenerateRuntime(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, afero.WriteFile(p.Filesystem(),
 				filepath.Join(runtimeDir, "resolve-href.ts"), resolveHrefTemplate, 0644))
+			require.NoError(t, afero.WriteFile(p.Filesystem(),
+				filepath.Join(runtimeDir, "jsx-types.ts"), jsxTypesTemplate, 0644))
 			require.NoError(t, afero.WriteFile(p.Filesystem(),
 				filepath.Join(runtimeDir, "jsx-runtime.ts"), prodTemplate, 0644))
 			require.NoError(t, afero.WriteFile(p.Filesystem(),
