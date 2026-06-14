@@ -32,7 +32,7 @@ TypeScript will error if:
 
 ### Param types
 
-Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too — a `DateTime` param expects a `Date` value.
+Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too. A `DateTime` param expects a `Date` value and will serialize into the url with the function you defined in your [config file](/guides/custom-scalars).
 
 ### External links
 
