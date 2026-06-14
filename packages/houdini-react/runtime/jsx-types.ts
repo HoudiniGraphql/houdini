@@ -53,7 +53,11 @@ type _ExternalHref =
 
 type RouteAnchorProps =
 	// Explicit opt-out: suppressHrefTypeCheck={true} accepts any href/params.
-	| { suppressHrefTypeCheck: true; href?: string; params?: Record<string, string | number | boolean> }
+	| {
+			suppressHrefTypeCheck: true
+			href?: string
+			params?: Record<string, string | number | boolean>
+	  }
 	// External / non-routed hrefs (mailto, https, fragments, relative, …)
 	| { href?: _ExternalHref; params?: never }
 	// Known app routes — href and params are narrowed from the manifest.
