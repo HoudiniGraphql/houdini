@@ -1,0 +1,41 @@
+name: Cache Benchmarks
+
+on:
+    pull_request:
+        paths:
+            - 'packages/houdini/src/runtime/cache/**'
+
+jobs:
+    benchmark:
+        name: Benchmark
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.head_ref }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 24.9.0
+            - uses: pnpm/action-setup@v4.1.0
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+            - uses: actions/cache@v3
+              with:
+                  path: ${{ steps.pnpm-cache.outputs.dir }}
+                  key: pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: pnpm-
+            - run: pnpm install --frozen-lockfile --prefer-offline
+            - name: Run benchmarks
+              run: pnpm bench:check
+            - name: Commit updated baseline (same-repo PR)
+              if: github.event.pull_request.head.repo.full_name == github.repository
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add perf/benchmark.json
+                  git diff --staged --quiet || git commit -m "perf: update cache benchmark baseline"
+                  git push

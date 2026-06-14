@@ -41,7 +41,16 @@ function flattenReport(path) {
     return flat
 }
 
-const baseline = flattenReport(baselinePath)
+let baseline
+try {
+    baseline = flattenReport(baselinePath)
+} catch {
+    // No baseline yet — treat the current run as the initial snapshot.
+    copyFileSync(currentPath, baselinePath)
+    console.log(`no baseline found — wrote initial snapshot to ${baselinePath}\n`)
+    process.exit(0)
+}
+
 const current = flattenReport(currentPath)
 
 const regressions = []
