@@ -50,7 +50,7 @@ const b: typeof bench = QUICK
 				iterations: 3,
 				warmupTime: 0,
 				warmupIterations: 1,
-			})) as unknown as typeof bench)
+			})) as unknown as typeof bench
 	: bench
 
 const config = testConfigFile()
