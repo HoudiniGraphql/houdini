@@ -213,7 +213,7 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	artifactDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir, "artifacts")
 
-	content, err := formatManifest(manifest, runtimeDir, artifactDir, projectConfig.ProjectRoot)
+	content, err := formatManifest(manifest, runtimeDir, artifactDir, projectConfig.ProjectRoot, projectConfig.Scalars)
 	if err != nil {
 		return nil, err
 	}
@@ -505,6 +505,7 @@ func formatManifest(
 	runtimeDir string,
 	artifactDir string,
 	projectRoot string,
+	scalars map[string]plugins.ScalarConfig,
 ) (string, error) {
 	// Build a lookup from query name → QueryManifest for artifact/loading/variable info.
 	queryByName := map[string]QueryManifest{}
@@ -523,6 +524,7 @@ func formatManifest(
 	for _, id := range sortedKeys(manifest.Pages) {
 		page := manifest.Pages[id]
 
+		cleanURL := stripRouteGroups(page.URL)
 		pattern, params, err := parsePagePattern(page.URL)
 		if err != nil {
 			return "", fmt.Errorf("could not parse pattern for page %s: %w", id, err)
@@ -539,8 +541,9 @@ func formatManifest(
 
 		sb.WriteString(fmt.Sprintf("\t\t%q: {\n", id))
 		sb.WriteString(fmt.Sprintf("\t\t\tid: %q,\n", id))
+		sb.WriteString(fmt.Sprintf("\t\t\turl: %q,\n", cleanURL))
 		sb.WriteString(fmt.Sprintf("\t\t\tpattern: %s,\n", pattern))
-		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params)))
+		sb.WriteString(fmt.Sprintf("\t\t\tparams: %s,\n", formatParams(params, page.Params)))
 
 		// Documents block.
 		sb.WriteString("\t\t\tdocuments: {\n")
@@ -573,7 +576,15 @@ func formatManifest(
 	}
 
 	sb.WriteString("\t},\n")
-	sb.WriteString("} satisfies RouterManifest<any>\n")
+	sb.WriteString("} as const satisfies RouterManifest<any>\n")
+
+	// Export a name→TS-type map for custom scalars so Link.tsx can resolve
+	// _TSType<"DateTime"> → Date without any per-project codegen in the jsx file.
+	sb.WriteString("\nexport type RouteScalars = {\n")
+	for _, name := range sortedKeys(scalars) {
+		sb.WriteString(fmt.Sprintf("\t%s: %s\n", name, scalars[name].Type))
+	}
+	sb.WriteString("}\n")
 
 	return sb.String(), nil
 }
@@ -655,8 +666,9 @@ func regexEscape(s string) string {
 	return b.String()
 }
 
-// formatParams renders a []routeParam as a TypeScript array literal.
-func formatParams(params []routeParam) string {
+// formatParams renders a []routeParam as a TypeScript array literal, including a
+// resolved TypeScript type for each param so the manifest can drive type extraction.
+func formatParams(params []routeParam, pageParams map[string]*ParamTypeInfo) string {
 	if len(params) == 0 {
 		return "[]"
 	}
@@ -666,9 +678,15 @@ func formatParams(params []routeParam) string {
 		if p.Matcher != "" {
 			matcher = p.Matcher
 		}
+		// Emit the GQL type name so the manifest-driven _TSType<T> utility can resolve
+		// it against RouteScalars (custom scalars) and built-in GQL scalar names.
+		gqlType := "String"
+		if info, ok := pageParams[p.Name]; ok && info != nil {
+			gqlType = info.Type
+		}
 		parts = append(parts, fmt.Sprintf(
-			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v }`,
-			p.Name, matcher, p.Optional, p.Rest, p.Chained,
+			`{ name: %q, matcher: %q, optional: %v, rest: %v, chained: %v, type: %q }`,
+			p.Name, matcher, p.Optional, p.Rest, p.Chained, gqlType,
 		))
 	}
 	return "[\n\t\t\t\t" + strings.Join(parts, ",\n\t\t\t\t") + "\n\t\t\t]"
@@ -852,67 +870,50 @@ declare module 'houdini/runtime' {
 	return changed, nil
 }
 
-// GenerateTsConfig writes .houdini/tsconfig.json so the project tsconfig can
-// extend it and get JSX, path aliases, and all other compiler settings for free.
+// stripRouteGroups removes (group) segments from a URL, leaving only real path
+// segments. E.g. "/(auth)/users/[id]" → "/users/[id]".
+func stripRouteGroups(url string) string {
+	parts := strings.Split(url, "/")
+	var out []string
+	for _, p := range parts {
+		if p == "" {
+			continue
+		}
+		if strings.HasPrefix(p, "(") && strings.HasSuffix(p, ")") {
+			continue
+		}
+		out = append(out, p)
+	}
+	return "/" + strings.Join(out, "/")
+}
+
+
+// GenerateTsConfig writes .houdini/tsconfig.json by copying the template from the
+// plugin runtime directory (written there by IncludeRuntime).
 func (p *HoudiniReact) GenerateTsConfig(ctx context.Context) ([]string, error) {
 	projectConfig, err := p.DB.ProjectConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	runtimeDir := projectConfig.PluginRuntimeDirectory(p.Name())
 	houdiniDir := filepath.Join(projectConfig.ProjectRoot, projectConfig.RuntimeDir)
 	tsConfigPath := filepath.Join(houdiniDir, "tsconfig.json")
 
-	content := `{
-    "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "$houdini": ["."],
-            "$houdini/*": ["./*"],
-            "~": ["../src"],
-            "~/*": ["../src/*"]
-        },
-        "rootDirs": ["..", "./types"],
-        "target": "ESNext",
-        "useDefineForClassFields": true,
-        "lib": ["DOM", "DOM.Iterable", "ESNext"],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "esModuleInterop": false,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
-        "allowImportingTsExtensions": true,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "noEmit": true,
-        "jsx": "react-jsx"
-    },
-    "include": [
-        "ambient.d.ts",
-        "./types/**/$types.d.ts",
-        "../vite.config.ts",
-        "../src/**/*.js",
-        "../src/**/*.ts",
-        "../src/**/*.jsx",
-        "../src/**/*.tsx",
-        "../src/+app.d.ts"
-    ],
-    "exclude": ["../node_modules/**", "./[!ambient.d.ts]**"]
-}
-`
+	content, err := afero.ReadFile(p.Filesystem(), filepath.Join(runtimeDir, "tsconfig.json"))
+	if err != nil {
+		return nil, err
+	}
 
 	existing, _ := afero.ReadFile(p.Filesystem(), tsConfigPath)
-	if string(existing) == content {
+	if string(existing) == string(content) {
 		return []string{}, nil
 	}
 
 	if err := p.Filesystem().MkdirAll(houdiniDir, 0755); err != nil {
 		return nil, err
 	}
-	if err := afero.WriteFile(p.Filesystem(), tsConfigPath, []byte(content), 0644); err != nil {
+	if err := afero.WriteFile(p.Filesystem(), tsConfigPath, content, 0644); err != nil {
 		return nil, err
 	}
 

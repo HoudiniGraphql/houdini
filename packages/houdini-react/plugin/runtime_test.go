@@ -2,6 +2,7 @@ package plugin_test
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 
 	coreConfig "code.houdinigraphql.com/packages/houdini-core/config"
 	"code.houdinigraphql.com/packages/houdini-react/plugin"
+	plugins "code.houdinigraphql.com/plugins"
 	"code.houdinigraphql.com/plugins/tests"
 )
 
@@ -531,6 +533,19 @@ func TestGenerateRuntime(t *testing.T) {
 		SetupAlwaysPasses: true,
 
 		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			cfg, err := p.DB.ProjectConfig(context.Background())
+			require.NoError(t, err)
+			runtimeDir := cfg.PluginRuntimeDirectory(p.Name())
+			require.NoError(t, p.Filesystem().MkdirAll(runtimeDir, 0755))
+
+			// GenerateTsConfig reads tsconfig.json from the plugin runtime dir (written
+			// there by IncludeRuntime in the real pipeline). Seed a minimal stub so the
+			// test doesn't fail on a missing file.
+			tsconfigStub, err := os.ReadFile("../runtime/tsconfig.json")
+			require.NoError(t, err)
+			require.NoError(t, afero.WriteFile(p.Filesystem(),
+				filepath.Join(runtimeDir, "tsconfig.json"), tsconfigStub, 0644))
+
 			views, ok := test.Extra["views"].(map[string]string)
 			if !ok {
 				return
@@ -573,7 +588,10 @@ func TestGenerateRuntime(t *testing.T) {
 						export default {
 							pages: {
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
 					`) + "\n",
 				},
 			},
@@ -605,6 +623,7 @@ func TestGenerateRuntime(t *testing.T) {
 							pages: {
 								"__subRoute__nested": {
 									id: "__subRoute__nested",
+									url: "/nested",
 									pattern: /^\/nested\/?$/,
 									params: [],
 									documents: {
@@ -622,7 +641,10 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__subRoute__nested"),
 								},
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
 					`) + "\n",
 				},
 			},
@@ -646,9 +668,10 @@ func TestGenerateRuntime(t *testing.T) {
 							pages: {
 								"__id_": {
 									id: "__id_",
+									url: "/[id]",
 									pattern: /^\/([^/]+?)\/?$/,
 									params: [
-										{ name: "id", matcher: "", optional: false, rest: false, chained: false }
+										{ name: "id", matcher: "", optional: false, rest: false, chained: false, type: "ID" }
 									],
 									documents: {
 										MyQuery: {
@@ -660,7 +683,34 @@ func TestGenerateRuntime(t *testing.T) {
 									component: () => import("../units/entries/__id_"),
 								},
 							},
-						} satisfies RouterManifest<any>
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
+				Name: "custom scalar emitted in RouteScalars",
+				Pass: true,
+				ProjectConfig: func(cfg *plugins.ProjectConfig) {
+					if cfg.Scalars == nil {
+						cfg.Scalars = make(map[string]plugins.ScalarConfig)
+					}
+					cfg.Scalars["DateTime"] = plugins.ScalarConfig{Type: "Date"}
+				},
+				Extra: map[string]any{
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+							DateTime: Date
+						}
 					`) + "\n",
 				},
 			},

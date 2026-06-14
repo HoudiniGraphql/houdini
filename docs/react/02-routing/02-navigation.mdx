@@ -3,18 +3,55 @@ title: Navigation
 description: Linking between pages in Houdini's React framework
 ---
 
-Links use standard `<a>` tags. No wrapper component needed:
+Use the `<Link>` component to navigate between pages. It renders a plain `<a>` element and accepts all standard anchor attributes alongside a typed `to` prop:
 
-```jsx
-<a href="/shows">All Shows</a>
+```tsx
+import { Link } from '$houdini'
+
+<Link to="/shows">All Shows</Link>
 ```
+
+## Typed routes
+
+Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object and Houdini interpolates it into the URL at render time:
+
+```tsx
+// static route — TypeScript verifies "/shows" is a real page
+<Link to="/shows">All Shows</Link>
+
+// parameterized route — TypeScript requires params.id
+<Link to="/shows/[id]" params={{ id: show.id }}>
+    {show.title}
+</Link>
+```
+
+TypeScript will error if:
+- `to` refers to a path that doesn't exist in your app
+- `params` is missing for a parameterized route
+- `params` contains the wrong keys or incompatible value types
+
+### Param types
+
+Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too — a `DateTime` param expects a `Date` value.
+
+### External links
+
+External URLs, fragments, relative paths, and other non-app hrefs are accepted without any special handling:
+
+```tsx
+<Link to="https://example.com">External</Link>
+<Link to="mailto:hello@example.com">Email</Link>
+<Link to="#section">Jump to section</Link>
+<Link to="./sibling">Relative</Link>
+```
+
 
 ## Preloading
 
-Add `data-houdini-preload` to a link and Houdini will begin fetching when the user hovers, before they click:
+Add `preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
 
-```html
-<a href="/shows" data-houdini-preload>All Shows</a>
+```tsx
+<Link to="/shows" preload>All Shows</Link>
 ```
 
 By default this fetches both the page component and its data. You can narrow it:
@@ -23,6 +60,6 @@ By default this fetches both the page component and its data. You can narrow it:
 - `"component"` — only the JavaScript bundle
 - `"page"` — both (default)
 
-```html
-<a href="/shows" data-houdini-preload="data">All Shows</a>
+```tsx
+<Link to="/shows" preload="data">All Shows</Link>
 ```

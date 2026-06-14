@@ -55,7 +55,7 @@ SvelteKit application, you can use `+page.gql` to define the query for your rout
 The data for the query is passed as a store that's available in a key that matches its name (in this case its `Info`). We used the store to render some basic information about Bulbasaur using some components that
 were provided in the project's `component` directory.
 
-<AsideAccordion variant="graphql">
+<AsideAccordion variant="graphql" title="Queries">
 
 A GraphQL query is a string that describes what information you want from the API. For example, the following defines a query named `QueryUserInfo`. In Houdini, all documents like queries must be named for reasons that will become more clear later.
 
@@ -113,29 +113,6 @@ your queries so you can catch errors as quickly as possible.
 
 Anyway, now that you have the necessary files, you should see Bulbasaur's description. If you are still running into issues, please reach out to us on the svelte discord and we'd be happy to help.
 
-<AsideAccordion variant="tip" title="What happened to load?">
-
-If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the vite plugin. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
-
-```svelte title="src/routes/+page.svelte"
-```
-
-```typescript title="src/routes/+page.ts&typescriptToggle=true"
-import { InfoStore } from '$houdini/stores/Info'
-import type { PageLoad } from './$types'
-
-export const load: PageLoad = async ({ event }) => {
-    const store = new InfoStore()
-
-    await InfoStore.fetch({ event })
-
-    return {
-        Info: store,
-    }
-}
-```
-
-</AsideAccordion>
 
 ## Query Variables
 
@@ -151,7 +128,7 @@ cd src/routes && mkdir "[[id]]" && mv +page.* "./[[id]]"
 The double braces might seem strange but that will let us have an optional parameter in the url so we can
 render the same view for both `/` and `/1`.
 
-<AsideAccordion variant="graphql" title="GraphQL: Query Variables">
+<AsideAccordion variant="graphql" title="Query Variables">
 
 All of the queries we've seen so far have had static arguments. However, most of the time
 you will need to want to give an argument a dynamic value based on something in your application.

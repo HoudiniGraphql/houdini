@@ -8,13 +8,55 @@ import {
 import { load_manifest, type ProjectManifest } from 'houdini/router/manifest'
 import { type RouterManifest } from 'houdini/router/types'
 import { VitePluginContext } from 'houdini/vite'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import type * as React from 'react'
 import { build, type BuildOptions, type ConfigEnv, type Connect } from 'vite'
 import { PluginOption } from 'vite'
 
 import { transform_file, type ComponentFieldRow } from './transform.js'
+
+// Matches GenerateTsConfig in packages/houdini-react/plugin/runtime.go — keep in sync.
+const REACT_TSCONFIG_STUB = `{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "$houdini": ["."],
+            "$houdini/*": ["./*"],
+            "~": ["../src"],
+            "~/*": ["../src/*"]
+        },
+        "rootDirs": ["..", "./types"],
+        "target": "ESNext",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": false,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx"
+    },
+    "include": [
+        "ambient.d.ts",
+        "./types/**/$types.d.ts",
+        "../vite.config.ts",
+        "../src/**/*.js",
+        "../src/**/*.ts",
+        "../src/**/*.jsx",
+        "../src/**/*.tsx",
+        "../src/+app.d.ts"
+    ],
+    "exclude": ["../node_modules/**", "./[!ambient.d.ts]**"]
+}
+`
 
 // Resolve the node-compatible react-streaming server entry at load time. The
 // resolve.alias we add in config() redirects react-streaming/server to this
@@ -44,6 +86,18 @@ export default function (ctx: VitePluginContext): PluginOption {
 
 		async config(userConfig, env) {
 			viteEnv = env
+
+			const runtimeDir = path.join(
+				ctx.config.root_dir,
+				ctx.config.config_file.runtimeDir ?? '.houdini'
+			)
+			try {
+				mkdirSync(runtimeDir, { recursive: true })
+				const tsconfigPath = path.join(runtimeDir, 'tsconfig.json')
+				if (!existsSync(tsconfigPath)) {
+					writeFileSync(tsconfigPath, REACT_TSCONFIG_STUB)
+				}
+			} catch {}
 
 			// SSR build: don't override outDir or input — let the inline config from
 			// closeBundle() control where output lands. Transforms still run via the
@@ -122,10 +176,10 @@ export default function (ctx: VitePluginContext): PluginOption {
 		},
 
 		resolveId(id) {
-			if (!id.includes('virtual:houdini')) {
-				return
+			if (id.includes('virtual:houdini')) {
+				return id.substring(id.indexOf('virtual:houdini'))
 			}
-			return id.substring(id.indexOf('virtual:houdini'))
+			return null
 		},
 
 		hotUpdate() {

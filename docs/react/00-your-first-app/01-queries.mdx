@@ -53,7 +53,7 @@ The data for the query is passed as a prop that matches the query's name (in thi
 
 You might have noticed the `~/components` import. Houdini configures a `~` path alias that points to your project's `src/` directory, so `~/components` is equivalent to `src/components`. You can use it anywhere in your project to avoid long relative import paths.
 
-<AsideAccordion variant="graphql">
+<AsideAccordion variant="graphql" title="Queries">
 
 A GraphQL query is a string that describes what information you want from the API. For example, the following defines a query named `QueryUserInfo`. In Houdini, all documents like queries must be named for reasons that will become more clear later.
 
@@ -123,7 +123,7 @@ cd src/routes && mkdir "[[id]]" && mv +page.* "./[[id]]"
 
 The double braces mark an optional parameter so we can render the same view for both `/` and `/1`.
 
-<AsideAccordion variant="graphql" title="GraphQL: Query Variables">
+<AsideAccordion variant="graphql" title="Query Variables">
 
 All of the queries we've seen so far have had static arguments. However, most of the time
 you will need to give an argument a dynamic value based on something in your application.
