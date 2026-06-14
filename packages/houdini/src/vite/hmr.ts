@@ -423,21 +423,11 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 					// the task now includes every document that we need to process.
 					// BeforeValidate → Validate → AfterValidate → GenerateDocuments → GenerateRuntime
 					let results: Awaited<ReturnType<typeof run_pipeline>>
-					let taskDocCount = 0
 					try {
 						results = await run_pipeline(compiler.trigger_hook, {
 							task_id,
 							after: 'AfterExtract',
 						})
-						// Count before finally clears current_task — querying after would always give 0.
-						taskDocCount =
-							ctx.db.get<{ count: number }>(
-								`SELECT COUNT(DISTINCT d.id) as count
-								 FROM documents d
-								 JOIN raw_documents rd ON rd.id = d.raw_document
-								 WHERE rd.current_task = ?`,
-								[task_id]
-							)?.count ?? 0
 					} finally {
 						// Always clear the task association, even on pipeline failure, so
 						// stale current_task values don't bleed into the next HMR run.
@@ -446,8 +436,9 @@ export function document_hmr(ctx: VitePluginContext): VitePlugin {
 							[task_id]
 						)
 					}
+					const changedDocCount = Object.values(results.GenerateDocuments || {}).flat().length
 					console.log(
-						`🎩 Updated ${taskDocCount} ${taskDocCount === 1 ? 'document' : 'documents'}`
+						`🎩 Updated ${changedDocCount} ${changedDocCount === 1 ? 'document' : 'documents'}`
 					)
 
 					const updated_modules = [
