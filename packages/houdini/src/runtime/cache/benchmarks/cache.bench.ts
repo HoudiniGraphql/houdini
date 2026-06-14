@@ -45,7 +45,12 @@ const QUICK = process.env.BENCH_QUICK === '1'
 type BenchArgs = Parameters<typeof bench>
 function b(name: BenchArgs[0], fn: BenchArgs[1], opts?: BenchArgs[2]): void {
 	if (QUICK) {
-		bench(name, fn as () => void, { time: 0, iterations: 3, warmupTime: 0, warmupIterations: 1 })
+		bench(name, fn as () => void, {
+			time: 0,
+			iterations: 3,
+			warmupTime: 0,
+			warmupIterations: 1,
+		})
 	} else {
 		bench(name, fn as () => void, opts)
 	}
