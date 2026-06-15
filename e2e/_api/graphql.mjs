@@ -127,6 +127,16 @@ export const typeDefs = /* GraphQL */ `
 			delay: Int
 			snapshot: String!
 		): UserConnection!
+		usersConnectionForwardOnly(
+			after: String
+			first: Int
+			snapshot: String!
+		): UserConnection!
+		usersConnectionBackwardOnly(
+			before: String
+			last: Int
+			snapshot: String!
+		): UserConnection!
 		usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
 		userNodes(limit: Int = 4, offset: Int, snapshot: String!): UserNodes!
 		userSearch(filter: UserNameFilter!, snapshot: String!): [User!]!
@@ -466,6 +476,12 @@ export const resolvers = {
 				await sleep(args.delay)
 			}
 
+			return connectionFromArray(getUserSnapshot(args.snapshot), args)
+		},
+		usersConnectionForwardOnly: (_, args) => {
+			return connectionFromArray(getUserSnapshot(args.snapshot), args)
+		},
+		usersConnectionBackwardOnly: (_, args) => {
 			return connectionFromArray(getUserSnapshot(args.snapshot), args)
 		},
 		user: async (_, args) => {

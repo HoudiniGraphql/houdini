@@ -33,6 +33,9 @@ export function useDocumentHandle<
 }): DocumentHandle<_Artifact, _Data, _Input> & { fetch: FetchFn<_Data, _Input> } {
 	const [forwardPending, setForwardPending] = React.useState(false)
 	const [backwardPending, setBackwardPending] = React.useState(false)
+	// Stable cursor stacks for SinglePage pagination — must survive re-renders caused by store updates
+	const previousCursorsRef = React.useRef<(string | null)[]>([])
+	const nextCursorsRef = React.useRef<(string | null)[]>([])
 	const location = useLocation()
 
 	// grab the current session value
@@ -127,6 +130,8 @@ export function useDocumentHandle<
 				getState: () => storeValue.data,
 				getVariables: () => storeValue.variables!,
 				fetch: fetchQuery,
+				previousCursors: previousCursorsRef.current,
+				nextCursors: nextCursorsRef.current,
 				fetchUpdate: (args, updates) => {
 					return paginationObserver!.send({
 						...args,

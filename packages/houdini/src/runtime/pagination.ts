@@ -22,6 +22,8 @@ export function cursorHandlers<
 	getState,
 	getVariables,
 	getSession,
+	previousCursors = [],
+	nextCursors = [],
 }: {
 	artifact: QueryArtifact
 	getState: () => _Data | null
@@ -29,7 +31,10 @@ export function cursorHandlers<
 	getSession: () => Promise<App.Session>
 	fetch: FetchFn<_Data, _Input>
 	fetchUpdate: (arg: SendParams, updates: string[]) => ReturnType<FetchFn<_Data, _Input>>
+	previousCursors?: (string | null)[]
+	nextCursors?: (string | null)[]
 }): CursorHandlers<_Data, _Input> {
+
 	// dry up the page-loading logic
 	const loadPage = async ({
 		pageSizeVar,
@@ -89,6 +94,38 @@ export function cursorHandlers<
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			const isSinglePage = artifact.refetch?.mode === 'SinglePage'
+			const direction = artifact.refetch?.direction
+
+			// Backward-only SinglePage: use nextCursors stack to re-issue a backward query
+			if (isSinglePage && direction === 'backward') {
+				if (nextCursors.length === 0) {
+					return Promise.resolve({
+						data: getState(),
+						errors: null,
+						fetching: false,
+						partial: false,
+						stale: false,
+						source: DataSource.Cache,
+						variables: getVariables(),
+					})
+				}
+				const beforeCursor = nextCursors.pop()!
+				return loadPage({
+					pageSizeVar: 'last',
+					functionName: 'loadNextPage',
+					input: {
+						before: beforeCursor,
+						last: first ?? artifact.refetch!.pageSize,
+						first: null,
+						after: null,
+					} as unknown as _Input,
+					fetch,
+					metadata,
+					where: 'start',
+				})
+			}
+
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
 			// if there is no next page, we're done
@@ -102,6 +139,11 @@ export function cursorHandlers<
 					source: DataSource.Cache,
 					variables: getVariables(),
 				})
+			}
+
+			// Forward-only SinglePage: push current 'after' so we can navigate back later
+			if (isSinglePage && direction === 'forward') {
+				previousCursors.push((getVariables() as any)?.after ?? null)
 			}
 
 			// only specify the page count if we're given one
@@ -133,10 +175,42 @@ export function cursorHandlers<
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
+			const isSinglePage = artifact.refetch?.mode === 'SinglePage'
+			const direction = artifact.refetch?.direction
+
+			// Forward-only SinglePage: use previousCursors stack to re-issue a forward query
+			if (isSinglePage && direction === 'forward') {
+				if (previousCursors.length === 0) {
+					return Promise.resolve({
+						data: getState(),
+						errors: null,
+						fetching: false,
+						partial: false,
+						stale: false,
+						source: DataSource.Cache,
+						variables: getVariables(),
+					})
+				}
+				const afterCursor = previousCursors.pop()!
+				return loadPage({
+					pageSizeVar: 'first',
+					functionName: 'loadPreviousPage',
+					input: {
+						after: afterCursor,
+						first: last ?? artifact.refetch!.pageSize,
+						before: null,
+						last: null,
+					} as unknown as _Input,
+					fetch,
+					metadata,
+					where: 'end',
+				})
+			}
+
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
 
-			// if there is no next page, we're done
+			// if there is no previous page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
 				return Promise.resolve({
 					data: getState(),
@@ -147,6 +221,11 @@ export function cursorHandlers<
 					source: DataSource.Cache,
 					variables: getVariables(),
 				})
+			}
+
+			// Backward-only SinglePage: push current 'before' so we can navigate forward later
+			if (isSinglePage && direction === 'backward') {
+				nextCursors.push((getVariables() as any)?.before ?? null)
 			}
 
 			// only specify the page count if we're given one
