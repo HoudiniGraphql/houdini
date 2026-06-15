@@ -73,4 +73,13 @@ query ShowList {
 }
 ```
 
-The fragment then handles its own pending checks internally. The route stays decoupled from the loading structure of its children.
+The fragment then defines its own loading shape independently:
+
+```graphql
+fragment ShowCard_show on Show {
+  title @loading
+  posterUrl @loading
+}
+```
+
+The route stays decoupled from the loading structure of its children.
