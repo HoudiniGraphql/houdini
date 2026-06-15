@@ -125,7 +125,7 @@ It's worth mentioning explicitly that you are free to mix and match fragments ho
 Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
 
 ```tsx title="src/components/SpeciesPreview.tsx&typescriptToggle=true"
-import { useFragment, graphql } from '$houdini'
+import { useFragment, graphql, Link } from '$houdini'
 import type { SpeciesPreview as SpeciesPreviewFragment } from '$houdini'
 import { Sprite, Display } from '.'
 import { SpeciesPreviewNumber } from './SpeciesPreviewNumber'
@@ -142,11 +142,11 @@ export function SpeciesPreview({ species, number }: { species: SpeciesPreviewFra
     if (!data) return null
 
     return (
-        <a href={`/${data.id}`} className="no-underline">
+        <Link to="/[[id]]" params={{ id: data.id }} className="no-underline">
             <SpeciesPreviewNumber value={number} />
             <Sprite species={data} className="h-[102px] w-[102px]" />
             <Display>{data.name}</Display>
-        </a>
+        </Link>
     )
 }
 ```

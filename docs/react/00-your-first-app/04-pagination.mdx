@@ -237,17 +237,19 @@ export default function Page({ Info$handle }: PageProps) {
 }
 ```
 
-Also update the nav links to use the `id` variable we extracted above:
+Also add `Link` to your `$houdini` import and update the nav links to use the `id` variable we extracted above:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
 <nav>
-    <a
-        href={id - 1 <= 0 ? undefined : `/${id - 1}`}
-        className={id - 1 <= 0 ? 'disabled' : undefined}
+    <Link
+        to="/[[id]]"
+        params={{ id: id - 1 }}
+        disabled={id <= 1}
+        className={id <= 1 ? 'disabled' : undefined}
     >
         previous
-    </a>
-    <a href={`/${id + 1}`}>next</a>
+    </Link>
+    <Link to="/[[id]]" params={{ id: id + 1 }}>next</Link>
 </nav>
 ```
 
