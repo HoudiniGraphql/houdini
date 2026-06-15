@@ -46,6 +46,21 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 ```
 
 
+## Disabled Links
+
+Pass `disabled` to prevent navigation. The `href` attribute is omitted so the element is inert, and you can add a class to style it:
+
+```tsx
+<Link
+    to="/[[id]]"
+    params={{ id: id - 1 }}
+    disabled={id <= 1}
+    className={id <= 1 ? 'disabled' : undefined}
+>
+    previous
+</Link>
+```
+
 ## Preloading
 
 Add `preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
