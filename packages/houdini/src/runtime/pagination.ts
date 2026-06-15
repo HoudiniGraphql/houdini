@@ -34,7 +34,6 @@ export function cursorHandlers<
 	previousCursors?: (string | null)[]
 	nextCursors?: (string | null)[]
 }): CursorHandlers<_Data, _Input> {
-
 	// dry up the page-loading logic
 	const loadPage = async ({
 		pageSizeVar,
