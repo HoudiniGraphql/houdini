@@ -32,7 +32,7 @@ TypeScript will error if:
 
 ### Param types
 
-Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too. A `DateTime` param expects a `Date` value and will serialize into the url with the function you defined in your [config file](~/guides/custom-scalars).
+Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too — a `DateTime` param expects a `Date` value and will serialize into the URL with the function you defined in your [config file](~/guides/custom-scalars).
 
 ### External links
 
@@ -45,6 +45,20 @@ External URLs, fragments, relative paths, and other non-app hrefs are accepted w
 <Link to="./sibling">Relative</Link>
 ```
 
+## Disabled
+
+Pass `disabled` to prevent navigation. The `href` attribute is omitted so the element is inert, and you can add a class to style it:
+
+```tsx
+<Link
+    to="/[[id]]"
+    params={{ id: id - 1 }}
+    disabled={id <= 1}
+    className={id <= 1 ? 'disabled' : undefined}
+>
+    previous
+</Link>
+```
 
 ## Preloading
 

@@ -158,6 +158,7 @@ a variable. Doing this is relatively simple, just update the query inside of `+p
 ```graphql title="src/routes/[[id]]/+page.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
+        id
         name
         flavor_text
         sprites {
@@ -173,17 +174,26 @@ and took care of all of the wiring for you. Pretty cool, huh?
 You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
 there is no value for the `[[id]]` portion of the url and the query uses its default value of `1`.
 
-For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block as the last child of the `Container` component. Don't worry if you see an error when you click on them, we'll fix that next.
+For completeness, let's quickly add some buttons to navigate between the different species. First add `Link` to your `$houdini` import:
+
+```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { Link } from '$houdini'
+```
+
+Then copy and paste this block as the last child of the `Container` component:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
 <Panel side="right">
     <nav>
-        <a href={Info.species.id - 1} disabled={Info.species.id <= 1}>
+        <Link
+            to="/[[id]]"
+            params={{ id: Info.species.id - 1 }}
+            disabled={Info.species.id <= 1}
+            className={Info.species.id <= 1 ? 'disabled' : undefined}
+        >
             previous
-        </a>
-        <a href={Info.species.id + 1} disabled={Info.species.id >= 151}>
-            next
-        </a>
+        </Link>
+        <Link to="/[[id]]" params={{ id: Info.species.id + 1 }}>next</Link>
     </nav>
 </Panel>
 ```

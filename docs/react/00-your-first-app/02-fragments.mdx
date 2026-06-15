@@ -55,7 +55,15 @@ Defining a fragment inside of your component looks a lot like the query from bef
 import { useFragment, graphql } from '$houdini'
 import type { SpriteInfo } from '$houdini'
 
-export function Sprite({ species, ...props }: { species: SpriteInfo }) {
+export function Sprite({
+    species,
+    id,
+    className,
+}: {
+    species: SpriteInfo | null
+    id?: string
+    className?: string
+}) {
     const info = useFragment(species, graphql(`
         fragment SpriteInfo on Species {
             name
@@ -65,13 +73,11 @@ export function Sprite({ species, ...props }: { species: SpriteInfo }) {
         }
     `))
 
+    if (!info) return null
+
     return (
-        <div className="sprite" {...props}>
-            <img
-                src={info.sprites.front}
-                alt={`${info.name} sprite`}
-                height="100%"
-            />
+        <div id={id} className={`sprite${className ? ` ${className}` : ''}`}>
+            <img height="100%" src={info.sprites.front} alt={`${info.name} sprite`} />
         </div>
     )
 }
@@ -82,9 +88,9 @@ Next we have to go back to the route and put this fragment to use. Update the qu
 ```graphql title="src/routes/[[id]]/+page.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
+        id
         name
         flavor_text
-
         ...SpriteInfo
     }
 }
@@ -119,26 +125,28 @@ It's worth mentioning explicitly that you are free to mix and match fragments ho
 Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
 
 ```tsx title="src/components/SpeciesPreview.tsx&typescriptToggle=true"
-import { useFragment, graphql } from '$houdini'
+import { useFragment, graphql, Link } from '$houdini'
+import type { SpeciesPreview as SpeciesPreviewFragment } from '$houdini'
 import { Sprite, Display } from '.'
-import type { SpeciesPreview } from '$houdini'
+import { SpeciesPreviewNumber } from './SpeciesPreviewNumber'
 
-export function SpeciesPreview({ species, number }: { species: SpeciesPreview, number: number }) {
-    const preview = useFragment(species, graphql(`
+export function SpeciesPreview({ species, number }: { species: SpeciesPreviewFragment, number: number }) {
+    const data = useFragment(species, graphql(`
         fragment SpeciesPreview on Species {
             name
             id
-
             ...SpriteInfo
         }
     `))
 
+    if (!data) return null
+
     return (
-        <a href={preview.id}>
-            <Number value={number} />
-            <Sprite species={preview} />
-            <Display>{preview.name}</Display>
-        </a>
+        <Link to="/[[id]]" params={{ id: data.id }} className="no-underline">
+            <SpeciesPreviewNumber value={number} />
+            <Sprite species={data} className="h-[102px] w-[102px]" />
+            <Display>{data.name}</Display>
+        </Link>
     )
 }
 ```
@@ -148,28 +156,37 @@ Once that's done, go back to the route we've been working with and update the qu
 ```graphql title="src/routes/[[id]]/+page.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
+        id
         name
         flavor_text
+        ...SpriteInfo
         evolution_chain {
+            id
             ...SpeciesPreview
         }
-        ...SpriteInfo
     }
 }
 ```
 
-Next, copy and paste the following code above the `nav` in the right panel. You'll also want to add imports for `SpeciesPreview` and `SpeciesPreviewPlaceholder` from the component directory.
+Next, add imports for `SpeciesPreview` and `SpeciesPreviewPlaceholder` from the component directory, then add the two `const` declarations at the top of your component function and place the `div` above the `nav` in the right panel:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+// add these at the top of the Page function body
+const evolutionChain = Info.species?.evolution_chain ?? []
+const placeholderCount = Math.max(0, 3 - evolutionChain.length)
+
+// ...
+
+{/* add this above the nav in the right panel */}
 <div id="species-evolution-chain">
-    {Info.species.evolution_chain.map((form, i) => (
-        <SpeciesPreview key={form.id} species={form} number={i + 1} />
+    {evolutionChain.map((s, i) => (
+        <SpeciesPreview key={s.id} species={s} number={i + 1} />
     ))}
-    {/* if there are less than three species in the chain, leave a placeholder behind */}
-    {Array.from({ length: 3 - Info.species.evolution_chain.length }).map((_, i) => (
+    {/* if there are fewer than three species in the chain, leave a placeholder */}
+    {Array.from({ length: placeholderCount }).map((_, i) => (
         <SpeciesPreviewPlaceholder
-            key={i}
-            number={Info.species.evolution_chain.length + i + 1}
+            key={evolutionChain.length + i}
+            number={evolutionChain.length + i + 1}
         />
     ))}
 </div>
