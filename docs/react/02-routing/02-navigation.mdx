@@ -11,12 +11,21 @@ import { Link } from '$houdini'
 <Link to="/shows">All Shows</Link>
 ```
 
-Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object:
+Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object and Houdini interpolates it into the URL at render time:
 
 ```tsx
+// static route — TypeScript verifies "/shows" is a real page
+<Link to="/shows">All Shows</Link>
+
+// parameterized route — TypeScript requires params.id
 <Link to="/shows/[id]" params={{ id: show.id }}>
     {show.title}
 </Link>
 ```
+
+TypeScript will error if:
+- `to` refers to a path that doesn't exist in your app
+- `params` is missing for a parameterized route
+- `params` contains the wrong keys or incompatible value types
 
 `<Link>` also supports [preloading](~/api-reference/link#preloading) and a [`disabled` prop](~/api-reference/link#disabled) for inert links. See the [`<Link>` API reference](~/api-reference/link) for the full list of props and examples.
