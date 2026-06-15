@@ -11,70 +11,12 @@ import { Link } from '$houdini'
 <Link to="/shows">All Shows</Link>
 ```
 
-## Type-Safe URLs
-
-Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object and Houdini interpolates it into the URL at render time:
+Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object:
 
 ```tsx
-// static route — TypeScript verifies "/shows" is a real page
-<Link to="/shows">All Shows</Link>
-
-// parameterized route — TypeScript requires params.id
 <Link to="/shows/[id]" params={{ id: show.id }}>
     {show.title}
 </Link>
 ```
 
-TypeScript will error if:
-- `to` refers to a path that doesn't exist in your app
-- `params` is missing for a parameterized route
-- `params` contains the wrong keys or incompatible value types
-
-### Param types
-
-Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too. A `DateTime` param expects a `Date` value and will serialize into the url with the function you defined in your [config file](~/guides/custom-scalars).
-
-### External links
-
-External URLs, fragments, relative paths, and other non-app hrefs are accepted without any special handling:
-
-```tsx
-<Link to="https://example.com">External</Link>
-<Link to="mailto:hello@example.com">Email</Link>
-<Link to="#section">Jump to section</Link>
-<Link to="./sibling">Relative</Link>
-```
-
-
-## Disabled Links
-
-Pass `disabled` to prevent navigation. The `href` attribute is omitted so the element is inert, and you can add a class to style it:
-
-```tsx
-<Link
-    to="/[[id]]"
-    params={{ id: id - 1 }}
-    disabled={id <= 1}
-    className={id <= 1 ? 'disabled' : undefined}
->
-    previous
-</Link>
-```
-
-## Preloading
-
-Add `preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
-
-```tsx
-<Link to="/shows" preload>All Shows</Link>
-```
-
-By default this fetches both the page component and its data. You can narrow it:
-
-- `"data"` — only the GraphQL data
-- `"component"` — only the JavaScript bundle
-- `"page"` — both (default)
-
-```tsx
-<Link to="/shows" preload="data">All Shows</Link>
-```
+`<Link>` also supports [preloading](~/api-reference/link#preloading) and a [`disabled` prop](~/api-reference/link#disabled) for inert links. See the [`<Link>` API reference](~/api-reference/link) for the full list of props and examples.

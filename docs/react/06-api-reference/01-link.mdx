@@ -1,0 +1,90 @@
+---
+title: Link
+description: Type-safe navigation component for Houdini's React framework
+---
+
+`<Link>` renders a plain `<a>` element and accepts all standard anchor attributes alongside a typed `to` prop.
+
+```tsx
+import { Link } from '$houdini'
+
+<Link to="/shows">All Shows</Link>
+```
+
+## Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `to` | `RouteHrefs \| ExternalHref` | The destination URL. Type-checked against your app's known routes. |
+| `params` | `object` | Route parameters for parameterized routes. Required when the route has required params. |
+| `disabled` | `boolean` | When `true`, the `href` attribute is omitted and the element is inert. |
+| `preload` | `boolean \| "data" \| "component" \| "page"` | Prefetch the destination on hover. |
+
+All other props are forwarded to the underlying `<a>` element.
+
+## Type-Safe URLs
+
+Houdini knows every valid route in your app, so `to` is type-checked at compile time. For parameterized routes, pass a `params` object and Houdini interpolates it into the URL at render time:
+
+```tsx
+// static route — TypeScript verifies "/shows" is a real page
+<Link to="/shows">All Shows</Link>
+
+// parameterized route — TypeScript requires params.id
+<Link to="/shows/[id]" params={{ id: show.id }}>
+    {show.title}
+</Link>
+```
+
+TypeScript will error if:
+- `to` refers to a path that doesn't exist in your app
+- `params` is missing for a parameterized route
+- `params` contains the wrong keys or incompatible value types
+
+### Param types
+
+Param types come from the GraphQL variables attached to that route. If `$id` is declared as `ID!`, the param accepts a string or a number. Custom scalars from your Houdini config are reflected too — a `DateTime` param expects a `Date` value and will serialize into the URL with the function you defined in your [config file](~/guides/custom-scalars).
+
+### External links
+
+External URLs, fragments, relative paths, and other non-app hrefs are accepted without any special handling:
+
+```tsx
+<Link to="https://example.com">External</Link>
+<Link to="mailto:hello@example.com">Email</Link>
+<Link to="#section">Jump to section</Link>
+<Link to="./sibling">Relative</Link>
+```
+
+## Disabled
+
+Pass `disabled` to prevent navigation. The `href` attribute is omitted so the element is inert, and you can add a class to style it:
+
+```tsx
+<Link
+    to="/[[id]]"
+    params={{ id: id - 1 }}
+    disabled={id <= 1}
+    className={id <= 1 ? 'disabled' : undefined}
+>
+    previous
+</Link>
+```
+
+## Preloading
+
+Add `preload` to a `<Link>` and Houdini will begin fetching when the user hovers, before they click:
+
+```tsx
+<Link to="/shows" preload>All Shows</Link>
+```
+
+By default this fetches both the page component and its data. You can narrow it:
+
+- `"data"` — only the GraphQL data
+- `"component"` — only the JavaScript bundle
+- `"page"` — both (default)
+
+```tsx
+<Link to="/shows" preload="data">All Shows</Link>
+```
