@@ -165,90 +165,92 @@ For more information on the Connection model, check out [this blog post](https:/
 ## Paginated Queries
 
 Interacting with a paginated query is pretty similar to everything we've been doing so far.
-Just decorate the paginated field with the `@paginate` directive. Go ahead and change the `+page.gql` file to look like this:
+Just decorate the paginated field with the `@paginate` directive. Since we want to show one move at a time, we'll pass `mode: SinglePage` so that paging replaces the current item rather than appending to a list. Go ahead and change the `+page.gql` file to look like this:
 
 ```graphql title="src/routes/[[id]]/+page.gql"
-query Info($id: Int! = 1) {
+query Info($id: Int = 1) {
     species(id: $id) {
+        id
         name
         flavor_text
         favorite
+        ...SpriteInfo
         evolution_chain {
+            id
             ...SpeciesPreview
         }
-        ...SpriteInfo
-
-        moves(first: 1) @paginate {
+        moves(first: 1) @paginate(mode: SinglePage) {
             edges {
                 node {
                     ...MoveDisplay
                 }
             }
+            pageInfo {
+                hasNextPage
+                hasPreviousPage
+            }
         }
     }
-
-    favorites @list(name:"FavoriteSpecies") {
+    favorites @list(name: "FavoriteSpecies") {
+        id
         ...FavoritePreview
     }
 }
 ```
 
-When a query has `@paginate`, Houdini threads a handle prop alongside the query result — `Info$handle` in our case. The handle gives you `loadNextPage`, `loadPreviousPage`, and a `pageInfo` object with metadata about the current position. For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](~/loading-data/pagination).
+When a query has `@paginate`, Houdini threads a handle prop alongside the query result — `Info$handle` in our case. The handle gives you `loadNext` and `loadPrevious` functions to step through the list. We also ask for `pageInfo` in the query so we know whether there are more pages in either direction. For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](~/loading-data/pagination).
 
-It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
+Note that the `$id` variable has lost its `!` — it is now truly optional. Houdini uses `!` on a paginated query's variable to control extra behavior, so we drop it here.
+
+It's time to add some visuals. Update the component to destructure `Info$handle` instead of `Info`, then add an import for `MoveDisplay` and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
+import { MoveDisplay, UpButton, DownButton } from '~/components'
 import type { PageProps } from './$types'
 
-export default function Page({ Info, Info$handle }: PageProps) {
-    // ...
+export default function Page({ Info$handle }: PageProps) {
+    const Info = Info$handle.data
+    const species = Info.species
+    const id = species?.id ?? 1
+    const favorites = Info.favorites ?? []
+    const evolutionChain = species?.evolution_chain ?? []
+    const placeholderCount = Math.max(0, 3 - evolutionChain.length)
+    const moves = species?.moves.edges ?? []
+    const firstMove = moves[0]?.node ?? null
+    const pageInfo = species?.moves.pageInfo
 
     return (
         // ...
-        <MoveDisplay move={Info.species.moves.edges[0].node} />
+        <div id="move-summary">
+            <MoveDisplay move={firstMove} />
+            <div id="move-controls">
+                <UpButton
+                    disabled={!pageInfo?.hasPreviousPage}
+                    onClick={() => Info$handle.loadPrevious?.()}
+                />
+                <DownButton
+                    disabled={!pageInfo?.hasNextPage}
+                    onClick={() => Info$handle.loadNext?.()}
+                />
+            </div>
+        </div>
         // ...
     )
 }
 ```
 
-Houdini supports a few different approaches for pagination but we won't go too deep just yet. In our situation,
-since we want to display 1 move at a time, we need to pass `SinglePage` as the `mode` for `@paginate`:
-
-```graphql title="src/routes/[[id]]/+page.gql"
-query Info($id: Int = 1) {
-
-    # ...
-
-    moves(first: 1) @paginate(mode: SinglePage) {
-        edges {
-            node {
-                ...MoveDisplay
-            }
-        }
-    }
-
-    # ...
-
-}
-```
+Also update the nav links to use the `id` variable we extracted above:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
-import { UpButton, DownButton } from '~/components'
-
-{/* Use this instead of the move display we added earlier */}
-<div id="move-summary">
-    <MoveDisplay move={Info.species.moves.edges[0].node} />
-    <div id="move-controls">
-        <UpButton
-            disabled={!Info$handle.pageInfo.hasPreviousPage}
-            onClick={async () => await Info$handle.loadPreviousPage()}
-        />
-        <DownButton
-            disabled={!Info$handle.pageInfo.hasNextPage}
-            onClick={async () => await Info$handle.loadNextPage()}
-        />
-    </div>
-</div>
+<nav>
+    <a
+        href={id - 1 <= 0 ? undefined : `/${id - 1}`}
+        className={id - 1 <= 0 ? 'disabled' : undefined}
+    >
+        previous
+    </a>
+    <a href={`/${id + 1}`}>next</a>
+</nav>
 ```
 
 You can now verify that it all works by opening the network tab and clicking on the up and down arrows. You should only see network requests being sent when loading a move we haven't seen before.
