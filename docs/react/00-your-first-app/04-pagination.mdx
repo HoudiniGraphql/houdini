@@ -168,7 +168,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 Just decorate the paginated field with the `@paginate` directive. Since we want to show one move at a time, we'll pass `mode: SinglePage` so that paging replaces the current item rather than appending to a list. Go ahead and change the `+page.gql` file to look like this:
 
 ```graphql title="src/routes/[[id]]/+page.gql"
-query Info($id: Int = 1) {
+query Info($id: Int! = 1) {
     species(id: $id) {
         id
         name
@@ -199,8 +199,6 @@ query Info($id: Int = 1) {
 ```
 
 When a query has `@paginate`, Houdini threads a handle prop alongside the query result — `Info$handle` in our case. The handle gives you `loadNext` and `loadPrevious` functions to step through the list. We also ask for `pageInfo` in the query so we know whether there are more pages in either direction. For a more in-depth summary of what you can do with `@paginate`, you can check out the [Pagination Guide](~/loading-data/pagination).
-
-Note that the `$id` variable has lost its `!` — it is now truly optional. Houdini uses `!` on a paginated query's variable to control extra behavior, so we drop it here.
 
 It's time to add some visuals. Update the component to destructure `Info$handle` instead of `Info`, then add an import for `MoveDisplay` and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
