@@ -3,6 +3,8 @@ title: Codegen Plugins (Golang)
 description: Writing Houdini codegen plugins in Go
 ---
 
+import ViteSubmodule from '@shared/_partials/plugin-vite-submodule.mdx'
+
 Houdini's codegen pipeline is built in Go, and you can extend it by writing your own Go plugin. A plugin is a standalone binary that registers itself with the pipeline and responds to lifecycle hooks — schema modifications, validation, document generation, and more.
 
 ## Defining a Plugin
@@ -153,6 +155,8 @@ func (p *MyPlugin) TransformStaticRuntime(ctx context.Context, source string, co
 ```
 
 The main distinction from `IncludeRuntime` is timing: `IncludeRuntime` is copied during the `generateRuntime` phase (after documents are already collected), so its `.graphql` files arrive too late to be discovered. Use `StaticRuntime` whenever the content needs to participate in the document graph, and `IncludeRuntime` for TypeScript runtime code that doesn't.
+
+<ViteSubmodule />
 
 ### Houdini's Implementation
 

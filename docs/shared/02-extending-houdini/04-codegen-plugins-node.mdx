@@ -3,6 +3,8 @@ title: Codegen Plugins (Node)
 description: Writing Houdini codegen plugins in Node.js
 ---
 
+import ViteSubmodule from '@shared/_partials/plugin-vite-submodule.mdx'
+
 Node plugins let you hook into Houdini's codegen pipeline from JavaScript or TypeScript. They follow the same lifecycle as [Go plugins](~/extending-houdini/codegen-plugins-golang) but are written as plain Node.js scripts and distributed as normal npm packages.
 
 ## Defining a Plugin
@@ -181,3 +183,5 @@ fragment UserFields on User {
 A user can then spread `...UserFields` in their own queries without defining the fragment themselves. The plugin owns the definition; the project just consumes it.
 
 The main distinction from `includeRuntime` is timing: `includeRuntime` is copied during the `generateRuntime` phase (after documents are already collected), so its `.graphql` files arrive too late to be discovered. Use `staticRuntime` whenever the content needs to participate in the document graph, and `includeRuntime` for TypeScript runtime code that doesn't.
+
+<ViteSubmodule />
