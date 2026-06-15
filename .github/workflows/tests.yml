@@ -7,7 +7,6 @@ on:
     push:
         branches:
             - 'main'
-            - 'houdini-2.0'
 
 env:
     PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright

@@ -880,7 +880,7 @@ func stringifySelection(
 func keyField(field *collected.Selection, paginatedMode *string) string {
 	if len(field.Arguments) == 0 {
 		paginationSuffix := ""
-		if paginatedMode != nil {
+		if paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite {
 			paginationSuffix = "::paginated"
 		}
 		return `"` + *field.Alias + paginationSuffix + `"`
@@ -909,7 +909,7 @@ func keyField(field *collected.Selection, paginatedMode *string) string {
 	}
 
 	paginationSuffix := ""
-	if paginatedMode != nil {
+	if paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite {
 		paginationSuffix = "::paginated"
 	}
 
@@ -946,11 +946,14 @@ func stringifyFieldSelection(
 			paginatedMode = &selection.List.Mode
 		}
 		updates = []string{}
-		if selection.List.SupportsForward {
-			updates = append(updates, "append")
-		}
-		if selection.List.SupportsBackward {
-			updates = append(updates, "prepend")
+		// SinglePage pagination uses replace semantics — never accumulate edges
+		if !selection.List.Paginated || selection.List.Mode != graphql.PaginationModeSinglePage {
+			if selection.List.SupportsForward {
+				updates = append(updates, "append")
+			}
+			if selection.List.SupportsBackward {
+				updates = append(updates, "prepend")
+			}
 		}
 
 		// @paginate always wins over @list when both appear in the same document

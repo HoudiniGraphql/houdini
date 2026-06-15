@@ -806,7 +806,7 @@ export type TestQuery$artifact = typeof artifact
         "fields": {
             "usersByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)::paginated",
+                "keyRaw": "usersByCursor(after: $after, before: $before, first: $first, last: $last)",
 
                 "directives": [{
                     "name": "paginate",
@@ -838,7 +838,6 @@ export type TestQuery$artifact = typeof artifact
                         "edges": {
                             "type": "UserEdge",
                             "keyRaw": "edges",
-                            "updates": ["append", "prepend"],
 
                             "selection": {
                                 "fields": {
@@ -895,7 +894,6 @@ export type TestQuery$artifact = typeof artifact
                                     "endCursor": {
                                         "type": "String",
                                         "keyRaw": "endCursor",
-                                        "updates": ["append"],
                                         "nullable": true,
                                         "visible": true,
                                     },
@@ -903,21 +901,18 @@ export type TestQuery$artifact = typeof artifact
                                     "hasNextPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasNextPage",
-                                        "updates": ["append"],
                                         "visible": true,
                                     },
 
                                     "hasPreviousPage": {
                                         "type": "Boolean",
                                         "keyRaw": "hasPreviousPage",
-                                        "updates": ["prepend"],
                                         "visible": true,
                                     },
 
                                     "startCursor": {
                                         "type": "String",
                                         "keyRaw": "startCursor",
-                                        "updates": ["prepend"],
                                         "nullable": true,
                                         "visible": true,
                                     },

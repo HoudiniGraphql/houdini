@@ -1,0 +1,9 @@
+query ForwardsCursorSinglePagePaginationQuery {
+	usersConnectionForwardOnly(first: 2, snapshot: "pagination-query-forwards-cursor-singlepage") @paginate(mode: SinglePage) {
+		edges {
+			node {
+				name
+			}
+		}
+	}
+}

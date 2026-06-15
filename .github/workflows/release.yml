@@ -5,8 +5,6 @@ name: Release
 on:
     push:
         branches:
-            - houdini-2.0
-            - go
             - main
 
 env:
