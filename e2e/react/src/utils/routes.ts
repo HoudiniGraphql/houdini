@@ -35,4 +35,5 @@ export const routes = {
 	routing_errors_redirect: '/routing-errors/redirect',
 	routing_errors_redirect_target: '/routing-errors/redirect-target',
 	routing_errors_static_404: '/routing-errors/does-not-exist',
+	error_loop: '/error-loop/doesnt-exist',
 } as const

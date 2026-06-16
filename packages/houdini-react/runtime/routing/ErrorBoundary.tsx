@@ -11,13 +11,25 @@ export class GraphQLErrors extends Error {
 	}
 }
 
+let _currentSegment: string | undefined
+
+export function setCurrentSegment(id: string | undefined): void {
+	_currentSegment = id
+}
+
+function getCurrentSegment(): string | undefined {
+	return _currentSegment
+}
+
 export class RoutingError extends Error {
 	status: number
+	segment: string | undefined
 
 	constructor(status: number) {
 		super(`Routing error: ${status}`)
 		this.name = 'RoutingError'
 		this.status = status
+		this.segment = getCurrentSegment()
 	}
 }
 

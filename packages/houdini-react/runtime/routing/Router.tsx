@@ -15,7 +15,7 @@ import { useContext } from 'react'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
-import { GraphQLErrors, RoutingError } from './ErrorBoundary.js'
+import { GraphQLErrors, RoutingError, StatusContext } from './ErrorBoundary.js'
 
 type PageComponent = React.ComponentType<{ url: string; children?: React.ReactNode }>
 
@@ -155,7 +155,13 @@ export function Router({
 				}}
 			>
 				<Is404Context.Provider value={is404}>
-					<PageComponent url={currentURL} key={targetPage.id + (is404 ? '__404' : '')} />
+					{is404 ? (
+						<NotFoundLayoutBoundary key={targetPage.id}>
+							<PageComponent url={currentURL} key={targetPage.id + '__404'} />
+						</NotFoundLayoutBoundary>
+					) : (
+						<PageComponent url={currentURL} key={targetPage.id} />
+					)}
 				</Is404Context.Provider>
 			</LocationContext.Provider>
 		</VariableContext.Provider>
@@ -855,6 +861,41 @@ export function router_cache({
 	}
 
 	return result
+}
+
+// Catches RoutingErrors that escape all HoudiniErrorBoundary instances during prefix-match
+// (is404) rendering, preventing an infinite loop when a layout itself throws notFound().
+class NotFoundLayoutBoundary extends React.Component<
+	{ children: React.ReactNode },
+	{ caught: boolean }
+> {
+	static contextType = StatusContext
+	declare context: React.ContextType<typeof StatusContext>
+
+	constructor(props: { children: React.ReactNode }) {
+		super(props)
+		this.state = { caught: false }
+	}
+
+	static getDerivedStateFromError(error: unknown) {
+		if (error instanceof RoutingError) {
+			return { caught: true }
+		}
+		return null
+	}
+
+	componentDidCatch(error: Error): void {
+		if (error instanceof RoutingError && this.context) {
+			this.context.status = error.status
+		}
+	}
+
+	render() {
+		if (this.state.caught) {
+			return null
+		}
+		return this.props.children
+	}
 }
 
 export const Is404Context = React.createContext(false)

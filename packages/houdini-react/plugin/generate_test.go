@@ -443,22 +443,29 @@ func TestGeneratePageEntries(t *testing.T) {
 import Layout__subRoute from '../layouts/_subRoute.jsx'
 import Page__subRoute_nested from '../pages/_subRoute_nested.jsx'
 import client from '$houdini/plugins/houdini-react/runtime/client'
-import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'
+import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'
 import PageFallback__subRoute_nested from '../fallbacks/page/_subRoute_nested.jsx'
 import LayoutFallback__ from '../fallbacks/layout/_.jsx'
+
+const SegmentSetter__ = ({ children }) => { setCurrentSegment('_'); return children }
+const SegmentSetter__subRoute = ({ children }) => { setCurrentSegment('_subRoute'); return children }
 
 export default ({ url }) => {
 	return (
 		<LayoutFallback__ key={url}>
-			<Layout__ key={url}>
-				<Layout__subRoute key={url}>
-					<NotFoundGate key={url}>
-						<PageFallback__subRoute_nested key={url}>
-							<Page__subRoute_nested />
-						</PageFallback__subRoute_nested>
-					</NotFoundGate>
-				</Layout__subRoute>
-			</Layout__>
+			<SegmentSetter__ key={url}>
+				<Layout__ key={url}>
+					<SegmentSetter__subRoute key={url}>
+						<Layout__subRoute key={url}>
+							<NotFoundGate key={url}>
+								<PageFallback__subRoute_nested key={url}>
+									<Page__subRoute_nested />
+								</PageFallback__subRoute_nested>
+							</NotFoundGate>
+						</Layout__subRoute>
+					</SegmentSetter__subRoute>
+				</Layout__>
+			</SegmentSetter__>
 		</LayoutFallback__>
 	)
 }
@@ -518,17 +525,21 @@ export default ({ url }) => {
 import Error__subRoute from '../errors/_subRoute.jsx'
 import Page__subRoute from '../pages/_subRoute.jsx'
 import client from '$houdini/plugins/houdini-react/runtime/client'
-import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'
+import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'
+
+const SegmentSetter__ = ({ children }) => { setCurrentSegment('_'); return children }
 
 export default ({ url }) => {
 	return (
-		<Layout__ key={url}>
-			<Error__subRoute key={url}>
-				<NotFoundGate key={url}>
-					<Page__subRoute />
-				</NotFoundGate>
-			</Error__subRoute>
-		</Layout__>
+		<SegmentSetter__ key={url}>
+			<Layout__ key={url}>
+				<Error__subRoute key={url}>
+					<NotFoundGate key={url}>
+						<Page__subRoute />
+					</NotFoundGate>
+				</Error__subRoute>
+			</Layout__>
+		</SegmentSetter__>
 	)
 }
 `,

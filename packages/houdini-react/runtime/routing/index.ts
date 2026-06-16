@@ -13,4 +13,5 @@ export {
 	isRoutingError,
 	isApiError,
 	StatusContext,
+	setCurrentSegment,
 } from './ErrorBoundary.js'

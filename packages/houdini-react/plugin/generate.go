@@ -379,7 +379,11 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 	// Import page unit and client
 	imports = append(imports, fmt.Sprintf("import Page_%s from '../pages/%s.jsx'", id, id))
 	imports = append(imports, "import client from '$houdini/plugins/houdini-react/runtime/client'")
-	imports = append(imports, "import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'")
+	if len(page.Layouts) > 0 {
+		imports = append(imports, "import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'")
+	} else {
+		imports = append(imports, "import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'")
+	}
 
 	// Import page fallback if page has a loading query
 	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
@@ -399,13 +403,17 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 	}
 
 	// Build the ordered list of wrapper component names, outermost first.
-	// Process layouts outermost→innermost; inside each layout add fallback before layout.
+	// Process layouts outermost→innermost; inside each layout add fallback then SegmentSetter then layout.
 	var wrappers []string
+	var segmentSetters []string
 	for _, layoutID := range page.Layouts {
 		if lq, ok := manifest.LayoutQueries[layoutID]; ok && lq.Loading {
 			wrappers = append(wrappers, "LayoutFallback_"+layoutID)
 		}
+		wrappers = append(wrappers, "SegmentSetter_"+layoutID)
 		wrappers = append(wrappers, "Layout_"+layoutID)
+		segmentSetters = append(segmentSetters,
+			fmt.Sprintf("const SegmentSetter_%s = ({ children }) => { setCurrentSegment('%s'); return children }", layoutID, layoutID))
 	}
 	// Error boundary wraps page (inside layouts, outside page fallback)
 	if page.ErrorPath != "" {
@@ -426,6 +434,10 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 
 	var b strings.Builder
 	b.WriteString(strings.Join(imports, "\n"))
+	if len(segmentSetters) > 0 {
+		b.WriteString("\n\n")
+		b.WriteString(strings.Join(segmentSetters, "\n"))
+	}
 	b.WriteString("\n\nexport default ({ url }) => {\n")
 	b.WriteString("\treturn (\n")
 	b.WriteString(nestedContent)
