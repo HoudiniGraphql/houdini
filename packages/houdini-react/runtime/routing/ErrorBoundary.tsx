@@ -57,10 +57,7 @@ export function httpError(status: number): never {
 	throw new RoutingError(status)
 }
 
-export function redirect(
-	status: 300 | 301 | 302 | 303 | 307 | 308,
-	location: string
-): never {
+export function redirect(status: 300 | 301 | 302 | 303 | 307 | 308, location: string): never {
 	// On the client, push history and dispatch popstate so the Router picks up
 	// the new URL after the current render is abandoned (via the throw below).
 	if (typeof window !== 'undefined') {
@@ -94,7 +91,10 @@ export class HoudiniErrorBoundary extends React.Component<
 	static contextType = StatusContext
 	declare context: React.ContextType<typeof StatusContext>
 
-	constructor(props: HoudiniErrorBoundaryProps, context: React.ContextType<typeof StatusContext>) {
+	constructor(
+		props: HoudiniErrorBoundaryProps,
+		context: React.ContextType<typeof StatusContext>
+	) {
 		super(props, context)
 		// Second-pass SSR: statusRef is pre-set to an error status by on_render after the first
 		// render threw. Start in error state immediately so children never render (and never throw).

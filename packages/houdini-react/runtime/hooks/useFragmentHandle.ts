@@ -132,14 +132,7 @@ export function useFragmentHandle<
 		}
 
 		return null
-	}, [
-		refetchArtifact,
-		paginationObserver,
-		data,
-		session,
-		forwardPending,
-		backwardPending,
-	])
+	}, [refetchArtifact, paginationObserver, data, session, forwardPending, backwardPending])
 
 	return {
 		...handle,
