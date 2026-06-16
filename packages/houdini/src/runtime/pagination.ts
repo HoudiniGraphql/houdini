@@ -278,7 +278,11 @@ export function cursorHandlers<
 			// loadNextPage's natural forward nav will reach the same cache key via endCursor.
 			const pVars = getVariables() as any
 			const isForwardPage = pVars?.first != null || pVars?.after != null
-			if (isSinglePage && (direction === 'backward' || direction === 'both') && !isForwardPage) {
+			if (
+				isSinglePage &&
+				(direction === 'backward' || direction === 'both') &&
+				!isForwardPage
+			) {
 				nextCursors.push(pVars?.before ?? null)
 			}
 
