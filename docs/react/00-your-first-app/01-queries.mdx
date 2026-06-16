@@ -11,7 +11,7 @@ Create two files inside of your `src/routes` directory, `+page.gql` and `+page.t
 ```graphql title="src/routes/+page.gql"
 query Info {
     species(id: 1) {
-        id
+        pokedexNumber
         name
         flavor_text
         sprites {
@@ -31,7 +31,7 @@ export default function Page({ Info }: PageProps) {
             <Panel side="left">
                 <Display id="species-name">
                     {Info.species.name}
-                    <span>no.{Info.species.id}</span>
+                    <span>no.{Info.species.pokedexNumber}</span>
                 </Display>
                 <Sprite
                     id="species-sprite"
@@ -187,13 +187,13 @@ Then copy and paste this block as the last child of the `Container` component:
     <nav>
         <Link
             to="/[[id]]"
-            params={{ id: Info.species.id - 1 }}
-            disabled={Info.species.id <= 1}
-            className={Info.species.id <= 1 ? 'disabled' : undefined}
+            params={{ id: Info.species.pokedexNumber - 1 }}
+            disabled={Info.species.pokedexNumber <= 1}
+            className={Info.species.pokedexNumber <= 1 ? 'disabled' : undefined}
         >
             previous
         </Link>
-        <Link to="/[[id]]" params={{ id: Info.species.id + 1 }}>next</Link>
+        <Link to="/[[id]]" params={{ id: Info.species.pokedexNumber + 1 }}>next</Link>
     </nav>
 </Panel>
 ```

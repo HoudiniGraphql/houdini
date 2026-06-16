@@ -6,12 +6,12 @@ description: The first part of the Houdini intro focusing on how to fetch data
 import AsideAccordion from "@components/docs/AsideAccordion.astro";
 
 Before we do anything _too_ complicated, lets start with some static content pulled from our GraphQL API.
-Create two files inside of your `src/routes` directory, `+page.gql` and `+page.svelte`:
+Create two files inside of your `src/routes` directory, `Info.gql` and `+page.svelte`:
 
-```graphql title="src/routes/+page.gql"
+```graphql title="src/routes/Info.gql"
 query Info {
     species(id: 1) {
-        id
+        pokedexNumber
         name
         flavor_text
         sprites {
@@ -21,39 +21,36 @@ query Info {
 }
 ```
 
-```svelte title="src/routes/+page.svelte&typescriptToggle=true"
-<script lang="ts">
+```svelte title="src/routes/+page.svelte"
+<script>
+    import { InfoStore } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
-    import type { PageData } from './$houdini'
 
-    export let data: PageData
-
-    $: ({ Info } = data)
+    const Info = new InfoStore()
+    Info.fetch()
 </script>
 
 <Container>
-    <Panel slot="left">
-        <Display id="species-name">
-            {$Info.data.species.name}
-            <span>no.{$Info.data.species.id}</span>
-        </Display>
-        <Sprite
-            id="species-sprite"
-            src={$Info.data.species.sprites.front}
-            speciesName={$Info.data.species.name}
-        />
-        <Display id="species-flavor_text">
-            {$Info.data.species.flavor_text}
-        </Display>
-    </Panel>
+    {#snippet left()}
+        <Panel>
+            <Display id="species-name">
+                {$Info.data.species.name}
+                <span>no.{$Info.data.species.pokedexNumber}</span>
+            </Display>
+            <Sprite
+                id="species-sprite"
+                src={$Info.data.species.sprites.front}
+                speciesName={$Info.data.species.name}
+            />
+            <Display id="species-flavor_text">
+                {$Info.data.species.flavor_text}
+            </Display>
+        </Panel>
+    {/snippet}
 </Container>
 ```
 
-You're already starting to see some of the very exciting things Houdini offers. Just like you might define a route's `load` function in a standard
-SvelteKit application, you can use `+page.gql` to define the query for your route.
-
-The data for the query is passed as a store that's available in a key that matches its name (in this case its `Info`). We used the store to render some basic information about Bulbasaur using some components that
-were provided in the project's `component` directory.
+You're already starting to see some of the very exciting things Houdini offers. Houdini picked up your `Info.gql` file and generated an `InfoStore` class that you can import and use to fetch data. The store's value is reactive — any time the data changes, your component updates automatically.
 
 <AsideAccordion variant="graphql" title="Queries">
 
@@ -118,11 +115,11 @@ Anyway, now that you have the necessary files, you should see Bulbasaur's descri
 
 This is a good start but we will need to be able to show information for more species than just Bulbasaur.
 Let's set up our application to take look at the url for the id of the species we are interested in.
-To do that, add a directory named `[[id]]` and move both `+page.gql` and `+page.svelte` inside of it:
+To do that, add a directory named `[[id]]` and move both `Info.gql` and `+page.svelte` inside of it:
 
 ```bash
 ## This needs to be run at the root of the project
-cd src/routes && mkdir "[[id]]" && mv +page.* "./[[id]]"
+cd src/routes && mkdir "[[id]]" && mv Info.gql +page.svelte "./[[id]]"
 ```
 
 The double braces might seem strange but that will let us have an optional parameter in the url so we can
@@ -158,11 +155,12 @@ query MyQuery($variable1: Boolean, variable2: String!) {
 </AsideAccordion>
 
 Now that we have the actual route defined, we will have to change our query so that it can accept
-a variable. Doing this is relatively simple, just update the query inside of `+page.gql` to look like the following:
+a variable. Update `Info.gql` to look like the following:
 
-```graphql title="src/routes/[[id]]/+page.gql"
+```graphql title="src/routes/[[id]]/Info.gql"
 query Info($id: Int! = 1) {
     species(id: $id) {
+        pokedexNumber
         name
         flavor_text
         sprites {
@@ -172,27 +170,58 @@ query Info($id: Int! = 1) {
 }
 ```
 
-And that's it! Notice that the route parameter matched the name of the query input? Houdini detected that
-and took care of the all of the wiring for you. Pretty cool, huh? There is also a way to perform
-custom logic to compute your query inputs when you need it but we'll keep things simple for now.
-For more information, check out the [query api docs](/svelte/api/query#query-variables).
+Next, create a `+page.js` file that reads the `id` from the URL and passes it to the page component:
 
-You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
-there is no value for the `[[id]]` portion of the url and the query uses its default value of `1`.
+```typescript title="src/routes/[[id]]/+page.ts&typescriptToggle=true"
+import { error } from '@sveltejs/kit'
 
-For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component. Don't worry if you see an error when you click on them, we'll fix that next.
+export function load({ params }) {
+    const id = params.id ? parseInt(params.id) : 1
+
+    if (id < 1 || id > 151) {
+        throw error(400, 'id must be between 1 and 151')
+    }
+
+    return { id }
+}
+```
+
+Then update `+page.svelte` to receive `id` from the load function and pass it to the store:
 
 ```svelte title="src/routes/[[id]]/+page.svelte"
-<Panel slot="right">
-    <nav>
-        <a href={$Info.data.species.id - 1} disabled={$Info.data.species.id <= 1}>
-            previous
-        </a>
-        <a href={$Info.data.species.id + 1} disabled={$Info.data.species.id >= 151}>
-            next
-        </a>
-    </nav>
-</Panel>
+<script>
+    import { InfoStore } from '$houdini'
+    import { Container, Display, Sprite, Panel } from '~/components'
+
+    let { data } = $props()
+
+    const Info = new InfoStore()
+
+    $effect(() => {
+        Info.fetch({ variables: { id: data.id } })
+    })
+</script>
+```
+
+Whenever `data.id` changes (because the user navigated to a different URL), `$effect` re-runs and fetches the new species. You should be able to navigate to `/6` and see Charizard's information. If you then navigate back to `/`,
+there is no value for the `[[id]]` portion of the url and the load function uses its default value of `1`.
+
+For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component:
+
+```svelte title="src/routes/[[id]]/+page.svelte"
+{#snippet right()}
+    <Panel>
+        <nav>
+            <a
+                href={data.id > 1 ? `/${data.id - 1}` : undefined}
+                class={data.id <= 1 ? 'disabled' : undefined}
+            >
+                previous
+            </a>
+            <a href="/{data.id + 1}">next</a>
+        </nav>
+    </Panel>
+{/snippet}
 ```
 
 ## Loading State
@@ -201,38 +230,21 @@ If you've already clicked on those links you probably saw a scary message about 
 to handle the loading state for our view. Let's just do something quick and dirty:
 
 ```svelte title="src/routes/[[id]]/+page.svelte"
-{#if $Info.fetching}
-    <Container/>
+{#if $Info.fetching || !$Info.data}
+    <Container>
+        {#snippet left()}{/snippet}
+        {#snippet right()}{/snippet}
+    </Container>
 {:else}
     <!-- what we had before -->
 {/if}
 ```
 
+We check both `$Info.fetching` and `!$Info.data` so the loading shell also shows on the very first render before any fetch has completed.
+
 ## Error Handling
 
-So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$Info.data.species` is null. Go ahead, give it a try.
-
-In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. The best way to do this is to use a load hook to check the value before the load fires. Load hooks belong in `+page.js` files so create a
-file at `src/routes/[[id]]/+page.js` that looks like the following:
-
-```typescript title="src/routes/[[id]]/+page.ts&typescriptToggle=true"
-import { error } from '@sveltejs/kit'
-import type { BeforeLoadEvent } from './$houdini'
-
-export function _houdini_beforeLoad({ params }: BeforeLoadEvent) {
-    // if we were given an id, convert the string to a number
-    const id = params.id ? parseInt(params.id) : 1
-
-    // check that the id falls between 1 and 151
-    if (id < 1 || id > 151) {
-        // return a status code 400 along with the error
-        throw error(400, 'id must be between 1 and 151')
-    }
-}
-```
-
-Load hooks in houdini all begin with `_houdini_` and there are a lot more than just `beforeLoad`. For an overview of what hooks you can
-define, check out the [query api docs](/svelte/api/query#hooks).
+The `+page.js` we created earlier already handles the out-of-bounds case by throwing a 400 error before the fetch fires. If you navigate to `/152` you should see SvelteKit's error page.
 
 ## What's Next?
 
