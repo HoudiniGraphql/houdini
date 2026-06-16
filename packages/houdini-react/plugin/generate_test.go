@@ -597,15 +597,8 @@ func TestGenerateErrorWrappers(t *testing.T) {
 						"src/routes/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
 					},
 					"expected": map[string]string{
-						"errors/_.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, useLocation } from '$houdini/plugins/houdini-react/runtime/routing'
-import { useEffect } from 'react'
+						"errors/_.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, ClientRedirect } from '$houdini/plugins/houdini-react/runtime/routing'
 import Component__ from '../../../../../src/routes/+error'
-
-const ClientRedirect = ({ to }) => {
-	const { goto } = useLocation()
-	useEffect(() => { goto(to) }, [to])
-	return null
-}
 
 const ErrorView = ({ errors, children }) => {
 	const redirectErr = errors.find(e => e instanceof RedirectError)
@@ -647,15 +640,8 @@ export default ({ children }) => (
 					},
 					// error wrapper at subRoute: layout queries are RootQuery + SubQuery
 					"expected": map[string]string{
-						"errors/_subRoute.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, useLocation } from '$houdini/plugins/houdini-react/runtime/routing'
-import { useEffect } from 'react'
+						"errors/_subRoute.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, ClientRedirect } from '$houdini/plugins/houdini-react/runtime/routing'
 import Component__subRoute from '../../../../../src/routes/subRoute/+error'
-
-const ClientRedirect = ({ to }) => {
-	const { goto } = useLocation()
-	useEffect(() => { goto(to) }, [to])
-	return null
-}
 
 const ErrorView = ({ errors, children }) => {
 	const redirectErr = errors.find(e => e instanceof RedirectError)

@@ -10,7 +10,7 @@ import { marshalSelection, marshalInputs } from 'houdini/runtime'
 import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
@@ -170,6 +170,12 @@ export function Router({
 
 // export the location information in context
 export const useLocation = () => useContext(LocationContext)
+
+export const ClientRedirect = ({ to }: { to: string }) => {
+	const { goto } = useLocation()
+	useEffect(() => { goto(to) }, [to])
+	return null
+}
 
 /**
  * usePageData is responsible for kicking off the network requests necessary to render the page.

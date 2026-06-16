@@ -146,15 +146,8 @@ func (p *HoudiniReact) GenerateDocumentWrappers(ctx context.Context) ([]string, 
 func generateErrorUnitFile(componentName, importPath string, layoutQueries, paramKeys []string) string {
 	var b strings.Builder
 
-	b.WriteString("import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, useLocation } from '$houdini/plugins/houdini-react/runtime/routing'\n")
-	b.WriteString("import { useEffect } from 'react'\n")
+	b.WriteString("import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, ClientRedirect } from '$houdini/plugins/houdini-react/runtime/routing'\n")
 	b.WriteString(fmt.Sprintf("import %s from '%s'\n\n", componentName, importPath))
-
-	b.WriteString("const ClientRedirect = ({ to }) => {\n")
-	b.WriteString("\tconst { goto } = useLocation()\n")
-	b.WriteString("\tuseEffect(() => { goto(to) }, [to])\n")
-	b.WriteString("\treturn null\n")
-	b.WriteString("}\n\n")
 
 	b.WriteString("const ErrorView = ({ errors, children }) => {\n")
 	b.WriteString("\tconst redirectErr = errors.find(e => e instanceof RedirectError)\n")
