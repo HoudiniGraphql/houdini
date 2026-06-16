@@ -13,6 +13,7 @@ These files go inside `src/routes/` and can appear in any route directory.
 |---|---|
 | `+page.jsx` | The component rendered at this route. Receives query results as props when a `+page.gql` is present. |
 | `+layout.jsx` | Wraps all child routes. Receives a `children` prop for the nested content, plus query results from `+layout.gql` if defined. |
+| `+error.jsx` | Error boundary for this route. Catches errors thrown by `+page.jsx`, its queries, and any child routes below this directory level — but not the sibling `+layout.gql` (layout query errors bubble up to the parent error boundary). Receives `errors` and `children` props, plus any in-scope layout query results. See [Error Boundaries](~/routing/error-boundaries). |
 | `+page.gql` | GraphQL query (or queries) for this page. Each query's result is passed as a prop named after the query. |
 | `+layout.gql` | GraphQL query for this layout. Results are available to the layout component and all of its descendants. |
 

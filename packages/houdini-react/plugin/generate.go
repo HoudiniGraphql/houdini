@@ -17,6 +17,7 @@ import (
 func unitsDir(pluginDir string) string   { return filepath.Join(pluginDir, "units") }
 func pagesDir(pluginDir string) string   { return filepath.Join(pluginDir, "units", "pages") }
 func layoutsDir(pluginDir string) string { return filepath.Join(pluginDir, "units", "layouts") }
+func errorsDir(pluginDir string) string  { return filepath.Join(pluginDir, "units", "errors") }
 func fallbacksDir(pluginDir, which string) string {
 	return filepath.Join(pluginDir, "units", "fallbacks", which)
 }
@@ -129,6 +130,87 @@ func (p *HoudiniReact) GenerateDocumentWrappers(ctx context.Context) ([]string, 
 		paramKeys := sortedKeys(layout.Params)
 		content := generateUnitFile("Component_"+id, compRel, layout.QueryOptions, paramKeys)
 		path := filepath.Join(layoutsDir(pluginDir), id+".jsx")
+		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
+			return nil, err
+		} else if ok {
+			changed = append(changed, path)
+		}
+	}
+
+	return changed, nil
+}
+
+// generateErrorUnitFile builds the JSX source for an error boundary wrapper component.
+// layoutQueries is the list of layout-level query names the error component can access.
+// paramKeys is the sorted list of URL route parameter names.
+func generateErrorUnitFile(componentName, importPath string, layoutQueries, paramKeys []string) string {
+	var b strings.Builder
+
+	b.WriteString("import { useQueryResult, PageContextProvider, HoudiniErrorBoundary } from '$houdini/plugins/houdini-react/runtime/routing'\n")
+	b.WriteString(fmt.Sprintf("import %s from '%s'\n\n", componentName, importPath))
+
+	b.WriteString("const ErrorView = ({ errors, children }) => {\n")
+	if len(layoutQueries) > 0 {
+		for _, q := range layoutQueries {
+			b.WriteString(fmt.Sprintf("\tconst [%s$data, %s$handle] = useQueryResult(%q)\n", q, q, q))
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\treturn (\n")
+
+	var quotedKeys []string
+	for _, k := range paramKeys {
+		quotedKeys = append(quotedKeys, fmt.Sprintf("%q", k))
+	}
+	b.WriteString(fmt.Sprintf("\t\t<PageContextProvider keys={[%s]}>\n", strings.Join(quotedKeys, ", ")))
+
+	var props []string
+	for _, q := range layoutQueries {
+		props = append(props, fmt.Sprintf("%s={%s$data}", q, q))
+		props = append(props, fmt.Sprintf("%s$handle={%s$handle}", q, q))
+	}
+	props = append(props, "errors={errors}")
+	b.WriteString(fmt.Sprintf("\t\t\t<%s %s>\n", componentName, strings.Join(props, " ")))
+	b.WriteString("\t\t\t\t{children}\n")
+	b.WriteString(fmt.Sprintf("\t\t\t</%s>\n", componentName))
+	b.WriteString("\t\t</PageContextProvider>\n")
+	b.WriteString("\t)\n")
+	b.WriteString("}\n\n")
+
+	b.WriteString("export default ({ children }) => (\n")
+	b.WriteString("\t<HoudiniErrorBoundary errorView={ErrorView}>\n")
+	b.WriteString("\t\t{children}\n")
+	b.WriteString("\t</HoudiniErrorBoundary>\n")
+	b.WriteString(")\n")
+
+	return b.String()
+}
+
+// GenerateErrorWrappers generates per-page error boundary JSX wrapper components for
+// pages that have a +error.tsx companion file.
+func (p *HoudiniReact) GenerateErrorWrappers(ctx context.Context) ([]string, error) {
+	projectConfig, err := p.DB.ProjectConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := p.LoadManifest(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDir := projectConfig.PluginDirectory(p.Name())
+	var changed []string
+
+	for id, page := range manifest.Pages {
+		if page.ErrorPath == "" {
+			continue
+		}
+		compAbs := stripViewExt(filepath.Join(projectConfig.ProjectRoot, page.ErrorPath))
+		compRel := toSlash(mustRel(errorsDir(pluginDir), compAbs))
+		paramKeys := sortedKeys(page.Params)
+		content := generateErrorUnitFile("Component_"+id, compRel, page.LayoutQueries, paramKeys)
+		path := filepath.Join(errorsDir(pluginDir), id+".jsx")
 		if ok, err := writeIfChanged(p.Filesystem(), path, content); err != nil {
 			return nil, err
 		} else if ok {
@@ -289,9 +371,15 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 		imports = append(imports, fmt.Sprintf("import Layout_%s from '../layouts/%s.jsx'", layoutID, layoutID))
 	}
 
+	// Import error wrapper if the page has a +error companion
+	if page.ErrorPath != "" {
+		imports = append(imports, fmt.Sprintf("import Error_%s from '../errors/%s.jsx'", id, id))
+	}
+
 	// Import page unit and client
 	imports = append(imports, fmt.Sprintf("import Page_%s from '../pages/%s.jsx'", id, id))
 	imports = append(imports, "import client from '$houdini/plugins/houdini-react/runtime/client'")
+	imports = append(imports, "import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'")
 
 	// Import page fallback if page has a loading query
 	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
@@ -319,6 +407,16 @@ func generatePageEntry(id string, page PageManifest, manifest ProjectManifest, p
 		}
 		wrappers = append(wrappers, "Layout_"+layoutID)
 	}
+	// Error boundary wraps page (inside layouts, outside page fallback)
+	if page.ErrorPath != "" {
+		wrappers = append(wrappers, "Error_"+id)
+	}
+
+	// NotFoundGate sits inside the error boundary (if present) so that when the
+	// Router renders this entry for a 404 URL, the throw is caught at the right
+	// level and the layouts above it render normally.
+	wrappers = append(wrappers, "NotFoundGate")
+
 	if pq, ok := manifest.PageQueries[id]; ok && pq.Loading {
 		wrappers = append(wrappers, "PageFallback_"+id)
 	}
@@ -416,7 +514,7 @@ import { HoudiniClient } from 'houdini/runtime/client'
 import { renderToStream } from 'houdini-react/server'
 import React from 'react'
 
-import { router_cache } from '../../runtime/routing'
+import { router_cache, StatusContext } from '../../runtime/routing'
 // @ts-expect-error
 import client from '%s/src/+client'
 // @ts-expect-error
@@ -430,10 +528,15 @@ export const on_render =
 	async ({
 		url,
 		match,
+		is404,
 		session,
 		manifest,
 		componentCache,
 	}) => {
+		if (!match) {
+			return new Response('not found', { status: 404 })
+		}
+
 		const cache = new Cache({
 			disabled: false,
 			...config,
@@ -441,28 +544,30 @@ export const on_render =
 			createComponent: React.createElement
 		})
 
-		if (!match) {
-			return new Response('not found', { status: 404 })
-		}
-
 		// Wire the per-request cache into the client so that all observe() calls
 		// during this render write to (and read from) the same cache we serialize.
 		client.setCache(cache)
+
+		// Mutable ref so that a synchronous RoutingError or redirect() inside
+		// HoudiniErrorBoundary can set the correct HTTP status/location before streaming.
+		const statusRef = { status: is404 ? 404 : 200, location: undefined }
 
 		const {
 			readable,
 			injectToStream,
 			pipe: pipeTo,
 		} = await renderToStream(
-			React.createElement(App, {
-				initialURL: url,
-				cache: cache,
-				session: session,
-				assetPrefix: assetPrefix,
-				manifest: manifest,
-				cssLinks: cssLinks || [],
-				...router_cache()
-			}),
+			React.createElement(StatusContext.Provider, { value: statusRef },
+				React.createElement(App, {
+					initialURL: url,
+					cache: cache,
+					session: session,
+					assetPrefix: assetPrefix,
+					manifest: manifest,
+					cssLinks: cssLinks || [],
+					...router_cache()
+				})
+			),
 			{ webStream: production, userAgent: 'Vite' }
 		)
 
@@ -480,8 +585,10 @@ export const on_render =
 		if (pipeTo && pipe) {
 			pipeTo(pipe)
 			return true
+		} else if (statusRef.location) {
+			return new Response(null, { status: statusRef.status, headers: { Location: statusRef.location } })
 		} else {
-			return new Response(readable)
+			return new Response(readable, { status: statusRef.status })
 		}
 	}
 
@@ -623,10 +730,11 @@ func (p *HoudiniReact) GenerateTypeRoots(ctx context.Context) ([]string, error) 
 		runtimeRel := toSlash(mustRel(targetDir, runtimeDir))
 		artifactRelDir := toSlash(mustRel(targetDir, artifactDir))
 
-		var pageQueries, layoutQueries []string
+		var pageQueries, layoutQueries, errorQueries []string
 		var params map[string]*ParamTypeInfo
 		if entry.page != nil {
 			pageQueries = entry.page.QueryOptions
+			errorQueries = entry.page.LayoutQueries
 			params = entry.page.Params
 		}
 		if entry.layout != nil {
@@ -635,10 +743,13 @@ func (p *HoudiniReact) GenerateTypeRoots(ctx context.Context) ([]string, error) 
 				params = entry.layout.Params
 			}
 		}
+		if errorQueries == nil {
+			errorQueries = []string{}
+		}
 
 		allQueries := uniqueStrings(append(pageQueries, layoutQueries...))
 
-		content := generateTypeRoot(runtimeRel, artifactRelDir, allQueries, pageQueries, layoutQueries, params)
+		content := generateTypeRoot(runtimeRel, artifactRelDir, allQueries, pageQueries, layoutQueries, errorQueries, params)
 		if ok, err := writeIfChanged(p.Filesystem(), targetFile, content); err != nil {
 			return nil, err
 		} else if ok {
@@ -649,7 +760,7 @@ func (p *HoudiniReact) GenerateTypeRoots(ctx context.Context) ([]string, error) 
 	return changed, nil
 }
 
-func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries, layoutQueries []string, params map[string]*ParamTypeInfo) string {
+func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries, layoutQueries, errorQueries []string, params map[string]*ParamTypeInfo) string {
 	var b strings.Builder
 
 	b.WriteString(fmt.Sprintf("import { DocumentHandle, RouteProp } from '%s'\n", runtimeRel))
@@ -658,6 +769,8 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 		b.WriteString(fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '%s/%s'\n",
 			q, q, q, artifactRelDir, q))
 	}
+	b.WriteString("import type { GraphQLError } from 'houdini/runtime'\n")
+	b.WriteString(fmt.Sprintf("import type { RoutingError } from '%s'\n", runtimeRel))
 
 	paramsType := formatParamsType(params)
 
@@ -672,6 +785,14 @@ func generateTypeRoot(runtimeRel, artifactRelDir string, allQueries, pageQueries
 	// LayoutProps
 	b.WriteString(fmt.Sprintf("\nexport type LayoutProps = {\n\tParams: %s,\n\tchildren: React.ReactNode,\n", paramsType))
 	for _, q := range layoutQueries {
+		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
+		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
+	}
+	b.WriteString("}\n")
+
+	// ErrorProps
+	b.WriteString(fmt.Sprintf("\nexport type ErrorProps = {\n\tParams: %s,\n\terrors: Array<Error | GraphQLError | RoutingError>,\n\tchildren: React.ReactNode,\n", paramsType))
+	for _, q := range errorQueries {
 		b.WriteString(fmt.Sprintf("\t%s: %s$result,\n", q, q))
 		b.WriteString(fmt.Sprintf("\t%s$handle: DocumentHandle<%s$artifact, %s$result, %s$input>,\n", q, q, q, q))
 	}

@@ -7,7 +7,7 @@ import configFile from '$houdini/runtime/imports/config'
 import { deepEquals } from 'houdini/runtime'
 import type { LRUCache } from 'houdini/runtime'
 import { marshalSelection, marshalInputs } from 'houdini/runtime'
-import { find_match } from 'houdini/router/match'
+import { find_match, find_prefix_match } from 'houdini/router/match'
 import type { RouterManifest, RouterPageManifest } from 'houdini/router/types'
 import React from 'react'
 import { useContext } from 'react'
@@ -15,8 +15,9 @@ import { useContext } from 'react'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
+import { GraphQLErrors, RoutingError } from './ErrorBoundary.js'
 
-type PageComponent = React.ComponentType<{ url: string }>
+type PageComponent = React.ComponentType<{ url: string; children?: React.ReactNode }>
 
 const PreloadWhich = {
 	component: 'component',
@@ -55,9 +56,12 @@ export function Router({
 
 	// find the matching page for the current route
 	const [page, variables] = find_match(configFile, manifest, currentURL)
-	// if we dont have a page, its a 404
-	if (!page) {
-		throw new Error('404')
+	const is404 = !page
+	// When no exact match, find the deepest prefix-matching page to render
+	// its layout chain with NotFoundGate throwing inside the appropriate boundary.
+	const targetPage = page ?? find_prefix_match(manifest, currentURL)
+	if (!targetPage) {
+		throw new RoutingError(404)
 	}
 
 	// the only time this component will directly suspend (instead of one of its children)
@@ -67,14 +71,14 @@ export function Router({
 	// load the page assets (source, artifacts, data). this will suspend if the component is not available yet
 	// this hook embeds pending requests in context so that the component can suspend if necessary14
 	const { loadData, loadComponent } = usePageData({
-		page,
+		page: targetPage,
 		variables,
 		assetPrefix,
 		injectToStream,
 	})
 	// if we get this far, it's safe to load the component
 	const { component_cache, data_cache, ssr_signals } = useRouterContext()
-	const PageComponent = component_cache.get(page.id)!
+	const PageComponent = component_cache.get(targetPage.id)!
 
 	// if we got this far then we're past suspense
 
@@ -150,7 +154,9 @@ export function Router({
 					params: variables ?? {},
 				}}
 			>
-				<PageComponent url={currentURL} key={page.id} />
+				<Is404Context.Provider value={is404}>
+					<PageComponent url={currentURL} key={targetPage.id + (is404 ? '__404' : '')} />
+				</Is404Context.Provider>
 			</LocationContext.Provider>
 		</VariableContext.Provider>
 	)
@@ -240,9 +246,11 @@ function usePageData({
 				.then(async () => {
 					data_cache.set(id, observer)
 
-					// if there is an error, we need to reject the promise
+					// if there is an error, signal completion (the error is visible via
+					// useQueryResult reading observer.state.errors) and clean up
 					if (observer.state.errors && observer.state.errors.length > 0) {
-						reject(observer.state.errors.map((e) => e.message).join('\n'))
+						ssr_signals.delete(id)
+						resolve()
 						return
 					}
 
@@ -435,18 +443,11 @@ function usePageData({
 		}
 	}
 
-	// if we don't have the component then we need to load it, save it in the cache, and
-	// then suspend with a promise that will resolve once its in cache
 	async function loadComponent(targetPage: RouterPageManifest<ComponentType>) {
-		// if we already have the component, don't do anything
 		if (component_cache.has(targetPage.id)) {
 			return
 		}
-
-		// load the component and then save it in the cache
 		const mod = await targetPage.component()
-
-		// save the component in the cache
 		component_cache.set(targetPage.id, mod.default)
 	}
 
@@ -654,7 +655,7 @@ export function useQueryResult<_Data extends GraphQLObject, _Input extends Graph
 
 	// if there is an error in the response we need to throw to the nearest boundary
 	if (errors && errors.length > 0) {
-		throw new Error(JSON.stringify(errors))
+		throw new GraphQLErrors(errors)
 	}
 	// create the handle that we will use to interact with the store
 	const handle = useDocumentHandle({
@@ -854,6 +855,16 @@ export function router_cache({
 	}
 
 	return result
+}
+
+export const Is404Context = React.createContext(false)
+
+export function NotFoundGate({ children }: { children: React.ReactNode }) {
+	const is404 = React.useContext(Is404Context)
+	if (is404) {
+		throw new RoutingError(404)
+	}
+	return <>{children}</>
 }
 
 const PageContext = React.createContext<{ params: Record<string, any> }>({ params: {} })

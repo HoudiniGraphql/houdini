@@ -1,7 +1,6 @@
 import { test } from '@playwright/test'
 import { routes } from '../../../../lib/utils/routes.js'
 import {
-	expect_0_gql,
 	expect_1_gql,
 	expect_to_be,
 	expectToContain,
@@ -26,12 +25,12 @@ test.describe('forwards cursor fragment single page', () => {
 		await expectToContain(page, `"hasPreviousPage":true`)
 		await expectToContain(page, `"hasNextPage":true`)
 
-		await expect_0_gql(page, 'button[id=previous]')
+		await expect_1_gql(page, 'button[id=previous]')
 		await expect_to_be(page, 'Morgan Freeman, Tom Hanks')
 		await expectToContain(page, `"hasPreviousPage":true`)
 		await expectToContain(page, `"hasNextPage":true`)
 
-		await expect_0_gql(page, 'button[id=previous]')
+		await expect_1_gql(page, 'button[id=previous]')
 		await expect_to_be(page, 'Bruce Willis, Samuel Jackson')
 		await expectToContain(page, `"hasPreviousPage":false`)
 		await expectToContain(page, `"hasNextPage":true`)

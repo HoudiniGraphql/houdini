@@ -144,6 +144,7 @@ export const typeDefs = /* GraphQL */ `
 		Get a monkey by its id
 		"""
 		monkey(id: ID!): Monkey
+		errorTest(forceError: Boolean!): String
 	}
 
 	type Subscription {

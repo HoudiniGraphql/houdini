@@ -33,17 +33,15 @@ Before we explain how to use mutations in Houdini, we need a way to visualize if
 
 ```graphql title="src/routes/[[id]]/+page.gql"
 query Info($id: Int! = 1) {
-    species(id: $id) {
-        id
-        name
-        flavor_text
-        favorite
-        ...SpriteInfo
-        evolution_chain {
-            id
-            ...SpeciesPreview
-        }
-    }
+	species(id: $id) {
+		name
+		flavor_text
+		favorite
+		evolution_chain {
+			...SpeciesPreview
+		}
+		...SpriteInfo
+	}
 }
 ```
 
@@ -53,20 +51,18 @@ Once you've added the field, add an import for `Icon` from the component directo
 import { Icon } from '~/components'
 
 <button id="favorite">
-    <Icon
-        id="favorite-star"
-        name="star"
-        style={Info.species?.favorite ? { fill: 'goldenrod', stroke: 'goldenrod' } : undefined}
-    />
+    <Icon />
 </button>
 ```
 
-With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Add the following above the component definition, then add the `useMutation` call inside:
+With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Add the `useMutation` call shown below to your component:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
 import { graphql, useMutation } from '$houdini'
 
-const toggleFavoriteMutation = graphql(`
+// ... everything from before
+
+const [, toggleFavorite] = useMutation(graphql(`
     mutation ToggleFavorite($id: Int!) {
         toggleFavorite(id: $id) {
             species {
@@ -75,23 +71,15 @@ const toggleFavoriteMutation = graphql(`
             }
         }
     }
-`)
-
-export default function Page({ Info }: PageProps) {
-    const [toggleFavorite, pending] = useMutation(toggleFavoriteMutation)
-
-    // ... everything from before
-}
+`))
 ```
 
 `useMutation` returns a tuple of `[mutate, pending]`. `mutate` is the function you call to execute the mutation; `pending` is `true` while the server request is in flight. With that in place, we can now configure the button we added earlier:
 
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
-<button
-    id="favorite"
-    disabled={pending}
-    onClick={() => Info.species && toggleFavorite({ variables: { id: Info.species.id } })}
->
+<button id="favorite" onClick={() => toggleFavorite({
+	variables: { id: Info.species.id }
+})}>
 ```
 
 Now, try clicking on the grey star for any species. It should flip between gold and grey every time you click it.
@@ -122,14 +110,12 @@ Before we get too far, let's add a place in our UI to show us the list of favori
          name
          flavor_text
          favorite
-         ...SpriteInfo
          evolution_chain {
-             id
              ...SpeciesPreview
          }
+         ...SpriteInfo
      }
-+    favorites @list(name: "FavoriteSpecies") {
-+        id
++    favorites @list(name:"FavoriteSpecies") {
 +        ...FavoritePreview
 +    }
  }
@@ -140,37 +126,30 @@ Then, open up `src/routes/[[id]]/+page.tsx`, add imports for `FavoritePreview` a
 ```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
 import { FavoritePreview, FavoritesContainer } from '~/components'
 
-{/* wrap FavoritesContainer and Container together in a React Fragment <> since a component can only return one root element */}
-<>
+{/* this should go in the root of your component, just before the Container */}
 <FavoritesContainer>
-    {Info.favorites && Info.favorites.length > 0 ? (
-        Info.favorites.map((fav) => (
-            <FavoritePreview key={fav.id} species={fav} />
-        ))
-    ) : (
+    {Info.favorites.length === 0 ? (
         <p>No Favorites Selected</p>
+    ) : (
+        Info.favorites.map((favorite) => (
+            <FavoritePreview key={favorite.id} species={favorite} />
+        ))
     )}
 </FavoritesContainer>
-<Container>
-    {/* ... everything from before ... */}
-</Container>
-</>
 ```
 
 Don't worry about the `@list` directive just yet — we'll explain what it does in a bit. For now, just confirm that you have to refresh your browser in order to see the effect of clicking the star on the section at the top. Hopefully that's not too surprising since we haven't told Houdini how to update our view in response to the mutation. Connecting those dots just requires updating the mutation to look like this:
 
-```tsx title="src/routes/[[id]]/+page.tsx&typescriptToggle=true"
-const toggleFavoriteMutation = graphql(`
-    mutation ToggleFavorite($id: Int!) {
-        toggleFavorite(id: $id) {
-            species {
-                id
-                favorite
-                ...FavoriteSpecies_toggle
-            }
-        }
-    }
-`)
+```graphql title="src/routes/[[id]]/+page.tsx"
+mutation ToggleFavorite($id: Int!) {
+	toggleFavorite(id: $id) {
+		species {
+			id
+			favorite
+			...FavoriteSpecies_toggle
+		}
+	}
+}
 ```
 
 Go ahead, save the file and try clicking on the star. You should see the species pop in and out of the list of favorites.

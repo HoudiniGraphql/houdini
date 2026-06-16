@@ -3,37 +3,135 @@ title: Error Boundaries
 description: Handling errors at the route level in Houdini's React framework
 ---
 
-Houdini uses standard React error boundaries for route-level error handling. A `+layout.jsx` is just a React component, so wrapping its children in an error boundary works exactly as you'd expect:
+Houdini provides a dedicated `+error.tsx` file for route-level error handling. When present alongside a `+page.tsx`, Houdini automatically wraps the page in an error boundary that catches errors thrown by the page, its queries, and any child routes nested below that directory.
 
-```jsx title="src/routes/+layout.tsx&typescriptToggle=true"
-import { ErrorBoundary } from 'react-error-boundary'
-import type { LayoutProps } from './$types'
+```tsx title="src/routes/dashboard/+error.tsx&typescriptToggle=true"
+import type { ErrorProps } from './$types'
 
-export default function RootLayout({ children }: LayoutProps) {
+export default function DashboardError({ errors, children }: ErrorProps) {
   return (
-    <ErrorBoundary fallback={<p>Something went wrong.</p>}>
-      {children}
-    </ErrorBoundary>
+    <div>
+      <h1>Something went wrong</h1>
+      <p>{errors[0].message}</p>
+    </div>
   )
 }
 ```
 
-We recommend [react-error-boundary](https://github.com/bvaughn/react-error-boundary) for the extra utilities it provides — reset keys, error logging callbacks, and a `useErrorBoundary` hook for throwing errors imperatively from event handlers.
+The `errors` prop is `Array<Error | GraphQLError>` — it will contain whichever error was thrown, whether that's a network failure, a GraphQL response error, or anything else thrown inside the page tree.
 
-## Placement
+## The `children` prop
 
-Because layouts nest, we can have boundaries at multiple levels. A boundary in the root layout catches everything. A boundary in a section layout catches only that section. Nothing stops us from having both.
+The error component also receives `children` — the page component that failed. You can render it if you want to show partial content alongside the error, but in most cases you won't. It's there when you need it.
+
+## Query data
+
+A `+error.tsx` has access to the same layout queries that are in scope at its directory level, since those queries succeeded for the boundary to even render. These are passed as props just like they would be to `+page.tsx`. The type for all available props is `ErrorProps`, exported from `./$types`.
+
+```tsx title="src/routes/+error.tsx&typescriptToggle=true"
+import type { ErrorProps } from './$types'
+
+// RootQuery results are available because the root layout query succeeded
+export default function RootError({ RootQuery, errors }: ErrorProps) {
+  return (
+    <div>
+      <p>Welcome, {RootQuery.viewer.name} — but something went wrong.</p>
+      <p>{errors[0].message}</p>
+    </div>
+  )
+}
+```
+
+## Scope
+
+Error boundaries nest the same way layouts do. A `+error.tsx` catches errors from its sibling `+page.tsx` and all routes below it. A layout query error at the same level bubbles up and would be caught by an error boundary at the parent directory instead.
 
 ```
 src/routes/
-  +layout.jsx          ← catches everything
+  +error.tsx         ← catches errors from the root page and all child routes
+  +layout.gql
   dashboard/
-    +layout.jsx        ← catches only dashboard routes
-    +page.jsx
+    +error.tsx       ← catches errors from +page.tsx and child routes within dashboard/
+    +page.tsx
+    +page.gql
 ```
 
-This is more control than a single `+error.jsx` per route, and it composes naturally with any third-party error reporting setup.
+## GraphQL errors
 
-## Query Errors
+By default Houdini throws GraphQL response errors so they're catchable by the error boundary. The thrown value is unwrapped into the `errors` array, so each entry is a `GraphQLError` object with at least a `message` field (and optionally `path`, `locations`, and `extensions`).
 
-By default, query errors are returned as data rather than thrown — so error boundaries won't catch them unless you opt in. The `throwOnError` option on your queries controls this. See [Error Handling](~/guides/error-handling) for the full picture.
+### SSR and query errors
+
+Error boundaries catch GraphQL errors correctly during client-side navigation. Direct page loads (SSR) behave differently because of how React's streaming renderer works: the shell is sent to the browser immediately while queries are still in flight, and components are retried asynchronously once their data arrives. If a query returns an error during that async retry, React is already mid-stream and the error cannot be routed to a class-based error boundary — the request ends in a 500.
+
+This is the same trade-off made by other React meta-frameworks. Routing errors (`notFound()`, `redirect()`, etc.) are unaffected because they throw synchronously before any suspension happens.
+
+If you need the error boundary to catch query errors on a direct page load, wrap the relevant content in a `<Suspense>` boundary. This creates a synchronous handoff point: React sends the Suspense fallback in the initial HTML, waits for the query, and then either replaces it with the page content or lets the error propagate to the nearest `+error.tsx`:
+
+```tsx title="src/routes/dashboard/+page.tsx&typescriptToggle=true"
+import { Suspense } from 'react'
+
+export default function DashboardPage() {
+  return (
+    <Suspense>
+      <DashboardContent />
+    </Suspense>
+  )
+}
+```
+
+The fallback renders while the query loads, so choose something that avoids a visible layout shift. Client-side navigations don't need this — the error boundary handles query errors there without any Suspense.
+
+## Routing utilities
+
+Houdini exports a set of functions you can call from any page component to signal a specific HTTP outcome. Each one throws an error that is caught by the nearest `+error.tsx` boundary.
+
+```tsx
+import { notFound, unauthorized, forbidden, httpError, redirect } from '$houdini'
+```
+
+| Function | Throws | HTTP status |
+|---|---|---|
+| `notFound()` | `RoutingError(404)` | 404 |
+| `unauthorized()` | `RoutingError(401)` | 401 |
+| `forbidden()` | `RoutingError(403)` | 403 |
+| `httpError(status)` | `RoutingError(status)` | any status |
+| `redirect(status, url)` | `RedirectError` | 3xx |
+
+The `errors` prop in your `+error.tsx` will contain the thrown instance. Use `isRoutingError` and `isApiError` to branch on error type:
+
+```tsx title="src/routes/show/[id]/+error.tsx&typescriptToggle=true"
+import type { ErrorProps } from './$types'
+import { isRoutingError, isApiError } from '$houdini'
+
+export default function ShowError({ errors }: ErrorProps) {
+  const routing = errors.find(isRoutingError)
+  if (routing?.status === 404) return <p>Show not found.</p>
+  if (routing?.status === 401) return <p>Please log in.</p>
+
+  const api = errors.find(isApiError)
+  if (api) return <p>{api.graphqlErrors[0].message}</p>
+
+  return <p>Something went wrong.</p>
+}
+```
+
+### 404 and static URL matching
+
+When no exact route matches the incoming URL, Houdini automatically finds the deepest layout whose static URL prefix matches, renders its `+error.tsx` as the 404 page, and returns HTTP 404 before streaming begins — no catch-all route needed.
+
+### redirect()
+
+`redirect()` works on both the server and the client. On an initial SSR response where the redirect can be detected before streaming begins, Houdini returns an HTTP 3xx response with the `Location` header set. On the client, or when the redirect is detected mid-stream, it triggers a router navigation to the target URL.
+
+```tsx title="src/routes/dashboard/+page.tsx&typescriptToggle=true"
+import { redirect } from '$houdini'
+import type { PageProps } from './$types'
+
+export default function DashboardPage({ ViewerQuery }: PageProps) {
+  if (!ViewerQuery.viewer) {
+    redirect(302, '/login')
+  }
+  return <div>Welcome, {ViewerQuery.viewer.name}</div>
+}
+```

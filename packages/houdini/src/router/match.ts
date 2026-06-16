@@ -21,6 +21,47 @@ export type RouteParam = {
 
 export type ParamMatcher = (param: string) => boolean
 
+// find_prefix_match returns the page whose leading static URL segments (the
+// segments before the first dynamic [param] segment) match the most segments of
+// the given URL. Used as a fallback when find_match returns null so that the
+// 404 UI renders inside the correct layout chain.
+export function find_prefix_match<_ComponentType>(
+	manifest: RouterManifest<_ComponentType>,
+	url: string
+): RouterPageManifest<_ComponentType> | null {
+	const urlSegments = url.split('/').filter(Boolean)
+	let best: RouterPageManifest<_ComponentType> | null = null
+	let bestCount = -1
+
+	for (const page of Object.values(manifest.pages)) {
+		const pageSegments = page.url.split('/').filter(Boolean)
+
+		// count leading static (non-dynamic) segments
+		let staticCount = 0
+		for (const seg of pageSegments) {
+			if (seg.startsWith('[') || seg.startsWith('(') || seg === '*') break
+			staticCount++
+		}
+
+		// all static segments must match the corresponding URL segments exactly
+		if (staticCount > urlSegments.length) continue
+		let matches = true
+		for (let i = 0; i < staticCount; i++) {
+			if (pageSegments[i] !== urlSegments[i]) {
+				matches = false
+				break
+			}
+		}
+
+		if (matches && staticCount > bestCount) {
+			bestCount = staticCount
+			best = page
+		}
+	}
+
+	return best
+}
+
 // find the matching page given the current path
 export function find_match<_ComponentType>(
 	config: ConfigFile,

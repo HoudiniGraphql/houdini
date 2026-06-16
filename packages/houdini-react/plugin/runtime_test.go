@@ -758,6 +758,47 @@ func TestGenerateRuntime(t *testing.T) {
 				},
 			},
 			{
+				Name: "+error.tsx emits error field in manifest",
+				Pass: true,
+				Input: []string{
+					mockQuery("PageQuery", false),
+				},
+				Filepaths: []string{
+					"src/routes/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx":  mockView([]string{"PageQuery"}),
+						"src/routes/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
+					},
+					"expected": tests.Dedent(`
+						import type { RouterManifest } from 'houdini/runtime'
+
+						export default {
+							pages: {
+								"_": {
+									id: "_",
+									url: "/",
+									pattern: /^\/$/,
+									params: [],
+									documents: {
+										PageQuery: {
+											artifact: () => import("../../../artifacts/PageQuery"),
+											loading: false,
+											variables: {},
+										},
+									},
+									component: () => import("../units/entries/_"),
+								},
+							},
+						} as const satisfies RouterManifest<any>
+
+						export type RouteScalars = {
+						}
+					`) + "\n",
+				},
+			},
+			{
 				Name: "custom scalar emitted in RouteScalars",
 				Pass: true,
 				ProjectConfig: func(cfg *plugins.ProjectConfig) {

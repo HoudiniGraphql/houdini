@@ -28,4 +28,11 @@ export const routes = {
 	list_id: '/list-id',
 	list_operations_upsert: '/list-operations/upsert',
 	list_operations_update: '/list-operations/update',
+	error_boundary: '/error-boundary',
+	error_boundary_inherit_child: '/error-boundary-inherit/child',
+	error_boundary_override_child: '/error-boundary-override/child',
+	routing_errors_not_found: '/routing-errors/not-found',
+	routing_errors_redirect: '/routing-errors/redirect',
+	routing_errors_redirect_target: '/routing-errors/redirect-target',
+	routing_errors_static_404: '/routing-errors/does-not-exist',
 } as const

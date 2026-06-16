@@ -1,0 +1,3 @@
+query ErrorBoundaryOverrideTest {
+	errorTest(forceError: true)
+}

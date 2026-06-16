@@ -59,22 +59,16 @@ type _ParamsForRoute<H extends string> = [_PageForRoute<H>] extends [never]
 export type LinkProps<H extends RouteHrefs | _ExternalHref = RouteHrefs | _ExternalHref> = Omit<
 	DetailedHTMLProps<AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>,
 	'href'
-> & {
-	to: H
-	disabled?: boolean
-	preload?: boolean | 'data' | 'component' | 'page'
-} & _ParamsForRoute<H>
+> & { to: H; preload?: boolean | 'data' | 'component' | 'page' } & _ParamsForRoute<H>
 
 export function Link<H extends RouteHrefs | _ExternalHref>({
 	to,
 	params,
-	disabled,
 	preload,
 	...rest
 }: LinkProps<H>): React.ReactElement {
-	const href = disabled
-		? undefined
-		: params != null
+	const href =
+		params != null
 			? resolveHref(to as string, params as Record<string, string | number | boolean>)
 			: (to as string)
 	return React.createElement('a', { ...rest, href, 'data-houdini-preload': preload })
