@@ -76,6 +76,7 @@
     "nasty-tables-fix",
     "peer-dep-adapters",
     "publish-wasm-packages",
+    "react-routing-errors",
     "refresh-cache-record",
     "session-transform-ts-annotations",
     "sharp-banks-check",
