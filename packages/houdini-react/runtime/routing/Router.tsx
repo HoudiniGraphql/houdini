@@ -173,7 +173,9 @@ export const useLocation = () => useContext(LocationContext)
 
 export const ClientRedirect = ({ to }: { to: string }) => {
 	const { goto } = useLocation()
-	useEffect(() => { goto(to) }, [to])
+	useEffect(() => {
+		goto(to)
+	}, [to])
 	return null
 }
 
