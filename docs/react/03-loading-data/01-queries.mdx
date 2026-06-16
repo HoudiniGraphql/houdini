@@ -44,9 +44,9 @@ The prop name matches the query name exactly — `ShowList` not `data` or `props
 
 The prevailing wisdom is that queries should live inside the components that use them. Houdini agrees with the principle (we still colocate fragments in our component source, after all) but disagrees about where the boundary should sit.
 
-The problem is timing. By the time JavaScript is loaded and runs, it's too late to start a network request without a waterfall: navigate → download JS → parse → run component → discover query → fetch → render. A component-bound query can never be known until after the bundle runs and the only way to avoid that is to teach the router what a route needs from the URL alone. So the query has to live somewhere the router can find it before any JavaScript runs — outside the component tree entirely.
+The problem is timing. By the time JavaScript is loaded and runs, it's too late to start a network request without a waterfall: navigate → download JS → parse → run component → discover query → fetch → render. The query has to live somewhere the router can find it before any JavaScript runs — outside the component tree entirely. Once you're inside a JavaScript runtime, it's too late.
 
-The `.gql` file still lives next to the `.jsx` file, colocation by directory rather than by file.
+The `.gql` file still lives next to the `.jsx` file. This is just colocation by directory rather than file.
 
 </AsideAccordion>
 

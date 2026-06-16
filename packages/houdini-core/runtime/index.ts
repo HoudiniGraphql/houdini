@@ -4,7 +4,7 @@ import _cache from './cache.js'
 import type { CacheTypeDef } from './generated.js'
 import { Cache } from './public/index.js'
 
-export { CachePolicy, PendingValue } from 'houdini/runtime'
+export { CachePolicy, PendingValue, isPending } from 'houdini/runtime'
 export type { QueryArtifact, GraphQLVariables } from 'houdini/runtime'
 
 export * from './client.js'

@@ -1,0 +1,111 @@
+---
+title: Query Hooks
+description: API reference for useQuery and useQueryHandle
+---
+
+In most cases query data arrives as a prop from the route file rather than from a hook directly. These hooks exist for cases where you need to issue a query imperatively from inside a component, or when you need the full handle for programmatic refetching.
+
+## useQuery
+
+Fetches a query and returns the data. Suspends until the result is available.
+
+```tsx
+import { graphql, useQuery } from '$houdini'
+
+export function UserProfile({ userId }: { userId: string }) {
+  const data = useQuery(
+    graphql(`
+      query UserProfile($userId: ID!) {
+        user(id: $userId) {
+          name
+          bio
+        }
+      }
+    `),
+    { userId }
+  )
+
+  return <p>{data.user.bio}</p>
+}
+```
+
+**Signature**
+
+```ts
+function useQuery(document, variables?, config?): data
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `document` | `graphql()` result | The query document |
+| `variables` | object | Query variables |
+| `config` | `UseQueryConfig` | Optional config (see below) |
+
+Returns the query data directly. For access to the imperative handle, use `useQueryHandle` instead.
+
+---
+
+## useQueryHandle
+
+Like `useQuery`, but returns a full `DocumentHandle` with methods for refetching and pagination.
+
+```tsx
+import { graphql, useQueryHandle } from '$houdini'
+
+export function ShowList() {
+  const { data, loadNext, loadNextPending, pageInfo, fetch } = useQueryHandle(
+    graphql(`
+      query AllShows {
+        shows @paginate(limit: 10) {
+          id
+          title
+        }
+      }
+    `)
+  )
+
+  return (
+    <>
+      {data.shows.map((show) => <div key={show.id}>{show.title}</div>)}
+      {pageInfo?.hasNextPage && (
+        <button onClick={() => loadNext(10)} disabled={loadNextPending}>
+          Load more
+        </button>
+      )}
+      <button onClick={() => fetch()}>Refresh</button>
+    </>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useQueryHandle(document, variables?, config?): DocumentHandle
+```
+
+**`UseQueryConfig`**
+
+| Option | Type | Description |
+|---|---|---|
+| `policy` | `CachePolicy` | Override the cache policy for this query |
+| `metadata` | `App.Metadata` | Passed through to client plugins |
+| `fetchKey` | any | Change this value to force a refetch |
+
+**`DocumentHandle`**
+
+| Field | Type | Description |
+|---|---|---|
+| `data` | query data | The current result |
+| `fetching` | `boolean` | True while a network request is in flight |
+| `errors` | `GraphQLError[] \| null` | Any errors from the last response |
+| `partial` | `boolean` | True if the result was served partially from cache |
+| `variables` | object | The variables used for the current result |
+| `fetch` | function | Trigger a refetch, optionally with new variables |
+| `loadNext` | function | Load the next page (cursor or offset pagination) |
+| `loadNextPending` | `boolean` | True while `loadNext` is in flight |
+| `loadPrevious` | function | Load the previous page (cursor pagination only) |
+| `loadPreviousPending` | `boolean` | True while `loadPrevious` is in flight |
+| `pageInfo` | `PageInfo` | Cursor pagination metadata |
+
+Pagination fields are only present when the query uses `@paginate`.

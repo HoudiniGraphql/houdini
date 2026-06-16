@@ -1,0 +1,198 @@
+---
+title: Routing
+description: API reference for routing hooks and navigation utilities
+---
+
+## useRoute
+
+Returns the typed params for the current route. The type parameter should be the `PageProps` type generated for the current route file.
+
+```tsx
+import type { PageProps } from './$types'
+import { useRoute } from '$houdini'
+
+export function ShowBreadcrumb() {
+  const { params } = useRoute<PageProps>()
+  return <span>Show #{params.id}</span>
+}
+```
+
+**Signature**
+
+```ts
+function useRoute<PageProps>(): { params: PageProps['Params'] }
+```
+
+---
+
+## useLocation
+
+Returns the current location. Use this to read the pathname or navigate imperatively.
+
+```tsx
+import { useLocation } from '$houdini'
+
+export function ActiveLink({ href, label }: { href: string; label: string }) {
+  const { pathname } = useLocation()
+  return (
+    <a href={href} aria-current={pathname === href ? 'page' : undefined}>
+      {label}
+    </a>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useLocation(): { pathname: string; params: Record<string, string>; goto: (url: string) => void }
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `pathname` | `string` | The current URL path |
+| `params` | `Record<string, string>` | The current route params (untyped) |
+| `goto` | `(url: string) => void` | Navigate to a URL imperatively |
+
+---
+
+## useSession
+
+Returns the current session and an updater function. Calling the updater patches the local session and syncs the change to the server.
+
+```tsx
+import { useSession } from '$houdini'
+
+export function LogoutButton() {
+  const [session, updateSession] = useSession()
+
+  return (
+    <button onClick={() => updateSession({ token: null })}>
+      Log out ({session.user?.name})
+    </button>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useSession(): [App.Session, (patch: Partial<App.Session>) => void]
+```
+
+The updater sends a `POST` request to the session endpoint defined in your router config, clears the data cache, and triggers a re-fetch of any active queries. The session type is defined by your `App.Session` declaration.
+
+---
+
+## useCurrentVariables
+
+Returns the query variables that were used to load the current route. Useful inside deeply nested components that need access to route-level variables without prop-drilling.
+
+```tsx
+import { useCurrentVariables } from '$houdini'
+
+export function DebugPanel() {
+  const variables = useCurrentVariables()
+  return <pre>{JSON.stringify(variables, null, 2)}</pre>
+}
+```
+
+**Signature**
+
+```ts
+function useCurrentVariables(): GraphQLVariables
+```
+
+Returns the variables object for the query that loaded the current page. Returns `null` outside a route context.
+
+---
+
+## notFound
+
+Throws a `RoutingError(404)`, caught by the nearest `+error.tsx`. On an initial SSR response, Houdini returns HTTP 404 before streaming begins.
+
+```ts
+function notFound(): never
+```
+
+```tsx
+import { notFound } from '$houdini'
+
+if (!data.show) notFound()
+```
+
+---
+
+## unauthorized
+
+Throws a `RoutingError(401)`, caught by the nearest `+error.tsx`. Signals that the user must authenticate to access the resource.
+
+```ts
+function unauthorized(): never
+```
+
+---
+
+## forbidden
+
+Throws a `RoutingError(403)`, caught by the nearest `+error.tsx`. Signals that the authenticated user does not have permission.
+
+```ts
+function forbidden(): never
+```
+
+---
+
+## httpError
+
+Throws a `RoutingError(status)` with any HTTP status code. Use this for status codes not covered by the named helpers.
+
+```ts
+function httpError(status: number): never
+```
+
+```tsx
+import { httpError } from '$houdini'
+
+if (!data.resource) httpError(422)
+```
+
+---
+
+## redirect
+
+Triggers a navigation to `url` with the given HTTP status code. On an initial SSR response where the redirect can be detected before streaming begins, Houdini returns an HTTP 3xx response. On the client, or when the redirect occurs mid-stream, it triggers a router navigation.
+
+```ts
+function redirect(status: 300 | 301 | 302 | 303 | 307 | 308, url: string): never
+```
+
+```tsx
+import { redirect } from '$houdini'
+
+if (!viewer) redirect(302, '/login')
+```
+
+---
+
+## RoutingError
+
+The error class thrown by `notFound()`, `unauthorized()`, `forbidden()`, and `httpError()`. Check for it in `+error.tsx` to distinguish routing errors from GraphQL errors.
+
+```ts
+class RoutingError extends Error {
+  status: number
+}
+```
+
+```tsx
+import { RoutingError } from '$houdini'
+import type { ErrorProps } from './$types'
+
+export default function PageError({ errors }: ErrorProps) {
+  const routing = errors.find((e) => e instanceof RoutingError) as RoutingError | undefined
+  if (routing?.status === 404) return <p>Not found.</p>
+  if (routing?.status === 401) return <p>Please log in.</p>
+  return <p>Something went wrong.</p>
+}
+```

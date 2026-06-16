@@ -1,0 +1,164 @@
+---
+title: Data Hooks
+description: API reference for useFragment, useFragmentHandle, useMutation, and useSubscription
+---
+
+import Notice from '@components/docs/Notice.astro'
+
+## useFragment
+
+Reads a fragment reference into typed data. The component re-renders whenever the underlying cache record changes.
+
+```tsx
+import { graphql, useFragment } from '$houdini'
+import type { UserAvatar_user } from '$houdini'
+
+export function UserAvatar({ user }: { user: UserAvatar_user }) {
+  const data = useFragment(user, graphql(`
+    fragment UserAvatar_user on User {
+      name
+      avatarUrl
+    }
+  `))
+
+  if (!data) return null
+  return <img src={data.avatarUrl} alt={data.name} />
+}
+```
+
+**Signature**
+
+```ts
+function useFragment(reference, document): data | null
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `reference` | fragment prop | The masked reference passed from the parent |
+| `document` | `graphql()` result | The fragment document |
+
+Returns the fragment data, or `null` if the reference is null.
+
+---
+
+## useFragmentHandle
+
+Like `useFragment`, but also returns an imperative handle. Use this when the fragment is paginated or you need to trigger a refetch.
+
+```tsx
+import { graphql, useFragmentHandle } from '$houdini'
+import type { ShowList_show } from '$houdini'
+
+export function ShowList({ show }: { show: ShowList_show }) {
+  const { data, loadNext, loadNextPending, pageInfo } = useFragmentHandle(show, graphql(`
+    fragment ShowList_show on Show @paginate {
+      episodes(first: 10) @paginate {
+        edges {
+          node { title }
+        }
+      }
+    }
+  `))
+
+  return (
+    <>
+      {data?.episodes.edges.map(({ node }) => <div key={node.title}>{node.title}</div>)}
+      {pageInfo?.hasNextPage && (
+        <button onClick={() => loadNext(10)} disabled={loadNextPending}>
+          Load more
+        </button>
+      )}
+    </>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useFragmentHandle(reference, document): handle
+```
+
+Returns the same `DocumentHandle` shape as `useQueryHandle` — `data`, `fetch`, `variables`, plus pagination methods if the fragment uses `@paginate`.
+
+---
+
+## useMutation
+
+Returns a `[mutate, pending]` tuple. Call `mutate` to send the mutation; `pending` is true while it is in flight.
+
+```tsx
+import { graphql, useMutation } from '$houdini'
+
+export function FollowButton({ userId }: { userId: string }) {
+  const [follow, pending] = useMutation(graphql(`
+    mutation FollowUser($userId: ID!) {
+      followUser(userId: $userId) {
+        success
+      }
+    }
+  `))
+
+  return (
+    <button
+      disabled={pending}
+      onClick={() => follow({ variables: { userId } })}
+    >
+      Follow
+    </button>
+  )
+}
+```
+
+**Signature**
+
+```ts
+function useMutation(document): [mutate, pending]
+```
+
+The `mutate` function accepts:
+
+| Option | Type | Description |
+|---|---|---|
+| `variables` | object | The mutation input variables |
+| `optimisticResponse` | object | Optional optimistic update applied immediately |
+| `metadata` | `App.Metadata` | Passed through to client plugins |
+| `fetch` | `typeof fetch` | Override the fetch implementation |
+| `abortController` | `AbortController` | Cancel the in-flight request |
+
+`mutate` throws a `RuntimeGraphQLError` if the server returns any `errors`.
+
+---
+
+## useSubscription
+
+Subscribes to a live subscription document and returns the latest data. The subscription starts when the component mounts and stops when it unmounts.
+
+```tsx
+import { graphql, useSubscription } from '$houdini'
+
+export function LiveScore({ matchId }: { matchId: string }) {
+  const data = useSubscription(
+    graphql(`
+      subscription MatchScore($matchId: ID!) {
+        matchScore(matchId: $matchId) {
+          home
+          away
+        }
+      }
+    `),
+    { matchId }
+  )
+
+  if (!data) return <span>Waiting...</span>
+  return <span>{data.matchScore.home} – {data.matchScore.away}</span>
+}
+```
+
+**Signature**
+
+```ts
+function useSubscription(document, variables): data | null
+```
+
+Returns the latest subscription payload, or `null` before the first message arrives.

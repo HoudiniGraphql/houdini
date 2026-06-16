@@ -3,6 +3,8 @@ title: Setting Up Your Project
 description: A guide for setting up your Houdini project
 ---
 
+import Notice from '@components/docs/Notice.astro'
+
 This guide contains two different approaches to add Houdini to your project. The first one uses
 a script that will configure everything for you. The second is more manual, explaining
 all of the necessary steps.
@@ -17,10 +19,9 @@ configure everything for you (setup url, get schema, prepare project files, etc)
 npx houdini@latest init
 ```
 
-> This will send a request to your API to download your schema definition. If you need
-> headers to authenticate this request, you can pass them in with the `--headers`
-> flag (abbreviated `-h`). For example,
-> `npx houdini init -h Authorization="Bearer MyToken"`.
+<Notice variant="info">
+  This will send a request to your API to download your schema definition. If you need headers to authenticate this request, you can pass them in with the `--headers` flag (abbreviated `-h`). For example, `npx houdini init -h Authorization="Bearer MyToken"`.
+</Notice>
 
 And that's it! You should be all set with everything you need to work with Houdini.
 
