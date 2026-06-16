@@ -1,5 +1,11 @@
 # houdini-react
 
+## 2.0.0-next.40
+
+### Minor Changes
+
+- [#1666](https://github.com/HoudiniGraphql/houdini/pull/1666) [`cb689af`](https://github.com/HoudiniGraphql/houdini/commit/cb689af828ef44ac3109dcfbcfda61a57b64fca8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `+error.tsx` route-level error boundaries and a full routing error toolkit (`notFound()`, `redirect()`, `unauthorized()`, `forbidden()`, `httpError()`, `isRoutingError`, `isApiError`) for the React adapter.
+
 ## 2.0.0-next.39
 
 ### Patch Changes
