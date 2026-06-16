@@ -13,6 +13,15 @@ export {
 	useLocation,
 	useRoute,
 	useCurrentVariables,
+	notFound,
+	unauthorized,
+	forbidden,
+	httpError,
+	redirect,
+	isRoutingError,
+	isApiError,
+	RoutingError,
+	RedirectError,
 } from './routing/index.js'
 export * from './Link.js'
 

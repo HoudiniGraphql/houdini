@@ -443,19 +443,29 @@ func TestGeneratePageEntries(t *testing.T) {
 import Layout__subRoute from '../layouts/_subRoute.jsx'
 import Page__subRoute_nested from '../pages/_subRoute_nested.jsx'
 import client from '$houdini/plugins/houdini-react/runtime/client'
+import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'
 import PageFallback__subRoute_nested from '../fallbacks/page/_subRoute_nested.jsx'
 import LayoutFallback__ from '../fallbacks/layout/_.jsx'
+
+const SegmentSetter__ = ({ children }) => { setCurrentSegment('_'); return children }
+const SegmentSetter__subRoute = ({ children }) => { setCurrentSegment('_subRoute'); return children }
 
 export default ({ url }) => {
 	return (
 		<LayoutFallback__ key={url}>
-			<Layout__ key={url}>
-				<Layout__subRoute key={url}>
-					<PageFallback__subRoute_nested key={url}>
-						<Page__subRoute_nested />
-					</PageFallback__subRoute_nested>
-				</Layout__subRoute>
-			</Layout__>
+			<SegmentSetter__ key={url}>
+				<Layout__ key={url}>
+					<SegmentSetter__subRoute key={url}>
+						<Layout__subRoute key={url}>
+							<NotFoundGate key={url}>
+								<PageFallback__subRoute_nested key={url}>
+									<Page__subRoute_nested />
+								</PageFallback__subRoute_nested>
+							</NotFoundGate>
+						</Layout__subRoute>
+					</SegmentSetter__subRoute>
+				</Layout__>
+			</SegmentSetter__>
 		</LayoutFallback__>
 	)
 }
@@ -478,13 +488,181 @@ export default ({ url }) => {
 					"expected": map[string]string{
 						"entries/_.jsx": `import Page__ from '../pages/_.jsx'
 import client from '$houdini/plugins/houdini-react/runtime/client'
+import { NotFoundGate } from '$houdini/plugins/houdini-react/runtime/routing'
 import '../componentFields/wrapper_UserAvatar'
 
 export default ({ url }) => {
 	return (
-		<Page__ />
+		<NotFoundGate key={url}>
+			<Page__ />
+		</NotFoundGate>
 	)
 }
+`,
+					},
+				},
+			},
+			{
+				Name: "wraps page with error boundary when +error.tsx is present",
+				Pass: true,
+				Input: []string{
+					mockQuery("RootQuery", false),
+					mockQuery("PageQuery", false),
+				},
+				Filepaths: []string{
+					"src/routes/+layout.gql",
+					"src/routes/subRoute/+page.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+layout.tsx":           "export default ({children}) => <div>{children}</div>",
+						"src/routes/subRoute/+page.tsx":    mockView([]string{"RootQuery", "PageQuery"}),
+						"src/routes/subRoute/+error.tsx":   "export default ({ errors }) => <div>{errors[0].message}</div>",
+					},
+					// entry: Layout(root) > Error > Page (no fallbacks — no @loading)
+					"expected": map[string]string{
+						"entries/_subRoute.jsx": `import Layout__ from '../layouts/_.jsx'
+import Error__subRoute from '../errors/_subRoute.jsx'
+import Page__subRoute from '../pages/_subRoute.jsx'
+import client from '$houdini/plugins/houdini-react/runtime/client'
+import { NotFoundGate, setCurrentSegment } from '$houdini/plugins/houdini-react/runtime/routing'
+
+const SegmentSetter__ = ({ children }) => { setCurrentSegment('_'); return children }
+
+export default ({ url }) => {
+	return (
+		<SegmentSetter__ key={url}>
+			<Layout__ key={url}>
+				<Error__subRoute key={url}>
+					<NotFoundGate key={url}>
+						<Page__subRoute />
+					</NotFoundGate>
+				</Error__subRoute>
+			</Layout__>
+		</SegmentSetter__>
+	)
+}
+`,
+					},
+				},
+			},
+		},
+	})
+}
+
+func TestGenerateErrorWrappers(t *testing.T) {
+	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
+		Schema: `
+			type Query {
+				id: ID
+				node(id: ID!): Node
+			}
+			interface Node { id: ID! }
+		`,
+		SetupAlwaysPasses: true,
+
+		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			views, ok := test.Extra["views"].(map[string]string)
+			if !ok {
+				return
+			}
+			fs := p.Filesystem()
+			for fp, content := range views {
+				abs := filepath.Join("/project", fp)
+				require.NoError(t, fs.MkdirAll(filepath.Dir(abs), 0755))
+				require.NoError(t, afero.WriteFile(fs, abs, []byte(content), 0644))
+			}
+		},
+
+		PerformTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
+			ctx := context.Background()
+			_, err := p.GenerateErrorWrappers(ctx)
+			require.NoError(t, err)
+
+			units := pluginUnitsDir(p)
+			for file, expected := range test.Extra["expected"].(map[string]string) {
+				got, err := afero.ReadFile(p.Filesystem(), filepath.Join(units, file))
+				require.NoError(t, err)
+				require.Equal(t, expected, string(got), "file: %s", file)
+			}
+		},
+
+		Tests: []tests.Test[coreConfig.PluginConfig]{
+			{
+				Name: "generates error wrapper with no layout queries",
+				Pass: true,
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+page.tsx":  mockView([]string{}),
+						"src/routes/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
+					},
+					"expected": map[string]string{
+						"errors/_.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, ClientRedirect } from '$houdini/plugins/houdini-react/runtime/routing'
+import Component__ from '../../../../../src/routes/+error'
+
+const ErrorView = ({ errors, children }) => {
+	const redirectErr = errors.find(e => e instanceof RedirectError)
+	if (redirectErr) return <ClientRedirect to={redirectErr.location} />
+	return (
+		<PageContextProvider keys={[]}>
+			<Component__ errors={errors}>
+				{children}
+			</Component__>
+		</PageContextProvider>
+	)
+}
+
+export default ({ children }) => (
+	<HoudiniErrorBoundary errorView={ErrorView}>
+		{children}
+	</HoudiniErrorBoundary>
+)
+`,
+					},
+				},
+			},
+			{
+				Name: "generates error wrapper with layout queries",
+				Pass: true,
+				Input: []string{
+					mockQuery("RootQuery", false),
+					mockQuery("SubQuery", false),
+				},
+				Filepaths: []string{
+					"src/routes/+layout.gql",
+					"src/routes/subRoute/+layout.gql",
+				},
+				Extra: map[string]any{
+					"views": map[string]string{
+						"src/routes/+layout.tsx":         "export default ({children}) => <div>{children}</div>",
+						"src/routes/subRoute/+page.tsx":  mockView([]string{"RootQuery", "SubQuery"}),
+						"src/routes/subRoute/+error.tsx": "export default ({ errors }) => <div>{errors[0].message}</div>",
+					},
+					// error wrapper at subRoute: layout queries are RootQuery + SubQuery
+					"expected": map[string]string{
+						"errors/_subRoute.jsx": `import { useQueryResult, PageContextProvider, HoudiniErrorBoundary, RedirectError, ClientRedirect } from '$houdini/plugins/houdini-react/runtime/routing'
+import Component__subRoute from '../../../../../src/routes/subRoute/+error'
+
+const ErrorView = ({ errors, children }) => {
+	const redirectErr = errors.find(e => e instanceof RedirectError)
+	if (redirectErr) return <ClientRedirect to={redirectErr.location} />
+	const [RootQuery$data, RootQuery$handle] = useQueryResult("RootQuery")
+	const [SubQuery$data, SubQuery$handle] = useQueryResult("SubQuery")
+
+	return (
+		<PageContextProvider keys={[]}>
+			<Component__subRoute RootQuery={RootQuery$data} RootQuery$handle={RootQuery$handle} SubQuery={SubQuery$data} SubQuery$handle={SubQuery$handle} errors={errors}>
+				{children}
+			</Component__subRoute>
+		</PageContextProvider>
+	)
+}
+
+export default ({ children }) => (
+	<HoudiniErrorBoundary errorView={ErrorView}>
+		{children}
+	</HoudiniErrorBoundary>
+)
 `,
 					},
 				},
@@ -745,6 +923,8 @@ func TestGenerateTypeRoots(t *testing.T) {
 						"src/routes/$types.d.ts": `import { DocumentHandle, RouteProp } from '../../../plugins/houdini-react/runtime'
 import React from 'react'
 import type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../artifacts/LayoutQuery'
+import type { GraphQLError } from 'houdini/runtime'
+import type { RoutingError } from '../../../plugins/houdini-react/runtime'
 
 export type PageProps = {
 	Params: {},
@@ -756,12 +936,22 @@ export type LayoutProps = {
 	Params: {},
 	children: React.ReactNode,
 }
+
+export type ErrorProps = {
+	Params: {},
+	errors: Array<Error | GraphQLError | RoutingError>,
+	children: React.ReactNode,
+	LayoutQuery: LayoutQuery$result,
+	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
+}
 `,
 						"src/routes/(subRoute)/$types.d.ts": `import { DocumentHandle, RouteProp } from '../../../../plugins/houdini-react/runtime'
 import React from 'react'
 import type { LayoutQuery$result, LayoutQuery$artifact, LayoutQuery$input } from '../../../../artifacts/LayoutQuery'
 import type { RootQuery$result, RootQuery$artifact, RootQuery$input } from '../../../../artifacts/RootQuery'
 import type { FinalQuery$result, FinalQuery$artifact, FinalQuery$input } from '../../../../artifacts/FinalQuery'
+import type { GraphQLError } from 'houdini/runtime'
+import type { RoutingError } from '../../../../plugins/houdini-react/runtime'
 
 export type PageProps = {
 	Params: {},
@@ -776,6 +966,16 @@ export type PageProps = {
 export type LayoutProps = {
 	Params: {},
 	children: React.ReactNode,
+}
+
+export type ErrorProps = {
+	Params: {},
+	errors: Array<Error | GraphQLError | RoutingError>,
+	children: React.ReactNode,
+	LayoutQuery: LayoutQuery$result,
+	LayoutQuery$handle: DocumentHandle<LayoutQuery$artifact, LayoutQuery$result, LayoutQuery$input>,
+	RootQuery: RootQuery$result,
+	RootQuery$handle: DocumentHandle<RootQuery$artifact, RootQuery$result, RootQuery$input>,
 }
 `,
 					},
@@ -799,6 +999,8 @@ export type LayoutProps = {
 						"src/routes/[id]/$types.d.ts": `import { DocumentHandle, RouteProp } from '../../../../plugins/houdini-react/runtime'
 import React from 'react'
 import type { MyQuery$result, MyQuery$artifact, MyQuery$input } from '../../../../artifacts/MyQuery'
+import type { GraphQLError } from 'houdini/runtime'
+import type { RoutingError } from '../../../../plugins/houdini-react/runtime'
 
 export type PageProps = {
 	Params: { id: string },
@@ -809,6 +1011,14 @@ export type PageProps = {
 export type LayoutProps = {
 	Params: { id: string },
 	children: React.ReactNode,
+}
+
+export type ErrorProps = {
+	Params: { id: string },
+	errors: Array<Error | GraphQLError | RoutingError>,
+	children: React.ReactNode,
+	MyQuery: MyQuery$result,
+	MyQuery$handle: DocumentHandle<MyQuery$artifact, MyQuery$result, MyQuery$input>,
 }
 `,
 					},

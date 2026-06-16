@@ -494,7 +494,7 @@ func (c *fieldCollection) ToSelectionSet() []*collected.Selection {
 		}
 
 		for _, f := range c.FragmentSpreads {
-			field := f.Field
+			field := f.Field.Clone(false)
 			if f.Visible {
 				field.Visible = true
 			}

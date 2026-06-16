@@ -10,7 +10,7 @@ import {
 import type { ConfigFile } from '../lib/config.js'
 import type { HoudiniClient } from '../runtime/client.js'
 import { serialize as encodeCookie } from './cookies.js'
-import { find_match } from './match.js'
+import { find_match, find_prefix_match } from './match.js'
 import { get_session, handle_request, session_cookie_name } from './session.js'
 import type { RouterManifest, RouterPageManifest, YogaServerOptions } from './types.js'
 
@@ -36,6 +36,7 @@ export function _serverHandler<ComponentType = unknown>({
 	on_render: (args: {
 		url: string
 		match: RouterPageManifest<ComponentType> | null
+		is404: boolean
 		manifest: RouterManifest<unknown>
 		session: App.Session
 		componentCache: Record<string, any>
@@ -113,13 +114,17 @@ export function _serverHandler<ComponentType = unknown>({
 
 		// the request is for a server-side rendered page
 
-		// find the matching url
-		const [match] = find_match(config_file, manifest, url)
+		// find the matching url; fall back to the deepest prefix match so that
+		// 404 pages render inside the correct layout chain
+		const [exactMatch] = find_match(config_file, manifest, url)
+		const is404 = !exactMatch
+		const match = exactMatch ?? find_prefix_match(manifest, url)
 
 		// call the framework-specific render hook with the latest session
 		const rendered = await on_render({
 			url,
 			match,
+			is404,
 			session: await get_session(request.headers, session_keys),
 			manifest,
 			componentCache,

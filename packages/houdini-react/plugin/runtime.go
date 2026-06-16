@@ -180,6 +180,12 @@ func (p *HoudiniReact) GenerateRuntime(ctx context.Context) ([]string, error) {
 	}
 	changed = append(changed, wrappers...)
 
+	errorWrappers, err := p.GenerateErrorWrappers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	changed = append(changed, errorWrappers...)
+
 	fallbacks, err := p.GenerateFallbacks(ctx)
 	if err != nil {
 		return nil, err
@@ -604,6 +610,7 @@ func formatManifest(
 		sb.WriteString("\t\t\t},\n")
 
 		sb.WriteString(fmt.Sprintf("\t\t\tcomponent: () => import(%q),\n", filepath.ToSlash(componentRel)))
+
 		sb.WriteString("\t\t},\n")
 	}
 
