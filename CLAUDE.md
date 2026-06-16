@@ -39,4 +39,4 @@ The marketing site at `../marketing` symlinks directly into these directories, s
 
 ## Changesets
 
-Every change needs a changeset. Keep the description to one or two sentences — no bullet lists.
+Every non-documentation change needs a changeset. Doc-only changes do not need one. Each branch should have exactly one changeset. Keep the description to one or two sentences — no bullet lists.
