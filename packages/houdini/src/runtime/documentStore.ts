@@ -1,6 +1,6 @@
 import type { ConfigFile } from 'houdini'
 
-,mport type { HoudiniClient } from './index.js'
+import type { HoudiniClient } from './index.js'
 import type { Layer } from './cache/storage.js'
 import { deepEquals } from './deepEquals.js'
 import { marshalInputs } from './scalars.js'
