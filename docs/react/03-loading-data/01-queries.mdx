@@ -74,7 +74,7 @@ export default function RootLayout({ AppShell, children }) {
 }
 ```
 
-All queries in the chain — the page query, the layout query, any ancestor layout queries — run in parallel before the route renders. Child pages don't need to re-fetch this data either; it's already in the cache from the layout's load.
+All queries in the chain (the page query, the layout query, any ancestor layout queries) run in parallel before the route renders. Child pages don't need to re-fetch this data either; it's already in the cache from the layout's load.
 
 ## Query Variables
 
@@ -112,7 +112,7 @@ export default function ShowsPage({ ShowList$handle }) {
 
 If you'd rather avoid the `.data` accessor, destructure both props and use them side by side.
 
-The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details.
+The methods available on the handle depend on the query's directives. A query with `@paginate` will also have `loadNextPage` and `loadPreviousPage`. See [Pagination](~/loading-data/pagination) for details. For the full handle API, see [`useQueryHandle`](~/api-reference/usequeryhandle).
 
 ## TypeScript
 
