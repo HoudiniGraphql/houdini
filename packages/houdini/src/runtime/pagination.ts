@@ -274,8 +274,12 @@ export function cursorHandlers<
 
 			// Backward-only or bidirectional SinglePage going backward: push the current
 			// 'before' cursor so loadNextPage can re-issue the same backward query (cache hit).
-			if (isSinglePage && (direction === 'backward' || direction === 'both')) {
-				nextCursors.push((getVariables() as any)?.before ?? null)
+			// Skip if the current page was forward-loaded (has first/after set) — in that case
+			// loadNextPage's natural forward nav will reach the same cache key via endCursor.
+			const pVars = getVariables() as any
+			const isForwardPage = pVars?.first != null || pVars?.after != null
+			if (isSinglePage && (direction === 'backward' || direction === 'both') && !isForwardPage) {
+				nextCursors.push(pVars?.before ?? null)
 			}
 
 			// only specify the page count if we're given one
