@@ -547,10 +547,6 @@ export const on_render =
 		manifest,
 		componentCache,
 	}) => {
-		if (!match) {
-			return new Response('not found', { status: 404 })
-		}
-
 		const cache = new Cache({
 			disabled: false,
 			...config,
@@ -593,7 +589,7 @@ export const on_render =
 
 		${documentPremable ?? ''}
 
-		<script type="module" src="${assetPrefix}/pages/${match.id}.${production ? 'js' : 'jsx'}" async=""></script>
+		${match ? '<script type="module" src="' + assetPrefix + '/pages/' + match.id + '.' + (production ? 'js' : 'jsx') + '" async=""></script>' : ''}
 	` + "`" + `)
 
 		if (pipeTo && pipe) {

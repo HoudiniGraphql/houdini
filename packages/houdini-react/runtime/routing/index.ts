@@ -14,4 +14,4 @@ export {
 	isApiError,
 	StatusContext,
 	setCurrentSegment,
-} from './ErrorBoundary.js'
+} from './errors.js'

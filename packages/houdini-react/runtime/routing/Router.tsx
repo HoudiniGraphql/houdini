@@ -15,7 +15,7 @@ import { useContext, useEffect } from 'react'
 import { type DocumentHandle, useDocumentHandle } from '../hooks/useDocumentHandle.js'
 import { useDocumentStore } from '../hooks/useDocumentStore.js'
 import { type SuspenseCache, suspense_cache } from './cache.js'
-import { GraphQLErrors, RoutingError, StatusContext } from './ErrorBoundary.js'
+import { GraphQLErrors, RoutingError, StatusContext } from './errors.js'
 
 type PageComponent = React.ComponentType<{ url: string; children?: React.ReactNode }>
 
