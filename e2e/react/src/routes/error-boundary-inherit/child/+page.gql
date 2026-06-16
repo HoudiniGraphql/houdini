@@ -1,3 +1,0 @@
-query ErrorBoundaryInheritTest {
-	errorTest(forceError: true)
-}

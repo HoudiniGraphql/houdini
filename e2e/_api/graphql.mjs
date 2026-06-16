@@ -152,7 +152,6 @@ export const typeDefs = /* GraphQL */ `
 		Get a monkey by its id
 		"""
 		monkey(id: ID!): Monkey
-		errorTest(forceError: Boolean!): String
 	}
 
 	type Subscription {
@@ -424,12 +423,6 @@ export const resolvers = {
 	Query: {
 		hello: () => {
 			return 'Hello World! // From Houdini!'
-		},
-		errorTest: (_, { forceError }) => {
-			if (forceError) {
-				throw new GraphQLError('test error from server')
-			}
-			return 'ok'
 		},
 		aOrB: () => {
 			const toRet = []
