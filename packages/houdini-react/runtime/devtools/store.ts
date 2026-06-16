@@ -45,7 +45,10 @@ function getRequestId(ctx: ClientPluginContext) {
 	return requestIdsBySignal.get(ctx.abortController.signal)
 }
 
-function updateRequest(requestId: string | undefined, updater: (request: DevToolRequest) => DevToolRequest) {
+function updateRequest(
+	requestId: string | undefined,
+	updater: (request: DevToolRequest) => DevToolRequest
+) {
 	if (!requestId) {
 		return
 	}

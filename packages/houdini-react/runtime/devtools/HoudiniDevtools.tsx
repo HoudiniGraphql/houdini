@@ -29,10 +29,10 @@ export function HoudiniDevtools() {
 							<span className="hdt-count">{snapshot.requests.length} requests</span>
 						</div>
 						<div className="hdt-actions">
-							<button className="hdt-button" onClick={clearRequests}>
+							<button className="hdt-button" type="button" onClick={clearRequests}>
 								Clear
 							</button>
-							<button className="hdt-button" onClick={() => setOpen(false)}>
+							<button className="hdt-button" type="button" onClick={() => setOpen(false)}>
 								Close
 							</button>
 						</div>
@@ -43,16 +43,20 @@ export function HoudiniDevtools() {
 							{snapshot.requests.map((request) => (
 								<button
 									key={request.id}
+									type="button"
 									onClick={() => setSelectedId(request.id)}
 									className={`hdt-row ${selected?.id === request.id ? 'hdt-row--selected' : ''}`}
 								>
 									<div className="hdt-row-title">
 										<StatusDot status={request.status} />
 										<span className="hdt-name">{request.ctx.name}</span>
-										<span className="hdt-row-kind">{displayKind(request.kind)}</span>
+										<span className="hdt-row-kind">
+											{displayKind(request.kind)}
+										</span>
 									</div>
 									<div className="hdt-row-meta">
-										{getRequestSource(request) ?? 'unknown'} • {getDurationMs(request)}ms
+										{getRequestSource(request) ?? 'unknown'} •{' '}
+										{getDurationMs(request)}ms
 									</div>
 								</button>
 							))}
@@ -66,23 +70,45 @@ export function HoudiniDevtools() {
 											<h3 className="hdt-heading">{selected.ctx.name}</h3>
 										</div>
 										<div className="hdt-summary">
-											<span className="hdt-summary-badge">{selected.events.length} lifecycle events</span>
+											<span className="hdt-summary-badge">
+												{selected.events.length} lifecycle events
+											</span>
 										</div>
 									</div>
 									<div className="hdt-tabs">
-										<TabButton active={detailTab === 'variables'} onClick={() => setDetailTab('variables')}>
+										<TabButton
+											active={detailTab === 'variables'}
+											onClick={() => setDetailTab('variables')}
+										>
 											Variables
 										</TabButton>
-										<TabButton active={detailTab === 'data'} onClick={() => setDetailTab('data')}>
+										<TabButton
+											active={detailTab === 'data'}
+											onClick={() => setDetailTab('data')}
+										>
 											Data
 										</TabButton>
-										<TabButton active={detailTab === 'errors'} onClick={() => setDetailTab('errors')}>
+										<TabButton
+											active={detailTab === 'errors'}
+											onClick={() => setDetailTab('errors')}
+										>
 											Errors
 										</TabButton>
 									</div>
 
-									{detailTab === 'variables' ? <Section title="Variables" value={selected.ctx.variables} /> : null}
-									{detailTab === 'data' ? <Section title="Data" value={selected.status === 'success' ? selected.result.data : null} /> : null}
+									{detailTab === 'variables' ? (
+										<Section title="Variables" value={selected.ctx.variables} />
+									) : null}
+									{detailTab === 'data' ? (
+										<Section
+											title="Data"
+											value={
+												selected.status === 'success'
+													? selected.result.data
+													: null
+											}
+										/>
+									) : null}
 									{detailTab === 'errors' ? (
 										<Section
 											title="Errors"
@@ -103,7 +129,7 @@ export function HoudiniDevtools() {
 					</div>
 				</div>
 			) : (
-				<button className="hdt-trigger" onClick={() => setOpen(true)}>
+				<button className="hdt-trigger" type="button" onClick={() => setOpen(true)}>
 					<span>🎩</span>
 					<strong>Houdini Devtools</strong>
 					<StatusDot status={latest?.status ?? 'success'} />
@@ -123,7 +149,7 @@ function TabButton({
 	children: React.ReactNode
 }) {
 	return (
-		<button className={`hdt-tab ${active ? 'hdt-tab--active' : ''}`} onClick={onClick}>
+		<button className={`hdt-tab ${active ? 'hdt-tab--active' : ''}`} type="button" onClick={onClick}>
 			{children}
 		</button>
 	)
@@ -159,7 +185,7 @@ function Section({ title, value }: { title: string; value: unknown }) {
 		<div className="hdt-section">
 			<div className="hdt-section-head">
 				<div className="hdt-section-title">{title}</div>
-				<button className="hdt-copy" onClick={copy}>
+				<button className="hdt-copy" type="button" onClick={copy}>
 					{copied ? 'Copied' : 'Copy'}
 				</button>
 			</div>

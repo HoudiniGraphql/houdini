@@ -149,7 +149,10 @@ const devToolPlugin: ClientPlugin = () => {
 			if (enabled(ctx)) {
 				addRequestEvent(ctx, 'end')
 				if (value.errors?.length) {
-					failRequest(ctx, new Error(value.errors.map((error) => error.message).join('\n')))
+					failRequest(
+						ctx,
+						new Error(value.errors.map((error) => error.message).join('\n'))
+					)
 				} else {
 					succeedRequest(ctx, value)
 				}
