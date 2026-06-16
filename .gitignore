@@ -8,6 +8,7 @@ bin
 
 .pnp.*
 __tests__
+test-results/
 
 .svelte-kit
 functions
