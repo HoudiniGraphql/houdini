@@ -9,6 +9,7 @@ import type {
 import * as React from 'react'
 
 import { useClient, useSession } from '../routing/Router.js'
+import type { DocumentHandle } from './useDocumentHandle.js'
 import { fragmentReference, useFragment } from './useFragment.js'
 
 // useFragmentHandle is just like useFragment except it also returns an imperative handle
@@ -24,7 +25,7 @@ export function useFragmentHandle<
 	document: { artifact: FragmentArtifact; refetchArtifact?: QueryArtifact }
 ): any {
 	// get the fragment values
-	const data = useFragment<_Data, _ReferenceType, _Input>(reference, document)
+	const fragmentData = useFragment<_Data, _ReferenceType, _Input>(reference, document)
 
 	// look at the fragment reference to get the variables
 	const { variables } = fragmentReference<_Data, _Input, _ReferenceType>(reference, document)
@@ -49,6 +50,52 @@ export function useFragmentHandle<
 		if (!refetchArtifact?.refetch?.paginated) return null
 		return client.observe<_Data, _Input>({ artifact: refetchArtifact })
 	}, [refetchArtifact?.name])
+
+	// Subscribe to the pagination observer so React re-renders whenever a new page is fetched
+	// or served from cache (CacheOrNetwork). The fragment store subscription only watches the
+	// initial page's cache key; the observer is the live source of truth for SinglePage
+	// pagination where each page lives at its own per-cursor cache key.
+	const subscribeToObserver = React.useCallback(
+		(onChange: () => void) => {
+			if (!paginationObserver) return () => {}
+			return paginationObserver.subscribe(onChange)
+		},
+		[paginationObserver]
+	)
+	const getObserverSnapshot = React.useCallback(
+		() => paginationObserver?.state.data ?? null,
+		[paginationObserver]
+	)
+	const paginationData = React.useSyncExternalStore(
+		subscribeToObserver,
+		getObserverSnapshot,
+		getObserverSnapshot
+	)
+
+	// Extract entity-level data from the pagination query response. For Node targetType
+	// the response is { node: EntityData }; we take the first root field to handle any type.
+	// Guard against partial cache hits (artifact has partial:true): only use the entity once the
+	// paginated connection field at refetch.path[0] is actually present in the response.
+	const paginationEntityData = React.useMemo<_Data | null>(() => {
+		if (!paginationData || !refetchArtifact?.selection?.fields) return null
+		const rootField = Object.keys(refetchArtifact.selection.fields)[0]
+		if (!rootField) return null
+		const entity = (paginationData as any)[rootField]
+		if (!entity) return null
+		const path = refetchArtifact.refetch?.path
+		if (path && path.length > 0 && (entity as any)[path[0]] == null) {
+			return null
+		}
+		return entity as _Data
+	}, [paginationData, refetchArtifact])
+
+	const isSinglePage = refetchArtifact?.refetch?.mode === 'SinglePage'
+
+	// For SinglePage: use the pagination observer's entity data (each page has its own
+	// cache key) once a page fetch has landed. For Infinite: always use fragmentData,
+	// which reads accumulated pages from cache via the fragment's cache subscription.
+	const displayData =
+		isSinglePage && paginationEntityData !== null ? paginationEntityData : fragmentData
 
 	const wrapLoad = <_Result>(
 		setLoading: (val: boolean) => void,
@@ -91,7 +138,7 @@ export function useFragmentHandle<
 		if (refetchArtifact.refetch!.method === 'cursor') {
 			const handlers = cursorHandlers<_Data, _Input>({
 				artifact: refetchArtifact,
-				getState: () => data as _Data | null,
+				getState: () => displayData as _Data | null,
 				// Use the observer's own variable state so cursor history is preserved
 				// across page navigations without manual tracking in the hook.
 				getVariables: () =>
@@ -108,14 +155,16 @@ export function useFragmentHandle<
 				loadNextPending: forwardPending,
 				loadPrevious: wrapLoad(setBackwardPending, handlers.loadPreviousPage),
 				loadPreviousPending: backwardPending,
-				pageInfo: refetchPath ? extractPageInfo(data as GraphQLObject, refetchPath) : null,
+				pageInfo: refetchPath
+					? extractPageInfo(displayData as GraphQLObject, refetchPath)
+					: null,
 			}
 		}
 
 		if (refetchArtifact.refetch!.method === 'offset') {
 			const handlers = offsetHandlers({
 				artifact: refetchArtifact,
-				getState: () => data as _Data | null,
+				getState: () => displayData as _Data | null,
 				getVariables: () =>
 					(paginationObserver.state.variables ?? variables) as NonNullable<_Input>,
 				storeName: refetchArtifact.name,
@@ -132,11 +181,11 @@ export function useFragmentHandle<
 		}
 
 		return null
-	}, [refetchArtifact, paginationObserver, data, session, forwardPending, backwardPending])
+	}, [refetchArtifact, paginationObserver, displayData, session, forwardPending, backwardPending])
 
 	return {
 		...handle,
 		variables,
-		data,
+		data: displayData,
 	}
 }
