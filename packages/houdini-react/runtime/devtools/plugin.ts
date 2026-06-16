@@ -4,7 +4,7 @@ import React from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 
 import { HoudiniDevtools } from './HoudiniDevtools'
-import styles from './styles.css?inline'
+import styles from './styles.js'
 import { addRequestEvent, createRequest, failRequest, succeedRequest } from './store'
 import type { RequestKind } from './type'
 
@@ -80,14 +80,23 @@ function normalizeError(error: unknown): Error {
 	return new Error(typeof error === 'string' ? error : JSON.stringify(error))
 }
 
+function enabled(ctx: { config: { plugins?: Record<string, { devtools?: boolean }> } }) {
+	return ctx.config.plugins?.['houdini-react']?.devtools === true
+}
+
 const devToolPlugin: ClientPlugin = () => {
+	if (typeof window === 'undefined' || (import.meta as any).env?.DEV === false) {
+		return {}
+	}
+
 	return {
 		start(ctx, { next }) {
-			if (!isRequestKind(ctx.artifact.kind)) {
+			if (!enabled(ctx) || !isRequestKind(ctx.artifact.kind)) {
 				next(ctx)
 				return
 			}
 
+			scheduleMountOverlay()
 			createRequest(ctx, ctx.artifact.kind)
 			addRequestEvent(ctx, 'start')
 
@@ -95,39 +104,51 @@ const devToolPlugin: ClientPlugin = () => {
 			next(ctx)
 		},
 		beforeNetwork(ctx, { next }) {
-			addRequestEvent(ctx, 'beforeNetwork')
-			renderOverlay()
+			if (enabled(ctx)) {
+				addRequestEvent(ctx, 'beforeNetwork')
+				renderOverlay()
+			}
 			next(ctx)
 		},
 		network(ctx, { next }) {
-			addRequestEvent(ctx, 'network')
-			renderOverlay()
+			if (enabled(ctx)) {
+				addRequestEvent(ctx, 'network')
+				renderOverlay()
+			}
 			next(ctx)
 		},
 		afterNetwork(ctx, { resolve }) {
-			addRequestEvent(ctx, 'afterNetwork')
-			renderOverlay()
+			if (enabled(ctx)) {
+				addRequestEvent(ctx, 'afterNetwork')
+				renderOverlay()
+			}
 			resolve(ctx)
 		},
 		end(ctx, { value, resolve }) {
-			addRequestEvent(ctx, 'end')
-			if (value.errors?.length) {
-				failRequest(ctx, new Error(value.errors.map((error) => error.message).join('\n')))
-			} else {
-				succeedRequest(ctx, value)
+			if (enabled(ctx)) {
+				addRequestEvent(ctx, 'end')
+				if (value.errors?.length) {
+					failRequest(ctx, new Error(value.errors.map((error) => error.message).join('\n')))
+				} else {
+					succeedRequest(ctx, value)
+				}
+				renderOverlay()
 			}
-			renderOverlay()
 			resolve(ctx)
 		},
 		catch(ctx, { error }) {
-			addRequestEvent(ctx, 'catch')
-			failRequest(ctx, normalizeError(error))
-			renderOverlay()
+			if (enabled(ctx)) {
+				addRequestEvent(ctx, 'catch')
+				failRequest(ctx, normalizeError(error))
+				renderOverlay()
+			}
 			throw error
 		},
 		cleanup(ctx) {
-			addRequestEvent(ctx, 'cleanup')
-			renderOverlay()
+			if (enabled(ctx)) {
+				addRequestEvent(ctx, 'cleanup')
+				renderOverlay()
+			}
 		},
 	}
 }

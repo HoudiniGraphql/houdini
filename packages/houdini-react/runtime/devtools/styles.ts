@@ -1,4 +1,4 @@
-.hdt {
+const styles = `.hdt {
 	--hdt-bg: #101113;
 	--hdt-panel: #17191c;
 	--hdt-header: #1f252c;
@@ -345,3 +345,6 @@
 .hdt-trigger * {
 	color: inherit !important;
 }
+`
+
+export default styles
