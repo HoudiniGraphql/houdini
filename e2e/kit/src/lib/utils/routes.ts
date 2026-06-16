@@ -69,6 +69,7 @@ export const routes = {
 	Pagination_fragment_bidirectional_cursor: '/pagination/fragment/bidirectional-cursor',
 	Pagination_fragment_offset: '/pagination/fragment/offset',
 	Pagination_fragment_required_arguments: '/pagination/fragment/required-arguments',
+	Pagination_fragment_forward_cursor_singlepage: '/pagination/fragment/forward-cursor-singlepage',
 
 	nested_argument_fragments: '/nested-argument-fragments',
 	nested_argument_fragments_masking: '/nested-argument-fragments-masking',

@@ -241,8 +241,9 @@ type hookSpec struct {
 	kind        string // "query", "mutation", "subscription", or "fragment"
 	marker      string // text immediately before which overloads are inserted
 	preamble    string // extra import line to prepend (empty if not needed)
-	imports     func(name string) string
-	overloads   func(name string) string
+	// paginationQuery is the name of the pagination query document for paginated fragments, or ""
+	imports     func(name string, paginationQuery string) string
+	overloads   func(name string, paginationQuery string) string
 	passthrough string // generic overload inserted last, bridges concrete overloads to the implementation
 }
 
@@ -254,10 +255,10 @@ var hookSpecs = []hookSpec{
 		file:   "useQuery.ts",
 		kind:   "query",
 		marker: "export function useQuery<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useQuery(document: { artifact: %s$artifact }, variables?: %s$input, config?: UseQueryConfig): %s$result\n",
 				name, name, name,
@@ -269,10 +270,10 @@ var hookSpecs = []hookSpec{
 		file:   "useQueryHandle.ts",
 		kind:   "query",
 		marker: "export function useQueryHandle<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useQueryHandle(document: { artifact: %s$artifact }, variables?: %s$input, config?: UseQueryConfig): DocumentHandle<%s$artifact, %s$result, GraphQLVariables>\n",
 				name, name, name, name,
@@ -284,10 +285,10 @@ var hookSpecs = []hookSpec{
 		file:   "useFragment.ts",
 		kind:   "fragment",
 		marker: "export function useFragment<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$data, %s$artifact } from '$houdini/artifacts/%s'\n", name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useFragment(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact }): %s$data\n"+
 					"export function useFragment(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact }): %s$data | null\n",
@@ -301,14 +302,26 @@ var hookSpecs = []hookSpec{
 		file:   "useFragmentHandle.ts",
 		kind:   "fragment",
 		marker: "export function useFragmentHandle<",
-		imports: func(name string) string {
-			return fmt.Sprintf("import type { %s$data, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
+		// For paginated fragments, import the pagination query artifact too.
+		imports: func(name string, paginationQuery string) string {
+			base := fmt.Sprintf("import type { %s$data, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
+			if paginationQuery != "" {
+				base += fmt.Sprintf("import type { %s$artifact } from '$houdini/artifacts/%s'\n", paginationQuery, paginationQuery)
+			}
+			return base
 		},
-		// DocumentHandle's first type param must extend QueryArtifact; for fragments that
-		// have no refetchArtifact we use the base QueryArtifact (already imported by the source).
-		// Both non-null and nullable reference overloads use the same non-null data type since
-		// DocumentHandle._Data extends GraphQLObject (not null).
-		overloads: func(name string) string {
+		// For paginated fragments, return DocumentHandle typed with the pagination query artifact
+		// so TypeScript exposes loadNext/loadPrevious/pageInfo on the returned handle.
+		// For non-paginated fragments, fall back to DocumentHandle<QueryArtifact, ...>.
+		overloads: func(name string, paginationQuery string) string {
+			if paginationQuery != "" {
+				return fmt.Sprintf(
+					"export function useFragmentHandle(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact; refetchArtifact?: %s$artifact }): DocumentHandle<%s$artifact, %s$data, %s$input>\n"+
+						"export function useFragmentHandle(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact; refetchArtifact?: %s$artifact }): DocumentHandle<%s$artifact, %s$data, %s$input>\n",
+					fragmentKeyLiteral, name, name, paginationQuery, paginationQuery, name, name,
+					fragmentKeyLiteral, name, name, paginationQuery, paginationQuery, name, name,
+				)
+			}
 			return fmt.Sprintf(
 				"export function useFragmentHandle(reference: { readonly %q: { %s: any } }, document: { artifact: %s$artifact }): DocumentHandle<QueryArtifact, %s$data, GraphQLVariables>\n"+
 					"export function useFragmentHandle(reference: { readonly %q: { %s: any } } | null, document: { artifact: %s$artifact }): DocumentHandle<QueryArtifact, %s$data, GraphQLVariables>\n",
@@ -322,10 +335,10 @@ var hookSpecs = []hookSpec{
 		file:   "useMutation.ts",
 		kind:   "mutation",
 		marker: "export function useMutation<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input, %s$optimistic } from '$houdini/artifacts/%s'\n", name, name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useMutation(document: { artifact: %s$artifact }): [MutationHandler<%s$result, %s$input, %s$optimistic>, boolean]\n",
 				name, name, name, name,
@@ -337,10 +350,10 @@ var hookSpecs = []hookSpec{
 		file:   "useSubscription.ts",
 		kind:   "subscription",
 		marker: "export function useSubscription<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useSubscription(document: { artifact: %s$artifact }, variables?: %s$input): %s$result\n",
 				name, name, name,
@@ -352,10 +365,10 @@ var hookSpecs = []hookSpec{
 		file:   "useSubscriptionHandle.ts",
 		kind:   "subscription",
 		marker: "export function useSubscriptionHandle<",
-		imports: func(name string) string {
+		imports: func(name string, _ string) string {
 			return fmt.Sprintf("import type { %s$result, %s$artifact, %s$input } from '$houdini/artifacts/%s'\n", name, name, name, name)
 		},
-		overloads: func(name string) string {
+		overloads: func(name string, _ string) string {
 			return fmt.Sprintf(
 				"export function useSubscriptionHandle(document: { artifact: %s$artifact }, variables?: %s$input): SubscriptionHandle<%s$result, %s$input>\n",
 				name, name, name, name,
@@ -444,6 +457,25 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
+	// Build the set of visible fragments that are paginated. We detect pagination
+	// via discovered_lists (populated during Validate) rather than looking for
+	// a pre-existing _Pagination_Query document, because GenerateRuntime runs
+	// concurrently with GenerateDocuments and the document may not exist yet.
+	paginatedFragments := map[string]string{}
+	err = p.DB.StepQuery(ctx, `
+		SELECT DISTINCT d.name
+		FROM documents d
+		JOIN discovered_lists dl ON dl.document = d.id
+		WHERE d.visible = 1 AND d.kind = 'fragment'
+		  AND dl.paginate IS NOT NULL
+	`, nil, func(q plugins.Row) {
+		name := q.ColumnText(0)
+		paginatedFragments[name] = name + "_Pagination_Query"
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	var changed []string
 	for _, spec := range hookSpecs {
 		names := docsByKind[spec.kind]
@@ -476,13 +508,13 @@ func (p *HoudiniReact) UpdateHookFiles(ctx context.Context) ([]string, error) {
 			top.WriteString("\n")
 		}
 		for _, name := range names {
-			top.WriteString(spec.imports(name))
+			top.WriteString(spec.imports(name, paginatedFragments[name]))
 		}
 		top.WriteString("\n")
 
 		var before strings.Builder
 		for _, name := range names {
-			before.WriteString(spec.overloads(name))
+			before.WriteString(spec.overloads(name, paginatedFragments[name]))
 		}
 		if spec.passthrough != "" {
 			before.WriteString(spec.passthrough + "\n")

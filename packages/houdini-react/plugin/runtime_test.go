@@ -160,9 +160,33 @@ func TestUpdateIndexFiles(t *testing.T) {
 func TestUpdateHookFiles(t *testing.T) {
 	tests.RunTable(t, tests.Table[coreConfig.PluginConfig, *plugin.HoudiniReact]{
 		Schema: `
-			type Query { id: ID }
+			type Query {
+				id: ID
+				node(id: ID!): Node
+			}
 			type Mutation { id: ID }
 			type Subscription { id: ID }
+
+			interface Node { id: ID! }
+			type User implements Node {
+				id: ID!
+				firstName: String!
+				friends(first: Int, after: String, last: Int, before: String): UserConnection!
+			}
+			type UserConnection {
+				pageInfo: PageInfo!
+				edges: [UserEdge!]!
+			}
+			type UserEdge {
+				cursor: String!
+				node: User!
+			}
+			type PageInfo {
+				hasNextPage: Boolean!
+				hasPreviousPage: Boolean!
+				startCursor: String
+				endCursor: String
+			}
 		`,
 
 		SetupTest: func(t *testing.T, p *plugin.HoudiniReact, test tests.Test[coreConfig.PluginConfig]) {
@@ -263,6 +287,49 @@ func TestUpdateHookFiles(t *testing.T) {
 							"export function useFragment(reference: { readonly \" $fragments\": { MyFragment: any } } | null, document: { artifact: MyFragment$artifact }): MyFragment$data | null\n" +
 							"export function useFragment<_Data extends GraphQLObject, _ReferenceType extends {}, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: FragmentArtifact }): _Data | null\n" +
 							"export function useFragment<_A>(ref: any, doc: any): any {}\n",
+					},
+				},
+			},
+			{
+				Name: "injects useFragmentHandle overloads for non-paginated fragment",
+				Pass: true,
+				Input: []string{
+					`fragment MyFragment on Query { id }`,
+				},
+				Extra: map[string]any{
+					"stubs": map[string]string{
+						"useFragmentHandle.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
+					},
+					"expected": map[string]string{
+						"useFragmentHandle.ts": "import type { MyFragment$data, MyFragment$artifact, MyFragment$input } from '$houdini/artifacts/MyFragment'\n" +
+							"\n" +
+							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyFragment: any } }, document: { artifact: MyFragment$artifact }): DocumentHandle<QueryArtifact, MyFragment$data, GraphQLVariables>\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyFragment: any } } | null, document: { artifact: MyFragment$artifact }): DocumentHandle<QueryArtifact, MyFragment$data, GraphQLVariables>\n" +
+							"export function useFragmentHandle<_Artifact extends FragmentArtifact, _Data extends GraphQLObject, _ReferenceType extends {}, _PaginationArtifact extends QueryArtifact, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: _Artifact; refetchArtifact?: _PaginationArtifact }): DocumentHandle<_PaginationArtifact, _Data, _Input>\n" +
+							"export function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
+					},
+				},
+			},
+			{
+				Name: "injects useFragmentHandle overloads with pagination query artifact for paginated fragment",
+				Pass: true,
+				Input: []string{
+					`fragment MyPaginatedFragment on User { friends(first: 2) @paginate { edges { node { firstName } } } }`,
+				},
+				Extra: map[string]any{
+					"stubs": map[string]string{
+						"useFragmentHandle.ts": "import type { QueryArtifact } from 'houdini/runtime'\n\nexport function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
+					},
+					"expected": map[string]string{
+						"useFragmentHandle.ts": "import type { MyPaginatedFragment$data, MyPaginatedFragment$artifact, MyPaginatedFragment$input } from '$houdini/artifacts/MyPaginatedFragment'\n" +
+							"import type { MyPaginatedFragment_Pagination_Query$artifact } from '$houdini/artifacts/MyPaginatedFragment_Pagination_Query'\n" +
+							"\n" +
+							"import type { QueryArtifact } from 'houdini/runtime'\n\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyPaginatedFragment: any } }, document: { artifact: MyPaginatedFragment$artifact; refetchArtifact?: MyPaginatedFragment_Pagination_Query$artifact }): DocumentHandle<MyPaginatedFragment_Pagination_Query$artifact, MyPaginatedFragment$data, MyPaginatedFragment$input>\n" +
+							"export function useFragmentHandle(reference: { readonly \" $fragments\": { MyPaginatedFragment: any } } | null, document: { artifact: MyPaginatedFragment$artifact; refetchArtifact?: MyPaginatedFragment_Pagination_Query$artifact }): DocumentHandle<MyPaginatedFragment_Pagination_Query$artifact, MyPaginatedFragment$data, MyPaginatedFragment$input>\n" +
+							"export function useFragmentHandle<_Artifact extends FragmentArtifact, _Data extends GraphQLObject, _ReferenceType extends {}, _PaginationArtifact extends QueryArtifact, _Input extends GraphQLVariables>(reference: _Data | { \" $fragments\": _ReferenceType } | null, document: { artifact: _Artifact; refetchArtifact?: _PaginationArtifact }): DocumentHandle<_PaginationArtifact, _Data, _Input>\n" +
+							"export function useFragmentHandle<_A>(ref: any, doc: any): any {}\n",
 					},
 				},
 			},

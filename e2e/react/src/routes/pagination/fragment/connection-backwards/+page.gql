@@ -1,0 +1,5 @@
+query FragmentCursorBackwardsQuery {
+	user(id: "1", snapshot: "pagination-fragment-cursor-backwards") {
+		...FragmentCursorBackwardsFragment
+	}
+}

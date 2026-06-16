@@ -3,6 +3,7 @@ import { routes } from '../../../../lib/utils/routes.js'
 import {
 	expect_to_be,
 	expectToContain,
+	expect_0_gql,
 	expect_1_gql,
 	goto,
 	stringify,
@@ -29,8 +30,8 @@ test.describe('bidirectional cursor single page paginated query', () => {
 
 		/// Click on the next button
 
-		// load the next page and wait for the response
-		await expect_1_gql(page, 'button[id=next]')
+		// page 2 was the initial load — cache hit, no network request
+		await expect_0_gql(page, 'button[id=next]')
 
 		// there should be no previous page
 		await expectToContain(page, `"hasPreviousPage":true`)
@@ -87,8 +88,8 @@ test.describe('bidirectional cursor single page paginated query', () => {
 
 		/// Click on the previous button
 
-		// load the previous page and wait for the response
-		await expect_1_gql(page, 'button[id=previous]')
+		// page 2 was the initial load — cache hit, no network request
+		await expect_0_gql(page, 'button[id=previous]')
 
 		// make sure we got the new content
 		await expect_to_be(page, 'Morgan Freeman, Tom Hanks')
@@ -100,7 +101,7 @@ test.describe('bidirectional cursor single page paginated query', () => {
 
 		/// Click on the previous button
 
-		// load the previous page and wait for the response
+		// previousCursors now empty — use before cursor to fetch page 1
 		await expect_1_gql(page, 'button[id=previous]')
 
 		// make sure we got the new content

@@ -911,6 +911,17 @@ func processFragmentPagination(
 			return 0, err
 		}
 
+		// mark the fragment spread with @mask_disable so the cache reader exposes its
+		// fields through the abstract type wrapper (node() returns an interface, and
+		// external fragment spreads are masked by default; we need them visible here).
+		err = ctx.db.ExecStatement(ctx.insertSelectionDirective, map[string]any{
+			"selection": fragmentSpreadID,
+			"directive": graphql.DisableMaskDirective,
+		})
+		if err != nil {
+			return 0, err
+		}
+
 		// add resolve query arguments (keys)
 		for _, key := range list.Keys {
 			// create variable value for resolve query argument
