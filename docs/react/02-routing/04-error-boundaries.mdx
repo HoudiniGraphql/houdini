@@ -62,25 +62,23 @@ By default Houdini throws GraphQL response errors so they're catchable by the er
 
 ### SSR and query errors
 
-Error boundaries catch GraphQL errors correctly during client-side navigation. Direct page loads (SSR) behave differently because of how React's streaming renderer works: the shell is sent to the browser immediately while queries are still in flight, and components are retried asynchronously once their data arrives. If a query returns an error during that async retry, React is already mid-stream and the error cannot be routed to a class-based error boundary — the request ends in a 500.
+Error boundaries catch GraphQL errors correctly during client-side navigation. Direct page loads (SSR) are different: Houdini streams the page shell to the browser immediately while queries are in flight. Components waiting on data are suspended and retried asynchronously once the response arrives. If a query returns an error during that retry, React is already mid-stream and cannot route the error to a class-based error boundary — the server returns a 500 and the browser shows a blank error page.
 
-This is the same trade-off made by other React meta-frameworks. Routing errors (`notFound()`, `redirect()`, etc.) are unaffected because they throw synchronously before any suspension happens.
+Routing errors (`notFound()`, `redirect()`, etc.) are not affected because they throw synchronously before any suspension happens. Layout queries are also unaffected for the same reason.
 
-If you need the error boundary to catch query errors on a direct page load, wrap the relevant content in a `<Suspense>` boundary. This creates a synchronous handoff point: React sends the Suspense fallback in the initial HTML, waits for the query, and then either replaces it with the page content or lets the error propagate to the nearest `+error.tsx`:
+The recommended fix is to add a `@loading` directive to your page query. This tells Houdini to generate a Suspense boundary in the right place — between the error boundary and the suspended component — so that React can hand off errors correctly during SSR. It also gives the browser something to show while the query is in flight:
 
-```tsx title="src/routes/dashboard/+page.tsx&typescriptToggle=true"
-import { Suspense } from 'react'
-
-export default function DashboardPage() {
-  return (
-    <Suspense>
-      <DashboardContent />
-    </Suspense>
-  )
+```graphql title="src/routes/dashboard/+page.gql"
+query DashboardQuery @loading {
+  viewer {
+    name
+  }
 }
 ```
 
-The fallback renders while the query loads, so choose something that avoids a visible layout shift. Client-side navigations don't need this — the error boundary handles query errors there without any Suspense.
+With `@loading` in place, Houdini generates a loading state component from your `+page.tsx` (see the [loading states guide](~/routing/loading-states) for how to define it). React sends that loading state in the initial HTML, holds the stream open until the query resolves, and either replaces it with the page content or lets the error reach the nearest `+error.tsx`.
+
+Client-side navigations don't need any of this — the error boundary catches query errors there regardless.
 
 ## Routing utilities
 
