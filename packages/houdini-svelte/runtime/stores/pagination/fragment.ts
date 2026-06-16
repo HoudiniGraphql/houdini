@@ -109,7 +109,8 @@ export class FragmentStoreCursor<
 		let nextCursors: (string | null)[]
 
 		if (isSinglePage) {
-			const parent = (initialValue as any)?.[fragmentKey]?.values?.[this.artifact.name]?.parent
+			const parent = (initialValue as any)?.[fragmentKey]?.values?.[this.artifact.name]
+				?.parent
 			const stateKey = parent ? `${this.paginationArtifact.name}:${parent}` : null
 			const cached = stateKey ? _singlePageStateCache.get(stateKey) : null
 
@@ -125,7 +126,11 @@ export class FragmentStoreCursor<
 				previousCursors = []
 				nextCursors = []
 				if (stateKey) {
-					_singlePageStateCache.set(stateKey, { paginationStore, previousCursors, nextCursors })
+					_singlePageStateCache.set(stateKey, {
+						paginationStore,
+						previousCursors,
+						nextCursors,
+					})
 				}
 			}
 		} else {
@@ -164,7 +169,7 @@ export class FragmentStoreCursor<
 				return store.variables as NonNullable<_Input>
 			},
 			previousCursors,
-			nextCursors,
+			nextCursors
 		)
 
 		const subscribe = (
@@ -208,7 +213,7 @@ export class FragmentStoreCursor<
 		getState: () => _Data | null,
 		getVariables: () => NonNullable<_Input>,
 		previousCursors?: (string | null)[],
-		nextCursors?: (string | null)[],
+		nextCursors?: (string | null)[]
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			getState,

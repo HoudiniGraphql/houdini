@@ -224,7 +224,11 @@ export function cursorHandlers<
 			const direction = artifact.refetch?.direction
 
 			// SinglePage (forward or both): use previousCursors stack to re-issue a forward query.
-			if (isSinglePage && (direction === 'forward' || direction === 'both') && previousCursors.length > 0) {
+			if (
+				isSinglePage &&
+				(direction === 'forward' || direction === 'both') &&
+				previousCursors.length > 0
+			) {
 				const afterCursor = previousCursors.pop()!
 				return loadPage({
 					pageSizeVar: 'first',
