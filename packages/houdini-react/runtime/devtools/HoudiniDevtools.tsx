@@ -32,7 +32,11 @@ export function HoudiniDevtools() {
 							<button className="hdt-button" type="button" onClick={clearRequests}>
 								Clear
 							</button>
-							<button className="hdt-button" type="button" onClick={() => setOpen(false)}>
+							<button
+								className="hdt-button"
+								type="button"
+								onClick={() => setOpen(false)}
+							>
 								Close
 							</button>
 						</div>
@@ -149,7 +153,11 @@ function TabButton({
 	children: React.ReactNode
 }) {
 	return (
-		<button className={`hdt-tab ${active ? 'hdt-tab--active' : ''}`} type="button" onClick={onClick}>
+		<button
+			className={`hdt-tab ${active ? 'hdt-tab--active' : ''}`}
+			type="button"
+			onClick={onClick}
+		>
 			{children}
 		</button>
 	)
