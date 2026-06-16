@@ -4,6 +4,7 @@ import { keyFieldsForType } from 'houdini/runtime'
 import { siteURL } from 'houdini/runtime'
 import { extractPageInfo } from 'houdini/runtime'
 import { cursorHandlers, offsetHandlers } from 'houdini/runtime'
+import { fragmentKey } from 'houdini/runtime'
 import type {
 	CachePolicies,
 	FragmentArtifact,
@@ -14,7 +15,6 @@ import type {
 	PageInfo,
 	CursorHandlers,
 	GraphQLVariables,
-	fragmentKey,
 } from 'houdini/runtime'
 import { CompiledFragmentKind } from 'houdini/runtime'
 import type { Readable, Subscriber } from 'svelte/store'
@@ -80,6 +80,14 @@ export class BasePaginatedFragmentStore<
 	}
 }
 
+// Keyed by "<artifactName>:<entityID>" so reactive re-invocations of get() don't reset cursor history.
+type _SinglePageState = {
+	paginationStore: DocumentStore<any, any>
+	previousCursors: (string | null)[]
+	nextCursors: (string | null)[]
+}
+const _singlePageStateCache = new Map<string, _SinglePageState>()
+
 // both cursor paginated stores add a page info to their subscribe
 export class FragmentStoreCursor<
 	_Data extends GraphQLObject,
@@ -94,18 +102,69 @@ export class FragmentStoreCursor<
 		})
 		const store = base.get(initialValue)
 
-		// generate the pagination handlers
-		const paginationStore = getClient().observe<_Data, _Input>({
-			artifact: this.paginationArtifact,
-			initialValue: store.initialValue,
-		})
+		const isSinglePage = this.paginationArtifact.refetch?.mode === 'SinglePage'
+
+		let paginationStore: DocumentStore<_Data, _Input>
+		let previousCursors: (string | null)[]
+		let nextCursors: (string | null)[]
+
+		if (isSinglePage) {
+			const parent = (initialValue as any)?.[fragmentKey]?.values?.[this.artifact.name]?.parent
+			const stateKey = parent ? `${this.paginationArtifact.name}:${parent}` : null
+			const cached = stateKey ? _singlePageStateCache.get(stateKey) : null
+
+			if (cached) {
+				paginationStore = cached.paginationStore
+				previousCursors = cached.previousCursors
+				nextCursors = cached.nextCursors
+			} else {
+				paginationStore = getClient().observe<_Data, _Input>({
+					artifact: this.paginationArtifact,
+					initialValue: store.initialValue,
+				})
+				previousCursors = []
+				nextCursors = []
+				if (stateKey) {
+					_singlePageStateCache.set(stateKey, { paginationStore, previousCursors, nextCursors })
+				}
+			}
+		} else {
+			paginationStore = getClient().observe<_Data, _Input>({
+				artifact: this.paginationArtifact,
+				initialValue: store.initialValue,
+			})
+			previousCursors = []
+			nextCursors = []
+		}
+
+		// First key of paginationArtifact.selection.fields is the query-level root (e.g. "user").
+		// initialValue is fragment-level data with no such wrapper, so wrapped is null until
+		// the first paginated fetch completes.
+		const rootField = isSinglePage
+			? Object.keys(this.paginationArtifact.selection.fields ?? {})[0]
+			: null
+
+		const getPaginationEntity = (): _Data | null => {
+			if (!isSinglePage || !rootField) return null
+			const $pagination = get(paginationStore)
+			if (!$pagination.data) return null
+			const wrapped = ($pagination.data as any)?.[rootField]
+			if (!wrapped) return null
+			return wrapped as _Data
+		}
 
 		const handlers = this.storeHandlers(
 			paginationStore,
 			store.initialValue,
-			() => get(store),
-			// the variables that are needed for this query are the store's values and the ids
-			() => store.variables as NonNullable<_Input>
+			() => getPaginationEntity() ?? get(store),
+			() => {
+				if (!isSinglePage) return store.variables as NonNullable<_Input>
+				const paginationVars = get(paginationStore).variables
+				if (paginationVars) return paginationVars as NonNullable<_Input>
+				return store.variables as NonNullable<_Input>
+			},
+			previousCursors,
+			nextCursors,
 		)
 
 		const subscribe = (
@@ -117,10 +176,17 @@ export class FragmentStoreCursor<
 				| undefined
 		): (() => void) => {
 			const combined = derived([store, paginationStore], ([$parent, $pagination]) => {
+				let currentData: _Data | null
+				if (isSinglePage && rootField) {
+					const wrapped = ($pagination.data as any)?.[rootField]
+					currentData = wrapped ? (wrapped as _Data) : $parent
+				} else {
+					currentData = $parent
+				}
 				return {
 					...$pagination,
-					data: $parent,
-					pageInfo: extractPageInfo($parent, this.paginationArtifact.refetch!.path),
+					data: currentData,
+					pageInfo: extractPageInfo(currentData, this.paginationArtifact.refetch!.path),
 				} as FragmentPaginatedResult<_Data, { pageInfo: PageInfo }>
 			})
 
@@ -131,8 +197,6 @@ export class FragmentStoreCursor<
 			kind: CompiledFragmentKind,
 			subscribe: subscribe,
 			fetch: handlers.fetch,
-
-			// add the pagination handlers
 			loadNextPage: handlers.loadNextPage,
 			loadPreviousPage: handlers.loadPreviousPage,
 		}
@@ -142,7 +206,9 @@ export class FragmentStoreCursor<
 		observer: DocumentStore<_Data, _Input>,
 		_initialValue: _Data | null,
 		getState: () => _Data | null,
-		getVariables: () => NonNullable<_Input>
+		getVariables: () => NonNullable<_Input>,
+		previousCursors?: (string | null)[],
+		nextCursors?: (string | null)[],
 	): CursorHandlers<_Data, _Input> {
 		return cursorHandlers<_Data, _Input>({
 			getState,
@@ -151,12 +217,19 @@ export class FragmentStoreCursor<
 			fetchUpdate: async (args, updates) => {
 				await initClient()
 
+				// undefined entity vars would shadow the id cursorHandlers resolved via getVariables()
+				const entityVars = Object.fromEntries(
+					Object.entries(this.queryVariables(getState) as any).filter(
+						([, v]) => v !== undefined
+					)
+				) as _Input
+
 				return observer.send({
 					session: await getSession(),
 					...args,
 					variables: {
 						...args?.variables,
-						...this.queryVariables(getState),
+						...entityVars,
 					},
 					cacheParams: {
 						applyUpdates: updates,
@@ -167,19 +240,27 @@ export class FragmentStoreCursor<
 			fetch: async (args) => {
 				await initClient()
 
+				const entityVars = Object.fromEntries(
+					Object.entries(this.queryVariables(getState) as any).filter(
+						([, v]) => v !== undefined
+					)
+				) as _Input
+
+				const resolvedVars = { ...args?.variables, ...entityVars }
+
 				return await observer.send({
 					session: await getSession(),
 					...args,
-					variables: {
-						...args?.variables,
-						...this.queryVariables(getState),
-					},
+					variables: resolvedVars,
+					policy: args?.policy,
 					cacheParams: {
 						disableSubscriptions: true,
 					},
 				})
 			},
 			getSession,
+			previousCursors,
+			nextCursors,
 		})
 	}
 }

@@ -330,7 +330,7 @@ export type PaginatedFragment$artifact = typeof artifact
 				},
 			},
 			{
-				Name: "pagination arguments stays in key as its a SinglePage Mode",
+				Name: "pagination arguments included in key for SinglePage Mode (per-cursor keys, no ::paginated)",
 				Input: []string{
 					`
              fragment PaginatedFragment on User {
@@ -398,7 +398,7 @@ export type PaginatedFragment$artifact = typeof artifact
 
             "friendsByCursor": {
                 "type": "UserConnection",
-                "keyRaw": "friendsByCursor(filter: \"hello\", first: 10)",
+                "keyRaw": "friendsByCursor(first: 10, after: null, last: null, before: null, filter: \"hello\")",
                 "nullable": true,
 
                 "directives": [{
@@ -1835,7 +1835,7 @@ export type TestQuery$artifact = typeof artifact
 
                         "moves": {
                             "type": "SpeciesMoveConnection",
-                            "keyRaw": "moves(after: $after, first: $first)",
+                            "keyRaw": "moves(first: $first, after: $after, last: null, before: null)",
 
                             "directives": [{
                                 "name": "paginate",

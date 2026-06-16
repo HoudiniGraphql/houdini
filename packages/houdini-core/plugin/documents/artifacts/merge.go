@@ -238,9 +238,11 @@ func (c *fieldCollection) Add(
 		// mask directives on the spread win, otherwise we fall back to the project's
 		// defaultFragmentMasking setting
 		childHidden := c.DefaultMask
+		explicitlyUnmasked := false
 		for _, directive := range selection.Directives {
 			if directive.Name == graphql.DisableMaskDirective {
 				childHidden = false
+				explicitlyUnmasked = true
 				break
 			}
 			if directive.Name == graphql.EnableMaskDirective {
@@ -249,8 +251,9 @@ func (c *fieldCollection) Add(
 			}
 		}
 		// a spread that is itself in a hidden context (eg inside a masked fragment)
-		// keeps its fields hidden no matter what
-		if external || selection.Internal {
+		// keeps its fields hidden no matter what, unless the spread explicitly opts out
+		// of masking via @mask_disable (e.g. generated pagination queries for fragments).
+		if (external || selection.Internal) && !explicitlyUnmasked {
 			childHidden = true
 		}
 

@@ -1,6 +1,7 @@
 import { deepEquals } from './deepEquals.js'
 import type { SendParams } from './documentStore.js'
 import { countPage, extractPageInfo, missingPageSizeError } from './pageInfo.js'
+import { defaultConfigValues, getCurrentConfig, keyFieldsForType } from './config.js'
 import { CachePolicy, DataSource } from './types.js'
 import type {
 	CursorHandlers,
@@ -34,6 +35,24 @@ export function cursorHandlers<
 	previousCursors?: (string | null)[]
 	nextCursors?: (string | null)[]
 }): CursorHandlers<_Data, _Input> {
+	const targetType = artifact.refetch?.targetType
+
+	// Derive entity variables from the type config (e.g. { id: "..." } for Node).
+	// This mirrors what Svelte's queryVariables() does, so fragment pagination callers
+	// don't have to extract entity IDs manually.
+	const getEntityVars = (): Record<string, any> => {
+		if (!targetType || targetType === 'Query') return {}
+		const config = defaultConfigValues(getCurrentConfig())
+		const typeConfig = config.types?.[targetType]
+		const state = getState()
+		if (!state) return {}
+		if (typeConfig?.resolve?.arguments) {
+			return (typeConfig.resolve.arguments(state) as Record<string, any>) ?? {}
+		}
+		const keys = keyFieldsForType(config, targetType)
+		return Object.fromEntries(keys.map((key) => [key, (state as any)[key]]))
+	}
+
 	// dry up the page-loading logic
 	const loadPage = async ({
 		pageSizeVar,
@@ -50,8 +69,11 @@ export function cursorHandlers<
 		fetch?: typeof globalThis.fetch
 		where: 'start' | 'end'
 	}) => {
-		// build up the variables to pass to the query
+		// build up the variables to pass to the query, layering in order of precedence:
+		// artifact defaults < entity vars < caller-supplied vars < page-specific cursor args
 		const loadVariables: _Input = {
+			...(artifact.input?.defaults ?? {}),
+			...getEntityVars(),
 			...getVariables(),
 			...input,
 		}
@@ -64,13 +86,17 @@ export function cursorHandlers<
 		// Get the Pagination Mode
 		const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 
+		// SinglePage pagination uses per-cursor cache keys, so CacheOrNetwork naturally serves
+		// back-navigation from cache. Infinite mode appends pages, so always fetch fresh.
+		const policy = isSinglePage ? artifact.policy : CachePolicy.NetworkOnly
+
 		// send the query
 		return (isSinglePage ? parentFetch : parentFetchUpdate)(
 			{
 				variables: loadVariables,
 				fetch,
 				metadata,
-				policy: isSinglePage ? artifact.policy : CachePolicy.NetworkOnly,
+				policy,
 				session: await getSession(),
 			},
 			isSinglePage ? [] : [where === 'start' ? 'prepend' : 'append']
@@ -125,6 +151,25 @@ export function cursorHandlers<
 				})
 			}
 
+			// Bidirectional SinglePage: if the user went backward and hasn't caught back up,
+			// re-issue the saved backward query (cache hit) instead of doing a fresh forward fetch.
+			if (isSinglePage && direction === 'both' && nextCursors.length > 0) {
+				const beforeCursor = nextCursors.pop()!
+				return loadPage({
+					pageSizeVar: 'last',
+					functionName: 'loadNextPage',
+					input: {
+						before: beforeCursor,
+						last: first ?? artifact.refetch!.pageSize,
+						first: null,
+						after: null,
+					} as unknown as _Input,
+					fetch,
+					metadata,
+					where: 'start',
+				})
+			}
+
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = getPageInfo()
 			// if there is no next page, we're done
@@ -140,8 +185,9 @@ export function cursorHandlers<
 				})
 			}
 
-			// Forward-only SinglePage: push current 'after' so we can navigate back later
-			if (isSinglePage && direction === 'forward') {
+			// SinglePage (forward or both): push the current 'after' cursor so
+			// loadPreviousPage can re-issue the same forward query (cache hit on back-nav).
+			if (isSinglePage && (direction === 'forward' || direction === 'both')) {
 				previousCursors.push((getVariables() as any)?.after ?? null)
 			}
 
@@ -177,19 +223,8 @@ export function cursorHandlers<
 			const isSinglePage = artifact.refetch?.mode === 'SinglePage'
 			const direction = artifact.refetch?.direction
 
-			// Forward-only SinglePage: use previousCursors stack to re-issue a forward query
-			if (isSinglePage && direction === 'forward') {
-				if (previousCursors.length === 0) {
-					return Promise.resolve({
-						data: getState(),
-						errors: null,
-						fetching: false,
-						partial: false,
-						stale: false,
-						source: DataSource.Cache,
-						variables: getVariables(),
-					})
-				}
+			// SinglePage (forward or both): use previousCursors stack to re-issue a forward query.
+			if (isSinglePage && (direction === 'forward' || direction === 'both') && previousCursors.length > 0) {
 				const afterCursor = previousCursors.pop()!
 				return loadPage({
 					pageSizeVar: 'first',
@@ -203,6 +238,17 @@ export function cursorHandlers<
 					fetch,
 					metadata,
 					where: 'end',
+				})
+			}
+			if (isSinglePage && direction === 'forward') {
+				return Promise.resolve({
+					data: getState(),
+					errors: null,
+					fetching: false,
+					partial: false,
+					stale: false,
+					source: DataSource.Cache,
+					variables: getVariables(),
 				})
 			}
 
@@ -222,8 +268,9 @@ export function cursorHandlers<
 				})
 			}
 
-			// Backward-only SinglePage: push current 'before' so we can navigate forward later
-			if (isSinglePage && direction === 'backward') {
+			// Backward-only or bidirectional SinglePage going backward: push the current
+			// 'before' cursor so loadNextPage can re-issue the same backward query (cache hit).
+			if (isSinglePage && (direction === 'backward' || direction === 'both')) {
 				nextCursors.push((getVariables() as any)?.before ?? null)
 			}
 

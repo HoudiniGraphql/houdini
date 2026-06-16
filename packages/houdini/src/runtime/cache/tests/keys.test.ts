@@ -24,7 +24,7 @@ describe('key evaluation', () => {
 		{
 			title: 'undefined variable',
 			key: 'fieldName(foo: $bar)',
-			expected: 'fieldName(foo: undefined)',
+			expected: 'fieldName(foo: null)',
 		},
 	]
 

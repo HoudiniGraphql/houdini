@@ -25,7 +25,7 @@ export function evaluateKey(key: string, variables: Record<string, any> | null =
 			// look up the variable and add the result (varName starts with a $)
 			const value = variables?.[varName.slice(1)]
 
-			evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
+			evaluated += JSON.stringify(value ?? null)
 
 			// clear the variable name accumulator
 			varName = ''

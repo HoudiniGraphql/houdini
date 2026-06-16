@@ -877,17 +877,23 @@ func stringifySelection(
 %s}`, resultBuilder.String(), indent)
 }
 
-func keyField(field *collected.Selection, paginatedMode *string) string {
+func keyField(field *collected.Selection, paginatedMode *string, _ string) string {
+	// Pagination args are stripped and ::paginated suffix applied only for Infinite mode,
+	// where all pages accumulate under one stable key.
+	// SinglePage pagination (both query and fragment) uses distinct per-cursor cache keys
+	// so the cache can serve back-navigation without a network request.
+	useStableKey := paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite
+	isSinglePage := paginatedMode != nil && *paginatedMode == graphql.PaginationModeSinglePage
+
 	if len(field.Arguments) == 0 {
 		paginationSuffix := ""
-		if paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite {
+		if useStableKey {
 			paginationSuffix = "::paginated"
 		}
 		return `"` + *field.Alias + paginationSuffix + `"`
 	}
 
-	// if we are generating the key for a paginated field then we need to strip away
-	// the pagination arguments
+	// strip pagination args when using a stable key
 	args := []*collected.Argument{}
 	for _, arg := range field.Arguments {
 		paginationArgs := map[string]bool{
@@ -898,18 +904,52 @@ func keyField(field *collected.Selection, paginatedMode *string) string {
 			"limit":  true,
 			"offset": true,
 		}
-		if _, ok := paginationArgs[arg.Name]; ok && paginatedMode != nil &&
-			*paginatedMode == graphql.PaginationModeInfinite {
+		if _, ok := paginationArgs[arg.Name]; ok && useStableKey {
 			continue
 		}
 
-		// if we got this far then we can add the arg
 		a := *arg
 		args = append(args, &a)
 	}
 
+	// For SinglePage, the initial parent query and the pagination query must share the same
+	// cache key for the first page so backward navigation finds the cached data.
+	// The pagination query always includes all four cursor args; expand the parent query's
+	// key to match by adding any missing cursor args as null in canonical order
+	// (first, after, last, before) followed by the remaining user-defined args.
+	if isSinglePage {
+		cursorNames := []string{"first", "after", "last", "before"}
+		existing := map[string]*collected.Argument{}
+		for _, arg := range args {
+			existing[arg.Name] = arg
+		}
+
+		var ordered []*collected.Argument
+		for _, name := range cursorNames {
+			if arg, ok := existing[name]; ok {
+				ordered = append(ordered, arg)
+			} else {
+				// missing cursor arg — add it as null so the key matches the pagination query
+				ordered = append(ordered, &collected.Argument{Name: name, Value: nil})
+			}
+		}
+		for _, arg := range args {
+			isCursor := false
+			for _, name := range cursorNames {
+				if arg.Name == name {
+					isCursor = true
+					break
+				}
+			}
+			if !isCursor {
+				ordered = append(ordered, arg)
+			}
+		}
+		args = ordered
+	}
+
 	paginationSuffix := ""
-	if paginatedMode != nil && *paginatedMode == graphql.PaginationModeInfinite {
+	if useStableKey {
 		paginationSuffix = "::paginated"
 	}
 
@@ -941,9 +981,11 @@ func stringifyFieldSelection(
 
 	// figure out the pagination state
 	var paginatedMode *string
+	paginatedTargetType := "Query"
 	if selection.List != nil {
 		if selection.List.Paginated {
 			paginatedMode = &selection.List.Mode
+			paginatedTargetType = selection.List.TargetType
 		}
 		updates = []string{}
 		// SinglePage pagination uses replace semantics — never accumulate edges
@@ -1284,7 +1326,7 @@ func stringifyFieldSelection(
 		indent4,
 		selection.FieldType,
 		indent4,
-		keyField(selection, paginatedMode),
+		keyField(selection, paginatedMode, paginatedTargetType),
 		updateStr,
 		nullable,
 		directives,
