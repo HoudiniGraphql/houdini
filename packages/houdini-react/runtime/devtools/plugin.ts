@@ -1,3 +1,5 @@
+/// <reference path="../vite-env.d.ts" />
+
 import type { ConfigFile } from 'houdini'
 import type { ClientPlugin } from 'houdini/runtime/client'
 import type { DocumentArtifact } from 'houdini/runtime'
